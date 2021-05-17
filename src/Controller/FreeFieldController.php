@@ -14,7 +14,7 @@ use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;

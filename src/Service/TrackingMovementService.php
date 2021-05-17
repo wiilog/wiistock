@@ -546,4 +546,61 @@ class TrackingMovementService
         $this->persistSubEntities($entityManager, $mouvementDepose);
         $entityManager->persist($mouvementDepose);
     }
+
+    /**
+     * @param $handle
+     * @param CSVExportService $CSVExportService
+     * @param FreeFieldService $freeFieldService
+     * @param array $movement
+     * @param array $attachement
+     * @param array $freeFieldsConfig
+     */
+    public function putMovementLine($handle,
+                                    CSVExportService $CSVExportService,
+                                    FreeFieldService $freeFieldService,
+                                    array $movement,
+                                    array $attachement,
+                                    array $freeFieldsConfig)
+    {
+
+        $attachementName = $attachement[$movement['id']] ?? ' ' ;
+
+        if(!empty($movement['numeroArrivage'])) {
+           $origine =  'Arrivage-' . $movement['numeroArrivage'];
+        }
+        if(!empty($movement['receptionNumber'])) {
+            $origine = 'Reception-' . $movement['receptionNumber'];
+        }
+        if(!empty($movement['dispatchNumber'])) {
+            $origine = 'Acheminement-' . $movement['dispatchNumber'];
+        }
+        if(!empty($movement['transferNumber'])) {
+            $origine = 'transfert-' . $movement['transferNumber'];
+        }
+
+        $data = [
+            FormatHelper::datetime($movement['datetime']),
+            $movement['code'],
+            $movement['locationLabel'],
+            $movement['quantity'],
+            $movement['typeName'],
+            $movement['operatorUsername'],
+            $movement['commentaire'],
+            $attachementName,
+            $origine ?? ' ',
+            $movement['numeroCommandeListArrivage'] && !empty($movement['numeroCommandeListArrivage'])
+                        ? implode(', ', $movement['numeroCommandeListArrivage'])
+                        : ($movement['orderNumber'] ?: ''),
+            $movement['isUrgent'] ? 'oui' : 'non',
+
+        ];
+
+        foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
+            $data[] = $freeFieldService->serializeValue([
+                'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
+                'valeur' => $movement['freeFields'][$freeFieldId] ?? ''
+            ]);
+        }
+        $CSVExportService->putLine($handle, $data);
+    }
 }

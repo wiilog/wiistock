@@ -2,6 +2,7 @@ const MAX_UPLOAD_FILE_SIZE = 10000000;
 const MAX_IMAGE_PIXELS = 1000000;
 const ALLOWED_IMAGE_EXTENSIONS = ['PNG', 'png', 'JPEG', 'jpeg', 'JPG','jpg','svg'];
 
+const PAGE_PURCHASE_REQUEST = 'rpurchase';
 const PAGE_TRANSFER_REQUEST = 'rtransfer';
 const PAGE_TRANSFER_ORDER = 'otransfer';
 const PAGE_DEM_COLLECTE = 'dcollecte';
@@ -399,11 +400,18 @@ function clearModal(modal) {
         .find('.modal-body')
         .find('.ajax-autocomplete, .ajax-autocomplete-location, .ajax-autocomplete-fournisseur, .ajax-autocomplete-transporteur, .select2, .select2-free, .ajax-autocomplete-user');
     selects.each(function () {
-        if (!$(this).hasClass('no-clear')) {
-            if ($(this).hasClass('needs-default')) {
-                $(this).val($(this).data('init')).trigger('change');
+        const $this = $(this);
+
+        if (!$this.hasClass('no-clear')) {
+            if ($this.hasClass('needs-default')) {
+                if($this.is(`[data-default-all]`)) {
+                    $this.find(`option`).prop('selected', true);
+                    $this.trigger('change');
+                } else {
+                    $this.val($this.data('init')).trigger('change');
+                }
             } else {
-                $(this).val(null).trigger('change');
+                $this.val(null).trigger('change');
             }
         }
     });

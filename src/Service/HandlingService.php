@@ -13,7 +13,7 @@ use App\Entity\ParametrageGlobal;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use DateTime;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;

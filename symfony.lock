@@ -620,6 +620,9 @@
     "webmozart/assert": {
         "version": "1.9.1"
     },
+    "wiilog/common": {
+        "version": "dev-master"
+    },
     "willdurand/jsonp-callback-validator": {
         "version": "v1.1.0"
     },

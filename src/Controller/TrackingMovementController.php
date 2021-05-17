@@ -499,17 +499,16 @@ class TrackingMovementController extends AbstractController
      */
     public function getTrackingMovementCSV(Request $request,
                                            CSVExportService $CSVExportService,
+                                           TrackingMovementService $trackingMovementService,
                                            FreeFieldService $freeFieldService,
                                            EntityManagerInterface $entityManager): Response
     {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
 
-        try {
-            $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
-            $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
-        } catch (Throwable $throwable) {
-        }
+        $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
+        $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
+
 
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
             $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
@@ -517,53 +516,45 @@ class TrackingMovementController extends AbstractController
 
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::MVT_TRACA]);
 
-            $trackingMovements = $trackingMovementRepository->getByDates($dateTimeMin, $dateTimeMax);
-            $attachmentsNameByTracking = $attachmentRepository->getNameGroupByMovements();
+            if (!empty($dateTimeMin) && !empty($dateTimeMax)) {
+                $csvHeader = array_merge([
+                    'date',
+                    'colis',
+                    'emplacement',
+                    'quantité',
+                    'type',
+                    'opérateur',
+                    'commentaire',
+                    'pieces jointes',
+                    'origine',
+                    'numéro de commande',
+                    'urgence'
+                ], $freeFieldsConfig['freeFieldsHeader']);
 
-            $csvHeader = array_merge([
-                'date',
-                'colis',
-                'emplacement',
-                'quantité',
-                'type',
-                'opérateur',
-                'commentaire',
-                'pieces jointes',
-                'origine',
-                'numéro de commande',
-                'urgence'
-            ], $freeFieldsConfig['freeFieldsHeader']);
+                $trackingMovements = $trackingMovementRepository->iterateByDates($dateTimeMin, $dateTimeMax);
+                $attachmentsNameByTracking = $attachmentRepository->getNameGroupByMovements();
 
-            return $CSVExportService->createBinaryResponseFromData(
-                'export_mouvement_traca.csv',
-                $trackingMovements,
-                $csvHeader,
-                function ($movement) use ($attachmentsNameByTracking, $freeFieldsConfig, $freeFieldService) {
-                    $row = [];
-                    $row[] = $movement['datetime'] ? $movement['datetime']->format('d/m/Y H:i') : '';
-                    $row[] = $movement['code'];
-                    $row[] = $movement['locationLabel'] ?: '';
-                    $row[] = $movement['quantity'] ?: '';
-                    $row[] = $movement['typeName'] ?: '';
-                    $row[] = $movement['operatorUsername'] ?: '';
-                    $row[] = $movement['commentaire'] ? strip_tags($movement['commentaire']) : '';
-                    $row[] = $attachmentsNameByTracking[(int)$movement['id']] ?? '';
-                    $row[] = $movement['numeroArrivage'] ?: $movement['receptionNumber'] ?: '';
-                    $row[] = $movement['numeroCommandeListArrivage'] && !empty($movement['numeroCommandeListArrivage'])
-                        ? implode(', ', $movement['numeroCommandeListArrivage'])
-                        : ($movement['orderNumber'] ?: '');
-                    $row[] = !empty($movement['isUrgent']) ? 'oui' : 'non';
-
-                    foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
-                        $row[] = $freeFieldService->serializeValue([
-                            'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
-                            'valeur' => $movement['freeFields'][$freeFieldId] ?? ''
-                        ]);
+            }
+            return $CSVExportService->streamResponse(
+                function ($output) use ($trackingMovements,
+                                        $attachmentsNameByTracking,
+                                        $CSVExportService,
+                                        $trackingMovementService,
+                                        $freeFieldsConfig,
+                                        $freeFieldService)
+                {
+                     foreach ($trackingMovements as $movement) {
+                        $trackingMovementService->putMovementLine($output,
+                                                                  $CSVExportService,
+                                                                  $freeFieldService,
+                                                                  $movement,
+                                                                  $attachmentsNameByTracking,
+                                                                  $freeFieldsConfig);
                     }
-
-                    return [$row];
-                }
+                }, 'Export_Mouvement_Traca.csv',
+                $csvHeader
             );
+
         } else {
             throw new BadRequestHttpException();
         }

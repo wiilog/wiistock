@@ -55,11 +55,19 @@
                 {% endif %}
             {% endif %}
             {% if modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
-                <a onclick="editRow($(this), Routing.generate('demandeLivraison_api_edit', true), $('#modalEditDemande'), $('#submitEditdemande'), true, '#modalEditDemande .editor-container-edit')"
+                <a onclick="
+                        editRow($(this),
+                        Routing.generate('demandeLivraison_api_edit', true),
+                        $('#modalEditDemande'),
+                        $('#submitEditdemande'),
+                        true,
+                        '#modalEditDemande .editor-container-edit', false,
+                        () => InitModal($('#modalEditDemande'), $('#submitEditDemande'), Routing.generate('demande_edit', true))
+                );"
                    data-id='{{ demande.id }}'
                    data-target='#modalEditDemande'
                    data-toggle='modal'
-                   class="dropdown-item pointer">
+                   class="dropdown-item pointer edit-button">
                     <i class="fas fa-pencil-alt mr-2" aria-hidden="true"></i>Modifier
                 </a>
             {% endif %}
@@ -70,4 +78,8 @@
             {% endif %}
         </div>
     </div>
+{% endblock %}
+
+{% block modals %}
+    {% include 'demande/modalEditDemande.html.twig' %}
 {% endblock %}

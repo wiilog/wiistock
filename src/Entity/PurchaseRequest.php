@@ -8,7 +8,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use App\Repository\PurchaseRequestRepository;
 use Doctrine\ORM\Mapping as ORM;
-use DateTime;
+use App\Helper\FormatHelper;
 
 /**
  * @ORM\Entity(repositoryClass=PurchaseRequestRepository::class)
@@ -41,22 +41,22 @@ class PurchaseRequest
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private ?DateTime $creationDate = null;
+    private ?DateTimeInterface $creationDate = null;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private ?DateTime $validationDate = null;
+    private ?DateTimeInterface $validationDate = null;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private ?DateTime $processingDate = null;
+    private ?DateTimeInterface $processingDate = null;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private ?DateTime $considerationDate = null;
+    private ?DateTimeInterface $considerationDate = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=Utilisateur::class, inversedBy="purchaseRequestRequesters")
@@ -78,7 +78,6 @@ class PurchaseRequest
 
     /**
      * @ORM\OneToMany(targetEntity=PurchaseRequestLine::class, mappedBy="purchaseRequest")
-     * @ORM\JoinColumn(nullable=true)
      */
     private ?Collection $purchaseRequestLines;
 
@@ -101,12 +100,22 @@ class PurchaseRequest
     public function setRequester(?Utilisateur $requester): self
     {
         if($this->requester && $this->requester !== $requester){
-            $this->requester->removePurchaseRequestRequesters($this);
+            $this->requester->removePurchaseRequestRequester($this);
         }
         $this->requester = $requester;
         if($requester) {
-            $requester->addPurchaseRequestRequesters($this);
+            $requester->addPurchaseRequestRequester($this);
         }
+
+        return $this;
+    }
+
+    public function getNumber(): ?string {
+        return $this->number;
+    }
+
+    public function setNumber(?string $number): self {
+        $this->number = $number;
 
         return $this;
     }
@@ -131,11 +140,11 @@ class PurchaseRequest
     public function setBuyer(?Utilisateur $buyer): self
     {
         if($this->buyer && $this->buyer !== $buyer){
-            $this->buyer->removePurchaseRequestBuyers($this);
+            $this->buyer->removePurchaseRequestBuyer($this);
         }
         $this->buyer = $buyer;
         if($buyer) {
-            $buyer->addPurchaseRequestBuyers($this);
+            $buyer->addPurchaseRequestBuyer($this);
         }
 
         return $this;
@@ -164,7 +173,7 @@ class PurchaseRequest
         return $this->creationDate;
     }
 
-    public function setCreationDate(?DateTime $creationDate): self
+    public function setCreationDate(?DateTimeInterface $creationDate): self
     {
         $this->creationDate = $creationDate;
 
@@ -246,21 +255,16 @@ class PurchaseRequest
         return $this;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getNumber(): ?string
-    {
-        return $this->number;
-    }
-
-    /**
-     * @param string|null $number
-     * @return self
-     */
-    public function setNumber(?string $number): self
-    {
-        $this->number = $number;
-        return $this;
+    public function serialize(): array {
+        return [
+            'number' => $this->getNumber(),
+            'status' => FormatHelper::status($this->getStatus()),
+            'requester' => FormatHelper::user($this->getRequester()),
+            'buyer' => FormatHelper::user($this->getBuyer()),
+            'creationDate' => FormatHelper::datetime($this->getCreationDate()),
+            'validationDate' => FormatHelper::datetime($this->getValidationDate()),
+            'considerationDate' => FormatHelper::datetime($this->getConsiderationDate()),
+            'comment' => FormatHelper::html($this->getComment()),
+        ];
     }
 }

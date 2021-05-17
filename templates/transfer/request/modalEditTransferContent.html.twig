@@ -5,7 +5,15 @@
     </div>
 </div>
 
-{% if transfer.origin is defined and transfer.origin != null %}
+{% if not transfer.filled %}
+    <div class="form-group row">
+        <label class="required col-12">Origine</label>
+        <div class="col-12">
+            <select name="origin" required="required" class="form-control w-100 data ajax-autocomplete-location-edit">
+            </select>
+        </div>
+    </div>
+{% elseif transfer.origin is defined and transfer.origin != null %}
     <div class="form-group row">
         <label class="required col-12">Origine</label>
         <div class="col-12">

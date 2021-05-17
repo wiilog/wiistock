@@ -4,7 +4,7 @@ namespace App\Entity;
 
 use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
-use DateTime;
+use App\Repository\PurchaseRequestLineRepository;
 
 /**
  * @ORM\Entity(repositoryClass=PurchaseRequestLineRepository::class)
@@ -24,19 +24,19 @@ class PurchaseRequestLine
     private ?int $requestedQuantity = null;
 
     /**
-     * @ORM\Column(type="datetime")
+     * @ORM\Column(type="datetime", nullable=true)
      */
     private ?DateTimeInterface $orderDate = null;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private ?DateTime $expectedDate= null;
+    private ?DateTimeInterface $expectedDate = null;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="integer", nullable=true)
      */
-    private ? int $orderNumber = null;
+    private ?int $orderNumber = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=ReferenceArticle::class, inversedBy="purchaseRequestLines")
@@ -46,16 +46,18 @@ class PurchaseRequestLine
 
     /**
      * @ORM\ManyToOne(targetEntity=PurchaseRequest::class, inversedBy="purchaseRequestLines")
+     * @ORM\JoinColumn(nullable=false)
      */
     private ?PurchaseRequest $purchaseRequest = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=Fournisseur::class, inversedBy="purchaseRequestLines")
+     * @ORM\JoinColumn(nullable=true)
      */
     private ?Fournisseur $supplier = null;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Reception::class, inversedBy="purchaseRequestLine")
+     * @ORM\ManyToOne(targetEntity=Reception::class, inversedBy="purchaseRequestLines")
      */
     private ?Reception $reception = null;
 
@@ -156,6 +158,7 @@ class PurchaseRequestLine
         }
 
         $this->supplier = $supplier;
+
         if($supplier) {
             $supplier->addPurchaseRequestLine($this);
         }
@@ -172,6 +175,7 @@ class PurchaseRequestLine
         }
 
         $this->reception = $reception;
+
         if($reception) {
             $reception->addPurchaseRequestLine($this);
         }

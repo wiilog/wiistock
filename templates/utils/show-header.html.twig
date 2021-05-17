@@ -26,4 +26,8 @@
             </div>
         </div>
     {% endif %}
+    {% set modals = block('modals') is defined ? block('modals') %}
+    {% if modals %}
+        {{ modals|raw }}
+    {% endif %}
 </div>

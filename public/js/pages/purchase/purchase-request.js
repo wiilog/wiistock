@@ -3,9 +3,7 @@ $(function(){
 });
 
 function createPurchaseRequest(){
-    $.post(Routing.generate('purchase_request_new')).then(function(data) {
-        if(data.success){
-            showBSAlert(data.msg, 'success');
-        }
-    })
+    $.post(Routing.generate('purchase_request_new'), function(data) {
+        showBSAlert(data.msg, data.success ? 'success' : 'danger');
+    });
 }

@@ -141,9 +141,8 @@ class Reception extends FreeFieldEntity
 
     /**
      * @ORM\OneToMany(targetEntity=PurchaseRequestLine::class, mappedBy="reception")
-     * @ORM\JoinColumn(nullable=true)
      */
-    private ?Collection $purchaseRequestLine;
+    private ?Collection $purchaseRequestLines;
 
     public function __construct()
     {
@@ -152,7 +151,7 @@ class Reception extends FreeFieldEntity
         $this->mouvements = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
         $this->attachments = new ArrayCollection();
-        $this->purchaseRequestLine = new ArrayCollection();
+        $this->purchaseRequestLines = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -509,14 +508,14 @@ class Reception extends FreeFieldEntity
         return $this;
     }
 
-    public function getPurchaseRequestLine(): Collection
+    public function getPurchaseRequestLines(): Collection
     {
         return $this->request;
     }
 
     public function addPurchaseRequestLine(PurchaseRequestLine $purchaseRequestLines): self {
-        if (!$this->purchaseRequestLine->contains($purchaseRequestLines)) {
-            $this->purchaseRequestLine[] = $purchaseRequestLines;
+        if (!$this->purchaseRequestLines->contains($purchaseRequestLines)) {
+            $this->purchaseRequestLines[] = $purchaseRequestLines;
             $purchaseRequestLines->setReception($this);
         }
 
@@ -524,7 +523,7 @@ class Reception extends FreeFieldEntity
     }
 
     public function removePurchaseRequestLine(PurchaseRequestLine $purchaseRequestLines): self {
-        if ($this->purchaseRequestLine->removeElement($purchaseRequestLines)) {
+        if ($this->purchaseRequestLines->removeElement($purchaseRequestLines)) {
             if ($purchaseRequestLines->getReception() === $this) {
                 $purchaseRequestLines->setReception(null);
             }
@@ -533,14 +532,14 @@ class Reception extends FreeFieldEntity
         return $this;
     }
 
-    public function setPurchaseRequestLine(?array $purchaseRequestLine): self {
-        foreach($this->getPurchaseRequestLine()->toArray() as $purchaseRequestLines) {
-            $this->removePurchaseRequestLine($purchaseRequestLines);
+    public function setPurchaseRequestLines(?array $purchaseRequestLines): self {
+        foreach($this->getPurchaseRequestLines()->toArray() as $purchaseRequestLine) {
+            $this->removePurchaseRequestLine($purchaseRequestLine);
         }
 
-        $this->purchaseRequestLine = new ArrayCollection();
-        foreach($purchaseRequestLine as $purchaseRequestLines) {
-            $this->addPurchaseRequestLine($purchaseRequestLines);
+        $this->purchaseRequestLines = new ArrayCollection();
+        foreach($purchaseRequestLines as $purchaseRequestLine) {
+            $this->addPurchaseRequestLine($purchaseRequestLine);
         }
 
         return $this;

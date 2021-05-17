@@ -3,8 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\PurchaseRequestLine;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use DateTime;
+use Doctrine\ORM\EntityRepository;
 
 /**
  * @method PurchaseRequestLine|null find($id, $lockMode = null, $lockVersion = null)
@@ -12,39 +12,25 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method PurchaseRequestLine[]    findAll()
  * @method PurchaseRequestLine[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class PurchaseRequestLineRepository extends ServiceEntityRepository
-{
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, PurchaseRequestLine::class);
-    }
+class PurchaseRequestLineRepository extends EntityRepository {
 
-    // /**
-    //  * @return PurchaseRequestLine[] Returns an array of PurchaseRequestLine objects
-    //  */
-    /*
-    public function findByExampleField($value)
-    {
-        return $this->createQueryBuilder('p')
-            ->andWhere('p.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('p.id', 'ASC')
-            ->setMaxResults(10)
+    public function iterateByPurchaseRequest(DateTime $dateMin,
+                                             DateTime $dateMax): iterable {
+        return $this->createQueryBuilder('purchaseRequestLine')
+            ->select('join_purchaseRequest.id AS purchaseRequestId')
+            ->addSelect('join_referenceArticle.reference AS reference')
+            ->addSelect('join_referenceArticle.barCode AS barcode')
+            ->addSelect('join_referenceArticle.libelle AS label')
+            ->join('purchaseRequestLine.reference', 'join_referenceArticle')
+            ->join('purchaseRequestLine.purchaseRequest', 'join_purchaseRequest')
+            ->where("join_purchaseRequest.creationDate BETWEEN :dateMin AND :dateMax")
+            ->orderBy('join_purchaseRequest.creationDate', 'DESC')
+            ->addOrderBy('join_purchaseRequest.id', 'DESC')
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ])
             ->getQuery()
-            ->getResult()
-        ;
+            ->toIterable();
     }
-    */
-
-    /*
-    public function findOneBySomeField($value): ?PurchaseRequestLine
-    {
-        return $this->createQueryBuilder('p')
-            ->andWhere('p.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
 }

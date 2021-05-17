@@ -27,8 +27,18 @@
                     <a data-id='{{ collecte.id }}'
                        data-target='#modalEditCollecte'
                        data-toggle='modal'
-                       onclick="editRow($(this), Routing.generate('collecte_api_edit', true), $('#modalEditCollecte'), $('#submitEditCollecte'), true, '#modalEditCollecte .editor-container-edit')"
-                       class="dropdown-item">
+                       onclick="
+                       editRow(
+                           $(this),
+                           Routing.generate('collecte_api_edit', true),
+                           $('#modalEditCollecte'),
+                           $('#submitEditCollecte'),
+                           true,
+                           '#modalEditCollecte .editor-container-edit',
+                           false,
+                           () => InitModal($('#modalEditCollecte'), $('#submitEditCollecte'), Routing.generate('collecte_edit', true))
+                           );"
+                       class="dropdown-item edit-button">
                         <i class="fa fa-pen mr-2"></i>Modifier
                     </a>
                 {% endif %}
@@ -64,6 +74,10 @@
             {% endif %}
         {% endif %}
     </div>
+{% endblock %}
+
+{% block modals %}
+    {% include 'collecte/modalEditCollecte.html.twig' %}
 {% endblock %}
 
 

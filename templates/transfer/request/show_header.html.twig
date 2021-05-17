@@ -31,10 +31,19 @@
             {% endif %}
             {% if hasRightEdit and transfer.order is null %}
                 <a data-id='{{ transfer.id }}'
-                   onclick="editRow($(this), Routing.generate('transfer_request_api_edit', true), $('#modalEditTransferRequest'), $('#submitEditTransferRequest'), true, '#modalEditTransferRequest .editor-container-edit')"
+                   onclick="editRow(
+                       $(this),
+                       Routing.generate('transfer_request_api_edit', true),
+                       $('#modalEditTransferRequest'),
+                       $('#submitEditTransferRequest'),
+                       true,
+                       '#modalEditTransferRequest .editor-container-edit',
+                       false,
+                       () => InitModal($('#modalEditTransferRequest'), $('#submitEditTransferRequest'), Routing.generate('transfer_request_edit', true))
+                    )"
                    data-target='#modalEditTransferRequest'
                    data-toggle='modal'
-                   class="dropdown-item">
+                   class="dropdown-item edit-button">
                     <i class="fa fa-pen mr-2"></i>Modifier
                 </a>
             {% endif %}
@@ -46,6 +55,10 @@
             {% endif %}
         </div>
     </div>
+{% endblock %}
+
+{% block modals %}
+    {% include "transfer/request/edit.html.twig" %}
 {% endblock %}
 
 

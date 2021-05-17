@@ -18,7 +18,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use App\Helper\FormatHelper;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\DateService;

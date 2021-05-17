@@ -55,13 +55,13 @@
             </div>
         </div>
         <button class="btn btn-secondary" id="cannotValidate" data-target='#modalCannotValidate' data-toggle='modal' hidden></button>
+        <input type="hidden" id="filled" value="{{ collecte.filled }}"/>
     </div>
 
     {% include "collecte/modalNewArticle.html.twig" %}
     {% include "collecte/modalDeleteArticle.html.twig" %}
     {% include "collecte/modalEditArticle.html.twig" %}
     {% include "collecte/modalDeleteCollecte.html.twig" %}
-    {% include "collecte/modalEditCollecte.html.twig" %}
     {% include 'collecte/modalCannotValidate.html.twig' %}
     {% include 'reference_article/modalShowRefArticle.html.twig' %}
     {% include 'article/modalShowArticle.html.twig' %}

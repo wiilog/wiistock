@@ -1,0 +1,25 @@
+{% for ref in refs %}
+    <div class="row">
+        <div class="col-6 form-group">
+            <label for="">Référence</label>
+            <input type="text" class="form-control data" name="{{ 'reference' ~ loop.index0 }}" value="{{ ref.reference }}" disabled>
+        </div>
+        <div class="col-6 form-group">
+            <label for="">Quantité à collecter*</label>
+            <input type="number" class="form-control data needed" name="{{ 'quantity' ~ loop.index0 }}">
+        </div>
+    </div>
+{% endfor %}
+{% if refs|length > 0 %}
+<div class="row">
+    <div class="col-12 form-group">
+        <label for="">Mes collectes (laisser vide pour création d'une demande)</label>
+        <select name="collect" class="form-control data">
+            <option value=""></option>
+            {% for collect in collects %}
+                <option value="{{ collect.id }}">{{ collect.numero }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+{% endif %}

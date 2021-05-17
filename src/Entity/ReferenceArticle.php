@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CommentTrait;
+use App\Helper\Stream;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -218,13 +219,12 @@ class ReferenceArticle extends FreeFieldEntity
     private $buyer;
 
     /**
-     * @ORM\ManyToMany(targetEntity=Cart::class, mappedBy="refArticle")
+     * @ORM\ManyToMany(targetEntity=Cart::class, mappedBy="references")
      */
     private $carts;
 
     /**
      * @ORM\OneToMany(targetEntity=PurchaseRequestLine::class, mappedBy="reference")
-     * @ORM\JoinColumn(nullable=true)
      */
     private ?Collection $purchaseRequestLines;
 
@@ -1030,7 +1030,7 @@ class ReferenceArticle extends FreeFieldEntity
     public function removeCart(Cart $cart): self
     {
         if ($this->carts->removeElement($cart)) {
-            $cart->removeRefArticle($this);
+            $cart->removeReference($this);
         }
 
         return $this;
@@ -1039,7 +1039,7 @@ class ReferenceArticle extends FreeFieldEntity
     /**
      * @return Collection|ReferenceArticle[]
      */
-    public function getPurchaseRequestLine(): ?PurchaseRequestLine
+    public function getPurchaseRequestLines(): ?PurchaseRequestLine
     {
         return $this->purchaseRequestLines;
     }
@@ -1063,17 +1063,30 @@ class ReferenceArticle extends FreeFieldEntity
         return $this;
     }
 
-    public function setPurchaseRequestLine(?array $purchaseRequestLines): self {
-        foreach($this->getPurchaseRequestLine()->toArray() as $purchaseRequestLine) {
+    public function setPurchaseRequestLines(?array $purchaseRequestLines): self {
+        foreach($this->getPurchaseRequestLines()->toArray() as $purchaseRequestLine) {
             $this->removePurchaseRequestLine($purchaseRequestLine);
         }
 
-        $this->purchaseRequestLine = new ArrayCollection();
+        $this->purchaseRequestLines = new ArrayCollection();
         foreach($purchaseRequestLines as $purchaseRequestLine) {
             $this->addPurchaseRequestLine($purchaseRequestLine);
         }
 
         return $this;
+    }
+
+    public function getAssociatedArticles(): array
+    {
+        return $this->typeQuantite === self::TYPE_QUANTITE_REFERENCE
+            ? []
+            : Stream::from($this->articlesFournisseur)
+            ->map(function(ArticleFournisseur $articleFournisseur) {
+                return $articleFournisseur->getArticles()->toArray();
+            })
+            ->flatten()
+            ->unique()
+            ->toArray();
     }
 
 }
