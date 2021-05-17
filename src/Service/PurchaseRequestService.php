@@ -3,46 +3,36 @@
 
 namespace App\Service;
 
-use App\Entity\Action;
-use App\Entity\CategoryType;
-use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
-use App\Entity\Menu;
 use App\Entity\PurchaseRequest;
 use App\Entity\Statut;
-use App\Entity\TransferRequest;
-use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Twig\Environment as Twig_Environment;
 
 class PurchaseRequestService
 {
-    private $templating;
-    private $router;
-    private $user;
-    private $em;
-    private $userService;
-    private $uniqueNumberService;
+    /** @Required */
+    public Twig_Environment $templating;
 
-    public function __construct(TokenStorageInterface $tokenStorage,
-                                UniqueNumberService $uniqueNumberService,
-                                RouterInterface $router,
-                                UserService $userService,
-                                EntityManagerInterface $entityManager,
-                                Twig_Environment $templating) {
-        $this->templating = $templating;
-        $this->uniqueNumberService = $uniqueNumberService;
-        $this->em = $entityManager;
-        $this->router = $router;
+    /** @Required */
+    public RouterInterface $router;
+
+    /** @Required */
+    public EntityManagerInterface $em;
+
+    /** @Required */
+    public UniqueNumberService $uniqueNumberService;
+
+    private $user;
+
+    public function __construct(TokenStorageInterface $tokenStorage) {
         $this->user = $tokenStorage->getToken()->getUser();
-        $this->userService = $userService;
     }
 
     public function getDataForDatatable($params = null)
