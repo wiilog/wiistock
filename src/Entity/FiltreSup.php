@@ -43,6 +43,7 @@ class FiltreSup
     const FIELD_ALERT = 'alert';
 	const FIELD_DISPATCH_NUMBER = 'dispatchNumber';
 
+	const PAGE_PURCHASE_REQUEST = 'rpurchase';
 	const PAGE_TRANSFER_REQUEST = 'rtransfer';
 	const PAGE_TRANSFER_ORDER = 'otransfer';
 	const PAGE_DEM_COLLECTE = 'dcollecte';

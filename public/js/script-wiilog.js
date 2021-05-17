@@ -2,6 +2,7 @@ const MAX_UPLOAD_FILE_SIZE = 10000000;
 const MAX_IMAGE_PIXELS = 1000000;
 const ALLOWED_IMAGE_EXTENSIONS = ['PNG', 'png', 'JPEG', 'jpeg', 'JPG','jpg','svg'];
 
+const PAGE_PURCHASE_REQUEST = 'rpurchase';
 const PAGE_TRANSFER_REQUEST = 'rtransfer';
 const PAGE_TRANSFER_ORDER = 'otransfer';
 const PAGE_DEM_COLLECTE = 'dcollecte';
