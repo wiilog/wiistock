@@ -27,6 +27,9 @@ class ReferenceArticle extends FreeFieldEntity
     const STOCK_MANAGEMENT_FEFO = 'FEFO';
     const STOCK_MANAGEMENT_FIFO = 'FIFO';
 
+    const PURCHASE_REQUEST_IN_PROGRESS = "En cours d'achat";
+    const WAIT_FOR_RECEPTION= "Attente reception";
+
     use AttachmentTrait;
     use CommentTrait;
 
@@ -222,6 +225,11 @@ class ReferenceArticle extends FreeFieldEntity
      * @ORM\ManyToMany(targetEntity=Cart::class, mappedBy="references")
      */
     private $carts;
+
+    /**
+     * @ORM\Column(type="string", nullable=true)
+     */
+    private $purchaseRequestState;
 
     /**
      * @ORM\OneToMany(targetEntity=PurchaseRequestLine::class, mappedBy="reference")
@@ -1089,4 +1097,14 @@ class ReferenceArticle extends FreeFieldEntity
             ->toArray();
     }
 
+
+    public function getPurchaseRequestState(): ?string
+    {
+        return $this->purchaseRequestState;
+    }
+
+    public function setPurchaseRequestState(?string $purchaseRequestState)
+    {
+        $this->purchaseRequestState = $purchaseRequestState;
+    }
 }

@@ -19,7 +19,7 @@ use App\Entity\Statut;
 use App\Entity\TransferRequest;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\PhpUnit\TextUI\Command;

@@ -211,6 +211,7 @@ class RefArticleDataService {
                 ReferenceArticle::STOCK_MANAGEMENT_FEFO,
                 ReferenceArticle::STOCK_MANAGEMENT_FIFO
             ],
+            'purchaseRequestState' => $refArticle->getPurchaseRequestState(),
             'managers' => $refArticle->getManagers()
                 ->map(function(Utilisateur $manager) {
                     $managerId = $manager->getId();
@@ -364,6 +365,19 @@ class RefArticleDataService {
             ->unique()
             ->toArray();
 
+        $receptionInProgress = null;
+        $purchaseRequestState= null;
+
+        if ($refArticle->getPurchaseRequestState()) {
+
+            if($refArticle->getPurchaseRequestState() ===  ReferenceArticle::PURCHASE_REQUEST_IN_PROGRESS ) {
+            $purchaseRequestState = 'inProgressPurchaseRequest';
+            }
+            if($refArticle->getPurchaseRequestState() ===  ReferenceArticle::WAIT_FOR_RECEPTION ) {
+                $receptionInProgress = 'waitForReception';
+            }
+        }
+
         if(!$refArticle->getAttachments()->isEmpty()) {
             $attachmentsCounter = $refArticle->getAttachments()->count();
             $sAttachments = $attachmentsCounter > 1 ? 's' : '';
@@ -407,6 +421,9 @@ class RefArticleDataService {
                 "reference_id" => $refArticle->getId(),
                 "active" => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF : 0,
             ]),
+            "purchaseRequestState" =>  $purchaseRequestState ?? null ,
+            "receptionInProgress" =>   $receptionInProgress ?? null,
+            "colorClass" => $purchaseRequestState ? 'table-light-orange' : ($receptionInProgress ? 'table-light-blue' : null),
         ];
 
         foreach($freeFields as $freeField) {
