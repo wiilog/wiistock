@@ -59,13 +59,13 @@ class TransferRequest implements Serializable {
 
     /**
      * @ORM\ManyToOne(targetEntity=Emplacement::class)
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\JoinColumn(nullable=true)
      */
     private $destination;
 
     /**
      * @ORM\ManyToOne(targetEntity=Emplacement::class)
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\JoinColumn(nullable=true)
      */
     private $origin;
 

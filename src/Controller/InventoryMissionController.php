@@ -10,7 +10,7 @@ use App\Entity\Menu;
 use App\Entity\InventoryMission;
 
 use App\Entity\ReferenceArticle;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use App\Service\CSVExportService;
 use App\Service\InventoryEntryService;
 use App\Service\InventoryService;

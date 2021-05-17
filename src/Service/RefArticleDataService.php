@@ -22,7 +22,7 @@ use App\Entity\Utilisateur;
 use App\Entity\CategorieCL;
 use App\Entity\ArticleFournisseur;
 use App\Helper\FormatHelper;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use App\Repository\FiltreRefRepository;
 use DateTime;
 use DateTimeZone;
@@ -319,9 +319,12 @@ class RefArticleDataService {
 
         $refArticle->setStockManagement($data['stockManagement'] ?? null);
 
+
         $refArticle->getManagers()->clear();
-        foreach (explode(",", $data["managers"]) as $manager) {
-            $refArticle->addManager($userRepository->find($manager));
+        if (!empty($data["managers"])) {
+            foreach (explode(",", $data["managers"]) as $manager) {
+                $refArticle->addManager($userRepository->find($manager));
+            }
         }
 
         $entityManager->flush();
@@ -424,7 +427,7 @@ class RefArticleDataService {
                                    bool $fromNomade,
                                    EntityManagerInterface $entityManager,
                                    Demande $demande,
-                                   FreeFieldService $champLibreService) {
+                                   ?FreeFieldService $champLibreService, $editRef = true) {
         $resp = true;
         $articleRepository = $entityManager->getRepository(Article::class);
         $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
@@ -443,7 +446,7 @@ class RefArticleDataService {
                 $ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantity-to-pick"], 0)); // protection contre quantités négatives
             }
 
-            if(!$fromNomade) {
+            if(!$fromNomade && $editRef) {
                 $this->editRefArticle($referenceArticle, $data, $user, $champLibreService);
             }
         } else if($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {

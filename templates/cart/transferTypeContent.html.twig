@@ -1,0 +1,41 @@
+{% for ref in refs %}
+    <div class="row">
+        {% if ref.articles|length > 0 %}
+            <div class="col-6 form-group">
+                <label for="">Référence</label>
+                <input type="text" class="form-control" value="{{ ref.reference }}" disabled>
+            </div>
+            <div class="col-5 form-group">
+                <label for="">Code article*</label>
+                <select name="{{ 'article' ~ loop.index0 }}" class="form-control data needed" onchange="onArticleSelectChange($(this))">
+                    <option value=""></option>
+                    {% for art in ref.articles %}
+                        <option value="{{ art.id }}" data-quantity="{{ art.quantite }}">{{ art.barCode }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-1 form-group">
+                <label for="">Quantité</label>
+                <input type="text" class="form-control article-quantity" disabled>
+            </div>
+        {% else %}
+            <div class="col-6 form-group">
+                <label for="">Référence</label>
+                <input type="text" class="form-control data" name="{{ 'reference' ~ loop.index0 }}" value="{{ ref.reference }}" disabled>
+            </div>
+        {% endif %}
+    </div>
+{% endfor %}
+{% if refs|length > 0 %}
+<div class="row">
+    <div class="col-12 form-group">
+        <label for="">Mes transferts (laisser vide pour création d'une demande)</label>
+        <select name="transfer" class="form-control data">
+            <option value=""></option>
+            {% for transfer in transfers %}
+                <option value="{{ transfer.id }}">{{ transfer.number }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+{% endif %}

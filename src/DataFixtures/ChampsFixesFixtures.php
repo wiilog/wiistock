@@ -9,7 +9,7 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 
 class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
 

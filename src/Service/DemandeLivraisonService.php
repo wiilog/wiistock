@@ -312,7 +312,7 @@ class DemandeLivraisonService
      * @throws NonUniqueResultException
      * @throws Exception
      */
-    private function generateNumeroForNewDL(EntityManagerInterface $entityManager)
+    public function generateNumeroForNewDL(EntityManagerInterface $entityManager)
     {
         $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
         $demandeRepository = $entityManager->getRepository(Demande::class);
