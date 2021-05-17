@@ -14,7 +14,7 @@ use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;

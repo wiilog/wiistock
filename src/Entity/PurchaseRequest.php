@@ -15,10 +15,7 @@ use App\Helper\FormatHelper;
 class PurchaseRequest
 {
 
-    const DRAFT = "Brouillon";
-    const TO_TREAT = "À traiter";
-    const TREATED = "Traité";
-    const PROGRESS = "En cours";
+    const NUMBER_PREFIX = 'DA';
 
     /**
      * @ORM\Id
@@ -33,7 +30,7 @@ class PurchaseRequest
     private ?string $comment = null;
 
     /**
-     * @ORM\Column(type="string", nullable=false)
+     * @ORM\Column(type="string", nullable=false, unique=true)
      */
     private ?string $number = null;
 
@@ -109,13 +106,11 @@ class PurchaseRequest
         return $this;
     }
 
-    public function getNumber(): ?string
-    {
+    public function getNumber(): ?string {
         return $this->number;
     }
 
-    public function setNumber(?string $number): self
-    {
+    public function setNumber(?string $number): self {
         $this->number = $number;
 
         return $this;
@@ -262,9 +257,9 @@ class PurchaseRequest
             'status' => FormatHelper::status($this->getStatus()),
             'requester' => FormatHelper::user($this->getRequester()),
             'buyer' => FormatHelper::user($this->getBuyer()),
-            'considerationDate' => FormatHelper::datetime($this->getConsiderationDate()),
             'creationDate' => FormatHelper::datetime($this->getCreationDate()),
             'validationDate' => FormatHelper::datetime($this->getValidationDate()),
+            'considerationDate' => FormatHelper::datetime($this->getConsiderationDate()),
             'comment' => FormatHelper::html($this->getComment()),
         ];
     }

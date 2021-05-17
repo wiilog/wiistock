@@ -3,46 +3,36 @@
 
 namespace App\Service;
 
-use App\Entity\Action;
-use App\Entity\CategoryType;
-use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
-use App\Entity\Menu;
 use App\Entity\PurchaseRequest;
 use App\Entity\Statut;
-use App\Entity\TransferRequest;
-use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Twig\Environment as Twig_Environment;
 
 class PurchaseRequestService
 {
-    private $templating;
-    private $router;
-    private $user;
-    private $em;
-    private $userService;
-    private $uniqueNumberService;
+    /** @Required */
+    public Twig_Environment $templating;
 
-    public function __construct(TokenStorageInterface $tokenStorage,
-                                UniqueNumberService $uniqueNumberService,
-                                RouterInterface $router,
-                                UserService $userService,
-                                EntityManagerInterface $entityManager,
-                                Twig_Environment $templating) {
-        $this->templating = $templating;
-        $this->uniqueNumberService = $uniqueNumberService;
-        $this->em = $entityManager;
-        $this->router = $router;
+    /** @Required */
+    public RouterInterface $router;
+
+    /** @Required */
+    public EntityManagerInterface $em;
+
+    /** @Required */
+    public UniqueNumberService $uniqueNumberService;
+
+    private $user;
+
+    public function __construct(TokenStorageInterface $tokenStorage) {
         $this->user = $tokenStorage->getToken()->getUser();
-        $this->userService = $userService;
     }
 
     public function getDataForDatatable($params = null)
@@ -57,7 +47,7 @@ class PurchaseRequestService
 
         $rows = [];
         foreach ($requests as $request) {
-            $rows[] = $this->dataRowTransfer($request);
+            $rows[] = $this->dataRowPurchaseRequest($request);
         }
 
         return [
@@ -67,7 +57,7 @@ class PurchaseRequestService
         ];
     }
 
-    public function dataRowTransfer(PurchaseRequest $request) {
+    public function dataRowPurchaseRequest(PurchaseRequest $request) {
         $url = $this->router->generate('purchase_request_show', [
             "id" => $request->getId()
         ]);
@@ -85,6 +75,25 @@ class PurchaseRequestService
                 'url' => $url,
             ]),
         ];
+    }
+
+    public function putPurchaseRequestLine($handle,
+                                           CSVExportService $CSVExportService,
+                                           array $request,
+                                           array $line = []) {
+        $CSVExportService->putLine($handle, [
+            $request['number'] ?? '',
+            $request['statusName'] ?? '',
+            $request['requester'] ?? '',
+            $request['buyer'] ?? '',
+            FormatHelper::datetime($request['creationDate'] ?? null),
+            FormatHelper::datetime($request['validationDate'] ?? null),
+            FormatHelper::datetime($request['considerationDate'] ?? null),
+            FormatHelper::html($request['comment'] ?? null),
+            $line['reference'] ?? '',
+            $line['barcode'] ?? '',
+            $line['label'] ?? '',
+        ]);
     }
 
     public function createHeaderDetailsConfig(PurchaseRequest $request): array {
@@ -105,5 +114,22 @@ class PurchaseRequestService
                 'isNeededNotEmpty' => true
             ]
         ];
+    }
+
+    public function createPurchaseRequest(EntityManagerInterface $entityManager,
+                                          ?Statut $status,
+                                          ?Utilisateur $requester,
+                                          ?string $comment = null): PurchaseRequest {
+        $now =  new DateTime("now", new DateTimeZone("Europe/Paris"));
+        $purchase = new PurchaseRequest();
+        $purchaseRequestNumber = $this->uniqueNumberService->createUniqueNumber($entityManager, PurchaseRequest::NUMBER_PREFIX, PurchaseRequest::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
+        $purchase
+            ->setCreationDate($now)
+            ->setStatus($status)
+            ->setRequester($requester)
+            ->setComment($comment)
+            ->setNumber($purchaseRequestNumber);
+
+        return $purchase;
     }
 }

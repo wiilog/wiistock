@@ -7,7 +7,7 @@
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
                 <div class="btn-group">
-                    <button type="button" class="btn btn-primary btn-ripple" onclick="saveExportFile('print_csv_packs')">
+                    <button type="button" class="btn btn-primary btn-ripple d-none add-cart-to-request" data-target='#modalAddToRequest' data-toggle='modal'>
                         <i class="fa fa-plus mr-2"></i>
                         Ajouter à une demande
                     </button>
@@ -20,6 +20,8 @@
             </div>
         </div>
     </div>
+    <input type="hidden" value="{{ app.user.cart.references | length }}" id="cart-refs-count"/>
+    {% include 'cart/modalAddToRequest.html.twig' %}
 {% endblock %}
 
 {% block javascripts %}

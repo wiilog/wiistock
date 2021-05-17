@@ -6,7 +6,7 @@ use App\Entity\AverageRequestTime;
 use App\Entity\Handling;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;

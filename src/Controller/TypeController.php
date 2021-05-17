@@ -9,7 +9,7 @@ use App\Entity\Emplacement;
 use App\Entity\Menu;
 use App\Entity\Statut;
 use App\Entity\Type;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use App\Service\GlobalParamService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
