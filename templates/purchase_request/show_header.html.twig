@@ -7,15 +7,9 @@
 {# droit de suppression pour les demandes d'achats brouillons #}
 {% if request.status.draft %}
     {% set hasRightDelete = hasRightDelete and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_DRAFT_PURCHASE_REQUEST')) %}
-{% endif %}
-
-{# droit de suppression pour les demandes d'achats à traiter et en cours #}
-{% if not request.status.treated and not request.status.draft  %}
+{% elseif request.status.notTreated or request.status.inProgress %} {# droit de suppression pour les demandes d'achats à traiter et en cours #}
     {% set hasRightDelete = hasRightDelete and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_ONGOING_PURCHASE_REQUESTS')) %}
-{% endif %}
-
-{# droit de suppression pour les demandes d'achats traités #}
-{% if request.status.treated %}
+{% elseif request.status.treated %} {# droit de suppression pour les demandes d'achats traités #}
     {% set hasRightDelete = hasRightDelete and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_TREATED_PURCHASE_REQUESTS')) %}
 {% endif %}
 
@@ -42,6 +36,3 @@
 {% block showHiddenInputs %}
     <input type="hidden" id="purchase-request-buyer-id" value="{{ request.buyer ? request.buyer.id }}"/>
 {% endblock %}
-
-
-

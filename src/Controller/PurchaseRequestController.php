@@ -11,7 +11,6 @@ use App\Entity\PurchaseRequestLine;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Helper\FormatHelper;
 use App\Service\PurchaseRequestService;
 use DateTime;
 use App\Service\CSVExportService;
@@ -21,7 +20,7 @@ use DateTimeZone;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use Generator;
+use Iterator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\Request;
@@ -50,12 +49,11 @@ class PurchaseRequestController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="purchase_request_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @Route("/api", name="purchase_request_api", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS})
      */
     public function api(Request $request,
                         PurchaseRequestService $purchaseRequestService): Response {
-
         $data = $purchaseRequestService->getDataForDatatable($request->request);
         return new JsonResponse($data);
     }
@@ -64,12 +62,12 @@ class PurchaseRequestController extends AbstractController
      * @Route("/voir/{id}", name="purchase_request_show", options={"expose"=true}, methods={"GET"})
      * @HasPermission({Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS})
      */
-    public function show(PurchaseRequest $request, PurchaseRequestService $purchaseRequestService): Response {
-
+    public function show(PurchaseRequest $request,
+                         PurchaseRequestService $purchaseRequestService): Response {
         $status = $request->getStatus();
         return $this->render('purchase_request/show.html.twig', [
             'request' => $request,
-            'modifiable' => isset($status) ? $request->getStatus()->isDraft() : "",
+            'modifiable' => $status && $status->isDraft(),
             'detailsConfig' => $purchaseRequestService->createHeaderDetailsConfig($request)
         ]);
     }
@@ -115,7 +113,7 @@ class PurchaseRequestController extends AbstractController
                 function ($output) use ($requests, $lines, $purchaseRequestService, $CSVExportService) {
                     foreach ($requests as $request) {
                         $lineAddedForRequest = false;
-                        if ($lines instanceof Generator && $lines->valid()) {
+                        if ($lines instanceof Iterator && $lines->valid()) {
                             $line = $lines->current();
                             while ($lines->valid()
                                 && $line
@@ -145,17 +143,18 @@ class PurchaseRequestController extends AbstractController
 
     /**
      * @Route("/supprimer", name="purchase_request_delete", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS})
+     * @HasPermission({Menu::DEM, Action::DELETE})
      */
-    public function delete(Request $request, EntityManagerInterface $entityManager, UserService $userService): Response {
+    public function delete(Request $request,
+                           UserService $userService,
+                           EntityManagerInterface $entityManager): Response {
 
         if($data = json_decode($request->getContent(), true)) {
-
             $requestRepository = $entityManager->getRepository(PurchaseRequest::class);
-            $purchaseRequest =$requestRepository->find($data['request']);
-            $status = $purchaseRequest->getStatus();
+            $purchaseRequest = $requestRepository->find($data['request']);
 
-            if( !$status ||
+            $status = $purchaseRequest->getStatus();
+            if (!$status ||
                 ($status->isDraft() && !$userService->hasRightFunction(Menu::DEM, Action::DELETE_DRAFT_PURCHASE_REQUEST)) ||
                 ($status->isNotTreated() && !$userService->hasRightFunction(Menu::DEM, Action::DELETE_ONGOING_PURCHASE_REQUESTS)) ||
                 ($status->isInProgress() && !$userService->hasRightFunction(Menu::DEM, Action::DELETE_ONGOING_PURCHASE_REQUESTS)) ||
@@ -172,7 +171,7 @@ class PurchaseRequestController extends AbstractController
             return new JsonResponse([
                 'success' => true,
                 'redirect' => $this->generateUrl('purchase_request_index'),
-                'msg' => "La demande dachat a bien été supprimé"
+                'msg' => "La demande d'achat a bien été supprimée"
             ]);
 
         }
@@ -185,10 +184,7 @@ class PurchaseRequestController extends AbstractController
      * @HasPermission({Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS})
      */
     public function purchaseRequestLinesApi(PurchaseRequest $purchaseRequest): Response {
-
-
         $requestLines = $purchaseRequest->getPurchaseRequestLines();
-
 
         $rowsRC = [];
         foreach($requestLines as $requestLine) {
