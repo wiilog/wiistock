@@ -75,6 +75,12 @@ class Attachment
      */
     private $handling;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\PurchaseRequest", inversedBy="attachments")
+     * @ORM\JoinColumn(nullable=true)
+     */
+    private ?PurchaseRequest $purchaseRequest;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -196,6 +202,18 @@ class Attachment
     public function setImportCsv(?Import $importCsv): self
     {
         $this->importCsv = $importCsv;
+
+        return $this;
+    }
+
+    public function getPurchaseRequest(): ?PurchaseRequest
+    {
+        return $this->purchaseRequest;
+    }
+
+    public function setPurchaseRequest(?PurchaseRequest $purchaseRequest): self
+    {
+        $this->purchaseRequest = $purchaseRequest;
 
         return $this;
     }

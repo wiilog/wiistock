@@ -165,7 +165,7 @@ class Statut
     /**
      * @ORM\OneToMany(targetEntity=PurchaseRequest::class, mappedBy="status")
      */
-    private $purchaseRequests;
+    private ?Collection $purchaseRequests;
 
     public function __construct()
     {
@@ -222,6 +222,10 @@ class Statut
 
     public function isDispute(): ?bool {
         return $this->state === self::DISPUTE;
+    }
+
+    public function isInProgress(): ?bool {
+        return $this->state === self::IN_PROGRESS;
     }
 
     public function getCategorie(): ? CategorieStatut

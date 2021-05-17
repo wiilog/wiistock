@@ -146,8 +146,14 @@
                                     <a
                                         onclick="createPurchaseRequest()"
                                         title="Achat">
-                                        <span class="wii-icon wii-icon-transfer quick-menu-icon mx-2"></span>
+                                        <span class="wii-icon wii-icon-purchase quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">Achat</span>
+                                    </a>
+                                    <a
+                                        onclick="editRow($(this), Routing.generate('purchase_request_api_edit', true), $('#modalEditPurchaseRequest'), $('#submitEditPurchaseRequest'), true, '#modalEditPurchaseRequest .editor-container-edit', false)"
+                                        title="testModif" data-id='1' data-target="#modalEditPurchaseRequest" data-toggle="modal">
+                                        <span class="wii-icon wii-icon-purchase quick-menu-icon mx-2"></span>
+                                        <span class="flex-fill align-self-center">testModif</span>
                                     </a>
                                 {% endif %}
                                 {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) and app.user.role.label == constant('App\\Entity\\Role::CLIENT_UTIL') %}
