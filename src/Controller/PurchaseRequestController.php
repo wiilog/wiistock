@@ -21,6 +21,7 @@ use App\Service\TransferRequestService;
 use DateTime;
 use App\Service\CSVExportService;
 use App\Service\UserService;
+use App\Annotation\HasPermission;
 
 use DateTimeZone;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -159,7 +160,6 @@ class PurchaseRequestController extends AbstractController
                                     $baseRow,
                                     [
                                         $article['reference'],
-                                        $article['barCode']
                                     ]
                                 );
                             })
@@ -213,5 +213,104 @@ class PurchaseRequestController extends AbstractController
         }
         throw new BadRequestHttpException();
 
+    }
+
+    /**
+     * @Route("/reference/api/{purchaseRequest}", name="purchase_request_article_api", options={"expose"=true}, methods={"GET", "POST"},condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS})
+     * @param EntityManagerInterface $entityManager
+     * @param Request $requestLine
+     * @param PurchaseRequest $purchaseRequest
+     * @return Response
+     */
+    public function articleApi(EntityManagerInterface $entityManager,
+                               Request $request,
+                               PurchaseRequest $purchaseRequest): Response {
+
+
+        $requestLines = $purchaseRequest->getPurchaseRequestLines();
+
+
+        $rowsRC = [];
+        foreach($requestLines as $requestLine) {
+            $reference = $requestLine->getReference();
+            $rowsRC[] = [
+                'reference' => isset($reference) ? $reference->getReference() : "",
+                'label'=> isset($reference) ? $reference->getLibelle() : "",
+                'requestedQuantity' => $requestLine->getRequestedQuantity(),
+                'stockQuantity' => isset($reference) ? $reference->getQuantiteStock() : "",
+                'reservedQuantity' => isset($reference) ? $reference->getQuantiteReservee() : "",
+                'orderNumber' => $requestLine->getOrderNumber(),
+                'actions' => $this->renderView('purchase_request/article/actions.html.twig'),
+            ];
+        }
+
+        return new JsonResponse([
+            "data" => $rowsRC,
+            "recordsFiltered" => 0,
+            "recordsTotal" => count($rowsRC),
+        ]);
+    }
+
+    /**
+     * @Route("/ajouter-article/{request}", name="purchase_request_add_reference", options={"expose"=true})
+     * @param Request $request
+     * @param PurchaseRequest $purchaseRequest
+     * @return Response
+     */
+    public function addReference(Request $request,
+                               Purchase $purchaseRequest): Response {
+        if(!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
+        if(!$content = json_decode($request->getContent())) {
+            throw new BadRequestHttpException();
+        }
+
+        $manager = $this->getDoctrine()->getManager();
+
+        $reference = $content->reference;
+        $reference = $manager->getRepository(ReferenceArticle::class)->find($reference);
+
+        return $this->json([
+            "success" => true
+        ]);
+    }
+
+    /**
+     * @Route("/retirer-article", name="purchase_request_remove_reference", options={"expose"=true}, methods={"GET", "POST"})
+     * @param Request $request
+     * @param EntityManagerInterface $manager
+     * @return JsonResponse|RedirectResponse
+     */
+    public function removeArticle(Request $request, EntityManagerInterface $manager) {
+        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent())) {
+            if(!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $purchaseRepository = $manager->getRepository(PurchaseRequest::class);
+            $purchaseRequest = $purchaseRepository->find($data->request);
+
+            if(array_key_exists(ReferenceArticle::TYPE_QUANTITE_REFERENCE, $data)) {
+                $purchaseRequest->removeReference($manager
+                    ->getRepository(ReferenceArticle::class)
+                    ->find($data->reference));
+            } elseif(array_key_exists(ReferenceArticle::TYPE_QUANTITE_ARTICLE, $data)) {
+                $purchaseRequest->removeArticle($manager
+                    ->getRepository(Article::class)
+                    ->find($data->article));
+            }
+
+            $manager->flush();
+
+            return new JsonResponse([
+                'success' => true,
+                'msg' => 'La référence a bien été supprimée de la demande dachat.'
+            ]);
+        }
+
+        throw new BadRequestHttpException();
     }
 }
