@@ -192,7 +192,7 @@ class ReferenceArticleRepository extends EntityRepository {
      * @param null $locationFilter
      * @return mixed
      */
-    public function getIdAndRefBySearch($search, $activeOnly = false, $minQuantity = null, $typeQuantity = null, $field = 'reference', $locationFilter = null)
+    public function getIdAndRefBySearch($search, $activeOnly = false, $minQuantity = null, $typeQuantity = null, $field = 'reference', $locationFilter = null, $buyerFilter = null)
     {
         $queryBuilder = $this->createQueryBuilder('r')
             ->select('r.id')
@@ -231,6 +231,12 @@ class ReferenceArticleRepository extends EntityRepository {
             $queryBuilder
                 ->andWhere("(r.emplacement IS NULL OR r.typeQuantite = 'article' OR r.emplacement = :location)")
                 ->setParameter('location', $locationFilter);
+        }
+
+        if ($buyerFilter) {
+            $queryBuilder
+                ->andWhere("r.buyer = :buyer")
+                ->setParameter('buyer', $buyerFilter);
         }
 
         return $queryBuilder

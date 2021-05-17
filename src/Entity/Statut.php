@@ -220,6 +220,10 @@ class Statut
         return $this->state === self::NOT_TREATED;
     }
 
+    public function isInProgress(): ?bool {
+        return $this->state === self::IN_PROGRESS;
+    }
+
     public function isDispute(): ?bool {
         return $this->state === self::DISPUTE;
     }

@@ -20,24 +20,27 @@
 {% endif %}
 
 {% block showActions %}
-        <div class="btn-group">
-
-            <button type="button"
-                    class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
-                    data-toggle="dropdown"
-                    aria-haspopup="true"
-                    aria-expanded="false">
-                <span class="fa fa-angle-down"></span>
-            </button>
-            <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                {% if hasRightDelete %}
-                    <a href="" onclick="deleteRow($(this), $('#modalDeleteRequest'), $('#submitDeleteRequest'))"
-                       data-id='{{ request.id }}' data-target='#modalDeleteRequest' data-toggle='modal'
-                       class="dropdown-item">
-                        <i class="fa fa-trash mr-2"></i>Supprimer</a>
-                {% endif %}
-            </div>
+    <div class="btn-group">
+        <button type="button"
+                class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                data-toggle="dropdown"
+                aria-haspopup="true"
+                aria-expanded="false">
+            <span class="fa fa-angle-down"></span>
+        </button>
+        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+            {% if hasRightDelete %}
+                <a href="" onclick="deleteRow($(this), $('#modalDeleteRequest'), $('#submitDeleteRequest'))"
+                   data-id='{{ request.id }}' data-target='#modalDeleteRequest' data-toggle='modal'
+                   class="dropdown-item">
+                    <i class="fa fa-trash mr-2"></i>Supprimer</a>
+            {% endif %}
         </div>
+    </div>
+{% endblock %}
+
+{% block showHiddenInputs %}
+    <input type="hidden" id="purchase-request-buyer-id" value="{{ request.buyer ? request.buyer.id }}"/>
 {% endblock %}
 
 

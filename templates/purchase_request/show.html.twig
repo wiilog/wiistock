@@ -22,12 +22,12 @@
         <div class="row mb-2">
             <h5 class="col-auto h5">Liste des références</h5>
         </div>
-        {% if not modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
+        {% if modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
             <div class="row wii-page-card-header">
                 <div class="col-auto ml-auto">
                     <div class="btn-group">
-                        <button type="button" data-toggle="modal" data-target="#modalAddArticle"
-                                onclick="clearModal('#modalAddReference')"
+                        <button type="button" data-toggle="modal" data-target="#modalAddPurchaseRequestLine"
+                                onclick="clearLineAddModal(true)"
                                 class="btn btn-primary btn-ripple split-button">
                             <span class="fa fa-plus mr-2"></span>Ajouter référence
                         </button>
@@ -51,12 +51,12 @@
         {% endif %}
         <div class="row">
             <div class="col-12">
-                <table id="tableArticle" class="table"></table>
+                <table id="tablePurchaseRequestLine" class="table"></table>
             </div>
         </div>
     </div>
-    {% include  "purchase_request/delete.html.twig" %}
-    {% include 'reference_article/modalShowRefArticle.html.twig' %}
+    {% include "purchase_request/delete.html.twig" %}
+    {% include "purchase_request/line/new.html.twig"%}
 {% endblock %}
 
 {% block javascripts %}

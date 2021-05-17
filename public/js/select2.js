@@ -135,7 +135,7 @@ class Select2Old {
         this.init(select, '', 1, {route: 'get_transporteurs'});
     }
 
-    static articleReference(select, {placeholder = null, typeQuantity = null, field = `reference`, activeOnly = 1, minQuantity = null, locationFilter = null} = {}) {
+    static articleReference(select, {placeholder = null, typeQuantity = null, field = `reference`, activeOnly = 1, minQuantity = null, locationFilter = null, buyerFilter = null } = {}) {
         this.init(select, placeholder, 1, {
             route: 'get_ref_articles',
             param: {
@@ -143,7 +143,8 @@ class Select2Old {
                 minQuantity,
                 field,
                 ...(typeQuantity ? {typeQuantity} : {}),
-                locationFilter
+                locationFilter,
+                buyerFilter
             }
         });
     }

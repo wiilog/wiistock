@@ -24,6 +24,7 @@ use App\Entity\CategorieCL;
 use App\Entity\Collecte;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
+use App\Helper\FormatHelper;
 use App\Service\AttachmentService;
 use WiiCommon\Helper\Stream;
 use App\Service\DemandeCollecteService;
@@ -549,17 +550,31 @@ class ReferenceArticleController extends AbstractController
             $typeQuantity = $request->query->get('typeQuantity');
             $field = $request->query->get('field', 'reference');
             $locationFilter = $request->query->get('locationFilter');
+            $buyerFilter = $request->query->get('buyerFilter');
             $refArticles = $referenceArticleRepository->getIdAndRefBySearch(
                 $search,
                 $activeOnly,
                 $minQuantity !== null ? (int) $minQuantity : null,
                 $typeQuantity,
                 $field,
-                $locationFilter
+                $locationFilter,
+                $buyerFilter
             );
             return new JsonResponse(['results' => $refArticles]);
         }
         throw new BadRequestHttpException();
+    }
+
+    /**
+     * @Route("/{reference}/data", name="get_reference_data", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
+     */
+    public function getReferenceData(ReferenceArticle $reference)
+    {
+        return $this->json([
+            'label' => $reference->getLibelle(),
+            'buyer' => FormatHelper::user($reference->getBuyer()),
+            'stockQuantity' => $reference->getQuantiteStock()
+        ]);
     }
 
     /**
