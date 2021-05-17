@@ -256,9 +256,9 @@ class PurchaseRequest
             'status' => FormatHelper::status($this->getStatus()),
             'requester' => FormatHelper::user($this->getRequester()),
             'buyer' => FormatHelper::user($this->getBuyer()),
-            'considerationDate' => FormatHelper::datetime($this->getConsiderationDate()),
             'creationDate' => FormatHelper::datetime($this->getCreationDate()),
             'validationDate' => FormatHelper::datetime($this->getValidationDate()),
+            'considerationDate' => FormatHelper::datetime($this->getConsiderationDate()),
             'comment' => FormatHelper::html($this->getComment()),
         ];
     }

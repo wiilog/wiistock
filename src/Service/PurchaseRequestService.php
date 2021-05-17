@@ -57,7 +57,7 @@ class PurchaseRequestService
 
         $rows = [];
         foreach ($requests as $request) {
-            $rows[] = $this->dataRowTransfer($request);
+            $rows[] = $this->dataRowPurchaseRequest($request);
         }
 
         return [
@@ -67,7 +67,7 @@ class PurchaseRequestService
         ];
     }
 
-    public function dataRowTransfer(PurchaseRequest $request) {
+    public function dataRowPurchaseRequest(PurchaseRequest $request) {
         $url = $this->router->generate('purchase_request_show', [
             "id" => $request->getId()
         ]);
@@ -85,6 +85,25 @@ class PurchaseRequestService
                 'url' => $url,
             ]),
         ];
+    }
+
+    public function putPurchaseRequestLine($handle,
+                                           CSVExportService $CSVExportService,
+                                           array $request,
+                                           array $line = []) {
+        $CSVExportService->putLine($handle, [
+            $request['number'] ?? '',
+            $request['statusName'] ?? '',
+            $request['requester'] ?? '',
+            $request['buyer'] ?? '',
+            FormatHelper::datetime($request['creationDate'] ?? null),
+            FormatHelper::datetime($request['validationDate'] ?? null),
+            FormatHelper::datetime($request['considerationDate'] ?? null),
+            FormatHelper::html($request['comment'] ?? null),
+            $line['reference'] ?? '',
+            $line['barcode'] ?? '',
+            $line['label'] ?? '',
+        ]);
     }
 
     public function createHeaderDetailsConfig(PurchaseRequest $request): array {

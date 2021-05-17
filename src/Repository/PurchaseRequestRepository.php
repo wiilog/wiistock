@@ -4,8 +4,7 @@ namespace App\Repository;
 
 use App\Entity\PurchaseRequest;
 use App\Helper\QueryCounter;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use DateTime;
 use Doctrine\ORM\EntityRepository;
 
 /**
@@ -38,14 +37,13 @@ class PurchaseRequestRepository extends EntityRepository
                         ->andWhere("filter_requester.id in (:filter_value_requester)")
                         ->setParameter('filter_value_requester', $value);
                     break;
-                /*case 'buyers':
+                case 'buyers':
                     $value = explode(',', $filter['value']);
                     $qb
                         ->join('purchase_request.buyer', 'filter_buyer')
-                        ->join('filter_buyer.buyer', 'filter_orderOperator')
-                        ->andWhere("filter_orderOperator.id in (:filter_value_operators)")
-                        ->setParameter('filter_value_operators', $value);
-                    break;*/
+                        ->andWhere("filter_buyer.id in (:filter_value_buyer)")
+                        ->setParameter('filter_value_buyer', $value);
+                    break;
                 case 'dateMin':
                     $qb->andWhere('purchase_request.creationDate >= :dateMin')
                         ->setParameter('dateMin', $filter['value'] . " 00:00:00");
@@ -105,8 +103,10 @@ class PurchaseRequestRepository extends EntityRepository
                                 ->orderBy('order_buyer.username', $order);
                             break;
                         default:
-                            $qb
-                                ->orderBy('purchase_request.' . $column, $order);
+                            if (property_exists(PurchaseRequest::class, $column)) {
+                                $qb
+                                    ->orderBy('purchase_request.' . $column, $order);
+                            }
                             break;
                     }
                 }
@@ -128,19 +128,32 @@ class PurchaseRequestRepository extends EntityRepository
         ];
     }
 
-    public function findByDates($dateMin, $dateMax) {
-        $qb = $this->createQueryBuilder("purchase_request");
+    public function iterateByDates(DateTime $dateMin,
+                                   DateTime $dateMax): iterable {
+        $qb = $this->createQueryBuilder("request");
 
-        $qb
-            ->where("purchase_request.creationDate BETWEEN :dateMin AND :dateMax")
+        return $qb
+            ->select('request.id AS id')
+            ->addSelect('request.number AS number')
+            ->addSelect('join_status.nom AS statusName')
+            ->addSelect('join_requester.username AS requester')
+            ->addSelect('join_buyer.username AS buyer')
+            ->addSelect('request.creationDate AS creationDate')
+            ->addSelect('request.validationDate AS validationDate')
+            ->addSelect('request.considerationDate AS considerationDate')
+            ->addSelect('request.comment AS comment')
+            ->leftJoin('request.status', 'join_status')
+            ->leftJoin('request.requester', 'join_requester')
+            ->leftJoin('request.buyer', 'join_buyer')
+            ->where("request.creationDate BETWEEN :dateMin AND :dateMax")
+            ->orderBy('request.creationDate', 'DESC')
+            ->addOrderBy('request.id', 'DESC')
             ->setParameters([
                 'dateMin' => $dateMin,
                 'dateMax' => $dateMax
-            ]);
-
-        return $qb
+            ])
             ->getQuery()
-            ->getResult();
+            ->toIterable();
     }
 
 
