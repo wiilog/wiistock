@@ -48,40 +48,26 @@ class PurchaseRequestController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="purchase_request_api", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @return Response
+     * @Route("/api", name="purchase_request_api", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS})
      */
     public function api(Request $request,
-                        PurchaseRequestService $purchaseRequestService,
-                        UserService $userService): Response {
-        if($request->isXmlHttpRequest()) {
-            if(!$userService->hasRightFunction(Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
-            $data = $purchaseRequestService->getDataForDatatable($request->request);
-
-            return new JsonResponse($data);
-        } else {
-            throw new BadRequestHttpException();
-        }
+                        PurchaseRequestService $purchaseRequestService): Response {
+        $data = $purchaseRequestService->getDataForDatatable($request->request);
+        return new JsonResponse($data);
     }
 
     /**
      * @Route("/voir/{id}", name="purchase_request_show", options={"expose"=true}, methods={"GET", "POST"})
-     * @param PurchaseRequest $request
-     * @return Response
+     * @HasPermission({Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS})
      */
-    public function show(PurchaseRequest $request): Response {
-        if(!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
+    public function show(PurchaseRequest $request,
+                         PurchaseRequestService $purchaseRequestService): Response {
+        $status = $request->getStatus();
         return $this->render('purchase_request/show.html.twig', [
             'request' => $request,
-            'modifiable' => FormatHelper::status($request->getStatus()) == PurchaseRequest::DRAFT,
-            'detailsConfig' => $this->service->createHeaderDetailsConfig($request)
+            'modifiable' => $status && $status->isDraft(),
+            'detailsConfig' => $purchaseRequestService->createHeaderDetailsConfig($request)
         ]);
     }
 
@@ -160,25 +146,26 @@ class PurchaseRequestController extends AbstractController
     }
 
     /**
-     * @Route("/supprimer", name="purchase_request_delete", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/supprimer", name="purchase_request_delete", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::DEM, Action::DELETE})
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function delete(Request $request, EntityManagerInterface $entityManager): Response {
+    public function delete(Request $request,
+                           UserService $userService,
+                           EntityManagerInterface $entityManager): Response {
 
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if(!$this->userService->hasRightFunction(Menu::DEM, Action::DELETE)){
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if($data = json_decode($request->getContent(), true)) {
             $requestRepository = $entityManager->getRepository(PurchaseRequest::class);
-            $purchaseRequest =$requestRepository->find($data['request']);
+            $purchaseRequest = $requestRepository->find($data['request']);
 
-            if( $purchaseRequest->getStatus()->getState()===Statut::DRAFT && !$this->userService->hasRightFunction(Menu::DEM, Action::DELETE_DRAFT_PURCHASE_REQUEST) ||
-                $purchaseRequest->getStatus()->getState()===Statut::NOT_TREATED && !$this->userService->hasRightFunction(Menu::DEM, Action::DELETE_ONGOING_PURCHASE_REQUESTS) ||
-                $purchaseRequest->getStatus()->getState()===Statut::IN_PROGRESS && !$this->userService->hasRightFunction(Menu::DEM, Action::DELETE_ONGOING_PURCHASE_REQUESTS) ||
-                $purchaseRequest->getStatus()->getState()===Statut::TREATED && !$this->userService->hasRightFunction(Menu::DEM, Action::DELETE_TREATED_PURCHASE_REQUESTS)) {
+            $status = $purchaseRequest->getStatus();
+            if (!$status ||
+                ($status->isDraft() && !$userService->hasRightFunction(Menu::DEM, Action::DELETE_DRAFT_PURCHASE_REQUEST)) ||
+                ($status->isNotTreated() && !$userService->hasRightFunction(Menu::DEM, Action::DELETE_ONGOING_PURCHASE_REQUESTS)) ||
+                ($status->isInProgress() && !$userService->hasRightFunction(Menu::DEM, Action::DELETE_ONGOING_PURCHASE_REQUESTS)) ||
+                ($status->isTreated() && !$userService->hasRightFunction(Menu::DEM, Action::DELETE_TREATED_PURCHASE_REQUESTS))) {
                 return new JsonResponse([
                     'success' => false,
                     'msg' => "Vous n'avez pas le droit de supprimer cette demande"
@@ -191,7 +178,7 @@ class PurchaseRequestController extends AbstractController
             return new JsonResponse([
                 'success' => true,
                 'redirect' => $this->generateUrl('purchase_request_index'),
-                'msg' => "La demande dachat a bien été supprimé"
+                'msg' => "La demande d'achat a bien été supprimée"
             ]);
 
         }
