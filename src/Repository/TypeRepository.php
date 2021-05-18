@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Article;
+use App\Entity\CategoryType;
 use App\Entity\FreeField;
 use App\Entity\Collecte;
 use App\Entity\Demande;
@@ -207,4 +208,20 @@ class TypeRepository extends EntityRepository
 
 		return $query->getOneOrNullResult();
 	}
+
+	public function getUniqueTypes($type, $search) {
+        $qb = $this->createQueryBuilder('type');
+
+        $qb->select('type.id AS id')
+            ->addSelect('type.label AS text')
+            ->leftJoin('type.category', 'category')
+            ->where('category.label = :category')
+            ->andWhere('type NOT IN (:type)')
+            ->andWhere('location.label LIKE :search')
+            ->setParameter('category', CategoryType::DEMANDE_LIVRAISON)
+            ->setParameter('type', $type)
+            ->setParameter('search', '%' . str_replace('_', '\_', $search) . '%');
+
+        return $qb->getQuery()->getResult();
+    }
 }

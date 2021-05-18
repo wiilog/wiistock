@@ -286,4 +286,23 @@ class TypeController extends AbstractController
         }
         throw new BadRequestHttpException();
     }
+
+    /**
+     * @Route("/{type}/autocomplete-unique-types", name="get_unique_types", options={"expose"=true})
+     */
+    public function getUniqueTypes(Type $type,
+                                   Request $request,
+                                   EntityManagerInterface $entityManager) {
+        if ($request->isXmlHttpRequest()) {
+
+            $search = $request->query->get('term');
+
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $types = $typeRepository->getUniqueTypes($type, $search);
+            return $this->json([
+                'results' => $types
+            ]);
+        }
+        throw new BadRequestHttpException();
+    }
 }

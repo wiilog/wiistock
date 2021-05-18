@@ -49,5 +49,6 @@
     {% endif %}
 {% endblock %}
 
-
-
+{% block showHiddenInputs %}
+    <input type="hidden" id="purchase-request-buyer-id" value="{{ request.buyer ? request.buyer.id }}"/>
+{% endblock %}

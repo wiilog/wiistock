@@ -8,6 +8,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\Menu;
 use App\Entity\PurchaseRequest;
 use App\Entity\PurchaseRequestLine;
+use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Service\AttachmentService;
@@ -19,7 +20,6 @@ use App\Service\UserService;
 use DateTimeZone;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use Iterator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -59,7 +59,7 @@ class PurchaseRequestController extends AbstractController
     }
 
     /**
-     * @Route("/voir/{id}", name="purchase_request_show", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/voir/{id}", name="purchase_request_show", options={"expose"=true}, methods={"GET"})
      * @HasPermission({Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS})
      */
     public function show(PurchaseRequest $request,
@@ -74,11 +74,6 @@ class PurchaseRequestController extends AbstractController
 
     /**
      * @Route("/csv", name="purchase_request_export",options={"expose"=true}, methods="GET|POST" )
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param CSVExportService $CSVExportService
-     * @return Response
-     * @throws Exception
      */
     public function export(Request $request,
                            EntityManagerInterface $entityManager,
@@ -149,9 +144,6 @@ class PurchaseRequestController extends AbstractController
     /**
      * @Route("/supprimer", name="purchase_request_delete", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::DELETE})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
      */
     public function delete(Request $request,
                            UserService $userService,
@@ -186,6 +178,134 @@ class PurchaseRequestController extends AbstractController
         throw new BadRequestHttpException();
 
     }
+
+    /**
+     * @Route("/{purchaseRequest}/reference/api", name="purchase_request_lines_api", options={"expose"=true}, methods={"GET"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS})
+     */
+    public function purchaseRequestLinesApi(PurchaseRequest $purchaseRequest): Response {
+        $requestLines = $purchaseRequest->getPurchaseRequestLines();
+
+        $rowsRC = [];
+        foreach($requestLines as $requestLine) {
+            $reference = $requestLine->getReference();
+            $rowsRC[] = [
+                'reference' => isset($reference) ? $reference->getReference() : "",
+                'label'=> isset($reference) ? $reference->getLibelle() : "",
+                'requestedQuantity' => $requestLine->getRequestedQuantity(),
+                'stockQuantity' => isset($reference) ? $reference->getQuantiteStock() : "",
+                'reservedQuantity' => isset($reference) ? $reference->getQuantiteReservee() : "",
+                'orderNumber' => $requestLine->getOrderNumber(),
+                'actions' => $this->renderView('purchase_request/line/actions.html.twig'),
+            ];
+        }
+
+        return new JsonResponse([
+            "data" => $rowsRC,
+            "recordsFiltered" => 0,
+            "recordsTotal" => count($rowsRC),
+        ]);
+    }
+
+    /**
+     * @Route("/{purchaseRequest}/ajouter-article", name="purchase_request_add_reference", options={"expose"=true})
+     * @HasPermission({Menu::DEM, Action::EDIT})
+     */
+    public function addReference(Request $request,
+                                 PurchaseRequestService $purchaseRequestService,
+                                 EntityManagerInterface $entityManager,
+                                 PurchaseRequest $purchaseRequest): Response {
+
+        $data = json_decode($request->getContent(), true);
+
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $reference = $referenceArticleRepository->find($data['reference']);
+        $requestedQuantity = $data['requestedQuantity'];
+
+
+        if($reference == null){
+            $errorMessage = "La référence n'existe pas";
+        }
+        else if ($requestedQuantity == null || $requestedQuantity < 1) {
+            $errorMessage = "La quantité ajoutée n'est pas valide";
+        }
+        else {
+            $linesWithSameRef = $purchaseRequest->getPurchaseRequestLines()
+                ->filter(fn (PurchaseRequestLine $line) => $line->getReference() === $reference)
+                ->toArray();
+            if (!empty($linesWithSameRef)) {
+                $errorMessage = "La référence a déjà été ajoutée à la demande d'achat";
+            }
+            else if (!$reference->getBuyer()) {
+                $errorMessage = "La référence doit avoir un acheteur";
+            }
+            else if ($purchaseRequest->getBuyer() && $reference->getBuyer() !== $purchaseRequest->getBuyer()) {
+                $errorMessage = "La référence doit avoir un acheteur identique à la demande d'achat";
+            }
+        }
+
+        if (!empty($errorMessage)) {
+            return $this->json([
+                'success' => false,
+                'msg' => $errorMessage
+            ]);
+        }
+
+        $purchaseRequestLine = new PurchaseRequestLine();
+        $purchaseRequestLine
+            ->setReference($reference)
+            ->setRequestedQuantity($requestedQuantity)
+            ->setPurchaseRequest($purchaseRequest);
+
+        $purchaseRequest->setBuyer($reference->getBuyer());
+
+        $entityManager->persist($purchaseRequestLine);
+        $entityManager->flush();
+
+        $purchaseRequestStatus = $purchaseRequest->getStatus();
+
+        return $this->json([
+            "success" => true,
+            'msg' => "La référence a bien était ajoutée à la demande d'achat",
+            'entete' => $this->renderView('purchase_request/show_header.html.twig', [
+                'request' => $purchaseRequest,
+                'modifiable' => $purchaseRequestStatus && $purchaseRequestStatus->isDraft(),
+                'showDetails' => $purchaseRequestService->createHeaderDetailsConfig($purchaseRequest)
+            ]),
+        ]);
+    }
+
+    /**
+     * @Route("/retirer-article", name="purchase_request_remove_reference", options={"expose"=true}, methods={"GET", "POST"})
+     * @HasPermission({Menu::DEM, Action::EDIT})
+     */
+    public function removeArticle(Request $request, EntityManagerInterface $manager) {
+        /*if($request->isXmlHttpRequest() && $data = json_decode($request->getContent())) {
+
+            $purchaseRepository = $manager->getRepository(PurchaseRequest::class);
+            $purchaseRequest = $purchaseRepository->find($data->request);
+
+            if(array_key_exists(ReferenceArticle::TYPE_QUANTITE_REFERENCE, $data)) {
+                $purchaseRequest->removeReference($manager
+                    ->getRepository(ReferenceArticle::class)
+                    ->find($data->reference));
+            } elseif(array_key_exists(ReferenceArticle::TYPE_QUANTITE_ARTICLE, $data)) {
+                $purchaseRequest->removeArticle($manager
+                    ->getRepository(Article::class)
+                    ->find($data->article));
+            }
+
+            $manager->flush();*/
+
+            return new JsonResponse([
+                'success' => true,
+                'msg' => 'La référence a bien été supprimée de la demande dachat.'
+            ]);
+
+
+        //throw new BadRequestHttpException();
+    }
+
     /**
      * @Route("/creer", name="purchase_request_new", options={"expose"=true}, methods={"GET", "POST"})
      * @HasPermission({Menu::DEM, Action::CREATE_PURCHASE_REQUESTS})
