@@ -243,11 +243,11 @@ class PurchaseRequestController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $purchaseRequestRepository = $entityManager->getRepository(PurchaseRequest::class);
             $statusRepository = $entityManager->getRepository(Statut::class);
-            $status = $statusRepository->findByCategoryNameAndStatusCodes(CategorieStatut::PURCHASE_REQUEST,[Statut::IN_PROGRESS]);
+            $statuses = $statusRepository->findByCategoryAndStates(CategorieStatut::PURCHASE_REQUEST, [Statut::IN_PROGRESS]);
             $purchaseRequest = $purchaseRequestRepository->find($data['id']);
             $json = $this->renderView('purchase_request/request/modalEditPurchaseRequestContent.html.twig', [
                 'purchaseRequest' => $purchaseRequest,
-                'statuses' => $status
+                'statuses' => $statuses
             ]);
 
             return new JsonResponse($json);
