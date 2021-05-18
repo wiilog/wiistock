@@ -191,4 +191,15 @@ class EmplacementRepository extends EntityRepository
         );
         return $query->execute();
     }
+
+    public function getLocationByType($type)
+    {
+        $qb = $this->createQueryBuilder('location');
+
+        $qb->select('location.id AS id')
+            ->addSelect('location.label AS text')
+            ->where('(:type MEMBER OF location.allowedDeliveryTypes)')
+            ->setParameter('type', $type);
+        return $qb->getQuery()->getResult();
+    }
 }

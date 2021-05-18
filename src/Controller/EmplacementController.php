@@ -359,6 +359,15 @@ class EmplacementController extends AbstractController {
         );
     }
 
+    /**
+     * @Route("/{type}", name="get_locations_by_type", options={"expose"=true}, methods={"GET"})
+     */
+    public function getLocationByType($type,
+                                      EntityManagerInterface $entityManager) {
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        return $emplacementRepository->getLocationByType($type);
+    }
+
     private function checkLocationLabel(?string $label, $locationId = null) {
         $labelTrimmed = $label ? trim($label) : null;
         if (!empty($labelTrimmed)) {
