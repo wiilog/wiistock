@@ -353,8 +353,14 @@ class PurchaseRequestController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $purchaseRequestRepository = $entityManager->getRepository(PurchaseRequest::class);
             $statusRepository = $entityManager->getRepository(Statut::class);
-            $statuses = $statusRepository->findByCategoryAndStates(CategorieStatut::PURCHASE_REQUEST, [Statut::IN_PROGRESS]);
+
             $purchaseRequest = $purchaseRequestRepository->find($data['id']);
+
+            $currentStatus = $purchaseRequest->getStatus();
+            $statuses = $currentStatus
+                ? $statusRepository->findByCategoryAndStates(CategorieStatut::PURCHASE_REQUEST, [$currentStatus->getState()])
+                : [];
+
             $json = $this->renderView('purchase_request/edit_content_modal.html.twig', [
                 'purchaseRequest' => $purchaseRequest,
                 'statuses' => $statuses
@@ -371,6 +377,7 @@ class PurchaseRequestController extends AbstractController
      */
     public function edit(EntityManagerInterface $entityManager,
                          Request $request,
+                         PurchaseRequestService $purchaseRequestService,
                          AttachmentService $attachmentService): Response {
 
         $statusRepository = $entityManager->getRepository(Statut::class);
@@ -384,11 +391,17 @@ class PurchaseRequestController extends AbstractController
         /** @var Utilisateur $requester */
         $requester = $post->has('requester') ? $userRepository->find($post->get('requester')) : $purchaseRequest->getRequester();
         $comment = $post->get('comment') ?: '';
-        $status = $statusRepository->find($post->get('status'));
+        $newStatus = $statusRepository->find($post->get('status'));
+
+        $currentStatus = $purchaseRequest->getStatus();
+        if (!$currentStatus
+            || !$newStatus
+            || $newStatus->getState() === $currentStatus->getState()) {
+            $purchaseRequest->setStatus($newStatus);
+        }
 
         $purchaseRequest
             ->setComment($comment)
-            ->setStatus($status)
             ->setRequester($requester);
 
         $purchaseRequest->removeIfNotIn($data['files'] ?? []);
@@ -397,10 +410,16 @@ class PurchaseRequestController extends AbstractController
         $entityManager->flush();
 
         $number = $purchaseRequest->getNumber();
+        $purchaseRequestStatus = $purchaseRequest->getStatus();
 
         return $this->json([
             'success' => true,
-            'msg' => "La demande d'achat <strong>${number}</strong> a bien été modifiée"
+            'msg' => "La demande d'achat <strong>${number}</strong> a bien été modifiée",
+            'entete' => $this->renderView('purchase_request/show_header.html.twig', [
+                'request' => $purchaseRequest,
+                'modifiable' => $purchaseRequestStatus && $purchaseRequestStatus->isDraft(),
+                'showDetails' => $purchaseRequestService->createHeaderDetailsConfig($purchaseRequest)
+            ]),
         ]);
     }
 }

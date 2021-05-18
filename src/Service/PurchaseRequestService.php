@@ -112,6 +112,12 @@ class PurchaseRequestService
                 'colClass' => 'col-sm-6 col-12',
                 'isScrollable' => true,
                 'isNeededNotEmpty' => true
+            ],
+            [
+                'label' => 'Pièces jointes',
+                'value' => $request->getAttachments()->toArray(),
+                'isAttachments' => true,
+                'isNeededNotEmpty' => true
             ]
         ];
     }
