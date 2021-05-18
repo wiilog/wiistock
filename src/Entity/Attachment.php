@@ -75,12 +75,6 @@ class Attachment
      */
     private $handling;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\PurchaseRequest", inversedBy="attachments")
-     * @ORM\JoinColumn(nullable=true)
-     */
-    private ?PurchaseRequest $purchaseRequest;
-
     public function getId(): ?int
     {
         return $this->id;

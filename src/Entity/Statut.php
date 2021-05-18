@@ -228,10 +228,6 @@ class Statut
         return $this->state === self::DISPUTE;
     }
 
-    public function isInProgress(): ?bool {
-        return $this->state === self::IN_PROGRESS;
-    }
-
     public function getCategorie(): ? CategorieStatut
     {
         return $this->categorie;

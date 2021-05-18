@@ -1,6 +1,8 @@
 $(function() {
     const $statusSelector = $('.filterService select[name="statut"]');
 
+    initPageDataTable();
+
     initDateTimePicker();
     Select2Old.init($statusSelector, 'Statuts');
     Select2Old.location($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
@@ -25,9 +27,13 @@ $(function() {
             displayFiltersSup(data);
         }, 'json');
     }
-
-    initPageDataTable();
 });
+
+function createPurchaseRequest(){
+    $.post(Routing.generate('purchase_request_new'), function(data) {
+        showBSAlert(data.msg, data.success ? 'success' : 'danger');
+    });
+}
 
 function initPageDataTable() {
     let pathPurchaseRequest = Routing.generate('purchase_request_api', true);
@@ -57,7 +63,6 @@ function initPageDataTable() {
             {"data": 'requester', 'name': 'Demandeur', 'title': 'Demandeur'},
             {"data": 'status', 'name': 'Statut', 'title': 'Statut'},
             {"data": 'buyer', 'name': 'Acheteur', 'title': 'Acheteur'},
-
         ]
     };
     return initDataTable('tablePurchaseRequest', purchaseRequestTableConfig);

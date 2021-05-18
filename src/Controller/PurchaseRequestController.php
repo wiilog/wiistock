@@ -245,7 +245,7 @@ class PurchaseRequestController extends AbstractController
             $statusRepository = $entityManager->getRepository(Statut::class);
             $status = $statusRepository->findByCategoryNameAndStatusCodes(CategorieStatut::PURCHASE_REQUEST,[Statut::IN_PROGRESS]);
             $purchaseRequest = $purchaseRequestRepository->find($data['id']);
-            $json = $this->renderView('handling/modalEditPurchaseRequestContent.html.twig', [
+            $json = $this->renderView('purchase_request/request/modalEditPurchaseRequestContent.html.twig', [
                 'purchaseRequest' => $purchaseRequest,
                 'statuses' => $status
             ]);

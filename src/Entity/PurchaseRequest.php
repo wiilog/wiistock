@@ -85,6 +85,7 @@ class PurchaseRequest
     public function __construct()
     {
         $this->purchaseRequestLines = new ArrayCollection();
+        $this->attachments = new ArrayCollection();
     }
 
     public function getId(): ?int
