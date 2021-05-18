@@ -73,7 +73,7 @@ class PurchaseRequest
     private ?Statut $status = null;
 
     /**
-     * @ORM\OneToMany(targetEntity=PurchaseRequestLine::class, mappedBy="purchaseRequest")
+     * @ORM\OneToMany(targetEntity=PurchaseRequestLine::class, mappedBy="purchaseRequest", cascade={"remove"})
      */
     private ?Collection $purchaseRequestLines;
 

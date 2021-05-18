@@ -49,6 +49,7 @@ function initPageDataTable() {
             needsSearchOverride: true,
         },
         columns: [
+            {"data": 'actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},
             {"data": 'number', 'name': 'Numéro', 'title': 'Numéro'},
             {"data": 'creationDate', 'name': 'Création', 'title': 'Date de création'},
             {"data": 'considerationDate', 'name': 'Prise en compte', 'title': 'Date de prise en compte'},

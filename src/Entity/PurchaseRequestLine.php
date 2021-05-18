@@ -34,9 +34,9 @@ class PurchaseRequestLine
     private ?DateTimeInterface $expectedDate = null;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(type="string", nullable=true)
      */
-    private ?int $orderNumber = null;
+    private ?string $orderNumber = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=ReferenceArticle::class, inversedBy="purchaseRequestLines")
@@ -136,12 +136,12 @@ class PurchaseRequestLine
         return $this;
     }
 
-    public function getOrderNumber(): ?int
+    public function getOrderNumber(): ?string
     {
         return $this->orderNumber;
     }
 
-    public function setOrderNumber(int $orderNumber): self
+    public function setOrderNumber(?string $orderNumber): self
     {
         $this->orderNumber = $orderNumber;
 
