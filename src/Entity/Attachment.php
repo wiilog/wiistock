@@ -199,4 +199,16 @@ class Attachment
 
         return $this;
     }
+
+    public function getPurchaseRequest(): ?PurchaseRequest
+    {
+        return $this->purchaseRequest;
+    }
+
+    public function setPurchaseRequest(?PurchaseRequest $purchaseRequest): self
+    {
+        $this->purchaseRequest = $purchaseRequest;
+
+        return $this;
+    }
 }

@@ -9,6 +9,7 @@ use App\Entity\Demande;
 use App\Entity\Import;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
+use App\Entity\PurchaseRequest;
 use App\Entity\TrackingMovement;
 use App\Entity\OrdreCollecte;
 use App\Entity\Preparation;
@@ -42,7 +43,8 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
             CategorieStatut::RECEPTION,
             CategorieStatut::TRANSFER_REQUEST,
             CategorieStatut::TRANSFER_ORDER,
-            CategorieStatut::IMPORT
+            CategorieStatut::IMPORT,
+            CategorieStatut::PURCHASE_REQUEST
         ];
 
         $categoriesStatus = [
@@ -117,7 +119,9 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
                 TransferOrder::TO_TREAT => Statut::NOT_TREATED,
                 TransferOrder::TREATED => Statut::TREATED,
             ],
-            CategorieStatut::PURCHASE_REQUEST => [],
+            CategorieStatut::PURCHASE_REQUEST => [
+                PurchaseRequest::DRAFT => Statut::DRAFT,
+            ],
 			CategorieStatut::IMPORT => [
 				Import::STATUS_PLANNED => Statut::NOT_TREATED,
 				Import::STATUS_FINISHED => Statut::TREATED,
