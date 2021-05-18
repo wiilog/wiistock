@@ -26,7 +26,6 @@ use App\Service\UserService;
 use App\Service\EmplacementDataService;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -35,10 +34,6 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Contracts\Translation\TranslatorInterface;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 
 /**
  * @Route("/emplacement")
@@ -395,6 +390,23 @@ class EmplacementController extends AbstractController {
                 ]);
             }
         }
+    }
+
+    /**
+     * @Route("/{type}/autocomplete-locations-by-type", name="get_locations_by_type", options={"expose"=true})
+     */
+    public function getLocationsByType(Type $type, Request $request, EntityManagerInterface $entityManager) {
+        if ($request->isXmlHttpRequest()) {
+
+            $search = $request->query->get('term');
+
+            $locationRepository = $entityManager->getRepository(Emplacement::class);
+            $locations = $locationRepository->getLocationsByType($type, $search);
+            return $this->json([
+                'results' => $locations
+            ]);
+        }
+        throw new BadRequestHttpException();
     }
 
 }
