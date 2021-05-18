@@ -36,16 +36,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 class PurchaseRequestController extends AbstractController
 {
     /**
-     * @var PurchaseRequest
-     */
-    private $purchaseRequestService;
-
-    public function __construct(PurchaseRequestService $purchaseRequestService)
-    {
-        $this->purchaseRequestService = $purchaseRequestService;
-    }
-
-    /**
      * @Route("/liste", name="purchase_request_index")
      * @HasPermission({Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS})
      */
@@ -245,7 +235,7 @@ class PurchaseRequestController extends AbstractController
             $statusRepository = $entityManager->getRepository(Statut::class);
             $statuses = $statusRepository->findByCategoryAndStates(CategorieStatut::PURCHASE_REQUEST, [Statut::IN_PROGRESS]);
             $purchaseRequest = $purchaseRequestRepository->find($data['id']);
-            $json = $this->renderView('purchase_request/request/modalEditPurchaseRequestContent.html.twig', [
+            $json = $this->renderView('purchase_request/edit_content_modal.html.twig', [
                 'purchaseRequest' => $purchaseRequest,
                 'statuses' => $statuses
             ]);

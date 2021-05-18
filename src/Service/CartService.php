@@ -19,14 +19,11 @@ use App\Entity\Statut;
 use App\Entity\TransferRequest;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Helper\Stream;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bridge\PhpUnit\TextUI\Command;
-use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Security;
 use Twig\Environment;
+use WiiCommon\Helper\Stream;
 
 class CartService {
 

@@ -30,7 +30,11 @@
         <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
             {% if hasRightEdit %}
                 <a  onclick="editRow($(this), Routing.generate('purchase_request_api_edit', true), $('#modalEditPurchaseRequest'), $('#submitEditPurchaseRequest'), true, '#modalEditPurchaseRequest .editor-container-edit', false)"
-                    title="Modification" data-id='{{ request.id }}' data-target="#modalEditPurchaseRequest" data-toggle="modal" class="dropdown-item">
+                    title="Modification"
+                    data-id='{{ request.id }}'
+                    data-target="#modalEditPurchaseRequest"
+                    data-toggle="modal"
+                    class="dropdown-item">
                     <i class="fa fa-pen mr-2"></i>Modifier</a>
             {% endif %}
             {% if hasRightDelete %}
