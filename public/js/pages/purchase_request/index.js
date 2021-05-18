@@ -29,12 +29,6 @@ $(function() {
     }
 });
 
-function createPurchaseRequest(){
-    $.post(Routing.generate('purchase_request_new'), function(data) {
-        showBSAlert(data.msg, data.success ? 'success' : 'danger');
-    });
-}
-
 function initPageDataTable() {
     let pathPurchaseRequest = Routing.generate('purchase_request_api', true);
     let purchaseRequestTableConfig = {
