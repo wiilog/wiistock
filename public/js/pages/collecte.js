@@ -106,7 +106,7 @@ $(function() {
         const $locationSelector = $(`#modalNewCollecte select[name="emplacement"]`);
         const type = $(this).val();
 
-        $locationSelector.prop(`disabled`, type == null);
+        $locationSelector.prop(`disabled`, type === '');
         $locationSelector.val(null).trigger(`change`);
 
         Select2Old.init($locationSelector, '', 1, {
@@ -126,7 +126,14 @@ function initNewCollecteEditor(modal) {
         initEditorInModal(modal);
         editorNewCollecteAlreadyDone = true;
     }
-    Select2Old.location($('.ajax-autocomplete-location'))
+    Select2Old.location($('.ajax-autocomplete-location'));
+
+    const type = $(modal).find('select[name="type"] option:selected').val();
+    const $locationSelector = $(modal).find(`select[name="emplacement"]`);
+
+    if(!type) {
+        $locationSelector.prop(`disabled`, true);
+    }
 }
 
 function callbackSaveFilter() {
