@@ -128,7 +128,7 @@ function initTableRefArticle() {
                     needsResize: true
                 },
                 rowConfig: {
-                    classFrom: 'colorClass',
+                    colorClass: 'colorClass',
                     needsRowClickAction: true
                 },
                 hideColumnConfig: {

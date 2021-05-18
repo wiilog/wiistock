@@ -163,15 +163,14 @@ function getAppropriateDom({needsFullDomOverride, needsPartialDomOverride, needs
                 : dtDefaultValue;
 }
 
-function getAppropriateRowCallback({needsColor, classFrom, color, dataToCheck, needsRowClickAction, callback}) {
+function getAppropriateRowCallback({needsColor, colorClass, color, dataToCheck, needsRowClickAction, callback}) {
     return function (row, data) {
         if (needsColor
             && (data[dataToCheck] === true || data[dataToCheck] && data[dataToCheck].toLowerCase() !== 'non')) {
             $(row).addClass('table-' + color);
         }
-        if (classFrom
-            && (data[classFrom] !== undefined || data[classFrom] && data[classFrom])) {
-            $(row).addClass(data[classFrom]);
+        if (colorClass && data[colorClass]) {
+            $(row).addClass(data[colorClass]);
         }
         if (needsRowClickAction) {
             initActionOnRow(row);

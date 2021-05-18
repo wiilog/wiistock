@@ -211,7 +211,6 @@ class RefArticleDataService {
                 ReferenceArticle::STOCK_MANAGEMENT_FEFO,
                 ReferenceArticle::STOCK_MANAGEMENT_FIFO
             ],
-            'purchaseRequestState' => $refArticle->getPurchaseRequestState(),
             'managers' => $refArticle->getManagers()
                 ->map(function(Utilisateur $manager) {
                     $managerId = $manager->getId();
@@ -365,19 +364,6 @@ class RefArticleDataService {
             ->unique()
             ->toArray();
 
-        $receptionInProgress = null;
-        $purchaseRequestState= null;
-
-        if ($refArticle->getPurchaseRequestState()) {
-
-            if($refArticle->getPurchaseRequestState() ===  ReferenceArticle::PURCHASE_REQUEST_IN_PROGRESS ) {
-            $purchaseRequestState = 'inProgressPurchaseRequest';
-            }
-            if($refArticle->getPurchaseRequestState() ===  ReferenceArticle::WAIT_FOR_RECEPTION ) {
-                $receptionInProgress = 'waitForReception';
-            }
-        }
-
         if(!$refArticle->getAttachments()->isEmpty()) {
             $attachmentsCounter = $refArticle->getAttachments()->count();
             $sAttachments = $attachmentsCounter > 1 ? 's' : '';
@@ -421,9 +407,10 @@ class RefArticleDataService {
                 "reference_id" => $refArticle->getId(),
                 "active" => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF : 0,
             ]),
-            "purchaseRequestState" =>  $purchaseRequestState ?? null ,
-            "receptionInProgress" =>   $receptionInProgress ?? null,
-            "colorClass" => $purchaseRequestState ? 'table-light-orange' : ($receptionInProgress ? 'table-light-blue' : null),
+            "colorClass" => (
+                $refArticle->getOrderState() === ReferenceArticle::PURCHASE_IN_PROGRESS_ORDER_STATE ? 'table-light-orange' :
+                ($refArticle->getOrderState() === ReferenceArticle::WAIT_FOR_RECEPTION_ORDER_STATE ? 'table-light-blue' : null)
+            ),
         ];
 
         foreach($freeFields as $freeField) {
@@ -536,6 +523,7 @@ class RefArticleDataService {
 
     public function dataRowAlerteRef(Alert $alert) {
         if($entity = $alert->getReference()) {
+            $referenceArticle = $entity;
             $reference = $entity->getReference();
             $code = $entity->getBarCode();
             $label = $entity->getLibelle();
@@ -549,15 +537,17 @@ class RefArticleDataService {
                 })->toArray();
             $managers = count($managers) ? implode(",", $managers) : 'Non défini';
         } else if($entity = $alert->getArticle()) {
-            $reference = $entity->getReference();
+            $referenceArticle = $entity->getArticleFournisseur()->getReferenceArticle();
+            $reference = $referenceArticle ? $referenceArticle->getReference() : null;
             $code = $entity->getBarCode();
             $label = $entity->getLabel();
             $expiry = $entity->getExpiryDate() ? $entity->getExpiryDate()->format("d/m/Y H:i") : "Non défini";
-            $managers = Stream::from($entity->getArticleFournisseur()->getReferenceArticle()->getManagers())
-                ->map(function(Utilisateur $utilisateur) {
-                    return $utilisateur->getUsername();
-                })->toArray();
-            $managers = count($managers) ? implode(",", $managers) : 'Non défini';
+            $managers = $referenceArticle
+                ? Stream::from($referenceArticle->getManagers())
+                    ->map(fn (Utilisateur $utilisateur) => $utilisateur->getUsername())
+                    ->toArray()
+                : [];
+            $managers = count($managers) > 0 ? implode(",", $managers) : 'Non défini';
         } else {
             throw new RuntimeException("Invalid alert");
         }
@@ -579,6 +569,10 @@ class RefArticleDataService {
             "expiry" => $expiry ?? "Non défini",
             "date" => $alert->getDate()->format("d/m/Y H:i"),
             "managers" => $managers,
+            "colorClass" => (
+                $referenceArticle->getOrderState() === ReferenceArticle::PURCHASE_IN_PROGRESS_ORDER_STATE ? 'table-light-orange' :
+                ($referenceArticle->getOrderState() === ReferenceArticle::WAIT_FOR_RECEPTION_ORDER_STATE ? 'table-light-blue' : null)
+            ),
         ];
     }
 
