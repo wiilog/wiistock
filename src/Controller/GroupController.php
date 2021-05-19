@@ -15,6 +15,7 @@ use App\Service\GroupService;
 use App\Service\TrackingMovementService;
 
 use Doctrine\ORM\EntityManagerInterface;
+use InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -167,30 +168,32 @@ class GroupController extends AbstractController {
                     $packRepository = $entityManager->getRepository(Pack::class);
                     $groups = $packRepository->getGroupsByDates($dateTimeMin, $dateTimeMax);
 
-                    foreach ($groups as $group) {
-                        $mvtData = $trackingMovementService->getFromColumnData($group['fromTo']);
-                        $group['fromLabel'] = $translator->trans($mvtData['fromLabel']);
-                        $group['fromTo'] = $mvtData['from'];
-                        $this->putPackLine($output, $CSVExportService, $group);
+                    foreach ($groups as $groupData) {
+                        /** @var Pack $group */
+                        $group = $groupData['group'];
+                        $trackingData = $trackingMovementService->getFromColumnData($group->getLastTracking());
+                        $trackingLocation = $group->getLastTracking() ? $group->getLastTracking()->getEmplacement() : null;
+                        $trackingDate = $group->getLastTracking() ? $group->getLastTracking()->getDatetime() : null;
+
+                        $CSVExportService->putLine($output, [
+                            $group->getCode(),
+                            FormatHelper::nature($group->getNature()),
+                            FormatHelper::datetime($trackingDate),
+                            $groupData['packCounter'],
+                            $group->getWeight(),
+                            $group->getVolume(),
+                            $translator->trans($trackingData['fromLabel']),
+                            $trackingData["from"],
+                            FormatHelper::location($trackingLocation)
+                        ]);
                     }
                 }, 'export_groupes.csv',
                 $csvHeader
             );
         }
-    }
-
-    private function putPackLine($handle, CSVExportService $csvService, array $group) {
-        $csvService->putLine($handle, [
-            $group["code"],
-            $group["nature"],
-            FormatHelper::datetime($group["lastMvtDate"]),
-            $group["packs"],
-            $group["weight"],
-            $group["volume"],
-            $group["fromLabel"],
-            $group["fromTo"],
-            $group["location"]
-        ]);
+        else {
+            throw new InvalidArgumentException('Date should be set.');
+        }
     }
 
 }

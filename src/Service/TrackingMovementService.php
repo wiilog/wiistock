@@ -172,15 +172,15 @@ class TrackingMovementService
                 ? $movement->getReferenceArticle()->getReference()
                 : ($movement->getArticle()
                     ? $movement->getArticle()->getArticleFournisseur()->getReferenceArticle()->getReference()
-                    : ($lastTracking && $lastTracking->getMouvementStock()
-                        ? $lastTracking->getMouvementStock()->getArticle()->getArticleFournisseur()->getReferenceArticle()->getLibelle()
+                    : ($trackingPack && $trackingPack->getLastTracking() && $trackingPack->getLastTracking()->getMouvementStock()
+                        ? $trackingPack->getLastTracking()->getMouvementStock()->getArticle()->getArticleFournisseur()->getReferenceArticle()->getLibelle()
                         : '')),
             "label" => $movement->getReferenceArticle()
                 ? $movement->getReferenceArticle()->getLibelle()
                 : ($movement->getArticle()
                     ? $movement->getArticle()->getLabel()
-                    : ($lastTracking && $lastTracking->getMouvementStock()
-                        ? $lastTracking->getMouvementStock()->getArticle()->getLabel()
+                    : ($trackingPack && $trackingPack->getLastTracking() && $trackingPack->getLastTracking()->getMouvementStock()
+                        ? $trackingPack->getLastTracking()->getMouvementStock()->getArticle()->getLabel()
                         : '')),
             "quantity" => $movement->getQuantity() ?: '',
             "type" => FormatHelper::status($movement->getType()),

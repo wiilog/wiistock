@@ -89,7 +89,7 @@ class PackRepository extends EntityRepository
 
     public function getPacksByDates(DateTime $dateMin, DateTime $dateMax)
     {
-        $iterator =  $this->createQueryBuilder('pack')
+        return $this->createQueryBuilder('pack')
             ->select('pack.code as code')
             ->addSelect('n.label as nature')
             ->addSelect('m.datetime as lastMvtDate')
@@ -106,40 +106,22 @@ class PackRepository extends EntityRepository
                 'dateMax' => $dateMax
             ])
             ->getQuery()
-            ->iterate(null, Query::HYDRATE_ARRAY);
-
-        foreach($iterator as $item) {
-            // $item [index => article array]
-            yield array_pop($item);
-        }
+            ->toIterable();
     }
 
     public function getGroupsByDates(DateTime $dateMin, DateTime $dateMax) {
-        $iterator =  $this->createQueryBuilder("parent")
-            ->distinct()
-            ->select("parent.code AS code")
-            ->addSelect("join_nature.label AS nature")
-            ->addSelect("COUNT(children.id) AS packs")
-            ->addSelect("parent.weight AS weight")
-            ->addSelect("parent.volume AS volume")
-            ->addSelect("movement.datetime AS lastMvtDate")
-            ->addSelect("movement AS fromTo")
-            ->addSelect("emplacement.label AS location")
-            ->leftJoin("parent.lastTracking", "movement")
-            ->leftJoin("movement.emplacement","emplacement")
-            ->leftJoin("parent.nature","join_nature")
-            ->leftJoin("parent.children","child")
+        return $this->createQueryBuilder("pack")
+            ->select("pack AS group")
+            ->addSelect("COUNT(child.id) AS packCounter")
+            ->leftJoin("pack.lastTracking", "movement")
+            ->leftJoin("pack.children","child")
             ->where("movement.datetime BETWEEN :dateMin AND :dateMax")
-            ->groupBy("parent")
+            ->andWhere('pack.groupIteration IS NOT NULL')
+            ->groupBy('pack')
             ->setParameter("dateMin", $dateMin)
             ->setParameter("dateMax", $dateMax)
             ->getQuery()
-            ->iterate(null, Query::HYDRATE_ARRAY);
-
-        foreach($iterator as $item) {
-            // $item [index => article array]
-            yield array_pop($item);
-        }
+            ->getResult();
     }
 
     /**

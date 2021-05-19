@@ -4,6 +4,7 @@ namespace App\Helper;
 
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
+use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -46,6 +47,10 @@ class FormatHelper {
 
     public static function user(?Utilisateur $user, $else = "") {
         return $user ? $user->getUsername() : $else;
+    }
+
+    public static function nature(?Nature $nature, $else = "") {
+        return $nature ? $nature->getLabel() : $else;
     }
 
     public static function entity($entities, string $field, string $separator = ", ") {
