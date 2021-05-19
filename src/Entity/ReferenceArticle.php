@@ -4,11 +4,11 @@ namespace App\Entity;
 
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CommentTrait;
-use App\Helper\Stream;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use WiiCommon\Helper\Stream;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ReferenceArticleRepository")

@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace DoctrineMigrations;
 
 use App\Entity\CategoryType;
-use App\Helper\Stream;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 use Symfony\Component\Console\Output\ConsoleOutput;
+use WiiCommon\Helper\Stream;
 
 final class Version20210511103955 extends AbstractMigration {
 

@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Traits\AttachmentTrait;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -15,6 +16,9 @@ use App\Helper\FormatHelper;
 class PurchaseRequest
 {
 
+    use AttachmentTrait;
+
+    const DRAFT = 'Brouillon';
     const NUMBER_PREFIX = 'DA';
 
     /**
@@ -73,7 +77,7 @@ class PurchaseRequest
     private ?Statut $status = null;
 
     /**
-     * @ORM\OneToMany(targetEntity=PurchaseRequestLine::class, mappedBy="purchaseRequest")
+     * @ORM\OneToMany(targetEntity=PurchaseRequestLine::class, mappedBy="purchaseRequest", cascade={"remove"})
      */
     private ?Collection $purchaseRequestLines;
 
@@ -81,6 +85,7 @@ class PurchaseRequest
     public function __construct()
     {
         $this->purchaseRequestLines = new ArrayCollection();
+        $this->attachments = new ArrayCollection();
     }
 
     public function getId(): ?int

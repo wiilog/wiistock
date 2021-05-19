@@ -2,11 +2,6 @@
 
 namespace App\Service;
 
-use App\Entity\Dispatch;
-use App\Entity\Arrivage;
-use App\Entity\Handling;
-use App\Entity\Litige;
-use App\Entity\TrackingMovement;
 use App\Entity\Attachment;
 use Doctrine\ORM\EntityManagerInterface;
 use ReflectionClass;
@@ -38,10 +33,6 @@ class AttachmentService {
     	$this->em = $em;
     }
 
-	/**
-	 * @param FileBag|UploadedFile[]|array $files if array it's an assoc array between originalFileName and serverFileName
-	 * @return Attachment[]
-	 */
 	public function createAttachements($files) {
 		$attachments = [];
 
@@ -71,11 +62,6 @@ class AttachmentService {
         return $attachments;
 	}
 
-    /**
-     * @param UploadedFile $file
-     * @param string|null $wantedName
-     * @return array [originalName (string) => filename (string)]
-     */
 	public function saveFile(UploadedFile $file, string $wantedName = null): array {
         if (!file_exists($this->attachmentDirectory)) {
             mkdir($this->attachmentDirectory, 0777);
@@ -86,10 +72,6 @@ class AttachmentService {
         return [$file->getClientOriginalName() => $filename];
     }
 
-	/**
-	 * @param Attachment $attachment
-	 * @param Arrivage|Litige|Dispatch|TrackingMovement|Handling $entity
-	 */
 	public function removeAndDeleteAttachment(Attachment $attachment,
                                               $entity)
 	{
@@ -113,83 +95,20 @@ class AttachmentService {
         $this->em->flush();
 	}
 
-    /**
-     * @param Attachment $attachment
-     * @return string
-     */
 	public function getServerPath(Attachment $attachment): string {
 	    return $this->attachmentDirectory . '/' . $attachment->getFileName();
     }
 
-    /**
-     * @param Attachment $attachment
-     * @return string
-     */
 	public function getAttachmentDirectory(): string {
 	    return $this->attachmentDirectory;
     }
 
-    /**
-     * @param string $fileName
-     * @param array $content
-     * @param callable $mapper
-     * @return void
-     */
-	public function saveCSVFile(string $fileName, array $content, callable $mapper): void {
-        $csvFilePath = $this->attachmentDirectory . '/' . $fileName;
-
-        $logCsvFilePathOpened = fopen($csvFilePath, 'w');
-
-        $this->putCSVLines($logCsvFilePathOpened, $content, $mapper);
-
-        fclose($logCsvFilePathOpened);
-    }
-
-    /**
-     * @param resource $file
-     * @param callable $mapper
-     * @return void
-     */
 	public function putCSVLines($file, array $content, callable $mapper): void {
         foreach ($content as $row) {
             fputcsv($file, $mapper($row), ';');
         }
     }
 
-    /**
-     * @param UploadedFile $file
-     * @param Arrivage|Litige $link
-     * @return Attachment
-     */
-    public function createPieceJointe(UploadedFile $file, $link): Attachment {
-        if ($file->getClientOriginalExtension()) {
-            $filename = uniqid() . "." . strtolower($file->getClientOriginalExtension());
-        } else {
-            $filename = uniqid();
-        }
-        $file->move($this->attachmentDirectory, $filename);
-
-        $attachment = new Attachment();
-        $attachment
-            ->setFileName($filename)
-            ->setOriginalName($file->getClientOriginalName());
-
-        if ($link instanceof Arrivage) {
-            $attachment->setArrivage($link);
-        }
-        else if($link instanceof Litige) {
-            $attachment->setLitige($link);
-        }
-
-        return $attachment;
-    }
-
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @param $attachmentEntity
-     * @param FileBag $files
-     * @throws \ReflectionException
-     */
     public function manageAttachments(EntityManagerInterface $entityManager, $attachmentEntity, FileBag $files) {
         $reflect = new ReflectionClass($attachmentEntity);
         $dedicatedAttachmentFolder = strtolower($reflect->getShortName()) . '/' . $attachmentEntity->getId();

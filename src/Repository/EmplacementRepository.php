@@ -108,6 +108,23 @@ class EmplacementRepository extends EntityRepository
         return $query->execute();
     }
 
+    public function getLocationsByType($type, $search) {
+        $qb = $this->createQueryBuilder('location');
+
+        $qb->select('location.id AS id')
+            ->addSelect('location.label AS text')
+            ->andWhere('location.label LIKE :search')
+            ->setParameter('search', '%' . str_replace('_', '\_', $search) . '%');
+
+        if ($type) {
+            $qb
+                ->andWhere('(:type MEMBER OF location.allowedDeliveryTypes) OR (:type MEMBER OF location.allowedCollectTypes)')
+                ->setParameter('type', $type);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
     /**
      * @param null $params
      * @param false $excludeInactive
