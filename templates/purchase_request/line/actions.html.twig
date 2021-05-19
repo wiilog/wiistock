@@ -1,9 +1,19 @@
-<div class="d-none">
-    <div class="action-on-click"
-         data-id='{{ lineId }}'
-         data-target='#modalEditPurchaseRequestLine'
-         data-toggle='modal'
-         onclick="editRow($(this), Routing.generate('purchase_request_line_edit_api', true), $('#modalEditPurchaseRequestLine'), $('#modalEditPurchaseRequestLine').find('.submit-button'), false, '.editor-container-edit', false, callbackEditLineLoading)">
-        <i class='fas fa-eye'></i>
+
+{% set hasRightEditLine = (
+    requestStatus
+    and requestStatus.inProgress
+    and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT'))
+    and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_ONGOING_PURCHASE_REQUESTS'))
+) %}
+
+{% if hasRightEditLine %}
+    <div class="d-none">
+        <div class="action-on-click"
+             data-id='{{ lineId }}'
+             data-target='#modalEditPurchaseRequestLine'
+             data-toggle='modal'
+             onclick="editRow($(this), Routing.generate('purchase_request_line_edit_api', true), $('#modalEditPurchaseRequestLine'), $('#modalEditPurchaseRequestLine').find('.submit-button'), false, '.editor-container-edit', false, callbackEditLineLoading)">
+            <i class='fas fa-eye'></i>
+        </div>
     </div>
-</div>
+{% endif %}

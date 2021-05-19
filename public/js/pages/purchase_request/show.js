@@ -24,17 +24,15 @@ $(function() {
         ],
     });
 
-
-
-    const $modalEdit = $('#modalEditPurchaseRequestLine');
-    const $submitEdit = $modalEdit.find('.submit-button');
+    const $modalEditLine = $('#modalEditPurchaseRequestLine');
+    const $submitEditLine = $modalEditLine.find('.submit-button');
     const urlEditLine = Routing.generate('purchase_request_line_edit', true);
-    InitModal($modalEdit, $submitEdit, urlEditLine, {tables: [tablePurchaseRequestLines]});
+    InitModal($modalEditLine, $submitEditLine, urlEditLine, {tables: [tablePurchaseRequestLines]});
 
-    let $modalAdd = $("#modalAddPurchaseRequestLine");
-    let $submitAdd = $modalAdd.find('.submit-button');
-    let urlAddLine = Routing.generate('purchase_request_add_reference', {purchaseRequest: id});
-    InitModal($modalAdd, $submitAdd, urlAddLine, {tables: [tablePurchaseRequestLines]});
+    let $modalAddLine = $("#modalAddPurchaseRequestLine");
+    let $submitAddLine = $modalAddLine.find('.submit-button');
+    let urlAddLine = Routing.generate('purchase_request_add_line', {purchaseRequest: id});
+    InitModal($modalAddLine, $submitAddLine, urlAddLine, {tables: [tablePurchaseRequestLines]});
 
     let modalDeleteRequest = $("#modalDeleteRequest");
     let submitDeleteRequest = $("#submitDeleteRequest");
@@ -118,11 +116,9 @@ function callbackEditLineLoading($modal) {
     let expectedDate = $expectedDateInput.attr('data-date');
 
     if(orderDate){
-        console.log("TEST", orderDate);
         $orderDateInput.val(moment(orderDate, 'YYYY-MM-DD HH:mm').format('DD/MM/YYYY HH:mm'));
     }
     if(expectedDate){
-        console.log("TEST", expectedDate);
         $expectedDateInput.val(moment(expectedDate, 'YYYY-MM-DD HH:mm').format('DD/MM/YYYY HH:mm'));
     }
 

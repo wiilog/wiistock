@@ -187,7 +187,7 @@ class PurchaseRequestController extends AbstractController
     }
 
     /**
-     * @Route("/{purchaseRequest}/reference/api", name="purchase_request_lines_api", options={"expose"=true}, methods={"GET"}, condition="request.isXmlHttpRequest()")
+     * @Route("/{purchaseRequest}/line/api", name="purchase_request_lines_api", options={"expose"=true}, methods={"GET"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS})
      */
     public function purchaseRequestLinesApi(PurchaseRequest $purchaseRequest): Response {
@@ -204,7 +204,8 @@ class PurchaseRequestController extends AbstractController
                 'orderedQuantity' => $requestLine->getOrderedQuantity(),
                 'orderNumber' => $requestLine->getOrderNumber(),
                 'actions' => $this->renderView('purchase_request/line/actions.html.twig', [
-                    'lineId' => $requestLine->getId()
+                    'lineId' => $requestLine->getId(),
+                    'requestStatus' => $purchaseRequest->getStatus()
                 ]),
             ];
         }
@@ -217,13 +218,13 @@ class PurchaseRequestController extends AbstractController
     }
 
     /**
-     * @Route("/{purchaseRequest}/ajouter-article", name="purchase_request_add_reference", options={"expose"=true})
+     * @Route("/{purchaseRequest}/ajouter-ligne", name="purchase_request_add_line", options={"expose"=true})
      * @HasPermission({Menu::DEM, Action::EDIT})
      */
-    public function addReference(Request $request,
-                                 PurchaseRequestService $purchaseRequestService,
-                                 EntityManagerInterface $entityManager,
-                                 PurchaseRequest $purchaseRequest): Response {
+    public function addPurchaseRequestLine(Request $request,
+                                           PurchaseRequestService $purchaseRequestService,
+                                           EntityManagerInterface $entityManager,
+                                           PurchaseRequest $purchaseRequest): Response {
 
         $data = json_decode($request->getContent(), true);
 
@@ -324,7 +325,6 @@ class PurchaseRequestController extends AbstractController
 
     /**
      * @Route("/ligne/api-modifier", name="purchase_request_line_edit_api", options={"expose"=true}, methods="GET|POST", condition = "request.isXmlHttpRequest()")
-
      */
     public function editLineApi(Request $request,
                                 EntityManagerInterface $entityManager,
@@ -355,8 +355,7 @@ class PurchaseRequestController extends AbstractController
      * @HasPermission({Menu::DEM, Action::EDIT})
      */
     public function editLine(Request $request,
-                             EntityManagerInterface $entityManager,
-                             TranslatorInterface $translator): Response
+                             EntityManagerInterface $entityManager): Response
     {
         $data = json_decode($request->getContent(), true);
         $response = [];
@@ -364,10 +363,7 @@ class PurchaseRequestController extends AbstractController
         /** @var PurchaseRequestLine $purchaseRequestLine */
         $purchaseRequestLine = $purchaseRequestLineRepository->find($data['lineId']);
 
-
-
         if (!empty($purchaseRequestLine)) {
-
             if(isset($data['supplier'])){
                 $supplierRepository = $entityManager->getRepository(Fournisseur::class);
                 $supplier = $supplierRepository->find($data['supplier']);
@@ -376,6 +372,7 @@ class PurchaseRequestController extends AbstractController
             if(isset($data['orderDate'])){
                 $orderDate = DateTime::createFromFormat('d/m/Y H:i', $data['orderDate'], new DateTimeZone("Europe/Paris"));
             }
+
             if(isset($data['expectedDate'])){
                 $expectedDate = DateTime::createFromFormat('d/m/Y H:i', $data['expectedDate'], new DateTimeZone("Europe/Paris"));
             }
@@ -390,7 +387,7 @@ class PurchaseRequestController extends AbstractController
             $entityManager->flush();
             $response = [
                 'success' => true,
-                'msg' => 'La référence a bien été modifié'
+                'msg' => "La ligne de demande d'achat a bien été modifiée"
             ];
         }
         return new JsonResponse($response);
