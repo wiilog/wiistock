@@ -39,6 +39,15 @@ $(function() {
     let urlEditPurchaseRequest = Routing.generate('purchase_request_edit', true);
     InitModal($modalEditPurchaseRequest, $submitEditPurchaseRequest, urlEditPurchaseRequest);
 
+    let $modalValidatePurchaseRequest = $('#modalValidatePurchaseRequest');
+    let $submitValidatePurchaseRequest = $('#submitValidatePurchaseRequest');
+    let urlValidatePurchaseRequest = Routing.generate('purchase_request_validate', true);
+    InitModal($modalValidatePurchaseRequest, $submitValidatePurchaseRequest, urlValidatePurchaseRequest, {
+        success: () => {
+            window.location.reload();
+        }
+    });
+
     Select2Old.init($modalEditPurchaseRequest.find('select[name=status]'));
 });
 
@@ -107,4 +116,23 @@ function clearLineAddModal(clearReferenceInput = false){
 
     const $submitButton = $modal.find(".submit-button");
     $submitButton.prop('disabled', true);
+}
+
+function validatePurchaseRequest(PurchaseRequestId, $button) {
+    let params = JSON.stringify({id: PurchaseRequestId});
+
+    wrapLoadingOnActionButton($button, () => (
+        $.post({
+            url: Routing.generate('purchase_request_validate'),
+            data: params
+        })
+            .then(function (resp) {
+                if (resp === true) {
+                    return getCompareStock($button);
+                } else {
+                    $('#cannotValidate').click();
+                    return false;
+                }
+            })
+    ));
 }

@@ -19,6 +19,7 @@ class PurchaseRequest
     use AttachmentTrait;
 
     const DRAFT = 'Brouillon';
+    const NOT_TREATED = 'Initié';
     const NUMBER_PREFIX = 'DA';
 
     /**
