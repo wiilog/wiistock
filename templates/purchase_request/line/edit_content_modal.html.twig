@@ -1,0 +1,45 @@
+<form>
+    <div class="row">
+        <div class="form-group col-12">
+            <label>Quantité commandée</label>
+            <input type="number" class="w-100 form-control data" name="orderedQuantity" min="1" title="Quantité commandée" value=""{{ line.orderedQuantity }}>
+        </div>
+    </div>
+    <div class="row">
+        {% if fieldsParam|isFieldRequired('numCommande', 'displayedFormsEdit') %}
+            <div class="form-group col-12 col-md-6">
+                <label>N° commande{{ fieldsParam|isFieldRequired('numCommande', 'mustToModify') ? '*' : '' }}</label>
+                <input type="text" class="w-100 form-control data {{ fieldsParam|isFieldRequired('numCommande', 'mustToModify') ? 'needed' : '' }}" name="orderNumber" title="N° commande" value="{{ line.orderNumber }}">
+            </div>
+        {% endif %}
+        <div class="form-group col-12 col-md-6">
+            <label>Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'mustToModify') ? '*' : '' }}</label>
+            <div class="w-100">
+                <select class="form-control data select2 ajax-autocomplete-fournisseur" title="Fournisseur" name="supplier" {{ fieldsParam|isFieldRequired('fournisseur', 'mustToModify') ? 'needed' : '' }}>
+                    {% if line.supplier %}
+                        <option value="{{ line.supplier.id }}" selected>{{ line.supplier.nom }}</option>
+                    {% else %}
+                         <option selected></option>
+                    {% endif %}
+                </select>
+            </div>
+        </div>
+    </div>
+    {% if fieldsParam|isFieldRequired('dateCommande', 'displayedFormsEdit') %}
+        <div class="row">
+            <div class="form-group col-12">
+                <label>Date de commande{{ fieldsParam|isFieldRequired('dateCommande', 'mustToModify') ? '*' : '' }}</label>
+                <input type="text" class="w-100 form-control data {{ fieldsParam|isFieldRequired('dateCommande', 'mustToModify') ? 'needed' : '' }} datepicker orderDate" name="orderDate" title="Date de commande" data-date="{{ line.orderDate ? (line.orderDate|date('Y-m-d H:i')) }}">
+
+            </div>
+        </div>
+    {% endif %}
+    {% if fieldsParam|isFieldRequired('dateAttendue', 'displayedFormsEdit') %}
+        <div class="row">
+            <div class="form-group col-12">
+                <label>Date attendue{{ fieldsParam|isFieldRequired('dateAttendue', 'mustToModify') ? '*' : '' }}</label>
+                <input type="text" class="w-100 form-control data {{ fieldsParam|isFieldRequired('dateAttendue', 'mustToModify') ? 'needed' : '' }} datepicker expectedDate" name="expectedDate" title="Date attendue" data-date="{{ line.expectedDate ? (line.expectedDate|date('Y-m-d H:i')) }}">
+            </div>
+        </div>
+    {% endif %}
+</form>

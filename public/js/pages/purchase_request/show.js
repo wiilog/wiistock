@@ -6,7 +6,7 @@ $(function() {
         buyerFilter: purchaseRequestBuyerId,
     });
 
-    const tablePurchaseRequestLine = initDataTable('tablePurchaseRequestLine', {
+    const tablePurchaseRequestLines = initDataTable('tablePurchaseRequestLine', {
         ajax: {
             "url": Routing.generate('purchase_request_lines_api', {purchaseRequest: id}, true),
             "type": "GET"
@@ -21,15 +21,22 @@ $(function() {
             {"data": 'label', 'title': 'Libellé'},
             {"data": 'requestedQuantity', 'title': 'Quantité demandée'},
             {"data": 'stockQuantity', 'title': 'Quantité en stock'},
-            {"data": 'reservedQuantity', 'title': 'Quantité commandée'},
+            {"data": 'orderedQuantity', 'title': 'Quantité commandée'},
             {"data": 'orderNumber', 'title': 'N° commande'}
         ],
     });
 
-    let $modal = $("#modalAddPurchaseRequestLine");
-    let $submit = $modal.find('.submit-button');
-    let url = Routing.generate('purchase_request_add_reference', {purchaseRequest: id});
-    InitModal($modal, $submit, url, {tables: [tablePurchaseRequestLine]});
+
+
+    const $modalEdit = $('#modalEditPurchaseRequestLine');
+    const $submitEdit = $modalEdit.find('.submit-button');
+    const urlEditLine = Routing.generate('purchase_request_line_edit', true);
+    InitModal($modalEdit, $submitEdit, urlEditLine, {tables: [tablePurchaseRequestLines]});
+
+    let $modalAdd = $("#modalAddPurchaseRequestLine");
+    let $submitAdd = $modalAdd.find('.submit-button');
+    let urlAddLine = Routing.generate('purchase_request_add_reference', {purchaseRequest: id});
+    InitModal($modalAdd, $submitAdd, urlAddLine, {tables: [tablePurchaseRequestLines]});
 
     let modalDeleteRequest = $("#modalDeleteRequest");
     let submitDeleteRequest = $("#submitDeleteRequest");
@@ -69,15 +76,7 @@ function onReferenceChange($select) {
         })
         .catch(() => {
             clearLineAddModal();
-        })
-       /* , function(response) {
-        if (response.success) {
-            $("#add-article-code-selector").html(response.html || "");
-            $('.error-msg').html('');
-        } else {
-            $('.error-msg').html(response.msg);
-        }*/
-    //});
+        });
 }
 
 function clearLineAddModal(clearReferenceInput = false){
@@ -102,4 +101,25 @@ function clearLineAddModal(clearReferenceInput = false){
 
     const $submitButton = $modal.find(".submit-button");
     $submitButton.prop('disabled', true);
+}
+
+function callbackEditLineLoading($modal) {
+    initDateTimePicker('#modalEditPurchaseRequestLine .datepicker[name="orderDate"]', 'DD/MM/YYYY HH:mm', false);
+    initDateTimePicker('#modalEditPurchaseRequestLine .datepicker[name="expectedDate"]', 'DD/MM/YYYY HH:mm', false);
+    let $orderDateInput = $('#modalEditPurchaseRequestLine').find('[name="orderDate"]');
+    let orderDate = $orderDateInput.attr('data-date');
+
+    let $expectedDateInput = $('#modalEditPurchaseRequestLine').find('[name="expectedDate"]');
+    let expectedDate = $expectedDateInput.attr('data-date');
+
+    if(orderDate){
+        console.log("TEST", orderDate);
+        $orderDateInput.val(moment(orderDate, 'YYYY-MM-DD HH:mm').format('DD/MM/YYYY HH:mm'));
+    }
+    if(expectedDate){
+        console.log("TEST", expectedDate);
+        $expectedDateInput.val(moment(expectedDate, 'YYYY-MM-DD HH:mm').format('DD/MM/YYYY HH:mm'));
+    }
+
+    Select2Old.provider($modal.find('.ajax-autocomplete-fournisseur'));
 }

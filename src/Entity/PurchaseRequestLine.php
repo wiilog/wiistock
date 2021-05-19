@@ -24,6 +24,11 @@ class PurchaseRequestLine
     private ?int $requestedQuantity = null;
 
     /**
+     * @ORM\Column(type="integer")
+     */
+    private ?int $orderedQuantity = null;
+
+    /**
      * @ORM\Column(type="datetime", nullable=true)
      */
     private ?DateTimeInterface $orderDate = null;
@@ -108,6 +113,18 @@ class PurchaseRequestLine
     public function setRequestedQuantity(int $requestedQuantity): self
     {
         $this->requestedQuantity = $requestedQuantity;
+
+        return $this;
+    }
+
+    public function getOrderedQuantity(): ?int
+    {
+        return $this->orderedQuantity;
+    }
+
+    public function setOrderedQuantity(int $orderedQuantity): self
+    {
+        $this->orderedQuantity = $orderedQuantity;
 
         return $this;
     }

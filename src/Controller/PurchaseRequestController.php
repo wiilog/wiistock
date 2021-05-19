@@ -5,13 +5,18 @@ namespace App\Controller;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
+use App\Entity\FieldsParam;
+use App\Entity\Fournisseur;
 use App\Entity\Menu;
+use App\Entity\Nature;
+use App\Entity\Pack;
 use App\Entity\PurchaseRequest;
 use App\Entity\PurchaseRequestLine;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use App\Service\PackService;
 use App\Service\PurchaseRequestService;
 use DateTime;
 use App\Service\CSVExportService;
@@ -29,6 +34,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 
 /**
@@ -150,7 +156,6 @@ class PurchaseRequestController extends AbstractController
     public function delete(Request $request, EntityManagerInterface $entityManager, UserService $userService): Response {
 
         if($data = json_decode($request->getContent(), true)) {
-
             $requestRepository = $entityManager->getRepository(PurchaseRequest::class);
             $purchaseRequest =$requestRepository->find($data['request']);
             $status = $purchaseRequest->getStatus();
@@ -198,9 +203,11 @@ class PurchaseRequestController extends AbstractController
                 'label'=> isset($reference) ? $reference->getLibelle() : "",
                 'requestedQuantity' => $requestLine->getRequestedQuantity(),
                 'stockQuantity' => isset($reference) ? $reference->getQuantiteStock() : "",
-                'reservedQuantity' => isset($reference) ? $reference->getQuantiteReservee() : "",
+                'orderedQuantity' => $requestLine->getOrderedQuantity(),
                 'orderNumber' => $requestLine->getOrderNumber(),
-                'actions' => $this->renderView('purchase_request/line/actions.html.twig'),
+                'actions' => $this->renderView('purchase_request/line/actions.html.twig', [
+                    'lineId' => $requestLine->getId()
+                ]),
             ];
         }
 
@@ -263,37 +270,6 @@ class PurchaseRequestController extends AbstractController
     }
 
     /**
-     * @Route("/retirer-article", name="purchase_request_remove_reference", options={"expose"=true}, methods={"GET", "POST"})
-     * @HasPermission({Menu::DEM, Action::EDIT})
-     */
-    public function removeArticle(Request $request, EntityManagerInterface $manager) {
-        /*if($request->isXmlHttpRequest() && $data = json_decode($request->getContent())) {
-
-            $purchaseRepository = $manager->getRepository(PurchaseRequest::class);
-            $purchaseRequest = $purchaseRepository->find($data->request);
-
-            if(array_key_exists(ReferenceArticle::TYPE_QUANTITE_REFERENCE, $data)) {
-                $purchaseRequest->removeReference($manager
-                    ->getRepository(ReferenceArticle::class)
-                    ->find($data->reference));
-            } elseif(array_key_exists(ReferenceArticle::TYPE_QUANTITE_ARTICLE, $data)) {
-                $purchaseRequest->removeArticle($manager
-                    ->getRepository(Article::class)
-                    ->find($data->article));
-            }
-
-            $manager->flush();*/
-
-            return new JsonResponse([
-                'success' => true,
-                'msg' => 'La référence a bien été supprimée de la demande dachat.'
-            ]);
-
-
-        //throw new BadRequestHttpException();
-    }
-
-    /**
      * @Route("/creer", name="purchase_request_new", options={"expose"=true}, methods={"GET", "POST"})
      * @HasPermission({Menu::DEM, Action::CREATE_PURCHASE_REQUESTS})
      */
@@ -329,5 +305,79 @@ class PurchaseRequestController extends AbstractController
             'success' => true,
             'msg' => "La demande d'achat <strong>${number}</strong> a bien été créée"
         ]);
+    }
+
+    /**
+     * @Route("/ligne/api-modifier", name="purchase_request_line_edit_api", options={"expose"=true}, methods="GET|POST", condition = "request.isXmlHttpRequest()")
+
+     */
+    public function editApi(Request $request,
+                            EntityManagerInterface $entityManager,
+                            UserService $userService): Response
+    {
+        if ($data = json_decode($request->getContent(), true)) {
+            if ($userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
+                $purchaseRequestLineRepository = $entityManager->getRepository(PurchaseRequestLine::class);
+                $purchaseRequestLine = $purchaseRequestLineRepository->find($data['id']);
+
+                $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+                $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
+                $html = $this->renderView('purchase_request/line/edit_content_modal.html.twig', [
+                    'line' => $purchaseRequestLine,
+                    'fieldsParam' => $fieldsParam
+                ]);
+            } else {
+                $html = '';
+            }
+
+            return new JsonResponse($html);
+        }
+        throw new BadRequestHttpException();
+    }
+
+    /**
+     * @Route("/ligne/modifier", name="purchase_request_line_edit", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::DEM, Action::EDIT})
+     */
+    public function edit(Request $request,
+                         EntityManagerInterface $entityManager,
+                         TranslatorInterface $translator): Response
+    {
+        $data = json_decode($request->getContent(), true);
+        $response = [];
+        $purchaseRequestLineRepository = $entityManager->getRepository(PurchaseRequestLine::class);
+        /** @var PurchaseRequestLine $purchaseRequestLine */
+        $purchaseRequestLine = $purchaseRequestLineRepository->find($data['lineId']);
+
+
+
+        if (!empty($purchaseRequestLine)) {
+
+            if(isset($data['supplier'])){
+                $supplierRepository = $entityManager->getRepository(Fournisseur::class);
+                $supplier = $supplierRepository->find($data['supplier']);
+            }
+
+            if(isset($data['orderDate'])){
+                $orderDate = DateTime::createFromFormat('d/m/Y H:i', $data['orderDate'], new DateTimeZone("Europe/Paris"));
+            }
+            if(isset($data['expectedDate'])){
+                $expectedDate = DateTime::createFromFormat('d/m/Y H:i', $data['expectedDate'], new DateTimeZone("Europe/Paris"));
+            }
+
+            $purchaseRequestLine
+                ->setSupplier($supplier ?? null)
+                ->setOrderNumber($data['orderNumber'] ?? null)
+                ->setOrderedQuantity($data['orderedQuantity'] ?? null)
+                ->setOrderDate($orderDate ?? null)
+                ->setExpectedDate($expectedDate ?? null);
+
+            $entityManager->flush();
+            $response = [
+                'success' => true,
+                'msg' => 'La référence a bien été modifié'
+            ];
+        }
+        return new JsonResponse($response);
     }
 }
