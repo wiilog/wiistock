@@ -27,7 +27,6 @@ final class Version20210517154232 extends AbstractMigration
         ")->fetchOne();
 
         $defaultDeliveryLocation = json_encode(['all' => $currentDefaultDeliveryLocation]);
-        dump($defaultDeliveryLocation);
 
         $this->addSql("
             UPDATE parametrage_global

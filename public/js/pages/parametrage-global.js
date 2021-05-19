@@ -628,6 +628,10 @@ function onTypeChange($select) {
     const $newTypeAssociationButton = $('.new-type-association-button');
     const $allTypeSelect = $settingTypeAssociation.find(`select[name=deliveryRequestType]`);
 
+    const $typeAssociationContainer = $select.closest('.type-association-container');
+    const $associatedLocation = $typeAssociationContainer.find('select[name="deliveryRequestLocation"]');
+    $associatedLocation.val(null).trigger('change');
+
     $.get(Routing.generate(`get_unique_types`, {types: getAlreadyDefinedTypes()})).then((data) => {
 
         let allFilledSelect = true;
@@ -637,7 +641,7 @@ function onTypeChange($select) {
             }
         });
 
-        Select2Old.init($settingTypeAssociation.find(`select[name=deliveryRequestType]`), '', 0, {
+        Select2Old.init($allTypeSelect, '', 0, {
             route: `get_unique_types`,
             param: {
                 types: getAlreadyDefinedTypes()
@@ -659,12 +663,12 @@ function onTypeChange($select) {
 }
 
 function removeAssociationLine($button) {
-    const $typeAssociationContainer = $('.type-assocation-container');
+    const $typeAssociationContainer = $('.type-association-container');
 
     if($typeAssociationContainer.length === 1) {
         showBSAlert('Au moins une association type/emplacement est nécessaire', 'warning')
     } else {
-        $button.prev(`.type-assocation-container`).remove();
+        $button.prev(`.type-association-container`).remove();
         $button.closest(`div`).remove();
         $('.new-type-association-button').prop(`disabled`, false);
     }

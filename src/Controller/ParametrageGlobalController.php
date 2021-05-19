@@ -96,10 +96,14 @@ class ParametrageGlobalController extends AbstractController
             if ($typeId !== 'all') {
                 $type = $typeRepository->find($typeId);
                 if (($key || $key == 0) && !empty($defaultDeliveryLocationsIds)) {
-                    $location = $locationRepository->find($defaultDeliveryLocationsIds[$key]);
+                    $location = $defaultDeliveryLocationsIds[$key]
+                        ? $locationRepository->find($defaultDeliveryLocationsIds[$key])
+                        : null;
                 }
             } else {
-                $location = $locationRepository->find($defaultDeliveryLocationsIds[0]);
+                $location = $defaultDeliveryLocationsIds[0]
+                    ? $locationRepository->find($defaultDeliveryLocationsIds[0])
+                    : null;
             }
             $deliveryTypeSettings[$key] = [
                 'location' => isset($location)
