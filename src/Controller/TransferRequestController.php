@@ -13,7 +13,7 @@ use App\Entity\TransferRequest;
 use App\Entity\Article;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use App\Service\TransferRequestService;
 use DateTime;
 use App\Service\CSVExportService;
@@ -189,12 +189,18 @@ class TransferRequestController extends AbstractController {
             }
 
             $destination = $entityManager->getRepository(Emplacement::class)->find($data['destination']);
-
+            $origin = null;
+            if (isset($data['origin'])) {
+                $origin = $entityManager->getRepository(Emplacement::class)->find($data['origin']);
+            }
             $transfer = $entityManager->getRepository(TransferRequest::class)->find($data['transfer']);
             $transfer
+                ->setFilled(true)
                 ->setDestination($destination)
                 ->setComment($data['comment']);
-
+            if ($origin) {
+                $transfer->setOrigin($origin);
+            }
             $entityManager->flush();
 
             return $this->json([

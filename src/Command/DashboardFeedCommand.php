@@ -7,7 +7,7 @@ namespace App\Command;
 use App\Entity\DaysWorked;
 use App\Entity\Type;
 use App\Entity\WorkFreeDay;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use App\Service\DashboardService;
 use App\Service\WiilockService;
 use Doctrine\ORM\EntityManager;

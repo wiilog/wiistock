@@ -26,8 +26,10 @@ $icons: (
     "export": "../../public/svg/export.svg",
     "filtre": "../../public/svg/filtre.svg",
     "menu": "../../public/svg/menu.svg",
+    "black-cart": "../../public/svg/black-cart.svg",
     "modif": "../../public/svg/modif.svg",
     "ordre": "../../public/svg/ordre.svg",
+    "cart": "../../public/svg/cart.svg",
     "parametre": "../../public/svg/parametre.svg",
     "plusblanc": "../../public/svg/plusblanc.svg",
     "print": "../../public/svg/print.svg",
@@ -45,6 +47,7 @@ $icons: (
     "add": "../../public/svg/add.svg",
     "way": "../../public/svg/way.svg",
     'transfer': "../../public/svg/transfer.svg",
+    'purchase': "../../public/svg/blackCart.svg",
 );
 
 @each $iconName, $iconPath in $icons {

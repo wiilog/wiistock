@@ -69,11 +69,23 @@
                         hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_TRANSFER_REQ'))
                         and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE'))
                     ) %}
+                    {% set hasPurchaseRequestRights = (
+                        hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE'))
+                        and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_PURCHASE_REQUESTS'))
+                        ) %}
+                    <div class="col-auto">
+                        <a class="cart" href="{{ path('cart') }}">
+                            <div class="cart-total small {{ not app.user.cart or not app.user.cart.references | length ? 'd-none' }}">
+                                {{ app.user.cart.references | length }}
+                            </div>
+                        </a>
+                    </div>
                     {% if hasDeliveryRights
                         or hasCollectRights
                         or hasHandlingRights
                         or hasDispatchRights
-                        or hasTransferRights %}
+                        or hasTransferRights
+                        or hasPurchaseRequestRights%}
                         <div class="col-auto dropdown">
                             <button class="quick-plus" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span class="icon"></span>
@@ -128,6 +140,14 @@
                                         title="Transfert">
                                         <span class="wii-icon wii-icon-transfer quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">Transfert</span>
+                                    </a>
+                                {% endif %}
+                                {% if hasPurchaseRequestRights %}
+                                    <a
+                                        onclick="createPurchaseRequest()"
+                                        title="Achat">
+                                        <span class="wii-icon wii-icon-purchase quick-menu-icon mx-2"></span>
+                                        <span class="flex-fill align-self-center">Achat</span>
                                     </a>
                                 {% endif %}
                                 {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) and app.user.role.label == constant('App\\Entity\\Role::CLIENT_UTIL') %}

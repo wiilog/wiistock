@@ -23,6 +23,7 @@ class LitigeRepository extends EntityRepository
 		'type' => 'type',
 		'arrivalNumber' => 'numeroArrivage',
 		'provider' => 'provider',
+        'receptionNumber' => 'numeroReception',
 		'numCommandeBl' => 'numCommandeBl',
         'buyers' => 'acheteurs',
         'declarant' => 'declarant',
@@ -385,7 +386,7 @@ class LitigeRepository extends EntityRepository
                             $qb->addOrderBy('declarant.username', $order);
                         } else if ($column === 'numeroArrivage') {
                             $qb->addOrderBy('a.numeroArrivage', $order);
-                        } else if ($column === 'receptionNumber') {
+                        } else if ($column === 'numeroReception') {
                             $qb->addOrderBy('r.number', $order);
                         } else if ($column === 'provider') {
                             $qb->addOrderBy('provider', $order);

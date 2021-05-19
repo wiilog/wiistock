@@ -35,7 +35,7 @@ use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Exceptions\NegativeQuantityException;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use App\Repository\ArticleRepository;
 use App\Repository\TrackingMovementRepository;
 use App\Repository\ReferenceArticleRepository;

@@ -3,6 +3,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
@@ -11,54 +12,33 @@ use App\Entity\Statut;
 
 use App\Entity\Type;
 use App\Service\StatusService;
-use App\Service\UserService;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Contracts\Translation\TranslatorInterface;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 
 /**
  * @Route("/statuts")
  */
 class StatusController extends AbstractController {
-    /**
-     * @var UserService
-     */
-    private $userService;
-    private $statusService;
-    private $translator;
 
-    public function __construct(UserService $userService,
-                                TranslatorInterface $translator,
-                                StatusService $statusService) {
-        $this->userService = $userService;
-        $this->translator = $translator;
+    private $statusService;
+
+    public function __construct(StatusService $statusService) {
         $this->statusService = $statusService;
     }
 
     /**
      * @Route("/", name="status_param_index")
-     * @param EntityManagerInterface $entityManager
-     * @param StatusService $statusService
-     * @return RedirectResponse|Response
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_STATU_LITI})
      */
     public function index(EntityManagerInterface $entityManager,
                           StatusService $statusService) {
-        if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_STATU_LITI)) {
-            return $this->redirectToRoute('access_denied');
-        }
 
         $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -68,7 +48,8 @@ class StatusController extends AbstractController {
             CategorieStatut::HANDLING,
             CategorieStatut::LITIGE_ARR,
             CategorieStatut::LITIGE_RECEPT,
-            CategorieStatut::ARRIVAGE
+            CategorieStatut::ARRIVAGE,
+            CategorieStatut::PURCHASE_REQUEST
         ]);
         $types = $typeRepository->findByCategoryLabels([
             CategoryType::DEMANDE_DISPATCH,
@@ -88,10 +69,15 @@ class StatusController extends AbstractController {
             return $category['nom'] === CategorieStatut::ARRIVAGE;
         });
 
+        $categoryStatusPurchaseRequestIds = array_filter($categories, function ($category) {
+            return $category['nom'] === CategorieStatut::PURCHASE_REQUEST;
+        });
+
         return $this->render('status/index.html.twig', [
             'categoryStatusDispatchId' => array_values($categoryStatusDispatchIds)[0]['id'] ?? 0,
             'categoryStatusHandlingId' => array_values($categoryStatusHandlingIds)[0]['id'] ?? 0,
             'categoryStatusArrivalId' => array_values($categoryStatusArrivalIds)[0]['id'] ?? 0,
+            'categoryStatusPurchaseRequestId' => array_values($categoryStatusPurchaseRequestIds)[0]['id'] ?? 0,
             'categories' => $categories,
             'types' => $types,
             'statusStates' => $statusService->getStatusStatesValues()
@@ -100,17 +86,10 @@ class StatusController extends AbstractController {
 
     /**
      * @Route("/api", name="status_param_api", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @return Response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_STATU_LITI})
      */
     public function api(Request $request): Response {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_STATU_LITI)) {
-                return $this->redirectToRoute('access_denied');
-            }
 
             $data = $this->statusService->getDataForDatatable($request->request);
             return new JsonResponse($data);
@@ -120,15 +99,10 @@ class StatusController extends AbstractController {
 
     /**
      * @Route("/creer", name="status_new", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @HasPermission({Menu::PARAM, Action::EDIT})
      */
     public function new(Request $request, EntityManagerInterface $entityManager): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
 
             $statusRepository = $entityManager->getRepository(Statut::class);
             $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
@@ -166,6 +140,7 @@ class StatusController extends AbstractController {
                     ->setSendNotifToDeclarant((bool)$data['sendMailsDeclarant'])
                     ->setSendNotifToRecipient((bool)$data['sendMailsRecipient'])
                     ->setNeedsMobileSync((bool)$data['needsMobileSync'])
+                    ->setAutomaticReceptionCreation((bool)$data['automaticReceptionCreation'])
                     ->setDisplayOrder((int)$data['displayOrder'])
                     ->setCategorie($category)
                     ->setType($type ?? null);
@@ -187,18 +162,12 @@ class StatusController extends AbstractController {
 
     /**
      * @Route("/api-modifier", name="status_api_edit", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param StatusService $statusService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @HasPermission({Menu::PARAM, Action::EDIT})
      */
     public function apiEdit(Request $request,
                             StatusService $statusService,
                             EntityManagerInterface $entityManager): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
@@ -230,16 +199,11 @@ class StatusController extends AbstractController {
 
     /**
      * @Route("/modifier", name="status_edit",  options={"expose"=true}, methods="GET|POST")
-     * @param EntityManagerInterface $entityManager
-     * @param Request $request
-     * @return Response
+     * @HasPermission({Menu::PARAM, Action::EDIT})
      */
     public function edit(EntityManagerInterface $entityManager,
                          Request $request): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
 
             $statusRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
@@ -275,7 +239,7 @@ class StatusController extends AbstractController {
                     ->setCommentNeeded((bool)$data['commentNeeded'])
                     ->setSendNotifToDeclarant((bool)$data['sendMailsDeclarant'])
                     ->setSendNotifToRecipient((bool)$data['sendMailsRecipient'])
-                    ->setNeedsMobileSync((bool)$data['needsMobileSync'])
+                    ->setAutomaticReceptionCreation((bool)$data['automaticReceptionCreation'])
                     ->setDisplayOrder((int)$data['displayOrder'])
                     ->setComment($data['comment'])
                     ->setType($type ?? null);
@@ -297,17 +261,10 @@ class StatusController extends AbstractController {
 
     /**
      * @Route("/verification", name="status_check_delete", options={"expose"=true})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NoResultException
-     * @throws NonUniqueResultException
+     * @HasPermission({Menu::PARAM, Action::DELETE})
      */
     public function checkStatusCanBeDeleted(Request $request, EntityManagerInterface $entityManager): Response {
         if ($request->isXmlHttpRequest() && $statusId = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
 
             $statutRepository = $entityManager->getRepository(Statut::class);
 
@@ -339,17 +296,10 @@ class StatusController extends AbstractController {
 
     /**
      * @Route("/supprimer", name="status_delete", options={"expose"=true}, methods="GET|POST")
-     * @param EntityManagerInterface $entityManager
-     * @param Request $request
-     * @return Response
-     * @throws NoResultException
-     * @throws NonUniqueResultException
+     * @HasPermission({Menu::PARAM, Action::DELETE})
      */
     public function delete(EntityManagerInterface $entityManager, Request $request): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
 
             $statutRepository = $entityManager->getRepository(Statut::class);
 

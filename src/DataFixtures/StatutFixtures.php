@@ -9,6 +9,7 @@ use App\Entity\Demande;
 use App\Entity\Import;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
+use App\Entity\PurchaseRequest;
 use App\Entity\TrackingMovement;
 use App\Entity\OrdreCollecte;
 use App\Entity\Preparation;
@@ -21,22 +22,10 @@ use App\Repository\StatutRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Output\ConsoleOutput;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class StatutFixtures extends Fixture implements FixtureGroupInterface
 {
-    private $encoder;
-    private $entityManager;
-
-
-    public function __construct(EntityManagerInterface $entityManager,
-                                UserPasswordEncoderInterface $encoder)
-    {
-        $this->encoder = $encoder;
-        $this->entityManager = $entityManager;
-    }
 
     public function load(ObjectManager $manager)
     {
@@ -54,7 +43,8 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
             CategorieStatut::RECEPTION,
             CategorieStatut::TRANSFER_REQUEST,
             CategorieStatut::TRANSFER_ORDER,
-            CategorieStatut::IMPORT
+            CategorieStatut::IMPORT,
+            CategorieStatut::PURCHASE_REQUEST
         ];
 
         $categoriesStatus = [
@@ -130,6 +120,9 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
             CategorieStatut::TRANSFER_ORDER => [
                 TransferOrder::TO_TREAT => Statut::NOT_TREATED,
                 TransferOrder::TREATED => Statut::TREATED,
+            ],
+            CategorieStatut::PURCHASE_REQUEST => [
+                PurchaseRequest::DRAFT => Statut::DRAFT,
             ],
 			CategorieStatut::IMPORT => [
 				Import::STATUS_PLANNED => Statut::NOT_TREATED,

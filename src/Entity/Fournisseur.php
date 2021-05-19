@@ -50,12 +50,18 @@ class Fournisseur
      */
     private $arrivages;
 
+    /**
+     * @ORM\OneToMany(targetEntity=PurchaseRequestLine::class, mappedBy="supplier")
+     */
+    private ?Collection $purchaseRequestLines;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
         $this->articlesFournisseur = new ArrayCollection();
         $this->receptionReferenceArticles = new ArrayCollection();
         $this->arrivages = new ArrayCollection();
+        $this->purchaseRequestLines = new ArrayCollection();
     }
 
     public function getId() : ? int
@@ -234,6 +240,45 @@ class Fournisseur
             if ($arrivage->getFournisseur() === $this) {
                 $arrivage->setFournisseur(null);
             }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|PurchaseRequestLine[]
+     */
+    public function getPurchaseRequestLines(): Collection {
+        return $this->purchaseRequestLines;
+    }
+
+    public function addPurchaseRequestLine(PurchaseRequestLine $purchaseRequestLine): self {
+        if (!$this->purchaseRequestLines->contains($purchaseRequestLine)) {
+            $this->purchaseRequestLines[] = $purchaseRequestLine;
+            $purchaseRequestLine->setSupplier($this);
+        }
+
+        return $this;
+    }
+
+    public function removePurchaseRequestLine(PurchaseRequestLine $purchaseRequestLine): self {
+        if ($this->purchaseRequestLines->removeElement($purchaseRequestLine)) {
+            if ($purchaseRequestLine->getSupplier() === $this) {
+                $purchaseRequestLine->setSupplier(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setPurchaseRequestLines(?array $purchaseRequestLines): self {
+        foreach($this->getPurchaseRequestLines()->toArray() as $purchaseRequestLine) {
+            $this->removePurchaseRequestLine($purchaseRequestLine);
+        }
+
+        $this->purchaseRequestLines = new ArrayCollection();
+        foreach($purchaseRequestLines as $purchaseRequestLine) {
+            $this->addPurchaseRequestLine($purchaseRequestLine);
         }
 
         return $this;

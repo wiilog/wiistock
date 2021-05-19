@@ -9,7 +9,7 @@ use App\Entity\Emplacement;
 use App\Entity\Menu;
 use App\Entity\Statut;
 use App\Entity\Type;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use App\Service\GlobalParamService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -282,6 +282,25 @@ class TypeController extends AbstractController
             return new JsonResponse([
                 'success' => true,
                 'msg' => 'Le type <strong>' . $typeLabel . '</strong> a bien été supprimé.'
+            ]);
+        }
+        throw new BadRequestHttpException();
+    }
+
+    /**
+     * @Route("/{type}/autocomplete-unique-types", name="get_unique_types", options={"expose"=true})
+     */
+    public function getUniqueTypes(Type $type,
+                                   Request $request,
+                                   EntityManagerInterface $entityManager) {
+        if ($request->isXmlHttpRequest()) {
+
+            $search = $request->query->get('term');
+
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $types = $typeRepository->getUniqueTypes($type, $search);
+            return $this->json([
+                'results' => $types
             ]);
         }
         throw new BadRequestHttpException();

@@ -23,7 +23,7 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\ImportException;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use Closure;
 use DateTimeZone;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -577,6 +577,10 @@ class ImportService
                         'needed' => $this->fieldIsNeeded('reference', Import::ENTITY_REF),
                         'value' => isset($corresp['reference']) ? $corresp['reference'] : null,
                     ],
+                    'buyer' => [
+                        'needed' => $this->fieldIsNeeded('buyer', Import::ENTITY_REF),
+                        'value' => isset($corresp['buyer']) ? $corresp['buyer'] : null,
+                    ],
                     'quantiteStock' => [
                         'needed' => $this->fieldIsNeeded('quantiteStock', Import::ENTITY_REF),
                         'value' => isset($corresp['quantiteStock']) ? $corresp['quantiteStock'] : null,
@@ -969,6 +973,9 @@ class ImportService
 
         if (isset($data['reference'])) {
             $refArt->setReference($data['reference']);
+        }
+        if (isset($data['buyer'])) {
+            $refArt->setBuyer($userRepository->findOneBy(['username' => $data['buyer']]));
         }
         if (isset($data['commentaire'])) {
             $refArt->setCommentaire($data['commentaire']);

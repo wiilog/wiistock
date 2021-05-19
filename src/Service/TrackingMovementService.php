@@ -21,10 +21,9 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use App\Repository\TrackingMovementRepository;
 use DateTime;
-use DateTimeInterface;
 use Exception;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
@@ -33,6 +32,7 @@ use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
+use DateTimeInterface;
 
 class TrackingMovementService
 {
@@ -685,6 +685,63 @@ class TrackingMovementService
         );
         $this->persistSubEntities($entityManager, $mouvementDepose);
         $entityManager->persist($mouvementDepose);
+    }
+
+    /**
+     * @param $handle
+     * @param CSVExportService $CSVExportService
+     * @param FreeFieldService $freeFieldService
+     * @param array $movement
+     * @param array $attachement
+     * @param array $freeFieldsConfig
+     */
+    public function putMovementLine($handle,
+                                    CSVExportService $CSVExportService,
+                                    FreeFieldService $freeFieldService,
+                                    array $movement,
+                                    array $attachement,
+                                    array $freeFieldsConfig)
+    {
+
+        $attachementName = $attachement[$movement['id']] ?? ' ' ;
+
+        if(!empty($movement['numeroArrivage'])) {
+           $origine =  'Arrivage-' . $movement['numeroArrivage'];
+        }
+        if(!empty($movement['receptionNumber'])) {
+            $origine = 'Reception-' . $movement['receptionNumber'];
+        }
+        if(!empty($movement['dispatchNumber'])) {
+            $origine = 'Acheminement-' . $movement['dispatchNumber'];
+        }
+        if(!empty($movement['transferNumber'])) {
+            $origine = 'transfert-' . $movement['transferNumber'];
+        }
+
+        $data = [
+            FormatHelper::datetime($movement['datetime']),
+            $movement['code'],
+            $movement['locationLabel'],
+            $movement['quantity'],
+            $movement['typeName'],
+            $movement['operatorUsername'],
+            $movement['commentaire'],
+            $attachementName,
+            $origine ?? ' ',
+            $movement['numeroCommandeListArrivage'] && !empty($movement['numeroCommandeListArrivage'])
+                        ? implode(', ', $movement['numeroCommandeListArrivage'])
+                        : ($movement['orderNumber'] ?: ''),
+            $movement['isUrgent'] ? 'oui' : 'non',
+
+        ];
+
+        foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
+            $data[] = $freeFieldService->serializeValue([
+                'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
+                'valeur' => $movement['freeFields'][$freeFieldId] ?? ''
+            ]);
+        }
+        $CSVExportService->putLine($handle, $data);
     }
 
     public function getMobileUserPicking(EntityManagerInterface $entityManager, Utilisateur $user): array {

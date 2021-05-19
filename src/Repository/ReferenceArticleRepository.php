@@ -10,8 +10,9 @@ use App\Entity\InventoryMission;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\TransferRequest;
+use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Connection;
@@ -65,6 +66,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('referenceArticle.libelle')
             ->addSelect('referenceArticle.quantiteStock')
             ->addSelect('typeRef.label as type')
+            ->addSelect('join_buyer.username as buyer')
             ->addSelect('referenceArticle.typeQuantite')
             ->addSelect('statutRef.nom as statut')
             ->addSelect('referenceArticle.commentaire')
@@ -82,6 +84,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->leftJoin('referenceArticle.emplacement', 'emplacementRef')
             ->leftJoin('referenceArticle.type', 'typeRef')
             ->leftJoin('referenceArticle.category', 'categoryRef')
+            ->leftJoin('referenceArticle.buyer', 'join_buyer')
             ->orderBy('referenceArticle.id', 'ASC')
             ->getQuery()
             ->iterate(null, Query::HYDRATE_ARRAY);
@@ -189,7 +192,7 @@ class ReferenceArticleRepository extends EntityRepository {
      * @param null $locationFilter
      * @return mixed
      */
-    public function getIdAndRefBySearch($search, $activeOnly = false, $minQuantity = null, $typeQuantity = null, $field = 'reference', $locationFilter = null)
+    public function getIdAndRefBySearch($search, $activeOnly = false, $minQuantity = null, $typeQuantity = null, $field = 'reference', $locationFilter = null, $buyerFilter = null)
     {
         $queryBuilder = $this->createQueryBuilder('r')
             ->select('r.id')
@@ -228,6 +231,12 @@ class ReferenceArticleRepository extends EntityRepository {
             $queryBuilder
                 ->andWhere("(r.emplacement IS NULL OR r.typeQuantite = 'article' OR r.emplacement = :location)")
                 ->setParameter('location', $locationFilter);
+        }
+
+        if ($buyerFilter) {
+            $queryBuilder
+                ->andWhere("r.buyer = :buyer")
+                ->setParameter('buyer', $buyerFilter);
         }
 
         return $queryBuilder
@@ -470,6 +479,18 @@ class ReferenceArticleRepository extends EntityRepository {
                                 $ids[] = $idArray['id'];
                             }
                             break;
+                        case "buyer":
+                            $subqb = $this->createQueryBuilder('referenceArticle');
+                            $subqb
+                                ->select('referenceArticle.id')
+                                ->leftJoin('referenceArticle.buyer', 'buyer')
+                                ->andWhere('buyer.username LIKE :username')
+                                ->setParameter('username', $search);
+
+                            foreach ($subqb->getQuery()->execute() as $idArray) {
+                                $ids[] = $idArray['id'];
+                            }
+                            break;
                         default:
                             $field = self::DtToDbLabels[$searchField] ?? $searchField;
                             $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
@@ -549,11 +570,17 @@ class ReferenceArticleRepository extends EntityRepository {
                                 ->leftJoin('ra.statut', 'order_status')
                                 ->orderBy('order_status.nom', $order);
                             break;
+                        case "buyer":
+                            $orderAddSelect[] = 'order_buyer.username';
+                            $qb
+                                ->leftJoin('ra.buyer', 'order_buyer')
+                                ->orderBy('order_buyer.username', $order);
+                            break;
                         default:
                             $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
                             if(is_numeric($freeFieldId)) {
                                 $qb->orderBy("JSON_EXTRACT(ra.freeFields, '$.\"$freeFieldId\"')", $order);
-                            } else if (property_exists(ReferenceArticle::class, $column)) {
+                            } else if ($column != 'attachments' && property_exists(ReferenceArticle::class, $column)) {
                                 $qb->orderBy("ra.$column", $order);
                             }
                             break;
@@ -1153,4 +1180,37 @@ class ReferenceArticleRepository extends EntityRepository {
             return [];
         }
     }
+
+    private const CART_COLUMNS_ASSOCIATION = [
+        "label" => "libelle",
+        "availableQuantity" => "quantiteDisponible",
+    ];
+
+    public function findInCart(Utilisateur $user, array $params) {
+        $qb = $this->createQueryBuilder("reference_article");
+
+        $qb->where(":cart MEMBER OF reference_article.carts")
+            ->setParameter("cart", $user->getCart());
+
+        foreach($params["order"] as $order) {
+            $column = $params["columns"][$order["column"]]['name'];
+            $column = self::CART_COLUMNS_ASSOCIATION[$column] ?? $column;
+
+            if($column === "type") {
+                $qb->join("reference_article.type", "search_type")
+                    ->addOrderBy("search_type.label", $order["dir"]);
+            } else if ($column !== 'supplierReference') {
+                $qb->addOrderBy("reference_article.$column", $order["dir"]);
+            }
+        }
+
+        $countTotal = QueryCounter::count($qb, "reference_article");
+
+        return [
+            "data" => $qb->getQuery()->getResult(),
+            "count" => $countTotal,
+            "total" => $countTotal
+        ];
+    }
+
 }

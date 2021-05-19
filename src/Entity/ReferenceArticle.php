@@ -2,10 +2,13 @@
 
 namespace App\Entity;
 
+use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CommentTrait;
+use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use WiiCommon\Helper\Stream;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ReferenceArticleRepository")
@@ -24,6 +27,7 @@ class ReferenceArticle extends FreeFieldEntity
     const STOCK_MANAGEMENT_FEFO = 'FEFO';
     const STOCK_MANAGEMENT_FIFO = 'FIFO';
 
+    use AttachmentTrait;
     use CommentTrait;
 
     /**
@@ -209,6 +213,21 @@ class ReferenceArticle extends FreeFieldEntity
      */
     private $alerts;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=Utilisateur::class, inversedBy="referencesBuyer")
+     */
+    private $buyer;
+
+    /**
+     * @ORM\ManyToMany(targetEntity=Cart::class, mappedBy="references")
+     */
+    private $carts;
+
+    /**
+     * @ORM\OneToMany(targetEntity=PurchaseRequestLine::class, mappedBy="reference")
+     */
+    private ?Collection $purchaseRequestLines;
+
     public function __construct()
     {
         $this->ligneArticles = new ArrayCollection();
@@ -222,12 +241,15 @@ class ReferenceArticle extends FreeFieldEntity
         $this->ordreCollecteReferences = new ArrayCollection();
         $this->ligneArticlePreparations = new ArrayCollection();
         $this->managers = new ArrayCollection();
+        $this->attachments = new ArrayCollection();
 
         $this->quantiteStock = 0;
         $this->quantiteReservee = 0;
         $this->quantiteDisponible = 0;
         $this->transferRequests = new ArrayCollection();
         $this->alerts = new ArrayCollection();
+        $this->carts = new ArrayCollection();
+        $this->purchaseRequestLines = new ArrayCollection();
     }
 
     public function getId()
@@ -651,12 +673,12 @@ class ReferenceArticle extends FreeFieldEntity
         return $this;
     }
 
-    public function getDateLastInventory(): ?\DateTimeInterface
+    public function getDateLastInventory(): ?DateTimeInterface
     {
         return $this->dateLastInventory;
     }
 
-    public function setDateLastInventory(?\DateTimeInterface $dateLastInventory): self
+    public function setDateLastInventory(?DateTimeInterface $dateLastInventory): self
     {
         $this->dateLastInventory = $dateLastInventory;
 
@@ -973,6 +995,98 @@ class ReferenceArticle extends FreeFieldEntity
         }
 
         return $this;
+    }
+
+    public function getBuyer(): ?Utilisateur
+    {
+        return $this->buyer;
+    }
+
+    public function setBuyer(?Utilisateur $buyer): self
+    {
+        $this->buyer = $buyer;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Cart[]
+     */
+    public function getCarts(): Collection
+    {
+        return $this->carts;
+    }
+
+    public function addCart(Cart $cart): self
+    {
+        if (!$this->carts->contains($cart)) {
+            $this->carts[] = $cart;
+            $cart->addRefArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCart(Cart $cart): self
+    {
+        if ($this->carts->removeElement($cart)) {
+            $cart->removeReference($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ReferenceArticle[]
+     */
+    public function getPurchaseRequestLines(): ?PurchaseRequestLine
+    {
+        return $this->purchaseRequestLines;
+    }
+
+    public function addPurchaseRequestLine(PurchaseRequestLine $purchaseRequestLine): self {
+        if (!$this->purchaseRequestLines->contains($purchaseRequestLine)) {
+            $this->purchaseRequestLines[] = $purchaseRequestLine;
+            $purchaseRequestLine->setReference($this);
+        }
+
+        return $this;
+    }
+
+    public function removePurchaseRequestLine(PurchaseRequestLine $purchaseRequestLine): self {
+        if ($this->purchaseRequestLines->removeElement($purchaseRequestLine)) {
+            if ($purchaseRequestLine->getReference() === $this) {
+                $purchaseRequestLine->setReference(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setPurchaseRequestLines(?array $purchaseRequestLines): self {
+        foreach($this->getPurchaseRequestLines()->toArray() as $purchaseRequestLine) {
+            $this->removePurchaseRequestLine($purchaseRequestLine);
+        }
+
+        $this->purchaseRequestLines = new ArrayCollection();
+        foreach($purchaseRequestLines as $purchaseRequestLine) {
+            $this->addPurchaseRequestLine($purchaseRequestLine);
+        }
+
+        return $this;
+    }
+
+    public function getAssociatedArticles(): array
+    {
+        return $this->typeQuantite === self::TYPE_QUANTITE_REFERENCE
+            ? []
+            : Stream::from($this->articlesFournisseur)
+            ->map(function(ArticleFournisseur $articleFournisseur) {
+                return $articleFournisseur->getArticles()->toArray();
+            })
+            ->flatten()
+            ->unique()
+            ->toArray();
     }
 
 }

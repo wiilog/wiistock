@@ -47,8 +47,9 @@ const handlingColorHasChanged = {
 
 $(function () {
     Select2Old.init($('#locationArrivageDest'));
-    Select2Old.location($('[name=param-default-location-if-custom]'))
-    Select2Old.location($('[name=param-default-location-if-emergency]'))
+    Select2Old.init($('select[name=deliveryRequestType]'));
+    Select2Old.location($('[name=param-default-location-if-custom]'));
+    Select2Old.location($('[name=param-default-location-if-emergency]'));
     Select2Old.init($('#listNaturesColis'));
     Select2Old.initFree($('select[name="businessUnit"]'));
     Select2Old.initFree($('select[name="dispatchEmergencies"]'));
@@ -70,6 +71,7 @@ $(function () {
 
     // config tableau de bord : emplacements
     initValuesForDashboard();
+    newTypeAssociation($('.new-type-association-button'));
 
     $('#receptionLocation').on('change', function () {
         editParamLocations($(this), $('#receptionLocationValue'));
@@ -122,40 +124,12 @@ $(function () {
 });
 
 function initValuesForDashboard() {
-    Select2Old.initValues($('#locationToTreat'), $('#locationToTreatValue'));
-    Select2Old.initValues($('#locationWaitingDock'), $( '#locationWaitingDockValue'));
-    Select2Old.initValues($('#locationWaitingAdmin'), $( '#locationWaitingAdminValue'));
-    Select2Old.initValues($('#locationAvailable'), $( '#locationAvailableValue'));
-    Select2Old.initValues($('#locationDropZone'), $( '#locationDropZoneValue'));
-    Select2Old.initValues($('#locationLitiges'), $( '#locationLitigesValue'));
-    Select2Old.initValues($('#locationUrgences'), $( '#locationUrgencesValue'));
-    Select2Old.initValues($('#locationsFirstGraph'), $( '#locationsFirstGraphValue'));
-    Select2Old.initValues($('#locationsSecondGraph'), $( '#locationsSecondGraphValue'));
-
     // Set location values for arrivals
     Select2Old.initValues($('#locationArrivageDest'), $( '#locationArrivageDestValue'));
     Select2Old.initValues($('[name=param-default-location-if-custom]'), $( '#customsArrivalsLocation'));
     Select2Old.initValues($('[name=param-default-location-if-emergency]'), $( '#emergenciesArrivalsLocation'));
 
     Select2Old.initValues($('#locationDemandeLivraison'), $('#locationDemandeLivraisonValue'));
-    Select2Old.initValues($('#packaging1'), $('#packagingLocation1'));
-    Select2Old.initValues($('#packaging2'), $('#packagingLocation2'));
-    Select2Old.initValues($('#packaging3'), $('#packagingLocation3'));
-    Select2Old.initValues($('#packaging4'), $('#packagingLocation4'));
-    Select2Old.initValues($('#packaging5'), $('#packagingLocation5'));
-    Select2Old.initValues($('#packaging6'), $('#packagingLocation6'));
-    Select2Old.initValues($('#packaging7'), $('#packagingLocation7'));
-    Select2Old.initValues($('#packaging8'), $('#packagingLocation8'));
-    Select2Old.initValues($('#packaging9'), $('#packagingLocation9'));
-    Select2Old.initValues($('#packaging10'), $('#packagingLocation10'));
-    Select2Old.initValues($('#packagingRPA'), $('#packagingLocationRPA'));
-    Select2Old.initValues($('#packagingLitige'), $('#packagingLocationLitige'));
-    Select2Old.initValues($('#packagingKitting'), $( '#packagingLocationKitting'));
-    Select2Old.initValues($('#packagingUrgence'), $('#packagingLocationUrgence'));
-    Select2Old.initValues($('#packagingDSQR'), $('#packagingLocationDSQR'));
-    Select2Old.initValues($('#packagingDestinationGT'), $('#packagingLocationDestinationGT'));
-    Select2Old.initValues($('#packagingOrigineGT'), $('#packagingLocationOrigineGT'));
-    Select2Old.initValues($('#carrierDock'), $( '#carrierDockValue'));
 }
 
 function updateToggledParam(switchButton) {
@@ -600,4 +574,56 @@ function editMultipleSelect($select, paramName) {
             showBSAlert("Une erreur est survenue lors de la mise à jour de la valeur", "success");
         }
     })
+}
+
+function newTypeAssociation($button) {
+    const $settingTypeAssociation = $('.setting-type-association');
+    const $typeAssociationContainer = $settingTypeAssociation.find('.type-assocation-container');
+    const $newTypeAssociationButton = $button.closest('.new-type-association-button');
+    const $typeTemplate = $('#type-template');
+    const $typeSelect = $settingTypeAssociation.last().find('select[name=deliveryRequestType]');
+
+    if($typeSelect.val() === 'all' || $typeAssociationContainer.length === ($typeSelect.last().children('option').length - 1)) {
+        $newTypeAssociationButton.addClass('d-none');
+    } else {
+        $newTypeAssociationButton.removeClass('d-none');
+        $settingTypeAssociation.append($typeTemplate.html());
+
+        Select2Old.init($settingTypeAssociation.find('select[name=deliveryRequestType]'), '', 0, {
+            route: 'get_unique_types',
+            param: {
+                type: $typeSelect.val()
+            }
+        });
+        Select2Old.init($settingTypeAssociation.last().find('select[name=deliveryRequestLocation]'), '', 1, {
+            route: 'get_locations_by_type',
+            param: {
+                type: $typeSelect.val()
+            }
+        });
+    }
+}
+
+function onTypeChange($select) {
+    const $settingTypeAssociation = $select.closest('.setting-type-association');
+    const $typeAssociationContainer = $settingTypeAssociation.find('.type-assocation-container');
+    const $newTypeAssociationButton = $('.new-type-association-button');
+
+    if($select.val() === 'all' || $typeAssociationContainer.length === ($select.children('option').length - 1)) {
+        $newTypeAssociationButton.addClass('d-none');
+    } else {
+        $newTypeAssociationButton.removeClass('d-none');
+        Select2Old.init($settingTypeAssociation.last().find('select[name=deliveryRequestLocation]'), '', 1, {
+            route: 'get_locations_by_type',
+            param: {
+                type: $select.val()
+            }
+        });
+    }
+}
+
+function removeAssociationLine($button) {
+    $button.prev('.type-assocation-container').remove();
+    $button.closest('div').remove();
+    $('.new-type-association-button').removeClass('d-none');
 }

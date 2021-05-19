@@ -13,7 +13,7 @@ use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use App\Service\DashboardSettingsService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -38,9 +38,6 @@ class DashboardSettingsController extends AbstractController {
     /**
      * @Route("/", name="dashboard_settings", methods={"GET"})
      * @HasPermission({Menu::PARAM, Action::DISPLAY_DASHBOARDS})
-     * @param DashboardSettingsService $dashboardSettingsService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
      */
     public function settings(DashboardSettingsService $dashboardSettingsService,
                              EntityManagerInterface $entityManager): Response {

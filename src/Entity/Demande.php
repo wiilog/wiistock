@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\Traits\CommentTrait;
+use App\Entity\Traits\RequestTrait;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -24,6 +25,7 @@ class Demande extends FreeFieldEntity
     const STATUT_LIVRE_INCOMPLETE = 'livré partiellement';
 
     use CommentTrait;
+    use RequestTrait;
 
     /**
      * @ORM\Id()

@@ -10,6 +10,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use DateTime;
 use DateTimeInterface;
+use WiiCommon\Helper\Stream;
 
 class FormatHelper {
 

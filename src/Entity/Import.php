@@ -105,7 +105,8 @@ class Import
         'stockEntryDate' => 'Date d\'entrée en stock (jj/mm/AAAA hh:MM)',
         'managers' => 'Gestionnaire(s)',
         'orderDate' => 'date commande (jj/mm/AAAA)',
-        'expectedDate' => 'date attendue (jj/mm/AAAA)'
+        'expectedDate' => 'date attendue (jj/mm/AAAA)',
+        'buyer' => 'Acheteur'
 	];
 
 	public CONST IMPORT_FIELDS_TO_FIELDS_PARAM = [
