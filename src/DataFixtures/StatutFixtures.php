@@ -121,6 +121,7 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
             ],
             CategorieStatut::PURCHASE_REQUEST => [
                 PurchaseRequest::DRAFT => Statut::DRAFT,
+                PurchaseRequest::NOT_TREATED => Statut::NOT_TREATED,
             ],
 			CategorieStatut::IMPORT => [
 				Import::STATUS_PLANNED => Statut::NOT_TREATED,
