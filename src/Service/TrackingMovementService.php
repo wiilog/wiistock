@@ -769,4 +769,13 @@ class TrackingMovementService
             })
             ->toArray();
     }
+
+    public function finishTrackingMovement(?TrackingMovement $trackingMovement) {
+        if ($trackingMovement) {
+            $type = $trackingMovement->getType();
+            if ($type->getNom() === TrackingMovement::TYPE_PRISE) {
+                $trackingMovement->setFinished(true);
+            }
+        }
+    }
 }

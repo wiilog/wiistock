@@ -468,6 +468,7 @@ class ApiController extends AbstractFOSRestController
         $successData['data']['status'] = ($numberOfRowsInserted === 0)
             ? 'Aucun mouvement à synchroniser.'
             : ($numberOfRowsInserted . ' mouvement' . $s . ' synchronisé' . $s);
+        $successData['data']['movementCounter'] = $numberOfRowsInserted;
 
         if (!empty($emptyGroups)) {
             $successData['data']['emptyGroups'] = $emptyGroups;
@@ -977,7 +978,8 @@ class ApiController extends AbstractFOSRestController
             ->toArray();
 
         $res = [
-            'success' => true
+            'success' => true,
+            'finishedMovements' => []
         ];
 
         try {
@@ -1006,6 +1008,10 @@ class ApiController extends AbstractFOSRestController
                         }
                     }
 
+                    if ($finishedMovements) {
+                        $trackingMovementService->finishTrackingMovement($parent->getLastTracking());
+                    }
+
                     $trackingMovement = $trackingMovementService->createTrackingMovement(
                         $parent,
                         $location,
@@ -1021,6 +1027,10 @@ class ApiController extends AbstractFOSRestController
 
                     /** @var Pack $child */
                     foreach ($parent->getChildren() as $child) {
+                        if ($finishedMovements) {
+                            $trackingMovementService->finishTrackingMovement($child->getLastTracking());
+                        }
+
                         $trackingMovement = $trackingMovementService->createTrackingMovement(
                             $child,
                             $location,
@@ -1939,7 +1949,7 @@ class ApiController extends AbstractFOSRestController
 
             if ($includeGroup) {
                 $group = $isGroup ? $pack : $pack->getParent();
-                $res['group'] = $group->serialize();
+                $res['group'] = $group ? $group->serialize() : null;
             }
 
             if ($includeNature) {
