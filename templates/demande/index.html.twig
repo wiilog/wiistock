@@ -65,11 +65,12 @@
         </div>
     </div>
     <input type="hidden" value="{{ receptionFilter }}" id="receptionFilter">
-    {% include "demande/modalNewDemande.html.twig" %}
+    {% include "demande/modalNewDemande.html.twig" with { types: types, } %}
     {% include "demande/modalShowDemande.html.twig" %}
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
+    <script src="{{ asset('js/pages/form-delivery-request.js') }}?v={{ web_version }}"></script>
     <script src="{{ asset('js/pages/demande-livraison.js') }}?v={{ web_version }}"></script>
 {% endblock %}
