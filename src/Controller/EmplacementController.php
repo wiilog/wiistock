@@ -393,12 +393,13 @@ class EmplacementController extends AbstractController {
     }
 
     /**
-     * @Route("/{type}/autocomplete-locations-by-type", name="get_locations_by_type", options={"expose"=true})
+     * @Route("/autocomplete-locations-by-type", name="get_locations_by_type", options={"expose"=true}, methods={"GET"})
      */
-    public function getLocationsByType(Type $type, Request $request, EntityManagerInterface $entityManager) {
+    public function getLocationsByType(Request $request, EntityManagerInterface $entityManager) {
         if ($request->isXmlHttpRequest()) {
 
             $search = $request->query->get('term');
+            $type = $request->query->get('type');
 
             $locationRepository = $entityManager->getRepository(Emplacement::class);
             $locations = $locationRepository->getLocationsByType($type, $search);
