@@ -90,10 +90,6 @@ $(function () {
         editParamLocations($(this), $('#emergenciesArrivalsLocation'))
     });
 
-    $('#locationDemandeLivraison').on('change', function() {
-        editParamLocations($(this), $('#locationDemandeLivraisonValue'));
-    });
-
     // config tableau de bord : transporteurs
 
     const inputWorkFreeDayAlreadyAdd = JSON.parse($('#workFreeDays input[type="hidden"][name="already-work-free-days"]').val());
@@ -129,8 +125,6 @@ function initValuesForDashboard() {
     Select2Old.initValues($('#locationArrivageDest'), $( '#locationArrivageDestValue'));
     Select2Old.initValues($('[name=param-default-location-if-custom]'), $( '#customsArrivalsLocation'));
     Select2Old.initValues($('[name=param-default-location-if-emergency]'), $( '#emergenciesArrivalsLocation'));
-
-    Select2Old.initValues($('#locationDemandeLivraison'), $('#locationDemandeLivraisonValue'));
 }
 
 function updateToggledParam(switchButton) {

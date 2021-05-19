@@ -84,42 +84,8 @@ class ParametrageGlobalController extends AbstractController
         $mobileLogoHeader = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MOBILE_LOGO_HEADER);
         $mobileLogoLogin = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MOBILE_LOGO_LOGIN);
 
-        $defaultDeliveryLocationsAndTypes = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON);
-
-        $defaultDeliveryTypesIds = array_keys(json_decode($defaultDeliveryLocationsAndTypes, true));
-        $defaultDeliveryLocationsIds = array_values(json_decode($defaultDeliveryLocationsAndTypes, true));
-
         $typeRepository = $entityManager->getRepository(Type::class);
-        $locationRepository = $entityManager->getRepository(Emplacement::class);
-        $deliveryTypeSettings = [];
-        foreach ($defaultDeliveryTypesIds as $key => $typeId) {
-            if ($typeId !== 'all') {
-                $type = $typeRepository->find($typeId);
-                if (($key || $key == 0) && !empty($defaultDeliveryLocationsIds)) {
-                    $location = $defaultDeliveryLocationsIds[$key]
-                        ? $locationRepository->find($defaultDeliveryLocationsIds[$key])
-                        : null;
-                }
-            } else {
-                $location = $defaultDeliveryLocationsIds[0]
-                    ? $locationRepository->find($defaultDeliveryLocationsIds[0])
-                    : null;
-            }
-            $deliveryTypeSettings[$key] = [
-                'location' => isset($location)
-                    ? [
-                        'label' => $location->getLabel(),
-                        'id' => $location->getId()
-                    ]
-                    : null,
-                'type' => isset($type)
-                    ? [
-                        'label' => $type->getLabel(),
-                        'id' => $type->getId()
-                    ]
-                    : null,
-            ];
-        }
+        $deliveryTypeSettings = $globalParamService->getDefaultDeliveryLocationsByType($entityManager);
 
         $clsForLabels = $champsLibreRepository->findBy([
             'categorieCL' => $categoryCLRepository->findOneByLabel(CategorieCL::ARTICLE)

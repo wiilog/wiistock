@@ -15,7 +15,6 @@ use App\Helper\FormatHelper;
  */
 class PurchaseRequest
 {
-
     use AttachmentTrait;
 
     const DRAFT = 'Brouillon';

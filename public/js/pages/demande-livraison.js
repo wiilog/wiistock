@@ -41,12 +41,10 @@ function initNewLivraisonEditor(modal) {
     if (!editorNewLivraisonAlreadyDone) {
         initEditorInModal(modal);
         editorNewLivraisonAlreadyDone = true;
-        $(`#modalNewDemande select[name="destination"]`).prop(`disabled`, true);
     }
 
     clearModal(modal);
     Select2Old.location($('.ajax-autocomplete-location'));
-    Select2Old.initValues($('#locationDemandeLivraison'), $('#locationDemandeLivraisonValue'));
     const type = ($('#modalNewDemande select[name="type"] option:selected').val());
     const $locationSelector = $(`#modalNewDemande select[name="destination"]`);
 
@@ -55,21 +53,9 @@ function initNewLivraisonEditor(modal) {
     }
 }
 
-function toggleLocationSelect() {
-    const $locationSelector = $(`#modalNewDemande select[name="destination"]`);
-    const $typeSelector = $(`#modalNewDemande select[name="type"]`);
-    const type = $(this);
-    if ($typeSelector.val()) {
-        $locationSelector.prop(`disabled`, false);
-        Select2Old.init($locationSelector, '', 1, {
-            route: 'get_locations_by_type',
-            param: {
-                type,
-            }
-        });
-    } else {
-        $locationSelector.prop(`disabled`, true);
-    }
+function onDeliveryTypeChange($type) {
+    toggleLocationSelect($type);
+    toggleRequiredChampsLibres($type, 'create');
 }
 
 function callbackSaveFilter() {
