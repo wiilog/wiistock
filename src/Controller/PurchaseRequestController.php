@@ -276,7 +276,7 @@ class PurchaseRequestController extends AbstractController
 
         return $this->json([
             "success" => true,
-            'msg' => "La référence a bien était ajoutée à la demande d'achat",
+            'msg' => "La référence a bien été ajoutée à la demande d'achat",
             'entete' => $this->renderView('purchase_request/show_header.html.twig', [
                 'request' => $purchaseRequest,
                 'modifiable' => $purchaseRequestStatus && $purchaseRequestStatus->isDraft(),

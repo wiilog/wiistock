@@ -1044,10 +1044,7 @@ class ReferenceArticle extends FreeFieldEntity
         return $this;
     }
 
-    /**
-     * @return Collection|ReferenceArticle[]
-     */
-    public function getPurchaseRequestLines(): ?PurchaseRequestLine
+    public function getPurchaseRequestLines(): ?Collection
     {
         return $this->purchaseRequestLines;
     }
