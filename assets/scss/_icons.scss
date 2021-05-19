@@ -47,6 +47,7 @@ $icons: (
     "add": "../../public/svg/add.svg",
     "way": "../../public/svg/way.svg",
     'transfer': "../../public/svg/transfer.svg",
+    'purchase': "../../public/svg/blackCart.svg",
 );
 
 @each $iconName, $iconPath in $icons {

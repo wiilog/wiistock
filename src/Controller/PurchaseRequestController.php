@@ -11,6 +11,7 @@ use App\Entity\PurchaseRequestLine;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Service\AttachmentService;
 use App\Service\PurchaseRequestService;
 use DateTime;
 use App\Service\CSVExportService;
@@ -310,7 +311,8 @@ class PurchaseRequestController extends AbstractController
      * @HasPermission({Menu::DEM, Action::CREATE_PURCHASE_REQUESTS})
      */
     public function new(PurchaseRequestService $purchaseRequestService,
-                        EntityManagerInterface $entityManager): Response {
+                        EntityManagerInterface $entityManager): Response
+    {
 
         /** @var Utilisateur $requester */
         $requester = $this->getUser();
@@ -328,8 +330,7 @@ class PurchaseRequestController extends AbstractController
 
         try {
             $entityManager->flush();
-        }
-            /** @noinspection PhpRedundantCatchClauseInspection */
+        } /** @noinspection PhpRedundantCatchClauseInspection */
         catch (UniqueConstraintViolationException $e) {
             return new JsonResponse([
                 'success' => false,
@@ -340,6 +341,85 @@ class PurchaseRequestController extends AbstractController
         return $this->json([
             'success' => true,
             'msg' => "La demande d'achat <strong>${number}</strong> a bien été créée"
+        ]);
+    }
+
+    /**
+     * @Route("/api-modifier", name="purchase_request_api_edit", options={"expose"=true},  methods="GET|POST")
+     * @HasPermission({Menu::DEM, Action::EDIT_DRAFT_PURCHASE_REQUEST})
+     */
+    public function editApi(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $purchaseRequestRepository = $entityManager->getRepository(PurchaseRequest::class);
+            $statusRepository = $entityManager->getRepository(Statut::class);
+
+            $purchaseRequest = $purchaseRequestRepository->find($data['id']);
+
+            $currentStatus = $purchaseRequest->getStatus();
+            $statuses = $currentStatus
+                ? $statusRepository->findByCategoryAndStates(CategorieStatut::PURCHASE_REQUEST, [$currentStatus->getState()])
+                : [];
+
+            $json = $this->renderView('purchase_request/edit_content_modal.html.twig', [
+                'purchaseRequest' => $purchaseRequest,
+                'statuses' => $statuses
+            ]);
+
+            return new JsonResponse($json);
+        }
+        throw new BadRequestHttpException();
+    }
+
+    /**
+     * @Route("/modifier", name="purchase_request_edit", options={"expose"=true}, methods={"GET", "POST"})
+     * @HasPermission({Menu::DEM, Action::EDIT_DRAFT_PURCHASE_REQUEST})
+     */
+    public function edit(EntityManagerInterface $entityManager,
+                         Request $request,
+                         PurchaseRequestService $purchaseRequestService,
+                         AttachmentService $attachmentService): Response {
+
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $purchaseRequestRepository = $entityManager->getRepository(PurchaseRequest::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+
+        $post = $request->request;
+
+        $purchaseRequest = $purchaseRequestRepository->find($post->get('id'));
+
+        /** @var Utilisateur $requester */
+        $requester = $post->has('requester') ? $userRepository->find($post->get('requester')) : $purchaseRequest->getRequester();
+        $comment = $post->get('comment') ?: '';
+        $newStatus = $statusRepository->find($post->get('status'));
+
+        $currentStatus = $purchaseRequest->getStatus();
+        if (!$currentStatus
+            || !$newStatus
+            || $newStatus->getState() === $currentStatus->getState()) {
+            $purchaseRequest->setStatus($newStatus);
+        }
+
+        $purchaseRequest
+            ->setComment($comment)
+            ->setRequester($requester);
+
+        $purchaseRequest->removeIfNotIn($data['files'] ?? []);
+        $attachmentService->manageAttachments($entityManager, $purchaseRequest, $request->files);
+
+        $entityManager->flush();
+
+        $number = $purchaseRequest->getNumber();
+        $purchaseRequestStatus = $purchaseRequest->getStatus();
+
+        return $this->json([
+            'success' => true,
+            'msg' => "La demande d'achat <strong>${number}</strong> a bien été modifiée",
+            'entete' => $this->renderView('purchase_request/show_header.html.twig', [
+                'request' => $purchaseRequest,
+                'modifiable' => $purchaseRequestStatus && $purchaseRequestStatus->isDraft(),
+                'showDetails' => $purchaseRequestService->createHeaderDetailsConfig($purchaseRequest)
+            ]),
         ]);
     }
 }

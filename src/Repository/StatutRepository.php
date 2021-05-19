@@ -194,6 +194,21 @@ class StatutRepository extends EntityRepository {
             ->getOneOrNullResult();
     }
 
+    public function findByCategoryAndStates(string $categoryName, array $states): array {
+        $queryBuilder = $this->createQueryBuilder('s');
+        $queryBuilder
+            ->join('s.categorie', 'c')
+            ->where('c.nom = :categoryName AND s.state IN (:states)')
+            ->setParameters([
+                'categoryName' => $categoryName,
+                'states' => $states
+            ]);
+
+        return $queryBuilder
+            ->getQuery()
+            ->getResult();
+    }
+
     public function countSimilarLabels($category, $label, $type, $current = null) {
         $qb = $this->createQueryBuilder("s")
             ->select("COUNT(s)")
