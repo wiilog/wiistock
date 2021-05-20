@@ -778,5 +778,6 @@ class TrackingMovementService
                 return $trackingMovement->getPack()->getCode();
             }
         }
+        return null;
     }
 }

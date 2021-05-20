@@ -947,6 +947,7 @@ class ApiController extends AbstractFOSRestController
      * @Wii\RestVersionChecked()
      */
     public function postGroupedTracking(Request $request,
+                                        AttachmentService $attachmentService,
                                         EntityManagerInterface $entityManager,
                                         TrackingMovementService $trackingMovementService,
                                         string $trackingMode): JsonResponse {
@@ -984,6 +985,8 @@ class ApiController extends AbstractFOSRestController
 
         try {
             foreach ($groupsArray as $groupIndex => $serializedGroup) {
+                $newMovements = [];
+
                 /** @var Pack $parent */
                 $parent = $packRepository->findOneBy(['code' => $serializedGroup['code']]);
                 if ($parent && !$parent->getChildren()->isEmpty()) {
@@ -995,18 +998,6 @@ class ApiController extends AbstractFOSRestController
                     $location = $locationRepository->findOneBy(['label' => $serializedGroup['location']]);
 
                     $options = ['disableUngrouping' => true];
-                    $signatureFile = $request->files->get("signature_$groupIndex");
-                    $photoFile = $request->files->get("photo_$groupIndex");
-                    if (!empty($signatureFile) || !empty($photoFile)) {
-                        $options['fileBag'] = [];
-                        if (!empty($signatureFile)) {
-                            $options['fileBag'][] = $signatureFile;
-                        }
-
-                        if (!empty($photoFile)) {
-                            $options['fileBag'][] = $photoFile;
-                        }
-                    }
 
                     if ($finishedMovements) {
                         $res['finishedMovements'][] = $trackingMovementService->finishTrackingMovement($parent->getLastTracking());
@@ -1022,6 +1013,9 @@ class ApiController extends AbstractFOSRestController
                         $movementType,
                         $options
                     );
+
+                    $newMovements[] = $trackingMovement;
+
                     $entityManager->persist($trackingMovement);
                     $trackingMovementService->persistSubEntities($entityManager, $trackingMovement);
 
@@ -1041,9 +1035,31 @@ class ApiController extends AbstractFOSRestController
                             $movementType,
                             array_merge(['parent' => $parent], $options)
                         );
+
+                        $newMovements[] = $trackingMovement;
+
                         $entityManager->persist($trackingMovement);
                         $trackingMovementService->persistSubEntities($entityManager, $trackingMovement);
                     }
+
+                    $signatureFile = $request->files->get("signature_$groupIndex");
+                    $photoFile = $request->files->get("photo_$groupIndex");
+                    $fileNames = [];
+                    if (!empty($signatureFile)) {
+                        $fileNames = array_merge($fileNames, $attachmentService->saveFile($signatureFile));
+                    }
+                    if (!empty($photoFile)) {
+                        $fileNames = array_merge($fileNames, $attachmentService->saveFile($photoFile));
+                    }
+
+                    foreach ($newMovements as $movement) {
+                        $attachments = $attachmentService->createAttachements($fileNames);
+                        foreach ($attachments as $attachment) {
+                            $entityManager->persist($attachment);
+                            $movement->addAttachment($attachment);
+                        }
+                    }
+
                     $res['finishedMovements'] = Stream::from($res['finishedMovements'])
                         ->filter(fn($code) => $code)
                         ->unique()
