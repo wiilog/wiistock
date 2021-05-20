@@ -1,6 +1,10 @@
 {% extends 'mails/template.html.twig' %}
 
 {% block content %}
+
+    <p>Bonjour, </p>
+    <p>Une demande d'achat sur une ou des références vous concernant vient d'être initiée(s) :</p>
+    <br>
     <div>Numéro de demande :
         <strong>{{ purchaseRequest.number }}</strong>
     </div>

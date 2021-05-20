@@ -426,7 +426,7 @@ class PurchaseRequestController extends AbstractController
     }
 
     /**
-     * @Route("/api-validate", name="purchase_request_validate_api", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/api-valider", name="purchase_request_validate_api", options={"expose"=true}, methods={"GET", "POST"})
      * @HasPermission({Menu::DEM, Action::EDIT_DRAFT_PURCHASE_REQUEST})
      */
     public function apiValidate(EntityManagerInterface $entityManager): Response {
@@ -441,7 +441,7 @@ class PurchaseRequestController extends AbstractController
     }
 
     /**
-     * @Route("/validate", name="purchase_request_validate", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/valider", name="purchase_request_validate", options={"expose"=true}, methods={"GET", "POST"})
      * @HasPermission({Menu::DEM, Action::EDIT_DRAFT_PURCHASE_REQUEST})
      */
     public function validate(EntityManagerInterface $entityManager,
@@ -473,7 +473,7 @@ class PurchaseRequestController extends AbstractController
 
         $subject = "Création d'une demande d'achat";
         $buyer = $purchaseRequest->getBuyer();
-        $title = "Une demande d'achat sur une ou des références vous concernant vient d'être initiée(s) :";
+        $title = "Une demande d'achat vous concerne";
         if( $status->getSendNotifToBuyer() && $buyer != null){
             $mailerService->sendMail(
                 'FOLLOW GT // ' . $subject,
