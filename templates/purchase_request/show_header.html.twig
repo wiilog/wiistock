@@ -18,6 +18,17 @@
 {% endif %}
 
 {% block showActions %}
+
+<div class="btn-group">
+    {% if modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
+        <button type="button"
+                onclick="validatePurchaseRequest()"
+                data-id='{{ request.id }}'
+                class="btn btn-primary btn-ripple">
+            <i class="fa fa-check mr-2"></i>
+            Valider
+        </button>
+    {% endif %}
     {% if hasRightEdit or hasRightDelete %}
     <div class="btn-group">
         <button type="button"
@@ -46,6 +57,7 @@
 
         </div>
     </div>
+</div>
     {% endif %}
 {% endblock %}
 
