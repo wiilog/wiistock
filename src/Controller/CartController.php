@@ -50,7 +50,15 @@ class CartController extends AbstractController
      * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE}, mode=HasPermission::IN_JSON)
      */
     public function addToCart(ReferenceArticle $reference, EntityManagerInterface $entityManager): JsonResponse {
-        $cart =  $this->getUser()->getCart();
+        /** @var Cart $cart */
+        $cart = $this->getUser()->getCart();
+        if($cart->getReferences()->contains($reference)) {
+            $referenceLabel = $reference->getReference();
+            return $this->json([
+                'success' => false,
+                'msg' => "La référence <strong>${referenceLabel}</strong> est déjà présente dans votre panier"
+            ]);
+        }
         $cart->addReference($reference);
         $entityManager->flush();
 
