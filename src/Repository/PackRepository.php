@@ -2,8 +2,9 @@
 
 namespace App\Repository;
 
-use App\Entity\Arrivage;
 use App\Entity\Pack;
+use App\Helper\FormatHelper;
+use WiiCommon\Helper\Stream;
 use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
@@ -20,6 +21,9 @@ use Exception;
  */
 class PackRepository extends EntityRepository
 {
+
+    public const PACKS_MODE = 'packs';
+    public const GROUPS_MODE = 'groups';
 
     private const DtToDbLabels = [
         'packNum' => 'code',
@@ -41,16 +45,17 @@ class PackRepository extends EntityRepository
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function countByDates(DateTime $dateMin,
-                                 DateTime $dateMax,
-                                 bool $groupByNature = false,
-                                 array $arrivalStatusesFilter = [],
-                                 array $arrivalTypesFilter = [])
+    public function countPacksByDates(DateTime $dateMin,
+                                      DateTime $dateMax,
+                                      bool $groupByNature = false,
+                                      array $arrivalStatusesFilter = [],
+                                      array $arrivalTypesFilter = [])
     {
         $queryBuilder = $this->createQueryBuilder('pack')
             ->select('COUNT(pack) AS count')
             ->join('pack.arrivage', 'arrival')
             ->where('arrival.date BETWEEN :dateMin AND :dateMax')
+            ->andWhere('pack.groupIteration IS NULL')
             ->setParameters([
                 'dateMin' => $dateMin,
                 'dateMax' => $dateMax
@@ -82,14 +87,9 @@ class PackRepository extends EntityRepository
             : $query->getSingleScalarResult();
     }
 
-    /**
-     * @param DateTime $dateMin
-     * @param DateTime $dateMax
-     * @return Arrivage[]|null
-     */
-    public function getByDates(DateTime $dateMin, DateTime $dateMax)
+    public function getPacksByDates(DateTime $dateMin, DateTime $dateMax)
     {
-        $iterator =  $this->createQueryBuilder('pack')
+        return $this->createQueryBuilder('pack')
             ->select('pack.code as code')
             ->addSelect('n.label as nature')
             ->addSelect('m.datetime as lastMvtDate')
@@ -99,20 +99,29 @@ class PackRepository extends EntityRepository
             ->leftJoin('m.emplacement','emplacement')
             ->leftJoin('pack.nature','n')
             ->leftJoin('pack.arrivage', 'arrivage')
-            ->where(
-                'm.datetime BETWEEN :dateMin AND :dateMax'
-            )
+            ->where('m.datetime BETWEEN :dateMin AND :dateMax')
+            ->andWhere('pack.groupIteration IS NULL')
             ->setParameters([
                 'dateMin' => $dateMin,
                 'dateMax' => $dateMax
             ])
             ->getQuery()
-            ->iterate(null, Query::HYDRATE_ARRAY);
+            ->toIterable();
+    }
 
-        foreach($iterator as $item) {
-            // $item [index => article array]
-            yield array_pop($item);
-        }
+    public function getGroupsByDates(DateTime $dateMin, DateTime $dateMax) {
+        return $this->createQueryBuilder("pack")
+            ->select("pack AS group")
+            ->addSelect("COUNT(child.id) AS packCounter")
+            ->leftJoin("pack.lastTracking", "movement")
+            ->leftJoin("pack.children","child")
+            ->where("movement.datetime BETWEEN :dateMin AND :dateMax")
+            ->andWhere('pack.groupIteration IS NOT NULL')
+            ->groupBy('pack')
+            ->setParameter("dateMin", $dateMin)
+            ->setParameter("dateMax", $dateMax)
+            ->getQuery()
+            ->getResult();
     }
 
     /**
@@ -120,15 +129,29 @@ class PackRepository extends EntityRepository
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function countAll()
+    public function countAllPacks()
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(p)
-            FROM App\Entity\Pack p"
-        );
-        return $query->getSingleScalarResult();
+        $queryBuilder = $this->createQueryBuilder('pack')
+            ->select('COUNT(pack)')
+            ->where('pack.groupIteration IS NULL');
+        return $queryBuilder
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * @return int|mixed|string
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
+    public function countAllGroups()
+    {
+        $queryBuilder = $this->createQueryBuilder('pack')
+            ->select('COUNT(pack)')
+            ->where('pack.groupIteration IS NOT NULL');
+        return $queryBuilder
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     /**
@@ -137,50 +160,55 @@ class PackRepository extends EntityRepository
      * @return array
      * @throws Exception
      */
-    public function findByParamsAndFilters($params, $filters)
+    public function findByParamsAndFilters($params, $filters, string $mode)
     {
-        $em = $this->getEntityManager();
-        $qb = $em->createQueryBuilder();
+        $queryBuilder = $this->createQueryBuilder('pack');
 
-        $qb
-            ->from('App\Entity\Pack', 'pack');
-        $countTotal = $this->countAll();
+        if ($mode === self::PACKS_MODE) {
+            $queryBuilder->where('pack.groupIteration IS NULL');
+            $countTotal = $this->countAllPacks();
+        }
+        else if ($mode === self::GROUPS_MODE) {
+            $queryBuilder->where('pack.groupIteration IS NOT NULL');
+            $countTotal = $this->countAllGroups();
+        }
+
         // filtres sup
         foreach ($filters as $filter) {
             switch ($filter['field']) {
                 case 'emplacement':
                     $emplacementValue = explode(':', $filter['value']);
-                    $qb
+                    $queryBuilder
                         ->join('pack.lastTracking', 'mFilter0')
                         ->join('mFilter0.emplacement', 'e')
                         ->andWhere('e.label = :location')
                         ->setParameter('location', $emplacementValue[1] ?? $filter['value']);
                     break;
                 case 'dateMin':
-                    $qb
+                    $queryBuilder
                         ->join('pack.lastTracking', 'mFilter1')
                         ->andWhere('mFilter1.datetime >= :dateMin')
                         ->setParameter('dateMin', $filter['value'] . " 00:00:00");
                     break;
                 case 'dateMax':
-                    $qb
+                    $queryBuilder
                         ->join('pack.lastTracking', 'mFilter2')
                         ->andWhere('mFilter2.datetime <= :dateMax')
                         ->setParameter('dateMax', $filter['value'] . " 23:59:59");
                     break;
                 case 'colis':
-                    $qb
+                    $queryBuilder
                         ->andWhere('pack.code LIKE :colis')
                         ->setParameter('colis', '%' . $filter['value'] . '%');
                     break;
                 case 'numArrivage':
-                    $qb
+                    $queryBuilder
                         ->join('pack.arrivage', 'a')
                         ->andWhere('a.numeroArrivage LIKE :arrivalNumber')
                         ->setParameter('arrivalNumber', '%' . $filter['value'] . '%');
                     break;
                 case 'type':
-                    $qb
+                    $queryBuilder
                         ->join('pack.arrivage', 'a_type')
                         ->join('a_type.type','type')
                         ->andWhere('type.label LIKE :types')
@@ -188,7 +216,7 @@ class PackRepository extends EntityRepository
                     break;
                 case 'natures':
                     $natures = explode(',', $filter['value']);
-                    $qb
+                    $queryBuilder
                         ->join('pack.nature', 'natureFilter')
                         ->andWhere('natureFilter.id IN (:naturesFilter)')
                         ->setParameter('naturesFilter', $natures, Connection::PARAM_INT_ARRAY);
@@ -201,18 +229,18 @@ class PackRepository extends EntityRepository
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
-                    $qb
+                    $queryBuilder
                         ->leftJoin('pack.lastTracking', 'm2')
                         ->leftJoin('m2.emplacement', 'e2')
                         ->leftJoin('pack.nature', 'n2')
                         ->leftJoin('pack.arrivage', 'arrivage')
                         ->leftJoin('arrivage.type','arrival_type')
                         ->andWhere("(
-						pack.code LIKE :value OR
-						e2.label LIKE :value OR
-						n2.label LIKE :value OR
-						arrivage.numeroArrivage LIKE :value OR
-						arrival_type.label LIKE :value
+                            pack.code LIKE :value OR
+                            e2.label LIKE :value OR
+                            n2.label LIKE :value OR
+                            arrivage.numeroArrivage LIKE :value OR
+                            arrival_type.label LIKE :value
 						)")
                         ->setParameter('value', '%' . $search . '%');
                 }
@@ -221,53 +249,53 @@ class PackRepository extends EntityRepository
             if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
-                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
+                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']] ?? 'id';
                     if ($column === 'packLocation') {
-                        $qb
+                        $queryBuilder
                             ->leftJoin('pack.lastTracking', 'm3')
                             ->leftJoin('m3.emplacement', 'e3')
                             ->orderBy('e3.label', $order);
                     } else if ($column === 'packNature') {
-                        $qb
+                        $queryBuilder
                             ->leftJoin('pack.nature', 'n3')
                             ->orderBy('n3.label', $order);
                     } else if ($column === 'packLastDate') {
-                        $qb
+                        $queryBuilder
                             ->leftJoin('pack.lastTracking', 'm3')
                             ->orderBy('m3.datetime', $order);
                     } else if ($column === 'packOrigin') {
-                        $qb
+                        $queryBuilder
                             ->leftJoin('pack.arrivage', 'arrivage3')
                             ->orderBy('arrivage3.numeroArrivage', $order);
                     } else if ($column === 'arrivageType') {
-                        $qb
+                        $queryBuilder
                             ->leftJoin('pack.arrivage', 'arrivage3')
                             ->orderBy('arrivage3.type', $order);
                     } else {
-                        $qb
+                        $queryBuilder
                             ->orderBy('pack.' . $column, $order);
                     }
                     $orderId = ($column === 'datetime')
                         ? $order
                         : 'DESC';
-                    $qb->addOrderBy('pack.id', $orderId);
+                    $queryBuilder->addOrderBy('pack.id', $orderId);
                 }
             }
         }
-        $qb
+        $queryBuilder
             ->select('count(pack)');
         // compte éléments filtrés
-        $countFiltered = $qb->getQuery()->getSingleScalarResult();
+        $countFiltered = $queryBuilder->getQuery()->getSingleScalarResult();
 
-        $qb
+        $queryBuilder
             ->select('pack');
 
         if ($params) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+            if (!empty($params->get('start'))) $queryBuilder->setFirstResult($params->get('start'));
+            if (!empty($params->get('length'))) $queryBuilder->setMaxResults($params->get('length'));
         }
 
-        $query = $qb->getQuery();
+        $query = $queryBuilder->getQuery();
         return [
             'data' => $query ? $query->getResult() : null,
             'count' => $countFiltered,
@@ -295,10 +323,11 @@ class PackRepository extends EntityRepository
         $queryBuilder = $this->createQueryBuilder('colis');
         $queryBuilderExpr = $queryBuilder->expr();
         $queryBuilder
-            ->select($isCount ? ($queryBuilderExpr->count($field)) : $field)
+            ->select($isCount ? $queryBuilderExpr->count($field) : $field)
             ->leftJoin('colis.nature', 'nature')
             ->join('colis.lastDrop', 'lastDrop')
-            ->join('lastDrop.emplacement', 'emplacement');
+            ->join('lastDrop.emplacement', 'emplacement')
+            ->where('colis.groupIteration IS NULL');
 
         if (!empty($locations)) {
             $queryBuilder
@@ -323,8 +352,7 @@ class PackRepository extends EntityRepository
                 ->setParameter('natures', $natures);
         }
 
-        $queryBuilder
-            ->orderBy('lastDrop.datetime', $order);
+        $queryBuilder->orderBy('lastDrop.datetime', $order);
 
         if ($onlyLate) {
             $queryBuilder
@@ -334,18 +362,19 @@ class PackRepository extends EntityRepository
         }
 
         if ($start) {
-            $queryBuilder
-                ->setFirstResult($start);
+            $queryBuilder->setFirstResult($start);
         }
+
         if ($limit) {
-            $queryBuilder
-                ->setMaxResults($limit);
+            $queryBuilder->setMaxResults($limit);
         }
+
         if ($isCount) {
             return $queryBuilder
                 ->getQuery()
                 ->getSingleScalarResult();
         }
+
         return $queryBuilder
             ->getQuery()
             ->execute();
@@ -364,11 +393,10 @@ class PackRepository extends EntityRepository
             ->addSelect('arrivage.id AS arrivageId')
             ->join('colis.nature', 'nature')
             ->join('colis.arrivage', 'arrivage')
+            ->where($queryBuilderExpr->between('arrivage.date', ':dateFrom', ':dateTo'))
+            ->andWhere('colis.groupIteration IS NULL')
             ->groupBy('nature.id')
             ->addGroupBy('arrivage.id')
-            ->where(
-                $queryBuilderExpr->between('arrivage.date', ':dateFrom', ':dateTo')
-            )
             ->setParameter('dateFrom', $from)
             ->setParameter('dateTo', $to);
 
@@ -388,5 +416,33 @@ class PackRepository extends EntityRepository
             },
             []
         );
+    }
+
+    public function getPacksById(array $packIds): array {
+        $queryBuilder = $this->createQueryBuilder('pack');
+        $exprBuilder = $queryBuilder->expr();
+        return Stream::from(
+            $queryBuilder
+                ->select('pack.code AS ref_article')
+                ->addSelect('join_type_last_drop.code AS type')
+                ->addSelect('join_location.label AS ref_emplacement')
+                ->addSelect('join_last_drop.datetime AS date')
+                ->addSelect('join_last_drop.quantity AS quantity')
+                ->addSelect('join_nature.id AS nature_id')
+                ->join('pack.lastDrop', 'join_last_drop')
+                ->leftJoin('pack.nature', 'join_nature')
+                ->join('join_last_drop.type', 'join_type_last_drop')
+                ->join('join_last_drop.emplacement', 'join_location')
+                ->andWhere('pack.groupIteration IS NULL')
+                ->andWhere($exprBuilder->in('pack.id', ':packIds'))
+                ->setParameter('packIds', $packIds)
+                ->getQuery()
+                ->getResult()
+        )
+            ->map(function($pack) {
+                $pack['date'] = isset($pack['date']) ? FormatHelper::datetime($pack['date']) : null;
+                return $pack;
+            })
+            ->toArray();
     }
 }

@@ -219,6 +219,7 @@ function moveSearchInputToHeader($searchInputContainer) {
     const $datatableCard = $searchInputContainer.parents('.wii-page-card');
     const $searchInput = $searchInputContainer.find('input');
     const $searchInputContainerCol = $searchInputContainer.parent();
+
     if ($datatableCard.length > 0) {
         let $datatableCardHeader = $datatableCard.find('.wii-page-card-header');
         $datatableCardHeader = ($datatableCardHeader.length > 1)

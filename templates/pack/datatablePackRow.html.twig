@@ -1,15 +1,3 @@
-{% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
-    <div class="d-none">
-        <a class="action-on-click"
-           data-toggle='modal'
-           data-target='#modalEditPack'
-           data-id="{{ pack.id }}"
-           onclick="editRow($(this), Routing.generate('pack_edit_api', true), $('#modalEditPack'), $('#submitEditPack'), true)">
-            <i class='fas fa-pen mr-2'></i>Modifier
-        </a>
-    </div>
-{% endif %}
-
 <div class="d-flex">
     <div class="dropdown dropright">
         {{ include('datatable/dotsRow.html.twig') }}
@@ -25,7 +13,7 @@
                      data-toggle='modal'
                      data-target='#modalEditPack'
                      data-id="{{ pack.id }}"
-                     onclick="editRow($(this), Routing.generate('pack_edit_api', true), $('#modalEditPack'), $('#submitEditPack'), true)">
+                     onclick="editRow($(this), Routing.generate('pack_edit_api', true), $('#modalEditPack'), $('#submitEditPack'), true, '.editor-container-edit', false, () => initializeGroupHistoryTable({{ pack.id }}));">
                     <i class='fas fa-edit mr-2'></i>Modifier
                 </div>
             {% endif %}

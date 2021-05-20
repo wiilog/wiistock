@@ -4,6 +4,8 @@ namespace App\Helper;
 
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
+use App\Entity\Nature;
+use App\Entity\Pack;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -31,6 +33,10 @@ class FormatHelper {
         return $status ? $status->getNom() : $else;
     }
 
+    public static function pack(?Pack $pack, $else = "") {
+        return $pack ? $pack->getCode() : $else;
+    }
+
     public static function provider(?Fournisseur $provider, $else = "") {
         return $provider ? $provider->getNom() : $else;
     }
@@ -41,6 +47,10 @@ class FormatHelper {
 
     public static function user(?Utilisateur $user, $else = "") {
         return $user ? $user->getUsername() : $else;
+    }
+
+    public static function nature(?Nature $nature, $else = "") {
+        return $nature ? $nature->getLabel() : $else;
     }
 
     public static function entity($entities, string $field, string $separator = ", ") {
@@ -75,7 +85,7 @@ class FormatHelper {
     }
 
     public static function datetime(?DateTimeInterface $date, $else = "") {
-        return $date ? $date->format("d/m/Y H:i") : $else;
+        return $date ? $date->format("d/m/Y H:i:s") : $else;
     }
 
     public static function time(?DateTimeInterface $date, $else = "") {

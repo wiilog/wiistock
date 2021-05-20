@@ -4,21 +4,31 @@
 
 {% block page_filter %}
     {% include 'filters/filtersPack.html.twig' with {
-        'page' : 'PAGE_PACK',
-        'tableSelector' : '#packsTable'
+        page: 'PAGE_PACK',
+        tableSelector: '#packsTable, #groupsTable'
     } %}
 {% endblock %}
 
+{% set hasRightExport = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
+
 {% block page_content %}
-    {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
     <div class="m-4 wii-page-card">
+        <ul class="nav nav-pills pack-tabs">
+            <li class="nav-item">
+                <a href="#colis" class="nav-link active">Colis</a>
+            </li>
+            <li class="nav-item">
+                <a href="#groupes" class="nav-link">Groupe</a>
+            </li>
+        </ul>
+
+        <hr>
+
         {% if hasRightExport %}
             <div class="row wii-page-card-header">
                 <div class="col-auto ml-auto">
                     <div class="btn-group">
-                        <button type="button"
-                                class="btn btn-primary btn-ripple"
-                                onclick="saveExportFile('print_csv_packs')">
+                        <button type="button" class="btn btn-primary btn-ripple" onclick="toExport()">
                             <i class="fa fa-file-csv mr-2"></i>
                             Exporter au format CSV
                         </button>
@@ -26,15 +36,21 @@
                 </div>
             </div>
         {% endif %}
+
         <div class="row">
-            <div class="col-12">
+            <div class="col-12 packsTableContainer">
                 <table id="packsTable" class="table w-100"></table>
+            </div>
+            <div class="col-12 groupsTableContainer">
+                <table id="groupsTable" class="table wii-list w-100"></table>
             </div>
         </div>
     </div>
 
     {% include 'pack/modalEditPack.html.twig' %}
     {% include 'pack/modalDeletePack.html.twig' %}
+    {% include 'group/edit.html.twig' %}
+    {% include 'group/ungroup.html.twig' %}
 {% endblock %}
 
 {% block javascripts %}

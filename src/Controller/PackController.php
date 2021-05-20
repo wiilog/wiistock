@@ -84,7 +84,7 @@ class PackController extends AbstractController
     }
 
     /**
-     * @Route("/csv", name="print_csv_packs", options={"expose"=true}, methods={"GET"})
+     * @Route("/csv", name="export_packs", options={"expose"=true}, methods={"GET"})
      * @param Request $request
      * @param CSVExportService $CSVExportService
      * @param UserService $userService
@@ -130,7 +130,7 @@ class PackController extends AbstractController
             return $CSVExportService->streamResponse(
                 function ($output) use ($CSVExportService, $translator, $entityManager, $dateTimeMin, $dateTimeMax, $trackingMovementService) {
                     $packRepository = $entityManager->getRepository(Pack::class);
-                    $packs = $packRepository->getByDates($dateTimeMin, $dateTimeMax);
+                    $packs = $packRepository->getPacksByDates($dateTimeMin, $dateTimeMax);
                     $trackingMouvementRepository = $entityManager->getRepository(TrackingMovement::class);
 
                     foreach ($packs as $pack) {
@@ -330,5 +330,16 @@ class PackController extends AbstractController
             $pack['location']
         ];
         $csvService->putLine($handle, $line);
+    }
+
+    /**
+     * @Route("/group_history/{pack}", name="group_history_api", options={"expose"=true}, methods="GET|POST")
+     */
+    public function groupHistory(Request $request, PackService $packService, $pack): Response {
+        if ($request->isXmlHttpRequest()) {
+            $data = $packService->getGroupHistoryForDatatable($pack, $request->request);
+            return $this->json($data);
+        }
+        throw new BadRequestHttpException();
     }
 }

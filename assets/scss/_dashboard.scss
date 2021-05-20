@@ -559,6 +559,10 @@ sup {
     @include font-style-selector('../img/underline.svg');
 }
 
+.chart-color-picker {
+    margin: 5px 20% 5px 0;
+}
+
 .scroll, .dashboard-box .title {
     white-space: nowrap;
 }

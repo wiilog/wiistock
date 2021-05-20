@@ -24,6 +24,7 @@
                                            id="datetime"
                                            name="datetime">
                                 </div>
+                                <input type="hidden" class="data" name="forced" value="0">
                                 <div class="form-group col-12">
                                     <label for="operator my-auto mr-2">Opérateur*</label>
                                     <select name="operator"
@@ -42,7 +43,9 @@
                                             onchange="switchMvtCreationType($(this))">
                                         <option disabled selected></option>
                                         {% for statut in statuts %}
-                                            <option value="{{ statut.id }}">{{ statut.nom }}</option>
+                                            {% if statut.nom != constant('App\\Entity\\TrackingMovement::TYPE_UNGROUP') %}
+                                                <option value="{{ statut.id }}">{{ statut.nom }}</option>
+                                            {% endif %}
                                         {% endfor %}
                                     </select>
                                 </div>

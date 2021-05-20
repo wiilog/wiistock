@@ -9,7 +9,9 @@ use App\Entity\Pack;
 use App\Entity\TrackingMovement;
 use App\Entity\Nature;
 use App\Entity\Utilisateur;
+use App\Helper\FormatHelper;
 use App\Repository\NatureRepository;
+use App\Repository\PackRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
@@ -21,8 +23,7 @@ use Twig\Error\SyntaxError;
 use Twig\Environment as Twig_Environment;
 
 
-Class PackService
-{
+Class PackService {
 
     private $entityManager;
     private $security;
@@ -56,9 +57,9 @@ Class PackService
         $packRepository = $this->entityManager->getRepository(Pack::class);
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PACK, $this->security->getUser());
-        $queryResult = $packRepository->findByParamsAndFilters($params, $filters);
+        $queryResult = $packRepository->findByParamsAndFilters($params, $filters, PackRepository::PACKS_MODE);
 
-        $packs = $queryResult['data'];
+        $packs = $queryResult["data"];
 
         $rows = [];
         foreach ($packs as $pack) {
@@ -66,9 +67,28 @@ Class PackService
         }
 
         return [
-            'data' => $rows,
-            'recordsFiltered' => $queryResult['count'],
-            'recordsTotal' => $queryResult['total'],
+            "data" => $rows,
+            "recordsFiltered" => $queryResult['count'],
+            "recordsTotal" => $queryResult['total'],
+        ];
+    }
+
+    public function getGroupHistoryForDatatable($pack, $params) {
+        $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
+
+        $queryResult = $trackingMovementRepository->findTrackingMovementsForGroupHistory($pack, $params);
+
+        $trackingMovements = $queryResult["data"];
+
+        $rows = [];
+        foreach ($trackingMovements as $trackingMovement) {
+            $rows[] = $this->dataRowGroupHistory($trackingMovement);
+        }
+
+        return [
+            "data" => $rows,
+            "recordsFiltered" => $queryResult['filtered'],
+            "recordsTotal" => $queryResult['total'],
         ];
     }
 
@@ -101,11 +121,19 @@ Class PackService
                 : '',
             'packOrigin' => $this->template->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'arrivageType' => $pack->getArrivage() ? $pack->getArrivage()->getType()->getLabel() : '',
-        'packLocation' => $lastPackMovement
+            'packLocation' => $lastPackMovement
                 ? ($lastPackMovement->getEmplacement()
                     ? $lastPackMovement->getEmplacement()->getLabel()
                     : '')
                 : ''
+        ];
+    }
+
+    public function dataRowGroupHistory(TrackingMovement $trackingMovement) {
+        return [
+            'group' => $trackingMovement->getPackParent() ? (FormatHelper::pack($trackingMovement->getPackParent()) . '-' . $trackingMovement->getGroupIteration()) : '',
+            'date' => FormatHelper::datetime($trackingMovement->getDatetime()),
+            'type' => FormatHelper::status($trackingMovement->getType())
         ];
     }
 

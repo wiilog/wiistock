@@ -20,6 +20,14 @@ CREATE TABLE dw_jours_horaires_travailles
     horaire4  varchar(255)
 );
 
+CREATE TABLE dw_association_br
+(
+    date        timestamp(0),
+    arrivage    varchar(255),
+    reception   varchar(255),
+    utilisateur varchar(255)
+);
+
 CREATE TABLE dw_arrivage_champs_libres
 (
     arrivage_id integer,
@@ -181,6 +189,7 @@ CREATE TABLE dw_tracabilite
     date_mouvement              timestamp(0),
     code_colis                  varchar(255),
     type_mouvement              varchar(255),
+    groupe                      varchar(255),
     quantite_mouvement          integer,
     emplacement_mouvement       varchar(255),
     operateur                   varchar(255),

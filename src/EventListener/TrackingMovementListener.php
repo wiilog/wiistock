@@ -36,7 +36,11 @@ class TrackingMovementListener
         $this->treatFirstDropRecordLinking($movementToDelete, $entityManager);
         $this->treatLastTrackingRecordLinking($firstDropsRecordIds, $movementToDelete, $entityManager);
         $this->treatLocationClusterMeterLinking($movementToDelete, $entityManager);
-        $movementToDelete->getPack()->removeTrackingMovement($movementToDelete);
+
+        $pack = $movementToDelete->getPack();
+        if ($pack) {
+            $pack->removeTrackingMovement($movementToDelete);
+        }
     }
 
     /**
@@ -112,14 +116,17 @@ class TrackingMovementListener
             else {
                 $replacedTracking = null;
                 // get next drop on cluster
-                foreach ($pack->getTrackingMovements() as $packTrackingMovement) {
-                    if ($packTrackingMovement === $movementToDelete) {
-                        break;
-                    }
-                    else if ($packTrackingMovement->isDrop()) {
-                        $replacedTracking = $packTrackingMovement;
+                if ($pack) {
+                    foreach ($pack->getTrackingMovements() as $packTrackingMovement) {
+                        if ($packTrackingMovement === $movementToDelete) {
+                            break;
+                        }
+                        else if ($packTrackingMovement->isDrop()) {
+                            $replacedTracking = $packTrackingMovement;
+                        }
                     }
                 }
+
                 if (isset($replacedTracking)){
                     $firstDropRecord->setFirstDrop($replacedTracking);
                 }
@@ -155,13 +162,16 @@ class TrackingMovementListener
                 }
                 else {
                     $replacedTracking = null;
-                    // get last taking
-                    foreach ($pack->getTrackingMovements('ASC') as $packTrackingMovement) {
-                        if ($packTrackingMovement === $movementToDelete) {
-                            break;
+                    if ($pack) {
+                        // get last taking
+                        foreach ($pack->getTrackingMovements('ASC') as $packTrackingMovement) {
+                            if ($packTrackingMovement === $movementToDelete) {
+                                break;
+                            }
+                            $replacedTracking = $packTrackingMovement;
                         }
-                        $replacedTracking = $packTrackingMovement;
                     }
+
                     if (isset($replacedTracking)){
                         $record->setLastTracking($replacedTracking);
                         if ($replacedTracking->isTaking()) {

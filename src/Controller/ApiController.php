@@ -9,7 +9,6 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
-use App\Entity\MailerServer;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Emplacement;
@@ -44,11 +43,13 @@ use App\Service\DispatchService;
 use App\Service\AttachmentService;
 use App\Service\DemandeLivraisonService;
 use App\Service\ExceptionLoggerService;
+use App\Service\GroupService;
 use App\Service\InventoryService;
 use App\Service\LivraisonsManagerService;
 use App\Service\MailerService;
 use App\Service\HandlingService;
 use App\Service\MouvementStockService;
+use App\Service\PackService;
 use App\Service\StatusService;
 use App\Service\TrackingMovementService;
 use App\Service\NatureService;
@@ -196,6 +197,8 @@ class ApiController extends AbstractFOSRestController
             'errors' => []
         ];
 
+        $emptyGroups = [];
+
         foreach ($mouvementsNomade as $index => $mvt) {
             $invalidLocationTo = '';
             try {
@@ -214,7 +217,8 @@ class ApiController extends AbstractFOSRestController
                     &$finishMouvementTraca,
                     $entityManager,
                     $exceptionLoggerService,
-                    $trackingMovementService
+                    $trackingMovementService,
+                    $emptyGroups
                 ) {
                     $emplacementRepository = $entityManager->getRepository(Emplacement::class);
                     $articleRepository = $entityManager->getRepository(Article::class);
@@ -230,7 +234,7 @@ class ApiController extends AbstractFOSRestController
                             'fileBag' => null,
                             'from' => null,
                             'uniqueIdForMobile' => $mvt['date'],
-                            'entityManager' => $entityManager
+                            'entityManager' => $entityManager,
                         ];
                         $location = $emplacementRepository->findOneByLabel($mvt['ref_emplacement']);
                         $type = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, $mvt['type']);
@@ -247,7 +251,7 @@ class ApiController extends AbstractFOSRestController
                         $date = DateTime::createFromFormat(DateTimeInterface::ATOM, $dateArray[0], new DateTimeZone('Europe/Paris'));
 
                         // set mouvement de stock
-                        if (isset($mvt['fromStock']) && $mvt['fromStock']) {
+                        if ($mvt['fromStock'] ?? false) {
                             if ($type->getNom() === TrackingMovement::TYPE_PRISE) {
                                 $articles = $articleRepository->findArticleByBarCodeAndLocation($mvt['ref_article'], $mvt['ref_emplacement']);
                                 /** @var Article|null $article */
@@ -284,8 +288,7 @@ class ApiController extends AbstractFOSRestController
                                 if (isset($mouvementTracaPrise)) {
                                     $mouvementStockPrise = $mouvementTracaPrise->getMouvementStock();
                                     $article = $mouvementStockPrise->getArticle()
-                                        ? $mouvementStockPrise->getArticle()
-                                        : $mouvementStockPrise->getRefArticle();
+                                        ?: $mouvementStockPrise->getRefArticle();
 
                                     $collecteOrder = $mouvementStockPrise->getCollecteOrder();
                                     if (isset($collecteOrder)
@@ -337,7 +340,6 @@ class ApiController extends AbstractFOSRestController
                                 $options['fileBag'][] = $photoFile;
                             }
                         }
-
                         $createdMvt = $trackingMovementService->createTrackingMovement(
                             $mvt['ref_article'],
                             $location,
@@ -346,8 +348,21 @@ class ApiController extends AbstractFOSRestController
                             true,
                             $mvt['finished'],
                             $type,
-                            $options
+                            $options,
                         );
+                        $associatedPack = $createdMvt->getPack();
+
+                        if ($associatedPack) {
+                            $associatedGroup = $associatedPack->getParent();
+
+                            if ($associatedGroup) {
+                                $associatedGroup->removeChild($associatedPack);
+                                if ($associatedGroup->getChildren()->isEmpty()) {
+                                    $emptyGroups[] = $associatedGroup->getCode();
+                                }
+                            }
+                        }
+
                         $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
                         $entityManager->persist($createdMvt);
                         $numberOfRowsInserted++;
@@ -419,6 +434,8 @@ class ApiController extends AbstractFOSRestController
 
                 if ($throwable->getMessage() === TrackingMovementService::INVALID_LOCATION_TO) {
                     $successData['data']['errors'][$mvt['ref_article']] = ($mvt['ref_article'] . " doit être déposé sur l'emplacement \"$invalidLocationTo\"");
+                } else if ($throwable->getMessage() === Pack::PACK_IS_GROUP) {
+                    $successData['data']['errors'][$mvt['ref_article']] = 'Le colis scanné est un groupe';
                 } else {
                     $exceptionLoggerService->sendLog($throwable, $request);
                     $successData['data']['errors'][$mvt['ref_article']] = 'Une erreur s\'est produite lors de l\'enregistrement de ' . $mvt['ref_article'];
@@ -427,19 +444,20 @@ class ApiController extends AbstractFOSRestController
         }
 
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
-
         // Pour tous les mouvement de prise envoyés, on les marques en fini si un mouvement de dépose a été donné
-        foreach ($mouvementsNomade as $index => $mvt) {
+        foreach ($mouvementsNomade as $mvt) {
             /** @var TrackingMovement $mouvementTracaPriseToFinish */
             $mouvementTracaPriseToFinish = $trackingMovementRepository->findOneByUniqueIdForMobile($mvt['date']);
 
             if (isset($mouvementTracaPriseToFinish)) {
                 $trackingPack = $mouvementTracaPriseToFinish->getPack();
-                $packCode = $trackingPack->getCode();
-                if (($mouvementTracaPriseToFinish->getType()->getNom() === TrackingMovement::TYPE_PRISE) &&
-                    in_array($packCode, $finishMouvementTraca) &&
-                    !$mouvementTracaPriseToFinish->isFinished()) {
-                    $mouvementTracaPriseToFinish->setFinished((bool)$mvt['finished']);
+                if ($trackingPack) {
+                    $packCode = $trackingPack->getCode();
+                    if (($mouvementTracaPriseToFinish->getType()->getNom() === TrackingMovement::TYPE_PRISE) &&
+                        in_array($packCode, $finishMouvementTraca) &&
+                        !$mouvementTracaPriseToFinish->isFinished()) {
+                        $mouvementTracaPriseToFinish->setFinished((bool)$mvt['finished']);
+                    }
                 }
             }
         }
@@ -450,6 +468,11 @@ class ApiController extends AbstractFOSRestController
         $successData['data']['status'] = ($numberOfRowsInserted === 0)
             ? 'Aucun mouvement à synchroniser.'
             : ($numberOfRowsInserted . ' mouvement' . $s . ' synchronisé' . $s);
+        $successData['data']['movementCounter'] = $numberOfRowsInserted;
+
+        if (!empty($emptyGroups)) {
+            $successData['data']['emptyGroups'] = $emptyGroups;
+        }
 
         $response->setContent(json_encode($successData));
         return $response;
@@ -526,7 +549,7 @@ class ApiController extends AbstractFOSRestController
             if ($preparation) {
                 // if it has not been begun
                 try {
-                    $dateEnd = DateTime::createFromFormat(DateTime::ATOM, $preparationArray['date_end']);
+                    $dateEnd = DateTime::createFromFormat(DateTimeInterface::ATOM, $preparationArray['date_end']);
                     // flush auto at the end
                     $entityManager->transactional(function () use (
                         &$insertedPrepasIds,
@@ -867,7 +890,7 @@ class ApiController extends AbstractFOSRestController
             $livraison = $livraisonRepository->find($livraisonArray['id']);
 
             if ($livraison) {
-                $dateEnd = DateTime::createFromFormat(DateTime::ATOM, $livraisonArray['date_end']);
+                $dateEnd = DateTime::createFromFormat(DateTimeInterface::ATOM, $livraisonArray['date_end']);
                 $location = $emplacementRepository->findOneByLabel($livraisonArray['location']);
                 try {
                     if ($location) {
@@ -915,6 +938,124 @@ class ApiController extends AbstractFOSRestController
         }
 
         return new JsonResponse($resData, $statusCode);
+    }
+
+    /**
+     * @Rest\Post("/api/group-trackings/{trackingMode}", name="api_post_pack_groups", condition="request.isXmlHttpRequest()", requirements={"trackingMode": "picking|drop"})
+     * @Rest\View()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function postGroupedTracking(Request $request,
+                                        EntityManagerInterface $entityManager,
+                                        TrackingMovementService $trackingMovementService,
+                                        string $trackingMode): JsonResponse {
+
+        /** @var Utilisateur $nomadUser */
+        $operator = $this->getUser();
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+
+        $movementsStr = $request->request->get('mouvements');
+        $movements = json_decode($movementsStr, true);
+
+        $finishedMovements = ($trackingMode === 'drop');
+        $movementType = $trackingMode === 'drop' ? TrackingMovement::TYPE_DEPOSE : TrackingMovement::TYPE_PRISE;
+
+        $groupsArray = Stream::from($movements)
+            ->map(function($movement) {
+                $date = explode('+', $movement['date']);
+                $date = $date[0] ?? $movement['date'];
+                return [
+                    'code' => $movement['ref_article'],
+                    'location' => $movement['ref_emplacement'],
+                    'nature_id' => $movement['nature_id'],
+                    'date' => new DateTime($date ?? 'now', new DateTimeZone('Europe/Paris')),
+                    'type' => $movement['type']
+                ];
+            })
+            ->toArray();
+
+        $res = [
+            'success' => true,
+            'finishedMovements' => []
+        ];
+
+        try {
+            foreach ($groupsArray as $groupIndex => $serializedGroup) {
+                /** @var Pack $parent */
+                $parent = $packRepository->findOneBy(['code' => $serializedGroup['code']]);
+                if ($parent && !$parent->getChildren()->isEmpty()) {
+                    if (isset($serializedGroup['nature_id'])) {
+                        $nature = $natureRepository->find($serializedGroup['nature_id']);
+                        $parent->setNature($nature);
+                    }
+
+                    $location = $locationRepository->findOneBy(['label' => $serializedGroup['location']]);
+
+                    $options = ['disableUngrouping' => true];
+                    $signatureFile = $request->files->get("signature_$groupIndex");
+                    $photoFile = $request->files->get("photo_$groupIndex");
+                    if (!empty($signatureFile) || !empty($photoFile)) {
+                        $options['fileBag'] = [];
+                        if (!empty($signatureFile)) {
+                            $options['fileBag'][] = $signatureFile;
+                        }
+
+                        if (!empty($photoFile)) {
+                            $options['fileBag'][] = $photoFile;
+                        }
+                    }
+
+                    if ($finishedMovements) {
+                        $trackingMovementService->finishTrackingMovement($parent->getLastTracking());
+                    }
+
+                    $trackingMovement = $trackingMovementService->createTrackingMovement(
+                        $parent,
+                        $location,
+                        $operator,
+                        $serializedGroup['date'],
+                        true,
+                        $finishedMovements,
+                        $movementType,
+                        $options
+                    );
+                    $entityManager->persist($trackingMovement);
+                    $trackingMovementService->persistSubEntities($entityManager, $trackingMovement);
+
+                    /** @var Pack $child */
+                    foreach ($parent->getChildren() as $child) {
+                        if ($finishedMovements) {
+                            $trackingMovementService->finishTrackingMovement($child->getLastTracking());
+                        }
+
+                        $trackingMovement = $trackingMovementService->createTrackingMovement(
+                            $child,
+                            $location,
+                            $operator,
+                            $serializedGroup['date'],
+                            true,
+                            $finishedMovements,
+                            $movementType,
+                            array_merge(['parent' => $parent], $options)
+                        );
+                        $entityManager->persist($trackingMovement);
+                        $trackingMovementService->persistSubEntities($entityManager, $trackingMovement);
+                    }
+                }
+            }
+            $entityManager->flush();
+
+            $res['tracking'] = $trackingMovementService->getMobileUserPicking($entityManager, $operator);
+        }
+        catch (Throwable $throwable) {
+            $res['success'] = false;
+            $res['message'] = "Une erreur est survenue lors de l'enregistrement d'une prise";
+        }
+
+        return $this->json($res);
     }
 
     /**
@@ -968,7 +1109,7 @@ class ApiController extends AbstractFOSRestController
                     $ordreCollecteService
                 ) {
                     $ordreCollecteService->setEntityManager($entityManager);
-                    $date = DateTime::createFromFormat(DateTime::ATOM, $collecteArray['date_end'], new DateTimeZone('Europe/Paris'));
+                    $date = DateTime::createFromFormat(DateTimeInterface::ATOM, $collecteArray['date_end'], new DateTimeZone('Europe/Paris'));
 
                     $newCollecte = $ordreCollecteService->finishCollecte($collecte, $nomadUser, $date, $collecteArray['mouvements'], true);
                     $entityManager->flush();
@@ -987,7 +1128,7 @@ class ApiController extends AbstractFOSRestController
                         'id_collecte' => $collecte->getId()
                     ];
 
-                    $newTakings = $trackingMovementRepository->getTakingByOperatorAndNotDeposed(
+                    $newTakings = $trackingMovementRepository->getPickingByOperatorAndNotDropped(
                         $nomadUser,
                         TrackingMovementRepository::MOUVEMENT_TRACA_STOCK,
                         [$collecte->getId()]
@@ -1299,6 +1440,7 @@ class ApiController extends AbstractFOSRestController
      */
     private function getDataArray(Utilisateur $user,
                                   UserService $userService,
+                                  TrackingMovementService $trackingMovementService,
                                   NatureService $natureService,
                                   Request $request,
                                   EntityManagerInterface $entityManager)
@@ -1404,11 +1546,10 @@ class ApiController extends AbstractFOSRestController
             $refArticlesInventory = $inventoryMissionRepository->getCurrentMissionRefNotTreated();
 
             // prises en cours
-            $stockTaking = $trackingMovementRepository->getTakingByOperatorAndNotDeposed($user, TrackingMovementRepository::MOUVEMENT_TRACA_STOCK);
+            $stockTaking = $trackingMovementRepository->getPickingByOperatorAndNotDropped($user, TrackingMovementRepository::MOUVEMENT_TRACA_STOCK);
         }
 
         if ($rights['demande']) {
-
             $handlingExpectedDateColors = [
                 'after' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::HANDLING_EXPECTED_DATE_COLOR_AFTER),
                 'DDay' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::HANDLING_EXPECTED_DATE_COLOR_D_DAY),
@@ -1457,7 +1598,8 @@ class ApiController extends AbstractFOSRestController
         }
 
         if ($rights['tracking']) {
-            $trackingTaking = $trackingMovementRepository->getTakingByOperatorAndNotDeposed($user, TrackingMovementRepository::MOUVEMENT_TRACA_DEFAULT);
+            $trackingTaking = $trackingMovementService->getMobileUserPicking($entityManager, $user);
+
             $natures = array_map(
                 function (Nature $nature) use ($natureService) {
                     return $natureService->serializeNature($nature);
@@ -1547,13 +1689,14 @@ class ApiController extends AbstractFOSRestController
     public function getData(Request $request,
                             UserService $userService,
                             NatureService $natureService,
+                            TrackingMovementService $trackingMovementService,
                             EntityManagerInterface $entityManager)
     {
         $nomadUser = $this->getUser();
 
         return $this->json([
             "success" => true,
-            "data" => $this->getDataArray($nomadUser, $userService, $natureService, $request, $entityManager)
+            "data" => $this->getDataArray($nomadUser, $userService, $trackingMovementService, $natureService, $request, $entityManager)
         ]);
     }
 
@@ -1748,11 +1891,25 @@ class ApiController extends AbstractFOSRestController
         }
 
         if (!empty($location)) {
-            $resData['success'] = true;
-            $resData['trackingDrops'] = [];
-            // TODO AB : mettre en place la pagination si volume de données tro volumineux
-            // $mouvementTracaRepository = $entityManager->getRepository(MouvementTraca::class);
-            // $resData['trackingDrops'] = $mouvementTracaRepository->getLastTrackingMovementsOnLocations([$location]);
+            if ($location instanceof Emplacement && $location->isOngoingVisibleOnMobile()) {
+                $resData['success'] = true;
+                $packMaxNumber = 50;
+                $packRepository = $entityManager->getRepository(Pack::class);
+                $ongoingPackIds = Stream::from($packRepository->getCurrentPackOnLocations(
+                    [$location],
+                    [
+                        'order' => 'asc',
+                        'isCount' => false,
+                        'limit' => $packMaxNumber
+                    ]
+                ))
+                    ->map(fn(array $pack) => $pack['id'])
+                    ->toArray();
+
+                $resData['trackingDrops'] = $packRepository->getPacksById($ongoingPackIds);
+            } else {
+                $resData['trackingDrops'] = [];
+            }
         } else {
             $resData['success'] = true;
             $resData['trackingDrops'] = [];
@@ -1762,7 +1919,7 @@ class ApiController extends AbstractFOSRestController
     }
 
     /**
-     * @Rest\Get("/api/packs/nature", name="api_pack_nature", condition="request.isXmlHttpRequest()")
+     * @Rest\Get("/api/packs", name="api_get_pack_data", condition="request.isXmlHttpRequest()")
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      *
@@ -1771,28 +1928,175 @@ class ApiController extends AbstractFOSRestController
      * @param NatureService $natureService
      * @return JsonResponse
      */
-    public function getPackNature(Request $request,
-                                  EntityManagerInterface $entityManager,
-                                  NatureService $natureService): Response
+    public function getPackData(Request $request,
+                                EntityManagerInterface $entityManager,
+                                NatureService $natureService): Response
     {
+        $code = $request->query->get('code');
+        $includeNature = $request->query->getBoolean('nature');
+        $includeGroup = $request->query->getBoolean('group');
+        $res = ['success' => true];
+
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $pack = !empty($code)
+            ? $packRepository->findOneBy(['code' => $code])
+            : null;
+
+        if ($pack) {
+            $isGroup = $pack->isGroup();
+            $res['isGroup'] = $isGroup;
+            $res['isPack'] = !$isGroup;
+
+            if ($includeGroup) {
+                $group = $isGroup ? $pack : $pack->getParent();
+                $res['group'] = $group ? $group->serialize() : null;
+            }
+
+            if ($includeNature) {
+                $nature = $pack->getNature();
+                $res['nature'] = !empty($nature)
+                    ? $natureService->serializeNature($nature)
+                    : null;
+            }
+        }
+        else {
+            $res['isGroup'] = false;
+            $res['isPack'] = false;
+        }
+
+        return $this->json($res);
+    }
+
+    /**
+     * @Rest\Get("/api/pack-groups", name="api_get_pack_groups", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     *
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param NatureService $natureService
+     * @return JsonResponse
+     */
+    public function getPacksGroups(Request $request, EntityManagerInterface $entityManager): Response {
         $code = $request->query->get('code');
 
         $packRepository = $entityManager->getRepository(Pack::class);
 
-        $packs = !empty($code)
-            ? $packRepository->findBy(['code' => $code])
-            : [];
+        $pack = !empty($code)
+            ? $packRepository->findOneBy(['code' => $code])
+            : null;
 
-        if (!empty($packs)) {
-            $pack = $packs[0];
-            $nature = $pack->getNature();
+        if ($pack) {
+            if (!$pack->isGroup()) {
+                $isPack = true;
+                $isSubPack = $pack->getParent() !== null;
+                $packSerialized = $pack->serialize();
+            }
+            else {
+                $isPack = false;
+                $packGroupSerialized = $pack->serialize();
+            }
         }
 
         return $this->json([
             "success" => true,
-            "nature" => !empty($nature)
-                ? $natureService->serializeNature($nature)
-                : null
+            "isPack" => $isPack ?? false,
+            "isSubPack" => $isSubPack ?? false,
+            "pack" => $packSerialized ?? null,
+            "packGroup" => $packGroupSerialized ?? null,
+        ]);
+    }
+
+    /**
+     * @Rest\Get("/api/group", name="api_group", methods={"POST"}, condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function group(Request $request,
+                          EntityManagerInterface $entityManager,
+                          GroupService $groupService,
+                          TrackingMovementService $trackingMovementService): Response {
+        $packRepository = $entityManager->getRepository(Pack::class);
+
+        /** @var Pack $parentPack */
+        $parentPack = $packRepository->findOneBy(['code' => $request->request->get("code")]);
+        $isNewGroupInstance = false;
+        if (!$parentPack) {
+            $isNewGroupInstance = true;
+            $parentPack = $groupService->createParentPack([
+                'parent' => $request->request->get("code")
+            ]);
+
+            $entityManager->persist($parentPack);
+        } else if ($parentPack->getChildren()->isEmpty()) {
+            $isNewGroupInstance = true;
+            $parentPack->incrementGroupIteration();
+        }
+
+        $packs = json_decode($request->request->get("packs"), true);
+
+        if ($isNewGroupInstance && !empty($packs)) {
+            $dateStr = $request->request->get("date");
+            $groupingTrackingMovement = $trackingMovementService->createTrackingMovement(
+                $parentPack,
+                null,
+                $this->getUser(),
+                DateTime::createFromFormat("d/m/Y H:i:s", $dateStr),
+                true,
+                true,
+                TrackingMovement::TYPE_GROUP
+            );
+
+            $entityManager->persist($groupingTrackingMovement);
+        }
+
+        foreach ($packs as $data) {
+            $pack = $trackingMovementService->persistPack($entityManager, $data["code"], $data["quantity"], $data["nature_id"]);
+            if (!$pack->getParent()) {
+                $pack->setParent($parentPack);
+
+                $groupingTrackingMovement = $trackingMovementService->createTrackingMovement(
+                    $pack,
+                    null,
+                    $this->getUser(),
+                    DateTime::createFromFormat("d/m/Y H:i:s", $data["date"]),
+                    true,
+                    true,
+                    TrackingMovement::TYPE_GROUP,
+                    ["parent" => $parentPack]
+                );
+
+                $entityManager->persist($groupingTrackingMovement);
+            }
+        }
+
+        $entityManager->flush();
+
+        return $this->json([
+            "success" => true,
+            "msg" => "Groupage synchronisé",
+        ]);
+    }
+
+    /**
+     * @Rest\Get("/api/ungroup", name="api_ungroup", methods={"POST"}, condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function ungroup(Request $request, EntityManagerInterface $manager, GroupService $groupService): Response {
+        $locationRepository = $manager->getRepository(Emplacement::class);
+        $packRepository = $manager->getRepository(Pack::class);
+
+        $date = DateTime::createFromFormat("d/m/Y H:i:s", $request->request->get("date"));
+        $location = $locationRepository->find($request->request->get("location"));
+        $group = $packRepository->find($request->request->get("group"));
+
+        $groupService->ungroup($manager, $group, $location, $this->getUser(), $date);
+        $manager->flush();
+
+        return $this->json([
+            "success" => true,
+            "msg" => "Dégroupage synchronisé",
         ]);
     }
 

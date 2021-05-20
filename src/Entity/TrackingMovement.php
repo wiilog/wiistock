@@ -15,7 +15,9 @@ class TrackingMovement extends FreeFieldEntity
 
     const TYPE_PRISE = 'prise';
     const TYPE_DEPOSE = 'depose';
+    const TYPE_GROUP = 'groupage';
     const TYPE_PRISE_DEPOSE = 'prises et deposes';
+    const TYPE_UNGROUP = 'dégroupage';
 
     /**
      * @ORM\Id()
@@ -25,7 +27,7 @@ class TrackingMovement extends FreeFieldEntity
     private $id;
 
     /**
-     * @var Pack
+     * @var Pack|null
      * @ORM\ManyToOne(targetEntity="App\Entity\Pack", inversedBy="trackingMovements")
      * @ORM\JoinColumn(nullable=false, name="pack_id")
      */
@@ -109,6 +111,11 @@ class TrackingMovement extends FreeFieldEntity
     private $linkedPackLastTracking;
 
     /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $groupIteration;
+
+    /**
      * @var ArrayCollection|null
      * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterRecord", mappedBy="firstDrop")
      */
@@ -123,6 +130,11 @@ class TrackingMovement extends FreeFieldEntity
      * @ORM\ManyToOne(targetEntity="App\Entity\ReceptionReferenceArticle", inversedBy="trackingMovements")
      */
     private $receptionReferenceArticle;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Pack::class, inversedBy="childTrackingMovements")
+     */
+    private ?Pack $packParent = null;
 
     public function __construct()
     {
@@ -348,6 +360,18 @@ class TrackingMovement extends FreeFieldEntity
         return $this;
     }
 
+    public function getGroupIteration(): ?int
+    {
+        return $this->groupIteration;
+    }
+
+    public function setGroupIteration(int $groupIteration): self
+    {
+        $this->groupIteration = $groupIteration;
+
+        return $this;
+    }
+
     /**
      * @return Pack|null
      */
@@ -465,6 +489,24 @@ class TrackingMovement extends FreeFieldEntity
     {
         if ($this->lastTrackingRecords->contains($record)) {
             $this->lastTrackingRecords->removeElement($record);
+        }
+
+        return $this;
+    }
+
+    public function getPackParent(): ?Pack {
+        return $this->packParent;
+    }
+
+    public function setPackParent(?Pack $packParent): self {
+        if($this->packParent && $this->packParent !== $packParent) {
+            $this->packParent->removeChildTrackingMovement($this);
+        }
+
+        $this->packParent = $packParent;
+
+        if($packParent) {
+            $packParent->addChildTrackingMovement($this);
         }
 
         return $this;

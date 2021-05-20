@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\MouvementStock;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
+use App\Helper\QueryCounter;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Connection;
@@ -200,23 +201,26 @@ class TrackingMovementRepository extends EntityRepository
                     $qb
                         ->innerJoin('tracking_movement.pack', 'search_pack')
                         ->leftJoin('tracking_movement.emplacement', 'search_location')
+                        ->leftJoin('tracking_movement.packParent', 'search_pack_group')
                         ->leftJoin('tracking_movement.operateur', 'search_operator')
                         ->leftJoin('tracking_movement.type', 'search_type')
                         ->leftJoin('search_pack.referenceArticle', 'search_pack_referenceArticle')
                         ->leftJoin('search_pack.article', 'search_pack_article')
                         ->leftJoin('search_pack_article.articleFournisseur', 'search_pack_article_supplierItem')
                         ->leftJoin('search_pack_article_supplierItem.referenceArticle', 'search_pack_supplierItem_referenceArticle')
-                        ->andWhere('(
-                            search_pack.code LIKE :search_value OR
-                            search_location.label LIKE :search_value OR
-                            search_type.nom LIKE :search_value OR
-                            search_pack_supplierItem_referenceArticle.reference LIKE :search_value OR
-                            search_pack_article.label LIKE :search_value OR
-                            search_pack_referenceArticle.reference LIKE :search_value OR
-                            search_pack_referenceArticle.libelle LIKE :search_value OR
-                            search_operator.username LIKE :search_value
-						)')
-                        ->setParameter('search_value', '%' . $search . '%');
+                        ->andWhere($qb->expr()->orX(
+                            'search_pack.code LIKE :search_value',
+                            'search_location.label LIKE :search_value',
+                            'search_type.nom LIKE :search_value',
+                            'search_pack_group.code LIKE :search_value',
+                            'search_pack_supplierItem_referenceArticle.reference LIKE :search_value',
+                            'search_pack_article.label LIKE :search_value',
+                            'search_pack_referenceArticle.reference LIKE :search_value',
+                            'search_pack_referenceArticle.libelle LIKE :search_value',
+                            'search_operator.username LIKE :search_value'
+						))
+                        ->setParameter('search_value', '%' . $search . '%')
+                        ->setParameter('type', TrackingMovement::TYPE_DEPOSE);
                 }
             }
 
@@ -229,6 +233,11 @@ class TrackingMovementRepository extends EntityRepository
                         $qb
                             ->leftJoin('tracking_movement.emplacement', 'order_location')
                             ->orderBy('order_location.label', $order);
+                    } if ($column === 'group') {
+                        $qb
+                            ->leftJoin('tracking_movement.packParent', 'order_pack_group')
+                            ->orderBy('order_pack_group.code', $order)
+                            ->addOrderBy('tracking_movement.groupIteration', $order);
                     } else if ($column === 'status') {
                         $qb
                             ->leftJoin('tracking_movement.type', 'order_type')
@@ -302,9 +311,10 @@ class TrackingMovementRepository extends EntityRepository
      * @param array $filterDemandeCollecteIds
      * @return TrackingMovement[]
      */
-    public function getTakingByOperatorAndNotDeposed(Utilisateur $operator,
-                                                     string $type,
-                                                     array $filterDemandeCollecteIds = []) {
+    public function getPickingByOperatorAndNotDropped(Utilisateur $operator,
+                                                      string $type,
+                                                      array $filterDemandeCollecteIds = [],
+                                                      bool $includeMovementId = false) {
         $queryBuilder = $this->createQueryBuilder('tracking_movement')
             ->select('join_pack.code AS ref_article')
             ->addSelect('join_trackingType.nom AS type')
@@ -315,11 +325,18 @@ class TrackingMovementRepository extends EntityRepository
             ->addSelect('tracking_movement.uniqueIdForMobile AS date')
             ->addSelect('join_pack_nature.id AS nature_id')
             ->addSelect('(CASE WHEN tracking_movement.finished = 1 THEN 1 ELSE 0 END) AS finished')
-            ->addSelect('(CASE WHEN tracking_movement.mouvementStock IS NOT NULL THEN 1 ELSE 0 END) AS fromStock');
+            ->addSelect('(CASE WHEN tracking_movement.mouvementStock IS NOT NULL THEN 1 ELSE 0 END) AS fromStock')
+            ->addSelect('(CASE WHEN join_pack.groupIteration IS NOT NULL THEN 1 ELSE 0 END) AS isGroup')
+            ->addSelect('join_packParent.code AS packParent');
+
+        if ($includeMovementId) {
+            $queryBuilder->addSelect('tracking_movement.id');
+        }
 
         $typeCondition = ($type === self::MOUVEMENT_TRACA_STOCK)
             ? 'join_stockMovement.id IS NOT NULL'
             : 'join_stockMovement.id IS NULL'; // MOUVEMENT_TRACA_DEFAULT
+
         if ($type === self::MOUVEMENT_TRACA_STOCK) {
             $queryBuilder->addSelect('join_stockMovement.quantity');
         }
@@ -331,6 +348,8 @@ class TrackingMovementRepository extends EntityRepository
             ->leftJoin('tracking_movement.pack', 'join_pack')
             ->leftJoin('join_pack.nature', 'join_pack_nature')
             ->leftJoin('tracking_movement.mouvementStock', 'join_stockMovement')
+            ->leftJoin('tracking_movement.packParent', 'join_packParent')
+            ->innerJoin('tracking_movement.linkedPackLastTracking', 'linkedPackLastTracking') // check if it's the last tracking pick
             ->where('join_operator = :operator')
             ->andWhere('join_trackingType.nom LIKE :priseType')
             ->andWhere('tracking_movement.finished = :finished')
@@ -372,26 +391,6 @@ class TrackingMovementRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
-    /**
-     * @param MouvementStock $stockMovement
-     * @return int
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
-    public function countByMouvementStock($stockMovement)
-    {
-        $qb = $this->createQueryBuilder('tracking_movement');
-
-        $qb
-            ->select('COUNT(tracking_movement)')
-            ->where('tracking_movement.mouvementStock = :stockMovement')
-            ->setParameter('stockMovement', $stockMovement);
-
-        return $qb
-            ->getQuery()
-            ->getSingleScalarResult();
-    }
-
     public function findLastTakingNotFinished(string $code) {
         return $this->createQueryBuilder('tracking_movement')
             ->join('tracking_movement.pack', 'join_pack')
@@ -404,5 +403,53 @@ class TrackingMovementRepository extends EntityRepository
             ->setParameter('code', $code)
             ->getQuery()
             ->getResult();
+    }
+
+    public function findTrackingMovementsForGroupHistory($pack, $params) {
+        $qb = $this->createQueryBuilder('tracking_movement');
+
+        $qb->select('tracking_movement')
+            ->leftJoin('tracking_movement.pack', 'pack')
+            ->leftJoin('tracking_movement.type', 'type')
+            ->where('pack.id = :pack')
+            ->andWhere('type.nom = :groupType OR type.nom = :ungroupType')
+            ->setParameters([
+                'pack' => $pack,
+                'groupType' => TrackingMovement::TYPE_GROUP,
+                'ungroupType' => TrackingMovement::TYPE_UNGROUP
+            ]);
+
+        $countTotal = QueryCounter::count($qb, "tracking_movement");
+
+        //Filter search
+        if (!empty($params)) {
+            if (!empty($params->get('order'))) {
+                $order = $params->get('order')[0]['dir'];
+                if (!empty($order)) {
+                    $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    if ($column === 'group') {
+                        $qb
+                            ->leftJoin('tracking_movement.pack', 'order_pack')
+                            ->leftJoin('order_pack.parent', 'pack_group')
+                            ->orderBy('pack_group.label', $order);
+                    } else if ($column === 'date') {
+                        $qb
+                            ->orderBy('tracking_movement.datetime', $order);
+                    } else if ($column === 'type') {
+                        $qb
+                            ->leftJoin('tracking_movement.type', 'order_type')
+                            ->orderBy('order_type.nom', $order);
+                    }
+                }
+            }
+        }
+
+        $countFiltered = QueryCounter::count($qb, "tracking_movement");
+
+        return [
+            'data' => $qb->getQuery()->getResult(),
+            'filtered' => $countFiltered,
+            'total' => $countTotal
+        ];
     }
 }
