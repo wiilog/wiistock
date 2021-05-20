@@ -126,7 +126,8 @@ class PurchaseRequestService
                                           ?Statut $status,
                                           ?Utilisateur $requester,
                                           ?string $comment = null,
-                                          ?DateTime $validationDate = null): PurchaseRequest {
+                                          ?DateTime $validationDate = null,
+                                          ?Utilisateur $buyer = null): PurchaseRequest {
         $now =  new DateTime("now", new DateTimeZone("Europe/Paris"));
         $purchase = new PurchaseRequest();
         $purchaseRequestNumber = $this->uniqueNumberService->createUniqueNumber($entityManager, PurchaseRequest::NUMBER_PREFIX, PurchaseRequest::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
@@ -137,6 +138,10 @@ class PurchaseRequestService
             ->setComment($comment)
             ->setNumber($purchaseRequestNumber)
             ->setValidationDate($validationDate);
+
+        if($buyer) {
+            $purchase->setBuyer($buyer);
+        }
 
         return $purchase;
     }
