@@ -158,7 +158,6 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
                     Action::DELETE_PACK,
                     Action::EDIT_DRAFT_PURCHASE_REQUEST,
                     Action::EDIT_ONGOING_PURCHASE_REQUESTS,
-                    Action::EDIT_TREATED_PURCHASE_REQUESTS,
                 ],
             ],
             Menu::TRACA => [
