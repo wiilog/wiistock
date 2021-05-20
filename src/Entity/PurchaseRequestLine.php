@@ -2,7 +2,6 @@
 
 namespace App\Entity;
 
-use App\Entity\ReferenceArticle;
 use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\PurchaseRequestLineRepository;

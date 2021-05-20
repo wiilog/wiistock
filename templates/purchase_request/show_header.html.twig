@@ -22,10 +22,8 @@
 <div class="btn-group">
     {% if modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
         <button type="button"
-                onclick="editRow($(this), Routing.generate('purchase_request_validate_api', true), $('#modalValidatePurchaseRequest'), $('#submitValidatePurchaseRequest'))"
+                onclick="validatePurchaseRequest()"
                 data-id='{{ request.id }}'
-                data-target="#modalValidatePurchaseRequest"
-                data-toggle="modal"
                 class="btn btn-primary btn-ripple">
             <i class="fa fa-check mr-2"></i>
             Valider

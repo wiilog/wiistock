@@ -64,12 +64,19 @@ class PurchaseRequestController extends AbstractController
      * @HasPermission({Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS})
      */
     public function show(PurchaseRequest $request,
-                         PurchaseRequestService $purchaseRequestService): Response {
+                         PurchaseRequestService $purchaseRequestService,
+                         EntityManagerInterface $entityManager): Response {
         $status = $request->getStatus();
+        $statusRepository = $entityManager->getRepository(Statut::class);
+
+        $notTreatedStatuses = $statusRepository->findByCategoryAndStates(CategorieStatut::PURCHASE_REQUEST, [Statut::NOT_TREATED]);
         return $this->render('purchase_request/show.html.twig', [
             'request' => $request,
             'modifiable' => $status && $status->isDraft(),
-            'detailsConfig' => $purchaseRequestService->createHeaderDetailsConfig($request)
+            'detailsConfig' => $purchaseRequestService->createHeaderDetailsConfig($request),
+            'validate' => [
+                'statuses' => $notTreatedStatuses
+            ]
         ]);
     }
 
@@ -341,7 +348,7 @@ class PurchaseRequestController extends AbstractController
         $number = $purchaseRequest->getNumber();
         return $this->json([
             'success' => true,
-            'redirect' => $this->generateUrl('purchase_request_show', ['id' => $purchaseRequest-> getId()]),
+            'redirect' => $this->generateUrl('purchase_request_show', ['id' => $purchaseRequest->getId()]),
             'msg' => "La demande d'achat <strong>${number}</strong> a bien été créée"
         ]);
     }
@@ -426,76 +433,61 @@ class PurchaseRequestController extends AbstractController
     }
 
     /**
-     * @Route("/api-valider", name="purchase_request_validate_api", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/{id}/valider", name="purchase_request_validate", options={"expose"=true}, methods={"GET", "POST"})
      * @HasPermission({Menu::DEM, Action::EDIT_DRAFT_PURCHASE_REQUEST})
      */
-    public function apiValidate(EntityManagerInterface $entityManager): Response {
-
-        $statusRepository = $entityManager->getRepository(Statut::class);
-        $statuses = $statusRepository->findByCategoryAndStates(CategorieStatut::PURCHASE_REQUEST, [Statut::NOT_TREATED]);
-
-        $json = $this->renderView('purchase_request/validate_content_modal.html.twig', [
-            'statuses' => $statuses
-        ]);
-        return new JsonResponse($json);
-    }
-
-    /**
-     * @Route("/valider", name="purchase_request_validate", options={"expose"=true}, methods={"GET", "POST"})
-     * @HasPermission({Menu::DEM, Action::EDIT_DRAFT_PURCHASE_REQUEST})
-     */
-    public function validate(EntityManagerInterface $entityManager,
+    public function validate(PurchaseRequest $purchaseRequest,
+                             EntityManagerInterface $entityManager,
                              Request $request,
                              MailerService $mailerService,
                              PurchaseRequestService $purchaseRequestService): Response
     {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $statusRepository = $entityManager->getRepository(Statut::class);
 
-        $statusRepository = $entityManager->getRepository(Statut::class);
-        $purchaseRequestRepository = $entityManager->getRepository(PurchaseRequest::class);
-        $data = json_decode($request->getContent(), true);
-        $purchaseRequest = $purchaseRequestRepository->find($data['id']);
+            $validationDate = new DateTime("now", new DateTimeZone("Europe/Paris"));
+            $status = $statusRepository->find($data['status']);
+            if (!$status) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'Le statut sélectionné n\'existe pas.'
+                ]);
+            }
 
-        $validationDate = new DateTime("now", new DateTimeZone("Europe/Paris"));
-        $status = $statusRepository->find($data['status']);
-        if (!$status) {
-            return new JsonResponse([
-                'success' => false,
-                'msg' => 'Le statut sélectionné n\'existe pas.'
+            $purchaseRequest
+                ->setStatus($status)
+                ->setValidationDate($validationDate);
+
+            $entityManager->flush();
+
+
+            $subject = "Création d'une demande d'achat";
+            $buyer = $purchaseRequest->getBuyer();
+            $title = "Une demande d'achat vous concerne";
+            if ($status->getSendNotifToBuyer() && $buyer != null) {
+                $mailerService->sendMail(
+                    'FOLLOW GT // ' . $subject,
+                    $this->renderView('mails/contents/mailPurchaseRequestValidate.html.twig', [
+                        'purchaseRequest' => $purchaseRequest,
+                        'title' => $title
+                    ]),
+                    $buyer
+                );
+            }
+
+
+            $number = $purchaseRequest->getNumber();
+
+            return $this->json([
+                'success' => true,
+                'msg' => "La demande d'achat <strong>${number}</strong> a bien été validée",
+                'entete' => $this->renderView('purchase_request/show_header.html.twig', [
+                    'modifiable' => $status->isDraft(),
+                    'request' => $purchaseRequest,
+                    'showDetails' => $purchaseRequestService->createHeaderDetailsConfig($purchaseRequest)
+                ]),
             ]);
         }
-
-        $purchaseRequest
-            ->setStatus($status)
-            ->setValidationDate($validationDate);
-
-        $entityManager->flush();
-
-
-        $subject = "Création d'une demande d'achat";
-        $buyer = $purchaseRequest->getBuyer();
-        $title = "Une demande d'achat vous concerne";
-        if( $status->getSendNotifToBuyer() && $buyer != null){
-            $mailerService->sendMail(
-                'FOLLOW GT // ' . $subject,
-                $this->renderView('mails/contents/mailPurchaseRequestValidate.html.twig', [
-                    'purchaseRequest' => $purchaseRequest,
-                    'title' => $title
-                ]),
-                $buyer
-            );
-        }
-
-
-        $number = $purchaseRequest->getNumber();
-
-        return $this->json([
-            'success' => true,
-            'msg' => "La demande d'achat <strong>${number}</strong> a bien été validé",
-            'entete' => $this->renderView('purchase_request/show_header.html.twig', [
-                'modifiable' => $status->isDraft(),
-                'request' => $purchaseRequest,
-                'showDetails' => $purchaseRequestService->createHeaderDetailsConfig($purchaseRequest)
-            ]),
-        ]);
+        throw new BadRequestHttpException();
     }
 }

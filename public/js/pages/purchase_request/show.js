@@ -41,7 +41,7 @@ $(function() {
 
     let $modalValidatePurchaseRequest = $('#modalValidatePurchaseRequest');
     let $submitValidatePurchaseRequest = $('#submitValidatePurchaseRequest');
-    let urlValidatePurchaseRequest = Routing.generate('purchase_request_validate', true);
+    let urlValidatePurchaseRequest = Routing.generate('purchase_request_validate', {id: id}, true);
     InitModal($modalValidatePurchaseRequest, $submitValidatePurchaseRequest, urlValidatePurchaseRequest, {
         success: () => {
             window.location.reload();
@@ -59,7 +59,6 @@ function onReferenceChange($select) {
     }
 
     let route = Routing.generate('get_reference_data', {reference});
-
 
     $.get(route)
         .then((data) => {
@@ -83,23 +82,15 @@ function onReferenceChange($select) {
         })
         .catch(() => {
             clearLineAddModal();
-        })
-       /* , function(response) {
-        if (response.success) {
-            $("#add-article-code-selector").html(response.html || "");
-            $('.error-msg').html('');
-        } else {
-            $('.error-msg').html(response.msg);
-        }*/
-    //});
+        });
 }
 
 function clearLineAddModal(clearReferenceInput = false){
     const $modal = $('#modalAddPurchaseRequestLine');
 
     if (clearReferenceInput) {
-        const $reference = $modal.find('[name="reference"]');
-        $reference
+        $modal
+            .find('[name="reference"]')
             .val(null)
             .trigger('change');
     }
@@ -107,32 +98,19 @@ function clearLineAddModal(clearReferenceInput = false){
     const $container = $modal.find(".line-form-following-container");
     $container.addClass('d-none');
 
-    const $label = $modal.find('[name="label"]');
-    const $buyer = $modal.find('[name="buyer"]');
-    const $stockQuantity = $modal.find('[name="stockQuantity"]');
-    $label.val(null);
-    $buyer.val(null);
-    $stockQuantity.val(null);
+    $modal.find('[name="label"]').val(null);
+    $modal.find('[name="buyer"]').val(null);
+    $modal.find('[name="stockQuantity"]').val(null);
 
     const $submitButton = $modal.find(".submit-button");
     $submitButton.prop('disabled', true);
 }
 
-function validatePurchaseRequest(PurchaseRequestId, $button) {
-    let params = JSON.stringify({id: PurchaseRequestId});
+function validatePurchaseRequest() {
+    const modalSelector = '#modalValidatePurchaseRequest'
+    const $modal = $(modalSelector);
 
-    wrapLoadingOnActionButton($button, () => (
-        $.post({
-            url: Routing.generate('purchase_request_validate'),
-            data: params
-        })
-            .then(function (resp) {
-                if (resp === true) {
-                    return getCompareStock($button);
-                } else {
-                    $('#cannotValidate').click();
-                    return false;
-                }
-            })
-    ));
+    clearModal(modalSelector);
+
+    $modal.modal('show');
 }
