@@ -19,6 +19,7 @@ class EmplacementRepository extends EntityRepository
     private const DtToDbLabels = [
         'name' => 'label',
         'deliveryPoint' => 'isDeliveryPoint',
+        'ongoingVisibleOnMobile' => 'isOngoingVisibleOnMobile',
         'maxDelay' => 'dateMaxTime',
         'active' => 'isActive',
     ];
