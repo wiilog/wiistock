@@ -47,10 +47,10 @@ function loadAndDisplayInfos($select) {
     if($select.val()) {
         const [selected] = $select.select2('data');
         if (selected) {
-            const {id, name} = selected;
+            const {id, text} = selected;
             const [nomSelectSelected] = $nomSelect.select2('data');
             const selectNomFournisseur = () => {
-                let option = new Option(name, id, true, true);
+                let option = new Option(text, id, true, true);
                 $nomSelect.append(option).trigger('change');
             }
             if (nomSelectSelected) {

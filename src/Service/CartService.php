@@ -259,7 +259,8 @@ class CartService {
                                 ? $associatedPurchaseRequest
                                 : $purchaseRequestRepository->find($associatedPurchaseRequest);
                         } else {
-                            $request = $purchaseRequestService->createPurchaseRequest($entityManager, $status, $utilisateur);
+                            $buyer = $reference->getBuyer();
+                            $request = $purchaseRequestService->createPurchaseRequest($entityManager, $status, $utilisateur, null, null, $buyer);
                             $entityManager->persist($request);
                             $entityManager->flush();
                         }
