@@ -6,7 +6,6 @@
     and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_ONGOING_PURCHASE_REQUESTS'))
 ) %}
 
-{% if hasRightEditLine %}
     <div class="d-none">
         <div class="action-on-click"
              data-id='{{ lineId }}'
@@ -16,4 +15,15 @@
             <i class='fas fa-eye'></i>
         </div>
     </div>
-{% endif %}
+    <div class="d-flex">
+        <div class="dropdown dropright">
+            {% include 'datatable/dotsRow.html.twig' %}
+            <div class="dropdown-menu dropdown-follow-gt pointer">
+                <div class="dropdown-item"
+                     onclick="deleteRowLine($(this), $('#modalDeletePurchaseRequestLine'), $('#modalDeletePurchaseRequestLine').find('.submit-button') )"
+                     data-target='#modalDeletePurchaseRequestLine' data-toggle='modal' data-id='{{ lineId }}'>
+                    <i class='fas fa-trash mr-2'></i>Supprimer
+                </div>
+            </div>
+        </div>
+    </div>

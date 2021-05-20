@@ -39,6 +39,11 @@ $(function() {
     let urlDeleteRequest = Routing.generate('purchase_request_delete', true)
     InitModal(modalDeleteRequest, submitDeleteRequest, urlDeleteRequest);
 
+    let $modalDeleteLine = $("#modalDeletePurchaseRequestLine");
+    let $submitDeleteLine = $modalDeleteLine.find('.submit-button');
+    let urlDeleteLine = Routing.generate('purchase_request_line_remove_line', true)
+    InitModal($modalDeleteLine, $submitDeleteLine, urlDeleteLine,{tables: [tablePurchaseRequestLines]});
+
     let $modalEditPurchaseRequest = $('#modalEditPurchaseRequest');
     let $submitEditPurchaseRequest = $('#submitEditPurchaseRequest');
     let urlEditPurchaseRequest = Routing.generate('purchase_request_edit', true);
@@ -137,4 +142,11 @@ function validatePurchaseRequest() {
     clearModal(modalSelector);
 
     $modal.modal('show');
+}
+
+function deleteRowLine(button, modal, submit) {
+    let id = button.data('id');
+    let name = button.data('name');
+    modal.find(submit).attr('value', id);
+    modal.find(submit).attr('name', name);
 }

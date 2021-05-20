@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\FieldsParam;
 use App\Entity\Fournisseur;
@@ -14,6 +15,7 @@ use App\Entity\PurchaseRequest;
 use App\Entity\PurchaseRequestLine;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Service\PackService;
@@ -30,6 +32,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Iterator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -200,7 +203,6 @@ class PurchaseRequestController extends AbstractController
      */
     public function purchaseRequestLinesApi(PurchaseRequest $purchaseRequest): Response {
         $requestLines = $purchaseRequest->getPurchaseRequestLines();
-
         $rowsRC = [];
         foreach($requestLines as $requestLine) {
             $reference = $requestLine->getReference();
@@ -481,6 +483,37 @@ class PurchaseRequestController extends AbstractController
     }
 
     /**
+     * @Route("/line/retirer-line", name="purchase_request_line_remove_line", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::DEM, Action::EDIT})
+     */
+    public function removeLine(Request $request, EntityManagerInterface $entityManager) {
+        if($data = json_decode($request->getContent())) {
+
+            dump($data);
+
+            $purchaseRequestRepository = $entityManager->getRepository(PurchaseRequest::class);
+            $purchaseRequest = $purchaseRequestRepository->find($data->request);
+
+            $purchaseRequestLineRepository = $entityManager->getRepository(PurchaseRequestLine::class);
+            $purchaseRequestLine = $purchaseRequestLineRepository->find($data->lineId);
+
+            if($purchaseRequestLine && $purchaseRequest){
+                $purchaseRequest->removePurchaseRequestLine($purchaseRequestLine);
+                $entityManager->remove($purchaseRequestLine);
+            }
+
+            $entityManager->flush();
+
+            return new JsonResponse([
+                'success' => true,
+                'msg' => "La ligne a bien été supprimée de la demande d'achat"
+            ]);
+        }
+
+        throw new BadRequestHttpException();
+    }
+
+    /**
      * @Route("/{id}/valider", name="purchase_request_validate", options={"expose"=true}, methods={"GET", "POST"})
      * @HasPermission({Menu::DEM, Action::EDIT_DRAFT_PURCHASE_REQUEST})
      */
@@ -539,3 +572,4 @@ class PurchaseRequestController extends AbstractController
         throw new BadRequestHttpException();
     }
 }
+
