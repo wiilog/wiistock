@@ -389,7 +389,7 @@ class ReceptionService
         );
     }
 
-    public function getAlreadySavedReception(array &$collection, ?string $orderNumber, ?string $expectedDate, array &$stats = null, callable $onAdd = null): ?Reception {
+    public function getAlreadySavedReception(array &$collection, ?string $orderNumber, ?string $expectedDate, callable $onAdd = null): ?Reception {
         $reception = null;
         foreach($collection as $receptionIntel) {
             if ($orderNumber === $receptionIntel['orderNumber']
@@ -420,8 +420,8 @@ class ReceptionService
                     'reception' => $reception
                 ];
 
-                if($onAdd) {
-                    $onAdd($stats, false);
+                if(isset($onAdd)) {
+                    $onAdd();
                 }
             }
         }

@@ -58,7 +58,6 @@ $(function () {
 
     // filtres enregistrés en base pour chaque utilisateur
     if ($('#purchaseRequestFilter').val() !== '0') {
-        console.log($('#purchaseRequestFilter').val());
         const purchaseRequestFilter = $('#purchaseRequestFilter').val().split(',');
         purchaseRequestFilter.forEach(function (filter) {
             let option = new Option(filter, filter, true, true);

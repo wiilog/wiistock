@@ -33,6 +33,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use WiiCommon\Helper\Stream;
 
 
 /**
@@ -308,7 +309,9 @@ class PurchaseRequestController extends AbstractController
         /** @var Utilisateur $requester */
         $requester = $this->getUser();
 
-        $status = $entityManager->getRepository(Statut::class)->findOneByCategorieNameAndStatutState(CategorieStatut::PURCHASE_REQUEST, Statut::DRAFT);
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $statuses = $statusRepository->findByCategoryAndStates(CategorieStatut::PURCHASE_REQUEST, [Statut::DRAFT]);
+        $status = $statuses[0] ?? null;
         if (!$status) {
             return new JsonResponse([
                 'success' => false,
@@ -387,7 +390,7 @@ class PurchaseRequestController extends AbstractController
             }
 
             if(isset($data['expectedDate'])){
-                $expectedDate = DateTime::createFromFormat('d/m/Y H:i', $data['expectedDate'], new DateTimeZone("Europe/Paris"));
+                $expectedDate = DateTime::createFromFormat('d/m/Y', $data['expectedDate'], new DateTimeZone("Europe/Paris"));
             }
 
             $purchaseRequestLine
@@ -560,26 +563,24 @@ class PurchaseRequestController extends AbstractController
             ->setStatus($treatedStatus)
             ->setProcessingDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
 
+        $unfilledLines = Stream::from($purchaseRequest->getPurchaseRequestLines()->toArray())
+            ->filter(fn (PurchaseRequestLine $line) => (!$line->getOrderedQuantity() || $line->getOrderedQuantity() == 0))
+            ->filterMap(fn (PurchaseRequestLine $line) => ($line && $line->getReference() ? $line->getReference()->getReference() : null))
+            ->toArray();
+
+        if (!empty($unfilledLines)) {
+            return $this->json([
+                'success' => false,
+                'msg' => count($unfilledLines) > 1
+                    ? 'Des informations sont manquantes sur les lignes d\'achat  <strong>' . Stream::from($unfilledLines)->join(', ') . '</strong>.<br> Impossible de créer la réception liée ni de terminer la demande d\'achat.'
+                    : 'Des informations sont manquantes sur la ligne d\'achat  <strong>' . $unfilledLines[0] . '</strong>.<br> Impossible de créer la réception liée ni de terminer la demande d\'achat.'
+            ]);
+        }
+
         if($treatedStatus->getAutomaticReceptionCreation()) {
             $receptionsWithCommand = [];
-            foreach ($purchaseRequest->getPurchaseRequestLines() as $purchaseRequestLine) {
-                if(!$purchaseRequestLine->getSupplier()) {
-                    return $this->json([
-                        'success' => false,
-                        'msg' => 'L\'information du fournisseur est manquante sur la ligne de demande d\'achat ayant pour référence <strong>' . $purchaseRequestLine->getReference()->getReference() . '</strong>.<br> Impossible de créer la réception liée ni de terminer la demande d\'achat.'
-                    ]);
-                } else if(!$purchaseRequestLine->getOrderNumber()) {
-                    return $this->json([
-                        'success' => false,
-                        'msg' => 'L\'information du numéro de commande est manquante sur la ligne de demande d\'achat ayant pour référence <strong>' . $purchaseRequestLine->getReference()->getReference() . '</strong>.<br> Impossible de créer la réception liée ni de terminer la demande d\'achat.'
-                    ]);
-                } else if(!$purchaseRequestLine->getExpectedDate()) {
-                    return $this->json([
-                        'success' => false,
-                        'msg' => 'L\'information de la date attendue est manquante sur la ligne de demande d\'achat ayant pour référence <strong>' . $purchaseRequestLine->getReference()->getReference() . '</strong>.<br> Impossible de créer la réception liée ni de terminer la demande d\'achat.'
-                    ]);
-                }
 
+            foreach ($purchaseRequest->getPurchaseRequestLines() as $purchaseRequestLine) {
                 $orderNumber = $purchaseRequestLine->getOrderNumber() ?? null;
                 $expectedDate = $purchaseRequestLine->getExpectedDate()->format('d-m-Y');
                 $reception = $receptionService->getAlreadySavedReception($receptionsWithCommand, $orderNumber, $expectedDate);
@@ -627,7 +628,6 @@ class PurchaseRequestController extends AbstractController
     public function validate(PurchaseRequest $purchaseRequest,
                              EntityManagerInterface $entityManager,
                              Request $request,
-                             MailerService $mailerService,
                              PurchaseRequestService $purchaseRequestService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -636,9 +636,16 @@ class PurchaseRequestController extends AbstractController
             $validationDate = new DateTime("now", new DateTimeZone("Europe/Paris"));
             $status = $statusRepository->find($data['status']);
             if (!$status) {
-                return new JsonResponse([
+                return $this->json([
                     'success' => false,
                     'msg' => 'Le statut sélectionné n\'existe pas.'
+                ]);
+            }
+
+            if ($purchaseRequest->getPurchaseRequestLines()->isEmpty()) {
+                return $this->json([
+                    'success' => false,
+                    'msg' => "Vous ne pouvez pas valider une demande d'achat vide."
                 ]);
             }
 

@@ -866,7 +866,7 @@ class ImportService
             $user = $userRepository->find($user->getId());
         }
 
-        $reception = $receptionService->getAlreadySavedReception($receptionsWithCommand, $data['orderNumber'], $data['expectedDate'], $stats, fn() => $this->updateStats($stats, false));
+        $reception = $receptionService->getAlreadySavedReception($receptionsWithCommand, $data['orderNumber'], $data['expectedDate'], fn() => $this->updateStats($stats, false));
         $newEntity = !isset($reception);
         if (!$reception) {
             try {

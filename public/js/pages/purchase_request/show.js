@@ -125,7 +125,7 @@ function clearLineAddModal(clearReferenceInput = false){
 
 function callbackEditLineLoading($modal) {
     initDateTimePicker('#modalEditPurchaseRequestLine .datepicker[name="orderDate"]', 'DD/MM/YYYY HH:mm', false);
-    initDateTimePicker('#modalEditPurchaseRequestLine .datepicker[name="expectedDate"]', 'DD/MM/YYYY HH:mm', false);
+    initDateTimePicker('#modalEditPurchaseRequestLine .datepicker[name="expectedDate"]', 'DD/MM/YYYY', false);
     let $orderDateInput = $('#modalEditPurchaseRequestLine').find('[name="orderDate"]');
     let orderDate = $orderDateInput.attr('data-date');
 
@@ -136,36 +136,14 @@ function callbackEditLineLoading($modal) {
         $orderDateInput.val(moment(orderDate, 'YYYY-MM-DD HH:mm').format('DD/MM/YYYY HH:mm'));
     }
     if(expectedDate){
-        $expectedDateInput.val(moment(expectedDate, 'YYYY-MM-DD HH:mm').format('DD/MM/YYYY HH:mm'));
+        $expectedDateInput.val(moment(expectedDate, 'YYYY-MM-DD').format('DD/MM/YYYY'));
     }
 
     Select2Old.provider($modal.find('.ajax-autocomplete-fournisseur'));
 }
 
-function validatePurchaseRequest() {
-    const modalSelector = '#modalValidatePurchaseRequest'
-    const $modal = $(modalSelector);
-
-    clearModal(modalSelector);
-
-    $modal.modal('show');
-}
-
-function openConsiderPurchaseRequestModal() {
-    const modalSelector = '#modalConsiderPurchaseRequest'
-    const $modal = $(modalSelector);
-
-    clearModal(modalSelector);
-
-    $modal.modal('show');
-}
-
-function openTreatPurchaseRequestModal() {
-    const modalSelector = '#modalTreatPurchaseRequest'
-    const $modal = $(modalSelector);
-
-    clearModal(modalSelector);
-
+function openEvolutionModal($modal) {
+    clearModal($modal);
     $modal.modal('show');
 }
 
