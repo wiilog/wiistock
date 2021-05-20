@@ -528,7 +528,8 @@ class TrackingMovementController extends AbstractController
                     'pieces jointes',
                     'origine',
                     'numéro de commande',
-                    'urgence'
+                    'urgence',
+                    'group'
                 ], $freeFieldsConfig['freeFieldsHeader']);
 
                 $trackingMovements = $trackingMovementRepository->iterateByDates($dateTimeMin, $dateTimeMax);
