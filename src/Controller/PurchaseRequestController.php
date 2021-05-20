@@ -488,13 +488,10 @@ class PurchaseRequestController extends AbstractController
      */
     public function removeLine(Request $request, EntityManagerInterface $entityManager) {
         if($data = json_decode($request->getContent())) {
-
-            dump($data);
-
             $purchaseRequestRepository = $entityManager->getRepository(PurchaseRequest::class);
-            $purchaseRequest = $purchaseRequestRepository->find($data->request);
-
             $purchaseRequestLineRepository = $entityManager->getRepository(PurchaseRequestLine::class);
+
+            $purchaseRequest = $purchaseRequestRepository->find($data->request);
             $purchaseRequestLine = $purchaseRequestLineRepository->find($data->lineId);
 
             if($purchaseRequestLine && $purchaseRequest){
