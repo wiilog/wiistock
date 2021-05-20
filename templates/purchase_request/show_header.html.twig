@@ -2,25 +2,27 @@
 
 {% block showTitle ('Demande d\'achat ' ~ request.number) %}
 
+{% set hasRightEdit = (
+    (request.status.draft or request.status.notTreated or request.status.inProgress)
+    and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT'))
+) %}
 {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
-{% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
 
 {# droit de suppression pour les demandes d'achats brouillons #}
 {% if request.status.draft %}
-    {% set hasRightDelete = hasRightDelete and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_DRAFT_PURCHASE_REQUEST')) %}
     {% set hasRightEdit = hasRightEdit and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_DRAFT_PURCHASE_REQUEST')) %}
+    {% set hasRightDelete = hasRightDelete and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_DRAFT_PURCHASE_REQUEST')) %}
 {% elseif request.status.notTreated or request.status.inProgress %} {# droit de suppression pour les demandes d'achats à traiter et en cours #}
-    {% set hasRightDelete = hasRightDelete and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_ONGOING_PURCHASE_REQUESTS')) %}
     {% set hasRightEdit = hasRightEdit and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_ONGOING_PURCHASE_REQUESTS')) %}
+    {% set hasRightDelete = hasRightDelete and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_ONGOING_PURCHASE_REQUESTS')) %}
 {% elseif request.status.treated %} {# droit de suppression pour les demandes d'achats traités #}
     {% set hasRightDelete = hasRightDelete and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_TREATED_PURCHASE_REQUESTS')) %}
-    {% set hasRightDelete = hasRightDelete and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_TREATED_PURCHASE_REQUESTS')) %}
 {% endif %}
 
 {% block showActions %}
 
 <div class="btn-group">
-    {% if modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
+    {% if hasRightEdit %}
         <button type="button"
                 onclick="validatePurchaseRequest()"
                 data-id='{{ request.id }}'
