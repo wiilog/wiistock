@@ -44,6 +44,15 @@ $(function() {
     let urlEditPurchaseRequest = Routing.generate('purchase_request_edit', true);
     InitModal($modalEditPurchaseRequest, $submitEditPurchaseRequest, urlEditPurchaseRequest);
 
+    let $modalValidatePurchaseRequest = $('#modalValidatePurchaseRequest');
+    let $submitValidatePurchaseRequest = $('#submitValidatePurchaseRequest');
+    let urlValidatePurchaseRequest = Routing.generate('purchase_request_validate', {id: id}, true);
+    InitModal($modalValidatePurchaseRequest, $submitValidatePurchaseRequest, urlValidatePurchaseRequest, {
+        success: () => {
+            window.location.reload();
+        }
+    });
+
     Select2Old.init($modalEditPurchaseRequest.find('select[name=status]'));
 });
 
@@ -55,7 +64,6 @@ function onReferenceChange($select) {
     }
 
     let route = Routing.generate('get_reference_data', {reference});
-
 
     $.get(route)
         .then((data) => {
@@ -86,8 +94,8 @@ function clearLineAddModal(clearReferenceInput = false){
     const $modal = $('#modalAddPurchaseRequestLine');
 
     if (clearReferenceInput) {
-        const $reference = $modal.find('[name="reference"]');
-        $reference
+        $modal
+            .find('[name="reference"]')
             .val(null)
             .trigger('change');
     }
@@ -95,12 +103,9 @@ function clearLineAddModal(clearReferenceInput = false){
     const $container = $modal.find(".line-form-following-container");
     $container.addClass('d-none');
 
-    const $label = $modal.find('[name="label"]');
-    const $buyer = $modal.find('[name="buyer"]');
-    const $stockQuantity = $modal.find('[name="stockQuantity"]');
-    $label.val(null);
-    $buyer.val(null);
-    $stockQuantity.val(null);
+    $modal.find('[name="label"]').val(null);
+    $modal.find('[name="buyer"]').val(null);
+    $modal.find('[name="stockQuantity"]').val(null);
 
     const $submitButton = $modal.find(".submit-button");
     $submitButton.prop('disabled', true);
@@ -123,4 +128,13 @@ function callbackEditLineLoading($modal) {
     }
 
     Select2Old.provider($modal.find('.ajax-autocomplete-fournisseur'));
+}
+
+function validatePurchaseRequest() {
+    const modalSelector = '#modalValidatePurchaseRequest'
+    const $modal = $(modalSelector);
+
+    clearModal(modalSelector);
+
+    $modal.modal('show');
 }
