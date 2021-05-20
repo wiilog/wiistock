@@ -1189,8 +1189,10 @@ class ReferenceArticleRepository extends EntityRepository {
     public function findInCart(Utilisateur $user, array $params) {
         $qb = $this->createQueryBuilder("reference_article");
 
-        $qb->where(":cart MEMBER OF reference_article.carts")
-            ->setParameter("cart", $user->getCart());
+        $qb
+            ->innerJoin('reference_article.carts', 'cart')
+            ->where("cart.user = :user")
+            ->setParameter("user", $user);
 
         foreach($params["order"] as $order) {
             $column = $params["columns"][$order["column"]]['name'];
