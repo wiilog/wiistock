@@ -1009,7 +1009,7 @@ class ApiController extends AbstractFOSRestController
                     }
 
                     if ($finishedMovements) {
-                        $trackingMovementService->finishTrackingMovement($parent->getLastTracking());
+                        $res['finishedMovements'][] = $trackingMovementService->finishTrackingMovement($parent->getLastTracking());
                     }
 
                     $trackingMovement = $trackingMovementService->createTrackingMovement(
@@ -1028,7 +1028,7 @@ class ApiController extends AbstractFOSRestController
                     /** @var Pack $child */
                     foreach ($parent->getChildren() as $child) {
                         if ($finishedMovements) {
-                            $trackingMovementService->finishTrackingMovement($child->getLastTracking());
+                            $res['finishedMovements'][] = $trackingMovementService->finishTrackingMovement($child->getLastTracking());
                         }
 
                         $trackingMovement = $trackingMovementService->createTrackingMovement(
@@ -1044,6 +1044,10 @@ class ApiController extends AbstractFOSRestController
                         $entityManager->persist($trackingMovement);
                         $trackingMovementService->persistSubEntities($entityManager, $trackingMovement);
                     }
+                    $res['finishedMovements'] = Stream::from($res['finishedMovements'])
+                        ->filter(fn($code) => $code)
+                        ->unique()
+                        ->toArray();
                 }
             }
             $entityManager->flush();
