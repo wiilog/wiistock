@@ -76,6 +76,12 @@
                    class="dropdown-item">
                     <i class="mr-2 fas fa-external-link-alt"></i>Voir les ordres de transfert</a>
             {% endif %}
+            {% if reception.purchaseRequestLines is not empty %}
+                {% set firstPurchaseRequestLine = reception.purchaseRequestLines|first %}
+                <a href="{{ path('purchase_request_show', {'id': firstPurchaseRequestLine.purchaseRequest.id }) }}"
+                   class="dropdown-item">
+                    <i class="mr-2 fas fa-external-link-alt"></i>Aller sur la demande d'achat</a>
+            {% endif %}
             {% if canDelete %}
                 <a data-id='{{ reception.id }}'
                    data-target='#modalDeleteReception'

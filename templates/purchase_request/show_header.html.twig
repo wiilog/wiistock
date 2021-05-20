@@ -33,6 +33,23 @@
     {% endif %}
     {% if hasRightEdit or hasRightDelete %}
     <div class="btn-group">
+        {% if request.status.notTreated and hasRightEdit %}
+            <button type="button"
+                    data-id='{{ request.id }}'
+                    onclick="openConsiderPurchaseRequestModal()"
+                    class="btn btn-primary btn-ripple split-button">
+                <i class="fa fa-check mr-2"></i>
+                Prendre en compte
+            </button>
+        {% elseif request.status.inProgress and hasRightEdit %}
+            <button type="button"
+                    data-id='{{ request.id }}'
+                    onclick="openTreatPurchaseRequestModal()"
+                    class="btn btn-primary btn-ripple split-button">
+                <i class="fa fa-check mr-2"></i>
+                Terminer la demande
+            </button>
+        {% endif %}
         <button type="button"
                 class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
                 data-toggle="dropdown"
@@ -41,6 +58,11 @@
             <span class="fa fa-angle-down"></span>
         </button>
         <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+            {% if request.associatedReceptions is not empty %}
+                <a href="{{ path('reception_index', {'purchaseRequest': request.id }) }}"
+                   class="dropdown-item" target="_blank">
+                    <i class="fas fa-external-link-alt mr-2"></i>Aller vers les réceptions</a>
+            {% endif %}
             {% if hasRightEdit %}
                 <a  onclick="editRow($(this), Routing.generate('purchase_request_api_edit', true), $('#modalEditPurchaseRequest'), $('#submitEditPurchaseRequest'), true, '#modalEditPurchaseRequest .editor-container-edit', false)"
                     title="Modification"

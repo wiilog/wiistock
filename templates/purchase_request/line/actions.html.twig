@@ -1,6 +1,7 @@
 
 {% set hasRightEditLine = (
     requestStatus
+    and requestStatus is defined
     and requestStatus.inProgress
     and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT'))
     and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_ONGOING_PURCHASE_REQUESTS'))
@@ -8,6 +9,7 @@
 
 {% set hasRightDeleteLine = (
     requestStatus
+    and requestStatus is defined
     and requestStatus.draft
     and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT'))
     and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_DRAFT_PURCHASE_REQUEST'))

@@ -49,6 +49,16 @@ $(function() {
     let urlEditPurchaseRequest = Routing.generate('purchase_request_edit', true);
     InitModal($modalEditPurchaseRequest, $submitEditPurchaseRequest, urlEditPurchaseRequest);
 
+    const $modalConsiderPurchaseRequest = $('#modalConsiderPurchaseRequest');
+    const $submitConsiderPurchaseRequest = $modalConsiderPurchaseRequest.find('.submit-button');
+    const urlConsiderPurchaseRequest = Routing.generate('consider_purchase_request', {id: id}, true);
+    InitModal($modalConsiderPurchaseRequest, $submitConsiderPurchaseRequest, urlConsiderPurchaseRequest);
+
+    const $modalTreatPurchaseRequest = $('#modalTreatPurchaseRequest');
+    const $submitTreatPurchaseRequest = $modalTreatPurchaseRequest.find('.submit-button');
+    const urlTreatPurchaseRequest = Routing.generate('treat_purchase_request', {id: id}, true);
+    InitModal($modalTreatPurchaseRequest, $submitTreatPurchaseRequest, urlTreatPurchaseRequest);
+
     let $modalValidatePurchaseRequest = $('#modalValidatePurchaseRequest');
     let $submitValidatePurchaseRequest = $('#submitValidatePurchaseRequest');
     let urlValidatePurchaseRequest = Routing.generate('purchase_request_validate', {id: id}, true);
@@ -74,12 +84,9 @@ function onReferenceChange($select) {
         .then((data) => {
             const $modal = $select.closest(".modal");
 
-            const $label = $modal.find('[name="label"]');
-            const $buyer = $modal.find('[name="buyer"]');
-            const $stockQuantity = $modal.find('[name="stockQuantity"]');
-            $label.val(data.label);
-            $buyer.val(data.buyer);
-            $stockQuantity.val(data.stockQuantity);
+            $modal.find('[name="label"]').val(data.label);
+            $modal.find('[name="buyer"]').val(data.buyer);
+            $modal.find('[name="stockQuantity"]').val(data.stockQuantity);
 
             const $requestedQuantity = $modal.find('[name="requestedQuantity"]');
             $requestedQuantity.val(null);
@@ -137,6 +144,24 @@ function callbackEditLineLoading($modal) {
 
 function validatePurchaseRequest() {
     const modalSelector = '#modalValidatePurchaseRequest'
+    const $modal = $(modalSelector);
+
+    clearModal(modalSelector);
+
+    $modal.modal('show');
+}
+
+function openConsiderPurchaseRequestModal() {
+    const modalSelector = '#modalConsiderPurchaseRequest'
+    const $modal = $(modalSelector);
+
+    clearModal(modalSelector);
+
+    $modal.modal('show');
+}
+
+function openTreatPurchaseRequestModal() {
+    const modalSelector = '#modalTreatPurchaseRequest'
     const $modal = $(modalSelector);
 
     clearModal(modalSelector);

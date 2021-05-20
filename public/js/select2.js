@@ -197,11 +197,19 @@ class Select2Old {
         this.init(select, 'Numéros de demande', 3, {route: 'get_demandes'});
     }
 
-    static initFree($selects) {
+    static initFree($selects, placeholder = undefined) {
         $selects.each(function () {
             const $self = $(this);
             $self.select2({
                 tags: true,
+                ...(placeholder
+                    ? {
+                        placeholder: {
+                            id: 0,
+                            text: placeholder,
+                        }
+                    }
+                    : {}),
                 "language": {
                     "noResults": function () {
                         return 'Ajoutez des éléments';

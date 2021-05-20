@@ -5,8 +5,9 @@
 
 
 {% set hasRightAddLine = (
-    requestStatus
-    and requestStatus.draft
+    request.status
+    and request.status is defined
+    and request.status.draft
     and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT'))
     and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_DRAFT_PURCHASE_REQUEST'))
 ) %}
@@ -69,7 +70,8 @@
     {% include "purchase_request/line/delete.html.twig" with {request: request} %}
     {% include "purchase_request/edit.html.twig" %}
     {% include "purchase_request/validate.html.twig" with validate %}
-
+    {% include "purchase_request/consider.html.twig" with consider %}
+    {% include "purchase_request/treat.html.twig" with treat %}
 {% endblock %}
 
 {% block javascripts %}
