@@ -349,6 +349,7 @@ class TrackingMovementRepository extends EntityRepository
             ->leftJoin('join_pack.nature', 'join_pack_nature')
             ->leftJoin('tracking_movement.mouvementStock', 'join_stockMovement')
             ->leftJoin('tracking_movement.packParent', 'join_packParent')
+            ->innerJoin('tracking_movement.linkedPackLastTracking', 'linkedPackLastTracking') // check if it's the last tracking pick
             ->where('join_operator = :operator')
             ->andWhere('join_trackingType.nom LIKE :priseType')
             ->andWhere('tracking_movement.finished = :finished')
