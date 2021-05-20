@@ -195,14 +195,12 @@ class StatutRepository extends EntityRepository {
     }
 
     public function findByCategoryAndStates(string $categoryName, array $states): array {
-        $queryBuilder = $this->createQueryBuilder('s');
+        $queryBuilder = $this->createQueryBuilder('status');
         $queryBuilder
-            ->join('s.categorie', 'c')
-            ->where('c.nom = :categoryName AND s.state IN (:states)')
-            ->setParameters([
-                'categoryName' => $categoryName,
-                'states' => $states
-            ]);
+            ->join('status.categorie', 'category')
+            ->where('category.nom = :categoryName AND status.state IN (:states)')
+            ->setParameter('categoryName', $categoryName)
+            ->setParameter('states', $states);
 
         return $queryBuilder
             ->getQuery()

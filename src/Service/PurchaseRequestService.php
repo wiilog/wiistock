@@ -29,10 +29,14 @@ class PurchaseRequestService
     /** @Required */
     public UniqueNumberService $uniqueNumberService;
 
+    public MailerService $mailerService;
+
     private $user;
 
-    public function __construct(TokenStorageInterface $tokenStorage) {
+    public function __construct(TokenStorageInterface $tokenStorage,
+                                MailerService $mailerService) {
         $this->user = $tokenStorage->getToken()->getUser();
+        $this->mailerService = $mailerService;
     }
 
     public function getDataForDatatable($params = null)
@@ -144,5 +148,46 @@ class PurchaseRequestService
         }
 
         return $purchase;
+    }
+
+    public function sendMailsAccordingToStatus(PurchaseRequest $purchaseRequest) {
+        /** @var Statut $status */
+        $status = $purchaseRequest->getStatus();
+        $buyerAbleToReceivedMail = $status->getSendNotifToBuyer();
+        $requesterAbleToReceivedMail = $status->getSendNotifToDeclarant();
+
+        if (isset($buyerAbleToReceivedMail) || isset($requesterAbleToReceivedMail)) {
+
+            $requester = $purchaseRequest->getRequester() ?? null;
+            $buyer = $purchaseRequest->getBuyer() ?? null;
+
+            $mail = ($status->isNotTreated() && $buyerAbleToReceivedMail) ? $buyer : $requester;
+
+            $subject = $status->isTreated()
+                ? 'Traitement d\'une demande d\'achat'
+                : ($status->isNotTreated()
+                    ? 'Création d\'une demande d\'achat'
+                    : 'Changement de statut d\'une demande d\'achat');
+
+            $statusName = $status->getNom();
+            $number = $purchaseRequest->getNumber();
+            $processingDate = FormatHelper::datetime($purchaseRequest->getProcessingDate(), "", true);
+            $title = $status->isTreated()
+                ? "Demande d'achat ${number} traitée le ${processingDate} avec le statut ${statusName}"
+                : ($status->isNotTreated()
+                    ? 'Une demande d\'achat vous concerne'
+                    : 'Changement de statut d\'une demande d\'achat vous concernant');
+
+            if (isset($requester)) {
+                $this->mailerService->sendMail(
+                    'FOLLOW GT // ' . $subject,
+                    $this->templating->render('mails/contents/mailPurchaseRequestEvolution.html.twig', [
+                        'title' => $title,
+                        'purchaseRequest' => $purchaseRequest,
+                    ]),
+                    $mail
+                );
+            }
+        }
     }
 }

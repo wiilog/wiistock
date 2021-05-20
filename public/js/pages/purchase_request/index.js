@@ -39,7 +39,7 @@ function initPageDataTable() {
             "url": pathPurchaseRequest,
             "type": "POST",
             'data' : {
-                'filterStatus': $('#filterStatus').val()
+                'filterStatus': $('#filterStatus').val(),
             },
         },
         rowConfig: {

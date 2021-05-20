@@ -1771,7 +1771,7 @@ class Utilisateur implements UserInterface, EquatableInterface
     {
         if (!$this->purchaseRequestBuyers->contains($purchaseRequestBuyer)) {
             $this->purchaseRequestBuyers[] = $purchaseRequestBuyer;
-            $purchaseRequestBuyer->setRequester($this);
+            $purchaseRequestBuyer->setBuyer($this);
         }
 
         return $this;

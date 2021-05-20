@@ -49,6 +49,16 @@ $(function() {
     let urlEditPurchaseRequest = Routing.generate('purchase_request_edit', true);
     InitModal($modalEditPurchaseRequest, $submitEditPurchaseRequest, urlEditPurchaseRequest);
 
+    const $modalConsiderPurchaseRequest = $('#modalConsiderPurchaseRequest');
+    const $submitConsiderPurchaseRequest = $modalConsiderPurchaseRequest.find('.submit-button');
+    const urlConsiderPurchaseRequest = Routing.generate('consider_purchase_request', {id: id}, true);
+    InitModal($modalConsiderPurchaseRequest, $submitConsiderPurchaseRequest, urlConsiderPurchaseRequest);
+
+    const $modalTreatPurchaseRequest = $('#modalTreatPurchaseRequest');
+    const $submitTreatPurchaseRequest = $modalTreatPurchaseRequest.find('.submit-button');
+    const urlTreatPurchaseRequest = Routing.generate('treat_purchase_request', {id: id}, true);
+    InitModal($modalTreatPurchaseRequest, $submitTreatPurchaseRequest, urlTreatPurchaseRequest);
+
     let $modalValidatePurchaseRequest = $('#modalValidatePurchaseRequest');
     let $submitValidatePurchaseRequest = $('#submitValidatePurchaseRequest');
     let urlValidatePurchaseRequest = Routing.generate('purchase_request_validate', {id: id}, true);
@@ -74,12 +84,9 @@ function onReferenceChange($select) {
         .then((data) => {
             const $modal = $select.closest(".modal");
 
-            const $label = $modal.find('[name="label"]');
-            const $buyer = $modal.find('[name="buyer"]');
-            const $stockQuantity = $modal.find('[name="stockQuantity"]');
-            $label.val(data.label);
-            $buyer.val(data.buyer);
-            $stockQuantity.val(data.stockQuantity);
+            $modal.find('[name="label"]').val(data.label);
+            $modal.find('[name="buyer"]').val(data.buyer);
+            $modal.find('[name="stockQuantity"]').val(data.stockQuantity);
 
             const $requestedQuantity = $modal.find('[name="requestedQuantity"]');
             $requestedQuantity.val(null);
@@ -118,7 +125,7 @@ function clearLineAddModal(clearReferenceInput = false){
 
 function callbackEditLineLoading($modal) {
     initDateTimePicker('#modalEditPurchaseRequestLine .datepicker[name="orderDate"]', 'DD/MM/YYYY HH:mm', false);
-    initDateTimePicker('#modalEditPurchaseRequestLine .datepicker[name="expectedDate"]', 'DD/MM/YYYY HH:mm', false);
+    initDateTimePicker('#modalEditPurchaseRequestLine .datepicker[name="expectedDate"]', 'DD/MM/YYYY', false);
     let $orderDateInput = $('#modalEditPurchaseRequestLine').find('[name="orderDate"]');
     let orderDate = $orderDateInput.attr('data-date');
 
@@ -129,18 +136,14 @@ function callbackEditLineLoading($modal) {
         $orderDateInput.val(moment(orderDate, 'YYYY-MM-DD HH:mm').format('DD/MM/YYYY HH:mm'));
     }
     if(expectedDate){
-        $expectedDateInput.val(moment(expectedDate, 'YYYY-MM-DD HH:mm').format('DD/MM/YYYY HH:mm'));
+        $expectedDateInput.val(moment(expectedDate, 'YYYY-MM-DD').format('DD/MM/YYYY'));
     }
 
     Select2Old.provider($modal.find('.ajax-autocomplete-fournisseur'));
 }
 
-function validatePurchaseRequest() {
-    const modalSelector = '#modalValidatePurchaseRequest'
-    const $modal = $(modalSelector);
-
-    clearModal(modalSelector);
-
+function openEvolutionModal($modal) {
+    clearModal($modal);
     $modal.modal('show');
 }
 

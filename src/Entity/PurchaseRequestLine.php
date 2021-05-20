@@ -34,7 +34,7 @@ class PurchaseRequestLine
     private ?DateTimeInterface $orderDate = null;
 
     /**
-     * @ORM\Column(type="datetime", nullable=true)
+     * @ORM\Column(type="date", nullable=true)
      */
     private ?DateTimeInterface $expectedDate = null;
 

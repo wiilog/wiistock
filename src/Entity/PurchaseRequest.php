@@ -256,6 +256,18 @@ class PurchaseRequest
         return $this;
     }
 
+    public function getAssociatedReceptions() {
+        $associatedReceptions = [];
+        if (!$this->getPurchaseRequestLines()->isEmpty()) {
+            $associatedReceptions = $this->getPurchaseRequestLines()
+                ->map(function (PurchaseRequestLine $purchaseRequestLine) {
+                    return $purchaseRequestLine->getReception();
+                });
+        }
+
+        return $associatedReceptions;
+    }
+
     public function serialize(): array {
         return [
             'number' => $this->getNumber(),

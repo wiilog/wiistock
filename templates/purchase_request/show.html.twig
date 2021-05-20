@@ -70,7 +70,8 @@
     {% include "purchase_request/line/delete.html.twig" with {request: request} %}
     {% include "purchase_request/edit.html.twig" %}
     {% include "purchase_request/validate.html.twig" with validate %}
-
+    {% include "purchase_request/consider.html.twig" with consider %}
+    {% include "purchase_request/treat.html.twig" with treat %}
 {% endblock %}
 
 {% block javascripts %}
