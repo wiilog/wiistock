@@ -545,11 +545,17 @@ class RefArticleDataService {
             throw new RuntimeException("Invalid alert");
         }
 
+        $referenceArticle = $alert->getReference()
+            ? $alert->getReference()->getId()
+            : $alert->getArticle()->getArticleFournisseur()->getReferenceArticle();
+        $referenceArticleId = isset($referenceArticle) ? $referenceArticle->getId() : null;
+        $referenceArticleStatus = isset($referenceArticle) ? $referenceArticle->getStatut() : null;
+        $referenceArticleActive = $referenceArticleStatus ? ($referenceArticleStatus->getNom() == ReferenceArticle::STATUT_ACTIF) : 0;
+
         return [
             'actions' => $this->templating->render('alerte_reference/datatableAlertRow.html.twig', [
-                'referenceId' => $alert->getReference()
-                    ? $alert->getReference()->getId()
-                    : $alert->getArticle()->getArticleFournisseur()->getReferenceArticle()->getId()
+                'referenceId' => $referenceArticleId,
+                'active' => $referenceArticleActive
             ]),
             "type" => Alert::TYPE_LABELS[$alert->getType()],
             "reference" => $reference ?? "Non défini",
