@@ -112,6 +112,7 @@ class TrackingMovementRepository extends EntityRepository
             ->addSelect('tracking_movement.freeFields as freeFields')
             ->addSelect('transferOrder.number as transferNumber')
             ->addSelect('dispatches.number as dispatchNumber')
+            ->addSelect('join_packParent.code as packParent')
 
             ->andWhere('tracking_movement.datetime BETWEEN :dateMin AND :dateMax')
 
@@ -124,6 +125,7 @@ class TrackingMovementRepository extends EntityRepository
             ->leftJoin('tracking_movement.mouvementStock', 'mouvementStock')
             ->leftJoin('mouvementStock.transferOrder', 'transferOrder')
             ->leftJoin('tracking_movement.dispatch','dispatches')
+            ->leftJoin('tracking_movement.packParent', 'join_packParent')
 
             ->setParameters([
                 'dateMin' => $dateMin,

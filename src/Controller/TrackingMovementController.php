@@ -578,36 +578,39 @@ class TrackingMovementController extends AbstractController
                     'origine',
                     'numéro de commande',
                     'urgence',
-                    'group'
+                    'groupe'
                 ], $freeFieldsConfig['freeFieldsHeader']);
 
                 $trackingMovements = $trackingMovementRepository->iterateByDates($dateTimeMin, $dateTimeMax);
                 $attachmentsNameByTracking = $attachmentRepository->getNameGroupByMovements();
 
-            }
-            return $CSVExportService->streamResponse(
-                function ($output) use ($trackingMovements,
-                                        $attachmentsNameByTracking,
-                                        $CSVExportService,
-                                        $trackingMovementService,
-                                        $freeFieldsConfig,
-                                        $freeFieldService)
-                {
-                     foreach ($trackingMovements as $movement) {
-                        $trackingMovementService->putMovementLine($output,
-                                                                  $CSVExportService,
-                                                                  $freeFieldService,
-                                                                  $movement,
-                                                                  $attachmentsNameByTracking,
-                                                                  $freeFieldsConfig);
-                    }
-                }, 'Export_Mouvement_Traca.csv',
-                $csvHeader
-            );
+                return $CSVExportService->streamResponse(
+                    function ($output) use (
+                        $trackingMovements,
+                        $attachmentsNameByTracking,
+                        $CSVExportService,
+                        $trackingMovementService,
+                        $freeFieldsConfig,
+                        $freeFieldService
+                    ) {
+                        foreach ($trackingMovements as $movement) {
+                            $trackingMovementService->putMovementLine(
+                                $output,
+                                $CSVExportService,
+                                $freeFieldService,
+                                $movement,
+                                $attachmentsNameByTracking,
+                                $freeFieldsConfig
+                            );
+                        }
+                    }, 'Export_Mouvement_Traca.csv',
+                    $csvHeader
+                );
 
-        } else {
-            throw new BadRequestHttpException();
+            }
         }
+
+        throw new BadRequestHttpException();
     }
 
     /**

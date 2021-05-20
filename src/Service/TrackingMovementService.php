@@ -732,7 +732,7 @@ class TrackingMovementService
                         ? implode(', ', $movement['numeroCommandeListArrivage'])
                         : ($movement['orderNumber'] ?: ''),
             $movement['isUrgent'] ? 'oui' : 'non',
-
+            $movement['packParent'],
         ];
 
         foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
