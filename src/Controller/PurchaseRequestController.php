@@ -585,7 +585,7 @@ class PurchaseRequestController extends AbstractController
                 $expectedDate = $purchaseRequestLine->getExpectedDate()->format('d-m-Y');
                 $reception = $receptionService->getAlreadySavedReception($receptionsWithCommand, $orderNumber, $expectedDate);
                 $receptionData = [
-                    'fournisseur' => $purchaseRequestLine->getSupplier() ? $purchaseRequestLine->getSupplier()->getCodeReference() : '',
+                    'fournisseur' => $purchaseRequestLine->getSupplier() ? $purchaseRequestLine->getSupplier()->getId() : '',
                     'orderNumber' => $purchaseRequestLine->getOrderNumber() ?? '',
                     'commentaire' => $purchaseRequest->getComment() ?? '',
                     'dateAttendue' => $purchaseRequestLine->getExpectedDate()->format('d-m-Y'),
