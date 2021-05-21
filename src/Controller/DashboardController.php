@@ -7,6 +7,7 @@ use App\Entity\LatePack;
 use App\Entity\Utilisateur;
 use App\Service\DashboardService;
 use App\Service\DashboardSettingsService;
+use App\Service\SpecificService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -29,13 +30,15 @@ DashboardController extends AbstractController {
      */
     public function dashboards(DashboardService $dashboardService,
                                DashboardSettingsService $dashboardSettingsService,
-                               EntityManagerInterface $manager): Response {
+                               EntityManagerInterface $manager,
+                               SpecificService $specificService): Response {
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
-
+        $client  =  $specificService->getAppClient();
         return $this->render("dashboard/dashboards.html.twig", [
             "dashboards" => $dashboardSettingsService->serialize($manager, $loggedUser, DashboardSettingsService::MODE_DISPLAY),
             "refreshed" => $dashboardService->refreshDate($manager),
+            "client" => $client
         ]);
     }
 
@@ -50,15 +53,17 @@ DashboardController extends AbstractController {
     public function external(DashboardService $dashboardService,
                              DashboardSettingsService $dashboardSettingsService,
                              EntityManagerInterface $manager,
+                             SpecificService $specificService,
                              string $token): Response {
         if ($token != $_SERVER["APP_DASHBOARD_TOKEN"]) {
             return $this->redirectToRoute("access_denied");
         }
-
+        $client = $specificService->getAppClient();
         return $this->render("dashboard/external.html.twig", [
             "title" => "Dashboard externe", //ne s'affiche normalement jamais
             "dashboards" => $dashboardSettingsService->serialize($manager, null, DashboardSettingsService::MODE_EXTERNAL),
             "refreshed" => $dashboardService->refreshDate($manager),
+            "client" => $client,
         ]);
     }
 

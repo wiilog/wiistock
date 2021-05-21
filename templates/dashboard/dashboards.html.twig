@@ -11,6 +11,7 @@
     <input type="hidden" class="dashboards-data" value="{{ dashboards }}">
 
     <span class="refresh-date display">Actualisé le : {{ refreshed }}</span>
+    <input id="isCollinsVer" type="hidden" value="{{ client == "Collins Vernon" }}">
 {% endblock %}
 
 {% block javascripts %}
@@ -19,6 +20,6 @@
     <script src="{{ asset('js/pages/dashboard/settings.js') }}?v={{ web_version }}"></script>
 
     <script>
-        $(document).ready(() => loadDashboards(MODE_DISPLAY));
+        $(document).ready(() => loadDashboards(MODE_DISPLAY, $('#isCollinsVer').val()));
     </script>
 {% endblock %}
