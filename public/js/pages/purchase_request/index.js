@@ -34,7 +34,7 @@ function initPageDataTable() {
     let purchaseRequestTableConfig = {
         processing: true,
         serverSide: true,
-        order: [['number', 'desc']],
+        order: [['number', 'asc']],
         ajax: {
             "url": pathPurchaseRequest,
             "type": "POST",
@@ -52,8 +52,9 @@ function initPageDataTable() {
             {"data": 'actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},
             {"data": 'number', 'name': 'Numéro', 'title': 'Numéro'},
             {"data": 'creationDate', 'name': 'Création', 'title': 'Date de création'},
-            {"data": 'considerationDate', 'name': 'Prise en compte', 'title': 'Date de prise en compte'},
             {"data": 'validationDate', 'name': 'Validation', 'title': 'Date de validation'},
+            {"data": 'considerationDate', 'name': 'Prise en compte', 'title': 'Date de prise en compte'},
+            {"data": 'processingDate', 'name': 'Traitement', 'title': 'Date de traitement'},
             {"data": 'requester', 'name': 'Demandeur', 'title': 'Demandeur'},
             {"data": 'status', 'name': 'Statut', 'title': 'Statut'},
             {"data": 'buyer', 'name': 'Acheteur', 'title': 'Acheteur'},
