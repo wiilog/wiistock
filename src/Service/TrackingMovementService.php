@@ -363,14 +363,16 @@ class TrackingMovementService
             ->setCommentaire(!empty($commentaire) ? $commentaire : null);
 
         $pack->addTrackingMovement($tracking);
-        $this->managePackLinksWithTracking($entityManager, $tracking);
-        $this->manageTrackingLinks($entityManager, $tracking, $from, $receptionReferenceArticle);
-        $this->manageTrackingFiles($tracking, $fileBag);
 
         if ($parent) {
             $tracking->setPackParent($parent);
             $tracking->setGroupIteration($parent->getGroupIteration());
         }
+
+        $pack->setLastTracking($tracking);
+        $this->managePackLinksWithTracking($entityManager, $tracking);
+        $this->manageTrackingLinks($entityManager, $tracking, $from, $receptionReferenceArticle);
+        $this->manageTrackingFiles($tracking, $fileBag);
 
         if (!$disableUngrouping
              && $pack->getParent()
@@ -503,7 +505,6 @@ class TrackingMovementService
     {
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
 
-        $uniqueId = null;
         //same format as moment.defaultFormat
         $dateStr = $date->format(DateTimeInterface::ATOM);
         $randomLength = 9;

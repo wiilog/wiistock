@@ -402,9 +402,6 @@ class TrackingMovement extends FreeFieldEntity
 
     public function setPack(?Pack $pack): self {
         $this->pack = $pack;
-        if ($this->pack) {
-            $this->pack->setLastTracking($this);
-        }
         return $this;
     }
 
