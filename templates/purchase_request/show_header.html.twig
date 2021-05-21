@@ -57,7 +57,7 @@
                 <span class="fa fa-angle-down"></span>
             </button>
             <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                {% if request.associatedReceptions is not empty %}
+                {% if request.associatedReceptions is not empty and request.status.treated %}
                     <a href="{{ path('reception_index', {'purchaseRequest': request.id }) }}"
                        class="dropdown-item" target="_blank">
                         <i class="fas fa-external-link-alt mr-2"></i>Aller vers les réceptions</a>
