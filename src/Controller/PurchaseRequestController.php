@@ -35,7 +35,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Contracts\Translation\TranslatorInterface;
 
 
 /**
@@ -118,6 +117,7 @@ class PurchaseRequestController extends AbstractController
                 "Date de création",
                 "Date de validation",
                 "Date de prise en compte",
+                "Date de traitement",
                 "Commentaire",
                 "Référence",
                 "Code barre",

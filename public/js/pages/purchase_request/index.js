@@ -51,6 +51,7 @@ function initPageDataTable() {
         columns: [
             {"data": 'actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},
             {"data": 'number', 'name': 'Numéro', 'title': 'Numéro'},
+            {"data": 'creationDate', 'name': 'Création', 'title': 'Date de création'},
             {"data": 'validationDate', 'name': 'Validation', 'title': 'Date de validation'},
             {"data": 'considerationDate', 'name': 'Prise en compte', 'title': 'Date de prise en compte'},
             {"data": 'processingDate', 'name': 'Traitement', 'title': 'Date de traitement'},
