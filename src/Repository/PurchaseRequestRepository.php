@@ -162,6 +162,7 @@ class PurchaseRequestRepository extends EntityRepository
             ->addSelect('request.creationDate AS creationDate')
             ->addSelect('request.validationDate AS validationDate')
             ->addSelect('request.considerationDate AS considerationDate')
+            ->addSelect('request.processingDate AS processingDate')
             ->addSelect('request.comment AS comment')
             ->leftJoin('request.status', 'join_status')
             ->leftJoin('request.requester', 'join_requester')

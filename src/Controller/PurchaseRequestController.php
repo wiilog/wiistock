@@ -124,6 +124,7 @@ class PurchaseRequestController extends AbstractController
                 "Date de création",
                 "Date de validation",
                 "Date de prise en compte",
+                "Date de traitement",
                 "Commentaire",
                 "Référence",
                 "Code barre",
