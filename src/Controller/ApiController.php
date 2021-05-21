@@ -1072,7 +1072,7 @@ class ApiController extends AbstractFOSRestController
         }
         catch (Throwable $throwable) {
             $res['success'] = false;
-            $res['message'] = "Une erreur est survenue lors de l'enregistrement d'une prise";
+            $res['message'] = "Une erreur est survenue lors de l'enregistrement d'un mouvement";
         }
 
         return $this->json($res);
@@ -2055,13 +2055,19 @@ class ApiController extends AbstractFOSRestController
 
         $packs = json_decode($request->request->get("packs"), true);
 
+        $datetimeFromDate = function ($dateStr) {
+            return DateTime::createFromFormat("d/m/Y H:i:s", $dateStr)
+                ?: DateTime::createFromFormat("d/m/Y H:i", $dateStr)
+                ?: null;
+        };
+
         if ($isNewGroupInstance && !empty($packs)) {
             $dateStr = $request->request->get("date");
             $groupingTrackingMovement = $trackingMovementService->createTrackingMovement(
                 $parentPack,
                 null,
                 $this->getUser(),
-                DateTime::createFromFormat("d/m/Y H:i:s", $dateStr),
+                $datetimeFromDate($dateStr),
                 true,
                 true,
                 TrackingMovement::TYPE_GROUP
@@ -2079,7 +2085,7 @@ class ApiController extends AbstractFOSRestController
                     $pack,
                     null,
                     $this->getUser(),
-                    DateTime::createFromFormat("d/m/Y H:i:s", $data["date"]),
+                    $datetimeFromDate($data["date"]),
                     true,
                     true,
                     TrackingMovement::TYPE_GROUP,
