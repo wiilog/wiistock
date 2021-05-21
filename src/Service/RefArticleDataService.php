@@ -427,7 +427,7 @@ class RefArticleDataService {
                                    bool $fromNomade,
                                    EntityManagerInterface $entityManager,
                                    Demande $demande,
-                                   ?FreeFieldService $champLibreService, $editRef = true) {
+                                   ?FreeFieldService $champLibreService, $editRef = true, $fromCart = false) {
         $resp = true;
         $articleRepository = $entityManager->getRepository(Article::class);
         $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
@@ -450,7 +450,7 @@ class RefArticleDataService {
                 $this->editRefArticle($referenceArticle, $data, $user, $champLibreService);
             }
         } else if($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-            if($fromNomade || $this->userService->hasParamQuantityByRef()) {
+            if($fromNomade || $this->userService->hasParamQuantityByRef() || $fromCart) {
                 if($fromNomade || $ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                     $ligneArticle = new LigneArticle();
                     $ligneArticle

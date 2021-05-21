@@ -314,13 +314,13 @@ class CartService {
         }
 
         foreach ($data as $key => $datum) {
+            dump($key, $datum);
             if (str_starts_with($key, 'reference')) {
                 $index = intval(substr($key, 9));
                 $reference = $referenceRepository->findOneByReference($datum);
                 $quantityToDeliver = $data['quantity' . $index] ?? null;
                 $data['quantity-to-pick'] = $quantityToDeliver;
-                $refArticleDataService->addRefToDemand($data, $reference, $utilisateur, false, $entityManager, $request, null, false);
-
+                $refArticleDataService->addRefToDemand($data, $reference, $utilisateur, false, $entityManager, $request, null, false, true);
             } else if (str_starts_with($key, 'article')) {
                 $index = intval(substr($key, 7));
                 $article = $articleRepository->find($datum);
