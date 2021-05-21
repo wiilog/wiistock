@@ -14,8 +14,8 @@ use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Helper\FormatHelper;
 use App\Service\AttachmentService;
-use App\Service\MailerService;
 use App\Service\PurchaseRequestService;
 use App\Service\ReceptionService;
 use DateTime;
@@ -385,11 +385,11 @@ class PurchaseRequestController extends AbstractController
                 $supplier = $supplierRepository->find($data['supplier']);
             }
 
-            if(isset($data['orderDate'])){
+            if(isset($data['orderDate']) && $data['expectedDate']){
                 $orderDate = DateTime::createFromFormat('d/m/Y H:i', $data['orderDate'], new DateTimeZone("Europe/Paris"));
             }
 
-            if(isset($data['expectedDate'])){
+            if(isset($data['expectedDate']) && $data['expectedDate']){
                 $expectedDate = DateTime::createFromFormat('d/m/Y', $data['expectedDate'], new DateTimeZone("Europe/Paris"));
             }
 
@@ -563,32 +563,32 @@ class PurchaseRequestController extends AbstractController
             ->setStatus($treatedStatus)
             ->setProcessingDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
 
-        $unfilledLines = Stream::from($purchaseRequest->getPurchaseRequestLines()->toArray())
-            ->filter(fn (PurchaseRequestLine $line) => (!$line->getOrderedQuantity() || $line->getOrderedQuantity() == 0))
-            ->filterMap(fn (PurchaseRequestLine $line) => ($line && $line->getReference() ? $line->getReference()->getReference() : null))
-            ->toArray();
-
-        if (!empty($unfilledLines)) {
-            return $this->json([
-                'success' => false,
-                'msg' => count($unfilledLines) > 1
-                    ? 'Des informations sont manquantes sur les lignes d\'achat  <strong>' . Stream::from($unfilledLines)->join(', ') . '</strong>.<br> Impossible de créer la réception liée ni de terminer la demande d\'achat.'
-                    : 'Des informations sont manquantes sur la ligne d\'achat  <strong>' . $unfilledLines[0] . '</strong>.<br> Impossible de créer la réception liée ni de terminer la demande d\'achat.'
-            ]);
-        }
-
         if($treatedStatus->getAutomaticReceptionCreation()) {
+            $unfilledLines = Stream::from($purchaseRequest->getPurchaseRequestLines()->toArray())
+                ->filter(fn (PurchaseRequestLine $line) => (!$line->getOrderedQuantity() || $line->getOrderedQuantity() == 0))
+                ->filterMap(fn (PurchaseRequestLine $line) => ($line && $line->getReference() ? $line->getReference()->getReference() : null))
+                ->values();
+
+            if (!empty($unfilledLines)) {
+                return $this->json([
+                    'success' => false,
+                    'msg' => count($unfilledLines) > 1
+                        ? 'Des informations sont manquantes sur les lignes d\'achat  <strong>' . Stream::from($unfilledLines)->join(', ') . '</strong>.<br> Impossible de créer la réception liée ni de terminer la demande d\'achat.'
+                        : 'Des informations sont manquantes sur la ligne d\'achat  <strong>' . $unfilledLines[0] . '</strong>.<br> Impossible de créer la réception liée ni de terminer la demande d\'achat.'
+                ]);
+            }
+
             $receptionsWithCommand = [];
 
             foreach ($purchaseRequest->getPurchaseRequestLines() as $purchaseRequestLine) {
                 $orderNumber = $purchaseRequestLine->getOrderNumber() ?? null;
-                $expectedDate = $purchaseRequestLine->getExpectedDate()->format('d-m-Y');
+                $expectedDate = FormatHelper::date($purchaseRequestLine->getExpectedDate());
                 $reception = $receptionService->getAlreadySavedReception($receptionsWithCommand, $orderNumber, $expectedDate);
                 $receptionData = [
                     'fournisseur' => $purchaseRequestLine->getSupplier() ? $purchaseRequestLine->getSupplier()->getId() : '',
-                    'orderNumber' => $purchaseRequestLine->getOrderNumber() ?? '',
+                    'orderNumber' => $orderNumber,
                     'commentaire' => $purchaseRequest->getComment() ?? '',
-                    'dateAttendue' => $purchaseRequestLine->getExpectedDate()->format('d-m-Y'),
+                    'dateAttendue' => $expectedDate,
                     'dateCommande' => $purchaseRequestLine->getOrderDate()->format('d-m-Y')
                 ];
                 if (!$reception) {

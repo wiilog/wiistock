@@ -9,6 +9,7 @@ use Doctrine\Common\Collections\Collection;
 use App\Repository\PurchaseRequestRepository;
 use Doctrine\ORM\Mapping as ORM;
 use App\Helper\FormatHelper;
+use WiiCommon\Helper\Stream;
 
 /**
  * @ORM\Entity(repositoryClass=PurchaseRequestRepository::class)
@@ -259,10 +260,15 @@ class PurchaseRequest
     public function getAssociatedReceptions() {
         $associatedReceptions = [];
         if (!$this->getPurchaseRequestLines()->isEmpty()) {
-            $associatedReceptions = $this->getPurchaseRequestLines()
-                ->map(function (PurchaseRequestLine $purchaseRequestLine) {
-                    return $purchaseRequestLine->getReception();
-                });
+            $associatedReceptions = Stream::from($this->getPurchaseRequestLines()->toArray())
+                ->reduce(function (Stream $carry, PurchaseRequestLine $purchaseRequestLine) {
+                    $newReception = [];
+                    if($purchaseRequestLine->getReception()) {
+                        $newReception[$purchaseRequestLine->getReception()->getId()] = $purchaseRequestLine->getReception();
+                    }
+                    return $carry->concat($newReception);
+                }, Stream::from([]))
+                ->values();
         }
 
         return $associatedReceptions;
