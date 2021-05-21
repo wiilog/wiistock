@@ -68,7 +68,7 @@ class PurchaseRequestService
             'status' => FormatHelper::status($request->getStatus()),
             'requester' => FormatHelper::user($request->getRequester()),
             'buyer' => FormatHelper::user($request->getBuyer()),
-            'creationDate' => FormatHelper::datetime($request->getCreationDate()),
+            'processingDate' => FormatHelper::datetime($request->getProcessingDate()),
             'validationDate' => FormatHelper::datetime($request->getValidationDate()),
             'considerationDate' => FormatHelper::datetime($request->getConsiderationDate()),
             'actions' => $this->templating->render('purchase_request/actions.html.twig', [
