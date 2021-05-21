@@ -80,8 +80,8 @@ class FormatHelper {
         return isset($bool) ? ($bool ? 'oui' : 'non') : $else;
     }
 
-    public static function date(?DateTimeInterface $date, $else = "") {
-        return $date ? $date->format("d/m/Y") : $else;
+    public static function date(?DateTimeInterface $date, $else = "", $switchEnFormat = false) {
+        return $date ? $date->format($switchEnFormat ? "d-m-Y" : 'd/m/Y') : $else;
     }
 
     public static function datetime(?DateTimeInterface $date, $else = "", $addAt = false) {

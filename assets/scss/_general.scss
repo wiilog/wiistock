@@ -414,3 +414,7 @@ label.required:after {
 .overflow-x-hidden {
     overflow-x: hidden !important;
 }
+
+.tooltip {
+    pointer-events: none;
+}
