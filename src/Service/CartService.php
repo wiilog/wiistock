@@ -68,9 +68,8 @@ class CartService {
         ];
     }
 
-    public function renderPurchaseTypeModal(Cart $cart, EntityManagerInterface $entityManager) {
+    public function renderPurchaseTypeModal(Cart $cart, EntityManagerInterface $entityManager, Utilisateur $requester) {
         $purchaseRepository = $entityManager->getRepository(PurchaseRequest::class);
-
         $refs = Stream::from($cart->getReferences())
             ->map(function(ReferenceArticle $referenceArticle) {
                 return [
@@ -83,8 +82,7 @@ class CartService {
                 }
                 return $carry;
             }, []);
-        $purchases = $purchaseRepository->findByState(Statut::DRAFT);
-
+        $purchases = $purchaseRepository->findByStateRequester(Statut::DRAFT, $requester);
         return [
             'html' => $this->twig->render('cart/purchaseTypeContent.html.twig', [
                 'refsByBuyer' => $refs,
@@ -268,6 +266,9 @@ class CartService {
                             return $line->getReference() === $reference;
                         })->isEmpty();
                         if (!$refAlreadyInRequest && (!$request->getBuyer() || $request->getBuyer()->getId() === intval($buyerID))) {
+                            if (!$request->getBuyer()) {
+                                $request->setBuyer($reference->getBuyer());
+                            }
                             $line = new PurchaseRequestLine();
                             $line
                                 ->setRequestedQuantity($wantedQuantity)
