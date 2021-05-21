@@ -7,6 +7,7 @@
     and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT'))
 ) %}
 {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
+{% set displayReceptionLink = request.status.treated and request.associatedReceptions is not empty %}
 
 {# droit de suppression pour les demandes d'achats brouillons #}
 {% if request.status.draft %}
@@ -48,7 +49,7 @@
                 </button>
             {% endif %}
         {% endif %}
-        {% if hasRightEdit or hasRightDelete or request.associatedReceptions is not empty %}
+        {% if hasRightEdit or hasRightDelete or displayReceptionLink %}
             <button type="button"
                     class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
                     data-toggle="dropdown"
@@ -57,7 +58,7 @@
                 <span class="fa fa-angle-down"></span>
             </button>
             <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                {% if request.associatedReceptions is not empty and request.status.treated %}
+                {% if displayReceptionLink %}
                     <a href="{{ path('reception_index', {'purchaseRequest': request.id }) }}"
                        class="dropdown-item" target="_blank">
                         <i class="fas fa-external-link-alt mr-2"></i>Aller vers les réceptions</a>
