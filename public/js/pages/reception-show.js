@@ -531,27 +531,18 @@ function validatePacking($button) {
     }
 }
 
-
 function demandeurChanged($select) {
-    const $locationSelect = $('#locationDemandeLivraison');
+    const $container = $select.closest('.demande-form');
+    const $locationSelect = $container.find('[name="destination"]');
     const [resultSelected] = $select.select2('data');
-    const curentUser = $('#currentUser');
-    if (resultSelected && !$locationSelect.data('is-prefilled')) {
-        let {idEmp, textEmp, text} = resultSelected;
-        const $locationInput = $('#locationDemandeLivraisonValue');
-        const originalValues = {
-            id: $locationInput.data('id'),
-            text: $locationInput.data('text')
-        };
-        if (!idEmp && text === curentUser.data('id')) {
-            idEmp = originalValues.id;
-            textEmp = originalValues.text;
+    if (resultSelected && !$locationSelect.val()) {
+        let {idEmp, textEmp} = resultSelected;
+        if (idEmp && textEmp) {
+            const $value = $('<div/>');
+            $value.data('id', idEmp)
+            $value.data('text', textEmp)
+            Select2Old.initValues($locationSelect, $value, true);
         }
-        $locationInput.data('id', idEmp);
-        $locationInput.data('text', textEmp);
-        Select2Old.initValues($('#locationDemandeLivraison'), $('#locationDemandeLivraisonValue'), true);
-        $locationInput.data('id', originalValues.id);
-        $locationInput.data('text', originalValues.text);
     }
 }
 
@@ -570,9 +561,6 @@ function initNewLigneReception($button) {
         param: {reception: $('#receptionId').val()}
     });
 
-    if ($('#locationDemandeLivraison').length > 0) {
-        Select2Old.initValues($('#locationDemandeLivraison'), $('#locationDemandeLivraisonValue'));
-    }
     if ($('#storageTransfer').length > 0) {
         Select2Old.initValues($('#storage'), $('#storageTransfer'));
     }
@@ -620,6 +608,7 @@ function onRequestTypeChange($select) {
     const $freeFieldContainer = $modalNewLigneReception.find('.demande-form .free-fields-container');
     toggleRequiredChampsLibres($select, 'create', $freeFieldContainer);
     typeChoice($select, $freeFieldContainer);
+    toggleLocationSelect($select, $select.closest('.demande-form'));
 }
 
 

@@ -113,10 +113,14 @@ class EmplacementRepository extends EntityRepository
 
         $qb->select('location.id AS id')
             ->addSelect('location.label AS text')
-            ->where('(:type MEMBER OF location.allowedDeliveryTypes) OR (:type MEMBER OF location.allowedCollectTypes)')
             ->andWhere('location.label LIKE :search')
-            ->setParameter('type', $type)
             ->setParameter('search', '%' . str_replace('_', '\_', $search) . '%');
+
+        if ($type) {
+            $qb
+                ->andWhere('(:type MEMBER OF location.allowedDeliveryTypes) OR (:type MEMBER OF location.allowedCollectTypes)')
+                ->setParameter('type', $type);
+        }
 
         return $qb->getQuery()->getResult();
     }
@@ -203,5 +207,16 @@ class EmplacementRepository extends EntityRepository
             ORDER BY nb DESC"
         );
         return $query->execute();
+    }
+
+    public function getLocationByType($type)
+    {
+        $qb = $this->createQueryBuilder('location');
+
+        $qb->select('location.id AS id')
+            ->addSelect('location.label AS text')
+            ->where('(:type MEMBER OF location.allowedDeliveryTypes)')
+            ->setParameter('type', $type);
+        return $qb->getQuery()->getResult();
     }
 }

@@ -22,25 +22,21 @@
                     <span class="slider round"></span>
                 </label>
                 <div class="demande-form mt-2 {{ not createDL ? 'd-none' }}" style="background-color:#F8F8F8;padding:10px;border-radius:4px;">
+                    <input type="hidden"
+                           name="defaultDeliveryLocations"
+                           data-value="{{ defaultDeliveryLocations|json_encode }}"/>
                     <div class="row">
                         <div class="col-4 form-group">
-                            <label for="destination">Destination*</label>
-                            <select name="destination" class="data ajax-autocomplete-location w-100 needed" id="locationDemandeLivraison"
-                                {{ not createDL ? 'disabled' }}
-                                    data-is-prefilled="{{ livraisonLocation is not empty }}">
-                                <option></option>
-                            </select>
-                            <input hidden id="locationDemandeLivraisonValue"
-                                   data-id="{{ livraisonLocation ? livraisonLocation.id : (app.user.dropzone and needsCurrentUser ? app.user.dropzone.id) }}"
-                                   data-text="{{ livraisonLocation ? livraisonLocation.text : (app.user.dropzone and needsCurrentUser ? app.user.dropzone.label) }}">
-                        </div>
-                        <div class="col-4 form-group">
                             <label for="demandeur">Demandeur*</label>
-                            <select class="select2-user data w-100 needed" {{ not createDL ? 'disabled' }} name="demandeur" id="demandeurDL" onchange="demandeurChanged($(this))">
-                                <option></option>
-                            </select>
+                            <div class="w-100">
+                                <select class="select2-user data needed" {{ not createDL ? 'disabled' }} name="demandeur" id="demandeurDL" onchange="demandeurChanged($(this))">
+                                    <option></option>
+                                </select>
+                            </div>
                         </div>
-                        <input hidden id="currentUser" data-id="{{ needsCurrentUser ? app.user.id }}"
+                        <input type="hidden"
+                               id="currentUser"
+                               data-id="{{ needsCurrentUser ? app.user.id }}"
                                data-text="{{ needsCurrentUser ? app.user.username }}">
                         <div class="col-4 form-group">
                             <label for="type">Type*</label>
@@ -51,6 +47,15 @@
                                     <option value="{{ type.typeId }}">{{ type.typeLabel }}</option>
                                 {% endfor %}
                             </select>
+                        </div>
+                        <div class="col-4 form-group">
+                            <label for="destination">Destination*</label>
+                            <div class="w-100">
+                                <select name="destination" class="data ajax-autocomplete-location needed" id="locationDemandeLivraison"
+                                    {{ not createDL ? 'disabled' }}>
+                                    <option></option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 

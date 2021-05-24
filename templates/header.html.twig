@@ -165,8 +165,8 @@
                     and app.user is defined
                     and app.user
                     and app.user.username is defined %}
-                    <a class="col col-lg-auto user"
-                       href="{{ path('user_index', {'open-modal': 'edit', 'modal-edit-id': app.user.id }) }}" style="display: flex; align-items: center;">
+                    <a class="col col-lg-auto user d-flex align-items-center"
+                       href="{{ path('user_index', {'open-modal': 'edit', 'modal-edit-id': app.user.id }) }}">
                         <div class="profile-picture">{{ app.user.username | first | upper }}</div>
                         <div class="flex-fill text-center text-truncate">{{ app.user.username }}</div>
                     </a>

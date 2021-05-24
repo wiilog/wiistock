@@ -431,7 +431,7 @@ class RefArticleDataService {
                                    bool $fromNomade,
                                    EntityManagerInterface $entityManager,
                                    Demande $demande,
-                                   ?FreeFieldService $champLibreService, $editRef = true) {
+                                   ?FreeFieldService $champLibreService, $editRef = true, $fromCart = false) {
         $resp = true;
         $articleRepository = $entityManager->getRepository(Article::class);
         $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
@@ -454,7 +454,7 @@ class RefArticleDataService {
                 $this->editRefArticle($referenceArticle, $data, $user, $champLibreService);
             }
         } else if($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-            if($fromNomade || $this->userService->hasParamQuantityByRef()) {
+            if($fromNomade || $this->userService->hasParamQuantityByRef() || $fromCart) {
                 if($fromNomade || $ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                     $ligneArticle = new LigneArticle();
                     $ligneArticle
@@ -552,11 +552,16 @@ class RefArticleDataService {
             throw new RuntimeException("Invalid alert");
         }
 
+        $referenceArticle = $alert->getReference()
+            ?? $alert->getArticle()->getArticleFournisseur()->getReferenceArticle();
+        $referenceArticleId = isset($referenceArticle) ? $referenceArticle->getId() : null;
+        $referenceArticleStatus = isset($referenceArticle) ? $referenceArticle->getStatut() : null;
+        $referenceArticleActive = $referenceArticleStatus ? ($referenceArticleStatus->getNom() == ReferenceArticle::STATUT_ACTIF) : 0;
+
         return [
             'actions' => $this->templating->render('alerte_reference/datatableAlertRow.html.twig', [
-                'referenceId' => $alert->getReference()
-                    ? $alert->getReference()->getId()
-                    : $alert->getArticle()->getArticleFournisseur()->getReferenceArticle()->getId()
+                'referenceId' => $referenceArticleId,
+                'active' => $referenceArticleActive
             ]),
             "type" => Alert::TYPE_LABELS[$alert->getType()],
             "reference" => $reference ?? "Non défini",

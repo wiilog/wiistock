@@ -42,9 +42,20 @@ function initNewLivraisonEditor(modal) {
         initEditorInModal(modal);
         editorNewLivraisonAlreadyDone = true;
     }
+
     clearModal(modal);
     Select2Old.location($('.ajax-autocomplete-location'));
-    Select2Old.initValues($('#locationDemandeLivraison'), $('#locationDemandeLivraisonValue'));
+    const type = ($('#modalNewDemande select[name="type"] option:selected').val());
+    const $locationSelector = $(`#modalNewDemande select[name="destination"]`);
+
+    if(!type) {
+        $locationSelector.prop(`disabled`, true);
+    }
+}
+
+function onDeliveryTypeChange($type) {
+    toggleLocationSelect($type);
+    toggleRequiredChampsLibres($type, 'create');
 }
 
 function callbackSaveFilter() {

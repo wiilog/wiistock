@@ -307,13 +307,14 @@ class DemandeController extends AbstractController
                 'champsLibres' => $champsLibres,
             ];
         }
+
         return $this->render('demande/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
             'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
             'filterStatus' => $filter,
             'receptionFilter' => $reception,
-            'livraisonLocation' => $globalParamService->getParamLocation(ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON)
+            'defaultDeliveryLocations' => $globalParamService->getDefaultDeliveryLocationsByTypeId($entityManager)
         ]);
     }
 

@@ -9,20 +9,18 @@
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid">
+                <input type="hidden"
+                       name="defaultDeliveryLocations"
+                       data-value="{{ defaultDeliveryLocations|json_encode }}"/>
+                <input type="hidden"
+                       name="userDropzone"
+                       data-value="{{ app.user.dropzone ? {'label': app.user.dropzone.label, 'id': app.user.dropzone.id}|json_encode }}"/>
+
                 <div class="form-group">
                     <label for="demandeur">Demandeur</label>
                     <select class="demandeur form-control data" name="demandeur" disabled>
                         <option value="{{ app.user.id }}">{{ app.user.username }}</option>
                     </select>
-                </div>
-
-                <div class="form-group w-100">
-                    <label for="destination">Destination*</label>
-                    <select name="destination" class="form-control data ajax-autocomplete-location d-block needed" id="locationDemandeLivraison">
-                    </select>
-                    <input hidden id="locationDemandeLivraisonValue"
-                           data-id="{{ livraisonLocation ? livraisonLocation.id : (app.user.dropzone ? app.user.dropzone.id) }}"
-                           data-text="{{ livraisonLocation ? livraisonLocation.text : (app.user.dropzone ? app.user.dropzone.label)}}">
                 </div>
 
                 {% set uniqueType = types|length == 1 %}
@@ -31,7 +29,7 @@
                     <select name="type" class="form-control data d-block type needed
                             {{ uniqueType ? 'needs-default' }}"
                             onclick="typeChoice($(this))"
-                            onchange="toggleRequiredChampsLibres($(this), 'create')"
+                            onchange="onDeliveryTypeChange($(this))"
                         {{ uniqueType ? 'disabled' }}
                         {{ uniqueType ? ('data-init="' ~ (types|first).id ~ '"')|raw }}>
                         {% if not uniqueType %}
@@ -46,6 +44,11 @@
                     </select>
                 </div>
 
+                <div class="form-group w-100">
+                    <label for="destination">Destination*</label>
+                    <select name="destination" class="form-control data ajax-autocomplete-location d-block needed" id="locationDemandeLivraison">
+                    </select>
+                </div>
                 <!-- CHAMPS LIBRES -->
                 <span class="toggle-collapsible expanded">Champs libres</span>
                 <div class="collapsible expanded free-fields-container mb-2">

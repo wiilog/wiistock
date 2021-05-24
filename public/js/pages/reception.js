@@ -7,6 +7,7 @@ $(function () {
     $('.select2').select2();
     initDateTimePicker();
     Select2Old.init($('#statut'), 'Statuts');
+    Select2Old.initFree($('.select2-free'), 'N° de commande');
     initOnTheFlyCopies($('.copyOnTheFly'));
     Select2Old.user($('.filters .ajax-autocomplete-user'), 'Destinataire(s)');
 
@@ -19,6 +20,9 @@ $(function () {
         ajax: {
             "url": pathTableReception,
             "type": "POST",
+            'data': {
+                'purchaseRequestFilter': $('#purchaseRequest').val()
+            }
         },
         drawConfig: {
             needsSearchOverride: true,
@@ -53,11 +57,19 @@ $(function () {
     InitModal($modalReceptionNew, $submitNewReception, urlReceptionIndex);
 
     // filtres enregistrés en base pour chaque utilisateur
-    let path = Routing.generate('filter_get_by_page');
-    let params = JSON.stringify(PAGE_RECEPTION);
-    $.post(path, params, function (data) {
-        displayFiltersSup(data);
-    }, 'json');
+    if ($('#purchaseRequestFilter').val() !== '0') {
+        const purchaseRequestFilter = $('#purchaseRequestFilter').val().split(',');
+        purchaseRequestFilter.forEach(function (filter) {
+            let option = new Option(filter, filter, true, true);
+            $('#commandList').append(option).trigger('change');
+        })
+    } else {
+        let path = Routing.generate('filter_get_by_page');
+        let params = JSON.stringify(PAGE_RECEPTION);
+        $.post(path, params, function (data) {
+            displayFiltersSup(data);
+        }, 'json');
+    }
 
     Select2Old.provider($('.filters').find('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
 });

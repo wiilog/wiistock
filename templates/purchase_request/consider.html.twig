@@ -1,0 +1,43 @@
+<form class="modal fade" id="modalConsiderPurchaseRequest">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Valider la prise en compte</h5>
+
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-input">
+                {% if statuses is not empty %}
+                    <div class="form-group row">
+                        <label class="col-12">Statut*</label>
+                        <div class="col-12">
+                            <select class="form-control data needed "
+                                    name="status"
+                                    title="Statut">
+                                <option value=""></option>
+                                {% for status in statuses %}
+                                    <option value="{{ status.id }}">{{ status.nom }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                {% else %}
+                    {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+                        array: [],
+                        warningLabel: 'Vous n\'avez pas configuré de statut en cours pour les demandes d\'achat',
+                        redirectPath: path('status_param_index'),
+                        redirectLabel: 'Aller vers la création des statuts.'
+                    } %}
+                {% endif %}
+            </div>
+
+            <div class="error-msg"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary submit-button">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</form>

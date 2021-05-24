@@ -22,9 +22,6 @@ use App\Entity\Utilisateur;
 use WiiCommon\Helper\Stream;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bridge\PhpUnit\TextUI\Command;
-use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Security;
 use Twig\Environment;
 
@@ -262,7 +259,8 @@ class CartService {
                                 ? $associatedPurchaseRequest
                                 : $purchaseRequestRepository->find($associatedPurchaseRequest);
                         } else {
-                            $request = $purchaseRequestService->createPurchaseRequest($entityManager, $status, $utilisateur);
+                            $buyer = $reference->getBuyer();
+                            $request = $purchaseRequestService->createPurchaseRequest($entityManager, $status, $utilisateur, null, null, $buyer);
                             $entityManager->persist($request);
                             $entityManager->flush();
                         }
@@ -316,13 +314,13 @@ class CartService {
         }
 
         foreach ($data as $key => $datum) {
+            dump($key, $datum);
             if (str_starts_with($key, 'reference')) {
                 $index = intval(substr($key, 9));
                 $reference = $referenceRepository->findOneByReference($datum);
                 $quantityToDeliver = $data['quantity' . $index] ?? null;
                 $data['quantity-to-pick'] = $quantityToDeliver;
-                $refArticleDataService->addRefToDemand($data, $reference, $utilisateur, false, $entityManager, $request, null, false);
-
+                $refArticleDataService->addRefToDemand($data, $reference, $utilisateur, false, $entityManager, $request, null, false, true);
             } else if (str_starts_with($key, 'article')) {
                 $index = intval(substr($key, 7));
                 $article = $articleRepository->find($datum);

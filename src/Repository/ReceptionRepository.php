@@ -9,6 +9,7 @@ use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use WiiCommon\Helper\Stream;
 
 /**
  * @method Reception|null find($id, $lockMode = null, $lockVersion = null)
@@ -151,17 +152,32 @@ class ReceptionRepository extends EntityRepository
 
         // filtres sup
         foreach ($filters as $filter) {
-            switch($filter['field']) {
+            switch ($filter['field']) {
                 case 'statut':
-					$value = explode(',', $filter['value']);
-					$qb
-						->join('r.statut', 's')
-						->andWhere('s.id in (:statut)')
-						->setParameter('statut', $value);
-					break;
-
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('r.statut', 's')
+                        ->andWhere('s.id in (:statut)')
+                        ->setParameter('statut', $value);
+                    break;
+                case 'purchaseRequest':
+                    $value = $filter['value'];
+                    $qb
+                        ->join('r.purchaseRequestLines', 'purchaseRequestLines')
+                        ->join('purchaseRequestLines.purchaseRequest', 'purchaseRequestLines_purchaseRequest')
+                        ->andWhere('purchaseRequestLines_purchaseRequest.id = :purchaseRequest')
+                        ->setParameter('purchaseRequest', $value);
+                    break;
+                case 'commandList':
+                    $value = Stream::from(explode(',', $filter['value']))
+                        ->map(fn($v) => explode(':', $v)[0])
+                        ->toArray();
+                    $qb
+                        ->andWhere('r.orderNumber in (:commandList)')
+                        ->setParameter('commandList', $value);
+                    break;
                 case 'utilisateurs':
-                    $values = array_map(function($value) {
+                    $values = array_map(function ($value) {
                         return explode(":", $value)[0];
                     }, explode(',', $filter['value']));
                     $qb
@@ -175,7 +191,7 @@ class ReceptionRepository extends EntityRepository
                         $qb->setParameter("user$index", $user);
                     }
                     $qb->andWhere('(' . $exprBuilder->orX(...$OROperands) . ')');
-					break;
+                    break;
                 case 'providers':
                     $value = explode(',', $filter['value']);
                     $qb
@@ -195,15 +211,15 @@ class ReceptionRepository extends EntityRepository
                     $dateExpectedMin = ($filter['value'] . ' 00:00:00 ');
                     $dateExpectedMax = ($filter['value'] . ' 23:59:59 ');
                     $qb->andWhere('r.dateAttendue BETWEEN :dateExpectedMin AND :dateExpectedMax')
-                        ->setParameter( 'dateExpectedMin', $dateExpectedMin)
-                        ->setParameter( 'dateExpectedMax', $dateExpectedMax);
+                        ->setParameter('dateExpectedMin', $dateExpectedMin)
+                        ->setParameter('dateExpectedMax', $dateExpectedMax);
                     break;
                 case 'emergency':
-                    $valueFilter = ((int) ($filter['value'] ?? 0));
-				    if ($valueFilter) {
+                    $valueFilter = ((int)($filter['value'] ?? 0));
+                    if ($valueFilter) {
                         $qb->andWhere('r.urgentArticles = true OR r.manualUrgent = true');
                     }
-					break;
+                    break;
             }
         }
         //Filter search

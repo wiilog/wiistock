@@ -510,7 +510,7 @@ class Reception extends FreeFieldEntity
 
     public function getPurchaseRequestLines(): Collection
     {
-        return $this->request;
+        return $this->purchaseRequestLines;
     }
 
     public function addPurchaseRequestLine(PurchaseRequestLine $purchaseRequestLines): self {

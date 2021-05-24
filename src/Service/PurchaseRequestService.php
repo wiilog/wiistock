@@ -29,10 +29,14 @@ class PurchaseRequestService
     /** @Required */
     public UniqueNumberService $uniqueNumberService;
 
+    public MailerService $mailerService;
+
     private $user;
 
-    public function __construct(TokenStorageInterface $tokenStorage) {
+    public function __construct(TokenStorageInterface $tokenStorage,
+                                MailerService $mailerService) {
         $this->user = $tokenStorage->getToken()->getUser();
+        $this->mailerService = $mailerService;
     }
 
     public function getDataForDatatable($params = null)
@@ -69,6 +73,7 @@ class PurchaseRequestService
             'requester' => FormatHelper::user($request->getRequester()),
             'buyer' => FormatHelper::user($request->getBuyer()),
             'creationDate' => FormatHelper::datetime($request->getCreationDate()),
+            'processingDate' => FormatHelper::datetime($request->getProcessingDate()),
             'validationDate' => FormatHelper::datetime($request->getValidationDate()),
             'considerationDate' => FormatHelper::datetime($request->getConsiderationDate()),
             'actions' => $this->templating->render('purchase_request/actions.html.twig', [
@@ -89,6 +94,7 @@ class PurchaseRequestService
             FormatHelper::datetime($request['creationDate'] ?? null),
             FormatHelper::datetime($request['validationDate'] ?? null),
             FormatHelper::datetime($request['considerationDate'] ?? null),
+            FormatHelper::datetime($request['processingDate'] ?? null),
             FormatHelper::html($request['comment'] ?? null),
             $line['reference'] ?? '',
             $line['barcode'] ?? '',
@@ -112,6 +118,12 @@ class PurchaseRequestService
                 'colClass' => 'col-sm-6 col-12',
                 'isScrollable' => true,
                 'isNeededNotEmpty' => true
+            ],
+            [
+                'label' => 'Pièces jointes',
+                'value' => $request->getAttachments()->toArray(),
+                'isAttachments' => true,
+                'isNeededNotEmpty' => true
             ]
         ];
     }
@@ -119,7 +131,9 @@ class PurchaseRequestService
     public function createPurchaseRequest(EntityManagerInterface $entityManager,
                                           ?Statut $status,
                                           ?Utilisateur $requester,
-                                          ?string $comment = null): PurchaseRequest {
+                                          ?string $comment = null,
+                                          ?DateTime $validationDate = null,
+                                          ?Utilisateur $buyer = null): PurchaseRequest {
         $now =  new DateTime("now", new DateTimeZone("Europe/Paris"));
         $purchase = new PurchaseRequest();
         $purchaseRequestNumber = $this->uniqueNumberService->createUniqueNumber($entityManager, PurchaseRequest::NUMBER_PREFIX, PurchaseRequest::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
@@ -128,8 +142,54 @@ class PurchaseRequestService
             ->setStatus($status)
             ->setRequester($requester)
             ->setComment($comment)
-            ->setNumber($purchaseRequestNumber);
+            ->setNumber($purchaseRequestNumber)
+            ->setValidationDate($validationDate);
+
+        if($buyer) {
+            $purchase->setBuyer($buyer);
+        }
 
         return $purchase;
+    }
+
+    public function sendMailsAccordingToStatus(PurchaseRequest $purchaseRequest) {
+        /** @var Statut $status */
+        $status = $purchaseRequest->getStatus();
+        $buyerAbleToReceivedMail = $status->getSendNotifToBuyer();
+        $requesterAbleToReceivedMail = $status->getSendNotifToDeclarant();
+
+        if (isset($buyerAbleToReceivedMail) || isset($requesterAbleToReceivedMail)) {
+
+            $requester = $purchaseRequest->getRequester() ?? null;
+            $buyer = $purchaseRequest->getBuyer() ?? null;
+
+            $mail = ($status->isNotTreated() && $buyerAbleToReceivedMail) ? $buyer : $requester;
+
+            $subject = $status->isTreated()
+                ? 'Traitement d\'une demande d\'achat'
+                : ($status->isNotTreated()
+                    ? 'Création d\'une demande d\'achat'
+                    : 'Changement de statut d\'une demande d\'achat');
+
+            $statusName = $status->getNom();
+            $number = $purchaseRequest->getNumber();
+            $processingDate = FormatHelper::datetime($purchaseRequest->getProcessingDate(), "", true);
+            $title = $status->isTreated()
+                ? "Demande d'achat ${number} traitée le ${processingDate} avec le statut ${statusName}"
+                : ($status->isNotTreated()
+                    ? 'Une demande d\'achat vous concerne'
+                    : 'Changement de statut d\'une demande d\'achat vous concernant');
+
+            if (isset($requester)) {
+                $this->mailerService->sendMail(
+                    'FOLLOW GT // ' . $subject,
+                    $this->templating->render('mails/contents/mailPurchaseRequestEvolution.html.twig', [
+                        'title' => $title,
+                        'purchaseRequest' => $purchaseRequest,
+                    ]),
+                    $mail
+                );
+            }
+        }
     }
 }

@@ -240,8 +240,14 @@ class ReferenceArticleController extends AbstractController
             $refArticle->setQuantiteReservee(0);
             $refArticle->setStockManagement($data['stockManagement'] ?? null);
 
-            foreach (explode(",", $data["managers"]) as $manager) {
-                $refArticle->addManager($userRepository->find($manager));
+            $managerIds = Stream::explode(",", $data["managers"])
+                ->filter(fn($userId) => $userId)
+                ->toArray();
+            foreach ($managerIds as $managerId) {
+                $manager = $userRepository->find($managerId);
+                if ($manager) {
+                    $refArticle->addManager($manager);
+                }
             }
 
             $supplierReferenceLines = json_decode($data['frl'], true);
