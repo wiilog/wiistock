@@ -12,7 +12,7 @@ let tableAlerteConfig = {
         needsResize: true
     },
     rowConfig: {
-        colorClass: 'colorClass'
+        classField: 'colorClass'
     },
     columns: [
         { "data": 'actions', 'name': 'actions', 'title': '', 'orderable': false, className: 'noVis'},

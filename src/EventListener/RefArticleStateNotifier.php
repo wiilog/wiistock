@@ -78,16 +78,6 @@ class RefArticleStateNotifier {
         }
     }
 
-    public function postPersist($entity) {
-        // TODO
-        if ($entity instanceof Reception) {
-
-        }
-        else if ($entity instanceof PurchaseRequest) {
-
-        }
-    }
-
     public function postRemove($entity) {
         if ($entity instanceof Reception) {
             foreach ($entity->getReceptionReferenceArticles() as $receptionReferenceArticle) {
