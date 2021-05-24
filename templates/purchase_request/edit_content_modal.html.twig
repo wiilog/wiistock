@@ -12,13 +12,8 @@
             <select name="status"
                     class="form-control data needed select2"
                     title="Statut">
-                {% if purchaseRequest.status is not null %}
-                    <option selected value="{{ purchaseRequest.status.id }}">{{ purchaseRequest.status.nom }}</option>
-                {% endif %}
                 {% for status in statuses %}
-                    {% if purchaseRequest.status is null or purchaseRequest.status.id != status.id %}
-                        <option value="{{ status.id }}">{{ status.nom }}</option>
-                    {% endif %}
+                    <option value="{{ status.id }} {{ status.id == purchaseRequest.status.id ? 'selected' }}">{{ status.nom }}</option>
                 {% endfor %}
             </select>
         </div>
