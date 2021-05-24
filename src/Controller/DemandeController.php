@@ -109,11 +109,8 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/api-modifier", name="demandeLivraison_api_edit", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
      */
-    public function editApi(Request $request,
+    public function editApi(Request $request, GlobalParamService $globalParamService,
                             EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -152,14 +149,13 @@ class DemandeController extends AbstractController
                 $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
             }
 
-            $json = $this->renderView('demande/modalEditDemandeContent.html.twig', [
+            return $this->json($this->renderView('demande/modalEditDemandeContent.html.twig', [
                 'demande' => $demande,
                 'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]),
                 'typeChampsLibres' => $typeChampLibre,
-                'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes
-            ]);
-
-            return new JsonResponse($json);
+                'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
+                'defaultDeliveryLocations' => $globalParamService->getDefaultDeliveryLocationsByTypeId($entityManager),
+            ]));
         }
         throw new BadRequestHttpException();
     }
@@ -385,15 +381,10 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/voir/{id}", name="demande_show", options={"expose"=true}, methods={"GET", "POST"})
-     * @param EntityManagerInterface $entityManager
-     * @param DemandeLivraisonService $demandeLivraisonService
-     * @param Demande $demande
-     * @return Response
      */
     public function show(EntityManagerInterface $entityManager,
                          DemandeLivraisonService $demandeLivraisonService,
-                         Demande $demande): Response
-    {
+                         Demande $demande): Response {
         if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR)) {
             return $this->redirectToRoute('access_denied');
         }
@@ -407,7 +398,7 @@ class DemandeController extends AbstractController
             'references' => $referenceArticleRepository->getIdAndLibelle(),
             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
             'finished' => ($demande->getStatut()->getNom() === Demande::STATUT_A_TRAITER),
-            'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande)
+            'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande),
         ]);
     }
 
