@@ -12,7 +12,6 @@
                 <div class="dashboard-pagination"></div>
 
                 <input type="hidden" class="dashboards-data" value="{{ dashboards }}">
-                <input id="isCollinsVer" type="hidden" value="{{ client == "Collins Vernon" }}">
             </div>
         </div>
     </div>
@@ -30,6 +29,6 @@
     <script src="{{ asset('js/pages/dashboard/settings.js') }}?v={{ web_version }}"></script>
 
     <script>
-        $(document).ready(() => loadDashboards(MODE_EXTERNAL, $('#isCollinsVer').val()));
+        $(document).ready(() => loadDashboards(MODE_EXTERNAL, {{ refresh_rate }}));
     </script>
 {% endblock %}

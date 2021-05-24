@@ -35,10 +35,11 @@ DashboardController extends AbstractController {
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
         $client  =  $specificService->getAppClient();
+        dump($client);
         return $this->render("dashboard/dashboards.html.twig", [
             "dashboards" => $dashboardSettingsService->serialize($manager, $loggedUser, DashboardSettingsService::MODE_DISPLAY),
             "refreshed" => $dashboardService->refreshDate($manager),
-            "client" => $client
+            "refresh_rate" => $client === SpecificService::CLIENT_COLLINS_VERNON ? 1 : 5,
         ]);
     }
 

@@ -45,13 +45,8 @@ $(window).resize(function () {
     }, 100);
 });
 
-function loadDashboards(m, quickRefresh) {
-    console.log(quickRefresh);
+function loadDashboards(m, refreshRate) {
     mode = m;
-    var time = 5;
-    if (quickRefresh == 1) {
-        time = 1;
-    }
 
     if (mode === undefined) {
         alert("Configuration invalide");
@@ -80,8 +75,6 @@ function loadDashboards(m, quickRefresh) {
     $(window).bind('beforeunload', hasEditDashboard);
 
     if (mode === MODE_DISPLAY || mode === MODE_EXTERNAL) {
-        // all 5 min
-        console.log(time);
         setInterval(function () {
             $.get(Routing.generate("dashboards_fetch", {mode}), function (response) {
                 dashboards = JSON.parse(response.dashboards);
@@ -91,7 +84,7 @@ function loadDashboards(m, quickRefresh) {
                 renderDashboardPagination();
                 renderRefreshDate(response.refreshed);
             })
-        }, time * 60 * 1000);
+        }, refreshRate * 60 * 1000);
     }
 
     $(document)
