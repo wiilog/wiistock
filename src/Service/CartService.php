@@ -314,7 +314,6 @@ class CartService {
         }
 
         foreach ($data as $key => $datum) {
-            dump($key, $datum);
             if (str_starts_with($key, 'reference')) {
                 $index = intval(substr($key, 9));
                 $reference = $referenceRepository->findOneByReference($datum);
