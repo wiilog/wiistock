@@ -27,7 +27,7 @@ $(function () {
                 responsive: true,
                 serverSide: true,
                 processing: true,
-                order: [[2, "desc"]],
+                order: [[3, "desc"]],
                 ajax: {
                     "url": Routing.generate('tracking_movement_api', true),
                     "type": "POST",
