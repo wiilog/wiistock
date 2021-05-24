@@ -1003,22 +1003,6 @@ class ApiController extends AbstractFOSRestController
                         $res['finishedMovements'][] = $trackingMovementService->finishTrackingMovement($parent->getLastTracking());
                     }
 
-                    $trackingMovement = $trackingMovementService->createTrackingMovement(
-                        $parent,
-                        $location,
-                        $operator,
-                        $serializedGroup['date'],
-                        true,
-                        $finishedMovements,
-                        $movementType,
-                        $options
-                    );
-
-                    $newMovements[] = $trackingMovement;
-
-                    $entityManager->persist($trackingMovement);
-                    $trackingMovementService->persistSubEntities($entityManager, $trackingMovement);
-
                     /** @var Pack $child */
                     foreach ($parent->getChildren() as $child) {
                         if ($finishedMovements) {
@@ -1041,6 +1025,22 @@ class ApiController extends AbstractFOSRestController
                         $entityManager->persist($trackingMovement);
                         $trackingMovementService->persistSubEntities($entityManager, $trackingMovement);
                     }
+
+                    $trackingMovement = $trackingMovementService->createTrackingMovement(
+                        $parent,
+                        $location,
+                        $operator,
+                        $serializedGroup['date'],
+                        true,
+                        $finishedMovements,
+                        $movementType,
+                        $options
+                    );
+
+                    $newMovements[] = $trackingMovement;
+
+                    $entityManager->persist($trackingMovement);
+                    $trackingMovementService->persistSubEntities($entityManager, $trackingMovement);
 
                     $signatureFile = $request->files->get("signature_$groupIndex");
                     $photoFile = $request->files->get("photo_$groupIndex");
@@ -1066,6 +1066,7 @@ class ApiController extends AbstractFOSRestController
                         ->toArray();
                 }
             }
+
             $entityManager->flush();
 
             $res['tracking'] = $trackingMovementService->getMobileUserPicking($entityManager, $operator);
