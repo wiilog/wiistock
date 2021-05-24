@@ -29,6 +29,6 @@
     <script src="{{ asset('js/pages/dashboard/settings.js') }}?v={{ web_version }}"></script>
 
     <script>
-        $(document).ready(() => loadDashboards(MODE_EXTERNAL));
+        $(document).ready(() => loadDashboards(MODE_EXTERNAL, {{ refresh_rate }}));
     </script>
 {% endblock %}
