@@ -8,7 +8,7 @@ function toggleLocationSelect($type, $modal = null) {
         const userDropzone = $modal.find('[name="userDropzone"]').data('value');
 
         const preselectedLocation = (
-            (defaultDeliveryLocations ? defaultDeliveryLocations[typeId] : null)
+            (defaultDeliveryLocations ? defaultDeliveryLocations[typeId] || defaultDeliveryLocations.all : null)
             || userDropzone
         );
 
