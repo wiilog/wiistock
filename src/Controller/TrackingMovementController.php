@@ -324,7 +324,7 @@ class TrackingMovementController extends AbstractController
                             $createdMouvements[] = $createdMvt;
                             $createdPack = $createdMvt->getPack();
                             $createdMvt = $trackingMovementService->createTrackingMovement(
-                                $createdMvt ?? $colis,
+                                $createdPack ?? $colis,
                                 $emplacementDepose,
                                 $operator,
                                 $date,
