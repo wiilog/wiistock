@@ -166,9 +166,7 @@ class TrackingMovementService
             'date' => FormatHelper::datetime($movement->getDatetime()),
             'code' => FormatHelper::pack($trackingPack),
             'origin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
-            'group' => ($movement->getPackParent() && (FormatHelper::status($movement->getType()) !== TrackingMovement::TYPE_DEPOSE) && ($lastTracking
-                    ? FormatHelper::status($lastTracking->getType()) !== TrackingMovement::TYPE_UNGROUP
-                    : null))
+            'group' => $movement->getPackParent()
                 ? $movement->getPackParent()->getCode() . '-' . ($movement->getGroupIteration() ?? '1')
                 : '',
             'location' => FormatHelper::location($movement->getEmplacement()),
@@ -368,11 +366,6 @@ class TrackingMovementService
 
         $pack->addTrackingMovement($tracking);
 
-        if ($parent) {
-            $tracking->setPackParent($parent);
-            $tracking->setGroupIteration($parent->getGroupIteration());
-        }
-
         $pack->setLastTracking($tracking);
         $this->managePackLinksWithTracking($entityManager, $tracking);
         $this->manageTrackingLinks($entityManager, $tracking, $from, $receptionReferenceArticle);
@@ -399,6 +392,10 @@ class TrackingMovementService
                 $pack->setParent(null);
             }
             $entityManager->persist($trackingUngroup);
+        } else if($parent) {
+            // Si pas de mouvement de dégroupage, on set le parent
+            $tracking->setPackParent($parent);
+            $tracking->setGroupIteration($parent->getGroupIteration());
         }
 
         return $tracking;
