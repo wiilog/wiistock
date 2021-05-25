@@ -112,42 +112,42 @@ function ajaxEditArticle (select) {
     }, 'json');
 }
 
-function editCollecte(){
+function initEditModal(){
     InitModal($('#modalEditCollecte'), $('#submitEditCollecte'), Routing.generate('collecte_edit', true));
 
     const $modalEditCollecte = $('#modalEditCollecte');
     $modalEditCollecte.on('show.bs.modal', function () {
-        initEditCollecteEditor("#modalEditCollecte");
+        resetEditTypeField($modalEditCollecte);
     });
 
     $modalEditCollecte.find('select[name="type"]').on('change', function() {
-        const $locationSelector = $modalEditCollecte.find('select[name="Pcollecte"]');
-        const type = $(this).val();
-
-        $locationSelector.prop(`disabled`, type === '');
-        $locationSelector.val(null).trigger(`change`);
-
-        Select2Old.init($locationSelector, '', 1, {
-            route: 'get_locations_by_type',
-            param: {
-                type,
-            }
-        });
+        onEditTypeChange($(this));
     });
 }
 
-let editorEditCollecteAlreadyDone = false;
-function initEditCollecteEditor(modal) {
-    if (!editorEditCollecteAlreadyDone) {
-        initEditorInModal(modal);
-        editorEditCollecteAlreadyDone = true;
-    }
-    Select2Old.location($('.ajax-autocomplete-location'));
+function resetEditTypeField($modal) {
+    Select2Old.location($modal.find('.ajax-autocomplete-location'));
 
-    const type = $(modal).find('select[name="type"] option:selected').val();
-    const $locationSelector = $(modal).find(`select[name="Pcollecte"]`);
+    const type = $modal.find('select[name="type"] option:selected').val();
+    const $locationSelector = $modal.find(`select[name="Pcollecte"]`);
 
     if(!type) {
         $locationSelector.prop(`disabled`, true);
+    }
+}
+
+function onEditTypeChange($type) {
+    const $modal = $type.closest('.modal');
+    const $locationSelector = $modal.find('select[name="Pcollecte"]');
+    const type = $type.val();
+
+    $locationSelector.prop(`disabled`, !type);
+    $locationSelector.val(null).trigger(`change`);
+
+    if (type) {
+        Select2Old.init($locationSelector, '', 1, {
+            route: 'get_locations_by_type',
+            param: { type }
+        });
     }
 }

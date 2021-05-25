@@ -28,15 +28,15 @@
                        data-target='#modalEditCollecte'
                        data-toggle='modal'
                        onclick="
-                       editRow(
-                           $(this),
-                           Routing.generate('collecte_api_edit', true),
-                           $('#modalEditCollecte'),
-                           $('#submitEditCollecte'),
-                           true,
-                           '#modalEditCollecte .editor-container-edit',
-                           false,
-                           () => editCollecte()
+                           editRow(
+                               $(this),
+                               Routing.generate('collecte_api_edit', true),
+                               $('#modalEditCollecte'),
+                               $('#submitEditCollecte'),
+                               true,
+                               '#modalEditCollecte .editor-container-edit',
+                               false,
+                               () => initEditModal()
                            );"
                        class="dropdown-item edit-button">
                         <i class="fa fa-pen mr-2"></i>Modifier
