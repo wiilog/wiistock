@@ -42,11 +42,6 @@ let submitDeleteCollecte = $("#submitDeleteCollecte");
 let urlDeleteCollecte = Routing.generate('collecte_delete', true)
 InitModal(modalDeleteCollecte, submitDeleteCollecte, urlDeleteCollecte, {tables: [table]});
 
-let modalModifyCollecte = $('#modalEditCollecte');
-let submitModifyCollecte = $('#submitEditCollecte');
-let urlModifyCollecte = Routing.generate('collecte_edit', true);
-InitModal(modalModifyCollecte, submitModifyCollecte, urlModifyCollecte, {tables: [table]});
-
 $.fn.dataTable.ext.search.push(
     function (settings, data, dataIndex) {
         let dateMin = $('#dateMin').val();
