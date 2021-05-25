@@ -29,7 +29,7 @@
                     <select name="type" class="form-control data d-block type needed
                             {{ uniqueType ? 'needs-default' }}"
                             onclick="typeChoice($(this))"
-                            onchange="onDeliveryTypeChange($(this))"
+                            onchange="onDeliveryTypeChange($(this), `create`)"
                         {{ uniqueType ? 'disabled' }}
                         {{ uniqueType ? ('data-init="' ~ (types|first).id ~ '"')|raw }}>
                         {% if not uniqueType %}

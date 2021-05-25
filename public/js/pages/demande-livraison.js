@@ -53,9 +53,9 @@ function initNewLivraisonEditor(modal) {
     }
 }
 
-function onDeliveryTypeChange($type) {
+function onDeliveryTypeChange($type, mode) {
     toggleLocationSelect($type);
-    toggleRequiredChampsLibres($type, 'create');
+    toggleRequiredChampsLibres($type, mode);
 }
 
 function callbackSaveFilter() {
