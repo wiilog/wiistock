@@ -45,8 +45,9 @@ $(window).resize(function () {
     }, 100);
 });
 
-function loadDashboards(m) {
+function loadDashboards(m, refreshRate) {
     mode = m;
+
     if (mode === undefined) {
         alert("Configuration invalide");
     }
@@ -74,7 +75,6 @@ function loadDashboards(m) {
     $(window).bind('beforeunload', hasEditDashboard);
 
     if (mode === MODE_DISPLAY || mode === MODE_EXTERNAL) {
-        // all 5 min
         setInterval(function () {
             $.get(Routing.generate("dashboards_fetch", {mode}), function (response) {
                 dashboards = JSON.parse(response.dashboards);
@@ -84,7 +84,7 @@ function loadDashboards(m) {
                 renderDashboardPagination();
                 renderRefreshDate(response.refreshed);
             })
-        }, 5 * 60 * 1000);
+        }, refreshRate * 60 * 1000);
     }
 
     $(document)

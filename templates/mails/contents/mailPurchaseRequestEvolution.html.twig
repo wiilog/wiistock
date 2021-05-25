@@ -2,16 +2,19 @@
 
 {% block content %}
 
+    {% set treatedStatus = purchaseRequest.status.treated %}
+    {% set notTreatedStatus = purchaseRequest.status.notTreated %}
+
     <p>Bonjour, </p>
-    {% if purchaseRequest.status.notTreated %}
+    {% if notTreatedStatus %}
         <p>Une demande d'achat sur une ou des références vous concernant vient d'être initiée :</p>
-    {% elseif purchaseRequest.status.treated %}
+    {% elseif treatedStatus %}
         <p>Votre demande d'achat a été traitée par l'acheteur :</p>
     {% else %}
         <p>Votre demande d'achat est en cours de traitement avec les informations suivantes :</p>
     {% endif %}
     <br>
-    {% if not purchaseRequest.status.treated %}
+    {% if not treatedStatus %}
         <div>Numéro de demande :
             <strong>{{ purchaseRequest.number }}</strong>
         </div>
@@ -19,7 +22,7 @@
     <div>Date de validation :
         <strong>{{ purchaseRequest.validationDate ? purchaseRequest.validationDate|date('d/m/Y à H:i') }}</strong>
     </div>
-    {% if not purchaseRequest.status.notTreated %}
+    {% if not notTreatedStatus %}
         <div>Date de prise en compte :
             <strong>{{ purchaseRequest.considerationDate ? purchaseRequest.considerationDate|date('d/m/Y à H:i') }}</strong>
         </div>
@@ -27,12 +30,12 @@
     <div>Demandeur :
         <strong>{{ purchaseRequest.requester.username }}</strong>
     </div>
-    {% if not purchaseRequest.status.notTreated %}
+    {% if not notTreatedStatus %}
         <div>Acheteur :
             <strong>{{ purchaseRequest.buyer.username }}</strong>
         </div>
     {% endif %}
-    {% if not purchaseRequest.status.treated %}
+    {% if not treatedStatus %}
         <div>Statut :
             <strong>{{ purchaseRequest.status.nom }}</strong>
         </div>
@@ -54,7 +57,7 @@
                 style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">
                 Libellé
             </th>
-            {% if purchaseRequest.status.notTreated %}
+            {% if notTreatedStatus %}
                 <th class="th"
                     style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">
                     Fournisseur
@@ -72,7 +75,7 @@
                 style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">
                 Quantité en stock
             </th>
-            {% if purchaseRequest.status.treated %}
+            {% if treatedStatus %}
                 <th class="th"
                     style="border: 1px solid black; padding: 6px; text-align: center; font-weight: bold;">
                     Quantité commandée
@@ -84,81 +87,81 @@
             {% endif %}
         </tr>
         </thead>
-        <tbody>
         {% for purchaseRequestLine in purchaseRequest.purchaseRequestLines %}
-            <tr>
-                <td class="td"
-                    style="border: 1px solid black; padding: 10px; text-align: center;"
-                    rowspan="{{ purchaseRequestLine.reference.articlesFournisseur|length }}">
-                    {{ purchaseRequestLine.reference.reference }}
-                </td>
-                <td class="td"
-                    style="border: 1px solid black; padding: 10px; text-align: center;"
-                    rowspan="{{ purchaseRequestLine.reference.articlesFournisseur|length }}">
-                    {{ purchaseRequestLine.reference.libelle }}
-                </td>
-                {% if purchaseRequest.status.notTreated %}
-                    {% if purchaseRequestLine.reference.articlesFournisseur is not empty %}
-                        {% set supplierArticle = purchaseRequestLine.reference.articlesFournisseur|first %}
+            <tbody>
+                <tr>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;"
+                        rowspan="{{ purchaseRequestLine.reference.articlesFournisseur|length }}">
+                        {{ purchaseRequestLine.reference.reference }}
+                    </td>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;"
+                        rowspan="{{ purchaseRequestLine.reference.articlesFournisseur|length }}">
+                        {{ purchaseRequestLine.reference.libelle }}
+                    </td>
+                    {% if notTreatedStatus %}
+                        {% if purchaseRequestLine.reference.articlesFournisseur is not empty %}
+                            {% set supplierArticle = purchaseRequestLine.reference.articlesFournisseur|first %}
+                            <td class="td"
+                                style="border: 1px solid black; border-bottom: none !important; padding: 10px; text-align: center;">
+                                {{ supplierArticle.label }}
+                            </td>
+                            <td class="td"
+                                style="border: 1px solid black; border-bottom: none !important; padding: 10px; text-align: center;">
+                                {{ supplierArticle.reference }}
+                            </td>
+                        {% else %}
+                            <td class="td"
+                                style="border: 1px solid black; padding: 10px; text-align: center;">
+                                -
+                            </td>
+                            <td class="td"
+                                style="border: 1px solid black; padding: 10px; text-align: center;">
+                                -
+                            </td>
+                        {% endif %}
+                    {% endif %}
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;"
+                        rowspan="{{ purchaseRequestLine.reference.articlesFournisseur|length }}">
+                        {{ purchaseRequestLine.requestedQuantity }}
+                    </td>
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;"
+                        rowspan="{{ purchaseRequestLine.reference.articlesFournisseur|length }}">
+                        {{ purchaseRequestLine.reference.quantiteStock }}
+                    </td>
+                    {% if treatedStatus %}
                         <td class="td"
-                            style="border: 1px solid black; border-bottom: none !important; padding: 10px; text-align: center;">
-                            {{ supplierArticle.label }}
+                            style="border: 1px solid black; padding: 10px; text-align: center;"
+                            rowspan="{{ purchaseRequestLine.reference.articlesFournisseur|length }}">
+                            {{ purchaseRequestLine.orderedQuantity ?? '-' }}
                         </td>
                         <td class="td"
-                            style="border: 1px solid black; border-bottom: none !important; padding: 10px; text-align: center;">
-                            {{ supplierArticle.reference }}
-                        </td>
-                    {% else %}
-                        <td class="td"
-                            style="border: 1px solid black; padding: 10px; text-align: center;">
-                            -
-                        </td>
-                        <td class="td"
-                            style="border: 1px solid black; padding: 10px; text-align: center;">
-                            -
+                            style="border: 1px solid black; padding: 10px; text-align: center;"
+                            rowspan="{{ purchaseRequestLine.reference.articlesFournisseur|length }}">
+                            {{ purchaseRequestLine.orderNumber ?? '-' }}
                         </td>
                     {% endif %}
-                {% endif %}
-                <td class="td"
-                    style="border: 1px solid black; padding: 10px; text-align: center;"
-                    rowspan="{{ purchaseRequestLine.reference.articlesFournisseur|length }}">
-                    {{ purchaseRequestLine.requestedQuantity }}
-                </td>
-                <td class="td"
-                    style="border: 1px solid black; padding: 10px; text-align: center;"
-                    rowspan="{{ purchaseRequestLine.reference.articlesFournisseur|length }}">
-                    {{ purchaseRequestLine.reference.quantiteStock }}
-                </td>
-                {% if purchaseRequest.status.treated %}
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;"
-                        rowspan="{{ purchaseRequestLine.reference.articlesFournisseur|length }}">
-                        {{ purchaseRequestLine.orderedQuantity }}
-                    </td>
-                    <td class="td"
-                        style="border: 1px solid black; padding: 10px; text-align: center;"
-                        rowspan="{{ purchaseRequestLine.reference.articlesFournisseur|length }}">
-                        {{ purchaseRequestLine.orderNumber }}
-                    </td>
-                {% endif %}
-            </tr>
+                </tr>
 
-            {% if purchaseRequest.status.notTreated and purchaseRequestLine.reference.articlesFournisseur|length > 1 %}
-                {% for supplierArticle in purchaseRequestLine.reference.articlesFournisseur[1:] %}
-                    <tr>
-                        <td class="td"
-                            style="border: 1px solid black; padding: 10px; text-align: center;">
-                            {{ supplierArticle.label }}
-                        </td>
-                        <td class="td"
-                            style="border: 1px solid black; padding: 10px; text-align: center;">
-                            {{ supplierArticle.reference }}
-                        </td>
-                    </tr>
-                {% endfor %}
-            {% endif %}
+                {% if purchaseRequest.status.notTreated and purchaseRequestLine.reference.articlesFournisseur|length > 1 %}
+                    {% for supplierArticle in purchaseRequestLine.reference.articlesFournisseur[1:] %}
+                        <tr>
+                            <td class="td"
+                                style="border: 1px solid black; padding: 10px; text-align: center;">
+                                {{ supplierArticle.label }}
+                            </td>
+                            <td class="td"
+                                style="border: 1px solid black; padding: 10px; text-align: center;">
+                                {{ supplierArticle.reference }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% endif %}
+            </tbody>
         {% endfor %}
-        </tbody>
     </table>
 
     <br>

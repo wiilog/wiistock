@@ -407,6 +407,10 @@ class RefArticleDataService {
                 "reference_id" => $refArticle->getId(),
                 "active" => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF : 0,
             ]),
+            "colorClass" => (
+                $refArticle->getOrderState() === ReferenceArticle::PURCHASE_IN_PROGRESS_ORDER_STATE ? 'table-light-orange' :
+                ($refArticle->getOrderState() === ReferenceArticle::WAIT_FOR_RECEPTION_ORDER_STATE ? 'table-light-blue' : null)
+            ),
         ];
 
         foreach($freeFields as $freeField) {
@@ -427,7 +431,7 @@ class RefArticleDataService {
                                    bool $fromNomade,
                                    EntityManagerInterface $entityManager,
                                    Demande $demande,
-                                   ?FreeFieldService $champLibreService, $editRef = true) {
+                                   ?FreeFieldService $champLibreService, $editRef = true, $fromCart = false) {
         $resp = true;
         $articleRepository = $entityManager->getRepository(Article::class);
         $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
@@ -450,7 +454,7 @@ class RefArticleDataService {
                 $this->editRefArticle($referenceArticle, $data, $user, $champLibreService);
             }
         } else if($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-            if($fromNomade || $this->userService->hasParamQuantityByRef()) {
+            if($fromNomade || $this->userService->hasParamQuantityByRef() || $fromCart) {
                 if($fromNomade || $ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                     $ligneArticle = new LigneArticle();
                     $ligneArticle
@@ -519,6 +523,7 @@ class RefArticleDataService {
 
     public function dataRowAlerteRef(Alert $alert) {
         if($entity = $alert->getReference()) {
+            $referenceArticle = $entity;
             $reference = $entity->getReference();
             $code = $entity->getBarCode();
             $label = $entity->getLibelle();
@@ -532,15 +537,17 @@ class RefArticleDataService {
                 })->toArray();
             $managers = count($managers) ? implode(",", $managers) : 'Non défini';
         } else if($entity = $alert->getArticle()) {
-            $reference = $entity->getReference();
+            $referenceArticle = $entity->getArticleFournisseur()->getReferenceArticle();
+            $reference = $referenceArticle ? $referenceArticle->getReference() : null;
             $code = $entity->getBarCode();
             $label = $entity->getLabel();
             $expiry = $entity->getExpiryDate() ? $entity->getExpiryDate()->format("d/m/Y H:i") : "Non défini";
-            $managers = Stream::from($entity->getArticleFournisseur()->getReferenceArticle()->getManagers())
-                ->map(function(Utilisateur $utilisateur) {
-                    return $utilisateur->getUsername();
-                })->toArray();
-            $managers = count($managers) ? implode(",", $managers) : 'Non défini';
+            $managers = $referenceArticle
+                ? Stream::from($referenceArticle->getManagers())
+                    ->map(fn (Utilisateur $utilisateur) => $utilisateur->getUsername())
+                    ->toArray()
+                : [];
+            $managers = count($managers) > 0 ? implode(",", $managers) : 'Non défini';
         } else {
             throw new RuntimeException("Invalid alert");
         }
@@ -567,6 +574,10 @@ class RefArticleDataService {
             "expiry" => $expiry ?? "Non défini",
             "date" => $alert->getDate()->format("d/m/Y H:i"),
             "managers" => $managers,
+            "colorClass" => (
+                $referenceArticle->getOrderState() === ReferenceArticle::PURCHASE_IN_PROGRESS_ORDER_STATE ? 'table-light-orange' :
+                ($referenceArticle->getOrderState() === ReferenceArticle::WAIT_FOR_RECEPTION_ORDER_STATE ? 'table-light-blue' : null)
+            ),
         ];
     }
 

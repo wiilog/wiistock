@@ -19,11 +19,11 @@ use App\Entity\Statut;
 use App\Entity\TransferRequest;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use WiiCommon\Helper\Stream;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
 use Twig\Environment;
-use WiiCommon\Helper\Stream;
 
 class CartService {
 
@@ -319,8 +319,7 @@ class CartService {
                 $reference = $referenceRepository->findOneByReference($datum);
                 $quantityToDeliver = $data['quantity' . $index] ?? null;
                 $data['quantity-to-pick'] = $quantityToDeliver;
-                $refArticleDataService->addRefToDemand($data, $reference, $utilisateur, false, $entityManager, $request, null, false);
-
+                $refArticleDataService->addRefToDemand($data, $reference, $utilisateur, false, $entityManager, $request, null, false, true);
             } else if (str_starts_with($key, 'article')) {
                 $index = intval(substr($key, 7));
                 $article = $articleRepository->find($datum);

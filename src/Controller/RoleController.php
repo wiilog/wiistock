@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\Parametre;
@@ -11,12 +12,8 @@ use App\Entity\Utilisateur;
 use App\Service\RoleService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
-use Psr\Cache\InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -25,49 +22,26 @@ use Symfony\Component\Routing\Annotation\Route;
 /**
  * @Route("/role")
  */
-class RoleController extends AbstractController
-{
+class RoleController extends AbstractController {
 
-    /**
-     * @var UserService
-     */
-    private $userService;
-
-
-    public function __construct(UserService $userService)
-    {
-        $this->userService = $userService;
-    }
+    /** @Required */
+    public UserService $userService;
 
     /**
      * @Route("/", name="role_index")
-     * @param RoleService $roleService
-     * @return RedirectResponse|Response
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_ROLE})
      */
-    public function index(RoleService $roleService)
-    {
-        if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_ROLE)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
+    public function index(RoleService $roleService) {
         $templateParameters = $roleService->createFormTemplateParameters();
         return $this->render('role/index.html.twig', $templateParameters);
     }
 
     /**
      * @Route("/api", name="role_api", options={"expose"=true}, methods="GET|POST")
-     * @param EntityManagerInterface $entityManager
-     * @param Request $request
-     * @return Response
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_ROLE}, mode=HasPermission::IN_JSON)
      */
-    public function api(EntityManagerInterface $entityManager,
-                        Request $request): Response
-    {
+    public function api(EntityManagerInterface $entityManager, Request $request): Response {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_ROLE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
             $roleRepository = $entityManager->getRepository(Role::class);
 
             $roles = $roleRepository->findAllExceptNoAccess();
@@ -75,41 +49,29 @@ class RoleController extends AbstractController
             foreach ($roles as $role) {
                 $url['edit'] = $this->generateUrl('role_api_edit', ['id' => $role->getId()]);
 
-                $rows[] =
-                    [
-                        'id' => $role->getId() ? $role->getId() : "Non défini",
-                        'Nom' => $role->getLabel() ? $role->getLabel() : "Non défini",
-                        'Actif' => $role->getActive() ? 'oui' : 'non',
-                        'Actions' => $this->renderView('role/datatableRoleRow.html.twig', [
-                            'url' => $url,
-                            'roleId' => $role->getId(),
-                        ]),
-                    ];
+                $rows[] = [
+                    'id' => $role->getId() ? $role->getId() : "Non défini",
+                    'Nom' => $role->getLabel() ? $role->getLabel() : "Non défini",
+                    'Actif' => $role->getActive() ? 'oui' : 'non',
+                    'Actions' => $this->renderView('role/datatableRoleRow.html.twig', [
+                        'url' => $url,
+                        'roleId' => $role->getId(),
+                    ]),
+                ];
             }
             $data['data'] = $rows;
-            return new JsonResponse($data);
+            return $this->json($data);
         }
+
         throw new BadRequestHttpException();
     }
 
     /**
      * @Route("/creer", name="role_new", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param RoleService $roleService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NoResultException
-     * @throws NonUniqueResultException
+     * @HasPermission({Menu::PARAM, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
-    public function new(Request $request,
-                        RoleService $roleService,
-                        EntityManagerInterface $entityManager): Response
-    {
+    public function new(Request $request, RoleService $roleService, EntityManagerInterface $entityManager): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
             $roleRepository = $entityManager->getRepository(Role::class);
             $parametreRepository = $entityManager->getRepository(Parametre::class);
 
@@ -147,31 +109,28 @@ class RoleController extends AbstractController
                 $roleService->parseParameters($role, $data);
                 $entityManager->flush();
 
-                return new JsonResponse([
-                    'success' => true,
-                    'msg' => 'Le rôle <strong>' . $role->getLabel() . '</strong> a bien été créé.'
+                return $this->json([
+                    "success" => true,
+                    "msg" => "Le rôle <strong>{$role->getLabel()}</strong> a bien été créé."
                 ]);
             } else {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => 'Le rôle <strong>' . $data['label'] . '</strong> existe déjà, veuillez choisir un autre nom.'
+                return $this->json([
+                    "success" => false,
+                    "msg" => "Le rôle <strong>{$data['label']}</strong> existe déjà, veuillez choisir un autre nom."
                 ]);
             }
         }
+
         throw new BadRequestHttpException();
     }
 
     /**
      * @Route("/api-modifier", name="role_api_edit", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param RoleService $roleService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function apiEdit(Request $request,
                             RoleService $roleService,
-                            EntityManagerInterface $entityManager): Response
-    {
+                            EntityManagerInterface $entityManager): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                 return $this->redirectToRoute('access_denied');
@@ -181,7 +140,7 @@ class RoleController extends AbstractController
 
             // on liste les id des actions que possède le rôle
             $actionsIdOfRole = array_map(
-                function (Action $action) {
+                function(Action $action) {
                     return $action->getId();
                 },
                 $role->getActions()->toArray()
@@ -200,21 +159,12 @@ class RoleController extends AbstractController
 
     /**
      * @Route("/modifier", name="role_edit",  options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param RoleService $roleService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NonUniqueResultException
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function edit(Request $request,
                          RoleService $roleService,
-                         EntityManagerInterface $entityManager): Response
-    {
+                         EntityManagerInterface $entityManager): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
             $roleRepository = $entityManager->getRepository(Role::class);
             $parametreRoleRepository = $entityManager->getRepository(ParametreRole::class);
             $parametreRepository = $entityManager->getRepository(Parametre::class);
@@ -261,21 +211,11 @@ class RoleController extends AbstractController
 
     /**
      * @Route("/verification", name="role_check_delete", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NoResultException
-     * @throws NonUniqueResultException
+     * @HasPermission({Menu::PARAM, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function checkRoleCanBeDeleted(Request $request,
-                                          EntityManagerInterface $entityManager): Response
-    {
+                                          EntityManagerInterface $entityManager): Response {
         if ($request->isXmlHttpRequest() && $roleId = json_decode($request->getContent(), true)) {
-
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
             $nbUsers = $utilisateurRepository->countByRoleId($roleId);
@@ -295,22 +235,12 @@ class RoleController extends AbstractController
 
     /**
      * @Route("/supprimer", name="role_delete",  options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param RoleService $roleService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     * @throws InvalidArgumentException
+     * @HasPermission({Menu::PARAM, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request,
                            RoleService $roleService,
-                           EntityManagerInterface $entityManager): Response
-    {
+                           EntityManagerInterface $entityManager): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
             $roleRepository = $entityManager->getRepository(Role::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $resp = false;
@@ -339,4 +269,5 @@ class RoleController extends AbstractController
         }
         throw new BadRequestHttpException();
     }
+
 }

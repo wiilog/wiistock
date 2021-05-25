@@ -134,7 +134,7 @@ class PurchaseRequestLine
         return $this->orderDate;
     }
 
-    public function setOrderDate(DateTimeInterface $orderDate): self
+    public function setOrderDate(?DateTimeInterface $orderDate): self
     {
         $this->orderDate = $orderDate;
 
