@@ -110,7 +110,8 @@ class DemandeController extends AbstractController
     /**
      * @Route("/api-modifier", name="demandeLivraison_api_edit", options={"expose"=true}, methods="GET|POST")
      */
-    public function editApi(Request $request, GlobalParamService $globalParamService,
+    public function editApi(Request $request,
+                            GlobalParamService $globalParamService,
                             EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
