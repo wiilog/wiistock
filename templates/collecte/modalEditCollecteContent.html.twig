@@ -33,10 +33,40 @@
     </div>
 </div>
 
+{% if collecte.filled %}
+
+    <div class="form-group row">
+        <label class="col-12" for="type">Type*</label>
+        <div class="col-12">
+            <select name="type" class="form-control data d-block type needed col-12" disabled>
+                <option value="{{ collecte.type.id }}">{{ collecte.type.label }}</option>
+                {% for type in types %}
+                    {% if collecte.type != type %}
+                        <option value="{{ type.id }}">{{ type.label }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+{% else %}
+    <div class="form-group">
+        <label for="type">Type*</label>
+        <select name="type" class="form-control data d-block type needed"
+                onclick="typeChoice($(this))"
+                onchange="toggleRequiredChampsLibres($(this),'create')">
+            <option value="">Type à choisir...</option>
+            {% for type in types %}
+                <option value="{{ type.id }}">{{ type.label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+{% endif %}
+
 <div class="form-group row">
     <label class="col-12" for="Pcollecte">Point de collecte</label>
     <div class="col-12">
-        <select class="pointCollecte form-control ajax-autocomplete-location-edit data w-100" name="Pcollecte">
+        <select class="pointCollecte form-control needed ajax-autocomplete-location-edit data w-100" name="Pcollecte" disabled>
             {% if collecte.pointCollecte %}
                 <option value="{{ collecte.pointCollecte.id }}">{{ collecte.pointCollecte.label }}</option>
             {% endif %}
@@ -54,20 +84,6 @@
 
 {% if collecte.filled %}
 
-    <div class="form-group row">
-        <label class="col-12" for="type">Type*</label>
-        <div class="col-12">
-            <select name="type" class="form-control data d-block type needed col-12" disabled>
-                <option value="{{ collecte.type.id }}">{{ collecte.type.label }}</option>
-                {% for type in types %}
-                    {% if collecte.type != type %}
-                        <option value="{{ type.id }}">{{ type.label }}</option>
-                    {% endif %}
-                {% endfor %}
-            </select>
-        </div>
-    </div>
-
     <!-- CHAMPS LIBRES -->
     <span class="toggle-collapsible expanded">Champs libres</span>
     <div class="collapsible expanded free-fields-container mb-2">
@@ -81,17 +97,6 @@
     </div>
 
 {% else %}
-    <div class="form-group">
-        <label for="type">Type*</label>
-        <select name="type" class="form-control data d-block type needed"
-                onclick="typeChoice($(this))"
-                onchange="toggleRequiredChampsLibres($(this),'edit')">
-            <option value="">Type à choisir...</option>
-            {% for type in types %}
-                <option value="{{ type.id }}">{{ type.label }}</option>
-            {% endfor %}
-        </select>
-    </div>
 
     <!-- CHAMPS LIBRES -->
     <span class="toggle-collapsible expanded">Champs libres</span>
