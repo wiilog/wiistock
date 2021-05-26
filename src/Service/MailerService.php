@@ -1,19 +1,12 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: c.gazaniol
- * Date: 24/04/2019
- * Time: 10:00
- */
 
 namespace App\Service;
 
 
 use App\Entity\MailerServer;
 use App\Entity\Utilisateur;
-use App\Helper\Stream;
 use Doctrine\ORM\EntityManagerInterface;
-use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\Stream;
 
 class MailerService
 {

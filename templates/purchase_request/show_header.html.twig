@@ -1,0 +1,88 @@
+{% extends 'utils/show-header.html.twig' %}
+
+{% block showTitle ('Demande d\'achat ' ~ request.number) %}
+
+{% set hasRightEdit = (
+    (request.status.draft or request.status.notTreated or request.status.inProgress)
+    and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT'))
+) %}
+{% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
+{% set displayReceptionLink = request.status.treated and request.associatedReceptions is not empty %}
+
+{# droit de suppression pour les demandes d'achats brouillons #}
+{% if request.status.draft %}
+    {% set hasRightEdit = hasRightEdit and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_DRAFT_PURCHASE_REQUEST')) %}
+    {% set hasRightDelete = hasRightDelete and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_DRAFT_PURCHASE_REQUEST')) %}
+{% elseif request.status.notTreated or request.status.inProgress %} {# droit de suppression pour les demandes d'achats à traiter et en cours #}
+    {% set hasRightEdit = hasRightEdit and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_ONGOING_PURCHASE_REQUESTS')) %}
+    {% set hasRightDelete = hasRightDelete and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_ONGOING_PURCHASE_REQUESTS')) %}
+{% elseif request.status.treated %} {# droit de suppression pour les demandes d'achats traités #}
+    {% set hasRightDelete = hasRightDelete and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_TREATED_PURCHASE_REQUESTS')) %}
+{% endif %}
+
+{% block showActions %}
+    <div class="btn-group">
+        {% if hasRightEdit %}
+            {% if request.status.draft %}
+                <button type="button"
+                        onclick="openEvolutionModal($('#modalValidatePurchaseRequest'))"
+                        data-id='{{ request.id }}'
+                        class="btn btn-primary btn-ripple">
+                    <i class="fa fa-check mr-2"></i>
+                    Valider
+                </button>
+            {% elseif request.status.notTreated %}
+                <button type="button"
+                        data-id='{{ request.id }}'
+                        onclick="openEvolutionModal($('#modalConsiderPurchaseRequest'))"
+                        class="btn btn-primary btn-ripple split-button">
+                    <i class="fa fa-check mr-2"></i>
+                    Prendre en compte
+                </button>
+            {% elseif request.status.inProgress %}
+                <button type="button"
+                        data-id='{{ request.id }}'
+                        onclick="openEvolutionModal($('#modalTreatPurchaseRequest'))"
+                        class="btn btn-primary btn-ripple split-button">
+                    <i class="fa fa-check mr-2"></i>
+                    Terminer la demande
+                </button>
+            {% endif %}
+        {% endif %}
+        {% if hasRightEdit or hasRightDelete or displayReceptionLink %}
+            <button type="button"
+                    class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                    data-toggle="dropdown"
+                    aria-haspopup="true"
+                    aria-expanded="false">
+                <span class="fa fa-angle-down"></span>
+            </button>
+            <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+                {% if displayReceptionLink %}
+                    <a href="{{ path('reception_index', {'purchaseRequest': request.id }) }}"
+                       class="dropdown-item" target="_blank">
+                        <i class="fas fa-external-link-alt mr-2"></i>Aller vers les réceptions</a>
+                {% endif %}
+                {% if hasRightEdit %}
+                    <a  onclick="editRow($(this), Routing.generate('purchase_request_api_edit', true), $('#modalEditPurchaseRequest'), $('#submitEditPurchaseRequest'), true, '#modalEditPurchaseRequest .editor-container-edit', false)"
+                        title="Modification"
+                        data-id='{{ request.id }}'
+                        data-target="#modalEditPurchaseRequest"
+                        data-toggle="modal"
+                        class="dropdown-item">
+                        <i class="fa fa-pen mr-2"></i>Modifier</a>
+                {% endif %}
+                {% if hasRightDelete %}
+                    <a href="" onclick="deleteRow($(this), $('#modalDeleteRequest'), $('#submitDeleteRequest'))"
+                       data-id='{{ request.id }}' data-target='#modalDeleteRequest' data-toggle='modal'
+                       class="dropdown-item">
+                        <i class="fa fa-trash mr-2"></i>Supprimer</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block showHiddenInputs %}
+    <input type="hidden" id="purchase-request-buyer-id" value="{{ request.buyer ? request.buyer.id }}"/>
+{% endblock %}

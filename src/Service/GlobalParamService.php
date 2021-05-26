@@ -107,4 +107,64 @@ Class GlobalParamService
 		file_put_contents($scssFile, "\$mainFont: \"$font\";");
 	}
 
+	public function getDefaultDeliveryLocationsByType(EntityManagerInterface $entityManager): array {
+
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+
+        $defaultDeliveryLocationsParam = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON);
+        $defaultDeliveryLocationsIds = json_decode($defaultDeliveryLocationsParam, true);
+
+        $defaultDeliveryLocations = [];
+        foreach ($defaultDeliveryLocationsIds as $typeId => $locationId) {
+            if ($typeId !== 'all' && $typeId) {
+                $type = $typeRepository->find($typeId);
+            }
+            if ($locationId) {
+                $location = $locationRepository->find($locationId);
+            }
+
+            $defaultDeliveryLocations[] = [
+                'location' => isset($location)
+                    ? [
+                        'label' => $location->getLabel(),
+                        'id' => $location->getId()
+                    ]
+                    : null,
+                'type' => isset($type)
+                    ? [
+                        'label' => $type->getLabel(),
+                        'id' => $type->getId()
+                    ]
+                    : null,
+            ];
+        }
+        return $defaultDeliveryLocations;
+    }
+
+	public function getDefaultDeliveryLocationsByTypeId(EntityManagerInterface $entityManager): array {
+
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+
+        $defaultDeliveryLocationsParam = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON);
+        $defaultDeliveryLocationsIds = json_decode($defaultDeliveryLocationsParam, true);
+
+        $defaultDeliveryLocations = [];
+        foreach ($defaultDeliveryLocationsIds as $typeId => $locationId) {
+            if ($locationId) {
+                $location = $locationRepository->find($locationId);
+            }
+
+            $defaultDeliveryLocations[$typeId] = isset($location)
+                ? [
+                    'label' => $location->getLabel(),
+                    'id' => $location->getId()
+                ]
+                : null;
+        }
+        return $defaultDeliveryLocations;
+    }
+
 }

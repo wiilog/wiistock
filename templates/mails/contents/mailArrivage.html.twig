@@ -46,9 +46,10 @@
         <li>
             Pièces jointes :
             <ul>
+                {% set linkBaseHref = app.request is not null ? app.request.getSchemeAndHttpHost() : app_url %}
                 {% for attachment in arrival.attachments %}
                     <li><a target="_blank"
-                           href="{{ attachment.fullPath is defined and attachment.fullPath is not null ? attachment.fullPath : '/uploads/attachements/' ~ attachment.fileName }}"
+                           href="{{ linkBaseHref ~ '/uploads/attachements/' ~ attachment.fileName }}"
                            download="{{ attachment.originalName }}">
                             {{ attachment.originalName }}
                         </a></li>

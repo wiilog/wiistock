@@ -12,7 +12,7 @@ use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
 use App\Entity\Article;
 use App\Entity\Utilisateur;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use App\Service\TransferOrderService;
 use DateTime;
 use App\Service\CSVExportService;

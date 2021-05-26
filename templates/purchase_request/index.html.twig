@@ -1,0 +1,35 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Demande | Achat{% endblock %}
+
+{% block page_filter %}
+    {% include 'purchase_request/filters.html.twig' with {
+        'page': 'PAGE_PURCHASE_REQUEST',
+        'tableSelector': '#tablePurchaseRequest',
+    } %}
+{% endblock %}
+{% block page_content %}
+    <div class="m-4 wii-page-card">
+        {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
+            <div class="row wii-page-card-header">
+                <div class="col-auto ml-auto">
+                    <div class="btn btn-primary btn-ripple"
+                         onclick="saveExportFile('purchase_request_export')">
+                        <span class="fa fa-file-csv mr-2"></span>Exporter au format CSV
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        <div class="row">
+            <div class="col-12">
+                <table id="tablePurchaseRequest" class="table w-100"></table>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/pages/purchase_request/index.js') }}?v={{ web_version }}"></script>
+{% endblock %}

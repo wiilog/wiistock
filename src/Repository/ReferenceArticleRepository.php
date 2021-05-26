@@ -12,7 +12,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Connection;
@@ -192,7 +192,7 @@ class ReferenceArticleRepository extends EntityRepository {
      * @param null $locationFilter
      * @return mixed
      */
-    public function getIdAndRefBySearch($search, $activeOnly = false, $minQuantity = null, $typeQuantity = null, $field = 'reference', $locationFilter = null)
+    public function getIdAndRefBySearch($search, $activeOnly = false, $minQuantity = null, $typeQuantity = null, $field = 'reference', $locationFilter = null, $buyerFilter = null)
     {
         $queryBuilder = $this->createQueryBuilder('r')
             ->select('r.id')
@@ -231,6 +231,12 @@ class ReferenceArticleRepository extends EntityRepository {
             $queryBuilder
                 ->andWhere("(r.emplacement IS NULL OR r.typeQuantite = 'article' OR r.emplacement = :location)")
                 ->setParameter('location', $locationFilter);
+        }
+
+        if ($buyerFilter) {
+            $queryBuilder
+                ->andWhere("r.buyer = :buyer")
+                ->setParameter('buyer', $buyerFilter);
         }
 
         return $queryBuilder
@@ -1183,8 +1189,10 @@ class ReferenceArticleRepository extends EntityRepository {
     public function findInCart(Utilisateur $user, array $params) {
         $qb = $this->createQueryBuilder("reference_article");
 
-        $qb->where(":cart MEMBER OF reference_article.carts")
-            ->setParameter("cart", $user->getCart());
+        $qb
+            ->innerJoin('reference_article.carts', 'cart')
+            ->where("cart.user = :user")
+            ->setParameter("user", $user);
 
         foreach($params["order"] as $order) {
             $column = $params["columns"][$order["column"]]['name'];

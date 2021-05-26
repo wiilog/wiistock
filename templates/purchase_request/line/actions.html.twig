@@ -1,0 +1,44 @@
+
+{% set hasRightEditLine = (
+    requestStatus
+    and requestStatus is defined
+    and requestStatus.inProgress
+    and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT'))
+    and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_ONGOING_PURCHASE_REQUESTS'))
+) %}
+
+{% set hasRightDeleteLine = (
+    requestStatus
+    and requestStatus is defined
+    and requestStatus.draft
+    and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT'))
+    and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_DRAFT_PURCHASE_REQUEST'))
+) %}
+
+{% if hasRightEditLine %}
+    <div class="d-none">
+        <div class="action-on-click"
+             data-id='{{ lineId }}'
+             data-target='#modalEditPurchaseRequestLine'
+             data-toggle='modal'
+             onclick="editRow($(this), Routing.generate('purchase_request_line_edit_api', true), $('#modalEditPurchaseRequestLine'), $('#modalEditPurchaseRequestLine').find('.submit-button'), false, '.editor-container-edit', false, callbackEditLineLoading)">
+            <i class='fas fa-eye'></i>
+        </div>
+    </div>
+{% endif %}
+{% if hasRightDeleteLine %}
+    <div class="d-flex">
+        <div class="dropdown dropright">
+            {% include 'datatable/dotsRow.html.twig' %}
+            <div class="dropdown-menu dropdown-follow-gt pointer">
+                <div class="dropdown-item"
+                     onclick="deleteRowLine($(this), $('#modalDeletePurchaseRequestLine').find('.submit-button'))"
+                     data-target='#modalDeletePurchaseRequestLine'
+                     data-toggle='modal'
+                     data-id='{{ lineId }}'>
+                    <i class='fas fa-trash mr-2'></i>Supprimer
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}

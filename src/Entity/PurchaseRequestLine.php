@@ -24,19 +24,24 @@ class PurchaseRequestLine
     private ?int $requestedQuantity = null;
 
     /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private ?int $orderedQuantity = null;
+
+    /**
      * @ORM\Column(type="datetime", nullable=true)
      */
     private ?DateTimeInterface $orderDate = null;
 
     /**
-     * @ORM\Column(type="datetime", nullable=true)
+     * @ORM\Column(type="date", nullable=true)
      */
     private ?DateTimeInterface $expectedDate = null;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(type="string", nullable=true)
      */
-    private ?int $orderNumber = null;
+    private ?string $orderNumber = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=ReferenceArticle::class, inversedBy="purchaseRequestLines")
@@ -112,12 +117,24 @@ class PurchaseRequestLine
         return $this;
     }
 
+    public function getOrderedQuantity(): ?int
+    {
+        return $this->orderedQuantity;
+    }
+
+    public function setOrderedQuantity(int $orderedQuantity): self
+    {
+        $this->orderedQuantity = $orderedQuantity;
+
+        return $this;
+    }
+
     public function getOrderDate(): ?DateTimeInterface
     {
         return $this->orderDate;
     }
 
-    public function setOrderDate(DateTimeInterface $orderDate): self
+    public function setOrderDate(?DateTimeInterface $orderDate): self
     {
         $this->orderDate = $orderDate;
 
@@ -136,12 +153,12 @@ class PurchaseRequestLine
         return $this;
     }
 
-    public function getOrderNumber(): ?int
+    public function getOrderNumber(): ?string
     {
         return $this->orderNumber;
     }
 
-    public function setOrderNumber(int $orderNumber): self
+    public function setOrderNumber(?string $orderNumber): self
     {
         $this->orderNumber = $orderNumber;
 

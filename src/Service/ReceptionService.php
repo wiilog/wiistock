@@ -18,18 +18,12 @@ use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
-use App\Service\GlobalParamService;
 use DateTime;
 use DateTimeZone;
-use Doctrine\ORM\NonUniqueResultException;
-use Exception;
 use InvalidArgumentException;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 
 class ReceptionService
 {
@@ -70,13 +64,23 @@ class ReceptionService
     public GlobalParamService $globalParamService;
 
 
-    public function getDataForDatatable(Utilisateur $user, $params = null)
+    public function getDataForDatatable(Utilisateur $user, $params = null, $purchaseRequestFilter = null)
     {
 
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $receptionRepository = $this->entityManager->getRepository(Reception::class);
 
-        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_RECEPTION, $user);
+        if ($purchaseRequestFilter) {
+            $filters = [
+                [
+                    'field' => 'purchaseRequest',
+                    'value' => $purchaseRequestFilter
+                ]
+            ];
+        } else {
+            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_RECEPTION, $user);
+        }
+
         $queryResult = $receptionRepository->findByParamAndFilters($params, $filters);
 
         $receptions = $queryResult['data'];
@@ -93,15 +97,6 @@ class ReceptionService
         ];
     }
 
-
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @param Utilisateur|null $currentUser
-     * @param array $data
-     * @param bool $fromImport
-     * @param $rowIndex
-     * @return Reception
-     */
     public function createAndPersistReception(EntityManagerInterface $entityManager,
                                               ?Utilisateur $currentUser,
                                               array $data,
@@ -247,13 +242,6 @@ class ReceptionService
         return $reception;
     }
 
-    /**
-     * @param Reception $reception
-     * @return array
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
     public function dataRowReception(Reception $reception)
     {
         return [
@@ -399,5 +387,64 @@ class ReceptionService
             ]]
                 : []
         );
+    }
+
+    public function getAlreadySavedReception(array &$collection, ?string $orderNumber, ?string $expectedDate, callable $onAdd = null): ?Reception {
+        $reception = null;
+        foreach($collection as $receptionIntel) {
+            if ($orderNumber === $receptionIntel['orderNumber']
+                && $expectedDate === $receptionIntel['expectedDate']) {
+                $reception = $receptionIntel['reception'];
+                break;
+            }
+        }
+
+        if (!$reception) {
+            $receptionRepository = $this->entityManager->getRepository(Reception::class);
+            $receptions = $receptionRepository->findBy(
+                [
+                    'orderNumber' => $orderNumber,
+                    'dateAttendue' => $expectedDate
+                        ? DateTime::createFromFormat('d/m/Y', $expectedDate, new DateTimeZone("Europe/Paris")) ?: null
+                        : null
+                ],
+                [
+                    'id' => 'DESC'
+                ]);
+
+            if (!empty($receptions)) {
+                $reception = $receptions[0];
+                $collection[] = [
+                    'orderNumber' => $orderNumber,
+                    'expectedDate' => $expectedDate,
+                    'reception' => $reception
+                ];
+
+                if(isset($onAdd)) {
+                    $onAdd();
+                }
+            }
+        }
+
+        return $reception;
+    }
+
+    public function setAlreadySavedReception(array &$collection, ?string $orderNumber, ?string $expectedDate, Reception $reception): void {
+        $receptionSaved = false;
+        foreach($collection as &$receptionIntel) {
+            if ($orderNumber === $receptionIntel['orderNumber']
+                && $expectedDate === $receptionIntel['expectedDate']) {
+                $receptionIntel['reception'] = $reception;
+                $receptionSaved = true;
+                break;
+            }
+        }
+        if (!$receptionSaved) {
+            $collection[] = [
+                'orderNumber' => $orderNumber,
+                'expectedDate' => $expectedDate,
+                'reception' => $reception
+            ];
+        }
     }
 }

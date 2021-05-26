@@ -1,4 +1,4 @@
-let tableArticles;
+let tableArticle;
 
 $(function() {
     const transferOriginId = $('#transfer-origin-id').val();

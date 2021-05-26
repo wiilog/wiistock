@@ -15,6 +15,8 @@ use App\Entity\LitigeHistoric;
 use App\Entity\FieldsParam;
 use App\Entity\CategorieCL;
 use App\Entity\MouvementStock;
+use App\Entity\PurchaseRequest;
+use App\Entity\PurchaseRequestLine;
 use App\Entity\TrackingMovement;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Attachment;
@@ -346,7 +348,8 @@ class ReceptionController extends AbstractController {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $data = $this->receptionService->getDataForDatatable($this->getUser(), $request->request);
+            $purchaseRequestFilter = $request->request->get('purchaseRequestFilter');
+            $data = $this->receptionService->getDataForDatatable($this->getUser(), $request->request, $purchaseRequestFilter);
 
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
             $fieldsParam = $fieldsParamRepository->getHiddenByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
@@ -429,16 +432,22 @@ class ReceptionController extends AbstractController {
     }
 
     /**
-     * @Route("/", name="reception_index", methods={"GET", "POST"}, options={"expose"=true})
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NonUniqueResultException
+     * @Route("/liste/{purchaseRequest}", name="reception_index", methods={"GET", "POST"}, options={"expose"=true})
      */
-    public function index(EntityManagerInterface $entityManager): Response {
-        if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
+    public function index(EntityManagerInterface $entityManager,
+                          PurchaseRequest $purchaseRequest = null): Response
+    {
+        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
             return $this->redirectToRoute('access_denied');
         }
 
+        $purchaseRequestLinesOrderNumbers = [];
+        if ($purchaseRequest) {
+            $purchaseRequestLinesOrderNumbers = $purchaseRequest->getPurchaseRequestLines()
+                ->map(function (PurchaseRequestLine $purchaseRequestLine) {
+                    return $purchaseRequestLine->getOrderNumber();
+                })->toArray();
+        }
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
@@ -462,7 +471,9 @@ class ReceptionController extends AbstractController {
             'typeChampLibres' => $typeChampLibre,
             'fieldsParam' => $fieldsParam,
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::RECEPTION),
-            'receptionLocation' => $this->globalParamService->getParamLocation(ParametrageGlobal::DEFAULT_LOCATION_RECEPTION)
+            'receptionLocation' => $this->globalParamService->getParamLocation(ParametrageGlobal::DEFAULT_LOCATION_RECEPTION),
+            'purchaseRequestFilter' => $purchaseRequest ? implode(',', $purchaseRequestLinesOrderNumbers) : 0,
+            'purchaseRequest' => $purchaseRequest ? $purchaseRequest->getId() : ''
         ]);
     }
 
@@ -927,7 +938,7 @@ class ReceptionController extends AbstractController {
             'utilisateurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
             'typeChampsLibres' => $typeChampLibreDL,
             'createDL' => $createDL ? $createDL->getValue() : false,
-            'livraisonLocation' => $globalParamService->getParamLocation(ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON),
+            'defaultDeliveryLocations' => $globalParamService->getDefaultDeliveryLocationsByTypeId($entityManager),
             'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
             'needsCurrentUser' => $needsCurrentUser,
             'detailsHeader' => $receptionService->createHeaderDetailsConfig($reception)

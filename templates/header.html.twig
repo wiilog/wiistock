@@ -69,18 +69,23 @@
                         hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_TRANSFER_REQ'))
                         and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE'))
                     ) %}
+                    {% set hasPurchaseRequestRights = (
+                        hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE'))
+                        and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_PURCHASE_REQUESTS'))
+                        ) %}
                     <div class="col-auto">
                         <a class="cart" href="{{ path('cart') }}">
-                            {% if app.user.cart and app.user.cart.references | length %}
-                                <div class="cart-total small">{{ app.user.cart.references | length }}</div>
-                            {% endif %}
+                            <div class="cart-total small {{ not app.user.cart or not app.user.cart.references | length ? 'd-none' }}">
+                                {{ app.user.cart.references | length }}
+                            </div>
                         </a>
                     </div>
                     {% if hasDeliveryRights
                         or hasCollectRights
                         or hasHandlingRights
                         or hasDispatchRights
-                        or hasTransferRights %}
+                        or hasTransferRights
+                        or hasPurchaseRequestRights%}
                         <div class="col-auto dropdown">
                             <button class="quick-plus" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span class="icon"></span>
@@ -137,6 +142,14 @@
                                         <span class="flex-fill align-self-center">Transfert</span>
                                     </a>
                                 {% endif %}
+                                {% if hasPurchaseRequestRights %}
+                                    <a
+                                        onclick="createPurchaseRequest()"
+                                        title="Achat">
+                                        <span class="wii-icon wii-icon-purchase quick-menu-icon mx-2"></span>
+                                        <span class="flex-fill align-self-center">Achat</span>
+                                    </a>
+                                {% endif %}
                                 {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) and app.user.role.label == constant('App\\Entity\\Role::CLIENT_UTIL') %}
                                     <a class="d-flex align-items-start" href="https://forms.office.com/Pages/ResponsePage.aspx?id=NhgDLW_TpECPU10VG8Uz0ORO07yh8_dHp_ZRkVcMgQJURjJHVzA5RjNHSEFXTkM4T1lWSllSSkFZVy4u" >
                                         <span class="wii-icon wii-icon-add quick-menu-icon mx-2"></span>
@@ -152,8 +165,8 @@
                     and app.user is defined
                     and app.user
                     and app.user.username is defined %}
-                    <a class="col col-lg-auto user"
-                       href="{{ path('user_index', {'open-modal': 'edit', 'modal-edit-id': app.user.id }) }}" style="display: flex; align-items: center;">
+                    <a class="col col-lg-auto user d-flex align-items-center"
+                       href="{{ path('user_index', {'open-modal': 'edit', 'modal-edit-id': app.user.id }) }}">
                         <div class="profile-picture">{{ app.user.username | first | upper }}</div>
                         <div class="flex-fill text-center text-truncate">{{ app.user.username }}</div>
                     </a>

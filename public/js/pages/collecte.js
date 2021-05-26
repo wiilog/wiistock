@@ -42,11 +42,6 @@ let submitDeleteCollecte = $("#submitDeleteCollecte");
 let urlDeleteCollecte = Routing.generate('collecte_delete', true)
 InitModal(modalDeleteCollecte, submitDeleteCollecte, urlDeleteCollecte, {tables: [table]});
 
-let modalModifyCollecte = $('#modalEditCollecte');
-let submitModifyCollecte = $('#submitEditCollecte');
-let urlModifyCollecte = Routing.generate('collecte_edit', true);
-InitModal(modalModifyCollecte, submitModifyCollecte, urlModifyCollecte, {tables: [table]});
-
 $.fn.dataTable.ext.search.push(
     function (settings, data, dataIndex) {
         let dateMin = $('#dateMin').val();
@@ -101,6 +96,21 @@ $(function() {
         initNewCollecteEditor("#modalNewCollecte");
         clearModal("#modalNewCollecte");
     });
+
+    $(`#modalNewCollecte select[name="type"]`).on(`change`, function() {
+        const $locationSelector = $(`#modalNewCollecte select[name="emplacement"]`);
+        const type = $(this).val();
+
+        $locationSelector.prop(`disabled`, type === '');
+        $locationSelector.val(null).trigger(`change`);
+
+        Select2Old.init($locationSelector, '', 1, {
+            route: 'get_locations_by_type',
+            param: {
+                type,
+            }
+        });
+    })
 });
 
 //initialisation editeur de texte une seule fois à la création
@@ -111,7 +121,14 @@ function initNewCollecteEditor(modal) {
         initEditorInModal(modal);
         editorNewCollecteAlreadyDone = true;
     }
-    Select2Old.location($('.ajax-autocomplete-location'))
+    Select2Old.location($('.ajax-autocomplete-location'));
+
+    const type = $(modal).find('select[name="type"] option:selected').val();
+    const $locationSelector = $(modal).find(`select[name="emplacement"]`);
+
+    if(!type) {
+        $locationSelector.prop(`disabled`, true);
+    }
 }
 
 function callbackSaveFilter() {

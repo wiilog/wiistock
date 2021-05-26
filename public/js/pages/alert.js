@@ -11,6 +11,9 @@ let tableAlerteConfig = {
         needsSearchOverride: true,
         needsResize: true
     },
+    rowConfig: {
+        classField: 'colorClass'
+    },
     columns: [
         { "data": 'actions', 'name': 'actions', 'title': '', 'orderable': false, className: 'noVis'},
         { "data": "type", "title": "Type d'alerte" },

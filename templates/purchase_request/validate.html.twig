@@ -1,0 +1,48 @@
+<form method="" class="modal fade" id="modalValidatePurchaseRequest" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Valider une demande d'achat</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-input">
+                {% if statuses is not empty %}
+                <div class="row">
+                    <div class="form-group col-12">
+                        <label>Statut*</label>
+                        <div class="w-100">
+                            <select name="status"
+                                    class="form-control data needed select2"
+                                    title="Statut">
+                                {% for status in statuses %}
+                                    <option value="{{ status.id }}">{{ status.nom }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                    {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+                        array: [],
+                        warningLabel: 'Vous n\'avez pas configuré de statut à traiter pour les demandes d\'achat',
+                        redirectPath: path('status_param_index'),
+                        redirectLabel: 'Aller vers la création des statuts.'
+                    } %}
+                {% endif %}
+            </div>
+
+            <div class="error-msg"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button id="submitValidatePurchaseRequest"
+                        type="button"
+                        name="id"
+                        class="btn btn-primary data">
+                    Enregistrer
+                </button>
+            </div>
+        </div>
+    </div>
+</form>

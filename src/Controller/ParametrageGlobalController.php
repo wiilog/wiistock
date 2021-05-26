@@ -20,7 +20,6 @@ use App\Entity\Translation;
 use App\Entity\Type;
 use App\Entity\WorkFreeDay;
 use App\Entity\ParametrageGlobal;
-use App\Kernel;
 use App\Service\AlertService;
 use App\Service\AttachmentService;
 use App\Service\GlobalParamService;
@@ -73,7 +72,6 @@ class ParametrageGlobalController extends AbstractController
         $categoryCLRepository = $entityManager->getRepository(CategorieCL::class);
         $translationRepository = $entityManager->getRepository(Translation::class);
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
-        $typeRepository = $entityManager->getRepository(Type::class);
 
         $labelLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::LABEL_LOGO);
         $emergencyIcon = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::EMERGENCY_ICON);
@@ -85,6 +83,9 @@ class ParametrageGlobalController extends AbstractController
         $emailLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::EMAIL_LOGO);
         $mobileLogoHeader = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MOBILE_LOGO_HEADER);
         $mobileLogoLogin = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MOBILE_LOGO_LOGIN);
+
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $deliveryTypeSettings = $globalParamService->getDefaultDeliveryLocationsByType($entityManager);
 
         $clsForLabels = $champsLibreRepository->findBy([
             'categorieCL' => $categoryCLRepository->findOneByLabel(CategorieCL::ARTICLE)
@@ -114,10 +115,11 @@ class ParametrageGlobalController extends AbstractController
                     'listStatusLitige' => $statusRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT)
                 ],
                 'deliverySettings' => [
-                    'livraisonLocation' => $globalParamService->getParamLocation(ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON),
                     'prepaAfterDl' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL),
                     'DLAfterRecep' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION),
                     'paramDemandeurLivraison' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEMANDEUR_DANS_DL),
+                    'deliveryRequestTypes' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]),
+                    'deliveryTypeSettings' => json_encode($deliveryTypeSettings),
                 ],
                 'arrivalSettings' => [
                     'redirect' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL) ?? true,
@@ -1193,6 +1195,27 @@ class ParametrageGlobalController extends AbstractController
             }
         }
 
+        throw new BadRequestHttpException();
+    }
+
+    /**
+     * @Route("/update-delivery-request-default-locations", name="update_delivery_request_default_locations", options={"expose"=true}, methods="POST")
+     */
+    public function updateDeliveryRequestDefaultLocations(Request $request,
+                                                          EntityManagerInterface $entityManager): Response {
+        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $globalSettingsRepository = $entityManager->getRepository(ParametrageGlobal::class);
+
+            $associatedTypesAndLocations = array_combine($data['types'], $data['locations']);
+            $deliveryRequestDefaultLocations = $globalSettingsRepository->findOneByLabel(ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON);
+            $deliveryRequestDefaultLocations->setValue(json_encode($associatedTypesAndLocations));
+
+            $entityManager->flush();
+
+            return $this->json([
+                'success' => true
+            ]);
+        }
         throw new BadRequestHttpException();
     }
 }

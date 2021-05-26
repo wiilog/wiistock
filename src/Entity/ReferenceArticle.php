@@ -8,6 +8,7 @@ use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use WiiCommon\Helper\Stream;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ReferenceArticleRepository")
@@ -25,6 +26,9 @@ class ReferenceArticle extends FreeFieldEntity
 
     const STOCK_MANAGEMENT_FEFO = 'FEFO';
     const STOCK_MANAGEMENT_FIFO = 'FIFO';
+
+    const PURCHASE_IN_PROGRESS_ORDER_STATE = "purchaseInProgress";
+    const WAIT_FOR_RECEPTION_ORDER_STATE = "waitForReception";
 
     use AttachmentTrait;
     use CommentTrait;
@@ -220,7 +224,12 @@ class ReferenceArticle extends FreeFieldEntity
     /**
      * @ORM\ManyToMany(targetEntity=Cart::class, mappedBy="references")
      */
-    private $carts;
+    private ?Collection $carts;
+
+    /**
+     * @ORM\Column(type="string", nullable=true)
+     */
+    private ?string $orderState = null;
 
     /**
      * @ORM\OneToMany(targetEntity=PurchaseRequestLine::class, mappedBy="reference")
@@ -1035,10 +1044,7 @@ class ReferenceArticle extends FreeFieldEntity
         return $this;
     }
 
-    /**
-     * @return Collection|ReferenceArticle[]
-     */
-    public function getPurchaseRequestLines(): ?PurchaseRequestLine
+    public function getPurchaseRequestLines(): ?Collection
     {
         return $this->purchaseRequestLines;
     }
@@ -1075,4 +1081,26 @@ class ReferenceArticle extends FreeFieldEntity
         return $this;
     }
 
+    public function getAssociatedArticles(): array
+    {
+        return $this->typeQuantite === self::TYPE_QUANTITE_REFERENCE
+            ? []
+            : Stream::from($this->articlesFournisseur)
+            ->map(function(ArticleFournisseur $articleFournisseur) {
+                return $articleFournisseur->getArticles()->toArray();
+            })
+            ->flatten()
+            ->unique()
+            ->toArray();
+    }
+
+
+    public function getOrderState(): ?string {
+        return $this->orderState;
+    }
+
+    public function setOrderState(?string $orderState): self {
+        $this->orderState = $orderState;
+        return $this;
+    }
 }

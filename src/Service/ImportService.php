@@ -23,7 +23,7 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\ImportException;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use Closure;
 use DateTimeZone;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -846,7 +846,8 @@ class ImportService
     private function importReceptionEntity(array $data,
                                            array &$receptionsWithCommand,
                                            ?Utilisateur $user,
-                                           array &$stats)
+                                           array &$stats,
+                                           ReceptionService $receptionService)
     {
         $refArtRepository = $this->em->getRepository(ReferenceArticle::class);
 
@@ -855,7 +856,7 @@ class ImportService
             $user = $userRepository->find($user->getId());
         }
 
-        $reception = $this->getAlreadySavedReception($receptionsWithCommand, $data['orderNumber'], $data['expectedDate'], $stats);
+        $reception = $receptionService->getAlreadySavedReception($receptionsWithCommand, $data['orderNumber'], $data['expectedDate'], fn() => $this->updateStats($stats, false));
         $newEntity = !isset($reception);
         if (!$reception) {
             try {
@@ -885,7 +886,7 @@ class ImportService
                         throw $exception;
                 }
             }
-            $this->setAlreadySavedReception($receptionsWithCommand, $data['orderNumber'], $data['expectedDate'], $reception);
+            $this->receptionService->setAlreadySavedReception($receptionsWithCommand, $data['orderNumber'], $data['expectedDate'], $reception);
         }
 
         if(!empty($data['référence'])) {
@@ -1508,62 +1509,5 @@ class ImportService
     {
         $this->em->clear();
         $this->currentImport = $this->em->find(Import::class, $this->currentImport->getId());
-    }
-
-    private function getAlreadySavedReception(array &$collection, ?string $orderNumber, ?string $expectedDate, array &$stats): ?Reception {
-        $reception = null;
-        foreach($collection as $receptionIntel) {
-            if ($orderNumber === $receptionIntel['orderNumber']
-                && $expectedDate === $receptionIntel['expectedDate']) {
-                $reception = $receptionIntel['reception'];
-                break;
-            }
-        }
-
-        if (!$reception) {
-            $receptionRepository = $this->em->getRepository(Reception::class);
-            $receptions = $receptionRepository->findBy(
-                [
-                    'orderNumber' => $orderNumber,
-                    'dateAttendue' => $expectedDate
-                        ? DateTime::createFromFormat('d/m/Y', $expectedDate, new DateTimeZone("Europe/Paris")) ?: null
-                        : null
-                ],
-                [
-                    'id' => 'DESC'
-                ]);
-
-            if (!empty($receptions)) {
-                $reception = $receptions[0];
-                $collection[] = [
-                    'orderNumber' => $orderNumber,
-                    'expectedDate' => $expectedDate,
-                    'reception' => $reception
-                ];
-
-                $this->updateStats($stats, false);
-            }
-        }
-
-        return $reception;
-    }
-
-    private function setAlreadySavedReception(array &$collection, ?string $orderNumber, ?string $expectedDate, Reception $reception): void {
-        $receptionSaved = false;
-        foreach($collection as &$receptionIntel) {
-            if ($orderNumber === $receptionIntel['orderNumber']
-                && $expectedDate === $receptionIntel['expectedDate']) {
-                $receptionIntel['reception'] = $reception;
-                $receptionSaved = true;
-                break;
-            }
-        }
-        if (!$receptionSaved) {
-            $collection[] = [
-                'orderNumber' => $orderNumber,
-                'expectedDate' => $expectedDate,
-                'reception' => $reception
-            ];
-        }
     }
 }

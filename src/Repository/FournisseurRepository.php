@@ -4,7 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Fournisseur;
 use App\Helper\QueryCounter;
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use Doctrine\ORM\EntityRepository;
 
 /**
@@ -80,6 +80,7 @@ class FournisseurRepository extends EntityRepository
 
         $qb->select('supplier.id AS id')
             ->addSelect('supplier.nom AS text')
+            ->addSelect('supplier.codeReference AS code')
             ->where('supplier.nom LIKE :search')
             ->orWhere('supplier.codeReference LIKE :search')
             ->setParameter('search', '%' . $search . '%');

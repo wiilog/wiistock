@@ -24,8 +24,9 @@ use App\Entity\CategorieCL;
 use App\Entity\Collecte;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
-use App\Helper\Stream;
+use App\Helper\FormatHelper;
 use App\Service\AttachmentService;
+use WiiCommon\Helper\Stream;
 use App\Service\DemandeCollecteService;
 use App\Service\MouvementStockService;
 use App\Service\FreeFieldService;
@@ -239,8 +240,14 @@ class ReferenceArticleController extends AbstractController
             $refArticle->setQuantiteReservee(0);
             $refArticle->setStockManagement($data['stockManagement'] ?? null);
 
-            foreach (explode(",", $data["managers"]) as $manager) {
-                $refArticle->addManager($userRepository->find($manager));
+            $managerIds = Stream::explode(",", $data["managers"])
+                ->filter(fn($userId) => $userId)
+                ->toArray();
+            foreach ($managerIds as $managerId) {
+                $manager = $userRepository->find($managerId);
+                if ($manager) {
+                    $refArticle->addManager($manager);
+                }
             }
 
             $supplierReferenceLines = json_decode($data['frl'], true);
@@ -549,17 +556,31 @@ class ReferenceArticleController extends AbstractController
             $typeQuantity = $request->query->get('typeQuantity');
             $field = $request->query->get('field', 'reference');
             $locationFilter = $request->query->get('locationFilter');
+            $buyerFilter = $request->query->get('buyerFilter');
             $refArticles = $referenceArticleRepository->getIdAndRefBySearch(
                 $search,
                 $activeOnly,
                 $minQuantity !== null ? (int) $minQuantity : null,
                 $typeQuantity,
                 $field,
-                $locationFilter
+                $locationFilter,
+                $buyerFilter
             );
             return new JsonResponse(['results' => $refArticles]);
         }
         throw new BadRequestHttpException();
+    }
+
+    /**
+     * @Route("/{reference}/data", name="get_reference_data", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
+     */
+    public function getReferenceData(ReferenceArticle $reference)
+    {
+        return $this->json([
+            'label' => $reference->getLibelle(),
+            'buyer' => FormatHelper::user($reference->getBuyer()),
+            'stockQuantity' => $reference->getQuantiteStock()
+        ]);
     }
 
     /**

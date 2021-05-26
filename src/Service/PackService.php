@@ -20,8 +20,7 @@ use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 use Twig\Environment as Twig_Environment;
 
-
-Class PackService
+class PackService
 {
 
     private $entityManager;
@@ -36,7 +35,8 @@ Class PackService
                                 SpecificService $specificService,
                                 Security $security,
                                 Twig_Environment $template,
-                                EntityManagerInterface $entityManager) {
+                                EntityManagerInterface $entityManager)
+    {
         $this->entityManager = $entityManager;
         $this->specificService = $specificService;
         $this->trackingMovementService = $trackingMovementService;
@@ -101,7 +101,7 @@ Class PackService
                 : '',
             'packOrigin' => $this->template->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'arrivageType' => $pack->getArrivage() ? $pack->getArrivage()->getType()->getLabel() : '',
-        'packLocation' => $lastPackMovement
+            'packLocation' => $lastPackMovement
                 ? ($lastPackMovement->getEmplacement()
                     ? $lastPackMovement->getEmplacement()->getLabel()
                     : '')
@@ -113,7 +113,8 @@ Class PackService
      * @param array $data
      * @return array ['success' => bool, 'msg': string]
      */
-    public function checkPackDataBeforeEdition(array $data): array {
+    public function checkPackDataBeforeEdition(array $data): array
+    {
         $quantity = $data['quantity'] ?? null;
         $weight = !empty($data['weight']) ? str_replace(",", ".", $data['weight']) : null;
         $volume = !empty($data['volume']) ? str_replace(",", ".", $data['volume']) : null;
@@ -125,14 +126,14 @@ Class PackService
             ];
         }
 
-        if (!empty($weight) && (!is_numeric($weight) || ((float) $weight) <= 0)) {
+        if (!empty($weight) && (!is_numeric($weight) || ((float)$weight) <= 0)) {
             return [
                 'success' => false,
                 'msg' => 'Le poids doit être un nombre valide supérieur à 0.'
             ];
         }
 
-        if (!empty($volume) && (!is_numeric($volume) || ((float) $volume) <= 0)) {
+        if (!empty($volume) && (!is_numeric($volume) || ((float)$volume) <= 0)) {
             return [
                 'success' => false,
                 'msg' => 'Le volume doit être un nombre valide supérieur à 0.'
@@ -145,7 +146,8 @@ Class PackService
         ];
     }
 
-    public function editPack(array $data, NatureRepository $natureRepository, Pack $pack) {
+    public function editPack(array $data, NatureRepository $natureRepository, Pack $pack)
+    {
         $natureId = $data['nature'] ?? null;
         $quantity = $data['quantity'] ?? null;
         $comment = $data['comment'] ?? null;
@@ -168,11 +170,11 @@ Class PackService
      * @param array $options Either ['arrival' => Arrivage, 'nature' => Nature] or ['code' => string]
      * @return Pack
      */
-    public function createPack(array $options = []): Pack {
+    public function createPack(array $options = []): Pack
+    {
         if (!empty($options['code'])) {
             $pack = $this->createPackWithCode($options['code']);
-        }
-        else {
+        } else {
             /** @var Arrivage $arrival */
             $arrival = $options['arrival'];
 
@@ -202,20 +204,11 @@ Class PackService
      * @param string code
      * @return Pack
      */
-    public function createPackWithCode(string $code): Pack {
+    public function createPackWithCode(string $code): Pack
+    {
         $pack = new Pack();
         $pack->setCode(str_replace("    ", " ", $code));
         return $pack;
-    }
-
-    public function getHighestCodeByPrefix(Arrivage $arrivage): int {
-        /** @var Pack $lastColis */
-        $lastColis = $arrivage->getPacks()->last();
-        $lastCode = $lastColis ? $lastColis->getCode() : null;
-        $lastCodeSplitted = isset($lastCode) ? explode('-', $lastCode) : null;
-        return (int) ((isset($lastCodeSplitted) && count($lastCodeSplitted) > 1)
-            ? $lastCodeSplitted[1]
-            : 0);
     }
 
     /**
@@ -231,7 +224,8 @@ Class PackService
                                       Arrivage $arrivage,
                                       array $colisByNatures,
                                       $user,
-                                      bool $persistTrackingMovements = true): array {
+                                      bool $persistTrackingMovements = true): array
+    {
         $natureRepository = $entityManager->getRepository(Nature::class);
 
         $location = $persistTrackingMovements

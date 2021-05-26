@@ -1,0 +1,58 @@
+<div class="modal fade" id="modalAddPurchaseRequestLine" role="dialog" aria-hidden="true" >
+    <div class="modal-dialog  modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ajouter une référence</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-input container-fluid">
+                <form>
+                    <div class="row">
+                        <div class="form-group col-12">
+                            <label for="add-article-reference" title="référence">
+                                {{ 'reference.référence'|trans }}*
+                            </label>
+                            <div class="w-100">
+                                <select class="ajax-autocomplete form-control data needed" name="reference"
+                                    onchange="onReferenceChange($(this))" id="add-article-reference">
+                                </select>
+                            </div>
+                        </div>
+                        <div id="add-article-code-selector" class="col-12 clear"></div>
+                    </div>
+                    <div class="row line-form-following-container d-none">
+                        <div class="form-group col-12">
+                            <label>Libelle</label>
+                            <input type="text" disabled class="w-100 form-control" name="label" title="Libellé">
+                        </div>
+                        <div class="form-group col-12 col-md-6">
+                            <label>Quantité en stock</label>
+                            <input type="text" disabled class="w-100 form-control" name="stockQuantity" title="Quantité en stock">
+                        </div>
+                        <div class="form-group col-12 col-md-6">
+                            <label>Acheteur</label>
+                            <input type="text" disabled class="w-100 form-control" name="buyer" title="Acheteur">
+                        </div>
+                        <div class="form-group col-12">
+                            <label>Quantité demandée*</label>
+                            <input type="number" class="w-100 form-control data needed" min="1" name="requestedQuantity" title="Quantité demandée">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="pl-2 error-msg"></div>
+            <div class="modal-footer">
+                <div class="btn btn-secondary" data-dismiss="modal">Annuler</div>
+                <button disabled
+                        name="request"
+                        value="{{request.id}}"
+                        type="button"
+                        class="btn data btn-primary submit-button">
+                    Ajouter
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -2,17 +2,26 @@
 
 namespace App\Entity;
 
+use App\Entity\Traits\AttachmentTrait;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use App\Repository\PurchaseRequestRepository;
 use Doctrine\ORM\Mapping as ORM;
+use App\Helper\FormatHelper;
+use WiiCommon\Helper\Stream;
 
 /**
  * @ORM\Entity(repositoryClass=PurchaseRequestRepository::class)
  */
 class PurchaseRequest
 {
+    use AttachmentTrait;
+
+    const DRAFT = 'Brouillon';
+    const NOT_TREATED = 'A traiter';
+    const NUMBER_PREFIX = 'DA';
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -24,6 +33,11 @@ class PurchaseRequest
      * @ORM\Column(type="text", nullable=true)
      */
     private ?string $comment = null;
+
+    /**
+     * @ORM\Column(type="string", nullable=false, unique=true)
+     */
+    private ?string $number = null;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
@@ -64,7 +78,7 @@ class PurchaseRequest
     private ?Statut $status = null;
 
     /**
-     * @ORM\OneToMany(targetEntity=PurchaseRequestLine::class, mappedBy="purchaseRequest")
+     * @ORM\OneToMany(targetEntity=PurchaseRequestLine::class, mappedBy="purchaseRequest", cascade={"remove"})
      */
     private ?Collection $purchaseRequestLines;
 
@@ -72,6 +86,7 @@ class PurchaseRequest
     public function __construct()
     {
         $this->purchaseRequestLines = new ArrayCollection();
+        $this->attachments = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -93,6 +108,16 @@ class PurchaseRequest
         if($requester) {
             $requester->addPurchaseRequestRequester($this);
         }
+
+        return $this;
+    }
+
+    public function getNumber(): ?string {
+        return $this->number;
+    }
+
+    public function setNumber(?string $number): self {
+        $this->number = $number;
 
         return $this;
     }
@@ -230,5 +255,35 @@ class PurchaseRequest
         }
 
         return $this;
+    }
+
+    public function getAssociatedReceptions() {
+        $associatedReceptions = [];
+        if (!$this->getPurchaseRequestLines()->isEmpty()) {
+            $associatedReceptions = Stream::from($this->getPurchaseRequestLines()->toArray())
+                ->reduce(function (Stream $carry, PurchaseRequestLine $purchaseRequestLine) {
+                    $newReception = [];
+                    if($purchaseRequestLine->getReception()) {
+                        $newReception[$purchaseRequestLine->getReception()->getId()] = $purchaseRequestLine->getReception();
+                    }
+                    return $carry->concat($newReception);
+                }, Stream::from([]))
+                ->values();
+        }
+
+        return $associatedReceptions;
+    }
+
+    public function serialize(): array {
+        return [
+            'number' => $this->getNumber(),
+            'status' => FormatHelper::status($this->getStatus()),
+            'requester' => FormatHelper::user($this->getRequester()),
+            'buyer' => FormatHelper::user($this->getBuyer()),
+            'creationDate' => FormatHelper::datetime($this->getCreationDate()),
+            'validationDate' => FormatHelper::datetime($this->getValidationDate()),
+            'considerationDate' => FormatHelper::datetime($this->getConsiderationDate()),
+            'comment' => FormatHelper::html($this->getComment()),
+        ];
     }
 }

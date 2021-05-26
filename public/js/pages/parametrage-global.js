@@ -47,14 +47,17 @@ const handlingColorHasChanged = {
 
 $(function () {
     Select2Old.init($('#locationArrivageDest'));
-    Select2Old.location($('[name=param-default-location-if-custom]'))
-    Select2Old.location($('[name=param-default-location-if-emergency]'))
+    Select2Old.init($('select[name=deliveryRequestType]'));
+    Select2Old.location($('[name=param-default-location-if-custom]'));
+    Select2Old.location($('[name=param-default-location-if-emergency]'));
     Select2Old.init($('#listNaturesColis'));
     Select2Old.initFree($('select[name="businessUnit"]'));
     Select2Old.initFree($('select[name="dispatchEmergencies"]'));
     Select2Old.location($('.ajax-autocomplete-location'));
     Select2Old.carrier($('.ajax-autocomplete-transporteur'));
     Select2Old.initValues($('#receptionLocation'), $('#receptionLocationValue'));
+
+    initDeliveryRequestDefaultLocations();
 
     updateImagePreview('#preview-label-logo', '#upload-label-logo');
     updateImagePreview('#preview-emergency-icon', '#upload-emergency-icon');
@@ -85,10 +88,6 @@ $(function () {
 
     $('[name=param-default-location-if-emergency]').on('change', function () {
         editParamLocations($(this), $('#emergenciesArrivalsLocation'))
-    });
-
-    $('#locationDemandeLivraison').on('change', function() {
-        editParamLocations($(this), $('#locationDemandeLivraisonValue'));
     });
 
     // config tableau de bord : transporteurs
@@ -122,40 +121,10 @@ $(function () {
 });
 
 function initValuesForDashboard() {
-    Select2Old.initValues($('#locationToTreat'), $('#locationToTreatValue'));
-    Select2Old.initValues($('#locationWaitingDock'), $( '#locationWaitingDockValue'));
-    Select2Old.initValues($('#locationWaitingAdmin'), $( '#locationWaitingAdminValue'));
-    Select2Old.initValues($('#locationAvailable'), $( '#locationAvailableValue'));
-    Select2Old.initValues($('#locationDropZone'), $( '#locationDropZoneValue'));
-    Select2Old.initValues($('#locationLitiges'), $( '#locationLitigesValue'));
-    Select2Old.initValues($('#locationUrgences'), $( '#locationUrgencesValue'));
-    Select2Old.initValues($('#locationsFirstGraph'), $( '#locationsFirstGraphValue'));
-    Select2Old.initValues($('#locationsSecondGraph'), $( '#locationsSecondGraphValue'));
-
     // Set location values for arrivals
     Select2Old.initValues($('#locationArrivageDest'), $( '#locationArrivageDestValue'));
     Select2Old.initValues($('[name=param-default-location-if-custom]'), $( '#customsArrivalsLocation'));
     Select2Old.initValues($('[name=param-default-location-if-emergency]'), $( '#emergenciesArrivalsLocation'));
-
-    Select2Old.initValues($('#locationDemandeLivraison'), $('#locationDemandeLivraisonValue'));
-    Select2Old.initValues($('#packaging1'), $('#packagingLocation1'));
-    Select2Old.initValues($('#packaging2'), $('#packagingLocation2'));
-    Select2Old.initValues($('#packaging3'), $('#packagingLocation3'));
-    Select2Old.initValues($('#packaging4'), $('#packagingLocation4'));
-    Select2Old.initValues($('#packaging5'), $('#packagingLocation5'));
-    Select2Old.initValues($('#packaging6'), $('#packagingLocation6'));
-    Select2Old.initValues($('#packaging7'), $('#packagingLocation7'));
-    Select2Old.initValues($('#packaging8'), $('#packagingLocation8'));
-    Select2Old.initValues($('#packaging9'), $('#packagingLocation9'));
-    Select2Old.initValues($('#packaging10'), $('#packagingLocation10'));
-    Select2Old.initValues($('#packagingRPA'), $('#packagingLocationRPA'));
-    Select2Old.initValues($('#packagingLitige'), $('#packagingLocationLitige'));
-    Select2Old.initValues($('#packagingKitting'), $( '#packagingLocationKitting'));
-    Select2Old.initValues($('#packagingUrgence'), $('#packagingLocationUrgence'));
-    Select2Old.initValues($('#packagingDSQR'), $('#packagingLocationDSQR'));
-    Select2Old.initValues($('#packagingDestinationGT'), $('#packagingLocationDestinationGT'));
-    Select2Old.initValues($('#packagingOrigineGT'), $('#packagingLocationOrigineGT'));
-    Select2Old.initValues($('#carrierDock'), $( '#carrierDockValue'));
 }
 
 function updateToggledParam(switchButton) {
@@ -600,4 +569,173 @@ function editMultipleSelect($select, paramName) {
             showBSAlert("Une erreur est survenue lors de la mise à jour de la valeur", "success");
         }
     })
+}
+
+function newTypeAssociation($button, type = undefined, location = undefined) {
+    const $settingTypeAssociation = $(`.setting-type-association`);
+    const $typeTemplate = $(`#type-template`);
+
+    let allFilledSelect = true;
+    $settingTypeAssociation.find(`select[name=deliveryRequestLocation]`).each(function() {
+        if(!$(this).val()) {
+            allFilledSelect = false;
+        }
+    });
+
+    if (allFilledSelect) {
+        $button.prop(`disabled`, true);
+        $settingTypeAssociation.append($typeTemplate.html());
+
+        const $typeSelect = $settingTypeAssociation.last().find(`select[name=deliveryRequestType]`);
+        const $locationSelect = $settingTypeAssociation.last().find(`select[name=deliveryRequestLocation]`);
+
+        if (type && location) {
+            appendSelectOptions($typeSelect, $locationSelect, type, location);
+        } else if (location) {
+            let type = {
+                id: 'all',
+                label: 'Tous les types'
+            }
+            appendSelectOptions($typeSelect, $locationSelect, type, location);
+        } else {
+            Select2Old.init($settingTypeAssociation.find('select[name=deliveryRequestType]'), '', 0, {
+                route: `get_unique_types`,
+                param: {
+                    types: getAlreadyDefinedTypes()
+                }
+            });
+
+            Select2Old.init($settingTypeAssociation.last().find(`select[name=deliveryRequestLocation]`), ``, 1, {
+                route: `get_locations_by_type`,
+                param: {
+                    type: $typeSelect.val()
+                }
+            });
+        }
+    } else {
+        showBSAlert(`Tous les emplacements doivent être renseignés`, `warning`);
+    }
+}
+
+function onTypeChange($select) {
+    const $settingTypeAssociation = $select.closest('.setting-type-association');
+    const $newTypeAssociationButton = $('.new-type-association-button');
+    const $allTypeSelect = $settingTypeAssociation.find(`select[name=deliveryRequestType]`);
+
+    const $typeAssociationContainer = $select.closest('.type-association-container');
+    const $associatedLocation = $typeAssociationContainer.find('select[name="deliveryRequestLocation"]');
+    $associatedLocation.val(null).trigger('change');
+
+    $.get(Routing.generate(`get_unique_types`, {types: getAlreadyDefinedTypes()})).then((data) => {
+
+        let allFilledSelect = true;
+        $allTypeSelect.each(function() {
+            if(!$(this).val()) {
+                allFilledSelect = false;
+            }
+        });
+
+        Select2Old.init($allTypeSelect, '', 0, {
+            route: `get_unique_types`,
+            param: {
+                types: getAlreadyDefinedTypes()
+            }
+        });
+
+        if($select.val() === `all` || data.results.length === 0 || !allFilledSelect) {
+            $newTypeAssociationButton.prop(`disabled`, true);
+        } else {
+            $newTypeAssociationButton.prop(`disabled`, false);
+            Select2Old.init($settingTypeAssociation.find(`select[name=deliveryRequestLocation]`), '', 1, {
+                route: `get_locations_by_type`,
+                param: {
+                    type: $select.val()
+                }
+            });
+        }
+    });
+}
+
+function removeAssociationLine($button) {
+    const $typeAssociationContainer = $('.type-association-container');
+
+    if($typeAssociationContainer.length === 1) {
+        showBSAlert('Au moins une association type/emplacement est nécessaire', 'warning')
+    } else {
+        $button.prev(`.type-association-container`).remove();
+        $button.closest(`div`).remove();
+        $('.new-type-association-button').prop(`disabled`, false);
+    }
+}
+
+function updateDeliveryRequestDefaultLocations() {
+    const $selectTypes = $(`select[name=deliveryRequestType]`);
+    const $selectLocations = $(`select[name=deliveryRequestLocation]`);
+
+    const types = [];
+    let filledSelectTypes = true;
+    $selectTypes.each(function() {
+        if(!$(this).val()) {
+            filledSelectTypes = false;
+        } else {
+            types.push($(this).val());
+        }
+    });
+
+    const locations = [];
+    let filledSelectLocations = true;
+    $selectLocations.each(function() {
+        if(!$(this).val()) {
+            filledSelectLocations = false;
+        } else {
+            locations.push($(this).val());
+        }
+    });
+
+    if(!filledSelectLocations) {
+        showBSAlert(`Tous les emplacements doivent être renseignés`, `warning`);
+    } else if(!filledSelectTypes) {
+        showBSAlert(`Tous les types doivent être renseignés`, `warning`);
+    } else {
+        const path = Routing.generate(`update_delivery_request_default_locations`, true);
+        const params = JSON.stringify({types: types, locations: locations});
+
+        $.post(path, params, (data) => {
+            if (data.success) {
+                showBSAlert(`Les emplacements de livraison par défaut ont bien été mis à jour.`, `success`);
+            } else {
+                showBSAlert(`Une erreur est survenue lors de l'enregistrement des emplacements de livraison par défaut.`, `danger`);
+            }
+        });
+    }
+}
+
+function getAlreadyDefinedTypes() {
+    const $settingTypeAssociation = $('.setting-type-association');
+
+    let types = [];
+    $settingTypeAssociation.find(`select[name=deliveryRequestType]`).each(function() {
+        types.push($(this).val());
+    });
+
+    return types;
+}
+
+function initDeliveryRequestDefaultLocations() {
+    const $deliveryTypeSettings = $(`input[name=deliveryTypeSettings]`);
+    const deliveryTypeSettingsValues = JSON.parse($deliveryTypeSettings.val());
+
+    deliveryTypeSettingsValues.forEach(item => {
+        newTypeAssociation($(`button.new-type-association-button`), item.type, item.location);
+    });
+}
+
+function appendSelectOptions(typeSelect, locationSelect, type, location) {
+    typeSelect
+        .append(new Option(type.label, type.id, false, true))
+        .trigger(`change`);
+
+    locationSelect
+        .append(new Option(location.label, location.id, false, true))
+        .trigger(`change`);
 }

@@ -2,7 +2,7 @@
 
 namespace App\Entity\Dashboard\Meter;
 
-use App\Helper\Stream;
+use WiiCommon\Helper\Stream;
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Dashboard;
 use App\Repository\Dashboard as DashboardRepository;

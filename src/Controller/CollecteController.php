@@ -15,6 +15,7 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\Article;
+use App\Helper\FormatHelper;
 use DateTime;
 use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
@@ -194,7 +195,7 @@ class CollecteController extends AbstractController
                 $rowsRC[] = [
                     'Référence' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getReference() : ''),
                     'Libellé' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getLibelle() : ''),
-                    'Emplacement' => $collecte->getPointCollecte()->getLabel(),
+                    'Emplacement' => FormatHelper::location($collecte->getPointCollecte()),
                     'Quantité' => ($referenceCollecte->getQuantite() ? $referenceCollecte->getQuantite() : ''),
                     'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
                         'type' => 'reference',

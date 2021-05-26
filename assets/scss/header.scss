@@ -134,22 +134,21 @@
 }
 
 @media (max-width: $mobile-breakpoint) {
-        nav#main-nav {
-            position: initial;
-        }
+    nav#main-nav {
+        position: initial;
 
-    .dropdown-header{
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        height: 60px;
-        font-family: Retroyal, sans-serif;
-        font-style: normal;
-        font-weight: bold;
-        font-size: 2rem;
-        padding: 0 16px;
-        color:$blueGT;
-    }
+        .dropdown-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 60px;
+            font-family: Retroyal, sans-serif;
+            font-style: normal;
+            font-weight: bold;
+            font-size: 2rem;
+            padding: 0 16px;
+            color: $blueGT;
+        }
 
         .dropdown-menu.pointer {
             position: absolute;
@@ -186,7 +185,7 @@
                 position: relative;
                 top: 0;
                 right: 0;
-                height:50%;
+                height: 50%;
                 box-shadow: initial;
                 padding: 0 0 8px 0;
                 margin-left: 18px;
@@ -194,6 +193,7 @@
             }
         }
     }
+}
 
 .logo {
     height: 7vh;

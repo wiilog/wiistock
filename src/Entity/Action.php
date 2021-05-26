@@ -61,9 +61,8 @@ class Action {
     const GENERATE_DISPATCH_BILL = "générer un bon d'acheminement";
     const DELETE_PROCESSED_DISPATCH = 'supprimer acheminements traités';
     const DELETE_PROCESSED_HANDLING = 'supprimer services traités';
-    const SHOW_PURCHASE_REQUESTS = "afficher demandes d'achat";
-    const DELETE_DRAFT_PURCHASE_REQUEST = "afficher demandes d'achat brouillon";
-    const EDIT_TREATED_PURCHASE_REQUESTS = "modifier demandes d'achat traitées";
+    const DISPLAY_PURCHASE_REQUESTS = "afficher demandes d'achat";
+    const DELETE_DRAFT_PURCHASE_REQUEST = "supprimer demandes d'achat brouillon";
     const CREATE_PURCHASE_REQUESTS = "créer demandes d'achat";
     const EDIT_ONGOING_PURCHASE_REQUESTS = "modifier demandes d'achat à traiter et en cours";
     const DELETE_TREATED_PURCHASE_REQUESTS = "supprimer demandes d'achat traitées";

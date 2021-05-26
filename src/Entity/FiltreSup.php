@@ -14,6 +14,7 @@ class FiltreSup
 	const FIELD_DATE_EXPECTED = 'expectedDate';
 	const FIELD_STATUT = 'statut';
     const FIELD_USERS = 'utilisateurs';
+    const FIELD_COMMAND_LIST = 'commandList';
     const FIELD_DECLARANTS = 'declarants';
 	const FIELD_CARRIERS = 'carriers';
 	const FIELD_PROVIDERS = 'providers';
@@ -43,6 +44,7 @@ class FiltreSup
     const FIELD_ALERT = 'alert';
 	const FIELD_DISPATCH_NUMBER = 'dispatchNumber';
 
+	const PAGE_PURCHASE_REQUEST = 'rpurchase';
 	const PAGE_TRANSFER_REQUEST = 'rtransfer';
 	const PAGE_TRANSFER_ORDER = 'otransfer';
 	const PAGE_DEM_COLLECTE = 'dcollecte';
