@@ -82,7 +82,7 @@ class CartService {
                 }
                 return $carry;
             }, []);
-        $purchases = $purchaseRepository->findByStateRequester(Statut::DRAFT, $requester);
+        $purchases = $purchaseRepository->findByStateAndRequester(Statut::DRAFT, $requester);
         return [
             'html' => $this->twig->render('cart/purchaseTypeContent.html.twig', [
                 'refsByBuyer' => $refs,

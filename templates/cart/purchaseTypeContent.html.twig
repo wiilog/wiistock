@@ -14,7 +14,7 @@
     {% endfor %}
     <div class="row">
         <div class="col-12 form-group">
-            <label for="">Mes demandes (laisser vide pour création d'une demande)</label>
+            <label for="">Mes demandes (laisser vide pour créer d'une demande)</label>
             <select name="{{ 'purchase' ~ '-' ~ buyerId }}" class="form-control data" onchange="onPurchaseRequestChange()">
                 <option value=""></option>
                 {% for purchase in purchases %}
