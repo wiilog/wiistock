@@ -51,7 +51,7 @@ class Pack
     private $lastDrop;
 
     /**
-     * @var TrackingMovement
+     * @var null|TrackingMovement
      * @ORM\OneToOne(targetEntity=TrackingMovement::class, inversedBy="linkedPackLastTracking")
      * @ORM\JoinColumn(nullable=true)
      */
