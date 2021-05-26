@@ -398,38 +398,28 @@ class ImportService
                                     int $rowIndex): array
     {
         try {
-            $this->em->transactional(function () use (
-                $dataToCheck,
-                $row,
-                $headers,
-                $colChampsLibres,
-                &$refToUpdate,
-                &$stats,
-                $rowIndex,
-                &$receptionsWithCommand,
-                $user
-            ) {
-                $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($dataToCheck, $row, $headers);
-                $data = array_map('trim',$verifiedData);
-                switch ($this->currentImport->getEntity()) {
-                    case Import::ENTITY_FOU:
-                        $this->importFournisseurEntity($data, $stats);
-                        break;
-                    case Import::ENTITY_ART_FOU:
-                        $this->importArticleFournisseurEntity($data, $stats);
-                        break;
-                    case Import::ENTITY_REF:
-                        $this->importReferenceEntity($data, $colChampsLibres, $row, $dataToCheck, $stats);
-                        break;
-                    case Import::ENTITY_RECEPTION:
-                        $this->importReceptionEntity($data, $receptionsWithCommand, $user, $stats);
-                        break;
-                    case Import::ENTITY_ART:
-                        $referenceArticle = $this->importArticleEntity($data, $colChampsLibres, $row, $stats, $rowIndex);
-                        $refToUpdate[$referenceArticle->getId()] = $referenceArticle;
-                        break;
-                }
-            });
+            $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($dataToCheck, $row, $headers);
+            $data = array_map('trim', $verifiedData);
+            switch ($this->currentImport->getEntity()) {
+                case Import::ENTITY_FOU:
+                    $this->importFournisseurEntity($data, $stats);
+                    break;
+                case Import::ENTITY_ART_FOU:
+                    $this->importArticleFournisseurEntity($data, $stats);
+                    break;
+                case Import::ENTITY_REF:
+                    $this->importReferenceEntity($data, $colChampsLibres, $row, $dataToCheck, $stats);
+                    break;
+                case Import::ENTITY_RECEPTION:
+                    $this->importReceptionEntity($data, $receptionsWithCommand, $user, $stats, $this->receptionService);
+                    break;
+                case Import::ENTITY_ART:
+                    $referenceArticle = $this->importArticleEntity($data, $colChampsLibres, $row, $stats, $rowIndex);
+                    $refToUpdate[$referenceArticle->getId()] = $referenceArticle;
+                    break;
+            }
+
+            $this->em->flush();
             if ($needsUnitClear) {
                 $this->clearEntityManagerAndRetrieveImport();
             }
