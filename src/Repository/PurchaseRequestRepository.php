@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\PurchaseRequest;
+use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
@@ -15,11 +16,13 @@ use Doctrine\ORM\EntityRepository;
  */
 class PurchaseRequestRepository extends EntityRepository
 {
-    public function findByState(int $state) {
+    public function findByStateAndRequester(int $state, Utilisateur $requester) {
         return $this->createQueryBuilder('purchase_request')
             ->join('purchase_request.status', 'status')
             ->where('status.state = :state')
+            ->andWhere('purchase_request.requester = :requester')
             ->setParameter('state', $state)
+            ->setParameter('requester', $requester)
             ->getQuery()
             ->execute();
     }

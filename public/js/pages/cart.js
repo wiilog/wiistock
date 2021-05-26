@@ -85,3 +85,16 @@ function retrieveAppropriateHtml($input) {
         }
     });
 }
+
+function onPurchaseRequestChange(){
+    const $option = $modalAddToRequest.find('option');
+    $option.removeClass('d-none');
+    const selectedOptionValues = $modalAddToRequest.find('option:selected')
+        .map((_, option) => $(option).val())
+        .toArray()
+        .filter((option) => option);
+
+    const notSelectedOptionSelectors = selectedOptionValues.map((value) => `[value="${value}"]:not(:selected)`).join(',');
+    const notSelectedOptions = $modalAddToRequest.find(notSelectedOptionSelectors);
+    notSelectedOptions.addClass('d-none');
+}
