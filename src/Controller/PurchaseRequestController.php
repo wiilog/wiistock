@@ -584,13 +584,14 @@ class PurchaseRequestController extends AbstractController
             foreach ($purchaseRequest->getPurchaseRequestLines() as $purchaseRequestLine) {
                 $orderNumber = $purchaseRequestLine->getOrderNumber() ?? null;
                 $expectedDate = FormatHelper::date($purchaseRequestLine->getExpectedDate());
+                $orderDate = FormatHelper::date($purchaseRequestLine->getOrderDate());
                 $reception = $receptionService->getAlreadySavedReception($receptionsWithCommand, $orderNumber, $expectedDate);
                 $receptionData = [
                     'fournisseur' => $purchaseRequestLine->getSupplier() ? $purchaseRequestLine->getSupplier()->getId() : '',
                     'orderNumber' => $orderNumber,
                     'commentaire' => $purchaseRequest->getComment() ?? '',
                     'dateAttendue' => $expectedDate,
-                    'dateCommande' => $purchaseRequestLine->getOrderDate()->format('d-m-Y')
+                    'dateCommande' => $orderDate,
                 ];
                 if (!$reception) {
                     $reception = $receptionService->createAndPersistReception($entityManager, $this->getUser(), $receptionData);
