@@ -235,7 +235,7 @@ class TrackingMovementRepository extends EntityRepository
                         $qb
                             ->leftJoin('tracking_movement.emplacement', 'order_location')
                             ->orderBy('order_location.label', $order);
-                    } if ($column === 'group') {
+                    } else if ($column === 'group') {
                         $qb
                             ->leftJoin('tracking_movement.packParent', 'order_pack_group')
                             ->orderBy('order_pack_group.code', $order)

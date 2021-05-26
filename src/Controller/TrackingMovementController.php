@@ -233,7 +233,7 @@ class TrackingMovementController extends AbstractController
             $createdMouvements = [];
             try {
                 if (!empty($post->get('is-group'))) {
-                    $groupTreatment = $trackingMovementService->handleGroups($post->all(), $entityManager, $operator);
+                    $groupTreatment = $trackingMovementService->handleGroups($post->all(), $entityManager, $operator, $date);
                     if (!$groupTreatment['success']) {
                         return $this->json($groupTreatment);
                     }
