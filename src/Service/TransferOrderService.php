@@ -117,7 +117,8 @@ class TransferOrderService {
                                            TransferOrder $order,
                                            Utilisateur $utilisateur,
                                            EntityManagerInterface $entityManager,
-                                           bool $isFinish = false) {
+                                           bool $isFinish = false)
+    {
 
         $statutRepository = $entityManager->getRepository(Statut::class);
 
@@ -132,11 +133,13 @@ class TransferOrderService {
 
         $transferArticles = Stream::from($request->getReferences(), $request->getArticles());
         /** @var Article|ReferenceArticle $item */
-        foreach($transferArticles as $item) {
-            $this->createMovements($context, $item);
-            $item->setEmplacement($locationTo);
-            if ($item instanceof Article) {
-                $item->setQuantiteAPrelever(null);
+        if ($isFinish) {
+            foreach ($transferArticles as $item) {
+                $this->createMovements($context, $item);
+                $item->setEmplacement($locationTo);
+                if ($item instanceof Article) {
+                    $item->setQuantiteAPrelever(null);
+                }
             }
         }
     }
