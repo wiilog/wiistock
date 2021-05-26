@@ -411,7 +411,7 @@ class ImportService
                     $this->importReferenceEntity($data, $colChampsLibres, $row, $dataToCheck, $stats);
                     break;
                 case Import::ENTITY_RECEPTION:
-                    $this->importReceptionEntity($data, $receptionsWithCommand, $user, $stats);
+                    $this->importReceptionEntity($data, $receptionsWithCommand, $user, $stats, $this->receptionService);
                     break;
                 case Import::ENTITY_ART:
                     $referenceArticle = $this->importArticleEntity($data, $colChampsLibres, $row, $stats, $rowIndex);
