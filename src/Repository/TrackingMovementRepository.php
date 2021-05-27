@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\FreeField;
 use App\Entity\MouvementStock;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
@@ -271,7 +272,13 @@ class TrackingMovementRepository extends EntityRepository
                     } else {
                         $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
                         if(is_numeric($freeFieldId)) {
-                            $qb->orderBy("JSON_EXTRACT(tracking_movement.freeFields, '$.\"$freeFieldId\"')", $order);
+                            /** @var FreeField $freeField */
+                            $freeField = $this->getEntityManager()->getRepository(FreeField::class)->find($freeFieldId);
+                            if($freeField->getTypage() === FreeField::TYPE_NUMBER) {
+                                $qb->orderBy("CAST(JSON_EXTRACT(tracking_movement.freeFields, '$.\"$freeFieldId\"') AS SIGNED)", $order);
+                            } else {
+                                $qb->orderBy("JSON_EXTRACT(tracking_movement.freeFields, '$.\"$freeFieldId\"')", $order);
+                            }
                         } else if (property_exists(TrackingMovement::class, $column)) {
                             $qb->orderBy("tracking_movement.$column", $order);
                         }

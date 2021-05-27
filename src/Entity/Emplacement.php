@@ -62,7 +62,7 @@ class Emplacement
     private ?bool $isDeliveryPoint = null;
 
     /**
-     * @ORM\Column(type="boolean", nullable=false, options={"default": false})
+     * @ORM\Column(type="boolean", nullable=false, options={"default":false})
      */
     private ?bool $isOngoingVisibleOnMobile = null;
 
@@ -135,6 +135,7 @@ class Emplacement
         $this->demandes = new ArrayCollection();
         $this->collectes = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
+        $this->isOngoingVisibleOnMobile = false;
         $this->isActive = true;
         $this->utilisateurs = new ArrayCollection();
         $this->allowedNatures = new ArrayCollection();

@@ -7,6 +7,7 @@ use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\Cart;
 use App\Entity\ReferenceArticle;
+use App\Entity\Utilisateur;
 use App\Service\CartService;
 use App\Service\DemandeLivraisonService;
 use App\Service\PurchaseRequestService;
@@ -89,11 +90,10 @@ class CartController extends AbstractController
      */
     public function renderAppropriateHtml(?int $type, CartService $cartService, EntityManagerInterface $entityManager)
     {
-        $cartRepository = $entityManager->getRepository(Cart::class);
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
 
-        $cart = $cartRepository->findOneBy([
-            'user' => $this->getUser()
-        ]);
+        $cart = $user->getCart();
 
         switch ($type) {
             case 0:
@@ -103,7 +103,7 @@ class CartController extends AbstractController
             case 2:
                 return $this->json($cartService->renderTransferTypeModal($cart, $entityManager));
             case 3:
-                return $this->json($cartService->renderPurchaseTypeModal($cart, $entityManager));
+                return $this->json($cartService->renderPurchaseTypeModal($cart, $entityManager, $user));
             default:
                 return null;
         }

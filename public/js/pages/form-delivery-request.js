@@ -1,3 +1,7 @@
+function onDeliveryTypeChange($type, mode) {
+    toggleLocationSelect($type);
+    toggleRequiredChampsLibres($type, mode);
+}
 
 function toggleLocationSelect($type, $modal = null) {
     $modal = $modal || $type.closest('.modal');
