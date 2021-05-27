@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\CategorieCL;
 use App\Entity\Dispatch;
 use App\Entity\Action;
@@ -65,30 +66,17 @@ class DispatchController extends AbstractController {
 
     private const EXTRA_OPEN_PACK_MODAL = "EXTRA_OPEN_PACK_MODAL";
 
-    /**
-     * @var UserService
-     */
-    private $userService;
+    /** @Required */
+    public UserService $userService;
 
-    private $attachmentService;
-
-    public function __construct(UserService $userService,
-                                AttachmentService $attachmentService) {
-        $this->userService = $userService;
-        $this->attachmentService = $attachmentService;
-    }
+    /** @Required  */
+    public AttachmentService $attachmentService;
 
     /**
      * @Route("/", name="dispatch_index")
-     * @param EntityManagerInterface $entityManager
-     * @param DispatchService $service
-     * @return RedirectResponse|Response
+     * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE})
      */
     public function index(EntityManagerInterface $entityManager, DispatchService $service) {
-        if(!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
@@ -116,17 +104,10 @@ class DispatchController extends AbstractController {
 
     /**
      * @Route("/api-columns", name="dispatch_api_columns", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param DispatchService $service
-     * @return Response
+     * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE}, mode=HasPermission::IN_JSON)
      */
     public function apiColumns(Request $request, EntityManagerInterface $entityManager, DispatchService $service): Response {
         if($request->isXmlHttpRequest()) {
-            if(!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
 
@@ -140,15 +121,9 @@ class DispatchController extends AbstractController {
 
     /**
      * @Route("/colonne-visible", name="save_column_visible_for_dispatch", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE}, mode=HasPermission::IN_JSON)
      */
     public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response {
-        if(!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $data = json_decode($request->getContent(), true);
         $fields = array_keys($data);
         $fields[] = "actions";
@@ -167,9 +142,6 @@ class DispatchController extends AbstractController {
 
     /**
      * @Route("/autocomplete", name="get_dispatch_numbers", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
      */
     public function getDispatchAutoComplete(Request $request,
                                             EntityManagerInterface $entityManager): Response {
@@ -187,20 +159,11 @@ class DispatchController extends AbstractController {
 
     /**
      * @Route("/api", name="dispatch_api", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param DispatchService $dispatchService
-     * @return Response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
+     * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE}, mode=HasPermission::IN_JSON)
      */
     public function api(Request $request,
                         DispatchService $dispatchService): Response {
         if($request->isXmlHttpRequest()) {
-            if(!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
             $data = $dispatchService->getDataForDatatable($request->request);
 
             return new JsonResponse($data);
@@ -211,16 +174,6 @@ class DispatchController extends AbstractController {
 
     /**
      * @Route("/creer", name="dispatch_new", options={"expose"=true}, methods={"POST"})
-     * @param Request $request
-     * @param FreeFieldService $freeFieldService
-     * @param DispatchService $dispatchService
-     * @param AttachmentService $attachmentService
-     * @param EntityManagerInterface $entityManager
-     * @param TranslatorInterface $translator
-     * @param UniqueNumberService $uniqueNumberService
-     * @param RedirectService $redirectService
-     * @return Response
-     * @throws Exception
      */
     public function new(Request $request,
                         FreeFieldService $freeFieldService,
@@ -420,23 +373,13 @@ class DispatchController extends AbstractController {
 
     /**
      * @Route("/voir/{id}/{printBL}", name="dispatch_show", options={"expose"=true}, methods="GET|POST", defaults={"printBL"=0,"fromCreation"=0})
-     * @param Dispatch $dispatch
-     * @param EntityManagerInterface $entityManager
-     * @param DispatchService $dispatchService
-     * @param RedirectService $redirectService
-     * @param bool $printBL
-     * @return RedirectResponse|Response
-     * @throws NonUniqueResultException
+     * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE})
      */
     public function show(Dispatch $dispatch,
                          EntityManagerInterface $entityManager,
                          DispatchService $dispatchService,
                          RedirectService $redirectService,
                          bool $printBL) {
-        if(!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $extra = $redirectService->load();
 
         $paramRepository = $entityManager->getRepository(ParametrageGlobal::class);
@@ -466,14 +409,7 @@ class DispatchController extends AbstractController {
 
     /**
      * @Route("/{dispatch}/etat", name="print_dispatch_state_sheet", options={"expose"=true}, methods="GET|POST")
-     * @param Dispatch $dispatch
-     * @param PDFGeneratorService $PDFGenerator
-     * @param TranslatorInterface $translator
-     * @return PdfResponse
-     * @throws LoaderError
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
+     * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE})
      */
     public function printDispatchStateSheet(Dispatch $dispatch,
                                             PDFGeneratorService $PDFGenerator,
@@ -517,12 +453,6 @@ class DispatchController extends AbstractController {
 
     /**
      * @Route("/modifier", name="dispatch_edit", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param DispatchService $dispatchService
-     * @param FreeFieldService $freeFieldService
-     * @param EntityManagerInterface $entityManager
-     * @param TranslatorInterface $translator
-     * @return Response
      */
     public function edit(Request $request,
                          DispatchService $dispatchService,
@@ -1634,14 +1564,11 @@ class DispatchController extends AbstractController {
 
     /**
      * @Route("/bon-de-surconsommation/{dispatch}", name="print_overconsumption_bill", options={"expose"=true}, methods="GET")
+     * @HasPermission({Menu::DEM, Action::GENERATE_OVERCONSUMPTION_BILL})
      */
     public function printOverconsumptionBill(Dispatch $dispatch,
                                              PDFGeneratorService $pdfService,
                                              EntityManagerInterface $entityManager): Response {
-        if(!$this->userService->hasRightFunction(Menu::DEM, Action::GENERATE_OVERCONSUMPTION_BILL)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $appLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::LABEL_LOGO);
         $overconsumptionLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::OVERCONSUMPTION_LOGO);

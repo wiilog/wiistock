@@ -178,11 +178,13 @@ class ArrivageController extends AbstractController
      */
     public function api(Request $request): Response
     {
-        $canSeeAll = $this->userService->hasRightFunction(Menu::TRACA, Action::LIST_ALL);
-        $userId = $canSeeAll ? null : ($this->getUser() ? $this->getUser()->getId() : null);
-        $data = $this->arrivageDataService->getDataForDatatable($request->request, $userId);
+        if($this->userService->hasRightFunction(Menu::TRACA, Action::LIST_ALL) || !$this->getUser()) {
+            $userId = null;
+        } else {
+            $userId = $this->getUser()->getId();
+        }
 
-        return new JsonResponse($data);
+        return $this->json($this->arrivageDataService->getDataForDatatable($request->request, $userId));
     }
 
     /**

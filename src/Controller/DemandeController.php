@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
@@ -80,15 +81,6 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/compareStock", name="compare_stock", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param DemandeLivraisonService $demandeLivraisonService
-     * @param FreeFieldService $champLibreService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws LoaderError
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
      */
     public function compareStock(Request $request,
                                  DemandeLivraisonService $demandeLivraisonService,
@@ -109,16 +101,13 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/api-modifier", name="demandeLivraison_api_edit", options={"expose"=true}, methods="GET|POST")
+     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function editApi(Request $request,
                             GlobalParamService $globalParamService,
                             EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
             $typeRepository = $entityManager->getRepository(Type::class);
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $demandeRepository = $entityManager->getRepository(Demande::class);
@@ -163,11 +152,7 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/modifier", name="demande_edit", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param FreeFieldService $champLibreService
-     * @param DemandeLivraisonService $demandeLivraisonService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function edit(Request $request,
                          FreeFieldService $champLibreService,
@@ -175,9 +160,6 @@ class DemandeController extends AbstractController
                          EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $typeRepository = $entityManager->getRepository(Type::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
@@ -229,21 +211,11 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/creer", name="demande_new", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param FreeFieldService $champLibreService
-     * @return Response
-     * @throws LoaderError
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
+     * @HasPermission({Menu::DEM, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request, EntityManagerInterface $entityManager, FreeFieldService $champLibreService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE)) {
-                return $this->redirectToRoute('access_denied');
-            }
             $demande = $this->demandeLivraisonService->newDemande($data, $entityManager, $champLibreService);
 
             if ($demande instanceof Demande) {
@@ -273,21 +245,13 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/liste/{reception}/{filter}", name="demande_index", methods="GET|POST", options={"expose"=true})
-     * @param EntityManagerInterface $entityManager
-     * @param string|null $reception
-     * @param string|null $filter
-     * @param GlobalParamService $globalParamService
-     * @return Response
+     * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR})
      */
     public function index(EntityManagerInterface $entityManager,
                           GlobalParamService $globalParamService,
                           $reception = null,
                           $filter = null): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
@@ -317,19 +281,13 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/delete", name="demande_delete", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param DemandeLivraisonService $demandeLivraisonService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @HasPermission({Menu::DEM, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request,
                            DemandeLivraisonService $demandeLivraisonService,
                            EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::DEM, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
             $demandeRepository = $entityManager->getRepository(Demande::class);
 
             $demande = $demandeRepository->find($data['demandeId']);
@@ -358,17 +316,11 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/api", options={"expose"=true}, name="demande_api", methods={"POST"})
-     * @param Request $request
-     * @return Response
+     * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR}, mode=HasPermission::IN_JSON)
      */
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-
-            if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
             // cas d'un filtre statut depuis page d'accueil
             $filterStatus = $request->request->get('filterStatus');
             $filterReception = $request->request->get('filterReception');
@@ -382,14 +334,11 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/voir/{id}", name="demande_show", options={"expose"=true}, methods={"GET", "POST"})
+     * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR})
      */
     public function show(EntityManagerInterface $entityManager,
                          DemandeLivraisonService $demandeLivraisonService,
                          Demande $demande): Response {
-        if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $statutRepository = $entityManager->getRepository(Statut::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
@@ -405,20 +354,13 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/api/{id}", name="demande_article_api", options={"expose"=true},  methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param Demande $demande
-     * @return Response
+     * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR}, mode=HasPermission::IN_JSON)
      */
     public function articleApi(Request $request,
                                EntityManagerInterface $entityManager,
                                Demande $demande): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
             $articleRepository = $entityManager->getRepository(Article::class);
 
             $ligneArticles = $demande->getLigneArticle();
@@ -471,21 +413,11 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/ajouter-article", name="demande_add_article", options={"expose"=true},  methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param FreeFieldService $champLibreService
-     * @return Response
-     * @throws LoaderError
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
+     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function addArticle(Request $request, EntityManagerInterface $entityManager, FreeFieldService $champLibreService): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
             $referenceArticle = $referenceArticleRepository->find($data['referenceArticle']);
@@ -515,17 +447,12 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/retirer-article", name="demande_remove_article", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function removeArticle(Request $request,
                                   EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
             $articleRepository = $entityManager->getRepository(Article::class);
             $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
 
@@ -548,17 +475,12 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/modifier-article", name="demande_article_edit", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function editArticle(Request $request,
                                 EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
             $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
             $ligneArticle = $ligneArticleRepository->find($data['ligneArticle']);
             $ligneArticle->setQuantite(max($data["quantite"], 0)); // protection contre quantités négatives
@@ -571,19 +493,12 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/api-modifier-article", name="demande_article_api_edit", options={"expose"=true}, methods={"POST"})
-     * @param EntityManagerInterface $entityManager
-     * @param Request $request
-     * @return Response
-     * @throws NonUniqueResultException
+     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function articleEditApi(EntityManagerInterface $entityManager,
                                    Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
             $statutRepository = $entityManager->getRepository(Statut::class);
             $articleRepository = $entityManager->getRepository(Article::class);
             $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
@@ -607,9 +522,6 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/non-vide", name="demande_livraison_has_articles", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
      */
     public function hasArticles(Request $request,
                                 EntityManagerInterface $entityManager): Response
@@ -629,11 +541,7 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/csv", name="get_demandes_csv", options={"expose"=true}, methods={"GET"} )
-     * @param EntityManagerInterface $entityManager
-     * @param Request $request
-     * @param FreeFieldService $freeFieldService
-     * @param CSVExportService $CSVExportService
-     * @return Response
+     * @HasPermission({Menu::DEM, Action::EXPORT})
      */
     public function getDemandesCSV(EntityManagerInterface $entityManager,
                                    Request $request,
@@ -796,18 +704,12 @@ class DemandeController extends AbstractController
 
     /**
      * @Route("/autocomplete", name="get_demandes", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR}, mode=HasPermission::IN_JSON)
      */
     public function getDemandesAutoComplete(Request $request,
                                             EntityManagerInterface $entityManager): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
             $demandeRepository = $entityManager->getRepository(Demande::class);
             $search = $request->query->get('term');
 
