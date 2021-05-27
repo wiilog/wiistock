@@ -2062,13 +2062,15 @@ class ApiController extends AbstractFOSRestController
                 ?: null;
         };
 
+        $dateStr = $request->request->get("date");
+        $groupDate = $datetimeFromDate($dateStr);
+
         if ($isNewGroupInstance && !empty($packs)) {
-            $dateStr = $request->request->get("date");
             $groupingTrackingMovement = $trackingMovementService->createTrackingMovement(
                 $parentPack,
                 null,
                 $this->getUser(),
-                $datetimeFromDate($dateStr),
+                $groupDate,
                 true,
                 true,
                 TrackingMovement::TYPE_GROUP
@@ -2086,7 +2088,7 @@ class ApiController extends AbstractFOSRestController
                     $pack,
                     null,
                     $this->getUser(),
-                    $datetimeFromDate($data["date"]),
+                    $groupDate,
                     true,
                     true,
                     TrackingMovement::TYPE_GROUP,
