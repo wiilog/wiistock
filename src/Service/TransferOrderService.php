@@ -133,13 +133,14 @@ class TransferOrderService {
 
         $transferArticles = Stream::from($request->getReferences(), $request->getArticles());
         /** @var Article|ReferenceArticle $item */
-        if ($isFinish) {
-            foreach ($transferArticles as $item) {
+        foreach ($transferArticles as $item) {
+            if ($locationTo) {
                 $this->createMovements($context, $item);
                 $item->setEmplacement($locationTo);
-                if ($item instanceof Article) {
-                    $item->setQuantiteAPrelever(null);
-                }
+            }
+
+            if ($item instanceof Article) {
+                $item->setQuantiteAPrelever(null);
             }
         }
     }

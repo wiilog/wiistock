@@ -318,8 +318,7 @@ class TransferOrderController extends AbstractController {
 
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
-            $isTreated = $transferOrder->getStatus() === TransferOrder::TREATED ;
-            $transferOrderService->releaseRefsAndArticles($locationTo, $transferOrder, $currentUser, $entityManager, $isTreated);
+            $transferOrderService->releaseRefsAndArticles($locationTo, $transferOrder, $currentUser, $entityManager);
 
             foreach ($transferOrder->getStockMovements() as $mouvementStock) {
                 $mouvementStock->setTransferOrder(null);
