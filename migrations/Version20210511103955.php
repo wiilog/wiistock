@@ -14,16 +14,8 @@ use App\Service\SpecificService;
 
 final class Version20210511103955 extends AbstractMigration {
 
-    private $specificService;
-
-    public function __construct(Connection $connection, LoggerInterface $logger, SpecificService $specificService)
-    {
-        parent::__construct($connection, $logger);
-        $this->specificService = $specificService;
-    }
-
     public function up(Schema $schema): void {
-        if($this->specificService->getAppClient() !== SpecificService::CLIENT_CEA_LETI) {
+        if($_SERVER["APP_CLIENT"] !== SpecificService::CLIENT_CEA_LETI) {
             $types = $this->connection->executeQuery("SELECT t.id, c.label FROM type t INNER JOIN category_type c ON t.category_id = c.id");
             $locations = Stream::from($this->connection->executeQuery("SELECT id FROM emplacement"))
                 ->map(fn(array $location) => $location["id"])
