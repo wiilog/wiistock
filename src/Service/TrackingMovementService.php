@@ -167,7 +167,7 @@ class TrackingMovementService
             'code' => FormatHelper::pack($trackingPack),
             'origin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'group' => $movement->getPackParent()
-                ? $movement->getPackParent()->getCode() . '-' . ($movement->getGroupIteration() ?: '1')
+                ? ($movement->getPackParent()->getCode() . '-' . ($movement->getGroupIteration() ?: '?'))
                 : '',
             'location' => FormatHelper::location($movement->getEmplacement()),
             'reference' => $movement->getReferenceArticle()
@@ -204,7 +204,7 @@ class TrackingMovementService
         return $rows;
     }
 
-    public function handleGroups(array $data, EntityManagerInterface $entityManager, Utilisateur $operator): array {
+    public function handleGroups(array $data, EntityManagerInterface $entityManager, Utilisateur $operator, DateTime $date): array {
         $packRepository = $entityManager->getRepository(Pack::class);
         $parentCode = $data['parent'];
 
@@ -253,7 +253,7 @@ class TrackingMovementService
                         $parentPack,
                         null,
                         $operator,
-                        new DateTime('now', new \DateTimeZone('Europe/Paris')),
+                        $date,
                         $data['fromNomade'] ?? false,
                         true,
                         TrackingMovement::TYPE_GROUP,
@@ -269,7 +269,7 @@ class TrackingMovementService
                         $colis,
                         null,
                         $operator,
-                        new DateTime('now', new \DateTimeZone('Europe/Paris')),
+                        $date,
                         $data['fromNomade'] ?? false,
                         true,
                         TrackingMovement::TYPE_GROUP,
@@ -385,6 +385,7 @@ class TrackingMovementService
                 ->setFinished($finished)
                 ->setType($type)
                 ->setPackParent($pack->getParent())
+                ->setGroupIteration($pack->getParent() ? $pack->getParent()->getGroupIteration() : null)
                 ->setMouvementStock($mouvementStock)
                 ->setCommentaire(!empty($commentaire) ? $commentaire : null);
             $pack->addTrackingMovement($trackingUngroup);
