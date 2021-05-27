@@ -463,7 +463,7 @@ class ApiController extends AbstractFOSRestController
         }
         $entityManager->flush();
 
-        $s = $numberOfRowsInserted > 0 ? 's' : '';
+        $s = $numberOfRowsInserted > 1 ? 's' : '';
         $successData['success'] = true;
         $successData['data']['status'] = ($numberOfRowsInserted === 0)
             ? 'Aucun mouvement à synchroniser.'
@@ -1063,7 +1063,7 @@ class ApiController extends AbstractFOSRestController
                     $res['finishedMovements'] = Stream::from($res['finishedMovements'])
                         ->filter(fn($code) => $code)
                         ->unique()
-                        ->toArray();
+                        ->values();
                 }
             }
 
