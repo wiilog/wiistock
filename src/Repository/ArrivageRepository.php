@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Arrivage;
+use App\Entity\FreeField;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
@@ -464,7 +465,13 @@ class ArrivageRepository extends EntityRepository
                     } else {
                         $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
                         if(is_numeric($freeFieldId)) {
-                            $qb->orderBy("JSON_EXTRACT(a.freeFields, '$.\"$freeFieldId\"')", $order);
+                            /** @var FreeField $freeField */
+                            $freeField = $this->getEntityManager()->getRepository(FreeField::class)->find($freeFieldId);
+                            if($freeField->getTypage() === FreeField::TYPE_NUMBER) {
+                                $qb->orderBy("CAST(JSON_EXTRACT(a.freeFields, '$.\"$freeFieldId\"') AS SIGNED)", $order);
+                            } else {
+                                $qb->orderBy("JSON_EXTRACT(a.freeFields, '$.\"$freeFieldId\"')", $order);
+                            }
                         } else if (property_exists(Arrivage::class, $column)) {
                             $qb->orderBy("a.$column", $order);
                         }

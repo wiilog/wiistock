@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Article;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
+use App\Entity\FreeField;
 use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
 use App\Entity\Preparation;
@@ -607,7 +608,13 @@ class ArticleRepository extends EntityRepository {
                             $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
 
                             if(is_numeric($freeFieldId)) {
-                                $qb->orderBy("JSON_EXTRACT(a.freeFields, '$.\"$freeFieldId\"')", $order);
+                                /** @var FreeField $freeField */
+                                $freeField = $this->getEntityManager()->getRepository(FreeField::class)->find($freeFieldId);
+                                if($freeField->getTypage() === FreeField::TYPE_NUMBER) {
+                                    $qb->orderBy("CAST(JSON_EXTRACT(a.freeFields, '$.\"$freeFieldId\"') AS SIGNED)", $order);
+                                } else {
+                                    $qb->orderBy("JSON_EXTRACT(a.freeFields, '$.\"$freeFieldId\"')", $order);
+                                }
                             } else if (property_exists(Article::class, $field)) {
                                 $qb->orderBy("a.$field", $order);
                             }

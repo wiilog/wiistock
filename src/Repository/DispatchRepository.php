@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\AverageRequestTime;
 use App\Entity\Dispatch;
 use App\Entity\FiltreSup;
+use App\Entity\FreeField;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use WiiCommon\Helper\Stream;
@@ -149,7 +150,13 @@ class DispatchRepository extends EntityRepository
                     } else {
                         $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
                         if(is_numeric($freeFieldId)) {
-                            $qb->orderBy("JSON_EXTRACT(dispatch.freeFields, '$.\"$freeFieldId\"')", $order);
+                            /** @var FreeField $freeField */
+                            $freeField = $this->getEntityManager()->getRepository(FreeField::class)->find($freeFieldId);
+                            if($freeField->getTypage() === FreeField::TYPE_NUMBER) {
+                                $qb->orderBy("CAST(JSON_EXTRACT(dispatch.freeFields, '$.\"$freeFieldId\"') AS SIGNED)", $order);
+                            } else {
+                                $qb->orderBy("JSON_EXTRACT(dispatch.freeFields, '$.\"$freeFieldId\"')", $order);
+                            }
                         } else if (property_exists(Dispatch::class, $column)) {
                             $qb->orderBy("dispatch.$column", $order);
                         }
