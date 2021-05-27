@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace DoctrineMigrations;
 
 use App\Entity\CategoryType;
+use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
+use Psr\Log\LoggerInterface;
 use WiiCommon\Helper\Stream;
 use App\Service\SpecificService;
 
@@ -14,8 +16,9 @@ final class Version20210511103955 extends AbstractMigration {
 
     private $specificService;
 
-    public function __construct(SpecificService $specificService)
+    public function __construct(Connection $connection, LoggerInterface $logger, SpecificService $specificService)
     {
+        parent::__construct($connection, $logger);
         $this->specificService = $specificService;
     }
 
