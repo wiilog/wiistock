@@ -501,6 +501,10 @@ class ReceptionController extends AbstractController {
                     $articleRepository->setNullByReception($receptionArticle);
                 }
 
+                foreach ($reception->getPurchaseRequestLines() as $line) {
+                    $line->setReception(null);
+                }
+
                 foreach ($reception->getTrackingMovements() as $receptionMvtTraca) {
                     $entityManager->remove($receptionMvtTraca);
                 }
