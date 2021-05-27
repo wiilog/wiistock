@@ -429,8 +429,9 @@ class ImportService
             if (!$this->em->isOpen()) {
                 $this->em = EntityManager::Create($this->em->getConnection(), $this->em->getConfiguration());
                 $this->em->getConnection()->getConfiguration()->setSQLLogger(null);
-                $this->currentImport = $this->em->find(Import::class, $this->currentImport->getId());
             }
+
+            $this->clearEntityManagerAndRetrieveImport();
 
             if ($throwable instanceof ImportException) {
                 $message = $throwable->getMessage();
