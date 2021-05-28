@@ -61,14 +61,14 @@ class ArticleFournisseurController extends AbstractController {
     }
 
     /**
-     * @Route("/creer", name="article_fournisseur_new", options={"expose"=true}, methods="GET|POST")
+     * @Route("/creer", name="article_fournisseur_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request,
                         EntityManagerInterface $entityManager,
                         ArticleFournisseurService $articleFournisseurService): Response {
         $dataResponse = [];
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             try {
                 $articleFournisseur = $articleFournisseurService->createArticleFournisseur($data);
                 $entityManager->persist($articleFournisseur);
@@ -89,12 +89,12 @@ class ArticleFournisseurController extends AbstractController {
     }
 
     /**
-     * @Route("/api-modifier", name="article_fournisseur_api_edit", options={"expose"=true},  methods="GET|POST")
+     * @Route("/api-modifier", name="article_fournisseur_api_edit", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function displayEdit(Request $request,
                                 EntityManagerInterface $entityManager): Response {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
 
             $articleFournisseur = $articleFournisseurRepository->find(intval($data['id']));
@@ -107,12 +107,12 @@ class ArticleFournisseurController extends AbstractController {
     }
 
     /**
-     * @Route("/modifier", name="article_fournisseur_edit",  options={"expose"=true}, methods="GET|POST")
+     * @Route("/modifier", name="article_fournisseur_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function edit(Request $request,
                          EntityManagerInterface $entityManager): Response {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -137,12 +137,12 @@ class ArticleFournisseurController extends AbstractController {
     }
 
     /**
-     * @Route("/supprimer", name="article_fournisseur_delete",  options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/supprimer", name="article_fournisseur_delete",  options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request,
                            EntityManagerInterface $entityManager): Response {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
             $articleFournisseur = $articleFournisseurRepository->find(intval($data['article-fournisseur']));
 
@@ -153,7 +153,6 @@ class ArticleFournisseurController extends AbstractController {
                 ]);
             }
 
-            $articleFournisseur->getLabel();
             $entityManager->remove($articleFournisseur);
             $entityManager->flush();
             return new JsonResponse([
@@ -165,12 +164,12 @@ class ArticleFournisseurController extends AbstractController {
     }
 
     /**
-     * @Route("/supprimer_verif", name="article_fournisseur_can_delete",  options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/supprimer_verif", name="article_fournisseur_can_delete",  options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function deleteVerif(Request $request,
                                 EntityManagerInterface $entityManager): Response {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
             $articleFournisseur = $articleFournisseurRepository->find(intval($data['articleFournisseur']));
 
@@ -202,20 +201,17 @@ class ArticleFournisseurController extends AbstractController {
     }
 
     /**
-     * @Route("/autocomplete", name="get_article_fournisseur_autocomplete", options={"expose"=true})
+     * @Route("/autocomplete", name="get_article_fournisseur_autocomplete", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      */
     public function getArticleFournisseur(Request $request,
                                           EntityManagerInterface $entityManager) {
-        if ($request->isXmlHttpRequest()) {
-            $search = $request->query->get('term');
-            $referenceArticle = $request->query->get('referenceArticle');
+        $search = $request->query->get('term');
+        $referenceArticle = $request->query->get('referenceArticle');
 
-            $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
-            $articleFournisseurs = $articleFournisseurRepository->getIdAndLibelleBySearch($search, $referenceArticle);
+        $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+        $articleFournisseurs = $articleFournisseurRepository->getIdAndLibelleBySearch($search, $referenceArticle);
 
-            return new JsonResponse(['results' => $articleFournisseurs]);
-        }
-        throw new BadRequestHttpException();
+        return new JsonResponse(['results' => $articleFournisseurs]);
     }
 
 }

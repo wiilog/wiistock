@@ -108,7 +108,7 @@ class CartController extends AbstractController
     }
 
     /**
-     * @Route("/ajouter-demande", name="cart_add_to_request", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/ajouter-demande", name="cart_add_to_request", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      */
     public function addToRequest(Request $request,
                                  CartService $cartService,
@@ -118,7 +118,7 @@ class CartController extends AbstractController
                                  UniqueNumberService $uniqueNumberService,
                                  EntityManagerInterface $entityManager)
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $cartRepository = $entityManager->getRepository(Cart::class);
 
             $cart = $cartRepository->findOneBy([

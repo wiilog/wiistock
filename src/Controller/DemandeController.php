@@ -80,14 +80,14 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/compareStock", name="compare_stock", options={"expose"=true}, methods="GET|POST")
+     * @Route("/compareStock", name="compare_stock", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function compareStock(Request $request,
                                  DemandeLivraisonService $demandeLivraisonService,
                                  FreeFieldService $champLibreService,
                                  EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $responseAfterQuantitiesCheck = $demandeLivraisonService->checkDLStockAndValidate(
                 $entityManager,
                 $data,
@@ -100,14 +100,14 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/api-modifier", name="demandeLivraison_api_edit", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api-modifier", name="demandeLivraison_api_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function editApi(Request $request,
                             GlobalParamService $globalParamService,
                             EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $typeRepository = $entityManager->getRepository(Type::class);
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $demandeRepository = $entityManager->getRepository(Demande::class);
@@ -151,7 +151,7 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/modifier", name="demande_edit", options={"expose"=true}, methods="GET|POST")
+     * @Route("/modifier", name="demande_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function edit(Request $request,
@@ -159,7 +159,7 @@ class DemandeController extends AbstractController
                          DemandeLivraisonService $demandeLivraisonService,
                          EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $typeRepository = $entityManager->getRepository(Type::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
@@ -210,12 +210,12 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/creer", name="demande_new", options={"expose"=true}, methods="GET|POST")
+     * @Route("/creer", name="demande_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request, EntityManagerInterface $entityManager, FreeFieldService $champLibreService): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $demande = $this->demandeLivraisonService->newDemande($data, $entityManager, $champLibreService);
 
             if ($demande instanceof Demande) {
@@ -280,14 +280,14 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/delete", name="demande_delete", options={"expose"=true}, methods="GET|POST")
+     * @Route("/delete", name="demande_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request,
                            DemandeLivraisonService $demandeLivraisonService,
                            EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $demandeRepository = $entityManager->getRepository(Demande::class);
 
             $demande = $demandeRepository->find($data['demandeId']);
@@ -315,21 +315,17 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/api", options={"expose"=true}, name="demande_api", methods={"POST"})
+     * @Route("/api", options={"expose"=true}, name="demande_api", methods={"POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR}, mode=HasPermission::IN_JSON)
      */
     public function api(Request $request): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            // cas d'un filtre statut depuis page d'accueil
-            $filterStatus = $request->request->get('filterStatus');
-            $filterReception = $request->request->get('filterReception');
-            $data = $this->demandeLivraisonService->getDataForDatatable($request->request, $filterStatus, $filterReception);
+        // cas d'un filtre statut depuis page d'accueil
+        $filterStatus = $request->request->get('filterStatus');
+        $filterReception = $request->request->get('filterReception');
+        $data = $this->demandeLivraisonService->getDataForDatatable($request->request, $filterStatus, $filterReception);
 
-            return new JsonResponse($data);
-        } else {
-            throw new BadRequestHttpException();
-        }
+        return new JsonResponse($data);
     }
 
     /**
@@ -353,71 +349,67 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/api/{id}", name="demande_article_api", options={"expose"=true},  methods="GET|POST")
+     * @Route("/api/{id}", name="demande_article_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR}, mode=HasPermission::IN_JSON)
      */
-    public function articleApi(Request $request,
-                               EntityManagerInterface $entityManager,
+    public function articleApi(EntityManagerInterface $entityManager,
                                Demande $demande): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            $articleRepository = $entityManager->getRepository(Article::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
 
-            $ligneArticles = $demande->getLigneArticle();
-            $rowsRC = [];
-            foreach ($ligneArticles as $ligneArticle) {
-                $rowsRC[] = [
-                    "Référence" => ($ligneArticle->getReference()->getReference() ? $ligneArticle->getReference()->getReference() : ''),
-                    "Libellé" => ($ligneArticle->getReference()->getLibelle() ? $ligneArticle->getReference()->getLibelle() : ''),
-                    "Emplacement" => ($ligneArticle->getReference()->getEmplacement() ? $ligneArticle->getReference()->getEmplacement()->getLabel() : ' '),
-                    "Quantité à prélever" => $ligneArticle->getQuantite() ?? '',
-                    "barcode" => $ligneArticle->getReference() ? $ligneArticle->getReference()->getBarCode() : '',
-                    "Actions" => $this->renderView(
-                        'demande/datatableLigneArticleRow.html.twig',
-                        [
-                            'id' => $ligneArticle->getId(),
-                            'name' => (ReferenceArticle::TYPE_QUANTITE_REFERENCE),
-                            'refArticleId' => $ligneArticle->getReference()->getId(),
-                            'reference' => ReferenceArticle::TYPE_QUANTITE_REFERENCE,
-                            'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
-                        ]
-                    )
-                ];
-            }
-            $articles = $articleRepository->findByDemandes([$demande]);
-            $rowsCA = [];
-            foreach ($articles as $article) {
-                $rowsCA[] = [
-                    "Référence" => ($article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
-                    "Libellé" => ($article->getLabel() ? $article->getLabel() : ''),
-                    "Emplacement" => ($article->getEmplacement() ? $article->getEmplacement()->getLabel() : ' '),
-                    "Quantité à prélever" => ($article->getQuantiteAPrelever() ? $article->getQuantiteAPrelever() : ''),
-                    "barcode" => $article->getBarCode() ?? '',
-                    "Actions" => $this->renderView(
-                        'demande/datatableLigneArticleRow.html.twig',
-                        [
-                            'id' => $article->getId(),
-                            'name' => (ReferenceArticle::TYPE_QUANTITE_ARTICLE),
-                            'reference' => ReferenceArticle::TYPE_QUANTITE_REFERENCE,
-                            'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
-                        ]
-                    ),
-                ];
-            }
-
-            $data['data'] = array_merge($rowsCA, $rowsRC);
-            return new JsonResponse($data);
+        $ligneArticles = $demande->getLigneArticle();
+        $rowsRC = [];
+        foreach ($ligneArticles as $ligneArticle) {
+            $rowsRC[] = [
+                "Référence" => ($ligneArticle->getReference()->getReference() ? $ligneArticle->getReference()->getReference() : ''),
+                "Libellé" => ($ligneArticle->getReference()->getLibelle() ? $ligneArticle->getReference()->getLibelle() : ''),
+                "Emplacement" => ($ligneArticle->getReference()->getEmplacement() ? $ligneArticle->getReference()->getEmplacement()->getLabel() : ' '),
+                "Quantité à prélever" => $ligneArticle->getQuantite() ?? '',
+                "barcode" => $ligneArticle->getReference() ? $ligneArticle->getReference()->getBarCode() : '',
+                "Actions" => $this->renderView(
+                    'demande/datatableLigneArticleRow.html.twig',
+                    [
+                        'id' => $ligneArticle->getId(),
+                        'name' => (ReferenceArticle::TYPE_QUANTITE_REFERENCE),
+                        'refArticleId' => $ligneArticle->getReference()->getId(),
+                        'reference' => ReferenceArticle::TYPE_QUANTITE_REFERENCE,
+                        'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
+                    ]
+                )
+            ];
         }
-        throw new BadRequestHttpException();
+        $articles = $articleRepository->findByDemandes([$demande]);
+        $rowsCA = [];
+        foreach ($articles as $article) {
+            $rowsCA[] = [
+                "Référence" => ($article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
+                "Libellé" => ($article->getLabel() ? $article->getLabel() : ''),
+                "Emplacement" => ($article->getEmplacement() ? $article->getEmplacement()->getLabel() : ' '),
+                "Quantité à prélever" => ($article->getQuantiteAPrelever() ? $article->getQuantiteAPrelever() : ''),
+                "barcode" => $article->getBarCode() ?? '',
+                "Actions" => $this->renderView(
+                    'demande/datatableLigneArticleRow.html.twig',
+                    [
+                        'id' => $article->getId(),
+                        'name' => (ReferenceArticle::TYPE_QUANTITE_ARTICLE),
+                        'reference' => ReferenceArticle::TYPE_QUANTITE_REFERENCE,
+                        'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
+                    ]
+                ),
+            ];
+        }
+
+        $data['data'] = array_merge($rowsCA, $rowsRC);
+        return new JsonResponse($data);
     }
 
     /**
-     * @Route("/ajouter-article", name="demande_add_article", options={"expose"=true},  methods="GET|POST")
+     * @Route("/ajouter-article", name="demande_add_article", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function addArticle(Request $request, EntityManagerInterface $entityManager, FreeFieldService $champLibreService): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
             $referenceArticle = $referenceArticleRepository->find($data['referenceArticle']);
@@ -446,13 +438,13 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/retirer-article", name="demande_remove_article", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/retirer-article", name="demande_remove_article", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function removeArticle(Request $request,
                                   EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $articleRepository = $entityManager->getRepository(Article::class);
             $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
 
@@ -474,13 +466,13 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/modifier-article", name="demande_article_edit", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/modifier-article", name="demande_article_edit", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function editArticle(Request $request,
                                 EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
             $ligneArticle = $ligneArticleRepository->find($data['ligneArticle']);
             $ligneArticle->setQuantite(max($data["quantite"], 0)); // protection contre quantités négatives
@@ -492,13 +484,13 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/api-modifier-article", name="demande_article_api_edit", options={"expose"=true}, methods={"POST"})
+     * @Route("/api-modifier-article", name="demande_article_api_edit", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function articleEditApi(EntityManagerInterface $entityManager,
                                    Request $request): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $articleRepository = $entityManager->getRepository(Article::class);
             $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
@@ -521,12 +513,12 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/non-vide", name="demande_livraison_has_articles", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/non-vide", name="demande_livraison_has_articles", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      */
     public function hasArticles(Request $request,
                                 EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $articleRepository = $entityManager->getRepository(Article::class);
             $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
 
@@ -703,21 +695,18 @@ class DemandeController extends AbstractController
 
 
     /**
-     * @Route("/autocomplete", name="get_demandes", options={"expose"=true}, methods="GET|POST")
+     * @Route("/autocomplete", name="get_demandes", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR}, mode=HasPermission::IN_JSON)
      */
     public function getDemandesAutoComplete(Request $request,
                                             EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            $demandeRepository = $entityManager->getRepository(Demande::class);
-            $search = $request->query->get('term');
+        $demandeRepository = $entityManager->getRepository(Demande::class);
+        $search = $request->query->get('term');
 
-            return new JsonResponse([
-                'results' => $demandeRepository->getIdAndLibelleBySearch($search)
-            ]);
-        }
-        throw new BadRequestHttpException();
+        return new JsonResponse([
+            'results' => $demandeRepository->getIdAndLibelleBySearch($search)
+        ]);
     }
 
 }

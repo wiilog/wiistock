@@ -131,87 +131,78 @@ class CollecteController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="collecte_api", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/api", name="collecte_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_COLL}, mode=HasPermission::IN_JSON)
      */
     public function api(Request $request): Response
 	{
-		if ($request->isXmlHttpRequest()) {
-			// cas d'un filtre statut depuis page d'accueil
-			$filterStatus = $request->request->get('filterStatus');
-			$data = $this->collecteService->getDataForDatatable($request->request, $filterStatus);
+        // cas d'un filtre statut depuis page d'accueil
+        $filterStatus = $request->request->get('filterStatus');
+        $data = $this->collecteService->getDataForDatatable($request->request, $filterStatus);
 
-			return new JsonResponse($data);
-		} else {
-			throw new BadRequestHttpException();
-		}
+        return new JsonResponse($data);
 	}
 
     /**
-     * @Route("/article/api/{id}", name="collecte_article_api", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/article/api/{id}", name="collecte_article_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_COLL}, mode=HasPermission::IN_JSON)
      */
-    public function articleApi(EntityManagerInterface $entityManager,
-                               Request $request,
-                               $id): Response
+    public function articleApi(EntityManagerInterface $entityManager, $id): Response
     {
-        if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
-            $articleRepository = $entityManager->getRepository(Article::class);
-            $collecteRepository = $entityManager->getRepository(Collecte::class);
-            $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $collecteRepository = $entityManager->getRepository(Collecte::class);
+        $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
 
-            $collecte = $collecteRepository->find($id);
-            $articles = $articleRepository->findByCollecteId($collecte->getId());
-            $referenceCollectes = $collecteReferenceRepository->findByCollecte($collecte);
-            $rowsRC = [];
-            foreach ($referenceCollectes as $referenceCollecte) {
-                $rowsRC[] = [
-                    'Référence' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getReference() : ''),
-                    'Libellé' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getLibelle() : ''),
-                    'Emplacement' => FormatHelper::location($collecte->getPointCollecte()),
-                    'Quantité' => ($referenceCollecte->getQuantite() ? $referenceCollecte->getQuantite() : ''),
-                    'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
-                        'type' => 'reference',
-                        'id' => $referenceCollecte->getId(),
-                        'name' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getTypeQuantite() : ReferenceArticle::TYPE_QUANTITE_REFERENCE),
-                        'refArticleId' => $referenceCollecte->getReferenceArticle()->getId(),
-                        'collecteId' => $collecte->getid(),
-                        'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUT_BROUILLON),
-                    ]),
-                ];
-            }
-            $rowsCA = [];
-            foreach ($articles as $article) {
-                $rowsCA[] = [
-                    'Référence' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
-                    'Libellé' => $article->getLabel(),
-                    'Emplacement' => ($collecte->getPointCollecte() ? $collecte->getPointCollecte()->getLabel() : ''),
-                    'Quantité' => $article->getQuantite(),
-                    'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
-                        'name' => ReferenceArticle::TYPE_QUANTITE_ARTICLE,
-                        'type' => 'article',
-                        'id' => $article->getId(),
-                        'collecteId' => $collecte->getid(),
-                        'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUT_BROUILLON ? true : false),
-                    ]),
-                ];
-            }
-            $data['data'] = array_merge($rowsCA, $rowsRC);
-
-            return new JsonResponse($data);
+        $collecte = $collecteRepository->find($id);
+        $articles = $articleRepository->findByCollecteId($collecte->getId());
+        $referenceCollectes = $collecteReferenceRepository->findByCollecte($collecte);
+        $rowsRC = [];
+        foreach ($referenceCollectes as $referenceCollecte) {
+            $rowsRC[] = [
+                'Référence' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getReference() : ''),
+                'Libellé' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getLibelle() : ''),
+                'Emplacement' => FormatHelper::location($collecte->getPointCollecte()),
+                'Quantité' => ($referenceCollecte->getQuantite() ? $referenceCollecte->getQuantite() : ''),
+                'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
+                    'type' => 'reference',
+                    'id' => $referenceCollecte->getId(),
+                    'name' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getTypeQuantite() : ReferenceArticle::TYPE_QUANTITE_REFERENCE),
+                    'refArticleId' => $referenceCollecte->getReferenceArticle()->getId(),
+                    'collecteId' => $collecte->getid(),
+                    'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUT_BROUILLON),
+                ]),
+            ];
         }
-        throw new BadRequestHttpException();
+        $rowsCA = [];
+        foreach ($articles as $article) {
+            $rowsCA[] = [
+                'Référence' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
+                'Libellé' => $article->getLabel(),
+                'Emplacement' => ($collecte->getPointCollecte() ? $collecte->getPointCollecte()->getLabel() : ''),
+                'Quantité' => $article->getQuantite(),
+                'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
+                    'name' => ReferenceArticle::TYPE_QUANTITE_ARTICLE,
+                    'type' => 'article',
+                    'id' => $article->getId(),
+                    'collecteId' => $collecte->getid(),
+                    'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUT_BROUILLON ? true : false),
+                ]),
+            ];
+        }
+        $data['data'] = array_merge($rowsCA, $rowsRC);
+
+        return new JsonResponse($data);
     }
 
     /**
-     * @Route("/creer", name="collecte_new", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/creer", name="collecte_new", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request,
                         FreeFieldService $freeFieldService,
                         EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
@@ -261,7 +252,7 @@ class CollecteController extends AbstractController
     }
 
     /**
-     * @Route("/ajouter-article", name="collecte_add_article", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/ajouter-article", name="collecte_add_article", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function addArticle(Request $request,
@@ -269,7 +260,7 @@ class CollecteController extends AbstractController
                                EntityManagerInterface $entityManager,
                                DemandeCollecteService $demandeCollecteService): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $collecteRepository = $entityManager->getRepository(Collecte::class);
             $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
@@ -316,13 +307,13 @@ class CollecteController extends AbstractController
     }
 
     /**
-     * @Route("/modifier-quantite-article", name="collecte_edit_article", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/modifier-quantite-article", name="collecte_edit_article", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function editArticle(Request $request,
                                 EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
 
 //TODO dans DL et DC, si on modifie une ligne, la réf article n'est pas modifiée dans l'edit
@@ -336,13 +327,13 @@ class CollecteController extends AbstractController
     }
 
     /**
-     * @Route("/modifier-quantite-api-article", name="collecte_edit_api_article", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/modifier-quantite-api-article", name="collecte_edit_api_article", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function editApiArticle(Request $request,
                                    EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
 
             $json = $this->renderView('collecte/modalEditArticleContent.html.twig', [
@@ -355,13 +346,13 @@ class CollecteController extends AbstractController
     }
 
     /**
-     * @Route("/retirer-article", name="collecte_remove_article", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/retirer-article", name="collecte_remove_article", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function removeArticle(Request $request,
                                   EntityManagerInterface $entityManager)
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $articleRepository = $entityManager->getRepository(Article::class);
             $collecteRepository = $entityManager->getRepository(Collecte::class);
             $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
@@ -386,13 +377,13 @@ class CollecteController extends AbstractController
 
 
     /**
-     * @Route("/api-modifier", name="collecte_api_edit", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api-modifier", name="collecte_api_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function editApi(Request $request,
                             EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $typeRepository = $entityManager->getRepository(Type::class);
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $collecteRepository = $entityManager->getRepository(Collecte::class);
@@ -437,7 +428,7 @@ class CollecteController extends AbstractController
     }
 
     /**
-     * @Route("/modifier", name="collecte_edit", options={"expose"=true}, methods="GET|POST")
+     * @Route("/modifier", name="collecte_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function edit(Request $request,
@@ -445,7 +436,7 @@ class CollecteController extends AbstractController
                          FreeFieldService $champLibreService,
                          EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $typeRepository = $entityManager->getRepository(Type::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
@@ -498,13 +489,13 @@ class CollecteController extends AbstractController
     }
 
     /**
-     * @Route("/supprimer", name="collecte_delete", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/supprimer", name="collecte_delete", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request,
                            EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $collecteRepository = $entityManager->getRepository(Collecte::class);
 
             $collecte = $collecteRepository->find($data['collecte']);
@@ -523,12 +514,12 @@ class CollecteController extends AbstractController
     }
 
     /**
-     * @Route("/non-vide", name="demande_collecte_has_articles", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/non-vide", name="demande_collecte_has_articles", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      */
     public function hasArticles(Request $request,
                                 EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $articleRepository = $entityManager->getRepository(Article::class);
             $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
 
@@ -542,22 +533,19 @@ class CollecteController extends AbstractController
     }
 
     /**
-     * @Route("/autocomplete", name="get_demand_collect", options={"expose"=true}, methods="GET|POST")
+     * @Route("/autocomplete", name="get_demand_collect", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_COLL}, mode=HasPermission::IN_JSON)
      */
 	public function getDemandCollectAutoComplete(Request $request,
                                                  EntityManagerInterface $entityManager): Response
 	{
-		if ($request->isXmlHttpRequest()) {
-            $collecteRepository = $entityManager->getRepository(Collecte::class);
+        $collecteRepository = $entityManager->getRepository(Collecte::class);
 
-			$search = $request->query->get('term');
+        $search = $request->query->get('term');
 
-			$collectes = $collecteRepository->getIdAndLibelleBySearch($search);
+        $collectes = $collecteRepository->getIdAndLibelleBySearch($search);
 
-			return new JsonResponse(['results' => $collectes]);
-		}
-		throw new BadRequestHttpException();
+        return new JsonResponse(['results' => $collectes]);
 	}
 
     /**

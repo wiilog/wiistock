@@ -354,7 +354,7 @@ class ArrivageController extends AbstractController
     public function editApi(Request $request,
                             EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             if ($this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
                 $arrivageRepository = $entityManager->getRepository(Arrivage::class);
                 $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
@@ -567,13 +567,13 @@ class ArrivageController extends AbstractController
     }
 
     /**
-     * @Route("/supprimer", name="arrivage_delete", options={"expose"=true},methods={"GET","POST"})
+     * @Route("/supprimer", name="arrivage_delete", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::DELETE_ARRI}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request,
                            EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
 
             /** @var Arrivage $arrivage */
@@ -621,12 +621,12 @@ class ArrivageController extends AbstractController
     }
 
     /**
-     * @Route("/ajoute-commentaire", name="add_comment",  options={"expose"=true}, methods="GET|POST")
+     * @Route("/ajoute-commentaire", name="add_comment", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function addComment(Request $request,
                                EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $response = '';
 
             // spécifique SAFRAN CERAMICS ajout de commentaire
@@ -643,12 +643,12 @@ class ArrivageController extends AbstractController
     }
 
     /**
-     * @Route("/lister-colis", name="arrivage_list_colis_api", options={"expose"=true})
+     * @Route("/lister-colis", name="arrivage_list_colis_api", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      */
     public function listColisByArrivage(Request $request,
                                         EntityManagerInterface $entityManager)
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
             $arrivage = $arrivageRepository->find($data['id']);
 
@@ -886,13 +886,13 @@ class ArrivageController extends AbstractController
     }
 
     /**
-     * @Route("/supprimer-litige", name="litige_delete_arrivage", options={"expose"=true}, methods="GET|POST")
+     * @Route("/supprimer-litige", name="litige_delete_arrivage", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::QUALI, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function deleteLitige(Request $request,
                                  EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $litigeRepository = $entityManager->getRepository(Litige::class);
             $litige = $litigeRepository->find($data['litige']);
 
@@ -905,14 +905,14 @@ class ArrivageController extends AbstractController
     }
 
     /**
-     * @Route("/ajouter-colis", name="arrivage_add_colis", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/ajouter-colis", name="arrivage_add_colis", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function addColis(Request $request,
                              EntityManagerInterface $entityManager,
                              PackService $colisService)
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
 
             $arrivage = $arrivageRepository->find($data['arrivageId']);
@@ -941,49 +941,45 @@ class ArrivageController extends AbstractController
     }
 
     /**
-     * @Route("/litiges/api/{arrivage}", name="arrivageLitiges_api", options={"expose"=true}, methods="GET|POST")
+     * @Route("/litiges/api/{arrivage}", name="arrivageLitiges_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function apiArrivageLitiges(EntityManagerInterface $entityManager,
-                                       Request $request,
                                        Arrivage $arrivage): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            $litigeRepository = $entityManager->getRepository(Litige::class);
-            $litiges = $litigeRepository->findByArrivage($arrivage);
-            $rows = [];
-            foreach ($litiges as $litige) {
-                $rows[] = [
-                    'firstDate' => $litige->getCreationDate()->format('d/m/Y H:i'),
-                    'status' => $litige->getStatus() ? $litige->getStatus()->getNom() : '',
-                    'type' => $litige->getType() ? $litige->getType()->getLabel() : '',
-                    'updateDate' => $litige->getUpdateDate() ? $litige->getUpdateDate()->format('d/m/Y H:i') : '',
-                    'Actions' => $this->renderView('arrivage/datatableLitigesRow.html.twig', [
-                        'arrivageId' => $arrivage->getId(),
-                        'url' => [
-                            'edit' => $this->generateUrl('litige_api_edit', ['id' => $litige->getId()])
-                        ],
-                        'litigeId' => $litige->getId(),
-                        'disputeNumber' => $litige->getNumeroLitige()
-                    ]),
-                    'urgence' => $litige->getEmergencyTriggered()
-                ];
-            }
-
-            $data['data'] = $rows;
-
-            return new JsonResponse($data);
+        $litigeRepository = $entityManager->getRepository(Litige::class);
+        $litiges = $litigeRepository->findByArrivage($arrivage);
+        $rows = [];
+        foreach ($litiges as $litige) {
+            $rows[] = [
+                'firstDate' => $litige->getCreationDate()->format('d/m/Y H:i'),
+                'status' => $litige->getStatus() ? $litige->getStatus()->getNom() : '',
+                'type' => $litige->getType() ? $litige->getType()->getLabel() : '',
+                'updateDate' => $litige->getUpdateDate() ? $litige->getUpdateDate()->format('d/m/Y H:i') : '',
+                'Actions' => $this->renderView('arrivage/datatableLitigesRow.html.twig', [
+                    'arrivageId' => $arrivage->getId(),
+                    'url' => [
+                        'edit' => $this->generateUrl('litige_api_edit', ['id' => $litige->getId()])
+                    ],
+                    'litigeId' => $litige->getId(),
+                    'disputeNumber' => $litige->getNumeroLitige()
+                ]),
+                'urgence' => $litige->getEmergencyTriggered()
+            ];
         }
-        throw new BadRequestHttpException();
+
+        $data['data'] = $rows;
+
+        return new JsonResponse($data);
     }
 
     /**
-     * @Route("/api-modifier-litige", name="litige_api_edit", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api-modifier-litige", name="litige_api_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function apiEditLitige(Request $request,
                                   UserService $userService,
                                   EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
             $litigeRepository = $entityManager->getRepository(Litige::class);

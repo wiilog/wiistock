@@ -3,6 +3,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\InventoryEntry;
@@ -64,52 +65,32 @@ class InventoryMissionController extends AbstractController
 
     /**
      * @Route("/", name="inventory_mission_index")
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE})
      */
     public function index()
     {
-        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_INVE)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         return $this->render('inventaire/index.html.twig');
     }
 
     /**
-     * @Route("/api", name="inv_missions_api", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param InvMissionService $invMissionService
-     * @return Response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
+     * @Route("/api", name="inv_missions_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
      */
     public function api(Request $request,
                         InvMissionService $invMissionService): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_INVE)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        $data = $invMissionService->getDataForMissionsDatatable($request->request);
 
-            $data = $invMissionService->getDataForMissionsDatatable($request->request);
-
-            return new JsonResponse($data);
-        }
-        throw new BadRequestHttpException();
+        return new JsonResponse($data);
     }
 
     /**
-     * @Route("/creer", name="mission_new", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @return Response
+     * @Route("/creer", name="mission_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_INVE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($data = json_decode($request->getContent(), true)) {
             if ($data['startDate'] > $data['endDate'])
                 return new JsonResponse([
                     'success' => false,
@@ -135,21 +116,13 @@ class InventoryMissionController extends AbstractController
     }
 
     /**
-     * @Route("/verification", name="mission_check_delete", options={"expose"=true})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NoResultException
-     * @throws NonUniqueResultException
+     * @Route("/verification", name="mission_check_delete", options={"expose"=true}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::STOCK, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function checkMissionCanBeDeleted(Request $request,
                                              EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $missionId = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($missionId = json_decode($request->getContent(), true)) {
             $inventoryEntryRepository = $entityManager->getRepository(InventoryEntry::class);
             $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
 
@@ -172,19 +145,13 @@ class InventoryMissionController extends AbstractController
     }
 
     /**
-     * @Route("/supprimer", name="mission_delete", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/supprimer", name="mission_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::STOCK, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request,
                            EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($data = json_decode($request->getContent(), true)) {
             $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
             $mission = $inventoryMissionRepository->find(intval($data['missionId']));
 
@@ -197,69 +164,44 @@ class InventoryMissionController extends AbstractController
 
     /**
      * @Route("/voir/{id}", name="inventory_mission_show", options={"expose"=true}, methods="GET|POST")
-     * @param InventoryMission $mission
-     * @return RedirectResponse|Response
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE})
      */
     public function show(InventoryMission $mission)
     {
-        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_INVE)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         return $this->render('inventaire/show.html.twig', [
             'missionId' => $mission->getId()
         ]);
     }
 
     /**
-     * @Route("/donnees_article/api/{id}", name="inv_entry_article_api", options={"expose"=true}, methods="GET|POST")
-     * @param InventoryMission $mission
-     * @param Request $request
-     * @return Response
+     * @Route("/donnees_article/api/{id}", name="inv_entry_article_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
      */
     public function entryApiArticle(InventoryMission $mission,
                                     Request $request): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_INVE)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $data = $this->invMissionService->getDataForOneMissionDatatable($mission, $request->request, true);
         return new JsonResponse($data);
     }
 
     /**
-     * @Route("/donnees_reference_article/api/{id}", name="inv_entry_reference_article_api", options={"expose"=true}, methods="GET|POST")
-     * @param InventoryMission $mission
-     * @param Request $request
-     * @return Response
+     * @Route("/donnees_reference_article/api/{id}", name="inv_entry_reference_article_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
      */
     public function entryApiReferenceArticle(InventoryMission $mission,
                                              Request $request): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_INVE)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $data = $this->invMissionService->getDataForOneMissionDatatable($mission, $request->request, false);
         return new JsonResponse($data);
     }
 
     /**
-     * @Route("/ajouter", name="add_to_mission", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NoResultException
-     * @throws NonUniqueResultException
+     * @Route("/ajouter", name="add_to_mission", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
      */
     public function addToMission(Request $request, EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_INVE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($data = json_decode($request->getContent(), true)) {
             $refArtRepository = $entityManager->getRepository(ReferenceArticle::class);
             $articleRepository = $entityManager->getRepository(Article::class);
             $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);

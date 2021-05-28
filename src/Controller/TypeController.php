@@ -3,6 +3,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
@@ -31,16 +32,9 @@ class TypeController extends AbstractController
 
     /**
      * @Route("/", name="types_index")
-     * @param EntityManagerInterface $entityManager
-     * @param UserService $userService
-     * @return RedirectResponse|Response
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_TYPE})
      */
-    public function index(EntityManagerInterface $entityManager,
-                          UserService $userService)
-    {
-        if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_TYPE)) {
-            return $this->redirectToRoute('access_denied');
-        }
+    public function index(EntityManagerInterface $entityManager) {
 
         $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
 
@@ -52,65 +46,44 @@ class TypeController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="types_param_api", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param UserService $userService
-     * @return Response
+     * @Route("/api", name="types_param_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_TYPE}, mode=HasPermission::IN_JSON)
      */
-    public function api(Request $request,
-                        EntityManagerInterface $entityManager,
-                        UserService $userService): Response
+    public function api(EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_TYPE)) {
-                return $this->redirectToRoute('access_denied');
-            }
 
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $types = $typeRepository->findAll();
-            $rows = [];
-            foreach ($types as $type) {
-                $url['edit'] = $this->generateUrl('types_api_edit', ['id' => $type->getId()]);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $types = $typeRepository->findAll();
+        $rows = [];
+        foreach ($types as $type) {
+            $url['edit'] = $this->generateUrl('types_api_edit', ['id' => $type->getId()]);
 
-                $rows[] = [
-                    'Label' => $type->getLabel(),
-                    'Categorie' => $type->getCategory() ? $type->getCategory()->getLabel() : '',
-                    'Description' => $type->getDescription(),
-                    'sendMail' => $type->getCategory() && ($type->getCategory()->getLabel() === CategoryType::DEMANDE_LIVRAISON)
-                        ? ($type->getSendMail() ? 'Oui' : 'Non')
-                        : '',
-                    'Actions' => $this->renderView('types/datatableTypeRow.html.twig', [
-                        'url' => $url,
-                        'typeId' => $type->getId(),
-                        'type' => $type
-                    ]),
-                ];
-            }
-            $data['data'] = $rows;
-            return new JsonResponse($data);
+            $rows[] = [
+                'Label' => $type->getLabel(),
+                'Categorie' => $type->getCategory() ? $type->getCategory()->getLabel() : '',
+                'Description' => $type->getDescription(),
+                'sendMail' => $type->getCategory() && ($type->getCategory()->getLabel() === CategoryType::DEMANDE_LIVRAISON)
+                    ? ($type->getSendMail() ? 'Oui' : 'Non')
+                    : '',
+                'Actions' => $this->renderView('types/datatableTypeRow.html.twig', [
+                    'url' => $url,
+                    'typeId' => $type->getId(),
+                    'type' => $type
+                ]),
+            ];
         }
-        throw new BadRequestHttpException();
+        $data['data'] = $rows;
+        return new JsonResponse($data);
     }
 
     /**
-     * @Route("/creer", name="types_new", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param GlobalParamService $globalParamService
-     * @param EntityManagerInterface $entityManager
-     * @param UserService $userService
-     * @return Response
+     * @Route("/creer", name="types_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request,
                         GlobalParamService $globalParamService,
-                        EntityManagerInterface $entityManager,
-                        UserService $userService): Response
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+                        EntityManagerInterface $entityManager): Response {
+        if ($data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getManager();
 
             $typeRepository = $entityManager->getRepository(Type::class);
@@ -144,21 +117,13 @@ class TypeController extends AbstractController
     }
 
     /**
-     * @Route("/api-modifier", name="types_api_edit", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param UserService $userService
-     * @return Response
+     * @Route("/api-modifier", name="types_api_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function apiEdit(Request $request,
-                            EntityManagerInterface $entityManager,
-                            UserService $userService): Response
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
+                            EntityManagerInterface $entityManager): Response {
 
+        if ($data = json_decode($request->getContent(), true)) {
             $type = $entityManager->find(Type::class, $data['id']);
             $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
 
@@ -175,23 +140,14 @@ class TypeController extends AbstractController
     }
 
     /**
-     * @Route("/modifier", name="types_edit",  options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param GlobalParamService $globalParamService
-     * @param EntityManagerInterface $entityManager
-     * @param UserService $userService
-     * @return Response
+     * @Route("/modifier", name="types_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function edit(Request $request,
                          GlobalParamService $globalParamService,
-                         EntityManagerInterface $entityManager,
-                         UserService $userService): Response
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
+                         EntityManagerInterface $entityManager): Response {
 
+        if ($data = json_decode($request->getContent(), true)) {
             $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
             $typeRepository = $entityManager->getRepository(Type::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
@@ -223,21 +179,13 @@ class TypeController extends AbstractController
     }
 
     /**
-     * @Route("/verification", name="types_check_delete", options={"expose"=true})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param UserService $userService
-     * @return Response
+     * @Route("/verification", name="types_check_delete", options={"expose"=true}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function checkTypeCanBeDeleted(Request $request,
-                                          EntityManagerInterface $entityManager,
-                                          UserService $userService): Response
-    {
-        if ($request->isXmlHttpRequest() && $typeId = json_decode($request->getContent(), true)) {
-            if (!$userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
+                                          EntityManagerInterface $entityManager): Response {
 
+        if ($typeId = json_decode($request->getContent(), true)) {
             $typeRepository = $entityManager->getRepository(Type::class);
             $statusRepository = $entityManager->getRepository(Statut::class);
 
@@ -259,21 +207,13 @@ class TypeController extends AbstractController
     }
 
     /**
-     * @Route("/supprimer", name="types_delete", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param UserService $userService
-     * @return Response
+     * @Route("/supprimer", name="types_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request,
-                           EntityManagerInterface $entityManager,
-                           UserService $userService): Response
+                           EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($data = json_decode($request->getContent(), true)) {
             $type = $entityManager->find(Type::class, $data['type']);
             $typeLabel = $type->getLabel();
 
@@ -288,30 +228,28 @@ class TypeController extends AbstractController
     }
 
     /**
-     * @Route("/autocomplete-unique-types", name="get_unique_types", options={"expose"=true})
+     * @Route("/autocomplete-unique-types", name="get_unique_types", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      */
     public function getUniqueTypes(Request $request, EntityManagerInterface $entityManager) {
-        if ($request->isXmlHttpRequest()) {
-            $types = $request->query->get('types');
-            $types = array_filter($types ?? [], fn($type) => $type !== 'all');
-            $search = $request->query->get('term');
 
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $uniqueTypes = $typeRepository->getUniqueTypes($types, $search);
+        $types = $request->query->get('types');
+        $types = array_filter($types ?? [], fn($type) => $type !== 'all');
+        $search = $request->query->get('term');
 
-            if(empty($types)) {
-                $allTypes = [
-                    'id' => 'all',
-                    'text' => 'Tous les types'
-                ];
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $uniqueTypes = $typeRepository->getUniqueTypes($types, $search);
 
-                array_unshift($uniqueTypes, $allTypes);
-            }
+        if(empty($types)) {
+            $allTypes = [
+                'id' => 'all',
+                'text' => 'Tous les types'
+            ];
 
-            return $this->json([
-                'results' => $uniqueTypes
-            ]);
+            array_unshift($uniqueTypes, $allTypes);
         }
-        throw new BadRequestHttpException();
+
+        return $this->json([
+            'results' => $uniqueTypes
+        ]);
     }
 }
