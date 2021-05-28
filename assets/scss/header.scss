@@ -296,8 +296,8 @@
     &:hover {
         background-color: rgba(255, 255, 255, 0.2);
 
-        span {
-            color: white;
+        :not(.profile-picture) {
+            color: white !important;
         }
     }
 }
