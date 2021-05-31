@@ -15,6 +15,7 @@ use App\Entity\LigneArticlePreparation;
 use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\Preparation;
+use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -22,6 +23,8 @@ use App\Entity\Utilisateur;
 use App\Entity\CategorieCL;
 use App\Entity\ArticleFournisseur;
 use App\Helper\FormatHelper;
+use App\Repository\PurchaseRequestLineRepository;
+use App\Repository\ReceptionReferenceArticleRepository;
 use WiiCommon\Helper\Stream;
 use App\Repository\FiltreRefRepository;
 use DateTime;
@@ -714,6 +717,28 @@ class RefArticleDataService {
             }
         }
         return $title;
+    }
+
+    public function setStateAccordingToRelations(ReferenceArticle $reference,
+                                                  PurchaseRequestLineRepository $purchaseRequestLineRepository,
+                                                  ReceptionReferenceArticleRepository $receptionReferenceArticleRepository) {
+        $associatedLines = $receptionReferenceArticleRepository->findByReferenceArticleAndReceptionStatus(
+            $reference,
+            [Reception::STATUT_EN_ATTENTE, Reception::STATUT_RECEPTION_PARTIELLE],
+        );
+        if (!empty($associatedLines)) {
+            $reference->setOrderState(ReferenceArticle::WAIT_FOR_RECEPTION_ORDER_STATE);
+        } else {
+            $associatedLines = $purchaseRequestLineRepository->findByReferenceArticleAndPurchaseStatus(
+                $reference,
+                [Statut::NOT_TREATED, Statut::IN_PROGRESS]
+            );
+            if (!empty($associatedLines)) {
+                $reference->setOrderState(ReferenceArticle::PURCHASE_IN_PROGRESS_ORDER_STATE);
+            } else {
+                $reference->setOrderState(null);
+            }
+        }
     }
 
 }

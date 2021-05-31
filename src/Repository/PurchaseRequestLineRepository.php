@@ -40,7 +40,7 @@ class PurchaseRequestLineRepository extends EntityRepository {
     public function findByReferenceArticleAndPurchaseStatus(ReferenceArticle $referenceArticle, array $statusStates, ?PurchaseRequest $ignored = null) {
         $queryBuilder = $this->createQueryBuilder('purchase_request_line');
         $query = $queryBuilder
-            ->join('purchase_request_line.referenceArticle', 'reference_article')
+            ->join('purchase_request_line.reference', 'reference_article')
             ->join('purchase_request_line.purchaseRequest', 'purchase_request')
             ->join('purchase_request.status', 'status')
             ->where('reference_article = :ref')

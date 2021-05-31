@@ -18,6 +18,7 @@ use App\Helper\FormatHelper;
 use App\Service\AttachmentService;
 use App\Service\PurchaseRequestService;
 use App\Service\ReceptionService;
+use App\Service\RefArticleDataService;
 use DateTime;
 use App\Service\CSVExportService;
 use App\Service\UserService;
@@ -169,11 +170,15 @@ class PurchaseRequestController extends AbstractController
      */
     public function delete(Request $request,
                            UserService $userService,
+                           RefArticleDataService $refArticleDataService,
                            EntityManagerInterface $entityManager): Response {
 
         if($data = json_decode($request->getContent(), true)) {
             $requestRepository = $entityManager->getRepository(PurchaseRequest::class);
             $purchaseRequest = $requestRepository->find($data['request']);
+
+            $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
+            $purchaseRequestLineRepository = $entityManager->getRepository(PurchaseRequestLine::class);
 
             $status = $purchaseRequest->getStatus();
             if (!$status ||
@@ -186,7 +191,16 @@ class PurchaseRequestController extends AbstractController
                     'msg' => "Vous n'avez pas le droit de supprimer cette demande"
                 ]);
             }
-
+            $refsToUpdate = [];
+            foreach ($purchaseRequest->getPurchaseRequestLines() as $receptionArticle) {
+                $reference = $receptionArticle->getReference();
+                $refsToUpdate[] = $reference;
+                $entityManager->remove($receptionArticle);
+            }
+            $entityManager->flush();
+            foreach ($refsToUpdate as $reference) {
+                $refArticleDataService->setStateAccordingToRelations($reference, $purchaseRequestLineRepository, $receptionReferenceArticleRepository);
+            }
             $entityManager->remove($purchaseRequest);
             $entityManager->flush();
 
@@ -599,7 +613,6 @@ class PurchaseRequestController extends AbstractController
                 } else if($reception->getFournisseur() !== $purchaseRequestLine->getSupplier()) {
                     $reception = $receptionService->createAndPersistReception($entityManager, $this->getUser(), $receptionData);
                 }
-                $entityManager->flush();
 
                 $receptionReferenceArticle = new ReceptionReferenceArticle();
                 $receptionReferenceArticle
@@ -611,6 +624,8 @@ class PurchaseRequestController extends AbstractController
 
                 $entityManager->persist($receptionReferenceArticle);
                 $purchaseRequestLine->setReception($reception);
+
+                $entityManager->flush();
             }
         }
         $entityManager->flush();
