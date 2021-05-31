@@ -35,6 +35,7 @@ class Type
 	const LABEL_STANDARD = 'standard';
 	// types de la catégorie mouvement traça
     const LABEL_MVT_TRACA = 'MOUVEMENT TRACA';
+    const LABEL_SENSOR = 'capteur';
 
 
 	/**
