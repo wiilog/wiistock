@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\IOT\HandlingRequestTemplate;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -167,6 +168,11 @@ class Statut
      */
     private ?Collection $purchaseRequests;
 
+    /**
+     * @ORM\OneToMany(targetEntity=HandlingRequestTemplate::class, mappedBy="requestStatus")
+     */
+    private $handlingRequestStatusTemplates;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -185,6 +191,7 @@ class Statut
 
         $this->defaultForCategory = false;
         $this->purchaseRequests = new ArrayCollection();
+        $this->handlingRequestStatusTemplates = new ArrayCollection();
     }
 
     public function getId(): ? int
@@ -828,6 +835,36 @@ class Statut
         $this->purchaseRequests = new ArrayCollection();
         foreach($purchaseRequests as $purchaseRequest) {
             $this->addPurchaseRequest($purchaseRequest);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|HandlingRequestTemplate[]
+     */
+    public function getHandlingRequestStatusTemplates(): Collection
+    {
+        return $this->handlingRequestStatusTemplates;
+    }
+
+    public function addHandlingRequestStatusTemplate(HandlingRequestTemplate $handlingRequestStatusTemplate): self
+    {
+        if (!$this->handlingRequestStatusTemplates->contains($handlingRequestStatusTemplate)) {
+            $this->handlingRequestStatusTemplates[] = $handlingRequestStatusTemplate;
+            $handlingRequestStatusTemplate->setRequestStatus($this);
+        }
+
+        return $this;
+    }
+
+    public function removeHandlingRequestStatusTemplate(HandlingRequestTemplate $handlingRequestStatusTemplate): self
+    {
+        if ($this->handlingRequestStatusTemplates->removeElement($handlingRequestStatusTemplate)) {
+            // set the owning side to null (unless already changed)
+            if ($handlingRequestStatusTemplate->getRequestStatus() === $this) {
+                $handlingRequestStatusTemplate->setRequestStatus(null);
+            }
         }
 
         return $this;

@@ -2,9 +2,13 @@
 
 namespace App\Entity;
 
+use App\Entity\IOT\CollectRequestTemplate;
+use App\Entity\IOT\DeliveryRequestTemplate;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+
+use App\Entity\IOT\Pairing;
 
 
 /**
@@ -128,6 +132,21 @@ class Emplacement
      */
     private Collection $allowedCollectTypes;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="location")
+     */
+    private $pairings;
+
+    /**
+     * @ORM\OneToMany(targetEntity=DeliveryRequestTemplate::class, mappedBy="destination")
+     */
+    private $deliveryRequestTemplates;
+
+    /**
+     * @ORM\OneToMany(targetEntity=CollectRequestTemplate::class, mappedBy="collectPoint")
+     */
+    private $collectRequestTemplates;
+
     public function __construct() {
         $this->clusters = new ArrayCollection();
         $this->articles = new ArrayCollection();
@@ -146,6 +165,9 @@ class Emplacement
         $this->arrivals = new ArrayCollection();
         $this->allowedDeliveryTypes = new ArrayCollection();
         $this->allowedCollectTypes = new ArrayCollection();
+        $this->pairings = new ArrayCollection();
+        $this->deliveryRequestTemplates = new ArrayCollection();
+        $this->collectRequestTemplates = new ArrayCollection();
     }
 
     public function getId(): ? int
@@ -698,6 +720,96 @@ class Emplacement
         $this->allowedCollectTypes = new ArrayCollection();
         foreach($allowedCollectTypes as $allowedCollectType) {
             $this->addAllowedCollectType($allowedCollectType);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Pairing[]
+     */
+    public function getPairings(): Collection
+    {
+        return $this->pairings;
+    }
+
+    public function addPairing(Pairing $pairing): self
+    {
+        if (!$this->pairings->contains($pairing)) {
+            $this->pairings[] = $pairing;
+            $pairing->setLocation($this);
+        }
+
+        return $this;
+    }
+
+    public function removePairing(Pairing $pairing): self
+    {
+        if ($this->pairings->removeElement($pairing)) {
+            // set the owning side to null (unless already changed)
+            if ($pairing->getLocation() === $this) {
+                $pairing->setLocation(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|DeliveryRequestTemplate[]
+     */
+    public function getDeliveryRequestTemplates(): Collection
+    {
+        return $this->deliveryRequestTemplates;
+    }
+
+    public function addDeliveryRequestTemplate(DeliveryRequestTemplate $deliveryRequestTemplate): self
+    {
+        if (!$this->deliveryRequestTemplates->contains($deliveryRequestTemplate)) {
+            $this->deliveryRequestTemplates[] = $deliveryRequestTemplate;
+            $deliveryRequestTemplate->setDestination($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDeliveryRequestTemplate(DeliveryRequestTemplate $deliveryRequestTemplate): self
+    {
+        if ($this->deliveryRequestTemplates->removeElement($deliveryRequestTemplate)) {
+            // set the owning side to null (unless already changed)
+            if ($deliveryRequestTemplate->getDestination() === $this) {
+                $deliveryRequestTemplate->setDestination(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|CollectRequestTemplate[]
+     */
+    public function getCollectRequestTemplates(): Collection
+    {
+        return $this->collectRequestTemplates;
+    }
+
+    public function addCollectRequestTemplate(CollectRequestTemplate $collectRequestTemplate): self
+    {
+        if (!$this->collectRequestTemplates->contains($collectRequestTemplate)) {
+            $this->collectRequestTemplates[] = $collectRequestTemplate;
+            $collectRequestTemplate->setCollectPoint($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCollectRequestTemplate(CollectRequestTemplate $collectRequestTemplate): self
+    {
+        if ($this->collectRequestTemplates->removeElement($collectRequestTemplate)) {
+            // set the owning side to null (unless already changed)
+            if ($collectRequestTemplate->getCollectPoint() === $this) {
+                $collectRequestTemplate->setCollectPoint(null);
+            }
         }
 
         return $this;
