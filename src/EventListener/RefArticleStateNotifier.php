@@ -13,14 +13,11 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class RefArticleStateNotifier {
 
-    private $entityManager;
+    /** @Required */
+    public EntityManagerInterface $entityManager;
 
-    private $refService;
-
-    public function __construct(EntityManagerInterface $entityManager, RefArticleDataService $refService) {
-        $this->entityManager = $entityManager;
-        $this->refService = $refService;
-    }
+    /** @Required */
+    public RefArticleDataService $refService;
 
     public function postPersist($entity) {
         $this->handleLinks($entity);
@@ -31,10 +28,8 @@ class RefArticleStateNotifier {
     }
 
     private function handleLinks($entity) {
-
         $receptionReferenceArticleRepository = $this->entityManager->getRepository(ReceptionReferenceArticle::class);
         $purchaseRequestLineRepository = $this->entityManager->getRepository(PurchaseRequestLine::class);
-
 
         if ($entity instanceof Reception) {
             $status = $entity->getStatut() ? $entity->getStatut()->getCode() : null;
