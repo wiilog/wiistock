@@ -429,15 +429,21 @@ class ReceptionController extends AbstractController {
      * @HasPermission({Menu::ORDRE, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request,
+                           RefArticleDataService $refArticleDataService,
                            EntityManagerInterface $entityManager): Response {
         if($data = json_decode($request->getContent(), true)) {
             $articleRepository = $entityManager->getRepository(Article::class);
             $receptionRepository = $entityManager->getRepository(Reception::class);
+            $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
+            $purchaseRequestLineRepository = $entityManager->getRepository(PurchaseRequestLine::class);
 
             $reception = $receptionRepository->find($data['receptionId']);
 
             if ($reception) {
+                $refsToUpdate = [];
                 foreach ($reception->getReceptionReferenceArticles() as $receptionArticle) {
+                    $reference = $receptionArticle->getReferenceArticle();
+                    $refsToUpdate[] = $reference;
                     $entityManager->remove($receptionArticle);
                     $articleRepository->setNullByReception($receptionArticle);
                 }
@@ -450,7 +456,9 @@ class ReceptionController extends AbstractController {
                     $entityManager->remove($receptionMvtTraca);
                 }
                 $entityManager->flush();
-
+                foreach ($refsToUpdate as $reference) {
+                    $refArticleDataService->setStateAccordingToRelations($reference, $purchaseRequestLineRepository, $receptionReferenceArticleRepository);
+                }
                 $entityManager->remove($reception);
                 $entityManager->flush();
             }
@@ -494,10 +502,12 @@ class ReceptionController extends AbstractController {
      */
     public function removeArticle(EntityManagerInterface $entityManager,
                                   ReceptionService $receptionService,
+                                  RefArticleDataService $refArticleDataService,
                                   Request $request): Response {
         if($data = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
+            $purchaseRequestLineRepository = $entityManager->getRepository(PurchaseRequestLine::class);
             $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
 
             $ligneArticle = $receptionReferenceArticleRepository->find($data['ligneArticle']);
@@ -535,6 +545,7 @@ class ReceptionController extends AbstractController {
 
             $entityManager->remove($ligneArticle);
             $entityManager->flush();
+            $refArticleDataService->setStateAccordingToRelations($reference, $purchaseRequestLineRepository, $receptionReferenceArticleRepository);
             $nbArticleNotConform = $receptionReferenceArticleRepository->countNotConformByReception($reception);
             $statusCode = $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
@@ -627,6 +638,11 @@ class ReceptionController extends AbstractController {
                     $reception->setUrgentArticles(true);
                     $receptionReferenceArticle->setEmergencyTriggered(true);
                     $receptionReferenceArticle->setEmergencyComment($refArticle->getEmergencyComment());
+                }
+                $status = $reception->getStatut() ? $reception->getStatut()->getCode() : null;
+
+                if ($status === Reception::STATUT_EN_ATTENTE || $status === Reception::STATUT_RECEPTION_PARTIELLE) {
+                    $refArticle->setOrderState(ReferenceArticle::WAIT_FOR_RECEPTION_ORDER_STATE);
                 }
                 $entityManager->flush();
 
