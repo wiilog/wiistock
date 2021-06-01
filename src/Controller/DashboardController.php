@@ -61,6 +61,7 @@ DashboardController extends AbstractController {
             "dashboards" => $dashboardSettingsService->serialize($manager, null, DashboardSettingsService::MODE_EXTERNAL),
             "refreshed" => $dashboardService->refreshDate($manager),
             "client" => $client,
+            "refresh_rate" => $client === SpecificService::CLIENT_COLLINS_VERNON ? 1 : 5,
         ]);
     }
 

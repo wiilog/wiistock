@@ -3,121 +3,73 @@
 namespace App\EventListener;
 
 use App\Entity\PurchaseRequest;
+use App\Entity\PurchaseRequestLine;
 use App\Entity\Reception;
+use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Service\RefArticleDataService;
 use Doctrine\ORM\EntityManagerInterface;
 
 class RefArticleStateNotifier {
 
-    private $entityManager;
+    /** @Required */
+    public EntityManagerInterface $entityManager;
 
-    public function __construct(EntityManagerInterface $entityManager) {
-        $this->entityManager = $entityManager;
+    /** @Required */
+    public RefArticleDataService $refService;
+
+    public function postPersist($entity) {
+        $this->handleLinks($entity);
     }
 
     public function postUpdate($entity) {
+        $this->handleLinks($entity);
+    }
+
+    private function handleLinks($entity) {
+        $receptionReferenceArticleRepository = $this->entityManager->getRepository(ReceptionReferenceArticle::class);
+        $purchaseRequestLineRepository = $this->entityManager->getRepository(PurchaseRequestLine::class);
+
         if ($entity instanceof Reception) {
-            $status = $entity->getStatut() ? $entity->getStatut()->getNom() : null;
+            $status = $entity->getStatut() ? $entity->getStatut()->getCode() : null;
             $receptionReferenceArticles = $entity->getReceptionReferenceArticles();
-            if(!$receptionReferenceArticles->isEmpty()) {
-                foreach ($receptionReferenceArticles as $receptionReferenceArticle) {
-                    $purchaseRequestLines = $receptionReferenceArticle->getReferenceArticle()->getPurchaseRequestLines();
-                    if($purchaseRequestLines->isEmpty()) {
-                        $reference = $receptionReferenceArticle->getReferenceArticle();
-                        $reference->setOrderState(null);
-                    }
-                }
-            }
+
             if ($status === Reception::STATUT_EN_ATTENTE || $status === Reception::STATUT_RECEPTION_PARTIELLE) {
-                if(!$entity->getReceptionReferenceArticles()->isEmpty()) {
-                    foreach ($entity->getReceptionReferenceArticles() as $receptionReferenceArticle) {
-                        $reference = $receptionReferenceArticle->getReferenceArticle();
-                        if($reference->getOrderState() === ReferenceArticle::PURCHASE_IN_PROGRESS_ORDER_STATE) {
-                            $reference->setOrderState(ReferenceArticle::WAIT_FOR_RECEPTION_ORDER_STATE);
-                        }
-                    }
+                foreach ($receptionReferenceArticles as $receptionReferenceArticle) {
+                    $reference = $receptionReferenceArticle->getReferenceArticle();
+                    $reference->setOrderState(ReferenceArticle::WAIT_FOR_RECEPTION_ORDER_STATE);
                 }
             } else {
-                if(!$entity->getReceptionReferenceArticles()->isEmpty()) {
-                    foreach ($entity->getReceptionReferenceArticles() as $receptionReferenceArticle) {
-                        $reference = $receptionReferenceArticle->getReferenceArticle();
-                        $reference->setOrderState(null);
-                    }
+                foreach ($entity->getReceptionReferenceArticles() as $receptionReferenceArticle) {
+                    $reference = $receptionReferenceArticle->getReferenceArticle();
+                    $this->refService->setStateAccordingToRelations($reference, $purchaseRequestLineRepository, $receptionReferenceArticleRepository);
                 }
             }
         } else if ($entity instanceof PurchaseRequest) {
             $status = $entity->getStatus() ? $entity->getStatus()->getState() : null;
-            $purchaseRequestLines = $entity->getPurchaseRequestLines();
-            if ($status === Statut::NOT_TREATED || $status === Statut::IN_PROGRESS) {
-                foreach ($purchaseRequestLines as $purchaseRequestLine) {
-                    $reference = $purchaseRequestLine->getReference();
-                    if(!$reference->getReceptionReferenceArticles()->isEmpty()) {
-                        foreach ($reference->getReceptionReferenceArticles() as $receptionReferenceArticle) {
-                            $receptionStatus = $receptionReferenceArticle->getReception() ?
-                                $receptionReferenceArticle->getReception()->getStatut()->getNom() : null;
-                            if ($receptionStatus === Reception::STATUT_EN_ATTENTE || $receptionStatus === Reception::STATUT_RECEPTION_PARTIELLE) {
-                                $reference->setOrderState(ReferenceArticle::WAIT_FOR_RECEPTION_ORDER_STATE);
-                            } else {
-                                $reference->setOrderState(ReferenceArticle::PURCHASE_IN_PROGRESS_ORDER_STATE);
-                            }
-                        }
-                    } else {
-                        $reference->setOrderState(ReferenceArticle::PURCHASE_IN_PROGRESS_ORDER_STATE);
-                    }
-                }
-                $this->entityManager->flush();
-            } else {
-                foreach ($purchaseRequestLines as $purchaseRequestLine) {
-                    $reference = $purchaseRequestLine->getReference();
-                    if($reference->getReceptionReferenceArticles()->isEmpty()) {
-                        $reference->setOrderState(null);
-                    }
-                }
-            }
-        }
-    }
+            $lines = $entity->getPurchaseRequestLines();
 
-    public function postRemove($entity) {
-        if ($entity instanceof Reception) {
-            foreach ($entity->getReceptionReferenceArticles() as $receptionReferenceArticle) {
-                $referenceReceptionReferenceArticles = $receptionReferenceArticle->getReferenceArticle()->getReceptionReferenceArticles();
-                foreach ($referenceReceptionReferenceArticles as $referenceReceptionReferenceArticle) {
-                    $reception = $referenceReceptionReferenceArticle->getReception();
-                    $status = $reception->getStatut()->getNom();
-                    if($status === Reception::STATUT_EN_ATTENTE || $status === Reception::STATUT_RECEPTION_PARTIELLE) {
-                        $reference = $receptionReferenceArticle->getReferenceArticle();
-                        if (!$reference->getPurchaseRequestLines()->isEmpty()) {
-                            foreach ($reference->getPurchaseRequestLines() as $purchaseRequestLine) {
-                                $status = $purchaseRequestLine->getStatut()->getState();
-                                if ($status === Statut::NOT_TREATED || $status === Statut::IN_PROGRESS) {
-                                    $reference->setOrderState(ReferenceArticle::PURCHASE_IN_PROGRESS_ORDER_STATE);
-                                } else {
-                                    $reference->setOrderState(null);
-                                }
-                            }
-                        }
+            if ($status === Statut::NOT_TREATED || $status === Statut::IN_PROGRESS) {
+                foreach ($lines as $line) {
+                    $reference = $line->getReference();
+                    $associatedLines = $receptionReferenceArticleRepository->findByReferenceArticleAndReceptionStatus(
+                        $reference,
+                        [Reception::STATUT_EN_ATTENTE, Reception::STATUT_RECEPTION_PARTIELLE]
+                    );
+                    if (empty($associatedLines)) {
+                        $reference->setOrderState(ReferenceArticle::PURCHASE_IN_PROGRESS_ORDER_STATE);
+                    } else {
+                        $reference->setOrderState(ReferenceArticle::WAIT_FOR_RECEPTION_ORDER_STATE);
                     }
                 }
-            }
-            $this->entityManager->flush();
-        }
-        else if ($entity instanceof PurchaseRequest) {
-            $purchaseRequestLines = $entity->getPurchaseRequestLines();
-            foreach ($purchaseRequestLines as $purchaseRequestLine) {
-                $reference = $purchaseRequestLine->getReference();
-                if(!$reference->getReceptionReferenceArticles()->isEmpty()) {
-                    foreach ($reference->getReceptionReferenceArticles() as $receptionReferenceArticle) {
-                        $receptionStatus = $receptionReferenceArticle->getReception() ? $receptionReferenceArticle->getReception()->getStatut()->getState() : null;
-                        if ($receptionStatus !== Statut::NOT_TREATED || $receptionStatus !== Statut::PARTIAL) {
-                            $reference->setOrderState(null);
-                        }
-                    }
-                } else {
-                    $reference->setOrderState(null);
+            } else {
+                foreach ($lines as $line) {
+                    $reference = $line->getReference();
+                    $this->refService->setStateAccordingToRelations($reference, $purchaseRequestLineRepository, $receptionReferenceArticleRepository);
                 }
-                $this->entityManager->flush();
             }
         }
+        $this->entityManager->flush();
     }
 }
