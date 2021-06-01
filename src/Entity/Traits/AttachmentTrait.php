@@ -13,7 +13,7 @@ trait AttachmentTrait
 {
 
     /**
-     * @ManyToMany(targetEntity="Attachment")
+     * @ManyToMany(targetEntity=Attachment::class)
      * @var ArrayCollection $attachments
      */
     private $attachments;

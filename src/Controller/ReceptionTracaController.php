@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Arrivage;
 use App\Entity\Menu;
@@ -12,7 +13,6 @@ use App\Service\ReceptionTracaService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -51,15 +51,10 @@ class ReceptionTracaController extends AbstractController
 
     /**
      * @Route("/", name="reception_traca_index", methods={"GET"})
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @HasPermission({Menu::TRACA, Action::DISPLAY_ASSO})
      */
     public function index(EntityManagerInterface $entityManager): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ASSO)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
         return $this->render('reception_traca/index.html.twig', [
@@ -68,39 +63,24 @@ class ReceptionTracaController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="reception_traca_api", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @return Response
-     * @throws Exception
+     * @Route("/api", name="reception_traca_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::TRACA, Action::DISPLAY_ASSO}, mode=HasPermission::IN_JSON)
      */
     public function api(Request $request): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ASSO)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        $data = $this->receptionTracaService->getDataForDatatable($request->request);
 
-            $data = $this->receptionTracaService->getDataForDatatable($request->request);
-
-            return new JsonResponse($data);
-        }
-        throw new BadRequestHttpException();
+        return new JsonResponse($data);
     }
 
     /**
-     * @Route("/supprimer", name="reception_traca_delete", options={"expose"=true},methods={"GET","POST"})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/supprimer", name="reception_traca_delete", options={"expose"=true},methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::TRACA, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request,
                            EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($data = json_decode($request->getContent(), true)) {
             $receptionTracaRepository = $entityManager->getRepository(ReceptionTraca::class);
 
             $recep = $receptionTracaRepository->find($data['recep']);
@@ -115,23 +95,17 @@ class ReceptionTracaController extends AbstractController
     }
 
     /**
-     * @Route("/creer", name="reception_traca_new", options={"expose"=true},methods={"GET","POST"})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/creer", name="reception_traca_new", options={"expose"=true},methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::TRACA, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
-		if (!$this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
-			return $this->redirectToRoute('access_denied');
-		}
-
 		/** @var Utilisateur $loggedUser */
 		$loggedUser = $this->getUser();
 
 		$arrivageRepository = $entityManager->getRepository(Arrivage::class);
         $errors = [];
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $arrivages = json_decode($data['numero_arrivage'] ?? '[]', true);
             if (!empty($arrivages)) {
                 foreach ($arrivages as $arrivage) {

@@ -6,6 +6,10 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
+use App\Entity\IOT\Sensor;
+use App\Entity\IOT\AlertTemplate;
+use App\Entity\IOT\RequestTemplate;
+
 /**
  * @ORM\Entity(repositoryClass="App\Repository\TypeRepository")
  */
@@ -35,6 +39,7 @@ class Type
 	const LABEL_STANDARD = 'standard';
 	// types de la catégorie mouvement traça
     const LABEL_MVT_TRACA = 'MOUVEMENT TRACA';
+    const LABEL_SENSOR = 'capteur';
 
 
 	/**
@@ -149,6 +154,26 @@ class Type
      */
     private $averageRequestTime;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Sensor::class, mappedBy="type")
+     */
+    private Collection $sensors;
+
+    /**
+     * @ORM\OneToMany(targetEntity=AlertTemplate::class, mappedBy="type")
+     */
+    private Collection $alertTemplates;
+
+    /**
+     * @ORM\OneToMany(targetEntity=RequestTemplate::class, mappedBy="type")
+     */
+    private Collection $requestTemplates;
+
+    /**
+     * @ORM\OneToMany(targetEntity=RequestTemplate::class, mappedBy="requestType")
+     */
+    private Collection $requestTypeTemplates;
+
     public function __construct()
     {
         $this->champsLibres = new ArrayCollection();
@@ -165,6 +190,10 @@ class Type
         $this->arrivals = new ArrayCollection();
         $this->statuts = new ArrayCollection();
         $this->handlings = new ArrayCollection();
+        $this->sensors = new ArrayCollection();
+        $this->alertTemplates = new ArrayCollection();
+        $this->requestTemplates = new ArrayCollection();
+        $this->requestTypeTemplates = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -730,4 +759,125 @@ class Type
 
         return $this;
     }
+
+    /**
+     * @return Collection|Sensor[]
+     */
+    public function getSensors(): Collection
+    {
+        return $this->sensors;
+    }
+
+    public function addSensor(Sensor $sensor): self
+    {
+        if (!$this->sensors->contains($sensor)) {
+            $this->sensors[] = $sensor;
+            $sensor->setType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSensor(Sensor $sensor): self
+    {
+        if ($this->sensors->removeElement($sensor)) {
+            // set the owning side to null (unless already changed)
+            if ($sensor->getType() === $this) {
+                $sensor->setType(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|AlertTemplate[]
+     */
+    public function getAlertTemplates(): Collection
+    {
+        return $this->alertTemplates;
+    }
+
+    public function addAlertTemplate(AlertTemplate $alertTemplate): self
+    {
+        if (!$this->alertTemplates->contains($alertTemplate)) {
+            $this->alertTemplates[] = $alertTemplate;
+            $alertTemplate->setType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAlertTemplate(AlertTemplate $alertTemplate): self
+    {
+        if ($this->alertTemplates->removeElement($alertTemplate)) {
+            // set the owning side to null (unless already changed)
+            if ($alertTemplate->getType() === $this) {
+                $alertTemplate->setType(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|RequestTemplate[]
+     */
+    public function getRequestTemplates(): Collection
+    {
+        return $this->requestTemplates;
+    }
+
+    public function addRequestTemplate(RequestTemplate $requestTemplate): self
+    {
+        if (!$this->requestTemplates->contains($requestTemplate)) {
+            $this->requestTemplates[] = $requestTemplate;
+            $requestTemplate->setType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRequestTemplate(RequestTemplate $requestTemplate): self
+    {
+        if ($this->requestTemplates->removeElement($requestTemplate)) {
+            // set the owning side to null (unless already changed)
+            if ($requestTemplate->getType() === $this) {
+                $requestTemplate->setType(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|RequestTemplate[]
+     */
+    public function getRequestTypeTemplates(): Collection
+    {
+        return $this->requestTypeTemplates;
+    }
+
+    public function addRequestTypeTemplate(RequestTemplate $requestTypeTemplate): self
+    {
+        if (!$this->requestTypeTemplates->contains($requestTypeTemplate)) {
+            $this->requestTypeTemplates[] = $requestTypeTemplate;
+            $requestTypeTemplate->setRequestType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRequestTypeTemplate(RequestTemplate $requestTypeTemplate): self
+    {
+        if ($this->requestTypeTemplates->removeElement($requestTypeTemplate)) {
+            // set the owning side to null (unless already changed)
+            if ($requestTypeTemplate->getRequestType() === $this) {
+                $requestTypeTemplate->setRequestType(null);
+            }
+        }
+
+        return $this;
+    }
+
 }

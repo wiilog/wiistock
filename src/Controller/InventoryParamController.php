@@ -3,14 +3,13 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\ReferenceArticle;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -35,16 +34,10 @@ class InventoryParamController extends AbstractController
 
     /**
      * @Route("/", name="inventaire_param_index")
-     * @param EntityManagerInterface $entityManager
-     * @return RedirectResponse|Response
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_INVE})
      */
     public function index(EntityManagerInterface $entityManager)
     {
-        if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_INVE)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
-
         $inventoryFrequencyRepository = $entityManager->getRepository(InventoryFrequency::class);
         $frequences = $inventoryFrequencyRepository->findAll();
 
@@ -54,58 +47,42 @@ class InventoryParamController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="invParam_api", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @return Response
+     * @Route("/api", name="invParam_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
      */
-    public function api(Request $request): Response
+    public function api(): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_INVE)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        $inventoryCategoryRepository = $this->getDoctrine()->getRepository(InventoryCategory::class);
+        /** @var $category InventoryCategory */
+        $categories = $inventoryCategoryRepository->findAll();
+        $rows = [];
+        foreach ($categories as $category) {
+            $url['edit'] = $this->generateUrl('category_api_edit', ['id' => $category->getId()]);
 
-            $inventoryCategoryRepository = $this->getDoctrine()->getRepository(InventoryCategory::class);
-            /** @var $category InventoryCategory */
-            $categories = $inventoryCategoryRepository->findAll();
-            $rows = [];
-            foreach ($categories as $category) {
-                $url['edit'] = $this->generateUrl('category_api_edit', ['id' => $category->getId()]);
-
-                $rows[] =
-                    [
-                        'Label' => $category->getLabel(),
-                        'Frequence' => $category->getFrequency()->getLabel(),
-                        'Permanent' => $category->getPermanent() ? 'oui' : 'non',
-                        'Actions' => $category->getId(),
-                        'Actions' => $this->renderView('inventaire_param/datatableCategoryRow.html.twig', [
-                            'url' => $url,
-                            'categoryId' => $category->getId(),
-                        ]),
-                    ];
-            }
-            $data['data'] = $rows;
-            return new JsonResponse($data);
+            $rows[] =
+                [
+                    'Label' => $category->getLabel(),
+                    'Frequence' => $category->getFrequency()->getLabel(),
+                    'Permanent' => $category->getPermanent() ? 'oui' : 'non',
+                    'Actions' => $category->getId(),
+                    'Actions' => $this->renderView('inventaire_param/datatableCategoryRow.html.twig', [
+                        'url' => $url,
+                        'categoryId' => $category->getId(),
+                    ]),
+                ];
         }
-        throw new BadRequestHttpException();
+        $data['data'] = $rows;
+        return new JsonResponse($data);
     }
 
     /**
-     * @Route("/creer", name="categorie_new", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NonUniqueResultException
-     * @throws \Doctrine\ORM\NoResultException
+     * @Route("/creer", name="categorie_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request,
                         EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($data = json_decode($request->getContent(), true)) {
             $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
             $inventoryFrequencyRepository = $entityManager->getRepository(InventoryFrequency::class);
 
@@ -138,19 +115,13 @@ class InventoryParamController extends AbstractController
     }
 
     /**
-     * @Route("/api-modifier", name="category_api_edit", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/api-modifier", name="category_api_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function apiEdit(Request $request,
                             EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($data = json_decode($request->getContent(), true)) {
             $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
             $inventoryFrequencyRepository = $entityManager->getRepository(InventoryFrequency::class);
 
@@ -168,19 +139,13 @@ class InventoryParamController extends AbstractController
     }
 
     /**
-     * @Route("/modifier", name="category_edit",  options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/modifier", name="category_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function edit(Request $request,
                          EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($data = json_decode($request->getContent(), true)) {
             $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
             $inventoryFrequencyRepository = $entityManager->getRepository(InventoryFrequency::class);
 
@@ -215,18 +180,12 @@ class InventoryParamController extends AbstractController
     }
 
     /**
-     * @Route("/verification", name="category_check_delete", options={"expose"=true})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/verification", name="category_check_delete", options={"expose"=true}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function checkUserCanBeDeleted(Request $request, EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $categoryId = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($categoryId = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $userIsUsed = $referenceArticleRepository->countByCategory($categoryId);
 
@@ -244,17 +203,12 @@ class InventoryParamController extends AbstractController
     }
 
     /**
-     * @Route("/supprimer", name="category_delete", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @return Response
+     * @Route("/supprimer", name="category_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($data = json_decode($request->getContent(), true)) {
             $entityManager = $this->getDoctrine()->getManager();
             $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
 
@@ -268,19 +222,13 @@ class InventoryParamController extends AbstractController
     }
 
     /**
-     * @Route("/creer-frequence", name="frequency_new", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/creer-frequence", name="frequency_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function newFrequency(Request $request,
                                  EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($data = json_decode($request->getContent(), true)) {
             $inventoryFrequencyRepository = $entityManager->getRepository(InventoryFrequency::class);
 
             // on vérifie que le label n'est pas déjà utilisé
@@ -310,55 +258,39 @@ class InventoryParamController extends AbstractController
     }
 
     /**
-     * @Route("/frequences/voir", name="invParamFrequencies_api", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/frequences/voir", name="invParamFrequencies_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
      */
-    public function apiFrequencies(Request $request,
-                                   EntityManagerInterface $entityManager): Response
+    public function apiFrequencies(EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_INVE)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        $inventoryFrequencyRepository = $entityManager->getRepository(InventoryFrequency::class);
+        $frequencies = $inventoryFrequencyRepository->findAll();
+        $rows = [];
+        foreach ($frequencies as $frequency) {
+            $url['edit'] = $this->generateUrl('frequency_api_edit', ['id' => $frequency->getId()]);
 
-            $inventoryFrequencyRepository = $entityManager->getRepository(InventoryFrequency::class);
-            $frequencies = $inventoryFrequencyRepository->findAll();
-            $rows = [];
-            foreach ($frequencies as $frequency) {
-                $url['edit'] = $this->generateUrl('frequency_api_edit', ['id' => $frequency->getId()]);
-
-                $rows[] =
-                    [
-                        'Label' => $frequency->getLabel(),
-                        'NbMonths' => $frequency->getNbMonths() . ' mois',
-                        'Actions' => $this->renderView('inventaire_param/datatableFrequencyRow.html.twig', [
-                            'url' => $url,
-                            'frequencyId' => $frequency->getId(),
-                        ]),
-                    ];
-            }
-            $data['data'] = $rows;
-            return new JsonResponse($data);
+            $rows[] =
+                [
+                    'Label' => $frequency->getLabel(),
+                    'NbMonths' => $frequency->getNbMonths() . ' mois',
+                    'Actions' => $this->renderView('inventaire_param/datatableFrequencyRow.html.twig', [
+                        'url' => $url,
+                        'frequencyId' => $frequency->getId(),
+                    ]),
+                ];
         }
-        throw new BadRequestHttpException();
+        $data['data'] = $rows;
+        return new JsonResponse($data);
     }
 
     /**
-     * @Route("/apiFrequence-modifier", name="frequency_api_edit", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/apiFrequence-modifier", name="frequency_api_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function apiEditFrequency(Request $request,
                                      EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($data = json_decode($request->getContent(), true)) {
             $inventoryFrequencyRepository = $entityManager->getRepository(InventoryFrequency::class);
             $frequency = $inventoryFrequencyRepository->find($data['id']);
 
@@ -372,19 +304,13 @@ class InventoryParamController extends AbstractController
     }
 
     /**
-     * @Route("/frequence-modifier", name="frequency_edit",  options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/frequence-modifier", name="frequency_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function editFrequency(Request $request,
                                   EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($data = json_decode($request->getContent(), true)) {
             $inventoryFrequencyRepository = $entityManager->getRepository(InventoryFrequency::class);
             $frequency = $inventoryFrequencyRepository->find($data['frequency']);
             $frequencyLabel = $frequency->getLabel();
@@ -416,19 +342,13 @@ class InventoryParamController extends AbstractController
     }
 
     /**
-     * @Route("/frequence-verification", name="frequency_check_delete", options={"expose"=true})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/frequence-verification", name="frequency_check_delete", options={"expose"=true}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function checkFrequencyCanBeDeleted(Request $request,
                                                EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $frequencyId = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($frequencyId = json_decode($request->getContent(), true)) {
             $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
 
             $frequencyIsUsed = $inventoryCategoryRepository->countByFrequency($frequencyId);
@@ -447,20 +367,13 @@ class InventoryParamController extends AbstractController
     }
 
     /**
-     * @Route("/frequence-supprimer", name="frequency_delete", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/frequence-supprimer", name="frequency_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function deleteFrequency(Request $request,
                                     EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
-
+        if ($data = json_decode($request->getContent(), true)) {
             $inventoryFrequencyRepository = $entityManager->getRepository(InventoryFrequency::class);
             $frequency = $inventoryFrequencyRepository->find($data['category']);
 
@@ -474,109 +387,99 @@ class InventoryParamController extends AbstractController
 
 
     /**
-     * @Route("/import-categories", name="update_category", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @return Response
+     * @Route("/import-categories", name="update_category", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
 	public function updateCategory(Request $request): Response
 	{
-		if ($request->isXmlHttpRequest()) {
-		    $entityManager = $this->getDoctrine()->getManager();
-            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-            $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
+        $entityManager = $this->getDoctrine()->getManager();
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
 
-            $file = $request->files->get('file');
+        $file = $request->files->get('file');
 
-			$delimiters = array(
-				';' => 0,
-				',' => 0,
-				"\t" => 0,
-				"|" => 0
-			);
+        $delimiters = array(
+            ';' => 0,
+            ',' => 0,
+            "\t" => 0,
+            "|" => 0
+        );
 
-			$fileDetectDelimiter = fopen($file, "r");
-			$firstLine = fgets($fileDetectDelimiter);
-			fclose($fileDetectDelimiter);
-			foreach ($delimiters as $delimiter => &$count) {
-				$count = count(str_getcsv($firstLine, $delimiter));
-			}
+        $fileDetectDelimiter = fopen($file, "r");
+        $firstLine = fgets($fileDetectDelimiter);
+        fclose($fileDetectDelimiter);
+        foreach ($delimiters as $delimiter => &$count) {
+            $count = count(str_getcsv($firstLine, $delimiter));
+        }
 
-			$delimiter = array_search(max($delimiters), $delimiters);
+        $delimiter = array_search(max($delimiters), $delimiters);
 
-			$rows = [];
+        $rows = [];
 
-			$fileOpen = fopen($file->getPathname(), "r");
-			while (($data = fgetcsv($fileOpen, 1000, $delimiter)) !== false) {
-				$rows[] = array_map('utf8_encode', $data);
-			}
+        $fileOpen = fopen($file->getPathname(), "r");
+        while (($data = fgetcsv($fileOpen, 1000, $delimiter)) !== false) {
+            $rows[] = array_map('utf8_encode', $data);
+        }
 
-			array_shift($rows); // supprime la 1è ligne d'en-têtes
+        array_shift($rows); // supprime la 1è ligne d'en-têtes
 
-			if (!file_exists('./uploads/log')) {
-            	mkdir('./uploads/log', 0777, true);
-			}
-			$path = '../public/uploads/log/';
-			$nameFile = uniqid() . ".txt";
-			$uri = $path . $nameFile;
-			$myFile = fopen($uri, "w");
-			$success = true;
+        if (!file_exists('./uploads/log')) {
+            mkdir('./uploads/log', 0777, true);
+        }
+        $path = '../public/uploads/log/';
+        $nameFile = uniqid() . ".txt";
+        $uri = $path . $nameFile;
+        $myFile = fopen($uri, "w");
+        $success = true;
 
-			foreach ($rows as $row)
-			{
-				$inventoryCategory = $inventoryCategoryRepository->findOneBy(['label' => $row[1]]);
-				$refArticle = $referenceArticleRepository->findOneBy(['reference' => $row[0]]);
-				if (!empty($refArticle) && !empty($inventoryCategory))
-				{
-					$refArticle->setCategory($inventoryCategory);
-                    $entityManager->persist($refArticle);
-                    $entityManager->flush();
-				}
-				else
-				{
-					$success = false;
-					if (empty($refArticle)) {
-						fwrite($myFile, "La référence " . "'" . $row[0] . "' n'existe pas. \n");
-					}
-					if (empty($inventoryCategory))
-					{
-						fwrite($myFile, "La catégorie " . "'" . $row[1] . "' n'existe pas. \n" );
-					}
-				}
-			}
-
-			if ($success) {
+        foreach ($rows as $row)
+        {
+            $inventoryCategory = $inventoryCategoryRepository->findOneBy(['label' => $row[1]]);
+            $refArticle = $referenceArticleRepository->findOneBy(['reference' => $row[0]]);
+            if (!empty($refArticle) && !empty($inventoryCategory))
+            {
+                $refArticle->setCategory($inventoryCategory);
+                $entityManager->persist($refArticle);
                 $entityManager->flush();
-			} else {
-				fwrite($myFile, "\n\nVotre fichier .csv doit contenir 2 colonnes :\n" .
-					"- Une avec les références des articles de référence\n" .
-					"- Une avec les libellés des catégories d'inventaire.\n\n" .
-					"Il ne doit pas contenir de ligne d'en-tête.\n\n" .
-					"Merci de vérifier votre fichier.");
-			}
+            }
+            else
+            {
+                $success = false;
+                if (empty($refArticle)) {
+                    fwrite($myFile, "La référence " . "'" . $row[0] . "' n'existe pas. \n");
+                }
+                if (empty($inventoryCategory))
+                {
+                    fwrite($myFile, "La catégorie " . "'" . $row[1] . "' n'existe pas. \n" );
+                }
+            }
+        }
 
-			fclose($myFile);
+        if ($success) {
+            $entityManager->flush();
+        } else {
+            fwrite($myFile, "\n\nVotre fichier .csv doit contenir 2 colonnes :\n" .
+                "- Une avec les références des articles de référence\n" .
+                "- Une avec les libellés des catégories d'inventaire.\n\n" .
+                "Il ne doit pas contenir de ligne d'en-tête.\n\n" .
+                "Merci de vérifier votre fichier.");
+        }
 
-			return new JsonResponse(['success' => $success, 'nameFile' => $nameFile]);
-		}
+        fclose($myFile);
+
+        return new JsonResponse(['success' => $success, 'nameFile' => $nameFile]);
 	}
 
     /**
-     * @Route("/autocomplete-frequencies", name="get_frequencies", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/autocomplete-frequencies", name="get_frequencies", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function getFrequencies(Request $request,
                                    EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            $search = $request->query->get('term');
+        $search = $request->query->get('term');
 
-            $frequencyRepository = $entityManager->getRepository(InventoryFrequency::class);
-            $results = $frequencyRepository->getLabelBySearch($search);
+        $frequencyRepository = $entityManager->getRepository(InventoryFrequency::class);
+        $results = $frequencyRepository->getLabelBySearch($search);
 
-            return new JsonResponse(['results' => $results]);
-        }
-        throw new BadRequestHttpException();
+        return new JsonResponse(['results' => $results]);
     }
 }

@@ -29,11 +29,8 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class DashboardSettingsController extends AbstractController {
 
-    private $userService;
-
-    public function __construct(UserService $userService) {
-        $this->userService = $userService;
-    }
+    /** @Required */
+    public UserService $userService;
 
     /**
      * @Route("/", name="dashboard_settings", methods={"GET"})

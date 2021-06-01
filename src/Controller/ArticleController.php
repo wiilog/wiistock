@@ -29,7 +29,6 @@ use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -123,18 +122,13 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * @Route("/show-actif-inactif", name="article_actif_inactif", options={"expose"=true})
-     * @param EntityManagerInterface $entityManager
-     * @param ArticleDataService $articleDataService
-     * @param Request $request
-     * @return Response
-     * @throws NonUniqueResultException
+     * @Route("/show-actif-inactif", name="article_actif_inactif", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      */
     public function displayActifOrInactif(EntityManagerInterface $entityManager,
                                           ArticleDataService $articleDataService,
                                           Request $request) : Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)){
+        if ($data = json_decode($request->getContent(), true)){
 
             /** @var Utilisateur $user */
             $user = $this->getUser();
@@ -199,23 +193,14 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * @Route("/voir", name="article_show", options={"expose"=true},  methods="GET|POST")
+     * @Route("/voir", name="article_show", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::EDIT}, mode=HasPermission::IN_JSON)
-     *
-     * @param Request $request
-     * @param ArticleDataService $articleDataService
-     * @param EntityManagerInterface $entityManager
-     *
-     * @return Response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
      */
     public function editApi(Request $request,
                             ArticleDataService $articleDataService,
                             EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $articleRepository = $entityManager->getRepository(Article::class);
 
             $id = is_array($data) ? $data['id'] : $data;
@@ -233,19 +218,14 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * @Route("/nouveau", name="article_new", options={"expose"=true},  methods="GET|POST")
+     * @Route("/nouveau", name="article_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::CREATE}, mode=HasPermission::IN_JSON)
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param MouvementStockService $mouvementStockService
-     * @return Response
-     * @throws NonUniqueResultException
      */
     public function new(Request $request,
                         EntityManagerInterface $entityManager,
                         MouvementStockService $mouvementStockService): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
             $article = $this->articleDataService->newArticle($data, $entityManager);
@@ -277,14 +257,12 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * @Route("/api-modifier", name="article_edit", options={"expose"=true},  methods="GET|POST")
+     * @Route("/api-modifier", name="article_edit", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::EDIT}, mode=HasPermission::IN_JSON)
-     * @param Request $request
-     * @return Response
      */
     public function edit(Request $request): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             if ($data['article']) {
                 try {
                     $this->articleDataService->editArticle($data);
@@ -313,17 +291,8 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * @Route("/supprimer", name="article_delete", options={"expose"=true}, methods="GET|POST")
+     * @Route("/supprimer", name="article_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::DELETE}, mode=HasPermission::IN_JSON)
-     * @param Request $request
-     * @param MouvementStockService $mouvementStockService
-     * @param PreparationsManagerService $preparationsManagerService
-     * @param DemandeLivraisonService $demandeLivraisonService
-     * @param RefArticleDataService $refArticleDataService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NonUniqueResultException
-     * @throws NoResultException
      */
     public function delete(Request $request,
                            MouvementStockService $mouvementStockService,
@@ -332,7 +301,7 @@ class ArticleController extends AbstractController
                            RefArticleDataService $refArticleDataService,
                            EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $articleRepository = $entityManager->getRepository(Article::class);
 
             /** @var Article $article */
@@ -421,16 +390,13 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * @Route("/verification", name="article_check_delete", options={"expose"=true})
+     * @Route("/verification", name="article_check_delete", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI}, mode=HasPermission::IN_JSON)
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
      */
     public function checkArticleCanBeDeleted(Request $request,
                                              EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $articleId = json_decode($request->getContent(), true)) {
+        if ($articleId = json_decode($request->getContent(), true)) {
             $isFromReception = $request->query->getBoolean('fromReception');
 
             $articleRepository = $entityManager->getRepository(Article::class);
@@ -502,26 +468,19 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * @Route("/autocomplete-art", name="get_articles", options={"expose"=true}, methods="GET|POST")
-     *
-     * @param EntityManagerInterface $entityManager
-     * @param Request $request
-     * @return JsonResponse
+     * @Route("/autocomplete-art", name="get_articles", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function getArticles(EntityManagerInterface $entityManager, Request $request)
     {
-        if ($request->isXmlHttpRequest()) {
-            $search = $request->query->get('term');
-            $referenceArticleReference = $request->query->get('referenceArticleReference');
-            $activeOnly = $request->query->getBoolean('activeOnly');
-            $activeReferenceOnly = $request->query->getBoolean('activeReferenceOnly');
+        $search = $request->query->get('term');
+        $referenceArticleReference = $request->query->get('referenceArticleReference');
+        $activeOnly = $request->query->getBoolean('activeOnly');
+        $activeReferenceOnly = $request->query->getBoolean('activeReferenceOnly');
 
-            $articleRepository = $entityManager->getRepository(Article::class);
-            $articles = $articleRepository->getIdAndRefBySearch($search, $activeOnly, 'barCode', $referenceArticleReference, $activeReferenceOnly);
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $articles = $articleRepository->getIdAndRefBySearch($search, $activeOnly, 'barCode', $referenceArticleReference, $activeReferenceOnly);
 
-            return new JsonResponse(['results' => $articles]);
-        }
-        throw new BadRequestHttpException();
+        return new JsonResponse(['results' => $articles]);
     }
 
     /**
@@ -554,17 +513,11 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * @Route("/get-article-demande", name="demande_article_by_refArticle", options={"expose"=true})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
+     * @Route("/get-article-demande", name="demande_article_by_refArticle", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      */
     public function getLivraisonArticlesByRefArticle(Request $request, EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $refArticle = $referenceArticleRepository->find($data['refArticle']);
 
@@ -602,16 +555,11 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * @Route("/get-article-fournisseur", name="demande_reference_by_fournisseur", options={"expose"=true})
-
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-
-     * @return Response
+     * @Route("/get-article-fournisseur", name="demande_reference_by_fournisseur", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      */
     public function getRefArticleByFournisseur(Request $request, EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $fournisseur = json_decode($request->getContent(), true)) {
+        if ($fournisseur = json_decode($request->getContent(), true)) {
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
 

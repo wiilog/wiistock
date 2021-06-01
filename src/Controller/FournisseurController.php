@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Arrivage;
 use App\Entity\ArticleFournisseur;
@@ -42,31 +43,22 @@ class FournisseurController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="fournisseur_api", options={"expose"=true}, methods="POST")
+     * @Route("/api", name="fournisseur_api", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::REFERENTIEL, Action::DISPLAY_FOUR}, mode=HasPermission::IN_JSON)
      */
     public function api(Request $request): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DISPLAY_FOUR)) {
-                return $this->redirectToRoute('access_denied');
-            }
-            $data = $this->fournisseurDataService->getFournisseurDataByParams($request->request);
+        $data = $this->fournisseurDataService->getFournisseurDataByParams($request->request);
 
-            return new JsonResponse($data);
-        }
-        throw new BadRequestHttpException();
+        return new JsonResponse($data);
     }
 
     /**
      * @Route("/", name="fournisseur_index", methods="GET")
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @HasPermission({Menu::REFERENTIEL, Action::DISPLAY_FOUR})
      */
     public function index(EntityManagerInterface $entityManager): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DISPLAY_FOUR)) {
-            return $this->redirectToRoute('access_denied');
-        }
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
 
         return $this->render('fournisseur/index.html.twig', [
@@ -75,19 +67,13 @@ class FournisseurController extends AbstractController
     }
 
     /**
-     * @Route("/creer", name="fournisseur_new", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/creer", name="fournisseur_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::REFERENTIEL, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request,
                         EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($data = json_decode($request->getContent(), true)) {
 			// unicité du code fournisseur
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
             $codeAlreadyUsed = intval($fournisseurRepository->countByCode($data['Code']));
@@ -117,18 +103,13 @@ class FournisseurController extends AbstractController
     }
 
     /**
-     * @Route("/api-modifier", name="fournisseur_api_edit", options={"expose"=true},  methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/api-modifier", name="fournisseur_api_edit", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::REFERENTIEL, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function apiEdit(Request $request,
                             EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        if ($data = json_decode($request->getContent(), true)) {
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
 
             $fournisseur = $fournisseurRepository->find($data['id']);
@@ -141,19 +122,13 @@ class FournisseurController extends AbstractController
     }
 
     /**
-     * @Route("/modifier", name="fournisseur_edit",  options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/modifier", name="fournisseur_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::REFERENTIEL, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function edit(Request $request,
                          EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($data = json_decode($request->getContent(), true)) {
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
             $fournisseur = $fournisseurRepository->find($data['id']);
             $fournisseur
@@ -168,15 +143,12 @@ class FournisseurController extends AbstractController
 
 
     /**
-     * @Route("/verification", name="fournisseur_check_delete", options={"expose"=true})
+     * @Route("/verification", name="fournisseur_check_delete", options={"expose"=true}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::REFERENTIEL, Action::DISPLAY_FOUR}, mode=HasPermission::IN_JSON)
      */
     public function checkFournisseurCanBeDeleted(Request $request): Response
     {
-        if ($request->isXmlHttpRequest() && $fournisseurId = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DISPLAY_FOUR)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($fournisseurId = json_decode($request->getContent(), true)) {
             $isUsedBy = $this->isFournisseurUsed($fournisseurId);
 
             if (empty($isUsedBy)) {
@@ -224,18 +196,13 @@ class FournisseurController extends AbstractController
 
 
     /**
-     * @Route("/supprimer", name="fournisseur_delete",  options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/supprimer", name="fournisseur_delete",  options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::REFERENTIEL, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request,
                            EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        if ($data = json_decode($request->getContent(), true)) {
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
             $fournisseurId = $data['fournisseur'] ?? null;
             if ($fournisseurId) {
@@ -257,7 +224,7 @@ class FournisseurController extends AbstractController
     }
 
     /**
-     * @Route("/autocomplete", name="get_fournisseur", options={"expose"=true})
+     * @Route("/autocomplete", name="get_fournisseur", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return JsonResponse
@@ -265,15 +232,12 @@ class FournisseurController extends AbstractController
     public function getFournisseur(Request $request,
                                    EntityManagerInterface $entityManager)
     {
-        if ($request->isXmlHttpRequest()) {
-            $search = $request->query->get('term');
+        $search = $request->query->get('term');
 
-            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-            $fournisseur = $fournisseurRepository->getIdAndCodeBySearch($search);
+        $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+        $fournisseur = $fournisseurRepository->getIdAndCodeBySearch($search);
 
-            return new JsonResponse(['results' => $fournisseur]);
-        }
-        throw new BadRequestHttpException();
+        return new JsonResponse(['results' => $fournisseur]);
     }
 
     /**

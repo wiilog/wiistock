@@ -7,6 +7,8 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
+use App\Entity\IOT\Pairing;
+
 /**
  * @ORM\Entity(repositoryClass="App\Repository\OrdreCollecteRepository")
  */
@@ -71,11 +73,17 @@ class OrdreCollecte
 	 */
 	private $mouvements;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="collectOrder")
+     */
+    private Collection $pairings;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
         $this->ordreCollecteReferences = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
+        $this->pairings = new ArrayCollection();
     }
 
 
@@ -252,6 +260,36 @@ class OrdreCollecte
             !$status
             || ($status->getNom() === OrdreCollecte::STATUT_A_TRAITER)
         );
+    }
+
+    /**
+     * @return Collection|Pairing[]
+     */
+    public function getPairings(): Collection
+    {
+        return $this->pairings;
+    }
+
+    public function addPairing(Pairing $pairing): self
+    {
+        if (!$this->pairings->contains($pairing)) {
+            $this->pairings[] = $pairing;
+            $pairing->setCollectOrder($this);
+        }
+
+        return $this;
+    }
+
+    public function removePairing(Pairing $pairing): self
+    {
+        if ($this->pairings->removeElement($pairing)) {
+            // set the owning side to null (unless already changed)
+            if ($pairing->getCollectOrder() === $this) {
+                $pairing->setCollectOrder(null);
+            }
+        }
+
+        return $this;
     }
 
 }

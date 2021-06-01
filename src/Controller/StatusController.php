@@ -85,24 +85,20 @@ class StatusController extends AbstractController {
     }
 
     /**
-     * @Route("/api", name="status_param_api", options={"expose"=true}, methods="GET|POST")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_STATU_LITI})
+     * @Route("/api", name="status_param_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_STATU_LITI}, mode=HasPermission::IN_JSON)
      */
     public function api(Request $request): Response {
-        if ($request->isXmlHttpRequest()) {
-
-            $data = $this->statusService->getDataForDatatable($request->request);
-            return new JsonResponse($data);
-        }
-        throw new BadRequestHttpException();
+        $data = $this->statusService->getDataForDatatable($request->request);
+        return new JsonResponse($data);
     }
 
     /**
-     * @Route("/creer", name="status_new", options={"expose"=true}, methods="GET|POST")
-     * @HasPermission({Menu::PARAM, Action::EDIT})
+     * @Route("/creer", name="status_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request, EntityManagerInterface $entityManager): Response {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
 
             $statusRepository = $entityManager->getRepository(Statut::class);
             $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
@@ -161,13 +157,13 @@ class StatusController extends AbstractController {
     }
 
     /**
-     * @Route("/api-modifier", name="status_api_edit", options={"expose"=true}, methods="GET|POST")
-     * @HasPermission({Menu::PARAM, Action::EDIT})
+     * @Route("/api-modifier", name="status_api_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function apiEdit(Request $request,
                             StatusService $statusService,
                             EntityManagerInterface $entityManager): Response {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
@@ -198,12 +194,12 @@ class StatusController extends AbstractController {
     }
 
     /**
-     * @Route("/modifier", name="status_edit",  options={"expose"=true}, methods="GET|POST")
-     * @HasPermission({Menu::PARAM, Action::EDIT})
+     * @Route("/modifier", name="status_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function edit(EntityManagerInterface $entityManager,
                          Request $request): Response {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
 
             $statusRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
@@ -260,11 +256,11 @@ class StatusController extends AbstractController {
     }
 
     /**
-     * @Route("/verification", name="status_check_delete", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::DELETE})
+     * @Route("/verification", name="status_check_delete", options={"expose"=true}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function checkStatusCanBeDeleted(Request $request, EntityManagerInterface $entityManager): Response {
-        if ($request->isXmlHttpRequest() && $statusId = json_decode($request->getContent(), true)) {
+        if ($statusId = json_decode($request->getContent(), true)) {
 
             $statutRepository = $entityManager->getRepository(Statut::class);
 
@@ -295,11 +291,11 @@ class StatusController extends AbstractController {
     }
 
     /**
-     * @Route("/supprimer", name="status_delete", options={"expose"=true}, methods="GET|POST")
-     * @HasPermission({Menu::PARAM, Action::DELETE})
+     * @Route("/supprimer", name="status_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function delete(EntityManagerInterface $entityManager, Request $request): Response {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
 
             $statutRepository = $entityManager->getRepository(Statut::class);
 

@@ -9,6 +9,8 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Selectable;
 use Doctrine\ORM\Mapping as ORM;
 
+use App\Entity\IOT\Pairing;
+
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 
@@ -190,6 +192,11 @@ class Article extends FreeFieldEntity
      */
     private $stockEntryDate;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="article")
+     */
+    private Collection $pairings;
+
     public function __construct()
     {
         $this->collectes = new ArrayCollection();
@@ -202,6 +209,7 @@ class Article extends FreeFieldEntity
 
         $this->quantite = 0;
         $this->alerts = new ArrayCollection();
+        $this->pairings = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -809,6 +817,36 @@ class Article extends FreeFieldEntity
     public function setStockEntryDate(?\DateTimeInterface $stockEntryDate): self
     {
         $this->stockEntryDate = $stockEntryDate;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Pairing[]
+     */
+    public function getPairings(): Collection
+    {
+        return $this->pairings;
+    }
+
+    public function addPairing(Pairing $pairing): self
+    {
+        if (!$this->pairings->contains($pairing)) {
+            $this->pairings[] = $pairing;
+            $pairing->setArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removePairing(Pairing $pairing): self
+    {
+        if ($this->pairings->removeElement($pairing)) {
+            // set the owning side to null (unless already changed)
+            if ($pairing->getArticle() === $this) {
+                $pairing->setArticle(null);
+            }
+        }
 
         return $this;
     }

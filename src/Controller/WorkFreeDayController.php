@@ -6,7 +6,6 @@ namespace App\Controller;
 use App\Entity\WorkFreeDay;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -22,8 +21,6 @@ class WorkFreeDayController extends AbstractController
 
     /**
      * @Route ("/api", name="workFreeDays_table_api", options={"expose"=true},  methods="GET", condition="request.isXmlHttpRequest()")
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse
      */
     public function workFreeDaysTableApi(EntityManagerInterface $entityManager)
     {
@@ -49,10 +46,6 @@ class WorkFreeDayController extends AbstractController
 
     /**
      * @Route("/new", name="workFreeDay_new", options={ "expose"=true },  methods="POST" , condition="request.isXmlHttpRequest()"))
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse
-     * @throws Exception
      */
     public function newNonWorkedDay(Request $request,
                                     EntityManagerInterface $entityManager)
@@ -95,9 +88,6 @@ class WorkFreeDayController extends AbstractController
 
     /**
      * @Route("/supprimer" , name="workFreeDay_delete", options={"expose"=true}, methods={"DELETE"}, condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse
      */
     public function deleteWorkFreeDay(Request $request,
                                       EntityManagerInterface $entityManager)

@@ -3,6 +3,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
@@ -13,12 +14,8 @@ use App\Service\CSVExportService;
 use App\Service\EnCoursService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
-use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,19 +28,12 @@ class EnCoursController extends AbstractController
 {
     /**
      * @Route("/", name="en_cours", methods={"GET"})
-     * @param UserService $userService
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @HasPermission({Menu::TRACA, Action::DISPLAY_ENCO})
      */
     public function index(UserService $userService,
                           Request $request,
                           EntityManagerInterface $entityManager): Response
     {
-        if (!$userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_ENCO)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
 
@@ -70,12 +60,6 @@ class EnCoursController extends AbstractController
 
     /**
      * @Route("/api", name="en_cours_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param EnCoursService $enCoursService
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse
-     * @throws NonUniqueResultException
-     * @throws Exception
      */
     public function apiForEmplacement(Request $request,
                                       EnCoursService $enCoursService,
@@ -104,23 +88,14 @@ class EnCoursController extends AbstractController
     }
 
     /**
-     * @Route("/verification-temps-travaille", name="check_time_worked_is_defined", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse
-     * @throws NonUniqueResultException
-     * @throws NoResultException
+     * @Route("/verification-temps-travaille", name="check_time_worked_is_defined", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-    public function checkTimeWorkedIsDefined(Request $request,
-                                             EntityManagerInterface $entityManager): JsonResponse
+    public function checkTimeWorkedIsDefined(EntityManagerInterface $entityManager): JsonResponse
     {
-        if ($request->isXmlHttpRequest()) {
-            $daysRepository = $entityManager->getRepository(DaysWorked::class);
-            $nbEmptyTimes = $daysRepository->countEmptyTimes();
+        $daysRepository = $entityManager->getRepository(DaysWorked::class);
+        $nbEmptyTimes = $daysRepository->countEmptyTimes();
 
-            return new JsonResponse($nbEmptyTimes == 0);
-        }
-        throw new BadRequestHttpException();
+        return new JsonResponse($nbEmptyTimes == 0);
 
     }
 

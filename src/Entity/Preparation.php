@@ -7,6 +7,8 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
+use App\Entity\IOT\Pairing;
+
 /**
  * @ORM\Entity(repositoryClass="App\Repository\PreparationRepository")
  */
@@ -76,12 +78,18 @@ class Preparation
      */
     private $endLocation;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="preparationOrder")
+     */
+    private Collection $pairings;
+
 
     public function __construct()
     {
         $this->mouvements = new ArrayCollection();
         $this->articles = new ArrayCollection();
         $this->ligneArticlePreparations = new ArrayCollection();
+        $this->pairings = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -327,5 +335,35 @@ class Preparation
             'user' => $this->getUtilisateur() ? $this->getUtilisateur()->getUsername() : '',
             'type' => $type ? $type->getLabel() : '',
         ];
+    }
+
+    /**
+     * @return Collection|Pairing[]
+     */
+    public function getPairings(): Collection
+    {
+        return $this->pairings;
+    }
+
+    public function addPairing(Pairing $pairing): self
+    {
+        if (!$this->pairings->contains($pairing)) {
+            $this->pairings[] = $pairing;
+            $pairing->setPreparationOrder($this);
+        }
+
+        return $this;
+    }
+
+    public function removePairing(Pairing $pairing): self
+    {
+        if ($this->pairings->removeElement($pairing)) {
+            // set the owning side to null (unless already changed)
+            if ($pairing->getPreparationOrder() === $this) {
+                $pairing->setPreparationOrder(null);
+            }
+        }
+
+        return $this;
     }
 }

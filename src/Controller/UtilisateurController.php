@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
@@ -16,7 +17,6 @@ use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -58,14 +58,11 @@ class UtilisateurController extends AbstractController
 
     /**
      * @Route("/", name="user_index", methods="GET|POST")
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_UTIL})
      */
     public function index(EntityManagerInterface $entityManager): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_UTIL)) {
-            return $this->redirectToRoute('access_denied');
-        }
+
         $typeRepository = $entityManager->getRepository(Type::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $roleRepository = $entityManager->getRepository(Role::class);
@@ -91,18 +88,12 @@ class UtilisateurController extends AbstractController
     }
 
     /**
-     * @Route("/creer", name="user_new",  options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/creer", name="user_new",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($data = json_decode($request->getContent(), true)) {
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $typeRepository = $entityManager->getRepository(Type::class);
@@ -208,19 +199,13 @@ class UtilisateurController extends AbstractController
     }
 
     /**
-     * @Route("/api-modifier", name="user_api_edit", options={"expose"=true},  methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/api-modifier", name="user_api_edit", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function editApi(Request $request,
                             EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($data = json_decode($request->getContent(), true)) {
             $typeRepository = $entityManager->getRepository(Type::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
@@ -252,18 +237,12 @@ class UtilisateurController extends AbstractController
     }
 
     /**
-     * @Route("/modifier", name="user_edit",  options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/modifier", name="user_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function edit(Request $request, EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($data = json_decode($request->getContent(), true)) {
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
 
@@ -428,18 +407,13 @@ class UtilisateurController extends AbstractController
     }
 
     /**
-     * @Route("/modifier-role", name="user_edit_role",  options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse|RedirectResponse
+     * @Route("/modifier-role", name="user_edit_role",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function editRole(Request $request,
                              EntityManagerInterface $entityManager)
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        if ($data = json_decode($request->getContent(), true)) {
             $roleRepository = $entityManager->getRepository(Role::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
@@ -460,35 +434,23 @@ class UtilisateurController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="user_api",  options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @return Response
+     * @Route("/api", name="user_api",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_UTIL}, mode=HasPermission::IN_JSON)
      */
     public function api(Request $request): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_UTIL)) {
-                return $this->redirectToRoute('access_denied');
-            }
-            $data = $this->userService->getDataForDatatable($request->request);
+        $data = $this->userService->getDataForDatatable($request->request);
 
-            return new JsonResponse($data);
-        }
-        throw new BadRequestHttpException();
+        return new JsonResponse($data);
     }
 
     /**
-     * @Route("/verification", name="user_check_delete", options={"expose"=true})
-     * @param Request $request
-     * @return Response
+     * @Route("/verification", name="user_check_delete", options={"expose"=true}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
 	public function checkUserCanBeDeleted(Request $request): Response
 	{
-		if ($request->isXmlHttpRequest() && $userId = json_decode($request->getContent(), true)) {
-			if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
-				return $this->redirectToRoute('access_denied');
-			}
-
+		if ($userId = json_decode($request->getContent(), true)) {
 			$userIsUsed = $this->userService->isUsedByDemandsOrOrders($userId);
 
 			if (!$userIsUsed) {
@@ -505,19 +467,13 @@ class UtilisateurController extends AbstractController
 	}
 
     /**
-     * @Route("/supprimer", name="user_delete", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/supprimer", name="user_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request,
                            EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($data = json_decode($request->getContent(), true)) {
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
             $user = $utilisateurRepository->find($data['user']);
@@ -542,28 +498,20 @@ class UtilisateurController extends AbstractController
     }
 
     /**
-     * @Route("/autocomplete", name="get_user", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/autocomplete", name="get_user", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function getUserAutoComplete(Request $request,
                                         EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            $search = $request->query->get('term');
+        $search = $request->query->get('term');
 
-            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-            $results = $utilisateurRepository->getIdAndLibelleBySearch($search);
-            return new JsonResponse(['results' => $results]);
-        }
-        throw new BadRequestHttpException();
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $results = $utilisateurRepository->getIdAndLibelleBySearch($search);
+        return new JsonResponse(['results' => $results]);
     }
 
     /**
      * @Route("/recherches", name="update_user_searches", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @return JsonResponse
      */
     public function updateSearches(Request $request,
                                    EntityManagerInterface $entityManager) {
@@ -589,10 +537,10 @@ class UtilisateurController extends AbstractController
     }
 
     /**
-     * @Route("/recherchesArticle", name="update_user_searches_for_article", options={"expose"=true}, methods="GET|POST")
+     * @Route("/recherchesArticle", name="update_user_searches_for_article", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function updateSearchesArticle(Request $request) {
-        if ($request->isXmlHttpRequest() && $data = $request->request->get("searches")) {
+        if ($data = $request->request->get("searches")) {
             $this->getUser()->setRechercheForArticle($data);
             $this->getDoctrine()->getManager()->flush();
 
@@ -605,16 +553,12 @@ class UtilisateurController extends AbstractController
     }
 
     /**
-     * @Route("/taille-page-arrivage", name="update_user_page_length_for_arrivage", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @return JsonResponse
+     * @Route("/taille-page-arrivage", name="update_user_page_length_for_arrivage", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function updateUserPageLengthForArrivage(Request $request)
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            /**
-             * @var Utilisateur $user
-             */
+        if ($data = json_decode($request->getContent(), true)) {
+            /** @var Utilisateur $user */
             $user = $this->getUser();
             $user->setPageLengthForArrivage($data);
             $em = $this->getDoctrine()->getManager();

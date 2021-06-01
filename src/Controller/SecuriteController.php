@@ -275,16 +275,12 @@ class SecuriteController extends AbstractController {
     }
 
     /**
-     * @Route("/change-password-in-bdd", name="change_password_in_bdd", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param UserPasswordEncoderInterface $passwordEncoder
-     * @return Response
+     * @Route("/change-password-in-bdd", name="change_password_in_bdd", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function change_password_in_bdd(Request $request,
                                            EntityManagerInterface $entityManager,
                                            UserPasswordEncoderInterface $passwordEncoder): Response {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if($data = json_decode($request->getContent(), true)) {
 
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
@@ -334,13 +330,10 @@ class SecuriteController extends AbstractController {
     }
 
     /**
-     * @Route("/verifier-email", name="check_email", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/verifier-email", name="check_email", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function checkEmail(Request $request, EntityManagerInterface $entityManager): Response {
-        if($request->isXmlHttpRequest() && $email = json_decode($request->getContent())) {
+        if($email = json_decode($request->getContent())) {
             $errorCode = '';
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 

@@ -8,6 +8,8 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 
+use App\Entity\IOT\Pairing;
+
 /**
  * @ORM\Entity(repositoryClass="App\Repository\PackRepository")
  */
@@ -128,6 +130,11 @@ class Pack
      */
     private ?Collection $childTrackingMovements;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="pack")
+     */
+    private Collection $pairings;
+
     public function __construct() {
         $this->litiges = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
@@ -136,6 +143,7 @@ class Pack
         $this->children = new ArrayCollection();
         $this->childTrackingMovements = new ArrayCollection();
         $this->quantity = 1;
+        $this->pairings = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -209,13 +217,16 @@ class Pack
         return $this->lastDrop;
     }
 
-    public function setLastDrop(?TrackingMovement $lastDrop): self
-    {
-        if (isset($this->lastDrop)) {
-            $this->lastDrop->setLinkedPackLastDrop(null);
+    public function setLastDrop(?TrackingMovement $lastDrop): self {
+        if($this->lastDrop && $this->lastDrop->getLinkedPackLastDrop() !== $this) {
+            $oldLastDrop = $this->lastDrop;
+            $this->lastDrop = null;
+            $oldLastDrop->setLinkedPackLastDrop(null);
         }
+
         $this->lastDrop = $lastDrop;
-        if (isset($this->lastDrop)) {
+
+        if($this->lastDrop && $this->lastDrop->getLinkedPackLastDrop() !== $this) {
             $this->lastDrop->setLinkedPackLastDrop($this);
         }
 
@@ -229,14 +240,18 @@ class Pack
 
     public function setLastTracking(?TrackingMovement $lastTracking): self
     {
-        if (isset($this->lastTracking)) {
-            $this->lastTracking->setLinkedPackLastTracking(null);
+        if($this->lastTracking && $this->lastTracking->getLinkedPackLastTracking() !== $this) {
+            $oldLastTracking = $this->lastTracking;
+            $this->lastTracking = null;
+            $oldLastTracking->setLinkedPackLastTracking(null);
         }
+
         $this->lastTracking = $lastTracking;
 
-        if (isset($this->lastTracking)) {
+        if($this->lastTracking && $this->lastTracking->getLinkedPackLastTracking() !== $this) {
             $this->lastTracking->setLinkedPackLastTracking($this);
         }
+
         return $this;
     }
 
@@ -559,6 +574,36 @@ class Pack
                 ->map(fn(Pack $pack) => $pack->serialize())
                 ->toArray()
         ];
+    }
+
+    /**
+     * @return Collection|Pairing[]
+     */
+    public function getPairings(): Collection
+    {
+        return $this->pairings;
+    }
+
+    public function addPairing(Pairing $pairing): self
+    {
+        if (!$this->pairings->contains($pairing)) {
+            $this->pairings[] = $pairing;
+            $pairing->setPack($this);
+        }
+
+        return $this;
+    }
+
+    public function removePairing(Pairing $pairing): self
+    {
+        if ($this->pairings->removeElement($pairing)) {
+            // set the owning side to null (unless already changed)
+            if ($pairing->getPack() === $this) {
+                $pairing->setPack(null);
+            }
+        }
+
+        return $this;
     }
 
 }

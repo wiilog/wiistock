@@ -4,6 +4,8 @@ namespace App\Repository;
 
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
+use App\Entity\ReferenceArticle;
+use App\Entity\Statut;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -116,4 +118,27 @@ class ReceptionReferenceArticleRepository extends EntityRepository
 
 		return $query->getSingleScalarResult();
 	}
+
+	public function findByReferenceArticleAndReceptionStatus(ReferenceArticle $referenceArticle, array $statuses, ?Reception $ignored = null) {
+	    $queryBuilder = $this->createQueryBuilder('reception_reference_article');
+	    $query = $queryBuilder
+            ->join('reception_reference_article.referenceArticle', 'reference_article')
+            ->join('reception_reference_article.reception', 'reception')
+            ->join('reception.statut', 'status')
+            ->where('reference_article = :ref')
+            ->andWhere('status.code IN (:statuses)')
+            ->setParameters([
+                'ref' => $referenceArticle,
+                'statuses' => $statuses
+            ]);
+
+	    if ($ignored) {
+	        $query
+                ->andWhere('reception != :recep')
+                ->setParameter('recep', $ignored);
+        }
+	    return $query
+            ->getQuery()
+            ->getResult();
+    }
 }

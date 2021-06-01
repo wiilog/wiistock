@@ -17,7 +17,6 @@ use App\Entity\Utilisateur;
 use WiiCommon\Helper\Stream;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -42,70 +41,60 @@ class FreeFieldController extends AbstractController {
     ];
 
     /**
-     * @Route("/api/{id}", name="free_field_api", options={"expose"=true}, methods={"POST"})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param $id
-     * @return Response
-     * @throws Exception
+     * @Route("/api/{id}", name="free_field_api", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
      */
-    public function api(Request $request,
-                        EntityManagerInterface $entityManager,
-                        $id): Response
+    public function api(EntityManagerInterface $entityManager, $id): Response
     {
-        if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
-            $champLibreRepository = $entityManager->getRepository(FreeField::class);
-            $champsLibres = $champLibreRepository->findByType($id);
-            $rows = [];
-            foreach ($champsLibres as $champLibre) {
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
+        $champsLibres = $champLibreRepository->findByType($id);
+        $rows = [];
+        foreach ($champsLibres as $champLibre) {
 
-                if ($champLibre->getTypage() === FreeField::TYPE_BOOL) {
-                    $typageCLFr = 'Oui/Non';
-                } elseif ($champLibre->getTypage() === FreeField::TYPE_NUMBER) {
-                    $typageCLFr = 'Nombre';
-                } elseif ($champLibre->getTypage() === FreeField::TYPE_TEXT) {
-                    $typageCLFr = 'Texte';
-                } elseif ($champLibre->getTypage() === FreeField::TYPE_LIST) {
-                    $typageCLFr = 'Liste';
-                } elseif ($champLibre->getTypage() === FreeField::TYPE_DATE) {
-                    $typageCLFr = 'Date';
-                } elseif ($champLibre->getTypage() === FreeField::TYPE_DATETIME) {
-                    $typageCLFr = 'Date et heure';
-                } elseif ($champLibre->getTypage() === FreeField::TYPE_LIST_MULTIPLE) {
-                    $typageCLFr = 'Liste multiple';
-                } else {
-                    $typageCLFr = '';
-                }
-
-                $defaultValue = $champLibre->getDefaultValue();
-                if ($champLibre->getTypage() == FreeField::TYPE_BOOL) {
-                    $defaultValue = ($champLibre->getDefaultValue() === null || $champLibre->getDefaultValue() === "")
-                        ? ""
-                        : ($champLibre->getDefaultValue() ? "Oui" : "Non");
-                } else if ($champLibre->getTypage() === FreeField::TYPE_DATETIME
-                    || $champLibre->getTypage() === FreeField::TYPE_DATE) {
-                    $defaultValueDate = $defaultValue ? new DateTime(str_replace('/', '-', $defaultValue)) : null;
-                    $defaultValue = ($defaultValueDate && $defaultValue) ? $defaultValueDate->format('d/m/Y H:i') : '';
-                }
-
-                $rows[] = [
-                    'id' => ($champLibre->getId() ? $champLibre->getId() : 'Non défini'),
-                    'Label' => ($champLibre->getLabel() ? $champLibre->getLabel() : 'Non défini'),
-                    "S'applique à" => ($champLibre->getCategorieCL() ? $champLibre->getCategorieCL()->getLabel() : ''),
-                    'Typage' => $typageCLFr,
-                    'Affiché à la création' => ($champLibre->getDisplayedCreate() ? "oui" : "non"),
-                    'Obligatoire à la création' => ($champLibre->getRequiredCreate() ? "oui" : "non"),
-                    'Obligatoire à la modification' => ($champLibre->getRequiredEdit() ? "oui" : "non"),
-                    'Valeur par défaut' => $defaultValue,
-                    'Elements' => $champLibre->getTypage() == FreeField::TYPE_LIST || $champLibre->getTypage() == FreeField::TYPE_LIST_MULTIPLE ? $this->renderView('free_field/freeFieldElems.html.twig', ['elems' => $champLibre->getElements()]) : '',
-                    'Actions' => $this->renderView('free_field/datatableFreeFieldRow.html.twig', ['idChampLibre' => $champLibre->getId()]),
-                ];
+            if ($champLibre->getTypage() === FreeField::TYPE_BOOL) {
+                $typageCLFr = 'Oui/Non';
+            } elseif ($champLibre->getTypage() === FreeField::TYPE_NUMBER) {
+                $typageCLFr = 'Nombre';
+            } elseif ($champLibre->getTypage() === FreeField::TYPE_TEXT) {
+                $typageCLFr = 'Texte';
+            } elseif ($champLibre->getTypage() === FreeField::TYPE_LIST) {
+                $typageCLFr = 'Liste';
+            } elseif ($champLibre->getTypage() === FreeField::TYPE_DATE) {
+                $typageCLFr = 'Date';
+            } elseif ($champLibre->getTypage() === FreeField::TYPE_DATETIME) {
+                $typageCLFr = 'Date et heure';
+            } elseif ($champLibre->getTypage() === FreeField::TYPE_LIST_MULTIPLE) {
+                $typageCLFr = 'Liste multiple';
+            } else {
+                $typageCLFr = '';
             }
-            $data['data'] = $rows;
 
-            return new JsonResponse($data);
+            $defaultValue = $champLibre->getDefaultValue();
+            if ($champLibre->getTypage() == FreeField::TYPE_BOOL) {
+                $defaultValue = ($champLibre->getDefaultValue() === null || $champLibre->getDefaultValue() === "")
+                    ? ""
+                    : ($champLibre->getDefaultValue() ? "Oui" : "Non");
+            } else if ($champLibre->getTypage() === FreeField::TYPE_DATETIME
+                || $champLibre->getTypage() === FreeField::TYPE_DATE) {
+                $defaultValueDate = $defaultValue ? new DateTime(str_replace('/', '-', $defaultValue)) : null;
+                $defaultValue = ($defaultValueDate && $defaultValue) ? $defaultValueDate->format('d/m/Y H:i') : '';
+            }
+
+            $rows[] = [
+                'id' => ($champLibre->getId() ? $champLibre->getId() : 'Non défini'),
+                'Label' => ($champLibre->getLabel() ? $champLibre->getLabel() : 'Non défini'),
+                "S'applique à" => ($champLibre->getCategorieCL() ? $champLibre->getCategorieCL()->getLabel() : ''),
+                'Typage' => $typageCLFr,
+                'Affiché à la création' => ($champLibre->getDisplayedCreate() ? "oui" : "non"),
+                'Obligatoire à la création' => ($champLibre->getRequiredCreate() ? "oui" : "non"),
+                'Obligatoire à la modification' => ($champLibre->getRequiredEdit() ? "oui" : "non"),
+                'Valeur par défaut' => $defaultValue,
+                'Elements' => $champLibre->getTypage() == FreeField::TYPE_LIST || $champLibre->getTypage() == FreeField::TYPE_LIST_MULTIPLE ? $this->renderView('free_field/freeFieldElems.html.twig', ['elems' => $champLibre->getElements()]) : '',
+                'Actions' => $this->renderView('free_field/datatableFreeFieldRow.html.twig', ['idChampLibre' => $champLibre->getId()]),
+            ];
         }
-        throw new BadRequestHttpException();
+        $data['data'] = $rows;
+
+        return new JsonResponse($data);
     }
 
     /**
@@ -201,13 +190,10 @@ class FreeFieldController extends AbstractController {
     }
 
     /**
-     * @Route("/api-modifier", name="free_field_api_edit", options={"expose"=true},  methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/api-modifier", name="free_field_api_edit", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function editApi(Request $request, EntityManagerInterface $entityManager): Response {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
             $champLibre = $champLibreRepository->find($data['id']);
@@ -326,15 +312,12 @@ class FreeFieldController extends AbstractController {
     }
 
     /**
-     * @Route("/display-require-champ", name="display_required_champs_libres", options={"expose"=true},  methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/display-require-champ", name="display_required_champs_libres", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function displayRequiredChampsLibres(Request $request,
                                                 EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $typeRepository = $entityManager->getRepository(Type::class);
 

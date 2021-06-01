@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
@@ -25,11 +26,9 @@ use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -80,23 +79,8 @@ class PreparationController extends AbstractController
 
 
     /**
-     * @Route(
-     *     "/finish/{idPrepa}",
-     *     name="preparation_finish",
-     *     methods={"POST"},
-     *     options={"expose"=true},
-     *     condition="request.isXmlHttpRequest()"
-     * )
-     * @param $idPrepa
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param LivraisonsManagerService $livraisonsManager
-     * @param PreparationsManagerService $preparationsManager
-     * @return JsonResponse|RedirectResponse
-     * @throws LoaderError
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
+     * @Route("/finish/{idPrepa}", name="preparation_finish", methods={"POST"}, options={"expose"=true}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function finishPrepa($idPrepa,
                                 Request $request,
@@ -104,9 +88,6 @@ class PreparationController extends AbstractController
                                 LivraisonsManagerService $livraisonsManager,
                                 PreparationsManagerService $preparationsManager)
     {
-        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
-            return $this->redirectToRoute('access_denied');
-        }
 
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $preparationRepository = $entityManager->getRepository(Preparation::class);
@@ -162,17 +143,11 @@ class PreparationController extends AbstractController
 
     /**
      * @Route("/liste/{demandId}", name="preparation_index", methods="GET|POST")
-     * @param EntityManagerInterface $entityManager
-     * @param string|null $demandId
-     * @return Response
+     * @HasPermission({Menu::ORDRE, Action::DISPLAY_PREPA})
      */
     public function index(EntityManagerInterface $entityManager,
                           string $demandId = null): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_PREPA)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $demandeRepository = $entityManager->getRepository(Demande::class);
@@ -190,122 +165,100 @@ class PreparationController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="preparation_api", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api", name="preparation_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::DISPLAY_PREPA}, mode=HasPermission::IN_JSON)
      */
     public function api(Request $request): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_PREPA)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        $filterDemand = $request->request->get('filterDemand');
+        $data = $this->preparationsManagerService->getDataForDatatable($request->request, $filterDemand);
 
-            $filterDemand = $request->request->get('filterDemand');
-            $data = $this->preparationsManagerService->getDataForDatatable($request->request, $filterDemand);
-
-            return new JsonResponse($data);
-        }
-        throw new BadRequestHttpException();
+        return new JsonResponse($data);
     }
 
 
     /**
-     * @Route("/api_article/{preparation}", name="preparation_article_api", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param Preparation $preparation
-     * @return Response
+     * @Route("/api_article/{preparation}", name="preparation_article_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::DISPLAY_PREPA}, mode=HasPermission::IN_JSON)
      */
-    public function apiLignePreparation(Request $request,
-                                        Preparation $preparation): Response
+    public function apiLignePreparation(Preparation $preparation): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_PREPA)) {
-                return $this->redirectToRoute('access_denied');
+        $demande = $preparation->getDemande();
+        $preparationStatut = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;
+        $isPrepaEditable = $preparationStatut === Preparation::STATUT_A_TRAITER || ($preparationStatut == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser());
+
+        if (isset($demande)) {
+            $rows = [];
+            foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
+                $articleRef = $ligneArticle->getReference();
+                $isRefByArt = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE;
+                if ($ligneArticle->getQuantitePrelevee() > 0 ||
+                    ($preparationStatut !== Preparation::STATUT_PREPARE && $preparationStatut !== Preparation::STATUT_INCOMPLETE)) {
+                    $qttForCurrentLine = $ligneArticle->getQuantite() ?? null;
+                    $rows[] = [
+                        "Référence" => $articleRef ? $articleRef->getReference() : ' ',
+                        "Libellé" => $articleRef ? $articleRef->getLibelle() : ' ',
+                        "Emplacement" => $articleRef ? ($articleRef->getEmplacement() ? $articleRef->getEmplacement()->getLabel() : '') : '',
+                        "Quantité" => $articleRef->getQuantiteStock(),
+                        "Quantité à prélever" => $qttForCurrentLine,
+                        "Quantité prélevée" => $ligneArticle->getQuantitePrelevee() ? $ligneArticle->getQuantitePrelevee() : ' ',
+                        'active' => !empty($ligneArticle->getQuantitePrelevee()),
+                        "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
+                            'barcode' => $articleRef->getBarCode(),
+                            'isRef' => true,
+                            'artOrRefId' => $articleRef->getId(),
+                            'isRefByArt' => $isRefByArt,
+                            'id' => $ligneArticle->getId(),
+                            'isPrepaEditable' => $isPrepaEditable,
+                            'stockManagement' => $articleRef->getStockManagement()
+                        ])
+                    ];
+                }
             }
 
-            $demande = $preparation->getDemande();
-            $preparationStatut = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;
-            $isPrepaEditable = $preparationStatut === Preparation::STATUT_A_TRAITER || ($preparationStatut == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser());
-
-            if (isset($demande)) {
-                $rows = [];
-                foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
-                    $articleRef = $ligneArticle->getReference();
-                    $isRefByArt = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE;
-                    if ($ligneArticle->getQuantitePrelevee() > 0 ||
-                        ($preparationStatut !== Preparation::STATUT_PREPARE && $preparationStatut !== Preparation::STATUT_INCOMPLETE)) {
-                        $qttForCurrentLine = $ligneArticle->getQuantite() ?? null;
-                        $rows[] = [
-                            "Référence" => $articleRef ? $articleRef->getReference() : ' ',
-                            "Libellé" => $articleRef ? $articleRef->getLibelle() : ' ',
-                            "Emplacement" => $articleRef ? ($articleRef->getEmplacement() ? $articleRef->getEmplacement()->getLabel() : '') : '',
-                            "Quantité" => $articleRef->getQuantiteStock(),
-                            "Quantité à prélever" => $qttForCurrentLine,
-                            "Quantité prélevée" => $ligneArticle->getQuantitePrelevee() ? $ligneArticle->getQuantitePrelevee() : ' ',
-                            'active' => !empty($ligneArticle->getQuantitePrelevee()),
-                            "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
-                                'barcode' => $articleRef->getBarCode(),
-                                'isRef' => true,
-                                'artOrRefId' => $articleRef->getId(),
-                                'isRefByArt' => $isRefByArt,
-                                'id' => $ligneArticle->getId(),
-                                'isPrepaEditable' => $isPrepaEditable,
-                                'stockManagement' => $articleRef->getStockManagement()
-                            ])
-                        ];
+            foreach ($preparation->getArticles() as $article) {
+                if ($article->getQuantite() > 0 ||
+                    ($preparationStatut !== Preparation::STATUT_PREPARE && $preparationStatut !== Preparation::STATUT_INCOMPLETE)) {
+                    if (empty($article->getQuantiteAPrelever())) {
+                        $article->setQuantiteAPrelever($article->getQuantite());
+                        $this->getDoctrine()->getManager()->flush();
                     }
+                    $rows[] = [
+                        "Référence" => ($article->getArticleFournisseur() && $article->getArticleFournisseur()->getReferenceArticle()) ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
+                        "Libellé" => $article->getLabel() ?? '',
+                        "Emplacement" => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
+                        "Quantité" => $article->getQuantite() ?? '',
+                        "Quantité à prélever" => $article->getQuantiteAPrelever() ?? '',
+                        "Quantité prélevée" => $article->getQuantitePrelevee() ?? ' ',
+                        'active' => !empty($article->getQuantitePrelevee()),
+                        "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
+                            'barcode' => $article->getBarCode(),
+                            'artOrRefId' => $article->getId(),
+                            'isRef' => false,
+                            'isRefByArt' => false,
+                            'quantity' => $article->getQuantiteAPrelever(),
+                            'id' => $article->getId(),
+                            'isPrepaEditable' => $isPrepaEditable,
+                            'stockManagement' => $article->getArticleFournisseur()->getReferenceArticle()->getStockManagement()
+                        ])
+                    ];
                 }
-
-                foreach ($preparation->getArticles() as $article) {
-                    if ($article->getQuantite() > 0 ||
-                        ($preparationStatut !== Preparation::STATUT_PREPARE && $preparationStatut !== Preparation::STATUT_INCOMPLETE)) {
-                        if (empty($article->getQuantiteAPrelever())) {
-                            $article->setQuantiteAPrelever($article->getQuantite());
-                            $this->getDoctrine()->getManager()->flush();
-                        }
-                        $rows[] = [
-                            "Référence" => ($article->getArticleFournisseur() && $article->getArticleFournisseur()->getReferenceArticle()) ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
-                            "Libellé" => $article->getLabel() ?? '',
-                            "Emplacement" => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
-                            "Quantité" => $article->getQuantite() ?? '',
-                            "Quantité à prélever" => $article->getQuantiteAPrelever() ?? '',
-                            "Quantité prélevée" => $article->getQuantitePrelevee() ?? ' ',
-                            'active' => !empty($article->getQuantitePrelevee()),
-                            "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
-                                'barcode' => $article->getBarCode(),
-                                'artOrRefId' => $article->getId(),
-                                'isRef' => false,
-                                'isRefByArt' => false,
-                                'quantity' => $article->getQuantiteAPrelever(),
-                                'id' => $article->getId(),
-                                'isPrepaEditable' => $isPrepaEditable,
-                                'stockManagement' => $article->getArticleFournisseur()->getReferenceArticle()->getStockManagement()
-                            ])
-                        ];
-                    }
-                }
-
-                $data['data'] = $rows;
-            } else {
-                $data = false; //TODO gérer affichage erreur
             }
-            return new JsonResponse($data);
+
+            $data['data'] = $rows;
+        } else {
+            $data = false; //TODO gérer affichage erreur
         }
-        throw new BadRequestHttpException();
+        return new JsonResponse($data);
     }
 
     /**
      * @Route("/voir/{id}", name="preparation_show", methods="GET|POST")
-     * @param Preparation $preparation
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @HasPermission({Menu::ORDRE, Action::DISPLAY_PREPA})
      */
     public function show(Preparation $preparation,
                          EntityManagerInterface $entityManager): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_PREPA)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $articleRepository = $entityManager->getRepository(Article::class);
 
         $preparationStatus = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;
@@ -342,22 +295,13 @@ class PreparationController extends AbstractController
 
     /**
      * @Route("/supprimer/{id}", name="preparation_delete", methods="GET|POST")
-     * @param Preparation $preparation
-     * @param EntityManagerInterface $entityManager
-     * @param PreparationsManagerService $preparationsManagerService
-     * @param RefArticleDataService $refArticleDataService
-     * @return Response
-     * @throws NonUniqueResultException
-     * @throws NoResultException
+     * @HasPermission({Menu::ORDRE, Action::DELETE})
      */
     public function delete(Preparation $preparation,
                            EntityManagerInterface $entityManager,
                            PreparationsManagerService $preparationsManagerService,
                            RefArticleDataService $refArticleDataService): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DELETE)) {
-            return $this->redirectToRoute('access_denied');
-        }
 
         $refToUpdate = $preparationsManagerService->managePreRemovePreparation($preparation, $entityManager);
         $entityManager->flush();
@@ -377,16 +321,12 @@ class PreparationController extends AbstractController
     }
 
     /**
-     * @Route("/commencer-scission", name="start_splitting", options={"expose"=true}, methods="GET|POST")
-     * Get list of article
-     * @param EntityManagerInterface $entityManager
-     * @param Request $request
-     * @return Response
+     * @Route("/commencer-scission", name="start_splitting", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function startSplitting(EntityManagerInterface $entityManager,
                                    Request $request): Response
     {
-        if ($request->isXmlHttpRequest() && $ligneArticleId = json_decode($request->getContent(), true)) {
+        if ($ligneArticleId = json_decode($request->getContent(), true)) {
             $ligneArticlePreparationRepository = $entityManager->getRepository(LigneArticlePreparation::class);
             $articleRepository = $entityManager->getRepository(Article::class);
 
@@ -411,16 +351,12 @@ class PreparationController extends AbstractController
     }
 
     /**
-     * @Route("/finir-scission", name="submit_splitting", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NonUniqueResultException
+     * @Route("/finir-scission", name="submit_splitting", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function submitSplitting(Request $request,
                                     EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $articleRepository = $entityManager->getRepository(Article::class);
 
             $statutRepository = $entityManager->getRepository(Statut::class);
@@ -485,23 +421,16 @@ class PreparationController extends AbstractController
     }
 
     /**
-     * @Route("/modifier-article", name="prepa_edit_ligne_article", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NonUniqueResultException
+     * @Route("/modifier-article", name="prepa_edit_ligne_article", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::STOCK, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function editLigneArticle(Request $request,
                                      EntityManagerInterface $entityManager): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $articleRepository = $entityManager->getRepository(Article::class);
         $ligneArticlePreparationRepository = $entityManager->getRepository(LigneArticlePreparation::class);
 
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             if ($data['isRef']) {
                 $ligneArticle = $ligneArticlePreparationRepository->find($data['ligneArticle']);
             } else {
@@ -527,19 +456,13 @@ class PreparationController extends AbstractController
     }
 
     /**
-     * @Route("/modifier-article-api", name="prepa_edit_api", options={"expose"=true}, methods={"GET","POST"} )
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/modifier-article-api", name="prepa_edit_api", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function apiEditLigneArticle(Request $request,
                                         EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($data = json_decode($request->getContent(), true)) {
             $articleRepository = $entityManager->getRepository(Article::class);
             $ligneArticlePreparationRepository = $entityManager->getRepository(LigneArticlePreparation::class);
 
@@ -568,16 +491,12 @@ class PreparationController extends AbstractController
     }
 
     /**
-     * @Route("/commencer-preparation", name="prepa_begin", options={"expose"=true}, methods={"GET","POST"} )
-     * @param EntityManagerInterface $entityManager
-     * @param Request $request
-     * @return Response
-     * @throws NonUniqueResultException
+     * @Route("/commencer-preparation", name="prepa_begin", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
      */
     public function beginPrepa(EntityManagerInterface $entityManager,
                                Request $request): Response
     {
-        if ($request->isXmlHttpRequest() && $prepaId = json_decode($request->getContent(), true)) {
+        if ($prepaId = json_decode($request->getContent(), true)) {
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $preparationRepository = $entityManager->getRepository(Preparation::class);

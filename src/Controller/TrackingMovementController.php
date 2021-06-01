@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
@@ -28,19 +29,16 @@ use App\Service\UserService;
 
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use DateTime;
 use Symfony\Contracts\Translation\TranslatorInterface;
-use Throwable;
 
 /**
  * @Route("/mouvement-traca")
@@ -72,21 +70,12 @@ class TrackingMovementController extends AbstractController
 
     /**
      * @Route("/", name="mvt_traca_index", options={"expose"=true})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param FilterSupService $filterSupService
-     * @param TrackingMovementService $trackingMovementService
-     * @return RedirectResponse|Response
-     * @throws NonUniqueResultException
+     * @HasPermission({Menu::TRACA, Action::DISPLAY_MOUV})
      */
     public function index(Request $request,
                           EntityManagerInterface $entityManager,
                           FilterSupService $filterSupService,
                           TrackingMovementService $trackingMovementService) {
-        if(!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_MOUV)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
@@ -123,43 +112,26 @@ class TrackingMovementController extends AbstractController
     }
 
     /**
-     * @Route("/api-columns", name="tracking_movement_api_columns", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param TrackingMovementService $trackingMovementService
-     * @return Response
+     * @Route("/api-columns", name="tracking_movement_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::TRACA, Action::DISPLAY_MOUV}, mode=HasPermission::IN_JSON)
      */
-    public function apiColumns(Request $request,
-                               EntityManagerInterface $entityManager,
+    public function apiColumns(EntityManagerInterface $entityManager,
                                TrackingMovementService $trackingMovementService): Response {
-        if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_MOUV)) {
-                return $this->redirectToRoute('access_denied');
-            }
 
-            /** @var Utilisateur $currentUser */
-            $currentUser = $this->getUser();
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
 
-            $columns = $trackingMovementService->getVisibleColumnsConfig($entityManager, $currentUser);
+        $columns = $trackingMovementService->getVisibleColumnsConfig($entityManager, $currentUser);
 
-            return $this->json(array_values($columns));
-        }
-
-        throw new BadRequestHttpException();
+        return $this->json(array_values($columns));
     }
 
     /**
      * @Route("/colonne-visible", name="save_column_visible_for_tracking_movement", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @HasPermission({Menu::TRACA, Action::DISPLAY_MOUV}, mode=HasPermission::IN_JSON)
      */
     public function saveColumnVisible(Request $request,
                                       EntityManagerInterface $entityManager): Response {
-
-        if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_MOUV)) {
-            return $this->redirectToRoute('access_denied');
-        }
 
         $data = json_decode($request->getContent(), true);
         $fields = array_keys($data);
@@ -177,254 +149,224 @@ class TrackingMovementController extends AbstractController
     }
 
     /**
-     * @Route("/creer", name="mvt_traca_new", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param TrackingMovementService $trackingMovementService
-     * @param FreeFieldService $freeFieldService
-     * @param EntityManagerInterface $entityManager
-     * @param TranslatorInterface $translator
-     * @return Response
-     * @throws Exception
+     * @Route("/creer", name="mvt_traca_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::TRACA, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request,
                         TrackingMovementService $trackingMovementService,
                         FreeFieldService $freeFieldService,
                         EntityManagerInterface $entityManager,
-                        TranslatorInterface $translator): Response
-    {
-        if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-            $countCreatedMouvements = 0;
-            $post = $request->request;
-            $forced = $post->get('forced', false);
-            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+                        TranslatorInterface $translator): Response {
 
-            $packTranslation = $translator->trans('arrivage.colis');
-            $natureTranslation = $translator->trans('natures.natures requises');
+        $countCreatedMouvements = 0;
+        $post = $request->request;
+        $forced = $post->get('forced', false);
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
-            $operatorId = $post->get('operator');
-            if (!empty($operatorId)) {
-                $operator = $utilisateurRepository->find($operatorId);
-            }
-            if (empty($operator)) {
-                /** @var Utilisateur $operator */
-                $operator = $this->getUser();
-            }
+        $packTranslation = $translator->trans('arrivage.colis');
+        $natureTranslation = $translator->trans('natures.natures requises');
 
-            $colisStr = $post->get('colis');
-            $commentaire = $post->get('commentaire');
-            $quantity = $post->getInt('quantity') ?: 1;
+        $operatorId = $post->get('operator');
+        if (!empty($operatorId)) {
+            $operator = $utilisateurRepository->find($operatorId);
+        }
+        if (empty($operator)) {
+            /** @var Utilisateur $operator */
+            $operator = $this->getUser();
+        }
 
-            if ($quantity < 1) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => 'La quantité doit être supérieure à 0.'
-                ]);
-            }
+        $colisStr = $post->get('colis');
+        $commentaire = $post->get('commentaire');
+        $quantity = $post->getInt('quantity') ?: 1;
 
-            $date = new DateTime($post->get('datetime') ?: 'now', new DateTimeZone('Europe/Paris'));
-            $fromNomade = false;
-            $fileBag = $request->files->count() > 0 ? $request->files : null;
+        if ($quantity < 1) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => 'La quantité doit être supérieure à 0.'
+            ]);
+        }
 
-            $codeToPack = [];
-            $createdMouvements = [];
-            try {
-                if (!empty($post->get('is-group'))) {
-                    $groupTreatment = $trackingMovementService->handleGroups($post->all(), $entityManager, $operator, $date);
-                    if (!$groupTreatment['success']) {
-                        return $this->json($groupTreatment);
+        $date = new DateTime($post->get('datetime') ?: 'now', new DateTimeZone('Europe/Paris'));
+        $fromNomade = false;
+        $fileBag = $request->files->count() > 0 ? $request->files : null;
+
+        $codeToPack = [];
+        $createdMouvements = [];
+        try {
+            if (!empty($post->get('is-group'))) {
+                $groupTreatment = $trackingMovementService->handleGroups($post->all(), $entityManager, $operator, $date);
+                if (!$groupTreatment['success']) {
+                    return $this->json($groupTreatment);
+                }
+
+                $createdMouvements = $groupTreatment['createdMovements'];
+            } else {
+                if (empty($post->get('is-mass'))) {
+                    $emplacement = $emplacementRepository->find($post->get('emplacement'));
+                    $createdMvt = $trackingMovementService->createTrackingMovement(
+                        $colisStr,
+                        $emplacement,
+                        $operator,
+                        $date,
+                        $fromNomade,
+                        null,
+                        $post->getInt('type'),
+                        [
+                            'commentaire' => $commentaire,
+                            'quantity' => $quantity,
+                            'onlyPack' => true
+                        ]
+                    );
+
+                    $associatedPack = $createdMvt->getPack();
+                    $associatedGroup = $associatedPack->getParent();
+
+                    if (!$forced && $associatedGroup) {
+                        return $this->json([
+                            'group' => $associatedGroup->getCode(),
+                            'success' => true
+                        ]);
+                    } else if ($forced) {
+                        $associatedPack->setParent(null);
+                        $countCreatedMouvements++;
                     }
 
-                    $createdMouvements = $groupTreatment['createdMovements'];
+                    $movementType = $createdMvt->getType();
+                    $movementTypeName = $movementType ? $movementType->getNom() : null;
+
+                    // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir le colis
+                    if ($movementTypeName === TrackingMovement::TYPE_DEPOSE && !$emplacement->ableToBeDropOff($createdMvt->getPack())) {
+                        return new JsonResponse([
+                            'success' => false,
+                            'msg' => $this->errorWithDropOff($colisStr, $emplacement, $packTranslation, $natureTranslation)
+                        ]);
+                    }
+                    $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
+                    $entityManager->persist($createdMvt);
+                    $createdMouvements[] = $createdMvt;
                 } else {
-                    if (empty($post->get('is-mass'))) {
-                        $emplacement = $emplacementRepository->find($post->get('emplacement'));
+                    $colisArray = explode(',', $colisStr);
+                    $emplacementPrise = $emplacementRepository->find($post->get('emplacement-prise'));
+                    $emplacementDepose = $emplacementRepository->find($post->get('emplacement-depose'));
+                    foreach ($colisArray as $colis) {
                         $createdMvt = $trackingMovementService->createTrackingMovement(
-                            $colisStr,
-                            $emplacement,
+                            $codeToPack[$colis] ?? $colis,
+                            $emplacementPrise,
                             $operator,
                             $date,
                             $fromNomade,
-                            null,
-                            $post->getInt('type'),
+                            true,
+                            TrackingMovement::TYPE_PRISE,
                             [
                                 'commentaire' => $commentaire,
                                 'quantity' => $quantity,
                                 'onlyPack' => true
                             ]
                         );
-
                         $associatedPack = $createdMvt->getPack();
-                        $associatedGroup = $associatedPack->getParent();
+                        if ($associatedPack) {
+                            $associatedGroup = $associatedPack->getParent();
 
-                        if (!$forced && $associatedGroup) {
-                            return $this->json([
-                                'group' => $associatedGroup->getCode(),
-                                'success' => true
-                            ]);
-                        } else if ($forced) {
-                            $associatedPack->setParent(null);
-                            $countCreatedMouvements++;
+                            if (!$forced && $associatedGroup) {
+                                return $this->json([
+                                    'group' => $associatedGroup->getCode(),
+                                    'success' => true,
+                                ]);
+                            } else if ($forced) {
+                                $associatedPack->setParent(null);
+                                $countCreatedMouvements++;
+                            }
                         }
 
-                        $movementType = $createdMvt->getType();
-                        $movementTypeName = $movementType ? $movementType->getNom() : null;
-
-                        // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir le colis
-                        if ($movementTypeName === TrackingMovement::TYPE_DEPOSE && !$emplacement->ableToBeDropOff($createdMvt->getPack())) {
-                            return new JsonResponse([
-                                'success' => false,
-                                'msg' => $this->errorWithDropOff($colisStr, $emplacement, $packTranslation, $natureTranslation)
-                            ]);
-                        }
                         $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
                         $entityManager->persist($createdMvt);
                         $createdMouvements[] = $createdMvt;
-                    }
-                    else {
-                        $colisArray = explode(',', $colisStr);
-                        $emplacementPrise = $emplacementRepository->find($post->get('emplacement-prise'));
-                        $emplacementDepose = $emplacementRepository->find($post->get('emplacement-depose'));
-                        foreach ($colisArray as $colis) {
-                            $createdMvt = $trackingMovementService->createTrackingMovement(
-                                $codeToPack[$colis] ?? $colis,
-                                $emplacementPrise,
-                                $operator,
-                                $date,
-                                $fromNomade,
-                                true,
-                                TrackingMovement::TYPE_PRISE,
-                                [
-                                    'commentaire' => $commentaire,
-                                    'quantity' => $quantity,
-                                    'onlyPack' => true
-                                ]
-                            );
-                            $associatedPack = $createdMvt->getPack();
-                            if ($associatedPack) {
-                                $associatedGroup = $associatedPack->getParent();
+                        $createdPack = $createdMvt->getPack();
+                        $createdMvt = $trackingMovementService->createTrackingMovement(
+                            $createdPack ?? $colis,
+                            $emplacementDepose,
+                            $operator,
+                            $date,
+                            $fromNomade,
+                            true,
+                            TrackingMovement::TYPE_DEPOSE,
+                            [
+                                'commentaire' => $commentaire,
+                                'quantity' => $quantity
+                            ]
+                        );
 
-                                if (!$forced && $associatedGroup) {
-                                    return $this->json([
-                                        'group' => $associatedGroup->getCode(),
-                                        'success' => true,
-                                    ]);
-                                }
-                                else if ($forced) {
-                                    $associatedPack->setParent(null);
-                                    $countCreatedMouvements++;
-                                }
-                            }
-
-                            $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
-                            $entityManager->persist($createdMvt);
-                            $createdMouvements[] = $createdMvt;
-                            $createdPack = $createdMvt->getPack();
-                            $createdMvt = $trackingMovementService->createTrackingMovement(
-                                $createdPack ?? $colis,
-                                $emplacementDepose,
-                                $operator,
-                                $date,
-                                $fromNomade,
-                                true,
-                                TrackingMovement::TYPE_DEPOSE,
-                                [
-                                    'commentaire' => $commentaire,
-                                    'quantity' => $quantity
-                                ]
-                            );
-
-                            // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir le colis
-                            if (!$emplacementDepose->ableToBeDropOff($createdPack)) {
-                                return new JsonResponse([
-                                    'success' => false,
-                                    'msg' => $this->errorWithDropOff($createdPack->getCode(), $emplacementDepose, $packTranslation, $natureTranslation)
-                                ]);
-                            }
-
-                            $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
-                            $entityManager->persist($createdMvt);
-                            $createdMouvements[] = $createdMvt;
-                            $codeToPack[$colis] = $createdPack;
+                        // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir le colis
+                        if (!$emplacementDepose->ableToBeDropOff($createdPack)) {
+                            return new JsonResponse([
+                                'success' => false,
+                                'msg' => $this->errorWithDropOff($createdPack->getCode(), $emplacementDepose, $packTranslation, $natureTranslation)
+                            ]);
                         }
+
+                        $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
+                        $entityManager->persist($createdMvt);
+                        $createdMouvements[] = $createdMvt;
+                        $codeToPack[$colis] = $createdPack;
                     }
                 }
-            } catch (Exception $exception) {
-                return $this->json([
-                    'success' => false,
-                    'msg' => $exception->getMessage() === Pack::PACK_IS_GROUP
-                        ? 'Le colis scanné est un groupe.'
-                        : 'Une erreur inconnue s\'est produite.'
-                ]);
             }
-
-            if (isset($fileBag)) {
-                $fileNames = [];
-                foreach ($fileBag->all() as $file) {
-                    $fileNames = array_merge(
-                        $fileNames,
-                        $this->attachmentService->saveFile($file)
-                    );
-                }
-                foreach ($createdMouvements as $mouvement) {
-                    $this->persistAttachments($mouvement, $this->attachmentService, $fileNames, $entityManager);
-                }
-            }
-
-            foreach ($createdMouvements as $mouvement) {
-                $freeFieldService->manageFreeFields($mouvement, $post->all(), $entityManager);
-            }
-            $countCreatedMouvements += count($createdMouvements);
-            $entityManager->flush();
-
-            return new JsonResponse([
-                'success' => $countCreatedMouvements > 0,
-                'group' => null,
-                'trackingMovementsCounter' => $countCreatedMouvements,
-                'packs' => 3
+        } catch (Exception $exception) {
+            return $this->json([
+                'success' => false,
+                'msg' => $exception->getMessage() === Pack::PACK_IS_GROUP
+                    ? 'Le colis scanné est un groupe.'
+                    : 'Une erreur inconnue s\'est produite.'
             ]);
         }
-        throw new BadRequestHttpException();
+
+        if (isset($fileBag)) {
+            $fileNames = [];
+            foreach ($fileBag->all() as $file) {
+                $fileNames = array_merge(
+                    $fileNames,
+                    $this->attachmentService->saveFile($file)
+                );
+            }
+            foreach ($createdMouvements as $mouvement) {
+                $this->persistAttachments($mouvement, $this->attachmentService, $fileNames, $entityManager);
+            }
+        }
+
+        foreach ($createdMouvements as $mouvement) {
+            $freeFieldService->manageFreeFields($mouvement, $post->all(), $entityManager);
+        }
+        $countCreatedMouvements += count($createdMouvements);
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'success' => $countCreatedMouvements > 0,
+            'group' => null,
+            'trackingMovementsCounter' => $countCreatedMouvements,
+            'packs' => 3
+        ]);
     }
 
     /**
-     * @Route("/api", name="tracking_movement_api", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param TrackingMovementService $trackingMovementService
-     * @return Response
-     * @throws Exception
+     * @Route("/api", name="tracking_movement_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::TRACA, Action::DISPLAY_MOUV}, mode=HasPermission::IN_JSON)
      */
     public function api(Request $request, TrackingMovementService $trackingMovementService): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_MOUV)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        $data = $trackingMovementService->getDataForDatatable($request->request);
 
-            $data = $trackingMovementService->getDataForDatatable($request->request);
-
-            return new JsonResponse($data);
-        }
-        throw new BadRequestHttpException();
+        return new JsonResponse($data);
     }
 
     /**
-     * @Route("/api-modifier", name="tracking_movement_api_edit", options={"expose"=true}, methods="GET|POST")
-     * @param EntityManagerInterface $entityManager
-     * @param Request $request
-     * @return Response
+     * @Route("/api-modifier", name="tracking_movement_api_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::TRACA, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function editApi(EntityManagerInterface $entityManager,
-                            Request $request): Response
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
+                            Request $request): Response {
 
+        if ($data = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
@@ -444,85 +386,69 @@ class TrackingMovementController extends AbstractController
     }
 
     /**
-     * @Route("/modifier", name="mvt_traca_edit", options={"expose"=true}, methods="GET|POST")
-     * @param EntityManagerInterface $entityManager
-     * @param FreeFieldService $freeFieldService
-     * @param Request $request
-     * @return Response
+     * @Route("/modifier", name="mvt_traca_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::TRACA, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function edit(EntityManagerInterface $entityManager,
                          FreeFieldService $freeFieldService,
-                         Request $request): Response
-    {
-        if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
+                         Request $request): Response {
 
-            $post = $request->request;
+        $post = $request->request;
 
-            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-            $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
 
-            $operator = $utilisateurRepository->find($post->get('operator'));
-            $quantity = $post->getInt('quantity') ?: 1;
+        $operator = $utilisateurRepository->find($post->get('operator'));
+        $quantity = $post->getInt('quantity') ?: 1;
 
-            if ($quantity < 1) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => 'La quantité doit être supérieure à 0.'
-                ]);
-            }
-
-            /** @var TrackingMovement $mvt */
-            $mvt = $trackingMovementRepository->find($post->get('id'));
-            $mvt
-                ->setOperateur($operator)
-                ->setQuantity($quantity)
-                ->setCommentaire($post->get('commentaire'));
-
-            $entityManager->flush();
-
-            $listAttachmentIdToKeep = $post->get('files');
-
-            $attachments = $mvt->getAttachments()->toArray();
-            foreach ($attachments as $attachment) {
-                /** @var Attachment $attachment */
-                if (!$listAttachmentIdToKeep || !in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-                    $this->attachmentService->removeAndDeleteAttachment($attachment, $mvt);
-                }
-            }
-
-            $this->persistAttachments($mvt, $this->attachmentService, $request->files, $entityManager);
-            $freeFieldService->manageFreeFields($mvt, $post->all(), $entityManager);
-
-            $entityManager->flush();
-
+        if ($quantity < 1) {
             return new JsonResponse([
-                'success' => true
+                'success' => false,
+                'msg' => 'La quantité doit être supérieure à 0.'
             ]);
         }
-        throw new BadRequestHttpException();
+
+        /** @var TrackingMovement $mvt */
+        $mvt = $trackingMovementRepository->find($post->get('id'));
+        $mvt
+            ->setOperateur($operator)
+            ->setQuantity($quantity)
+            ->setCommentaire($post->get('commentaire'));
+
+        $entityManager->flush();
+
+        $listAttachmentIdToKeep = $post->get('files');
+
+        $attachments = $mvt->getAttachments()->toArray();
+        foreach ($attachments as $attachment) {
+            /** @var Attachment $attachment */
+            if (!$listAttachmentIdToKeep || !in_array($attachment->getId(), $listAttachmentIdToKeep)) {
+                $this->attachmentService->removeAndDeleteAttachment($attachment, $mvt);
+            }
+        }
+
+        $this->persistAttachments($mvt, $this->attachmentService, $request->files, $entityManager);
+        $freeFieldService->manageFreeFields($mvt, $post->all(), $entityManager);
+
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true
+        ]);
     }
 
 
     /**
-     * @Route("/supprimer", name="mvt_traca_delete", options={"expose"=true},methods={"GET","POST"})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/supprimer", name="mvt_traca_delete", options={"expose"=true},methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::TRACA, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request,
                            EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
             /** @var TrackingMovement $trackingMovement */
             $trackingMovement = $trackingMovementRepository->find($data['mvt']);
-
-            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
 
             if($trackingMovement) {
                 $entityManager->remove($trackingMovement);
@@ -614,19 +540,13 @@ class TrackingMovementController extends AbstractController
     }
 
     /**
-     * @Route("/voir", name="mvt_traca_show", options={"expose"=true}, methods={"GET","POST"})
-     * @param EntityManagerInterface $entityManager
-     * @param Request $request
-     * @return Response
+     * @Route("/voir", name="mvt_traca_show", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::TRACA, Action::DISPLAY_MOUV}, mode=HasPermission::IN_JSON)
      */
     public function show(EntityManagerInterface $entityManager,
                          Request $request): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_MOUV)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($data = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
 
@@ -642,22 +562,15 @@ class TrackingMovementController extends AbstractController
     }
 
     /**
-     * @Route("/obtenir-corps-modal-nouveau", name="mouvement_traca_get_appropriate_html", options={"expose"=true}, methods={"GET","POST"})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param SpecificService $specificService
-     * @return Response
+     * @Route("/obtenir-corps-modal-nouveau", name="mouvement_traca_get_appropriate_html", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::TRACA, Action::DISPLAY_MOUV}, mode=HasPermission::IN_JSON)
      */
     public function getAppropriateHtml(Request $request,
                                        EntityManagerInterface $entityManager,
                                        SpecificService $specificService): Response
     {
-        if ($request->isXmlHttpRequest() && $typeId = json_decode($request->getContent(), true)) {
+        if ($typeId = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
-
-            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_MOUV)) {
-                return $this->redirectToRoute('access_denied');
-            }
 
             $templateDirectory = 'mouvement_traca';
 
