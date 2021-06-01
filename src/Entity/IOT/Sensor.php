@@ -47,13 +47,14 @@ class Sensor
     private ArrayCollection $sensorMessages;
 
     /**
-     * @ORM\OneToOne(targetEntity=SensorWrapper::class, mappedBy="sensor")
+     * @ORM\OneToMany(targetEntity=SensorWrapper::class, mappedBy="sensor")
      */
-    private ?SensorWrapper $sensorWrapper;
+    private ArrayCollection $sensorWrappers;
 
     public function __construct()
     {
         $this->sensorMessages = new ArrayCollection();
+        $this->sensorWrappers = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -153,19 +154,37 @@ class Sensor
         return $this;
     }
 
-    public function getSensorWrapper(): ?SensorWrapper {
-        return $this->sensorWrapper;
+    public function getSensorWrappers(): Collection {
+        return $this->sensorWrappers;
     }
 
-    public function setSensorWrapper(?SensorWrapper $sensorWrapper): self {
-        if($this->sensorWrapper && $this->sensorWrapper->getSensor() !== $this) {
-            $oldSensorWrapper = $this->sensorWrapper;
-            $this->sensorWrapper = null;
-            $oldSensorWrapper->setSensor(null);
+    public function addSensorWrapper(SensorWrapper $sensorWrapper): self {
+        if (!$this->sensorWrappers->contains($sensorWrapper)) {
+            $this->sensorWrappers[] = $sensorWrapper;
+            $sensorWrapper->setSensor($this);
         }
-        $this->sensorWrapper = $sensorWrapper;
-        if($this->sensorWrapper && $this->sensorWrapper->getSensor() !== $this) {
-            $this->sensorWrapper->setSensor($this);
+
+        return $this;
+    }
+
+    public function removeSensorWrapper(SensorWrapper $sensorWrapper): self {
+        if ($this->sensorWrappers->removeElement($sensorWrapper)) {
+            if ($sensorWrapper->getSensor() === $this) {
+                $sensorWrapper->setSensor(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setSensorWrappers(?array $sensorWrappers): self {
+        foreach($this->getSensorWrappers()->toArray() as $sensorWrapper) {
+            $this->removeSensorWrapper($sensorWrapper);
+        }
+
+        $this->sensorWrappers = new ArrayCollection();
+        foreach($sensorWrappers as $sensorWrapper) {
+            $this->addSensorWrapper($sensorWrapper);
         }
 
         return $this;
