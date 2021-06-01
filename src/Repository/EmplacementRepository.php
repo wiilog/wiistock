@@ -24,6 +24,15 @@ class EmplacementRepository extends EntityRepository
         'active' => 'isActive',
     ];
 
+    public function getForSelect(string $term) {
+        return $this->createQueryBuilder("location")
+            ->select("location.id AS id, location.label AS text")
+            ->where("location.label LIKE :term")
+            ->setParameter("term", "%$term%")
+            ->getQuery()
+            ->getArrayResult();
+    }
+
     public function getLocationsArray()
     {
         return $this->createQueryBuilder('location')
