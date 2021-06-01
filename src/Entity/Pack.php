@@ -217,13 +217,16 @@ class Pack
         return $this->lastDrop;
     }
 
-    public function setLastDrop(?TrackingMovement $lastDrop): self
-    {
-        if (isset($this->lastDrop)) {
-            $this->lastDrop->setLinkedPackLastDrop(null);
+    public function setLastDrop(?TrackingMovement $lastDrop): self {
+        if($this->lastDrop && $this->lastDrop->getLinkedPackLastDrop() !== $this) {
+            $oldLastDrop = $this->lastDrop;
+            $this->lastDrop = null;
+            $oldLastDrop->setLinkedPackLastDrop(null);
         }
+
         $this->lastDrop = $lastDrop;
-        if (isset($this->lastDrop)) {
+
+        if($this->lastDrop && $this->lastDrop->getLinkedPackLastDrop() !== $this) {
             $this->lastDrop->setLinkedPackLastDrop($this);
         }
 
@@ -237,14 +240,18 @@ class Pack
 
     public function setLastTracking(?TrackingMovement $lastTracking): self
     {
-        if (isset($this->lastTracking)) {
-            $this->lastTracking->setLinkedPackLastTracking(null);
+        if($this->lastTracking && $this->lastTracking->getLinkedPackLastTracking() !== $this) {
+            $oldLastTracking = $this->lastTracking;
+            $this->lastTracking = null;
+            $oldLastTracking->setLinkedPackLastTracking(null);
         }
+
         $this->lastTracking = $lastTracking;
 
-        if (isset($this->lastTracking)) {
+        if($this->lastTracking && $this->lastTracking->getLinkedPackLastTracking() !== $this) {
             $this->lastTracking->setLinkedPackLastTracking($this);
         }
+
         return $this;
     }
 
