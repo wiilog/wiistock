@@ -35,9 +35,9 @@ class IOTService
 
     public function onMessageReceived(array $frame, EntityManagerInterface $entityManager) {
         if (isset(self::PROFILE_TO_TYPE[$frame['profile']])) {
-            $message = $this->parseMessage($frame, $entityManager);
-            $config = $message->getPayload();
-            switch ($config['profile']) {
+            $message = $this->parseAndCreateMessage($frame, $entityManager);
+            $profile = $message->getSensor()->getProfile();
+            switch ($profile->getName()) {
                 case IOTService::INEO_SENS_ACS_TEMP:
                     // treat temperature message receival
                     break;
@@ -46,22 +46,22 @@ class IOTService
         }
     }
 
-    private function parseMessage(array $message, EntityManagerInterface $entityManager): SensorMessage
+    private function parseAndCreateMessage(array $message, EntityManagerInterface $entityManager): SensorMessage
     {
         $profileRepository = $entityManager->getRepository(SensorProfile::class);
         $deviceRepository = $entityManager->getRepository(Sensor::class);
 
-        $profileCode = $message['profile'];
+        $profileName = $message['profile'];
 
         $profile = $profileRepository->findOneBy([
-            'name' => $profileCode
+            'name' => $profileName
         ]);
 
         if (!isset($profile)) {
             $profile = new SensorProfile();
             $profile
-                ->setName($profileCode)
-                ->setMaxTriggers(self::PROFILE_TO_MAX_TRIGGERS[$profileCode] ?? 1);
+                ->setName($profileName)
+                ->setMaxTriggers(self::PROFILE_TO_MAX_TRIGGERS[$profileName] ?? 1);
             $entityManager->persist($profile);
         }
         $entityManager->flush();
@@ -77,8 +77,8 @@ class IOTService
                 ->setCode($deviceCode)
                 ->setProfile($profile)
                 ->setBattery(-1)
-                ->setFrequency(self::PROFILE_TO_FREQUENCY[$profileCode] ?? 'jamais')
-                ->setType(self::PROFILE_TO_TYPE[$profileCode] ?? 'Type non détecté');
+                ->setFrequency(self::PROFILE_TO_FREQUENCY[$profileName] ?? 'jamais')
+                ->setType(self::PROFILE_TO_TYPE[$profileName] ?? 'Type non détecté');
             $entityManager->persist($device);
         }
 
