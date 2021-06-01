@@ -17,22 +17,27 @@ class LocationGroup {
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id;
 
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private $name;
+    private ?string $name;
 
     /**
      * @ORM\Column(type="text", nullable=true)
      */
-    private $description;
+    private ?string $description;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private ?bool $active;
 
     /**
      * @ORM\OneToMany(targetEntity=Emplacement::class, mappedBy="locationGroup")
      */
-    private $locations;
+    private Collection $locations;
 
     public function __construct() {
         $this->locations = new ArrayCollection();
@@ -58,6 +63,16 @@ class LocationGroup {
 
     public function setDescription(?string $description): self {
         $this->description = $description;
+
+        return $this;
+    }
+
+    public function isActive(): ?string {
+        return $this->active;
+    }
+
+    public function setActive(?string $active): self {
+        $this->active = $active;
 
         return $this;
     }

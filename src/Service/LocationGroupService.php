@@ -49,7 +49,7 @@ class LocationGroupService {
             ]),
             "name" => $group->getName(),
             "description" => $group->getDescription(),
-            "active" => "Actif",
+            "active" => $group->isActive() ? "Actif" : "Inactif",
             "locations" => $group->getLocations()->count(),
         ];
     }

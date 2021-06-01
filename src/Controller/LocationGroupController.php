@@ -65,6 +65,7 @@ class LocationGroupController extends AbstractController {
         $group = (new LocationGroup())
             ->setName($data["name"])
             ->setDescription($data["description"] ?? null)
+            ->setActive($data["active"])
             ->setLocations($locations);
 
         $manager->persist($group);
@@ -110,6 +111,7 @@ class LocationGroupController extends AbstractController {
 
             $group->setName($data["name"])
                 ->setDescription($data["description"] ?? null)
+                ->setActive($data["active"])
                 ->setLocations($locations);
 
             $manager->flush();
@@ -161,42 +163,6 @@ class LocationGroupController extends AbstractController {
         }
 
         throw new NotFoundHttpException();
-    }
-
-    /**
-     * @Route("/csv", name="export_location_groups", options={"expose"=true}, methods={"GET"})
-     * @HasPermission({Menu::REFERENTIEL, Action::EXPORT})
-     */
-    public function exportGroups(Request $request,
-                                 CSVExportService $CSVExportService,
-                                 EntityManagerInterface $entityManager): Response {
-        $dateMin = $request->query->get('dateMin');
-        $dateMax = $request->query->get('dateMax');
-
-        $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
-        $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
-
-        $csvHeader = [
-            "Nom",
-            "Description",
-            "Emplacements",
-        ];
-
-        $locationGroupRepository = $entityManager->getRepository(LocationGroup::class);
-        $groups = $locationGroupRepository->getGroupsByDates($dateTimeMin, $dateTimeMax);
-
-        return $CSVExportService->streamResponse(function($output) use ($CSVExportService, $groups) {
-            foreach ($groups as $groupData) {
-                /** @var LocationGroup $group */
-                $group = $groupData["group"];
-
-                $CSVExportService->putLine($output, [
-                    $group->getName(),
-                    $group->getDescription(),
-                    $group->getLocations()->count(),
-                ]);
-            }
-        }, "export_groupes_emplacements.csv", $csvHeader);
     }
 
 }
