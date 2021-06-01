@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\IOT\Pairing;
 use App\Repository\LocationGroupRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -38,6 +39,11 @@ class LocationGroup {
      * @ORM\OneToMany(targetEntity=Emplacement::class, mappedBy="locationGroup")
      */
     private Collection $locations;
+
+    /**
+     * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="locationGroup")
+     */
+    private Collection $pairings;
 
     public function __construct() {
         $this->locations = new ArrayCollection();
@@ -111,6 +117,36 @@ class LocationGroup {
         $this->locations = new ArrayCollection();
         foreach ($locations as $location) {
             $this->addLocation($location);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Pairing[]
+     */
+    public function getPairings(): Collection
+    {
+        return $this->pairings;
+    }
+
+    public function addPairing(Pairing $pairing): self
+    {
+        if (!$this->pairings->contains($pairing)) {
+            $this->pairings[] = $pairing;
+            $pairing->setLocation($this);
+        }
+
+        return $this;
+    }
+
+    public function removePairing(Pairing $pairing): self
+    {
+        if ($this->pairings->removeElement($pairing)) {
+            // set the owning side to null (unless already changed)
+            if ($pairing->getLocation() === $this) {
+                $pairing->setLocation(null);
+            }
         }
 
         return $this;
