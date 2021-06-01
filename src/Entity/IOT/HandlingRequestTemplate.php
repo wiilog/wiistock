@@ -2,7 +2,6 @@
 
 namespace App\Entity\IOT;
 
-use App\Entity\FreeFieldEntity;
 use App\Entity\Statut;
 use App\Entity\Traits\AttachmentTrait;
 use App\Repository\IOT\HandlingRequestTemplateRepository;
@@ -14,27 +13,9 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass=HandlingRequestTemplateRepository::class)
  */
-class HandlingRequestTemplate extends FreeFieldEntity
-{
+class HandlingRequestTemplate extends RequestTemplate {
 
     use AttachmentTrait;
-
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
-    private $id;
-
-    /**
-     * @ORM\ManyToOne(targetEntity=Type::class, inversedBy="handlingRequestTemplates")
-     */
-    private ?Type $type;
-
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private ?string $name;
 
     /**
      * @ORM\Column(type="array")
@@ -42,85 +23,48 @@ class HandlingRequestTemplate extends FreeFieldEntity
     private array $handlingFields = [];
 
     /**
-     * @ORM\ManyToOne(targetEntity=TriggerAction::class, inversedBy="handlingRequestTemplates")
-     */
-    private ?TriggerAction $triggerAction;
-
-    /**
      * @ORM\ManyToOne(targetEntity=Type::class, inversedBy="handlingRequestTypeTemplates")
      */
-    private ?Type $requestType;
+    private ?Type $requestType = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=Statut::class, inversedBy="handlingRequestStatusTemplates")
      */
-    private ?Statut $requestStatus;
+    private ?Statut $requestStatus = null;
 
     /**
      * @ORM\Column(type="date", nullable=true)
      */
-    private ?DateTimeInterface $expected;
+    private ?DateTimeInterface $expected = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private ?string $emergency;
+    private ?string $emergency = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private ?string $source;
+    private ?string $source = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private ?string $destination;
+    private ?string $destination = null;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
-    private ?int $carriedOutOperationCount;
+    private ?int $carriedOutOperationCount = null;
 
     /**
      * @ORM\Column(type="text", nullable=true)
      */
-    private ?string $comment;
+    private ?string $comment = null;
 
     public function __construct() {
+        parent::__construct();
         $this->attachments = new ArrayCollection();
-    }
-
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
-
-    public function setType(?Type $type): self {
-        if($this->type && $this->type !== $type) {
-            $this->type->removeHandlingRequestTemplate($this);
-        }
-        $this->type = $type;
-        if($type) {
-            $type->addHandlingRequestTemplate($this);
-        }
-
-        return $this;
-    }
-
-    public function getType(): ?Type {
-        return $this->type;
-    }
-
-    public function getName(): ?string
-    {
-        return $this->name;
-    }
-
-    public function setName(string $name): self
-    {
-        $this->name = $name;
-
-        return $this;
     }
 
     public function getHandlingFields(): ?array
@@ -133,38 +77,6 @@ class HandlingRequestTemplate extends FreeFieldEntity
         $this->handlingFields = $handlingFields;
 
         return $this;
-    }
-
-    public function setTriggerAction(?TriggerAction $triggerAction): self {
-        if($this->triggerAction && $this->triggerAction !== $triggerAction) {
-            $this->triggerAction->removeHandlingRequestTemplate($this);
-        }
-        $this->triggerAction = $triggerAction;
-        if($triggerAction) {
-            $triggerAction->addHandlingRequestTemplate($this);
-        }
-
-        return $this;
-    }
-
-    public function getTriggerAction(): ?TriggerAction {
-        return $this->triggerAction;
-    }
-
-    public function setRequestType(?Type $requestType): self {
-        if($this->requestType && $this->requestType !== $requestType) {
-            $this->requestType->removeHandlingRequestTypeTemplate($this);
-        }
-        $this->requestType = $requestType;
-        if($requestType) {
-            $requestType->addHandlingRequestTypeTemplate($this);
-        }
-
-        return $this;
-    }
-
-    public function getRequestType(): ?Type {
-        return $this->requestType;
     }
 
     public function getRequestStatus(?Statut $status): self {

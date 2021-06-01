@@ -17,22 +17,22 @@ class SensorProfile
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private ?string $name;
+    private ?string $name = null;
 
     /**
      * @ORM\Column(type="integer")
      */
-    private ?int $maxTriggers;
+    private ?int $maxTriggers = null;
 
     /**
      * @ORM\OneToMany(targetEntity=Sensor::class, mappedBy="profile")
      */
-    private ArrayCollection $sensors;
+    private Collection $sensors;
 
     public function __construct()
     {

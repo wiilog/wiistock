@@ -3,9 +3,6 @@
 namespace App\Repository\IOT;
 
 use App\Entity\IOT\DeliveryRequestTemplate;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\ORM\EntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method DeliveryRequestTemplate|null find($id, $lockMode = null, $lockVersion = null)
@@ -13,6 +10,6 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method DeliveryRequestTemplate[]    findAll()
  * @method DeliveryRequestTemplate[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class DeliveryRequestTemplateRepository extends EntityRepository
+class DeliveryRequestTemplateRepository extends RequestTemplateRepository
 {
 }

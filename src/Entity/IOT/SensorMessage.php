@@ -16,7 +16,7 @@ class SensorMessage
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="array")
@@ -26,22 +26,22 @@ class SensorMessage
     /**
      * @ORM\Column(type="datetime")
      */
-    private ?DateTimeInterface $date;
+    private ?DateTimeInterface $date = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=Sensor::class, inversedBy="sensorMessages")
      */
-    private ?Sensor $sensor;
+    private ?Sensor $sensor = null;
 
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private ?string $content;
+    private ?string $content = null;
 
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private ?string $event;
+    private ?string $event = null;
 
     public function getId(): ?int
     {

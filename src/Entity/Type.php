@@ -8,9 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\AlertTemplate;
-use App\Entity\IOT\CollectRequestTemplate;
-use App\Entity\IOT\HandlingRequestTemplate;
-use App\Entity\IOT\DeliveryRequestTemplate;
+use App\Entity\IOT\RequestTemplate;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\TypeRepository")
@@ -164,37 +162,17 @@ class Type
     /**
      * @ORM\OneToMany(targetEntity=AlertTemplate::class, mappedBy="type")
      */
-    private $alertTemplates;
+    private Collection $alertTemplates;
 
     /**
-     * @ORM\OneToMany(targetEntity=DeliveryRequestTemplate::class, mappedBy="type")
+     * @ORM\OneToMany(targetEntity=RequestTemplate::class, mappedBy="type")
      */
-    private $deliveryRequestTemplates;
+    private Collection $requestTemplates;
 
     /**
-     * @ORM\OneToMany(targetEntity=HandlingRequestTemplate::class, mappedBy="type")
+     * @ORM\OneToMany(targetEntity=RequestTemplate::class, mappedBy="requestType")
      */
-    private $handlingRequestTemplates;
-
-    /**
-     * @ORM\OneToMany(targetEntity=CollectRequestTemplate::class, mappedBy="type")
-     */
-    private $collectRequestTemplates;
-
-    /**
-     * @ORM\OneToMany(targetEntity=DeliveryRequestTemplate::class, mappedBy="requestType")
-     */
-    private $deliveryRequestTypeTemplates;
-
-    /**
-     * @ORM\OneToMany(targetEntity=CollectRequestTemplate::class, mappedBy="requestType")
-     */
-    private $collectRequestTypeTemplates;
-
-    /**
-     * @ORM\OneToMany(targetEntity=HandlingRequestTemplate::class, mappedBy="requestType")
-     */
-    private $handlingRequestTypeTemplates;
+    private Collection $requestTypeTemplates;
 
     public function __construct()
     {
@@ -214,12 +192,8 @@ class Type
         $this->handlings = new ArrayCollection();
         $this->sensors = new ArrayCollection();
         $this->alertTemplates = new ArrayCollection();
-        $this->deliveryRequestTemplates = new ArrayCollection();
-        $this->handlingRequestTemplates = new ArrayCollection();
-        $this->collectRequestTemplates = new ArrayCollection();
-        $this->deliveryRequestTypeTemplates = new ArrayCollection();
-        $this->collectRequestTypeTemplates = new ArrayCollection();
-        $this->handlingRequestTypeTemplates = new ArrayCollection();
+        $this->requestTemplates = new ArrayCollection();
+        $this->requestTypeTemplates = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -847,29 +821,29 @@ class Type
     }
 
     /**
-     * @return Collection|DeliveryRequestTemplate[]
+     * @return Collection|RequestTemplate[]
      */
-    public function getDeliveryRequestTemplates(): Collection
+    public function getRequestTemplates(): Collection
     {
-        return $this->deliveryRequestTemplates;
+        return $this->requestTemplates;
     }
 
-    public function addDeliveryRequestTemplate(DeliveryRequestTemplate $deliveryRequestTemplate): self
+    public function addRequestTemplate(RequestTemplate $requestTemplate): self
     {
-        if (!$this->deliveryRequestTemplates->contains($deliveryRequestTemplate)) {
-            $this->deliveryRequestTemplates[] = $deliveryRequestTemplate;
-            $deliveryRequestTemplate->setType($this);
+        if (!$this->requestTemplates->contains($requestTemplate)) {
+            $this->requestTemplates[] = $requestTemplate;
+            $requestTemplate->setType($this);
         }
 
         return $this;
     }
 
-    public function removeDeliveryRequestTemplate(DeliveryRequestTemplate $deliveryRequestTemplate): self
+    public function removeRequestTemplate(RequestTemplate $requestTemplate): self
     {
-        if ($this->deliveryRequestTemplates->removeElement($deliveryRequestTemplate)) {
+        if ($this->requestTemplates->removeElement($requestTemplate)) {
             // set the owning side to null (unless already changed)
-            if ($deliveryRequestTemplate->getType() === $this) {
-                $deliveryRequestTemplate->setType(null);
+            if ($requestTemplate->getType() === $this) {
+                $requestTemplate->setType(null);
             }
         }
 
@@ -877,152 +851,33 @@ class Type
     }
 
     /**
-     * @return Collection|HandlingRequestTemplate[]
+     * @return Collection|RequestTemplate[]
      */
-    public function getHandlingRequestTemplates(): Collection
+    public function getRequestTypeTemplates(): Collection
     {
-        return $this->handlingRequestTemplates;
+        return $this->requestTypeTemplates;
     }
 
-    public function addHandlingRequestTemplate(HandlingRequestTemplate $handlingRequestTemplate): self
+    public function addRequestTypeTemplate(RequestTemplate $requestTypeTemplate): self
     {
-        if (!$this->handlingRequestTemplates->contains($handlingRequestTemplate)) {
-            $this->handlingRequestTemplates[] = $handlingRequestTemplate;
-            $handlingRequestTemplate->setType($this);
+        if (!$this->requestTypeTemplates->contains($requestTypeTemplate)) {
+            $this->requestTypeTemplates[] = $requestTypeTemplate;
+            $requestTypeTemplate->setRequestType($this);
         }
 
         return $this;
     }
 
-    public function removeHandlingRequestTemplate(HandlingRequestTemplate $handlingRequestTemplate): self
+    public function removeRequestTypeTemplate(RequestTemplate $requestTypeTemplate): self
     {
-        if ($this->handlingRequestTemplates->removeElement($handlingRequestTemplate)) {
+        if ($this->requestTypeTemplates->removeElement($requestTypeTemplate)) {
             // set the owning side to null (unless already changed)
-            if ($handlingRequestTemplate->getType() === $this) {
-                $handlingRequestTemplate->setType(null);
+            if ($requestTypeTemplate->getRequestType() === $this) {
+                $requestTypeTemplate->setRequestType(null);
             }
         }
 
         return $this;
     }
 
-    /**
-     * @return Collection|CollectRequestTemplate[]
-     */
-    public function getCollectRequestTemplates(): Collection
-    {
-        return $this->collectRequestTemplates;
-    }
-
-    public function addCollectRequestTemplate(CollectRequestTemplate $collectRequestTemplate): self
-    {
-        if (!$this->collectRequestTemplates->contains($collectRequestTemplate)) {
-            $this->collectRequestTemplates[] = $collectRequestTemplate;
-            $collectRequestTemplate->setType($this);
-        }
-
-        return $this;
-    }
-
-    public function removeCollectRequestTemplate(CollectRequestTemplate $collectRequestTemplate): self
-    {
-        if ($this->collectRequestTemplates->removeElement($collectRequestTemplate)) {
-            // set the owning side to null (unless already changed)
-            if ($collectRequestTemplate->getType() === $this) {
-                $collectRequestTemplate->setType(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|DeliveryRequestTemplate[]
-     */
-    public function getDeliveryRequestTypeTemplates(): Collection
-    {
-        return $this->deliveryRequestTypeTemplates;
-    }
-
-    public function addDeliveryRequestTypeTemplate(DeliveryRequestTemplate $deliveryRequestTypeTemplate): self
-    {
-        if (!$this->deliveryRequestTypeTemplates->contains($deliveryRequestTypeTemplate)) {
-            $this->deliveryRequestTypeTemplates[] = $deliveryRequestTypeTemplate;
-            $deliveryRequestTypeTemplate->setRequestType($this);
-        }
-
-        return $this;
-    }
-
-    public function removeDeliveryRequestTypeTemplate(DeliveryRequestTemplate $deliveryRequestTypeTemplate): self
-    {
-        if ($this->deliveryRequestTypeTemplates->removeElement($deliveryRequestTypeTemplate)) {
-            // set the owning side to null (unless already changed)
-            if ($deliveryRequestTypeTemplate->getRequestType() === $this) {
-                $deliveryRequestTypeTemplate->setRequestType(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|CollectRequestTemplate[]
-     */
-    public function getCollectRequestTypeTemplates(): Collection
-    {
-        return $this->collectRequestTypeTemplates;
-    }
-
-    public function addCollectRequestTypeTemplate(CollectRequestTemplate $collectRequestTypeTemplate): self
-    {
-        if (!$this->collectRequestTypeTemplates->contains($collectRequestTypeTemplate)) {
-            $this->collectRequestTypeTemplates[] = $collectRequestTypeTemplate;
-            $collectRequestTypeTemplate->setRequestType($this);
-        }
-
-        return $this;
-    }
-
-    public function removeCollectRequestTypeTemplate(CollectRequestTemplate $collectRequestTypeTemplate): self
-    {
-        if ($this->collectRequestTypeTemplates->removeElement($collectRequestTypeTemplate)) {
-            // set the owning side to null (unless already changed)
-            if ($collectRequestTypeTemplate->getRequestType() === $this) {
-                $collectRequestTypeTemplate->setRequestType(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|HandlingRequestTemplate[]
-     */
-    public function getHandlingRequestTypeTemplates(): Collection
-    {
-        return $this->handlingRequestTypeTemplates;
-    }
-
-    public function addHandlingRequestTypeTemplate(HandlingRequestTemplate $handlingRequestTypeTemplate): self
-    {
-        if (!$this->handlingRequestTypeTemplates->contains($handlingRequestTypeTemplate)) {
-            $this->handlingRequestTypeTemplates[] = $handlingRequestTypeTemplate;
-            $handlingRequestTypeTemplate->setRequestType($this);
-        }
-
-        return $this;
-    }
-
-    public function removeHandlingRequestTypeTemplate(HandlingRequestTemplate $handlingRequestTypeTemplate): self
-    {
-        if ($this->handlingRequestTypeTemplates->removeElement($handlingRequestTypeTemplate)) {
-            // set the owning side to null (unless already changed)
-            if ($handlingRequestTypeTemplate->getRequestType() === $this) {
-                $handlingRequestTypeTemplate->setRequestType(null);
-            }
-        }
-
-        return $this;
-    }
 }
