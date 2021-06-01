@@ -34,7 +34,7 @@ final class Version20201209000000 extends AbstractMigration {
 
         $migrations = Stream::from(scandir($migrationDirectory))
             ->filter(fn($file) => str_starts_with($file, "Version"))
-            ->usort(fn($e1, $e2) => strnatcmp($e1, $e2));
+            ->sort(fn($e1, $e2) => strnatcmp($e1, $e2));
 
         if ($migrations->count() > 1
             && $migrations->toArray()[0] !== "$currentMigrationName.php") {
