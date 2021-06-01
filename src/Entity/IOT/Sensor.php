@@ -7,7 +7,6 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Type;
-use function Symfony\Component\Translation\t;
 
 /**
  * @ORM\Entity(repositoryClass=SensorRepository::class)
@@ -50,6 +49,18 @@ class Sensor
      * @ORM\OneToMany(targetEntity=SensorWrapper::class, mappedBy="sensor")
      */
     private Collection $sensorWrappers;
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private ?int $batteryLevel = null;
+
+    /**
+     * @var null|SensorMessage
+     * @ORM\OneToOne(targetEntity="App\Entity\IOT\SensorMessage", inversedBy="linkedSensorLastMessage")
+     * @ORM\JoinColumn(nullable=true)
+     */
+    private $lastMessage;
 
     public function __construct()
     {
@@ -185,6 +196,40 @@ class Sensor
         $this->sensorWrappers = new ArrayCollection();
         foreach($sensorWrappers as $sensorWrapper) {
             $this->addSensorWrapper($sensorWrapper);
+        }
+
+        return $this;
+    }
+
+    public function getBatteryLevel(): ?int
+    {
+        return $this->batteryLevel;
+    }
+
+    public function setBatteryLevel(int $batteryLevel): self
+    {
+        $this->batteryLevel = $batteryLevel;
+
+        return $this;
+    }
+
+    public function getLastMessage(): ?SensorMessage
+    {
+        return $this->lastMessage;
+    }
+
+    public function setLastMessage(?SensorMessage $lastMessage): self
+    {
+        if($this->lastMessage && $this->lastMessage->getLinkedSensorLastMessage() !== $this) {
+            $oldLastMessage = $this->lastMessage;
+            $this->lastMessage = null;
+            $oldLastMessage->setLinkedSensorLastMessage(null);
+        }
+
+        $this->lastMessage = $lastMessage;
+
+        if($this->lastMessage && $this->lastMessage->getLinkedSensorLastMessage() !== $this) {
+            $this->lastMessage->setLinkedSensorLastMessage($this);
         }
 
         return $this;

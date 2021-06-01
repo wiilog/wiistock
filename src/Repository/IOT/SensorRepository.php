@@ -3,9 +3,7 @@
 namespace App\Repository\IOT;
 
 use App\Entity\IOT\Sensor;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Sensor|null find($id, $lockMode = null, $lockVersion = null)
@@ -15,4 +13,5 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class SensorRepository extends EntityRepository
 {
+
 }

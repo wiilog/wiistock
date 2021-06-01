@@ -119,6 +119,9 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 				Action::DISPLAY_SENSOR,
 				Action::DISPLAY_TRIGGER,
 				Action::DISPLAY_PAIRING,
+                Action::CREATE,
+                Action::EDIT,
+                Action::DELETE
 			],
 			Menu::PARAM => [
 				Action::DISPLAY_GLOB,

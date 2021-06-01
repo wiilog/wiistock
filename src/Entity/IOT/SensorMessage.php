@@ -43,6 +43,12 @@ class SensorMessage
      */
     private ?string $event = null;
 
+    /**
+     * @var Sensor|null
+     * @ORM\OneToOne(targetEntity="App\Entity\IOT\Sensor", mappedBy="lastMessage")
+     */
+    private ?Sensor $linkedSensorLastMessage;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -109,6 +115,25 @@ class SensorMessage
     {
         $this->event = $event;
 
+        return $this;
+    }
+
+    public function getLinkedSensorLastMessage(): ?Sensor {
+        return $this->linkedSensorLastMessage;
+    }
+
+    public function setLinkedSensorLastMessage(?Sensor $linkedSensorLastMessage): self {
+        if($this->linkedSensorLastMessage && $this->linkedSensorLastMessage->getLastMessage() !== $this) {
+            $oldLinkedSensorLastMessage = $this->linkedSensorLastMessage;
+            $this->linkedSensorLastMessage = null;
+            $oldLinkedSensorLastMessage->setLastMessage(null);
+        }
+
+        $this->linkedSensorLastMessage = $linkedSensorLastMessage;
+
+        if($this->linkedSensorLastMessage && $this->linkedSensorLastMessage->getLastMessage() !== $this) {
+            $this->linkedSensorLastMessage->setLastMessage($this);
+        }
         return $this;
     }
 }
