@@ -4,7 +4,6 @@ namespace App\Entity\IOT;
 
 use App\Entity\Emplacement;
 use App\Repository\IOT\DeliveryRequestTemplateRepository;
-use App\Entity\Type;
 use Doctrine\ORM\Mapping as ORM;
 
 /**

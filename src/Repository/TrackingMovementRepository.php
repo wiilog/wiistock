@@ -3,7 +3,6 @@
 namespace App\Repository;
 
 use App\Entity\FreeField;
-use App\Entity\MouvementStock;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
@@ -222,8 +221,7 @@ class TrackingMovementRepository extends EntityRepository
                             'search_pack_referenceArticle.libelle LIKE :search_value',
                             'search_operator.username LIKE :search_value'
 						))
-                        ->setParameter('search_value', '%' . $search . '%')
-                        ->setParameter('type', TrackingMovement::TYPE_DEPOSE);
+                        ->setParameter('search_value', '%' . $search . '%');
                 }
             }
 

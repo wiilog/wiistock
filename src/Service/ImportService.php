@@ -15,7 +15,6 @@ use App\Entity\Import;
 use App\Entity\InventoryCategory;
 use App\Entity\MouvementStock;
 use App\Entity\ParametrageGlobal;
-use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\Attachment;
 use App\Entity\ReferenceArticle;

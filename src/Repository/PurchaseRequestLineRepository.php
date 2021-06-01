@@ -2,7 +2,10 @@
 
 namespace App\Repository;
 
+use App\Entity\PurchaseRequest;
 use App\Entity\PurchaseRequestLine;
+use App\Entity\Reception;
+use App\Entity\ReferenceArticle;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 
@@ -32,5 +35,28 @@ class PurchaseRequestLineRepository extends EntityRepository {
             ])
             ->getQuery()
             ->toIterable();
+    }
+
+    public function findByReferenceArticleAndPurchaseStatus(ReferenceArticle $referenceArticle, array $statusStates, ?PurchaseRequest $ignored = null) {
+        $queryBuilder = $this->createQueryBuilder('purchase_request_line');
+        $query = $queryBuilder
+            ->join('purchase_request_line.reference', 'reference_article')
+            ->join('purchase_request_line.purchaseRequest', 'purchase_request')
+            ->join('purchase_request.status', 'status')
+            ->where('reference_article = :ref')
+            ->andWhere('status.state IN (:statuses)')
+            ->setParameters([
+                'ref' => $referenceArticle,
+                'statuses' => $statusStates
+            ]);
+
+        if ($ignored) {
+            $query
+                ->andWhere('purchase_request != :purchaseRequest')
+                ->setParameter('purchaseRequest', $ignored);
+        }
+        return $query
+            ->getQuery()
+            ->getResult();
     }
 }

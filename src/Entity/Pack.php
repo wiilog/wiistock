@@ -133,7 +133,7 @@ class Pack
     /**
      * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="pack")
      */
-    private $pairings;
+    private Collection $pairings;
 
     public function __construct() {
         $this->litiges = new ArrayCollection();

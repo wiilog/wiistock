@@ -49,7 +49,6 @@ use App\Service\LivraisonsManagerService;
 use App\Service\MailerService;
 use App\Service\HandlingService;
 use App\Service\MouvementStockService;
-use App\Service\PackService;
 use App\Service\StatusService;
 use App\Service\TrackingMovementService;
 use App\Service\NatureService;

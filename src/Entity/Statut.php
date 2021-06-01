@@ -171,7 +171,7 @@ class Statut
     /**
      * @ORM\OneToMany(targetEntity=HandlingRequestTemplate::class, mappedBy="requestStatus")
      */
-    private $handlingRequestStatusTemplates;
+    private Collection $handlingRequestStatusTemplates;
 
     public function __construct()
     {

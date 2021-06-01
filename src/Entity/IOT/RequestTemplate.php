@@ -2,7 +2,7 @@
 
 namespace App\Entity\IOT;
 
-use App\Repository\RequestTemplateRepository;
+use App\Repository\IOT\RequestTemplateRepository;
 use App\Entity\FreeFieldEntity;
 use App\Entity\Type;
 use Doctrine\Common\Collections\ArrayCollection;
