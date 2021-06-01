@@ -1,0 +1,23 @@
+<div class="d-flex">
+    <div class="dropdown dropright">
+        {% include 'datatable/dotsRow.html.twig' %}
+        <div class="dropdown-menu dropdown-follow-gt pointer">
+            <div class="d-none">
+                <div class="btn btn-col-action action-on-click" data-id='{{ request_template.id }}' data-target='#modalShowRequestTemplate' data-toggle='modal'
+                     onclick="editRow($(this), Routing.generate('request_template_show', true), $('#modalShowRequestTemplate'))">
+                </div>
+            </div>
+            <div class="dropdown-item" data-target="#modalEditRequestTemplate" data-toggle="modal"
+                 onclick="editRow($(this), Routing.generate('request_template_edit_api', true), $('#modalEditRequestTemplate'), $('#submitEditRequestTemplate'))"
+                 data-id="{{ request_template.id }}">
+                <i class="fas fa-edit mr-2"></i>Modifier
+            </div>
+            <div class="dropdown-item" data-target="#modalDeleteRequestTemplate" data-toggle="modal"
+                 onclick="editRow($(this), Routing.generate('request_template_delete_api', true), $('#modalDeleteRequestTemplate'), $('#submitDeleteRequestTemplate'))"
+                 data-id="{{ request_template.id }}">
+                <i class="fas fa-trash mr-2"></i>Supprimer
+            </div>
+        </div>
+    </div>
+</div>
+

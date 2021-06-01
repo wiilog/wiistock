@@ -40,6 +40,9 @@ class Type
 	// types de la catégorie mouvement traça
     const LABEL_MVT_TRACA = 'MOUVEMENT TRACA';
     const LABEL_SENSOR = 'capteur';
+    const LABEL_HANDLING = 'service';
+    const LABEL_DELIVERY = 'livraison';
+    const LABEL_COLLECT = 'collecte';
 
 
 	/**
@@ -47,17 +50,17 @@ class Type
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $label;
+    private ?string $label = null;
 
 	/**
 	 * @ORM\Column(type="text", nullable=true)
 	 */
-    private $description;
+    private ?string $description = null;
 
     /**
      * @ORM\OneToMany(targetEntity="FreeField", mappedBy="type")

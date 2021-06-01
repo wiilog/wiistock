@@ -16,6 +16,10 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class RequestTemplate extends FreeFieldEntity {
 
+    public const TYPE_HANDLING = 1;
+    public const TYPE_DELIVERY = 2;
+    public const TYPE_COLLECT = 3;
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -25,6 +29,7 @@ class RequestTemplate extends FreeFieldEntity {
 
     /**
      * @ORM\ManyToOne(targetEntity=Type::class, inversedBy="requestTemplates")
+     * @ORM\JoinColumn(nullable=false)
      */
     private ?Type $type = null;
 
