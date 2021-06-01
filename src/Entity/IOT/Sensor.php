@@ -26,9 +26,9 @@ class Sensor
     private ?string $code = null;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Type::class, inversedBy="sensors")
+     * @ORM\Column(type="string", length=255)
      */
-    private ?Type $type = null;
+    private ?string $type;
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -49,6 +49,11 @@ class Sensor
      * @ORM\OneToMany(targetEntity=SensorWrapper::class, mappedBy="sensor")
      */
     private Collection $sensorWrappers;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $battery;
 
     public function __construct()
     {
@@ -73,18 +78,12 @@ class Sensor
         return $this;
     }
 
-    public function getType(): ?Type {
+    public function getType(): ?string {
         return $this->type;
     }
 
-    public function setType(?Type $type): self {
-        if($this->type && $this->type !== $type) {
-            $this->type->removeSensor($this);
-        }
+    public function setType(?string $type): self {
         $this->type = $type;
-        if($type) {
-            $type->addSensor($this);
-        }
 
         return $this;
     }
@@ -188,4 +187,23 @@ class Sensor
 
         return $this;
     }
+
+    /**
+     * @return mixed
+     */
+    public function getBattery()
+    {
+        return $this->battery;
+    }
+
+    /**
+     * @param mixed $battery
+     */
+    public function setBattery($battery): self
+    {
+        $this->battery = $battery;
+        return $this;
+    }
+
+
 }
