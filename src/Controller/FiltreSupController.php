@@ -144,17 +144,13 @@ class FiltreSupController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="filter_get_by_page", options={"expose"=true})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param LitigeService $litigeService
-     * @return Response
+     * @Route("/api", name="filter_get_by_page", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      */
     public function getByPage(Request $request,
                               EntityManagerInterface $entityManager,
                               LitigeService $litigeService): Response
     {
-        if ($request->isXmlHttpRequest() && $page = json_decode($request->getContent(), true)) {
+        if ($page = json_decode($request->getContent(), true)) {
             $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
 
             $filters = $filtreSupRepository->getFieldAndValueByPageAndUser($page, $this->getUser());

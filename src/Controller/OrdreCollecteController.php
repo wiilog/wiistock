@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
@@ -51,16 +52,10 @@ class OrdreCollecteController extends AbstractController
 {
     /**
      * @Route("/liste/{demandId}", name="ordre_collecte_index")
-     * @param string|null $demandId
-     * @param UserService $userService
-     * @param EntityManagerInterface $entityManager
-     * @return RedirectResponse|Response
+     * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_COLL})
      */
-    public function index(UserService $userService, EntityManagerInterface $entityManager, string $demandId = null)
+    public function index(EntityManagerInterface $entityManager, string $demandId = null)
     {
-        if (!$userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_COLL)) {
-            return $this->redirectToRoute('access_denied');
-        }
         $collecteRepository = $entityManager->getRepository(Collecte::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -76,46 +71,25 @@ class OrdreCollecteController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="ordre_collecte_api", options={"expose"=true})
-     * @param Request $request
-     * @param OrdreCollecteService $ordreCollecteService
-     * @param UserService $userService
-     * @return Response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
+     * @Route("/api", name="ordre_collecte_api", options={"expose"=true}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_COLL}, mode=HasPermission::IN_JSON)
      */
-    public function api(Request $request, OrdreCollecteService $ordreCollecteService, UserService $userService): Response
+    public function api(Request $request, OrdreCollecteService $ordreCollecteService): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            if (!$userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_COLL)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        // cas d'un filtre par demande de collecte
+        $filterDemand = $request->request->get('filterDemand');
+        $data = $ordreCollecteService->getDataForDatatable($request->request, $filterDemand);
 
-            // cas d'un filtre par demande de collecte
-            $filterDemand = $request->request->get('filterDemand');
-            $data = $ordreCollecteService->getDataForDatatable($request->request, $filterDemand);
-
-            return new JsonResponse($data);
-        }
-        throw new BadRequestHttpException();
+        return new JsonResponse($data);
     }
 
     /**
      * @Route("/voir/{id}", name="ordre_collecte_show",  methods={"GET","POST"})
-     * @param OrdreCollecte $ordreCollecte
-     * @param OrdreCollecteService $ordreCollecteService
-     * @param UserService $userService
-     * @return Response
+     * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_COLL})
      */
     public function show(OrdreCollecte $ordreCollecte,
-                         OrdreCollecteService $ordreCollecteService,
-                         UserService $userService): Response
+                         OrdreCollecteService $ordreCollecteService): Response
     {
-        if (!$userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_COLL)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         return $this->render('ordre_collecte/show.html.twig', [
             'collecte' => $ordreCollecte,
             'finished' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_TRAITE,
@@ -124,25 +98,13 @@ class OrdreCollecteController extends AbstractController
     }
 
     /**
-     * @Route("/finir/{id}", name="ordre_collecte_finish", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param OrdreCollecte $ordreCollecte
-     * @param OrdreCollecteService $ordreCollecteService
-     * @param UserService $userService
-     * @return Response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     * @throws \Exception
+     * @Route("/finir/{id}", name="ordre_collecte_finish", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function finish(Request $request,
                            OrdreCollecte $ordreCollecte,
-                           OrdreCollecteService $ordreCollecteService,
-                           UserService $userService): Response
+                           OrdreCollecteService $ordreCollecteService): Response
     {
-        if (!$userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
-            return $this->redirectToRoute('access_denied');
-        }
         $rows = $request->request->get('rows');
         if (!empty($rows) && ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER)) {
 
@@ -180,86 +142,66 @@ class OrdreCollecteController extends AbstractController
     }
 
     /**
-     * @Route("/api-article/{id}", name="ordre_collecte_article_api", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param OrdreCollecte $ordreCollecte
-     * @param UserService $userService
-     * @return Response
+     * @Route("/api-article/{id}", name="ordre_collecte_article_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_COLL}, mode=HasPermission::IN_JSON)
      */
-    public function apiArticle(Request $request, OrdreCollecte $ordreCollecte, UserService $userService): Response
+    public function apiArticle(Request $request, OrdreCollecte $ordreCollecte): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            if (!$userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_COLL)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
-            $rows = [];
-            foreach ($ordreCollecte->getOrdreCollecteReferences() as $ligneArticle) {
-                $referenceArticle = $ligneArticle->getReferenceArticle();
-                $location = $referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '';
-                $rows[] = [
-                    "Référence" => $referenceArticle ? $referenceArticle->getReference() : ' ',
-                    "Libellé" => $referenceArticle ? $referenceArticle->getLibelle() : ' ',
-                    "Emplacement" => $location,
-                    "Quantité" => $ligneArticle->getQuantite() ?? ' ',
-                    "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
-                        'id' => $ligneArticle->getId(),
-                        'refArticleId' => $referenceArticle->getId(),
-                        'barCode' => $referenceArticle ? $referenceArticle->getBarCode() : '',
-                        'quantity' => $ligneArticle->getQuantite(),
-                        'modifiable' => $ordreCollecte->getStatut()
-                            ? ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER)
-                            : false,
-                        'location' => $location,
-                    ])
-                ];
-            }
-
-            foreach ($ordreCollecte->getArticles() as $article) {
-                $location = $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '';
-                $rows[] = [
-                    'Référence' => $article->getArticleFournisseur()
-                        ? $article->getArticleFournisseur()->getReferenceArticle()->getReference()
-                        : '',
-                    'Libellé' => $article->getLabel(),
-                    "Emplacement" => $location,
-                    'Quantité' => $article->getQuantite(),
-                    "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
-                        'id' => $article->getId(),
-                        'barCode' => $article->getBarCode(),
-                        'quantity' => $article->getQuantite(),
-                        'modifiable' => $ordreCollecte->getStatut()
-                            ? ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER)
-                            : false,
-                        'articleId' =>$article->getId(),
-                        "location" => $location,
-                    ])
-                ];
-            }
-
-            $data['data'] = $rows;
-
-            return new JsonResponse($data);
+        $rows = [];
+        foreach ($ordreCollecte->getOrdreCollecteReferences() as $ligneArticle) {
+            $referenceArticle = $ligneArticle->getReferenceArticle();
+            $location = $referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '';
+            $rows[] = [
+                "Référence" => $referenceArticle ? $referenceArticle->getReference() : ' ',
+                "Libellé" => $referenceArticle ? $referenceArticle->getLibelle() : ' ',
+                "Emplacement" => $location,
+                "Quantité" => $ligneArticle->getQuantite() ?? ' ',
+                "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
+                    'id' => $ligneArticle->getId(),
+                    'refArticleId' => $referenceArticle->getId(),
+                    'barCode' => $referenceArticle ? $referenceArticle->getBarCode() : '',
+                    'quantity' => $ligneArticle->getQuantite(),
+                    'modifiable' => $ordreCollecte->getStatut()
+                        ? ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER)
+                        : false,
+                    'location' => $location,
+                ])
+            ];
         }
-        throw new BadRequestHttpException();
+
+        foreach ($ordreCollecte->getArticles() as $article) {
+            $location = $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '';
+            $rows[] = [
+                'Référence' => $article->getArticleFournisseur()
+                    ? $article->getArticleFournisseur()->getReferenceArticle()->getReference()
+                    : '',
+                'Libellé' => $article->getLabel(),
+                "Emplacement" => $location,
+                'Quantité' => $article->getQuantite(),
+                "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
+                    'id' => $article->getId(),
+                    'barCode' => $article->getBarCode(),
+                    'quantity' => $article->getQuantite(),
+                    'modifiable' => $ordreCollecte->getStatut()
+                        ? ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER)
+                        : false,
+                    'articleId' =>$article->getId(),
+                    "location" => $location,
+                ])
+            ];
+        }
+
+        $data['data'] = $rows;
+
+        return new JsonResponse($data);
     }
 
     /**
      * @Route("/creer/{id}", name="ordre_collecte_new", options={"expose"=true}, methods={"GET","POST"} )
-     * @param Collecte $demandeCollecte
-     * @param UserService $userService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NonUniqueResultException
-     * @throws \Exception
+     * @HasPermission({Menu::ORDRE, Action::CREATE})
      */
-    public function new(Collecte $demandeCollecte,
-                        UserService $userService,
-                        EntityManagerInterface $entityManager): Response
+    public function new(Collecte $demandeCollecte, EntityManagerInterface $entityManager): Response
     {
-        if (!$userService->hasRightFunction(Menu::ORDRE, Action::CREATE)) {
-            return $this->redirectToRoute('access_denied');
-        }
         $statutRepository = $entityManager->getRepository(Statut::class);
         // on crée l'ordre de collecte
         $statut = $statutRepository
@@ -307,20 +249,12 @@ class OrdreCollecteController extends AbstractController
     }
 
     /**
-     * @Route("/modifier-article-api", name="ordre_collecte_edit_api", options={"expose"=true}, methods={"GET","POST"} )
-     * @param Request $request
-     * @param UserService $userService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/modifier-article-api", name="ordre_collecte_edit_api", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function apiEditArticle(Request $request,
-                                   UserService $userService,
-                                   EntityManagerInterface $entityManager): Response
+    public function apiEditArticle(Request $request, EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        if ($data = json_decode($request->getContent(), true)) {
             $ordreCollecteReferenceRepository = $entityManager->getRepository(OrdreCollecteReference::class);
             $ligneArticle = $ordreCollecteReferenceRepository->find($data['id']);
             $modif = isset($data['ref']) && !($data['ref'] === 0);
@@ -338,19 +272,13 @@ class OrdreCollecteController extends AbstractController
     }
 
     /**
-     * @Route("/modifier-article", name="ordre_collecte_edit_article", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param UserService $userService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/modifier-article", name="ordre_collecte_edit_article", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::STOCK, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function editArticle(Request $request,
                                 UserService $userService,
                                 EntityManagerInterface $entityManager): Response {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        if ($data = json_decode($request->getContent(), true)) {
             $ordreCollecteReferenceRepository = $entityManager->getRepository(OrdreCollecteReference::class);
             $ligneArticle = $ordreCollecteReferenceRepository->find($data['ligneArticle']);
             if (isset($data['quantite'])) $ligneArticle->setQuantite(max($data['quantite'], 0)); // protection contre quantités négatives
@@ -363,63 +291,49 @@ class OrdreCollecteController extends AbstractController
     }
 
     /**
-     * @Route("/supprimer/{id}", name="ordre_collecte_delete", options={"expose"=true}, methods={"GET","POST"})
-     * @param OrdreCollecte $ordreCollecte
-     * @param Request $request
-     * @param UserService $userService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NonUniqueResultException
+     * @Route("/supprimer/{id}", name="ordre_collecte_delete", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
-    public function delete(OrdreCollecte $ordreCollecte,
-                           Request $request,
-                           UserService $userService,
-                           EntityManagerInterface $entityManager): Response
+    public function delete(OrdreCollecte $ordreCollecte, EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            if (!$userService->hasRightFunction(Menu::ORDRE, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-            if ($ordreCollecte->getStatut() && ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER)) {
-                $statutRepository = $entityManager->getRepository(Statut::class);
-                $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
-                $collecte = $ordreCollecte->getDemandeCollecte();
-                $isOnlyOrdreCollecte = $collecte->getOrdresCollecte()->count() === 1;
+        if ($ordreCollecte->getStatut() && ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER)) {
+            $statutRepository = $entityManager->getRepository(Statut::class);
+            $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
+            $collecte = $ordreCollecte->getDemandeCollecte();
+            $isOnlyOrdreCollecte = $collecte->getOrdresCollecte()->count() === 1;
 
-                $statusName = $isOnlyOrdreCollecte ? Collecte::STATUT_BROUILLON : Collecte::STATUT_COLLECTE;
-                $collecte->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_COLLECTE, $statusName));
+            $statusName = $isOnlyOrdreCollecte ? Collecte::STATUT_BROUILLON : Collecte::STATUT_COLLECTE;
+            $collecte->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_COLLECTE, $statusName));
 
-                foreach ($ordreCollecte->getArticles() as $article) {
-                    if (!$isOnlyOrdreCollecte) {
-                        $article->removeCollecte($collecte);
-                    }
-                    $article->removeOrdreCollecte($ordreCollecte);
+            foreach ($ordreCollecte->getArticles() as $article) {
+                if (!$isOnlyOrdreCollecte) {
+                    $article->removeCollecte($collecte);
                 }
-                foreach ($ordreCollecte->getOrdreCollecteReferences() as $cr) {
-                    if (!$isOnlyOrdreCollecte) {
-                        $entityManager->remove($collecteReferenceRepository->getByCollecteAndRA($collecte, $cr->getReferenceArticle()));
-                    }
-                    $entityManager->remove($cr);
-                }
-
-                $collecte
-                    ->setValidationDate(null);
-
-                $entityManager->remove($ordreCollecte);
-                $entityManager->flush();
-                $data = [
-                    'redirect' => $this->generateUrl('ordre_collecte_index'),
-                ];
-
-                return new JsonResponse($data);
-            } else {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => 'Erreur lors de la suppression de l\'ordre de collecte.',
-                ]);
+                $article->removeOrdreCollecte($ordreCollecte);
             }
+            foreach ($ordreCollecte->getOrdreCollecteReferences() as $cr) {
+                if (!$isOnlyOrdreCollecte) {
+                    $entityManager->remove($collecteReferenceRepository->getByCollecteAndRA($collecte, $cr->getReferenceArticle()));
+                }
+                $entityManager->remove($cr);
+            }
+
+            $collecte
+                ->setValidationDate(null);
+
+            $entityManager->remove($ordreCollecte);
+            $entityManager->flush();
+            $data = [
+                'redirect' => $this->generateUrl('ordre_collecte_index'),
+            ];
+
+            return new JsonResponse($data);
+        } else {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => 'Erreur lors de la suppression de l\'ordre de collecte.',
+            ]);
         }
-        throw new BadRequestHttpException();
     }
 
     /**

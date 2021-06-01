@@ -22,7 +22,7 @@ class SensorWrapper extends FreeFieldEntity
     private $id;
 
     /**
-     * @ORM\OneToOne(targetEntity=Sensor::class, inversedBy="sensorWrapper")
+     * @ORM\ManyToOne(targetEntity=Sensor::class, inversedBy="sensorWrappers")
      */
     private ?Sensor $sensor;
 
@@ -57,23 +57,22 @@ class SensorWrapper extends FreeFieldEntity
         return $this->id;
     }
 
-    public function getSensor(): ?Sensor {
-        return $this->sensor;
-    }
-
     public function setSensor(?Sensor $sensor): self {
-        if($this->sensor && $this->sensor->getSensorWrapper() !== $this) {
-            $oldSensor = $this->sensor;
-            $this->sensor = null;
-            $oldSensor->setSensorWrapper(null);
+        if($this->sensor && $this->sensor !== $sensor) {
+            $this->sensor->removeSensorWrapper($this);
         }
         $this->sensor = $sensor;
-        if($this->sensor && $this->sensor->getSensorWrapper() !== $this) {
-            $this->sensor->setSensorWrapper($this);
+        if($sensor) {
+            $sensor->addSensorWrapper($this);
         }
 
         return $this;
     }
+
+    public function getSensor(): ?Sensor {
+        return $this->sensor;
+    }
+
 
     public function getName(): ?string
     {

@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
@@ -48,13 +49,9 @@ class TransferRequestController extends AbstractController {
 
     /**
      * @Route("/liste", name="transfer_request_index", options={"expose"=true}, methods={"GET", "POST"})
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @HasPermission({Menu::DEM, Action::DISPLAY_TRANSFER_REQ})
      */
     public function index(EntityManagerInterface $entityManager): Response {
-        if(!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_TRANSFER_REQ)) {
-            return $this->redirectToRoute('access_denied');
-        }
 
         $statusRepository = $entityManager->getRepository(Statut::class);
 
@@ -64,41 +61,24 @@ class TransferRequestController extends AbstractController {
     }
 
     /**
-     * @Route("/api", name="transfer_request_api", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @return Response
+     * @Route("/api", name="transfer_request_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::DEM, Action::DISPLAY_TRANSFER_REQ}, mode=HasPermission::IN_JSON)
      */
     public function api(Request $request): Response {
-        if($request->isXmlHttpRequest()) {
-            if(!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_TRANSFER_REQ)) {
-                return $this->redirectToRoute('access_denied');
-            }
 
-            $data = $this->service->getDataForDatatable($request->request);
+        $data = $this->service->getDataForDatatable($request->request);
 
-            return new JsonResponse($data);
-        } else {
-            throw new BadRequestHttpException();
-        }
+        return new JsonResponse($data);
     }
 
     /**
-     * @Route("/creer", name="transfer_request_new", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param TransferRequestService $transferRequestService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NonUniqueResultException
-     * @throws Exception
+     * @Route("/creer", name="transfer_request_new", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::DEM, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request,
                         TransferRequestService $transferRequestService,
                         EntityManagerInterface $entityManager): Response {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if(!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if($data = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
@@ -134,13 +114,9 @@ class TransferRequestController extends AbstractController {
 
     /**
      * @Route("/voir/{id}", name="transfer_request_show", options={"expose"=true}, methods={"GET", "POST"})
-     * @param TransferRequest $transfer
-     * @return Response
+     * @HasPermission({Menu::DEM, Action::DISPLAY_TRANSFER_REQ})
      */
     public function show(TransferRequest $transfer): Response {
-        if(!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_TRANSFER_REQ)) {
-            return $this->redirectToRoute('access_denied');
-        }
 
         return $this->render('transfer/request/show.html.twig', [
             'transfer' => $transfer,
@@ -150,17 +126,12 @@ class TransferRequestController extends AbstractController {
     }
 
     /**
-     * @Route("/api-modifier", name="transfer_request_api_edit", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/api-modifier", name="transfer_request_api_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function editApi(Request $request, EntityManagerInterface $entityManager): Response {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if(!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
 
+        if($data = json_decode($request->getContent(), true)) {
             $transfer = $entityManager->getRepository(TransferRequest::class)->find($data['id']);
 
             $json = $this->renderView('transfer/request/modalEditTransferContent.html.twig', [
@@ -174,21 +145,15 @@ class TransferRequestController extends AbstractController {
     }
 
     /**
-     * @Route("/modifier", name="transfer_request_edit", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param TransferRequestService $service
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/modifier", name="transfer_request_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function edit(Request $request,
                          TransferRequestService $service,
                          EntityManagerInterface $entityManager): Response {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if(!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
 
-            $destination = $entityManager->getRepository(Emplacement::class)->find($data['destination']);
+        if($data = json_decode($request->getContent(), true)) {
+             $destination = $entityManager->getRepository(Emplacement::class)->find($data['destination']);
             $origin = null;
             if (isset($data['origin'])) {
                 $origin = $entityManager->getRepository(Emplacement::class)->find($data['origin']);
@@ -217,73 +182,57 @@ class TransferRequestController extends AbstractController {
     }
 
     /**
-     * @Route("/article/api/{transfer}", name="transfer_request_article_api", options={"expose"=true}, methods={"GET", "POST"})
-     * @param EntityManagerInterface $entityManager
-     * @param Request $request
-     * @param TransferRequest $transfer
-     * @return Response
+     * @Route("/article/api/{transfer}", name="transfer_request_article_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::DEM, Action::DISPLAY_TRANSFER_REQ}, mode=HasPermission::IN_JSON)
      */
-    public function articleApi(EntityManagerInterface $entityManager,
-                               Request $request,
-                               TransferRequest $transfer): Response {
-        if($request->isXmlHttpRequest()) {
-            if(!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_TRANSFER_REQ)) {
-                return $this->redirectToRoute('access_denied');
-            }
+    public function articleApi(TransferRequest $transfer): Response {
 
-            $articles = $transfer->getArticles();
-            $references = $transfer->getReferences();
+        $articles = $transfer->getArticles();
+        $references = $transfer->getReferences();
 
-            $rowsRC = [];
-            foreach($references as $reference) {
-                $rowsRC[] = [
-                    'Référence' => $reference->getReference(),
-                    'barCode' => $reference->getBarCode(),
-                    'Quantité' => $reference->getQuantiteDisponible(),
-                    'Actions' => $this->renderView('transfer/request/article/actions.html.twig', [
-                        'type' => 'reference',
-                        'id' => $reference->getId(),
-                        'name' => $reference->getTypeQuantite(),
-                        'refArticleId' => $reference->getId(),
-                        'transferId' => $transfer->getid(),
-                        'modifiable' => ($transfer->getStatus()->getNom() == TransferRequest::DRAFT),
-                    ]),
-                ];
-            }
-
-            $rowsCA = [];
-            foreach($articles as $article) {
-                $rowsCA[] = [
-                    'Référence' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
-                    'barCode' => $article->getBarCode(),
-                    'Quantité' => $article->getQuantite(),
-                    'Actions' => $this->renderView('transfer/request/article/actions.html.twig', [
-                        'name' => ReferenceArticle::TYPE_QUANTITE_ARTICLE,
-                        'type' => 'article',
-                        'id' => $article->getId(),
-                        'transferId' => $transfer->getid(),
-                        'modifiable' => ($transfer->getStatus()->getNom() == TransferRequest::DRAFT),
-                    ]),
-                ];
-            }
-            $data['data'] = array_merge($rowsCA, $rowsRC);
-
-            return new JsonResponse($data);
+        $rowsRC = [];
+        foreach($references as $reference) {
+            $rowsRC[] = [
+                'Référence' => $reference->getReference(),
+                'barCode' => $reference->getBarCode(),
+                'Quantité' => $reference->getQuantiteDisponible(),
+                'Actions' => $this->renderView('transfer/request/article/actions.html.twig', [
+                    'type' => 'reference',
+                    'id' => $reference->getId(),
+                    'name' => $reference->getTypeQuantite(),
+                    'refArticleId' => $reference->getId(),
+                    'transferId' => $transfer->getid(),
+                    'modifiable' => ($transfer->getStatus()->getNom() == TransferRequest::DRAFT),
+                ]),
+            ];
         }
-        throw new BadRequestHttpException();
+
+        $rowsCA = [];
+        foreach($articles as $article) {
+            $rowsCA[] = [
+                'Référence' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
+                'barCode' => $article->getBarCode(),
+                'Quantité' => $article->getQuantite(),
+                'Actions' => $this->renderView('transfer/request/article/actions.html.twig', [
+                    'name' => ReferenceArticle::TYPE_QUANTITE_ARTICLE,
+                    'type' => 'article',
+                    'id' => $article->getId(),
+                    'transferId' => $transfer->getid(),
+                    'modifiable' => ($transfer->getStatus()->getNom() == TransferRequest::DRAFT),
+                ]),
+            ];
+        }
+        $data['data'] = array_merge($rowsCA, $rowsRC);
+
+        return new JsonResponse($data);
     }
 
     /**
-     * @Route("/ajouter-article/{transfer}", name="transfer_request_add_article", options={"expose"=true})
-     * @param Request $request
-     * @param TransferRequest $transfer
-     * @return Response
+     * @Route("/ajouter-article/{transfer}", name="transfer_request_add_article", options={"expose"=true}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function addArticle(Request $request,
                                TransferRequest $transfer): Response {
-        if(!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
-            return $this->redirectToRoute('access_denied');
-        }
 
         if(!$content = json_decode($request->getContent())) {
             throw new BadRequestHttpException();
@@ -349,17 +298,12 @@ class TransferRequestController extends AbstractController {
     }
 
     /**
-     * @Route("/retirer-article", name="transfer_request_remove_article", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param EntityManagerInterface $manager
-     * @return JsonResponse|RedirectResponse
+     * @Route("/retirer-article", name="transfer_request_remove_article", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function removeArticle(Request $request, EntityManagerInterface $manager) {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent())) {
-            if(!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
 
+        if($data = json_decode($request->getContent())) {
             $transerRepository = $manager->getRepository(TransferRequest::class);
             $transfer = $transerRepository->find($data->transfer);
 
@@ -385,18 +329,13 @@ class TransferRequestController extends AbstractController {
     }
 
     /**
-     * @Route("/supprimer", name="transfer_request_delete", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/supprimer", name="transfer_request_delete", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::DEM, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request, EntityManagerInterface $entityManager): Response {
-        if(!$request->isXmlHttpRequest() || !$data = json_decode($request->getContent())) {
-            throw new BadRequestHttpException();
-        }
 
-        if(!$this->userService->hasRightFunction(Menu::DEM, Action::DELETE)) {
-            return $this->redirectToRoute('access_denied');
+        if(!$data = json_decode($request->getContent())) {
+            throw new BadRequestHttpException();
         }
 
         $transferRepository = $entityManager->getRepository(TransferRequest::class);
@@ -411,44 +350,36 @@ class TransferRequestController extends AbstractController {
     }
 
     /**
-     * @Route("/non-vide/{id}", name="transfer_request_has_articles", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param TransferRequest $transferRequest
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/non-vide/{id}", name="transfer_request_has_articles", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      */
-    public function hasArticles(Request $request,
-                                TransferRequest $transferRequest,
+    public function hasArticles(TransferRequest $transferRequest,
                                 EntityManagerInterface $entityManager): Response {
 
-        if($request->isXmlHttpRequest()) {
-            $count = $transferRequest->getArticles()->count() + $transferRequest->getReferences()->count();
+        $count = $transferRequest->getArticles()->count() + $transferRequest->getReferences()->count();
 
-            if ($transferRequest->getStatus() && $transferRequest->getStatus()->getNom() !== TransferRequest::DRAFT) {
+        if ($transferRequest->getStatus() && $transferRequest->getStatus()->getNom() !== TransferRequest::DRAFT) {
 
-                $transferOrderRepository = $entityManager->getRepository(TransferOrder::class);
-                $transferOrder = $transferOrderRepository->findOneBy(['request' => $transferRequest]);
+            $transferOrderRepository = $entityManager->getRepository(TransferOrder::class);
+            $transferOrder = $transferOrderRepository->findOneBy(['request' => $transferRequest]);
 
-                return new JsonResponse([
-                    'success' => true,
-                    'redirect' => $this->generateUrl('transfer_order_show', [
-                        'id' => $transferOrder->getId()
-                    ]),
-                ]);
-            }
-
-            if($count > 0) {
-                return $this->redirectToRoute('transfer_order_new', [
-                    'transferRequest' => $transferRequest->getId()
-                ]);
-            } else {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => 'Aucun article dans la demande de transfert.'
-                ]);
-            }
+            return new JsonResponse([
+                'success' => true,
+                'redirect' => $this->generateUrl('transfer_order_show', [
+                    'id' => $transferOrder->getId()
+                ]),
+            ]);
         }
-        throw new BadRequestHttpException();
+
+        if($count > 0) {
+            return $this->redirectToRoute('transfer_order_new', [
+                'transferRequest' => $transferRequest->getId()
+            ]);
+        } else {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => 'Aucun article dans la demande de transfert.'
+            ]);
+        }
     }
 
     /**

@@ -351,17 +351,22 @@ class TrackingMovement extends FreeFieldEntity
         return $this->linkedPackLastTracking;
     }
 
-    /**
-     * @param Pack|null $linkedPackLastTracking
-     * @return TrackingMovement
-     */
-    public function setLinkedPackLastTracking(?Pack $linkedPackLastTracking): TrackingMovement {
+    public function setLinkedPackLastTracking(?Pack $linkedPackLastTracking): self {
+        if($this->linkedPackLastTracking && $this->linkedPackLastTracking->getLastTracking() !== $this) {
+            $oldLinkedPackLastTracking = $this->linkedPackLastTracking;
+            $this->linkedPackLastTracking = null;
+            $oldLinkedPackLastTracking->setLastTracking(null);
+        }
+
         $this->linkedPackLastTracking = $linkedPackLastTracking;
+
+        if($this->linkedPackLastTracking && $this->linkedPackLastTracking->getLastTracking() !== $this) {
+            $this->linkedPackLastTracking->setLastTracking($this);
+        }
         return $this;
     }
 
-    public function getGroupIteration(): ?int
-    {
+    public function getGroupIteration(): ?int {
         return $this->groupIteration;
     }
 
@@ -379,12 +384,18 @@ class TrackingMovement extends FreeFieldEntity
         return $this->linkedPackLastDrop;
     }
 
-    /**
-     * @param Pack|null $linkedPackLastDrop
-     * @return TrackingMovement
-     */
-    public function setLinkedPackLastDrop(?Pack $linkedPackLastDrop): TrackingMovement {
+    public function setLinkedPackLastDrop(?Pack $linkedPackLastDrop): self {
+        if($this->linkedPackLastDrop && $this->linkedPackLastDrop->getLastDrop() !== $this) {
+            $oldLinkedPackLastDrop = $this->linkedPackLastDrop;
+            $this->linkedPackLastDrop = null;
+            $oldLinkedPackLastDrop->setLastDrop(null);
+        }
+
         $this->linkedPackLastDrop = $linkedPackLastDrop;
+
+        if($this->linkedPackLastDrop && $this->linkedPackLastDrop->getLastDrop() !== $this) {
+            $this->linkedPackLastDrop->setLastDrop($this);
+        }
         return $this;
     }
 

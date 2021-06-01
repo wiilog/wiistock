@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
@@ -41,17 +42,10 @@ class MouvementStockController extends AbstractController
 
     /**
      * @Route("/", name="mouvement_stock_index")
-     * @param UserService $userService
-     * @param EntityManagerInterface $entityManager
-     * @return RedirectResponse|Response
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_MOUV_STOC})
      */
-    public function index(UserService $userService,
-                          EntityManagerInterface $entityManager)
+    public function index(EntityManagerInterface $entityManager)
     {
-        if (!$userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_MOUV_STOC)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $statutRepository = $entityManager->getRepository(Statut::class);
 
         return $this->render('mouvement_stock/index.html.twig', [
@@ -65,50 +59,28 @@ class MouvementStockController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="mouvement_stock_api", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param UserService $userService
-     * @param MouvementStockService $mouvementStockService
-     * @return Response
-     * @throws Exception
+     * @Route("/api", name="mouvement_stock_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_MOUV_STOC}, mode=HasPermission::IN_JSON)
      */
-    public function api(Request $request,
-                        UserService $userService,
-                        MouvementStockService $mouvementStockService): Response
+    public function api(Request $request, MouvementStockService $mouvementStockService): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            if (!$userService->hasRightFunction(Menu::STOCK, Action::DISPLAY_MOUV_STOC)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
 
-            /** @var Utilisateur $user */
-            $user = $this->getUser();
-
-            $data = $mouvementStockService->getDataForDatatable($user, $request->request);
-            return new JsonResponse($data);
-        }
-        throw new BadRequestHttpException();
+        $data = $mouvementStockService->getDataForDatatable($user, $request->request);
+        return new JsonResponse($data);
     }
 
     /**
-     * @Route("/supprimer", name="mvt_stock_delete", options={"expose"=true},methods={"GET","POST"})
-     * @param Request $request
-     * @param UserService $userService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/supprimer", name="mvt_stock_delete", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::STOCK, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
-    public function delete(Request $request,
-                           UserService $userService,
-                           EntityManagerInterface $entityManager): Response
+    public function delete(Request $request, EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
             $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
             $movement = $mouvementStockRepository->find($data['mvt']);
-
-            if (!$userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
 
             if (!empty($trackingMovementRepository->findBy(['mouvementStock' => $movement]))) {
                 return new JsonResponse([
@@ -126,21 +98,14 @@ class MouvementStockController extends AbstractController
     }
 
     /**
-     * @Route("/nouveau", name="mvt_stock_new", options={"expose"=true},methods={"GET","POST"})
-     * @param Request $request
-     * @param MouvementStockService $mouvementStockService
-     * @param TrackingMovementService $trackingMovementService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NonUniqueResultException
-     * @throws Exception
+     * @Route("/nouveau", name="mvt_stock_new", options={"expose"=true},methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
      */
     public function new(Request $request,
                         MouvementStockService $mouvementStockService,
                         TrackingMovementService $trackingMovementService,
                         EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $articleRepository = $entityManager->getRepository(Article::class);
