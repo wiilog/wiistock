@@ -157,7 +157,7 @@ class Type
     /**
      * @ORM\OneToMany(targetEntity=Sensor::class, mappedBy="type")
      */
-    private $sensors;
+    private Collection $sensors;
 
     /**
      * @ORM\OneToMany(targetEntity=AlertTemplate::class, mappedBy="type")

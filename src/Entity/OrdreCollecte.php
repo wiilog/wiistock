@@ -76,7 +76,7 @@ class OrdreCollecte
     /**
      * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="collectOrder")
      */
-    private $pairings;
+    private Collection $pairings;
 
     public function __construct()
     {

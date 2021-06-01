@@ -3,9 +3,7 @@
 namespace App\Repository\IOT;
 
 use App\Entity\IOT\SensorProfile;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method SensorProfile|null find($id, $lockMode = null, $lockVersion = null)

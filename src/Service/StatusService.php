@@ -4,10 +4,8 @@ namespace App\Service;
 
 use App\Entity\FiltreSup;
 use App\Entity\Statut;
-use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Security;
 use Twig\Environment as Twig_Environment;
 

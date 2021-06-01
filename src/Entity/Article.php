@@ -195,7 +195,7 @@ class Article extends FreeFieldEntity
     /**
      * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="article")
      */
-    private $pairings;
+    private Collection $pairings;
 
     public function __construct()
     {

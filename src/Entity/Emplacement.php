@@ -135,17 +135,17 @@ class Emplacement
     /**
      * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="location")
      */
-    private $pairings;
+    private Collection $pairings;
 
     /**
      * @ORM\OneToMany(targetEntity=DeliveryRequestTemplate::class, mappedBy="destination")
      */
-    private $deliveryRequestTemplates;
+    private Collection $deliveryRequestTemplates;
 
     /**
      * @ORM\OneToMany(targetEntity=CollectRequestTemplate::class, mappedBy="collectPoint")
      */
-    private $collectRequestTemplates;
+    private Collection $collectRequestTemplates;
 
     public function __construct() {
         $this->clusters = new ArrayCollection();

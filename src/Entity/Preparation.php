@@ -81,7 +81,7 @@ class Preparation
     /**
      * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="preparationOrder")
      */
-    private $pairings;
+    private Collection $pairings;
 
 
     public function __construct()

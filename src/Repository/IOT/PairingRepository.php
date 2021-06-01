@@ -3,9 +3,7 @@
 namespace App\Repository\IOT;
 
 use App\Entity\IOT\Pairing;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Pairing|null find($id, $lockMode = null, $lockVersion = null)

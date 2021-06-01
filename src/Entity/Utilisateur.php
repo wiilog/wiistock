@@ -339,7 +339,7 @@ class Utilisateur implements UserInterface, EquatableInterface
     /**
      * @ORM\OneToMany(targetEntity=SensorWrapper::class, mappedBy="manager")
      */
-    private $sensorWrappers;
+    private Collection $sensorWrappers;
 
     public function __construct()
     {

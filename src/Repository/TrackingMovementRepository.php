@@ -3,7 +3,6 @@
 namespace App\Repository;
 
 use App\Entity\FreeField;
-use App\Entity\MouvementStock;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
