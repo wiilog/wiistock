@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
@@ -46,16 +47,10 @@ class TransferOrderController extends AbstractController {
 
     /**
      * @Route("/liste/{reception}", name="transfer_order_index", options={"expose"=true}, methods={"GET", "POST"})
-     * @param EntityManagerInterface $em
-     * @param null $reception
-     * @return Response
+     * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_TRANS})
      */
     public function index(EntityManagerInterface $em,
                           $reception = null): Response {
-        if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_TRANS)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $statusRepository = $em->getRepository(Statut::class);
 
         return $this->render('transfer/order/index.html.twig', [
@@ -65,131 +60,104 @@ class TransferOrderController extends AbstractController {
     }
 
     /**
-     * @Route("/api", name="transfer_orders_api", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @return Response
+     * @Route("/api", name="transfer_orders_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_TRANS}, mode=HasPermission::IN_JSON)
      */
     public function api(Request $request): Response {
-        if($request->isXmlHttpRequest()) {
-            if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_TRANS)) {
-                return $this->redirectToRoute('access_denied');
-            }
-            $filterReception = $request->request->get('filterReception');
-            $data = $this->service->getDataForDatatable($request->request, $filterReception);
+        $filterReception = $request->request->get('filterReception');
+        $data = $this->service->getDataForDatatable($request->request, $filterReception);
 
-            return new JsonResponse($data);
-        } else {
-            throw new BadRequestHttpException();
-        }
+        return new JsonResponse($data);
     }
 
     /**
-     * @Route("/creer/{transferRequest}", name="transfer_order_new", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param TransferOrderService $transferOrderService
-     * @param EntityManagerInterface $entityManager
-     * @param TransferRequest $transferRequest
-     * @return Response
-     * @throws NonUniqueResultException
-     * @throws Exception
+     * @Route("/creer/{transferRequest}", name="transfer_order_new", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
-    public function new(Request $request,
-                        TransferOrderService $transferOrderService,
+    public function new(TransferOrderService $transferOrderService,
                         EntityManagerInterface $entityManager,
                         TransferRequest $transferRequest): Response {
-        if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::CREATE)) {
-                return $this->redirectToRoute('access_denied');
+        $statutRepository = $entityManager->getRepository(Statut::class);
+
+        $toTreatOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_ORDER, TransferOrder::TO_TREAT);
+        $toTreatRequest = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::TO_TREAT);
+
+        $transitStatusForArticles = $statutRepository->findOneByCategorieNameAndStatutCode(
+            CategorieStatut::ARTICLE,
+            Article::STATUT_EN_TRANSIT
+        );
+        $transitStatusForRefs = $statutRepository->findOneByCategorieNameAndStatutCode(
+            CategorieStatut::REFERENCE_ARTICLE,
+            ReferenceArticle::STATUT_INACTIF
+        );
+
+        $inTransit = [];
+
+        foreach ($transferRequest->getReferences() as $reference) {
+            if($reference->getStatut()->getCode() === Article::STATUT_EN_TRANSIT) {
+                $inTransit["reference"][] = $reference->getReference();
             }
 
-            $statutRepository = $entityManager->getRepository(Statut::class);
+            $reference->setStatut($transitStatusForRefs);
+        }
 
-            $toTreatOrder = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_ORDER, TransferOrder::TO_TREAT);
-            $toTreatRequest = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::TO_TREAT);
-
-            $transitStatusForArticles = $statutRepository->findOneByCategorieNameAndStatutCode(
-                CategorieStatut::ARTICLE,
-                Article::STATUT_EN_TRANSIT
-            );
-            $transitStatusForRefs = $statutRepository->findOneByCategorieNameAndStatutCode(
-                CategorieStatut::REFERENCE_ARTICLE,
-                ReferenceArticle::STATUT_INACTIF
-            );
-
-            $inTransit = [];
-
-            foreach ($transferRequest->getReferences() as $reference) {
-                if($reference->getStatut()->getCode() === Article::STATUT_EN_TRANSIT) {
-                    $inTransit["reference"][] = $reference->getReference();
-                }
-
-                $reference->setStatut($transitStatusForRefs);
+        foreach ($transferRequest->getArticles() as $article) {
+            if($article->getStatut()->getCode() === Article::STATUT_EN_TRANSIT) {
+                $inTransit["article"][] = $article->getBarCode();
             }
 
-            foreach ($transferRequest->getArticles() as $article) {
-                if($article->getStatut()->getCode() === Article::STATUT_EN_TRANSIT) {
-                    $inTransit["article"][] = $article->getBarCode();
-                }
+            $article
+                ->setStatut($transitStatusForArticles)
+                ->setQuantiteAPrelever($article->getQuantite());
+        }
 
-                $article
-                    ->setStatut($transitStatusForArticles)
-                    ->setQuantiteAPrelever($article->getQuantite());
+        if(!empty($inTransit)) {
+            $output = [];
+
+            if(isset($inTransit["reference"])) {
+                $references = implode(", ", $inTransit["reference"]);
+                $output[] = "Les références $references sont en transit.";
             }
 
-            if(!empty($inTransit)) {
-                $output = [];
-
-                if(isset($inTransit["reference"])) {
-                    $references = implode(", ", $inTransit["reference"]);
-                    $output[] = "Les références $references sont en transit.";
-                }
-
-                if(isset($inTransit["article"])) {
-                    $articles = implode(", ", $inTransit["article"]);
-                    $output[] = "Les articles $articles sont en transit.";
-                }
-
-                return new JsonResponse([
-                    "success" => false,
-                    "msg" => implode(" ", $output)
-                ]);
-            }
-
-            $transferRequest->setStatus($toTreatRequest);
-            $transferRequest->setValidationDate(new DateTime());
-
-            $transferOrder = $transferOrderService->createTransferOrder($entityManager, $toTreatOrder, $transferRequest);
-            $entityManager->persist($transferOrder);
-
-            try {
-                $entityManager->flush();
-            }
-            /** @noinspection PhpRedundantCatchClauseInspection */
-            catch (UniqueConstraintViolationException $e) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => 'Un autre ordre de transfert est en cours de création, veuillez réessayer.'
-                ]);
+            if(isset($inTransit["article"])) {
+                $articles = implode(", ", $inTransit["article"]);
+                $output[] = "Les articles $articles sont en transit.";
             }
 
             return new JsonResponse([
-                'success' => true,
-                'redirect' => $this->generateUrl('transfer_order_show', ['id' => $transferOrder->getId()]),
+                "success" => false,
+                "msg" => implode(" ", $output)
             ]);
         }
-        throw new BadRequestHttpException();
+
+        $transferRequest->setStatus($toTreatRequest);
+        $transferRequest->setValidationDate(new DateTime());
+
+        $transferOrder = $transferOrderService->createTransferOrder($entityManager, $toTreatOrder, $transferRequest);
+        $entityManager->persist($transferOrder);
+
+        try {
+            $entityManager->flush();
+        }
+        /** @noinspection PhpRedundantCatchClauseInspection */
+        catch (UniqueConstraintViolationException $e) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => 'Un autre ordre de transfert est en cours de création, veuillez réessayer.'
+            ]);
+        }
+
+        return new JsonResponse([
+            'success' => true,
+            'redirect' => $this->generateUrl('transfer_order_show', ['id' => $transferOrder->getId()]),
+        ]);
     }
 
     /**
      * @Route("/voir/{id}", name="transfer_order_show", options={"expose"=true}, methods={"GET", "POST"})
-     * @param TransferOrder $transfer
-     * @return Response
+     * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_TRANS})
      */
     public function show(TransferOrder $transfer): Response {
-        if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_TRANS)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         return $this->render('transfer/order/show.html.twig', [
             'order' => $transfer,
             'detailsConfig' => $this->service->createHeaderDetailsConfig($transfer),
@@ -198,72 +166,49 @@ class TransferOrderController extends AbstractController {
     }
 
     /**
-     * @Route("/article/api/{transfer}", name="transfer_order_article_api", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param TransferOrder $transfer
-     * @return Response
+     * @Route("/article/api/{transfer}", name="transfer_order_article_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_TRANS}, mode=HasPermission::IN_JSON)
      */
-    public function articleApi(Request $request,
-                               TransferOrder $transfer): Response {
-        if($request->isXmlHttpRequest()) {
-            if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_TRANS)) {
-                return $this->redirectToRoute('access_denied');
-            }
+    public function articleApi(TransferOrder $transfer): Response {
 
-            $articles = $transfer->getRequest()->getArticles();
-            $references = $transfer->getRequest()->getReferences();
+        $articles = $transfer->getRequest()->getArticles();
+        $references = $transfer->getRequest()->getReferences();
 
-            $rowsRC = [];
-            foreach($references as $reference) {
-                $rowsRC[] = [
-                    'Référence' => $reference->getReference(),
-                    'barCode' => $reference->getBarCode(),
-                    'Quantité' => $reference->getQuantiteDisponible(),
-                    'Actions' => $this->renderView('transfer/order/article/actions.html.twig', [
-                        'refArticleId' => $reference->getId(),
-                    ]),
-                ];
-            }
-
-            $rowsCA = [];
-            foreach($articles as $article) {
-                $rowsCA[] = [
-                    'Référence' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
-                    'barCode' => $article->getBarCode(),
-                    'Quantité' => $article->getQuantite(),
-                    'Actions' => $this->renderView('transfer/order/article/actions.html.twig', [
-                        'id' => $article->getId(),
-                    ]),
-                ];
-            }
-            $data['data'] = array_merge($rowsCA, $rowsRC);
-
-            return new JsonResponse($data);
+        $rowsRC = [];
+        foreach($references as $reference) {
+            $rowsRC[] = [
+                'Référence' => $reference->getReference(),
+                'barCode' => $reference->getBarCode(),
+                'Quantité' => $reference->getQuantiteDisponible(),
+                'Actions' => $this->renderView('transfer/order/article/actions.html.twig', [
+                    'refArticleId' => $reference->getId(),
+                ]),
+            ];
         }
-        throw new BadRequestHttpException();
+
+        $rowsCA = [];
+        foreach($articles as $article) {
+            $rowsCA[] = [
+                'Référence' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
+                'barCode' => $article->getBarCode(),
+                'Quantité' => $article->getQuantite(),
+                'Actions' => $this->renderView('transfer/order/article/actions.html.twig', [
+                    'id' => $article->getId(),
+                ]),
+            ];
+        }
+        $data['data'] = array_merge($rowsCA, $rowsRC);
+
+        return new JsonResponse($data);
     }
 
     /**
-     * @Route("/valider/{id}", name="transfer_order_validate", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param TransferOrderService $transferOrderService
-     * @param TransferOrder $transferOrder
-     * @return Response
-     * @throws NonUniqueResultException
-     * @throws Exception
+     * @Route("/valider/{id}", name="transfer_order_validate", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function finish(Request $request,
-                           EntityManagerInterface $entityManager,
+    public function finish(EntityManagerInterface $entityManager,
                            TransferOrderService $transferOrderService,
                            TransferOrder $transferOrder): Response {
-        if(!$request->isXmlHttpRequest()) {
-            throw new BadRequestHttpException();
-        }
-
-        if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
-            return $this->redirectToRoute('access_denied');
-        }
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -279,25 +224,15 @@ class TransferOrderController extends AbstractController {
     }
 
     /**
-     * @Route("/supprimer/{id}", name="transfer_order_delete", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param TransferOrderService $transferOrderService
-     * @param TransferOrder $transferOrder
-     * @return Response
-     * @throws NonUniqueResultException
-     * @throws Exception
+     * @Route("/supprimer/{id}", name="transfer_order_delete", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request,
                            EntityManagerInterface $entityManager,
                            TransferOrderService $transferOrderService,
                            TransferOrder $transferOrder): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-
-            if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        if ($data = json_decode($request->getContent(), true)) {
 
             $statutRepository = $entityManager->getRepository(Statut::class);
 

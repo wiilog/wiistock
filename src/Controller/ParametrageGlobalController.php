@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
@@ -55,15 +56,12 @@ class ParametrageGlobalController extends AbstractController
 
     /**
      * @Route("/", name="global_param_index")
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB})
      */
-    public function index(UserService $userService,
-                          GlobalParamService $globalParamService,
+    public function index(GlobalParamService $globalParamService,
                           EntityManagerInterface $entityManager,
                           SpecificService $specificService): Response {
 
-        if(!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
-            return $this->redirectToRoute('access_denied');
-        }
         $statusRepository = $entityManager->getRepository(Statut::class);
         $mailerServerRepository = $entityManager->getRepository(MailerServer::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
@@ -204,21 +202,13 @@ class ParametrageGlobalController extends AbstractController
     }
 
     /**
-     * @Route("/ajax-etiquettes", name="ajax_dimensions_etiquettes",  options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param UserService $userService
-     * @param AttachmentService $attachmentService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NonUniqueResultException
+     * @Route("/ajax-etiquettes", name="ajax_dimensions_etiquettes",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB}, mode=HasPermission::IN_JSON)
      */
     public function ajaxDimensionEtiquetteServer(Request $request,
-                                                 UserService $userService,
                                                  AttachmentService $attachmentService,
                                                  EntityManagerInterface $entityManager): Response {
-        if(!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
-            return $this->redirectToRoute('access_denied');
-        }
+
         $data = $request->request->all();
         $dimensionsEtiquettesRepository = $entityManager->getRepository(DimensionsEtiquettes::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
@@ -459,20 +449,12 @@ class ParametrageGlobalController extends AbstractController
 
     /**
      * @Route("/ajax-documents", name="ajax_documents",  options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param UserService $userService
-     * @param AttachmentService $attachmentService
-     * @param EntityManagerInterface $em
-     * @return Response
-     * @throws NonUniqueResultException
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB}, mode=HasPermission::IN_JSON)
      */
     public function ajaxDocuments(Request $request,
                                   UserService $userService,
                                   AttachmentService $attachmentService,
                                   EntityManagerInterface $em): Response {
-        if(!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
-            return $this->redirectToRoute('access_denied');
-        }
 
         $pgr = $em->getRepository(ParametrageGlobal::class);
 
@@ -506,19 +488,18 @@ class ParametrageGlobalController extends AbstractController
 
         $em->flush();
 
-        return $this->json([]);
+        return $this->json([
+            'success' => true,
+            'msg' => 'Les paramètres ont bien été mis à jour'
+        ]);
     }
 
     /**
-     * @Route("/ajax-update-prefix-demand", name="ajax_update_prefix_demand",  options={"expose"=true},  methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NonUniqueResultException
+     * @Route("/ajax-update-prefix-demand", name="ajax_update_prefix_demand",  options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function updatePrefixDemand(Request $request,
                                        EntityManagerInterface $entityManager): Response {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if($data = json_decode($request->getContent(), true)) {
             $prefixeNomDemandeRepository = $entityManager->getRepository(PrefixeNomDemande::class);
             $prefixeDemande = $prefixeNomDemandeRepository->findOneByTypeDemande($data['typeDemande']);
 
@@ -566,14 +547,10 @@ class ParametrageGlobalController extends AbstractController
     }
 
     /**
-     * @Route("/ajax-get-prefix-demand", name="ajax_get_prefix_demand",  options={"expose"=true},  methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse
-     * @throws NonUniqueResultException
+     * @Route("/ajax-get-prefix-demand", name="ajax_get_prefix_demand",  options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function getPrefixDemand(Request $request, EntityManagerInterface $entityManager) {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if($data = json_decode($request->getContent(), true)) {
             $prefixeNomDemandeRepository = $entityManager->getRepository(PrefixeNomDemande::class);
             $prefixeNomDemande = $prefixeNomDemandeRepository->findOneByTypeDemande($data);
 
@@ -585,60 +562,41 @@ class ParametrageGlobalController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="days_param_api", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param UserService $userService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/api", name="days_param_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB}, mode=HasPermission::IN_JSON)
      */
-    public function api(Request $request,
-                        UserService $userService,
-                        EntityManagerInterface $entityManager): Response {
-        if($request->isXmlHttpRequest()) {
-            if(!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
-                return $this->redirectToRoute('access_denied');
-            }
+    public function api(EntityManagerInterface $entityManager): Response {
 
-            $daysWorkedRepository = $entityManager->getRepository(DaysWorked::class);
+        $daysWorkedRepository = $entityManager->getRepository(DaysWorked::class);
 
-            $days = $daysWorkedRepository->findAllOrdered();
-            $rows = [];
-            foreach($days as $day) {
-                $url['edit'] = $this->generateUrl('days_api_edit', ['id' => $day->getId()]);
+        $days = $daysWorkedRepository->findAllOrdered();
+        $rows = [];
+        foreach($days as $day) {
+            $url['edit'] = $this->generateUrl('days_api_edit', ['id' => $day->getId()]);
 
-                $rows[] =
-                    [
-                        'Day' => $this->engDayToFr[$day->getDay()],
-                        'Worked' => $day->getWorked() ? 'oui' : 'non',
-                        'Times' => $day->getTimes() ?? '',
-                        'Order' => $day->getDisplayOrder(),
-                        'Actions' => $this->renderView('parametrage_global/datatableDaysRow.html.twig', [
-                            'url' => $url,
-                            'dayId' => $day->getId(),
-                        ]),
-                    ];
-            }
-            $data['data'] = $rows;
-            return new JsonResponse($data);
+            $rows[] =
+                [
+                    'Day' => $this->engDayToFr[$day->getDay()],
+                    'Worked' => $day->getWorked() ? 'oui' : 'non',
+                    'Times' => $day->getTimes() ?? '',
+                    'Order' => $day->getDisplayOrder(),
+                    'Actions' => $this->renderView('parametrage_global/datatableDaysRow.html.twig', [
+                        'url' => $url,
+                        'dayId' => $day->getId(),
+                    ]),
+                ];
         }
-        throw new BadRequestHttpException();
+        $data['data'] = $rows;
+        return new JsonResponse($data);
     }
 
     /**
-     * @Route("/api-modifier", name="days_api_edit", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param UserService $userService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/api-modifier", name="days_api_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function apiEdit(Request $request,
-                            UserService $userService,
-                            EntityManagerInterface $entityManager): Response {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if(!$userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
+    public function apiEdit(Request $request, EntityManagerInterface $entityManager): Response {
 
+        if($data = json_decode($request->getContent(), true)) {
             $daysWorkedRepository = $entityManager->getRepository(DaysWorked::class);
 
             $day = $daysWorkedRepository->find($data['id']);
@@ -654,20 +612,13 @@ class ParametrageGlobalController extends AbstractController
     }
 
     /**
-     * @Route("/modifier", name="days_edit",  options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param UserService $userService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/modifier", name="days_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function edit(Request $request,
-                         UserService $userService,
                          EntityManagerInterface $entityManager): Response {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if(!$userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
 
+        if($data = json_decode($request->getContent(), true)) {
             $daysWorkedRepository = $entityManager->getRepository(DaysWorked::class);
 
             $day = $daysWorkedRepository->find($data['day']);
@@ -712,20 +663,12 @@ class ParametrageGlobalController extends AbstractController
     }
 
     /**
-     * @Route("/ajax-mail-server", name="ajax_mailer_server",  options={"expose"=true},  methods="GET|POST")
-     * @param Request $request
-     * @param UserService $userService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NonUniqueResultException
+     * @Route("/ajax-mail-server", name="ajax_mailer_server",  options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB}, mode=HasPermission::IN_JSON)
      */
     public function ajaxMailerServer(Request $request,
-                                     UserService $userService,
                                      EntityManagerInterface $entityManager): Response {
-        if(!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if(!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_GLOB)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        if($data = json_decode($request->getContent(), true)) {
 
             $mailerServerRepository = $entityManager->getRepository(MailerServer::class);
             $mailerServer = $mailerServerRepository->findOneMailerServer();
@@ -751,15 +694,11 @@ class ParametrageGlobalController extends AbstractController
     }
 
     /**
-     * @Route("/changer-parametres", name="toggle_params", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NonUniqueResultException
+     * @Route("/changer-parametres", name="toggle_params", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function toggleParams(Request $request,
                                  EntityManagerInterface $entityManager): Response {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if($data = json_decode($request->getContent(), true)) {
             $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
             $ifExist = $parametrageGlobalRepository->findOneByLabel($data['param']);
             $em = $this->getDoctrine()->getManager();
@@ -780,17 +719,12 @@ class ParametrageGlobalController extends AbstractController
     }
 
     /**
-     * @Route("/personnalisation", name="save_translations", options={"expose"=true}, methods="POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param TranslationService $translationService
-     * @return Response
-     * @throws \Exception
+     * @Route("/personnalisation", name="save_translations", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      */
     public function saveTranslations(Request $request,
                                      EntityManagerInterface $entityManager,
                                      TranslationService $translationService): Response {
-        if($request->isXmlHttpRequest() && $translations = json_decode($request->getContent(), true)) {
+        if($translations = json_decode($request->getContent(), true)) {
             $translationRepository = $entityManager->getRepository(Translation::class);
             foreach($translations as $translation) {
                 $translationObject = $translationRepository->find($translation['id']);
@@ -842,32 +776,26 @@ class ParametrageGlobalController extends AbstractController
     }
 
     /**
-     * @Route("/personnalisation-encodage", name="save_encodage", options={"expose"=true}, methods="POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NonUniqueResultException
+     * @Route("/personnalisation-encodage", name="save_encodage", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      */
     public function saveEncodage(Request $request,
                                  EntityManagerInterface $entityManager): Response {
-        if($request->isXmlHttpRequest()) {
-            $data = json_decode($request->getContent(), true);
-            $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
-            $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::USES_UTF8);
-            $em = $this->getDoctrine()->getManager();
-            if(empty($parametrageGlobal)) {
-                $parametrageGlobal = new ParametrageGlobal();
-                $parametrageGlobal->setLabel(ParametrageGlobal::USES_UTF8);
-                $em->persist($parametrageGlobal);
-            }
-            $parametrageGlobal->setValue($data);
+        $data = json_decode($request->getContent(), true);
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
-            $em->flush();
-
-            return new JsonResponse(true);
+        $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::USES_UTF8);
+        $em = $this->getDoctrine()->getManager();
+        if(empty($parametrageGlobal)) {
+            $parametrageGlobal = new ParametrageGlobal();
+            $parametrageGlobal->setLabel(ParametrageGlobal::USES_UTF8);
+            $em->persist($parametrageGlobal);
         }
-        throw new BadRequestHttpException();
+        $parametrageGlobal->setValue($data);
+
+        $em->flush();
+
+        return new JsonResponse(true);
     }
 
     /**
@@ -1019,37 +947,23 @@ class ParametrageGlobalController extends AbstractController
     }
 
     /**
-     * @Route("/obtenir-encodage", name="get_encodage", options={"expose"=true}, methods="POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NonUniqueResultException
+     * @Route("/obtenir-encodage", name="get_encodage", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      */
-    public function getEncodage(Request $request,
-                                EntityManagerInterface $entityManager): Response {
-        if($request->isXmlHttpRequest()) {
-            $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-            $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::USES_UTF8);
-            return new JsonResponse($parametrageGlobal ? $parametrageGlobal->getValue() : true);
-        }
-        throw new BadRequestHttpException();
+    public function getEncodage(EntityManagerInterface $entityManager): Response {
+
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::USES_UTF8);
+        return new JsonResponse($parametrageGlobal ? $parametrageGlobal->getValue() : true);
     }
 
     /**
-     * @Route("/obtenir-type-code", name="get_is_code_128", options={"expose"=true}, methods="POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse
-     * @throws NonUniqueResultException
+     * @Route("/obtenir-type-code", name="get_is_code_128", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      */
-    public function getIsCode128(Request $request,
-                                 EntityManagerInterface $entityManager) {
-        if($request->isXmlHttpRequest()) {
-            $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-            $parametrageGlobal128 = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128);
-            return new JsonResponse($parametrageGlobal128 ? $parametrageGlobal128->getValue() : true);
-        }
-        throw new BadRequestHttpException();
+    public function getIsCode128(EntityManagerInterface $entityManager) {
+
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $parametrageGlobal128 = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128);
+        return new JsonResponse($parametrageGlobal128 ? $parametrageGlobal128->getValue() : true);
     }
 
     /**
@@ -1160,10 +1074,10 @@ class ParametrageGlobalController extends AbstractController
     }
 
     /**
-     * @Route("/modifier-client", name="toggle_app_client", options={"expose"=true}, methods="GET|POST")
+     * @Route("/modifier-client", name="toggle_app_client", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function toggleAppClient(Request $request): Response {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $configPath = "/etc/php7/php-fpm.conf";
 
             //if we're not on a kubernetes pod => file doesn't exist => ignore
@@ -1202,11 +1116,11 @@ class ParametrageGlobalController extends AbstractController
     }
 
     /**
-     * @Route("/update-delivery-request-default-locations", name="update_delivery_request_default_locations", options={"expose"=true}, methods="POST")
+     * @Route("/update-delivery-request-default-locations", name="update_delivery_request_default_locations", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      */
     public function updateDeliveryRequestDefaultLocations(Request $request,
                                                           EntityManagerInterface $entityManager): Response {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if($data = json_decode($request->getContent(), true)) {
             $globalSettingsRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
             $associatedTypesAndLocations = array_combine($data['types'], $data['locations']);

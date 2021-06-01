@@ -23,10 +23,6 @@ DashboardController extends AbstractController {
 
     /**
      * @Route("/accueil", name="accueil")
-     * @param DashboardService $dashboardService
-     * @param DashboardSettingsService $dashboardSettingsService
-     * @param EntityManagerInterface $manager
-     * @return Response
      */
     public function dashboards(DashboardService $dashboardService,
                                DashboardSettingsService $dashboardSettingsService,
@@ -90,8 +86,6 @@ DashboardController extends AbstractController {
 
     /**
      * @Route("/dashboard/statistics/late-pack-api", name="api_late_pack", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse
      */
     public function apiLatePacks(EntityManagerInterface $entityManager): Response
     {
@@ -104,17 +98,7 @@ DashboardController extends AbstractController {
 
 
     /**
-     * @Route(
-     *     "/dashboard/statistics/receptions-associations",
-     *     name="get_asso_recep_statistics",
-     *     options={"expose"=true},
-     *     methods={"GET"},
-     *     condition="request.isXmlHttpRequest()"
-     * )
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param DashboardSettingsService $dashboardSettingsService
-     * @return Response
+     * @Route("/dashboard/statistics/receptions-associations", name="get_asso_recep_statistics", options={"expose"=true}, methods={"GET"}, condition="request.isXmlHttpRequest()")
      */
     public function getAssoRecepStatistics(Request $request,
                                            EntityManagerInterface $entityManager,
@@ -129,17 +113,7 @@ DashboardController extends AbstractController {
     }
 
     /**
-     * @Route(
-     *     "/dashboard/statistics/arrivages-um",
-     *     name="get_arrival_um_statistics",
-     *     options={"expose"=true},
-     *     methods={"GET"},
-     *     condition="request.isXmlHttpRequest()"
-     * )
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param DashboardSettingsService $dashboardSettingsService
-     * @return Response
+     * @Route("/dashboard/statistics/arrivages-um", name="get_arrival_um_statistics", options={"expose"=true}, methods={"GET"}, condition="request.isXmlHttpRequest()")
      */
     public function getArrivalUmStatistics(Request $request,
                                            EntityManagerInterface $entityManager,

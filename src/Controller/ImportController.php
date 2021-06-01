@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
@@ -44,15 +45,10 @@ class ImportController extends AbstractController
 {
     /**
      * @Route("/", name="import_index")
-     * @param UserService $userService
-     * @return RedirectResponse|Response
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_IMPORT})
      */
-    public function index(UserService $userService)
+    public function index()
     {
-        if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_IMPORT)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $statusRepository = $this->getDoctrine()->getRepository(Statut::class);
         $statuts = $statusRepository->findByCategoryNameAndStatusCodes(
             CategorieStatut::IMPORT,
@@ -66,19 +62,10 @@ class ImportController extends AbstractController
 
     /**
      * @Route("/api", name="import_api", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param ImportService $importDataService
-     * @param UserService $userService
-     * @return Response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_IMPORT}, mode=HasPermission::IN_JSON)
      */
-    public function api(Request $request, ImportService $importDataService, UserService $userService): Response
+    public function api(Request $request, ImportService $importDataService): Response
     {
-        if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_IMPORT)) {
-            return $this->redirectToRoute('access_denied');
-        }
         /** @var Utilisateur $user */
         $user = $this->getUser();
         $data = $importDataService->getDataForDatatable($user, $request->request);
@@ -88,24 +75,13 @@ class ImportController extends AbstractController
 
     /**
      * @Route("/creer", name="import_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param UserService $userService
-     * @param AttachmentService $attachmentService
-     * @param EntityManagerInterface $entityManager
-     * @param ImportService $importService
-     * @return Response
-     * @throws NonUniqueResultException
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_IMPORT}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request,
-                        UserService $userService,
                         AttachmentService $attachmentService,
                         EntityManagerInterface $entityManager,
                         ImportService $importService): Response
     {
-        if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_IMPORT)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $post = $request->request;
 
         $statusRepository = $entityManager->getRepository(Statut::class);
@@ -299,8 +275,6 @@ class ImportController extends AbstractController
 
     /**
      * @Route("/lier", name="import_links", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @return Response
      */
 	public function defineLinks(Request $request): Response
 	{
@@ -322,8 +296,6 @@ class ImportController extends AbstractController
 
     /**
      * @Route("/modale-une", name="get_first_modal_content", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @return JsonResponse
      */
 	public function getFirstModalContent(Request $request)
 	{
@@ -335,16 +307,6 @@ class ImportController extends AbstractController
 
     /**
      * @Route("/lancer-import", name="import_launch", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param ImportService $importService
-     * @return JsonResponse
-     * @throws ImportException
-     * @throws NonUniqueResultException
-     * @throws ORMException
-     * @throws OptimisticLockException
-     * @throws TransactionRequiredException
-     * @throws Throwable
      */
 	public function launchImport(Request $request,
                                  EntityManagerInterface $entityManager,
@@ -379,9 +341,6 @@ class ImportController extends AbstractController
 
     /**
      * @Route("/annuler-import", name="import_cancel", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @return JsonResponse
-     * @throws NonUniqueResultException
      */
 	public function cancelImport(Request $request)
     {
@@ -400,8 +359,6 @@ class ImportController extends AbstractController
     }
     /**
      * @Route("/supprimer-import", name="import_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @return JsonResponse
      */
 	public function deleteImport(Request $request)
     {

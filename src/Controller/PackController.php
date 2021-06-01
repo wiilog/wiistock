@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Arrivage;
 use App\Entity\CategoryType;
@@ -39,17 +40,10 @@ class PackController extends AbstractController
 
     /**
      * @Route("/", name="pack_index", options={"expose"=true})
-     * @param EntityManagerInterface $entityManager
-     * @param UserService $userService
-     * @return RedirectResponse|Response
+     * @HasPermission({Menu::TRACA, Action::DISPLAY_PACK})
      */
-    public function index(EntityManagerInterface $entityManager,
-                          UserService $userService)
+    public function index(EntityManagerInterface $entityManager)
     {
-        if (!$userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_PACK)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $naturesRepository = $entityManager->getRepository(Nature::class);
         $typeRepository = $entityManager->getRepository(Type::class);
 
@@ -60,53 +54,26 @@ class PackController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="pack_api", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param UserService $userService
-     * @param PackService $packService
-     * @return Response
-     * @throws Exception
+     * @Route("/api", name="pack_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::TRACA, Action::DISPLAY_PACK}, mode=HasPermission::IN_JSON)
      */
-    public function api(Request $request,
-                        UserService $userService,
-                        PackService $packService): Response
+    public function api(Request $request, PackService $packService): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            if (!$userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_PACK)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        $data = $packService->getDataForDatatable($request->request);
 
-            $data = $packService->getDataForDatatable($request->request);
-
-            return new JsonResponse($data);
-        }
-        throw new BadRequestHttpException();
+        return new JsonResponse($data);
     }
 
     /**
      * @Route("/csv", name="export_packs", options={"expose"=true}, methods={"GET"})
-     * @param Request $request
-     * @param CSVExportService $CSVExportService
-     * @param UserService $userService
-     * @param TrackingMovementService $trackingMovementService
-     * @param TranslatorInterface $translator
-     * @param EntityManagerInterface $entityManager
-     * @param LoggerInterface $logger
-     * @return Response
+     * @HasPermission({Menu::TRACA, Action::EXPORT})
      */
     public function printCSVPacks(Request $request,
                                   CSVExportService $CSVExportService,
-                                  UserService $userService,
                                   TrackingMovementService $trackingMovementService,
                                   TranslatorInterface $translator,
-                                  EntityManagerInterface $entityManager,
-                                  LoggerInterface $logger): Response
+                                  EntityManagerInterface $entityManager): Response
     {
-
-        if (!$userService->hasRightFunction(Menu::TRACA, Action::EXPORT)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
 
@@ -187,28 +154,20 @@ class PackController extends AbstractController
     }
 
     /**
-     * @Route("/api-modifier", name="pack_edit_api", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param UserService $userService
-     * @return Response
+     * @Route("/api-modifier", name="pack_edit_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::TRACA, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function editApi(Request $request,
-                            EntityManagerInterface $entityManager,
-                            UserService $userService): Response
+                            EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if ($userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
-                $packRepository = $entityManager->getRepository(Pack::class);
-                $natureRepository = $entityManager->getRepository(Nature::class);
-                $pack = $packRepository->find($data['id']);
-                $html = $this->renderView('pack/modalEditPackContent.html.twig', [
-                    'natures' => $natureRepository->findBy([], ['label' => 'ASC']),
-                    'pack' => $pack
-                ]);
-            } else {
-                $html = '';
-            }
+        if ($data = json_decode($request->getContent(), true)) {
+            $packRepository = $entityManager->getRepository(Pack::class);
+            $natureRepository = $entityManager->getRepository(Nature::class);
+            $pack = $packRepository->find($data['id']);
+            $html = $this->renderView('pack/modalEditPackContent.html.twig', [
+                'natures' => $natureRepository->findBy([], ['label' => 'ASC']),
+                'pack' => $pack
+            ]);
 
             return new JsonResponse($html);
         }
@@ -217,22 +176,13 @@ class PackController extends AbstractController
 
     /**
      * @Route("/modifier", name="pack_edit", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param UserService $userService
-     * @param PackService $packService
-     * @param TranslatorInterface $translator
-     * @return Response
+     * @HasPermission({Menu::TRACA, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function edit(Request $request,
                          EntityManagerInterface $entityManager,
-                         UserService $userService,
                          PackService $packService,
                          TranslatorInterface $translator): Response
     {
-        if (!$userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
-            return $this->redirectToRoute('access_denied');
-        }
         $data = json_decode($request->getContent(), true);
         $response = [];
         $packRepository = $entityManager->getRepository(Pack::class);
@@ -258,23 +208,14 @@ class PackController extends AbstractController
     }
 
     /**
-     * @Route("/supprimer", name="pack_delete", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param UserService $userService
-     * @param TranslatorInterface $translator
-     * @param Arrivage $arrivage
-     * @return Response
+     * @Route("/supprimer", name="pack_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::TRACA, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request,
                            EntityManagerInterface $entityManager,
-                           UserService $userService,
                            TranslatorInterface $translator): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$userService->hasRightFunction(Menu::TRACA, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        if ($data = json_decode($request->getContent(), true)) {
             $packRepository = $entityManager->getRepository(Pack::class);
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
 

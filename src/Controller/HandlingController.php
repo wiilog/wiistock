@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
@@ -70,43 +71,25 @@ class HandlingController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="handling_api", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param HandlingService $handlingService
-     * @return Response
+     * @Route("/api", name="handling_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::DEM, Action::DISPLAY_HAND}, mode=HasPermission::IN_JSON)
      */
     public function api(Request $request, HandlingService $handlingService): Response
     {
-		if ($request->isXmlHttpRequest()) {
+        // cas d'un filtre statut depuis page d'accueil
+        $filterStatus = $request->request->get('filterStatus');
+        $data = $handlingService->getDataForDatatable($request->request, $filterStatus);
 
-			if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_HAND)) {
-				return $this->redirectToRoute('access_denied');
-			}
-
-			// cas d'un filtre statut depuis page d'accueil
-			$filterStatus = $request->request->get('filterStatus');
-			$data = $handlingService->getDataForDatatable($request->request, $filterStatus);
-
-			return new JsonResponse($data);
-		} else {
-			throw new BadRequestHttpException();
-		}
+        return new JsonResponse($data);
     }
 
     /**
      * @Route("/", name="handling_index", options={"expose"=true}, methods={"GET", "POST"})
-     * @param EntityManagerInterface $entityManager
-     * @param Request $request
-     * @return Response
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @HasPermission({Menu::DEM, Action::DISPLAY_HAND})
      */
     public function index(EntityManagerInterface $entityManager,
                           Request $request): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_HAND)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
@@ -143,19 +126,8 @@ class HandlingController extends AbstractController
 
 
     /**
-     * @Route("/creer", name="handling_new", options={"expose"=true}, methods={"GET", "POST"})
-     * @param EntityManagerInterface $entityManager
-     * @param Request $request
-     * @param HandlingService $handlingService
-     * @param FreeFieldService $freeFieldService
-     * @param AttachmentService $attachmentService
-     * @param TranslatorInterface $translator
-     * @param UniqueNumberService $uniqueNumberService
-     * @return Response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     * @throws Exception
+     * @Route("/creer", name="handling_new", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::DEM, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
     public function new(EntityManagerInterface $entityManager,
                         Request $request,
@@ -165,122 +137,107 @@ class HandlingController extends AbstractController
                         TranslatorInterface $translator,
                         UniqueNumberService $uniqueNumberService): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
-            $statutRepository = $entityManager->getRepository(Statut::class);
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $userRepository = $entityManager->getRepository(Utilisateur::class);
-            $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $post = $request->request;
 
-            $post = $request->request;
+        $handling = new Handling();
+        $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
 
-            $handling = new Handling();
-            $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $status = $statutRepository->find($post->get('status'));
+        $type = $typeRepository->find($post->get('type'));
+        $desiredDate = $post->get('desired-date') ? new DateTime($post->get('desired-date')) : null;
+        $fileBag = $request->files->count() > 0 ? $request->files : null;
 
-            $status = $statutRepository->find($post->get('status'));
-            $type = $typeRepository->find($post->get('type'));
-            $desiredDate = $post->get('desired-date') ? new DateTime($post->get('desired-date')) : null;
-            $fileBag = $request->files->count() > 0 ? $request->files : null;
+        $handlingNumber = $uniqueNumberService->createUniqueNumber($entityManager, Handling::PREFIX_NUMBER, Handling::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 
-            $handlingNumber = $uniqueNumberService->createUniqueNumber($entityManager, Handling::PREFIX_NUMBER, Handling::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
+        /** @var Utilisateur $requester */
+        $requester = $this->getUser();
 
-            /** @var Utilisateur $requester */
-            $requester = $this->getUser();
+        $carriedOutOperationCount = $post->get('carriedOutOperationCount');
 
-            $carriedOutOperationCount = $post->get('carriedOutOperationCount');
+        $handling
+            ->setNumber($handlingNumber)
+            ->setCreationDate($date)
+            ->setType($type)
+            ->setRequester($requester)
+            ->setSubject(substr($post->get('subject'), 0, 64))
+            ->setSource($post->get('source') ?? '')
+            ->setDestination($post->get('destination') ?? '')
+            ->setStatus($status)
+            ->setDesiredDate($desiredDate)
+            ->setComment($post->get('comment'))
+            ->setEmergency($post->get('emergency'))
+            ->setCarriedOutOperationCount(is_numeric($carriedOutOperationCount) ? ((int) $carriedOutOperationCount) : null);
 
-            $handling
-                ->setNumber($handlingNumber)
-                ->setCreationDate($date)
-                ->setType($type)
-                ->setRequester($requester)
-                ->setSubject(substr($post->get('subject'), 0, 64))
-                ->setSource($post->get('source') ?? '')
-                ->setDestination($post->get('destination') ?? '')
-                ->setStatus($status)
-                ->setDesiredDate($desiredDate)
-				->setComment($post->get('comment'))
-                ->setEmergency($post->get('emergency'))
-                ->setCarriedOutOperationCount(is_numeric($carriedOutOperationCount) ? ((int) $carriedOutOperationCount) : null);
+        if ($status && $status->isTreated()) {
+            $handling->setValidationDate($date);
+            $handling->setTreatedByHandling($requester);
+        }
 
-            if ($status && $status->isTreated()) {
-                $handling->setValidationDate($date);
-                $handling->setTreatedByHandling($requester);
-            }
+        $receivers = $post->get('receivers');
+        if (!empty($receivers)) {
+            $ids = explode("," , $receivers);
 
-            $receivers = $post->get('receivers');
-            if (!empty($receivers)) {
-                $ids = explode("," , $receivers);
-
-                foreach ($ids as $id) {
-                    $receiver = $id ? $userRepository->find($id) : null;
-                    if ($receiver) {
-                        $handling->addReceiver($receiver);
-                    }
+            foreach ($ids as $id) {
+                $receiver = $id ? $userRepository->find($id) : null;
+                if ($receiver) {
+                    $handling->addReceiver($receiver);
                 }
             }
+        }
 
-            $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager);
+        $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager);
 
-            if (isset($fileBag)) {
-                $fileNames = [];
-                foreach ($fileBag->all() as $file) {
-                    $fileNames = array_merge(
-                        $fileNames,
-                        $attachmentService->saveFile($file)
-                    );
-                }
-                $attachments = $attachmentService->createAttachements($fileNames);
-                foreach ($attachments as $attachment) {
-                    $entityManager->persist($attachment);
-                    $handling->addAttachment($attachment);
-                }
+        if (isset($fileBag)) {
+            $fileNames = [];
+            foreach ($fileBag->all() as $file) {
+                $fileNames = array_merge(
+                    $fileNames,
+                    $attachmentService->saveFile($file)
+                );
             }
-
-            $entityManager->persist($handling);
-            try {
-                $entityManager->flush();
+            $attachments = $attachmentService->createAttachements($fileNames);
+            foreach ($attachments as $attachment) {
+                $entityManager->persist($attachment);
+                $handling->addAttachment($attachment);
             }
-            /** @noinspection PhpRedundantCatchClauseInspection */
-            catch (UniqueConstraintViolationException $e) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => $translator->trans('services.Une autre demande de service est en cours de création, veuillez réessayer').'.'
-                ]);
-            }
-            $viewHoursOnExpectedDate = !$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME);
-            $handlingService->sendEmailsAccordingToStatus($entityManager, $handling, $viewHoursOnExpectedDate, !$status->isTreated());
+        }
 
+        $entityManager->persist($handling);
+        try {
+            $entityManager->flush();
+        }
+        /** @noinspection PhpRedundantCatchClauseInspection */
+        catch (UniqueConstraintViolationException $e) {
             return new JsonResponse([
-                'success' => true,
-                'msg' => $translator->trans("services.La demande de service {numéro} a bien été créée", [
-                        "{numéro}" => '<strong>' . $handling->getNumber() . '</strong>'
-                    ]) . '.'
+                'success' => false,
+                'msg' => $translator->trans('services.Une autre demande de service est en cours de création, veuillez réessayer').'.'
             ]);
         }
-        throw new BadRequestHttpException();
+        $viewHoursOnExpectedDate = !$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME);
+        $handlingService->sendEmailsAccordingToStatus($entityManager, $handling, $viewHoursOnExpectedDate, !$status->isTreated());
+
+        return new JsonResponse([
+            'success' => true,
+            'msg' => $translator->trans("services.La demande de service {numéro} a bien été créée", [
+                    "{numéro}" => '<strong>' . $handling->getNumber() . '</strong>'
+                ]) . '.'
+        ]);
     }
 
     /**
-     * @Route("/api-modifier", name="handling_edit_api", options={"expose"=true}, methods="GET|POST")
-     * @param EntityManagerInterface $entityManager
-     * @param DateService $dateService
-     * @param Request $request
-     * @return Response
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @Route("/api-modifier", name="handling_edit_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function editApi(EntityManagerInterface $entityManager,
                             DateService $dateService,
                             Request $request): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($data = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $handlingRepository = $entityManager->getRepository(Handling::class);
             $attachmentsRepository = $entityManager->getRepository(Attachment::class);
@@ -450,20 +407,14 @@ class HandlingController extends AbstractController
     }
 
     /**
-     * @Route("/supprimer", name="handling_delete", options={"expose"=true},methods={"GET","POST"})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param TranslatorInterface $translator
-     * @return Response
+     * @Route("/supprimer", name="handling_delete", options={"expose"=true},methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::DEM, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request,
                            EntityManagerInterface $entityManager,
                            TranslatorInterface $translator): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-			if (!$this->userService->hasRightFunction(Menu::DEM, Action::DELETE)) {
-				return $this->redirectToRoute('access_denied');
-			}
+        if ($data = json_decode($request->getContent(), true)) {
             $handlingRepository = $entityManager->getRepository(Handling::class);
             $attachmentRepository = $entityManager->getRepository(Attachment::class);
 

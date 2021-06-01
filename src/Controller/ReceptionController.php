@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieStatut;
@@ -132,16 +133,8 @@ class ReceptionController extends AbstractController {
 
 
     /**
-     * @Route("/new", name="reception_new", options={"expose"=true}, methods="POST")
-     * @param EntityManagerInterface $entityManager
-     * @param FreeFieldService $champLibreService
-     * @param ReceptionService $receptionService
-     * @param AttachmentService $attachmentService
-     * @param Request $request
-     * @param TranslatorInterface $translator
-     * @return Response
-     * @throws NonUniqueResultException
-     * @throws ReflectionException
+     * @Route("/new", name="reception_new", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
     public function new(EntityManagerInterface $entityManager,
                         FreeFieldService $champLibreService,
@@ -149,11 +142,8 @@ class ReceptionController extends AbstractController {
                         AttachmentService $attachmentService,
                         Request $request,
                         TranslatorInterface $translator): Response {
-        if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::CREATE)) {
-            return $this->redirectToRoute('access_denied');
-        }
 
-        if ($request->isXmlHttpRequest() && $data = $request->request->all()) {
+        if ($data = $request->request->all()) {
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
             $reception = $receptionService->createAndPersistReception($entityManager, $currentUser, $data);
@@ -185,26 +175,15 @@ class ReceptionController extends AbstractController {
     }
 
     /**
-     * @Route("/modifier", name="reception_edit", options={"expose"=true}, methods="POST")
-     * @param EntityManagerInterface $entityManager
-     * @param FreeFieldService $champLibreService
-     * @param ReceptionService $receptionService
-     * @param AttachmentService $attachmentService
-     * @param Request $request
-     * @return Response
-     * @throws ReflectionException
-     * @throws Exception
+     * @Route("/modifier", name="reception_edit", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function edit(EntityManagerInterface $entityManager,
                          FreeFieldService $champLibreService,
                          ReceptionService $receptionService,
                          AttachmentService $attachmentService,
                          Request $request): Response {
-        if($request->isXmlHttpRequest() && $data = $request->request->all()) {
-            if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if($data = $request->request->all()) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
@@ -276,17 +255,12 @@ class ReceptionController extends AbstractController {
 
 
     /**
-     * @Route("/api-modifier", name="api_reception_edit", options={"expose"=true},  methods="GET|POST")
-     * @param EntityManagerInterface $entityManager
-     * @param Request $request
-     * @return Response
+     * @Route("/api-modifier", name="api_reception_edit", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function apiEdit(EntityManagerInterface $entityManager,
                             Request $request): Response {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        if($data = json_decode($request->getContent(), true)) {
             $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
@@ -336,111 +310,87 @@ class ReceptionController extends AbstractController {
     }
 
     /**
-     * @Route("/api", name="reception_api", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/api", name="reception_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE}, mode=HasPermission::IN_JSON)
      */
     public function api(Request $request,
                         EntityManagerInterface $entityManager): Response {
-        if($request->isXmlHttpRequest()) {
-            if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        $purchaseRequestFilter = $request->request->get('purchaseRequestFilter');
+        $data = $this->receptionService->getDataForDatatable($this->getUser(), $request->request, $purchaseRequestFilter);
 
-            $purchaseRequestFilter = $request->request->get('purchaseRequestFilter');
-            $data = $this->receptionService->getDataForDatatable($this->getUser(), $request->request, $purchaseRequestFilter);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParam = $fieldsParamRepository->getHiddenByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
+        $data['columnsToHide'] = $fieldsParam;
 
-            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-            $fieldsParam = $fieldsParamRepository->getHiddenByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
-            $data['columnsToHide'] = $fieldsParam;
-
-            return new JsonResponse($data);
-        }
-        throw new BadRequestHttpException();
+        return new JsonResponse($data);
     }
 
     /**
-     * @Route("/api-article/{id}", name="reception_article_api", options={"expose"=true}, methods={"GET", "POST"})
-     * @param EntityManagerInterface $entityManager
-     * @param Request $request
-     * @param $id
-     * @return Response
+     * @Route("/api-article/{id}", name="reception_article_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE}, mode=HasPermission::IN_JSON)
      */
-    public function articleApi(EntityManagerInterface $entityManager,
-                               Request $request,
-                               $id): Response {
-        if($request->isXmlHttpRequest()) {
-            if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
-                return $this->redirectToRoute('access_denied');
+    public function articleApi(EntityManagerInterface $entityManager, $id): Response {
+        $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
+        $receptionRepository = $entityManager->getRepository(Reception::class);
+
+        $reception = $receptionRepository->find($id);
+        $ligneArticles = $receptionReferenceArticleRepository->findByReception($reception);
+
+        $rows = [];
+        $hasBarCodeToPrint = false;
+        foreach($ligneArticles as $ligneArticle) {
+            $referenceArticle = $ligneArticle->getReferenceArticle();
+            if(!$hasBarCodeToPrint && isset($referenceArticle)) {
+                $articles = $ligneArticle->getArticles();
+                $hasBarCodeToPrint = (
+                    ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) ||
+                    ($articles->count() > 0)
+                );
             }
 
-            $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
-            $receptionRepository = $entityManager->getRepository(Reception::class);
+            $isReferenceTypeLinked = (
+                isset($referenceArticle)
+                && ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE)
+            );
 
-            $reception = $receptionRepository->find($id);
-            $ligneArticles = $receptionReferenceArticleRepository->findByReception($reception);
+            $isArticleTypeLinked = (
+                isset($referenceArticle)
+                && ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE)
+            );
 
-            $rows = [];
-            $hasBarCodeToPrint = false;
-            foreach($ligneArticles as $ligneArticle) {
-                $referenceArticle = $ligneArticle->getReferenceArticle();
-                if(!$hasBarCodeToPrint && isset($referenceArticle)) {
-                    $articles = $ligneArticle->getArticles();
-                    $hasBarCodeToPrint = (
-                        ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) ||
-                        ($articles->count() > 0)
-                    );
-                }
-
-                $isReferenceTypeLinked = (
-                    isset($referenceArticle)
-                    && ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE)
-                );
-
-                $isArticleTypeLinked = (
-                    isset($referenceArticle)
-                    && ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE)
-                );
-
-                $rows[] = [
-                    "Référence" => (isset($referenceArticle) ? $referenceArticle->getReference() : ''),
-                    "Commande" => ($ligneArticle->getCommande() ? $ligneArticle->getCommande() : ''),
-                    "A recevoir" => ($ligneArticle->getQuantiteAR() ? $ligneArticle->getQuantiteAR() : 0),
-                    "Reçu" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : 0),
-                    "Urgence" => ($ligneArticle->getEmergencyTriggered() ?? false),
-                    "Comment" => ($ligneArticle->getEmergencyComment() ?? ''),
-                    'Actions' => $this->renderView(
-                        'reception/datatableLigneRefArticleRow.html.twig',
-                        [
-                            'ligneId' => $ligneArticle->getId(),
-                            'ligneArticleQuantity' => $ligneArticle->getQuantite(),
-                            'receptionId' => $reception->getId(),
-                            'isReferenceTypeLinked' => $isReferenceTypeLinked,
-                            'isArticleTypeLinked' => $isArticleTypeLinked,
-                            'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
-                            'packFilter' => (isset($referenceArticle) ? $referenceArticle->getBarCode() : '')
-                        ]
-                    ),
-                ];
-            }
-            $data['data'] = $rows;
-            $data['hasBarCodeToPrint'] = $hasBarCodeToPrint;
-            return new JsonResponse($data);
+            $rows[] = [
+                "Référence" => (isset($referenceArticle) ? $referenceArticle->getReference() : ''),
+                "Commande" => ($ligneArticle->getCommande() ? $ligneArticle->getCommande() : ''),
+                "A recevoir" => ($ligneArticle->getQuantiteAR() ? $ligneArticle->getQuantiteAR() : 0),
+                "Reçu" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : 0),
+                "Urgence" => ($ligneArticle->getEmergencyTriggered() ?? false),
+                "Comment" => ($ligneArticle->getEmergencyComment() ?? ''),
+                'Actions' => $this->renderView(
+                    'reception/datatableLigneRefArticleRow.html.twig',
+                    [
+                        'ligneId' => $ligneArticle->getId(),
+                        'ligneArticleQuantity' => $ligneArticle->getQuantite(),
+                        'receptionId' => $reception->getId(),
+                        'isReferenceTypeLinked' => $isReferenceTypeLinked,
+                        'isArticleTypeLinked' => $isArticleTypeLinked,
+                        'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
+                        'packFilter' => (isset($referenceArticle) ? $referenceArticle->getBarCode() : '')
+                    ]
+                ),
+            ];
         }
-        throw new BadRequestHttpException();
+        $data['data'] = $rows;
+        $data['hasBarCodeToPrint'] = $hasBarCodeToPrint;
+        return new JsonResponse($data);
     }
 
     /**
      * @Route("/liste/{purchaseRequest}", name="reception_index", methods={"GET", "POST"}, options={"expose"=true})
+     * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE})
      */
     public function index(EntityManagerInterface $entityManager,
                           PurchaseRequest $purchaseRequest = null): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $purchaseRequestLinesOrderNumbers = [];
         if ($purchaseRequest) {
             $purchaseRequestLinesOrderNumbers = $purchaseRequest->getPurchaseRequestLines()
@@ -478,18 +428,12 @@ class ReceptionController extends AbstractController {
     }
 
     /**
-     * @Route("/supprimer", name="reception_delete", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/supprimer", name="reception_delete", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request,
                            EntityManagerInterface $entityManager): Response {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if($data = json_decode($request->getContent(), true)) {
             $articleRepository = $entityManager->getRepository(Article::class);
             $receptionRepository = $entityManager->getRepository(Reception::class);
 
@@ -522,19 +466,12 @@ class ReceptionController extends AbstractController {
     }
 
     /**
-     * @Route("/annuler", name="reception_cancel", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NonUniqueResultException
+     * @Route("/annuler", name="reception_cancel", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function cancel(Request $request,
                            EntityManagerInterface $entityManager): Response {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if($data = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $receptionRepository = $entityManager->getRepository(Reception::class);
 
@@ -555,22 +492,13 @@ class ReceptionController extends AbstractController {
     }
 
     /**
-     * @Route("/retirer-article", name="reception_article_remove",  options={"expose"=true}, methods={"GET", "POST"})
-     * @param EntityManagerInterface $entityManager
-     * @param ReceptionService $receptionService
-     * @param Request $request
-     * @return Response
-     * @throws NonUniqueResultException
-     * @throws Exception
+     * @Route("/retirer-article", name="reception_article_remove",  options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function removeArticle(EntityManagerInterface $entityManager,
                                   ReceptionService $receptionService,
                                   Request $request): Response {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if($data = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
             $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
@@ -648,21 +576,13 @@ class ReceptionController extends AbstractController {
     }
 
     /**
-     * @Route("/add-article", name="reception_article_add", options={"expose"=true}, methods={"GET", "POST"})
-     * @param EntityManagerInterface $entityManager
-     * @param ReceptionService $receptionService
-     * @param Request $request
-     * @return Response
-     * @throws NonUniqueResultException
+     * @Route("/add-article", name="reception_article_add", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function addArticle(EntityManagerInterface $entityManager,
                                ReceptionService $receptionService,
                                Request $request): Response {
-        if($request->isXmlHttpRequest() && $contentData = json_decode($request->getContent(), true)) {
-            if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if($contentData = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $receptionRepository = $entityManager->getRepository(Reception::class);
@@ -734,18 +654,12 @@ class ReceptionController extends AbstractController {
     }
 
     /**
-     * @Route("/api-modifier-article", name="reception_article_edit_api", options={"expose"=true},  methods="GET|POST")
-     * @param EntityManagerInterface $entityManager
-     * @param Request $request
-     * @return Response
+     * @Route("/api-modifier-article", name="reception_article_edit_api", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function apiEditArticle(EntityManagerInterface $entityManager,
                                    Request $request): Response {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if($data = json_decode($request->getContent(), true)) {
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
 
             $ligneArticle = $receptionReferenceArticleRepository->find($data['id']);
@@ -765,23 +679,14 @@ class ReceptionController extends AbstractController {
     }
 
     /**
-     * @Route("/modifier-article", name="reception_article_edit", options={"expose"=true}, methods={"GET", "POST"})
-     * @param EntityManagerInterface $entityManager
-     * @param ReceptionService $receptionService
-     * @param Request $request
-     * @param TrackingMovementService $trackingMovementService
-     * @return Response
-     * @throws Exception
+     * @Route("/modifier-article", name="reception_article_edit", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function editArticle(EntityManagerInterface $entityManager,
                                 ReceptionService $receptionService,
                                 Request $request,
                                 TrackingMovementService $trackingMovementService): Response {
-        if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) { //Si la requête est de type Xml
+        if($data = json_decode($request->getContent(), true)) {
             $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
@@ -896,21 +801,12 @@ class ReceptionController extends AbstractController {
 
     /**
      * @Route("/voir/{id}", name="reception_show", methods={"GET", "POST"})
-     * @param EntityManagerInterface $entityManager
-     * @param GlobalParamService $globalParamService
-     * @param ReceptionService $receptionService
-     * @param Reception $reception
-     * @return Response
-     * @throws NonUniqueResultException
+     * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE})
      */
     public function show(EntityManagerInterface $entityManager,
                          GlobalParamService $globalParamService,
                          ReceptionService $receptionService,
                          Reception $reception): Response {
-        if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
@@ -1027,207 +923,181 @@ class ReceptionController extends AbstractController {
     }
 
     /**
-     * @Route("/ligne-article-conditionnement", name="get_ligne_article_conditionnement", options={"expose"=true}, methods="GET")
-     *
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NonUniqueResultException
+     * @Route("/ligne-article-conditionnement", name="get_ligne_article_conditionnement", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
      */
     public function getLigneArticleCondtionnement(Request $request,
                                                   EntityManagerInterface $entityManager) {
-        if($request->isXmlHttpRequest()) {
-            $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
-            $champLibreRepository = $entityManager->getRepository(FreeField::class);
-            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
-            $reference = $request->query->get('reference');
-            $commande = $request->query->get('commande');
-            $quantity = $request->query->get('quantity');
-            $defaultArticleFournisseurReference = $request->query->get('defaultArticleFournisseurReference');
+        $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
-            // TODO verif null
+        $reference = $request->query->get('reference');
+        $commande = $request->query->get('commande');
+        $quantity = $request->query->get('quantity');
+        $defaultArticleFournisseurReference = $request->query->get('defaultArticleFournisseurReference');
 
-            /** @var ReferenceArticle $refArticle */
-            $refArticle = $referenceArticleRepository->findOneByReference($reference);
+        // TODO verif null
 
-            $typeArticle = $refArticle->getType();
+        /** @var ReferenceArticle $refArticle */
+        $refArticle = $referenceArticleRepository->findOneByReference($reference);
 
-            $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
-            $response = new Response();
-            $response->setContent($this->renderView(
-                'reception/conditionnementArticleTemplate.html.twig',
-                [
-                    'reception' => [
-                        'refArticleId' => $refArticle->getId(),
-                        'reference' => $reference,
-                        'referenceLabel' => $refArticle->getLibelle(),
-                        'commande' => $commande,
-                        'quantity' => $quantity,
-                        'defaultArticleFournisseurReference' => $defaultArticleFournisseurReference,
-                    ],
-                    'typeArticle' => $typeArticle ? $typeArticle->getLabel() : '',
-                    'champsLibres' => $champsLibres,
-                    'references' => $articleFournisseurRepository->getIdAndLibelleByRef($refArticle)
-                ]
-            ));
-            return $response;
-        }
-        throw new BadRequestHttpException();
+        $typeArticle = $refArticle->getType();
+
+        $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
+        $response = new Response();
+        $response->setContent($this->renderView(
+            'reception/conditionnementArticleTemplate.html.twig',
+            [
+                'reception' => [
+                    'refArticleId' => $refArticle->getId(),
+                    'reference' => $reference,
+                    'referenceLabel' => $refArticle->getLibelle(),
+                    'commande' => $commande,
+                    'quantity' => $quantity,
+                    'defaultArticleFournisseurReference' => $defaultArticleFournisseurReference,
+                ],
+                'typeArticle' => $typeArticle ? $typeArticle->getLabel() : '',
+                'champsLibres' => $champsLibres,
+                'references' => $articleFournisseurRepository->getIdAndLibelleByRef($refArticle)
+            ]
+        ));
+        return $response;
     }
 
     /**
-     * @Route("/modifier-litige", name="litige_edit_reception",  options={"expose"=true}, methods="GET|POST")
-     * @param EntityManagerInterface $entityManager
-     * @param ArticleDataService $articleDataService
-     * @param LitigeService $litigeService
-     * @param Request $request
-     * @return Response
-     * @throws NonUniqueResultException
+     * @Route("/modifier-litige", name="litige_edit_reception",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::QUALI, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function editLitige(EntityManagerInterface $entityManager,
                                ArticleDataService $articleDataService,
                                LitigeService $litigeService,
                                Request $request): Response {
-        if($request->isXmlHttpRequest()) {
-            if(!$this->userService->hasRightFunction(Menu::QUALI, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-            $post = $request->request;
+        $post = $request->request;
 
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $statutRepository = $entityManager->getRepository(Statut::class);
-            $litigeRepository = $entityManager->getRepository(Litige::class);
-            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $litigeRepository = $entityManager->getRepository(Litige::class);
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
-            $litige = $litigeRepository->find($post->get('id'));
-            $typeBefore = $litige->getType()->getId();
-            $typeBeforeName = $litige->getType()->getLabel();
-            $typeAfter = (int)$post->get('typeLitige');
-            $statutBeforeId = $litige->getStatus()->getId();
-            $statutBeforeName = $litige->getStatus()->getNom();
-            $statutAfterId = (int)$post->get('statutLitige');
-            $statutAfter = $statutRepository->find($statutAfterId);
+        $litige = $litigeRepository->find($post->get('id'));
+        $typeBefore = $litige->getType()->getId();
+        $typeBeforeName = $litige->getType()->getLabel();
+        $typeAfter = (int)$post->get('typeLitige');
+        $statutBeforeId = $litige->getStatus()->getId();
+        $statutBeforeName = $litige->getStatus()->getNom();
+        $statutAfterId = (int)$post->get('statutLitige');
+        $statutAfter = $statutRepository->find($statutAfterId);
 
-            $articlesNotAvailableCounter = $litige
-                ->getArticles()
-                ->filter(function(Article $article) {
-                    // articles non disponibles
-                    return in_array(
-                        $article->getStatut()->getNom(),
-                        [
-                            Article::STATUT_EN_TRANSIT,
-                            Article::STATUT_INACTIF
-                        ]
-                    );
-                })
-                ->count();
+        $articlesNotAvailableCounter = $litige
+            ->getArticles()
+            ->filter(function(Article $article) {
+                // articles non disponibles
+                return in_array(
+                    $article->getStatut()->getNom(),
+                    [
+                        Article::STATUT_EN_TRANSIT,
+                        Article::STATUT_INACTIF
+                    ]
+                );
+            })
+            ->count();
 
-            if(!$statutAfter->isTreated()
-                && $articlesNotAvailableCounter > 0) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => 'Vous ne pouvez pas passer le litige dans un statut non traité car il concerne des articles non disponibles.'
-                ]);
-            }
-
-            $litige
-                ->setDeclarant($utilisateurRepository->find($post->get('declarantLitige')))
-                ->setUpdateDate(new DateTime('now'))
-                ->setType($typeRepository->find($post->get('typeLitige')))
-                ->setStatus($statutAfter);
-
-            $errorResponse = $this->addArticleIntoDispute($entityManager, $articleDataService, $post->get('colis'), $litige);
-            if($errorResponse) {
-                return $errorResponse;
-            }
-
-            if($post->get('emergency')) {
-                $litige->setEmergencyTriggered($post->get('emergency') === 'true');
-            }
-            if(!empty($buyers = $post->get('acheteursLitige'))) {
-                // on détache les colis existants...
-                $existingBuyers = $litige->getBuyers();
-                foreach($existingBuyers as $buyer) {
-                    $litige->removeBuyer($buyer);
-                }
-                // ... et on ajoute ceux sélectionnés
-                $listBuyer = explode(',', $buyers);
-                foreach($listBuyer as $buyerId) {
-                    $litige->addBuyer($utilisateurRepository->find($buyerId));
-                }
-            }
-            $entityManager->flush();
-
-            $comment = '';
-            $statutinstance = $statutRepository->find($post->get('statutLitige'));
-            $commentStatut = $statutinstance->getComment();
-            if($typeBefore !== $typeAfter) {
-                $comment .= "Changement du type : " . $typeBeforeName . " -> " . $litige->getType()->getLabel() . ".";
-            }
-            if($statutBeforeId !== $statutAfterId) {
-                if(!empty($comment)) {
-                    $comment .= "\n";
-                }
-                $comment .= "Changement du statut : " .
-                    $statutBeforeName . " -> " . $litige->getStatus()->getNom() . "." .
-                    (!empty($commentStatut) ? ("\n" . $commentStatut . ".") : '');
-            }
-            if($post->get('commentaire')) {
-                if(!empty($comment)) {
-                    $comment .= "\n";
-                }
-                $comment .= trim($post->get('commentaire'));
-            }
-
-            /** @var Utilisateur $currentUser */
-            $currentUser = $this->getUser();
-
-            if(!empty($comment)) {
-                $histoLitige = new LitigeHistoric();
-                $histoLitige
-                    ->setLitige($litige)
-                    ->setDate(new DateTime('now'))
-                    ->setUser($currentUser)
-                    ->setComment($comment);
-                $entityManager->persist($histoLitige);
-                $entityManager->flush();
-            }
-
-            $listAttachmentIdToKeep = $post->get('files') ?? [];
-            $attachments = $litige->getAttachments()->toArray();
-            foreach($attachments as $attachment) {
-                /** @var Attachment $attachment */
-                if(!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-                    $this->attachmentService->removeAndDeleteAttachment($attachment, $litige);
-                }
-            }
-
-            $this->createAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
-            $entityManager->flush();
-            $isStatutChange = ($statutBeforeId !== $statutAfterId);
-            if($isStatutChange) {
-                $litigeService->sendMailToAcheteursOrDeclarant($litige, LitigeService::CATEGORY_RECEPTION, true);
-            }
+        if(!$statutAfter->isTreated()
+            && $articlesNotAvailableCounter > 0) {
             return new JsonResponse([
-                'success' => true,
-                'msg' => 'Le litige <strong>' . $litige->getNumeroLitige() . '</strong> a bien été modifié.'
+                'success' => false,
+                'msg' => 'Vous ne pouvez pas passer le litige dans un statut non traité car il concerne des articles non disponibles.'
             ]);
         }
-        throw new BadRequestHttpException();
+
+        $litige
+            ->setDeclarant($utilisateurRepository->find($post->get('declarantLitige')))
+            ->setUpdateDate(new DateTime('now'))
+            ->setType($typeRepository->find($post->get('typeLitige')))
+            ->setStatus($statutAfter);
+
+        $errorResponse = $this->addArticleIntoDispute($entityManager, $articleDataService, $post->get('colis'), $litige);
+        if($errorResponse) {
+            return $errorResponse;
+        }
+
+        if($post->get('emergency')) {
+            $litige->setEmergencyTriggered($post->get('emergency') === 'true');
+        }
+        if(!empty($buyers = $post->get('acheteursLitige'))) {
+            // on détache les colis existants...
+            $existingBuyers = $litige->getBuyers();
+            foreach($existingBuyers as $buyer) {
+                $litige->removeBuyer($buyer);
+            }
+            // ... et on ajoute ceux sélectionnés
+            $listBuyer = explode(',', $buyers);
+            foreach($listBuyer as $buyerId) {
+                $litige->addBuyer($utilisateurRepository->find($buyerId));
+            }
+        }
+        $entityManager->flush();
+
+        $comment = '';
+        $statutinstance = $statutRepository->find($post->get('statutLitige'));
+        $commentStatut = $statutinstance->getComment();
+        if($typeBefore !== $typeAfter) {
+            $comment .= "Changement du type : " . $typeBeforeName . " -> " . $litige->getType()->getLabel() . ".";
+        }
+        if($statutBeforeId !== $statutAfterId) {
+            if(!empty($comment)) {
+                $comment .= "\n";
+            }
+            $comment .= "Changement du statut : " .
+                $statutBeforeName . " -> " . $litige->getStatus()->getNom() . "." .
+                (!empty($commentStatut) ? ("\n" . $commentStatut . ".") : '');
+        }
+        if($post->get('commentaire')) {
+            if(!empty($comment)) {
+                $comment .= "\n";
+            }
+            $comment .= trim($post->get('commentaire'));
+        }
+
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+
+        if(!empty($comment)) {
+            $histoLitige = new LitigeHistoric();
+            $histoLitige
+                ->setLitige($litige)
+                ->setDate(new DateTime('now'))
+                ->setUser($currentUser)
+                ->setComment($comment);
+            $entityManager->persist($histoLitige);
+            $entityManager->flush();
+        }
+
+        $listAttachmentIdToKeep = $post->get('files') ?? [];
+        $attachments = $litige->getAttachments()->toArray();
+        foreach($attachments as $attachment) {
+            /** @var Attachment $attachment */
+            if(!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
+                $this->attachmentService->removeAndDeleteAttachment($attachment, $litige);
+            }
+        }
+
+        $this->createAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
+        $entityManager->flush();
+        $isStatutChange = ($statutBeforeId !== $statutAfterId);
+        if($isStatutChange) {
+            $litigeService->sendMailToAcheteursOrDeclarant($litige, LitigeService::CATEGORY_RECEPTION, true);
+        }
+        return new JsonResponse([
+            'success' => true,
+            'msg' => 'Le litige <strong>' . $litige->getNumeroLitige() . '</strong> a bien été modifié.'
+        ]);
     }
 
     /**
-     * @Route("/creer-litige", name="litige_new_reception", options={"expose"=true}, methods={"POST"})
-     * @param EntityManagerInterface $entityManager
-     * @param LitigeService $litigeService
-     * @param ArticleDataService $articleDataService
-     * @param Request $request
-     * @param UniqueNumberService $uniqueNumberService
-     * @param TranslatorInterface $translator
-     * @return Response
-     * @throws NonUniqueResultException
-     * @throws Exception
+     * @Route("/creer-litige", name="litige_new_reception", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::QUALI, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
     public function newLitige(EntityManagerInterface $entityManager,
                               LitigeService $litigeService,
@@ -1236,98 +1106,88 @@ class ReceptionController extends AbstractController {
                               UniqueNumberService $uniqueNumberService,
                               TranslatorInterface $translator): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::QUALI, Action::CREATE)) {
-                return $this->redirectToRoute('access_denied');
+        $post = $request->request;
+
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+
+        $litige = new Litige();
+
+        $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+
+        $disputeNumber = $uniqueNumberService->createUniqueNumber($entityManager, Litige::DISPUTE_RECEPTION_PREFIX, Litige::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
+
+        $litige
+            ->setStatus($statutRepository->find($post->get('statutLitige')))
+            ->setType($typeRepository->find($post->get('typeLitige')))
+            ->setDeclarant($utilisateurRepository->find($post->get('declarantLitige')))
+            ->setCreationDate($now)
+            ->setNumeroLitige($disputeNumber);
+
+        $errorResponse = $this->addArticleIntoDispute($entityManager, $articleDataService, $post->get('colisLitige'), $litige);
+        if($errorResponse) {
+            return $errorResponse;
+        }
+
+        if($post->get('emergency')) {
+            $litige->setEmergencyTriggered($post->get('emergency') === 'true');
+        }
+        if(!empty($buyers = $post->get('acheteursLitige'))) {
+            $listBuyers = explode(',', $buyers);
+            foreach($listBuyers as $buyer) {
+                $litige->addBuyer($utilisateurRepository->find($buyer));
             }
+        }
+        $statutinstance = $statutRepository->find($post->get('statutLitige'));
+        $commentStatut = $statutinstance->getComment();
 
-            $post = $request->request;
+        $trimCommentStatut = trim($commentStatut);
+        $userComment = trim($post->get('commentaire'));
+        $nl = !empty($userComment) ? "\n" : '';
+        $commentaire = $userComment . (!empty($trimCommentStatut) ? ($nl . $commentStatut) : '');
 
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $statutRepository = $entityManager->getRepository(Statut::class);
-            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+        if(!empty($commentaire)) {
+            $histo = new LitigeHistoric();
+            $histo
+                ->setDate(new DateTime('now'))
+                ->setComment($commentaire)
+                ->setLitige($litige)
+                ->setUser($currentUser);
+            $entityManager->persist($histo);
+        }
 
-            $litige = new Litige();
+        $entityManager->persist($litige);
 
-            $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
-
-            $disputeNumber = $uniqueNumberService->createUniqueNumber($entityManager, Litige::DISPUTE_RECEPTION_PREFIX, Litige::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
-
-            $litige
-                ->setStatus($statutRepository->find($post->get('statutLitige')))
-                ->setType($typeRepository->find($post->get('typeLitige')))
-                ->setDeclarant($utilisateurRepository->find($post->get('declarantLitige')))
-                ->setCreationDate($now)
-                ->setNumeroLitige($disputeNumber);
-
-            $errorResponse = $this->addArticleIntoDispute($entityManager, $articleDataService, $post->get('colisLitige'), $litige);
-            if($errorResponse) {
-                return $errorResponse;
-            }
-
-            if($post->get('emergency')) {
-                $litige->setEmergencyTriggered($post->get('emergency') === 'true');
-            }
-            if(!empty($buyers = $post->get('acheteursLitige'))) {
-                $listBuyers = explode(',', $buyers);
-                foreach($listBuyers as $buyer) {
-                    $litige->addBuyer($utilisateurRepository->find($buyer));
-                }
-            }
-            $statutinstance = $statutRepository->find($post->get('statutLitige'));
-            $commentStatut = $statutinstance->getComment();
-
-            $trimCommentStatut = trim($commentStatut);
-            $userComment = trim($post->get('commentaire'));
-            $nl = !empty($userComment) ? "\n" : '';
-            $commentaire = $userComment . (!empty($trimCommentStatut) ? ($nl . $commentStatut) : '');
-
-            /** @var Utilisateur $currentUser */
-            $currentUser = $this->getUser();
-            if(!empty($commentaire)) {
-                $histo = new LitigeHistoric();
-                $histo
-                    ->setDate(new DateTime('now'))
-                    ->setComment($commentaire)
-                    ->setLitige($litige)
-                    ->setUser($currentUser);
-                $entityManager->persist($histo);
-            }
-
-            $entityManager->persist($litige);
-
-            try {
-                $entityManager->flush();
-            }
-            /** @noinspection PhpRedundantCatchClauseInspection */
-            catch (UniqueConstraintViolationException $e) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => $translator->trans('réception.Un autre litige de réception est en cours de création, veuillez réessayer').'.'
-                ]);
-            }
-
-            $this->createAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
+        try {
             $entityManager->flush();
-            $litigeService->sendMailToAcheteursOrDeclarant($litige, LitigeService::CATEGORY_RECEPTION);
-
+        }
+        /** @noinspection PhpRedundantCatchClauseInspection */
+        catch (UniqueConstraintViolationException $e) {
             return new JsonResponse([
-                'success' => true,
-                'msg' => 'Le litige <strong>' . $litige->getNumeroLitige() . '</strong> a bien été créé.'
+                'success' => false,
+                'msg' => $translator->trans('réception.Un autre litige de réception est en cours de création, veuillez réessayer').'.'
             ]);
         }
-        throw new BadRequestHttpException();
+
+        $this->createAttachmentsForEntity($litige, $this->attachmentService, $request, $entityManager);
+        $entityManager->flush();
+        $litigeService->sendMailToAcheteursOrDeclarant($litige, LitigeService::CATEGORY_RECEPTION);
+
+        return new JsonResponse([
+            'success' => true,
+            'msg' => 'Le litige <strong>' . $litige->getNumeroLitige() . '</strong> a bien été créé.'
+        ]);
     }
 
     /**
-     * @Route("/api-modifier-litige", name="litige_api_edit_reception", options={"expose"=true}, methods="GET|POST")
-     * @param EntityManagerInterface $entityManager
-     * @param Request $request
-     * @return Response
+     * @Route("/api-modifier-litige", name="litige_api_edit_reception", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function apiEditLitige(EntityManagerInterface $entityManager,
                                   Request $request): Response {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if($data = json_decode($request->getContent(), true)) {
             $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $litigeRepository = $entityManager->getRepository(Litige::class);
@@ -1362,18 +1222,12 @@ class ReceptionController extends AbstractController {
     }
 
     /**
-     * @Route("/supprimer-litige", name="litige_delete_reception", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NonUniqueResultException
+     * @Route("/supprimer-litige", name="litige_delete_reception", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::QUALI, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function deleteLitige(Request $request,
                                  EntityManagerInterface $entityManager): Response {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if(!$this->userService->hasRightFunction(Menu::QUALI, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        if($data = json_decode($request->getContent(), true)) {
             $litigeRepository = $entityManager->getRepository(Litige::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
 
@@ -1400,75 +1254,61 @@ class ReceptionController extends AbstractController {
     }
 
     /**
-     * @Route("/litiges/api/{reception}", name="litige_reception_api", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param Reception $reception
-     * @return Response
+     * @Route("/litiges/api/{reception}", name="litige_reception_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-    public function apiReceptionLitiges(Request $request,
-                                        EntityManagerInterface $entityManager,
+    public function apiReceptionLitiges(EntityManagerInterface $entityManager,
                                         Reception $reception): Response {
-        if($request->isXmlHttpRequest()) {
-            $litigeRepository = $entityManager->getRepository(Litige::class);
 
-            /** @var Litige[] $litiges */
-            $litiges = $litigeRepository->findByReception($reception);
+        $litigeRepository = $entityManager->getRepository(Litige::class);
 
-            $rows = [];
+        /** @var Litige[] $litiges */
+        $litiges = $litigeRepository->findByReception($reception);
 
-            foreach($litiges as $litige) {
-                $buyers = [];
-                $articles = [];
-                foreach($litige->getBuyers() as $buyer) {
-                    $buyers[] = $buyer->getUsername();
-                }
-                foreach($litige->getArticles() as $article) {
-                    $articles[] = $article->getBarCode();
-                }
-                $lastHistoric = count($litige->getLitigeHistorics()) > 0
-                    ?
-                    $litige->getLitigeHistorics()[count($litige->getLitigeHistorics()) - 1]->getComment()
-                    :
-                    '';
-                $rows[] = [
-                    'type' => $litige->getType()->getLabel(),
-                    'status' => $litige->getStatus()->getNom(),
-                    'lastHistoric' => $lastHistoric,
-                    'date' => $litige->getCreationDate()->format('d/m/Y H:i'),
-                    'actions' => $this->renderView('reception/datatableLitigesRow.html.twig', [
-                        'receptionId' => $reception->getId(),
-                        'url' => [
-                            'edit' => $this->generateUrl('litige_edit_reception', ['id' => $litige->getId()])
-                        ],
-                        'litigeId' => $litige->getId(),
-                        'disputeNumber' => $litige->getNumeroLitige()
-                    ]),
-                    'urgence' => $litige->getEmergencyTriggered()
-                ];
+        $rows = [];
+
+        foreach($litiges as $litige) {
+            $buyers = [];
+            $articles = [];
+            foreach($litige->getBuyers() as $buyer) {
+                $buyers[] = $buyer->getUsername();
             }
-
-            $data['data'] = $rows;
-
-            return new JsonResponse($data);
+            foreach($litige->getArticles() as $article) {
+                $articles[] = $article->getBarCode();
+            }
+            $lastHistoric = count($litige->getLitigeHistorics()) > 0
+                ?
+                $litige->getLitigeHistorics()[count($litige->getLitigeHistorics()) - 1]->getComment()
+                :
+                '';
+            $rows[] = [
+                'type' => $litige->getType()->getLabel(),
+                'status' => $litige->getStatus()->getNom(),
+                'lastHistoric' => $lastHistoric,
+                'date' => $litige->getCreationDate()->format('d/m/Y H:i'),
+                'actions' => $this->renderView('reception/datatableLitigesRow.html.twig', [
+                    'receptionId' => $reception->getId(),
+                    'url' => [
+                        'edit' => $this->generateUrl('litige_edit_reception', ['id' => $litige->getId()])
+                    ],
+                    'litigeId' => $litige->getId(),
+                    'disputeNumber' => $litige->getNumeroLitige()
+                ]),
+                'urgence' => $litige->getEmergencyTriggered()
+            ];
         }
-        throw new BadRequestHttpException();
+
+        $data['data'] = $rows;
+
+        return new JsonResponse($data);
     }
 
     /**
-     * @Route("/finir", name="reception_finish", methods={"GET", "POST"}, options={"expose"=true})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws Exception
+     * @Route("/finir", name="reception_finish", methods={"GET", "POST"}, options={"expose"=true}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function finish(Request $request,
                            EntityManagerInterface $entityManager): Response {
-        if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if($data = json_decode($request->getContent(), true)) {
 
             $receptionRepository = $entityManager->getRepository(Reception::class);
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
@@ -1518,57 +1358,45 @@ class ReceptionController extends AbstractController {
     }
 
     /**
-     * @Route("/obtenir-modal-for-ref", name="get_modal_new_ref", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @return Response
+     * @Route("/obtenir-modal-for-ref", name="get_modal_new_ref", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::CREATE_REF_FROM_RECEP}, mode=HasPermission::IN_JSON)
      */
-    public function checkIfQuantityArticle(Request $request): Response {
-        if($request->isXmlHttpRequest()) {
-            if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::CREATE_REF_FROM_RECEP)) {
-                return $this->redirectToRoute('access_denied');
-            }
-            $entityManager = $this->getDoctrine()->getManager();
+    public function checkIfQuantityArticle(): Response {
+        $entityManager = $this->getDoctrine()->getManager();
 
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $champLibreRepository = $entityManager->getRepository(FreeField::class);
-            $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
+        $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
 
-            $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
+        $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
 
-            $inventoryCategories = $inventoryCategoryRepository->findAll();
-            $typeChampLibre = [];
-            foreach($types as $type) {
-                $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
-                $typeChampLibre[] = [
-                    'typeLabel' => $type->getLabel(),
-                    'typeId' => $type->getId(),
-                    'champsLibres' => $champsLibres,
-                ];
-            }
-            return new JsonResponse($this->renderView('reception/modalNewRefArticle.html.twig', [
-                'typeChampsLibres' => $typeChampLibre,
-                'types' => $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]),
-                'categories' => $inventoryCategories,
-                "stockManagement" => [
-                    ReferenceArticle::STOCK_MANAGEMENT_FEFO,
-                    ReferenceArticle::STOCK_MANAGEMENT_FIFO
-                ],
-            ]));
+        $inventoryCategories = $inventoryCategoryRepository->findAll();
+        $typeChampLibre = [];
+        foreach($types as $type) {
+            $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
+            $typeChampLibre[] = [
+                'typeLabel' => $type->getLabel(),
+                'typeId' => $type->getId(),
+                'champsLibres' => $champsLibres,
+            ];
         }
-        throw new BadRequestHttpException();
+        return new JsonResponse($this->renderView('reception/modalNewRefArticle.html.twig', [
+            'typeChampsLibres' => $typeChampLibre,
+            'types' => $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]),
+            'categories' => $inventoryCategories,
+            "stockManagement" => [
+                ReferenceArticle::STOCK_MANAGEMENT_FEFO,
+                ReferenceArticle::STOCK_MANAGEMENT_FIFO
+            ],
+        ]));
     }
 
     /**
-     * @Route("/verif-avant-suppression", name="ligne_recep_check_delete", options={"expose"=true}, methods={"GET", "POST"})
-     * @param EntityManagerInterface $entityManager
-     * @param Request $request
-     * @return JsonResponse
-     * @throws NoResultException
-     * @throws NonUniqueResultException
+     * @Route("/verif-avant-suppression", name="ligne_recep_check_delete", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      */
     public function checkBeforeLigneDelete(EntityManagerInterface $entityManager,
                                            Request $request) {
-        if($request->isXmlHttpRequest() && $id = json_decode($request->getContent(), true)) {
+        if($id = json_decode($request->getContent(), true)) {
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
             $nbArticles = $receptionReferenceArticleRepository->countArticlesByRRA($id);
             $ligneArticle = $receptionReferenceArticleRepository->find($id);
@@ -1675,17 +1503,12 @@ class ReceptionController extends AbstractController {
     }
 
     /**
-     * @Route("/apiArticle", name="article_by_reception_api", options={"expose"=true}, methods="GET|POST")
-     * @param EntityManagerInterface $entityManager
-     * @param Request $request
-     * @return Response
+     * @Route("/apiArticle", name="article_by_reception_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE}, mode=HasPermission::IN_JSON)
      */
     public function apiArticle(EntityManagerInterface $entityManager,
                                Request $request): Response {
-        if($request->isXmlHttpRequest() && $ligne = $request->request->get('ligne')) {
-            if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        if($ligne = $request->request->get('ligne')) {
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
             $ligne = $receptionReferenceArticleRepository->find(intval($ligne));
             $data = $this->articleDataService->getDataForDatatableByReceptionLigne($ligne, $this->getUser());
@@ -1696,17 +1519,12 @@ class ReceptionController extends AbstractController {
     }
 
     /**
-     * @Route("/verification", name="reception_check_delete", options={"expose"=true})
-     * @param EntityManagerInterface $entityManager
-     * @param Request $request
-     * @return Response
+     * @Route("/verification", name="reception_check_delete", options={"expose"=true}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE}, mode=HasPermission::IN_JSON)
      */
     public function checkReceptionCanBeDeleted(EntityManagerInterface $entityManager,
                                                Request $request): Response {
-        if($request->isXmlHttpRequest() && $receptionId = json_decode($request->getContent(), true)) {
-            if(!$this->userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_RECE)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        if($receptionId = json_decode($request->getContent(), true)) {
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
             if($receptionReferenceArticleRepository->countByReceptionId($receptionId) == 0) {
                 $delete = true;
@@ -1841,26 +1659,7 @@ class ReceptionController extends AbstractController {
     }
 
     /**
-     * @Route("/avec-conditionnement/{reception}", name="reception_new_with_packing", options={"expose"=true})
-     * @param Request $request
-     * @param TransferRequestService $transferRequestService
-     * @param TransferOrderService $transferOrderService
-     * @param DemandeLivraisonService $demandeLivraisonService
-     * @param TranslatorInterface $translator
-     * @param EntityManagerInterface $entityManager
-     * @param Reception $reception
-     * @param FreeFieldService $champLibreService
-     * @param TrackingMovementService $trackingMovementService
-     * @param MouvementStockService $mouvementStockService
-     * @param PreparationsManagerService $preparationsManagerService
-     * @param LivraisonsManagerService $livraisonsManagerService
-     * @return Response
-     * @throws LoaderError
-     * @throws NegativeQuantityException
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
-     * @throws Exception
+     * @Route("/avec-conditionnement/{reception}", name="reception_new_with_packing", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      */
     public function newWithPacking(Request $request,
                                    TransferRequestService $transferRequestService,
@@ -1879,7 +1678,7 @@ class ReceptionController extends AbstractController {
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
 
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if($data = json_decode($request->getContent(), true)) {
             $articles = $data['conditionnement'];
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
             $statutRepository = $entityManager->getRepository(Statut::class);

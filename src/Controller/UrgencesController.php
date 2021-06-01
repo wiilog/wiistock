@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\Urgence;
@@ -47,52 +48,32 @@ class UrgencesController extends AbstractController
 
     /**
      * @Route("/", name="urgence_index")
+     * @HasPermission({Menu::TRACA, Action::DISPLAY_URGE})
      */
     public function index()
     {
-        if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_URGE)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
-        return $this->render('urgence/index.html.twig', [
-
-        ]);
+        return $this->render('urgence/index.html.twig');
     }
 
     /**
-     * @Route("/api", name="urgence_api", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api", name="urgence_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::TRACA, Action::DISPLAY_URGE}, mode=HasPermission::IN_JSON)
      */
     public function api(Request $request): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DISPLAY_URGE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-            $data = $this->urgenceService->getDataForDatatable($request->request);
-            return new JsonResponse($data);
-        }
-        throw new BadRequestHttpException();
+        $data = $this->urgenceService->getDataForDatatable($request->request);
+        return new JsonResponse($data);
     }
 
     /**
      * @Route("/creer", name="urgence_new", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param SpecificService $specificService
-     * @param UrgenceService $urgenceService
-     * @return Response
-     * @throws NoResultException
-     * @throws NonUniqueResultException
+     * @HasPermission({Menu::TRACA, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request,
                         EntityManagerInterface $entityManager,
                         SpecificService $specificService,
                         UrgenceService $urgenceService): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $data = json_decode($request->getContent(), true);
 
         $urgenceRepository = $entityManager->getRepository(Urgence::class);
@@ -127,19 +108,13 @@ class UrgencesController extends AbstractController
     }
 
     /**
-     * @Route("/supprimer", name="urgence_delete", options={"expose"=true},methods={"GET","POST"})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/supprimer", name="urgence_delete", options={"expose"=true},methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::TRACA, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request,
                            EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($data = json_decode($request->getContent(), true)) {
             $urgenceRepository = $entityManager->getRepository(Urgence::class);
             $urgence = $urgenceRepository->find($data['urgence']);
             $canDeleteUrgence = !$urgence->getLastArrival();
@@ -155,18 +130,13 @@ class UrgencesController extends AbstractController
     }
 
     /**
-     * @Route("/api-modifier", name="urgence_edit_api", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/api-modifier", name="urgence_edit_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::TRACA, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function editApi(Request $request,
                             EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        if ($data = json_decode($request->getContent(), true)) {
             $urgenceRepository = $entityManager->getRepository(Urgence::class);
             $urgence = $urgenceRepository->find($data['id']);
             $json = $this->renderView('urgence/modalEditUrgenceContent.html.twig', [
@@ -180,22 +150,13 @@ class UrgencesController extends AbstractController
 
     /**
      * @Route("/modifier", name="urgence_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param SpecificService $specificService
-     * @param EntityManagerInterface $entityManager
-     * @param UrgenceService $urgenceService
-     * @return Response
-     * @throws NoResultException
-     * @throws NonUniqueResultException
+     * @HasPermission({Menu::TRACA, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function edit(Request $request,
                          SpecificService $specificService,
                          EntityManagerInterface $entityManager,
                          UrgenceService $urgenceService): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
-            return $this->redirectToRoute('access_denied');
-        }
 
         $data = json_decode($request->getContent(), true);
 
@@ -236,9 +197,6 @@ class UrgencesController extends AbstractController
 
     /**
      * @Route("/verification", name="urgence_check_delete", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
      */
 	public function checkUrgenceCanBeDeleted(Request $request, EntityManagerInterface $entityManager): Response
 	{
