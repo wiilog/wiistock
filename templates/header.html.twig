@@ -205,7 +205,7 @@
                                                     icon: itemMenuSub.icon is defined ? itemMenuSub.icon,
                                                     title: itemMenuSub.title is defined ? itemMenuSub.title,
                                                     isTranslation: itemMenuSub.isTranslation is defined and itemMenuSub.isTranslation,
-                                                    url: itemMenuSub.url is defined ? itemMenuSub.url : path(itemMenuSub.path),
+                                                    url: itemMenuSub.url is defined ? itemMenuSub.url : (itemMenuSub.path is defined ? path(itemMenuSub.path) : '#'),
                                                     isExtern: itemMenuSub.isExtern is defined
                                                 } %}
                                             {% endfor %}
@@ -216,7 +216,7 @@
                                         label: itemMenu.label,
                                         icon: itemMenu.icon is defined ? itemMenu.icon,
                                         isTranslation: itemMenu.isTranslation is defined and itemMenu.isTranslation,
-                                        url: itemMenu.url is defined ? itemMenu.url : path(itemMenu.path),
+                                        url: itemMenu.url is defined ? itemMenu.url : (itemMenu.path is defined ? path(itemMenu.path) : '#'),
                                         title: itemMenu.title is defined ? itemMenu.title,
                                         isExtern: itemMenu.url is defined,
                                         arrowPlaceholder: true,
