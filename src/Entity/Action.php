@@ -68,6 +68,7 @@ class Action {
     const DELETE_TREATED_PURCHASE_REQUESTS = "supprimer demandes d'achat traitées";
     const EDIT_DRAFT_PURCHASE_REQUEST = "modifier demandes d'achat brouillon";
     const DELETE_ONGOING_PURCHASE_REQUESTS = "supprimer demandes d'achat à traiter et en cours";
+    const TRACK_SENSOR = "suivre un capteur";
 
     // menu ordre
     const DISPLAY_ORDRE_COLL = 'afficher collectes';
@@ -76,6 +77,7 @@ class Action {
     const DISPLAY_PREPA = 'afficher préparations';
     const DISPLAY_RECE = 'afficher réceptions';
     const CREATE_REF_FROM_RECEP = 'création référence depuis réception';
+    const PAIR_SENSOR = "associer un capteur";
 
     // menu stock
     const DISPLAY_ARTI = 'afficher articles';
@@ -93,6 +95,11 @@ class Action {
     const DISPLAY_CHAU = 'afficher chauffeurs';
     const DISPLAY_TRAN = 'afficher transporteurs';
 
+    // menu IOT
+    const DISPLAY_SENSOR = 'afficher capteurs';
+    const DISPLAY_TRIGGER = 'afficher actionneurs';
+    const DISPLAY_PAIRING = 'afficher associations';
+
     // menu paramétrage
     const DISPLAY_GLOB = 'afficher paramétrage global';
     const DISPLAY_ROLE = 'afficher rôles';
@@ -103,6 +110,8 @@ class Action {
     const DISPLAY_STATU_LITI = 'afficher statuts litiges';
     const DISPLAY_NATU_COLI = 'afficher nature colis';
     const DISPLAY_CF = 'afficher champs fixes';
+    const DISPLAY_REQUEST_MODEL = 'afficher modèles de demandes';
+    const DISPLAY_ALERT_MODEL = 'afficher modèles d\'alertes';
     const DISPLAY_IMPORT = 'afficher import et mise à jour';
 
     // menu nomade
