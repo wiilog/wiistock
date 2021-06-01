@@ -19,32 +19,32 @@ class SensorWrapper extends FreeFieldEntity
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=Sensor::class, inversedBy="sensorWrappers")
      */
-    private ?Sensor $sensor;
+    private ?Sensor $sensor = null;
 
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private ?string $name;
+    private ?string $name = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=Utilisateur::class, inversedBy="sensorWrappers")
      */
-    private ?Utilisateur $manager;
+    private ?Utilisateur $manager = null;
 
     /**
      * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="sensorWrapper")
      */
-    private ArrayCollection $pairings;
+    private Collection $pairings;
 
     /**
      * @ORM\OneToMany(targetEntity=TriggerAction::class, mappedBy="sensorWrapper")
      */
-    private ArrayCollection $triggerActions;
+    private Collection $triggerActions;
 
     public function __construct()
     {

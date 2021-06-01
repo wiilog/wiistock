@@ -10,119 +10,27 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass=CollectRequestTemplateRepository::class)
  */
-class CollectRequestTemplate
-{
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
-    private $id;
-
-    /**
-     * @ORM\ManyToOne(targetEntity=Type::class, inversedBy="collectRequestTemplates")
-     */
-    private ?Type $type;
+class CollectRequestTemplate extends RequestTemplate {
 
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private ?string $name;
-
-    /**
-     * @ORM\ManyToOne(targetEntity=TriggerAction::class, inversedBy="collectRequestTemplates")
-     */
-    private ?TriggerAction $triggerAction;
-
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private ?string $subject;
+    private ?string $subject = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=Emplacement::class, inversedBy="collectRequestTemplates")
      */
-    private ?Emplacement $collectPoint;
+    private ?Emplacement $collectPoint = null;
 
     /**
      * @ORM\Column(type="integer")
      */
-    private ?int $destination;
-
-    /**
-     * @ORM\ManyToOne(targetEntity=Type::class, inversedBy="collectRequestTypeTemplates")
-     */
-    private ?Type $requestType;
+    private ?int $destination = null;
 
     /**
      * @ORM\Column(type="text", nullable=true)
      */
-    private ?string $comment;
-
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
-
-    public function setType(?Type $type): self {
-        if($this->type && $this->type !== $type) {
-            $this->type->removeCollectRequestTemplate($this);
-        }
-        $this->type = $type;
-        if($type) {
-            $type->addCollectRequestTemplate($this);
-        }
-
-        return $this;
-    }
-
-    public function getType(): ?Type {
-        return $this->type;
-    }
-
-    public function setRequestType(?Type $requestType): self {
-        if($this->requestType && $this->requestType !== $requestType) {
-            $this->requestType->removeCollectRequestTypeTemplate($this);
-        }
-        $this->requestType = $requestType;
-        if($requestType) {
-            $requestType->addCollectRequestTypeTemplate($this);
-        }
-
-        return $this;
-    }
-
-    public function getRequestType(): ?Type {
-        return $this->requestType;
-    }
-
-    public function getName(): ?string
-    {
-        return $this->name;
-    }
-
-    public function setName(string $name): self
-    {
-        $this->name = $name;
-
-        return $this;
-    }
-
-    public function setTriggerAction(?TriggerAction $triggerAction): self {
-        if($this->triggerAction && $this->triggerAction !== $triggerAction) {
-            $this->triggerAction->removeCollectRequestTemplate($this);
-        }
-        $this->triggerAction = $triggerAction;
-        if($triggerAction) {
-            $triggerAction->addCollectRequestTemplate($this);
-        }
-
-        return $this;
-    }
-
-    public function getTriggerAction(): ?TriggerAction {
-        return $this->triggerAction;
-    }
+    private ?string $comment = null;
 
     public function getSubject(): ?string
     {
@@ -175,4 +83,5 @@ class CollectRequestTemplate
 
         return $this;
     }
+
 }

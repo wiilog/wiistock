@@ -22,52 +22,52 @@ class Pairing
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=Emplacement::class, inversedBy="pairings")
      */
-    private ?Emplacement $location;
+    private ?Emplacement $location = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=Article::class, inversedBy="pairings")
      */
-    private ?Article $article;
+    private ?Article $article = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=Pack::class, inversedBy="pairings")
      */
-    private ?Pack $pack;
+    private ?Pack $pack = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=Preparation::class, inversedBy="pairings")
      */
-    private ?Preparation $preparationOrder;
+    private ?Preparation $preparationOrder = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=OrdreCollecte::class, inversedBy="pairings")
      */
-    private ?OrdreCollecte $collectOrder;
+    private ?OrdreCollecte $collectOrder = null;
 
     /**
      * @ORM\Column(type="datetime")
      */
-    private ?DateTimeInterface $start;
+    private ?DateTimeInterface $start = null;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private ?DateTimeInterface $end;
+    private ?DateTimeInterface $end = null;
 
     /**
      * @ORM\Column(type="boolean")
      */
-    private ?bool $active;
+    private ?bool $active = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=SensorWrapper::class, inversedBy="pairings")
      */
-    private ?SensorWrapper $sensorWrapper;
+    private ?SensorWrapper $sensorWrapper = null;
 
     public function getId(): ?int
     {

@@ -18,12 +18,12 @@ class AlertTemplate
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=Type::class, inversedBy="alertTemplates")
      */
-    private ?Type $type;
+    private ?Type $type = null;
 
     /**
      * @ORM\Column(type="array")
@@ -33,12 +33,12 @@ class AlertTemplate
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private ?string $name;
+    private ?string $name = null;
 
     /**
      * @ORM\OneToMany(targetEntity=TriggerAction::class, mappedBy="alertTemplate")
      */
-    private ArrayCollection $triggerActions;
+    private Collection $triggerActions;
 
     public function __construct()
     {

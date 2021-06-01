@@ -19,37 +19,37 @@ class Sensor
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private ?string $code;
+    private ?string $code = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=Type::class, inversedBy="sensors")
      */
-    private ?Type $type;
+    private ?Type $type = null;
 
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private ?string $frequency;
+    private ?string $frequency = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=SensorProfile::class, inversedBy="sensors")
      */
-    private ?SensorProfile $profile;
+    private ?SensorProfile $profile = null;
 
     /**
      * @ORM\OneToMany(targetEntity=SensorMessage::class, mappedBy="sensor")
      */
-    private ArrayCollection $sensorMessages;
+    private Collection $sensorMessages;
 
     /**
      * @ORM\OneToMany(targetEntity=SensorWrapper::class, mappedBy="sensor")
      */
-    private ArrayCollection $sensorWrappers;
+    private Collection $sensorWrappers;
 
     public function __construct()
     {
