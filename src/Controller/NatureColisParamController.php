@@ -3,6 +3,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\Nature;
@@ -35,73 +36,53 @@ class NatureColisParamController extends AbstractController
 
     /**
      * @Route("/", name="nature_param_index")
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_NATU_COLI})
      */
     public function index()
     {
-        if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_NATU_COLI)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
-        return $this->render('nature_param/index.html.twig', [
-        ]);
+        return $this->render('nature_param/index.html.twig');
     }
 
     /**
-     * @Route("/api", name="nature_param_api", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/api", name="nature_param_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_NATU_COLI}, mode=HasPermission::IN_JSON)
      */
-    public function api(Request $request,
-                        EntityManagerInterface $entityManager): Response
+    public function api(EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_NATU_COLI)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        $natureRepository = $entityManager->getRepository(Nature::class);
 
-            $natureRepository = $entityManager->getRepository(Nature::class);
+        $natures = $natureRepository->findAll();
+        $rows = [];
+        foreach ($natures as $nature) {
+            $url['edit'] = $this->generateUrl('nature_api_edit', ['id' => $nature->getId()]);
 
-            $natures = $natureRepository->findAll();
-            $rows = [];
-            foreach ($natures as $nature) {
-                $url['edit'] = $this->generateUrl('nature_api_edit', ['id' => $nature->getId()]);
-
-                $rows[] =
-                    [
-                        'Label' => $nature->getLabel(),
-                        'Code' => $nature->getCode(),
-                        'Quantité par défaut' => $nature->getDefaultQuantity() ?? 'Non définie',
-                        'Préfixe' => $nature->getPrefix() ?? 'Non défini',
-                        'mobileSync' => $nature->getNeedsMobileSync() ? 'Oui' : 'Non',
-                        'displayed' => $nature->getDisplayed() ? 'Oui' : 'Non',
-                        'Couleur' => $nature->getColor() ? '<div style="background-color:' . $nature->getColor() . ';"><br></div>' : 'Non définie',
-                        'description' => $nature->getDescription() ?? 'Non définie',
-                        'Actions' => $this->renderView('nature_param/datatableNatureRow.html.twig', [
-                            'url' => $url,
-                            'natureId' => $nature->getId(),
-                        ]),
-                    ];
-            }
-            $data['data'] = $rows;
-            return new JsonResponse($data);
+            $rows[] =
+                [
+                    'Label' => $nature->getLabel(),
+                    'Code' => $nature->getCode(),
+                    'Quantité par défaut' => $nature->getDefaultQuantity() ?? 'Non définie',
+                    'Préfixe' => $nature->getPrefix() ?? 'Non défini',
+                    'mobileSync' => $nature->getNeedsMobileSync() ? 'Oui' : 'Non',
+                    'displayed' => $nature->getDisplayed() ? 'Oui' : 'Non',
+                    'Couleur' => $nature->getColor() ? '<div style="background-color:' . $nature->getColor() . ';"><br></div>' : 'Non définie',
+                    'description' => $nature->getDescription() ?? 'Non définie',
+                    'Actions' => $this->renderView('nature_param/datatableNatureRow.html.twig', [
+                        'url' => $url,
+                        'natureId' => $nature->getId(),
+                    ]),
+                ];
         }
-        throw new BadRequestHttpException();
+        $data['data'] = $rows;
+        return new JsonResponse($data);
     }
 
     /**
-     * @Route("/creer", name="nature_new", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param TranslatorInterface $translator
-     * @return Response
+     * @Route("/creer", name="nature_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request, TranslatorInterface $translator): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getManager();
 
             $nature = new Nature();
@@ -127,19 +108,13 @@ class NatureColisParamController extends AbstractController
     }
 
     /**
-     * @Route("/api-modifier", name="nature_api_edit", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/api-modifier", name="nature_api_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function apiEdit(Request $request,
                             EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($data = json_decode($request->getContent(), true)) {
             $natureRepository = $entityManager->getRepository(Nature::class);
             $nature = $natureRepository->find($data['id']);
 
@@ -153,19 +128,13 @@ class NatureColisParamController extends AbstractController
     }
 
     /**
-     * @Route("/modifier", name="nature_edit",  options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/modifier", name="nature_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function edit(Request $request,
                          EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($data = json_decode($request->getContent(), true)) {
             $natureRepository = $entityManager->getRepository(Nature::class);
             $nature = $natureRepository->find($data['nature']);
             $natureLabel = $nature->getLabel();
@@ -192,19 +161,13 @@ class NatureColisParamController extends AbstractController
     }
 
     /**
-     * @Route("/verification", name="nature_check_delete", options={"expose"=true})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/verification", name="nature_check_delete", options={"expose"=true}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function checkStatusCanBeDeleted(Request $request,
                                             EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $typeId = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($typeId = json_decode($request->getContent(), true)) {
             $natureRepository = $entityManager->getRepository(Nature::class);
             $natureIsUsed = $natureRepository->countUsedById($typeId);
 
@@ -225,19 +188,13 @@ class NatureColisParamController extends AbstractController
     }
 
     /**
-     * @Route("/supprimer", name="nature_delete", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/supprimer", name="nature_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request,
                            EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($data = json_decode($request->getContent(), true)) {
             $natureRepository = $entityManager->getRepository(Nature::class);
             $nature = $natureRepository->find($data['nature']);
 

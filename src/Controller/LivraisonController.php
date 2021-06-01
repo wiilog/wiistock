@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
@@ -43,17 +44,10 @@ class LivraisonController extends AbstractController
 {
     /**
      * @Route("/liste/{demandId}", name="livraison_index", methods={"GET", "POST"})
-     * @param UserService $userService
-     * @param EntityManagerInterface $entityManager
-     * @param string|null $demandId
-     * @return Response
+     * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR})
      */
-    public function index(UserService $userService,
-                          EntityManagerInterface $entityManager,
+    public function index(EntityManagerInterface $entityManager,
                           string $demandId = null): Response {
-        if (!$userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR)) {
-            return $this->redirectToRoute('access_denied');
-        }
 
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -74,32 +68,13 @@ class LivraisonController extends AbstractController
     }
 
     /**
-     * @Route(
-     *     "/finir/{id}",
-     *     name="livraison_finish",
-     *     options={"expose"=true},
-     *     methods={"POST"},
-     *     condition="request.isXmlHttpRequest()"
-     * )
-     * @param Livraison $livraison
-     * @param LivraisonsManagerService $livraisonsManager
-     * @param UserService $userService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
-     * @throws Exception
+     * @Route("/finir/{id}", name="livraison_finish", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function finish(Livraison $livraison,
                            LivraisonsManagerService $livraisonsManager,
-                           UserService $userService,
                            EntityManagerInterface $entityManager): Response
     {
-        if (!$userService->hasRightFunction(Menu::ORDRE, Action::EDIT)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         if ($livraison->getStatut()->getnom() === Livraison::STATUT_A_TRAITER) {
             try {
                 $dateEnd = new DateTime('now', new DateTimeZone('Europe/Paris'));
@@ -131,101 +106,68 @@ class LivraisonController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="livraison_api", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param LivraisonService $livraisonService
-     * @param UserService $userService
-     * @return Response
-     * @throws NonUniqueResultException
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
+     * @Route("/api", name="livraison_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR}, mode=HasPermission::IN_JSON)
      */
     public function api(Request $request,
-                        LivraisonService $livraisonService,
-                        UserService $userService): Response
+                        LivraisonService $livraisonService): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            if (!$userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
-            $filterDemandId = $request->request->get('filterDemand');
-            $data = $livraisonService->getDataForDatatable($request->request, $filterDemandId);
-            return new JsonResponse($data);
-        }
-        throw new BadRequestHttpException();
+        $filterDemandId = $request->request->get('filterDemand');
+        $data = $livraisonService->getDataForDatatable($request->request, $filterDemandId);
+        return new JsonResponse($data);
     }
 
     /**
-     * @Route("/api-article/{id}", name="livraison_article_api", options={"expose"=true}, methods={"GET", "POST"})
-     * @param Request $request
-     * @param UserService $userService
-     * @param Livraison $livraison
-     * @return Response
+     * @Route("/api-article/{id}", name="livraison_article_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR}, mode=HasPermission::IN_JSON)
      */
-    public function apiArticle(Request $request,
-                               UserService $userService,
-                               Livraison $livraison): Response
+    public function apiArticle(Livraison $livraison): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            if (!$userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR)) {
-                return $this->redirectToRoute('access_denied');
+        $preparation = $livraison->getPreparation();
+        $data = [];
+        if ($preparation) {
+            $rows = [];
+            foreach ($preparation->getArticles() as $article) {
+                if ($article->getQuantite() !== 0 && $article->getQuantitePrelevee() !== 0) {
+                    $rows[] = [
+                        "Référence" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
+                        "Libellé" => $article->getLabel() ? $article->getLabel() : '',
+                        "Emplacement" => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
+                        "Quantité" => $article->getQuantitePrelevee(),
+                        "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
+                            'id' => $article->getId(),
+                        ])
+                    ];
+                }
             }
 
-            $preparation = $livraison->getPreparation();
-            $data = [];
-            if ($preparation) {
-                $rows = [];
-                foreach ($preparation->getArticles() as $article) {
-                    if ($article->getQuantite() !== 0 && $article->getQuantitePrelevee() !== 0) {
-                        $rows[] = [
-                            "Référence" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
-                            "Libellé" => $article->getLabel() ? $article->getLabel() : '',
-                            "Emplacement" => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
-                            "Quantité" => $article->getQuantitePrelevee(),
-                            "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
-                                'id' => $article->getId(),
-                            ])
-                        ];
-                    }
+            foreach ($preparation->getLigneArticlePreparations() as $ligne) {
+                if ($ligne->getQuantitePrelevee() > 0) {
+                    $rows[] = [
+                        "Référence" => $ligne->getReference()->getReference(),
+                        "Libellé" => $ligne->getReference()->getLibelle(),
+                        "Emplacement" => $ligne->getReference()->getEmplacement() ? $ligne->getReference()->getEmplacement()->getLabel() : '',
+                        "Quantité" => $ligne->getQuantitePrelevee(),
+                        "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
+                            'refArticleId' => $ligne->getReference()->getId(),
+                        ])
+                    ];
                 }
-
-                foreach ($preparation->getLigneArticlePreparations() as $ligne) {
-                    if ($ligne->getQuantitePrelevee() > 0) {
-                        $rows[] = [
-                            "Référence" => $ligne->getReference()->getReference(),
-                            "Libellé" => $ligne->getReference()->getLibelle(),
-                            "Emplacement" => $ligne->getReference()->getEmplacement() ? $ligne->getReference()->getEmplacement()->getLabel() : '',
-                            "Quantité" => $ligne->getQuantitePrelevee(),
-                            "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
-                                'refArticleId' => $ligne->getReference()->getId(),
-                            ])
-                        ];
-                    }
-                }
-
-                $data['data'] = $rows;
-            } else {
-                $data = false; //TODO gérer retour message erreur
             }
-            return new JsonResponse($data);
+
+            $data['data'] = $rows;
+        } else {
+            $data = false; //TODO gérer retour message erreur
         }
-        throw new BadRequestHttpException();
+        return new JsonResponse($data);
     }
 
     /**
      * @Route("/voir/{id}", name="livraison_show", methods={"GET","POST"})
-     * @param Livraison $livraison
-     * @param UserService $userService
-     * @return Response
+     * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR})
      */
-    public function show(Livraison $livraison,
-                         UserService $userService): Response
+    public function show(Livraison $livraison): Response
     {
-        if (!$userService->hasRightFunction(Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR)) {
-            return $this->redirectToRoute('access_denied');
-        }
 
         $demande = $livraison->getDemande();
 
@@ -261,70 +203,53 @@ class LivraisonController extends AbstractController
 
     /**
      * @Route("/{livraison}", name="livraison_delete", options={"expose"=true}, methods={"DELETE"}, condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param Livraison $livraison
-     * @param LivraisonsManagerService $livraisonsManager
-     * @param PreparationsManagerService $preparationsManager
-     * @param EntityManagerInterface $entityManager
-     * @param UserService $userService
-     * @return Response
-     * @throws NonUniqueResultException
+     * @HasPermission({Menu::ORDRE, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request,
                            Livraison $livraison,
                            LivraisonsManagerService $livraisonsManager,
                            PreparationsManagerService $preparationsManager,
-                           EntityManagerInterface $entityManager,
-                           UserService $userService): Response
+                           EntityManagerInterface $entityManager): Response
     {
-        if (!$userService->hasRightFunction(Menu::ORDRE, Action::DELETE)) {
-            $data = [
-                'success' => true,
-                'redirect' => $this->generateUrl('access_denied'),
-            ];
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $preparation = $livraison->getpreparation();
+
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
+
+        $livraisonStatus = $livraison->getStatut();
+        $demande = $livraison->getDemande();
+
+        $articleDestinationId = $request->request->get('dropLocation');
+        $articlesDestination = !empty($articleDestinationId) ? $emplacementRepository->find($articleDestinationId) : null;
+        if (empty($articlesDestination)) {
+            $articlesDestination = isset($demande) ? $demande->getDestination() : null;
         }
-        else {
-            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-            $preparation = $livraison->getpreparation();
 
-            /** @var Utilisateur $user */
-            $user = $this->getUser();
-
-            $livraisonStatus = $livraison->getStatut();
-            $demande = $livraison->getDemande();
-
-            $articleDestinationId = $request->request->get('dropLocation');
-            $articlesDestination = !empty($articleDestinationId) ? $emplacementRepository->find($articleDestinationId) : null;
-            if (empty($articlesDestination)) {
-                $articlesDestination = isset($demande) ? $demande->getDestination() : null;
-            }
-
-            if (isset($livraisonStatus) &&
-                isset($articlesDestination)) {
-                $livraisonsManager->resetStockMovementsOnDelete(
-                    $livraison,
-                    $articlesDestination,
-                    $user,
-                    $entityManager
-                );
-            }
-
-            $preparationsManager->resetPreparationToTreat($preparation, $entityManager);
-
-            $entityManager->flush();
-
-            $preparation->setLivraison(null);
-            $entityManager->remove($livraison);
-            $entityManager->flush();
-
-            $data = [
-                'success' => true,
-                'redirect' => $this->generateUrl('preparation_show', [
-                    'id' => $preparation->getId()
-                ]),
-            ];
+        if (isset($livraisonStatus) &&
+            isset($articlesDestination)) {
+            $livraisonsManager->resetStockMovementsOnDelete(
+                $livraison,
+                $articlesDestination,
+                $user,
+                $entityManager
+            );
         }
-        return new JsonResponse($data);
+
+        $preparationsManager->resetPreparationToTreat($preparation, $entityManager);
+
+        $entityManager->flush();
+
+        $preparation->setLivraison(null);
+        $entityManager->remove($livraison);
+        $entityManager->flush();
+
+        return new JsonResponse ([
+            'success' => true,
+            'redirect' => $this->generateUrl('preparation_show', [
+                'id' => $preparation->getId()
+            ]),
+        ]);
     }
 
     /**

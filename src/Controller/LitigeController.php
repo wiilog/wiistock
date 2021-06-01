@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
@@ -68,18 +69,11 @@ class LitigeController extends AbstractController
 
     /**
      * @Route("/liste", name="litige_index", options={"expose"=true}, methods="GET|POST")
-     * @param LitigeService $litigeService
-     * @param EntityManagerInterface $entityManager
-     * @param SpecificService $specificService
-     * @return Response
+     * @HasPermission({Menu::QUALI, Action::DISPLAY_LITI})
      */
     public function index(LitigeService $litigeService,
-                          EntityManagerInterface $entityManager,
-                          SpecificService $specificService)
+                          EntityManagerInterface $entityManager)
     {
-        if (!$this->userService->hasRightFunction(Menu::QUALI, Action::DISPLAY_LITI)) {
-            return $this->redirectToRoute('access_denied');
-        }
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
@@ -98,25 +92,17 @@ class LitigeController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="litige_api", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @return JsonResponse|RedirectResponse
-     * @throws Exception
+     * @Route("/api", name="litige_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::QUALI, Action::DISPLAY_LITI}, mode=HasPermission::IN_JSON)
      */
     public function api(Request $request) {
-		if ($request->isXmlHttpRequest()) {
-			if (!$this->userService->hasRightFunction(Menu::QUALI, Action::DISPLAY_LITI)) {
-				return $this->redirectToRoute('access_denied');
-			}
 
-			/** @var Utilisateur $user */
-            $user = $this->getUser();
-			$data = $this->litigeService->getDataForDatatable($request->request);
-            $columnVisible = $user->getColumnsVisibleForLitige();
-            $data['visible'] = $columnVisible;
-			return new JsonResponse($data);
-		}
-		throw new BadRequestHttpException();
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
+        $data = $this->litigeService->getDataForDatatable($request->request);
+        $columnVisible = $user->getColumnsVisibleForLitige();
+        $data['visible'] = $columnVisible;
+        return new JsonResponse($data);
 	}
 
     /**
@@ -186,15 +172,12 @@ class LitigeController extends AbstractController
     }
 
     /**
-     * @Route("/supprime-pj-litige", name="litige_delete_attachement", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse
+     * @Route("/supprime-pj-litige", name="litige_delete_attachement", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
 	public function deleteAttachementLitige(Request $request,
                                             EntityManagerInterface $entityManager)
 	{
-		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+		if ($data = json_decode($request->getContent(), true)) {
 			$litigeId = (int)$data['litigeId'];
 			$attachmentRepository = $entityManager->getRepository(Attachment::class);
 
@@ -216,47 +199,36 @@ class LitigeController extends AbstractController
 	}
 
     /**
-     * @Route("/histo/{litige}", name="histo_litige_api", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param Litige $litige
-     * @return Response
+     * @Route("/histo/{litige}", name="histo_litige_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
 	public function apiHistoricLitige(Request $request,
                                       EntityManagerInterface $entityManager,
                                       Litige $litige): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            $rows = [];
-            $idLitige = $litige->getId();
-            $litigeHistoricRepository = $entityManager->getRepository(LitigeHistoric::class);
-            $litigeHisto = $litigeHistoricRepository->findByLitige($idLitige);
+        $rows = [];
+        $idLitige = $litige->getId();
+        $litigeHistoricRepository = $entityManager->getRepository(LitigeHistoric::class);
+        $litigeHisto = $litigeHistoricRepository->findByLitige($idLitige);
 
-            foreach ($litigeHisto as $histo)
-            {
-                $rows[] = [
-                    'user' => $histo->getUser() ? $histo->getUser()->getUsername() : '',
-                    'date' => $histo->getDate() ? $histo->getDate()->format('d/m/Y H:i') : '',
-                    'commentaire' => nl2br($histo->getComment()),
-                ];
-            }
-            $data['data'] = $rows;
-
-            return new JsonResponse($data);
+        foreach ($litigeHisto as $histo)
+        {
+            $rows[] = [
+                'user' => $histo->getUser() ? $histo->getUser()->getUsername() : '',
+                'date' => $histo->getDate() ? $histo->getDate()->format('d/m/Y H:i') : '',
+                'commentaire' => nl2br($histo->getComment()),
+            ];
         }
-        throw new BadRequestHttpException();
+        $data['data'] = $rows;
+
+        return new JsonResponse($data);
     }
 
     /**
-     * @Route("/add_Comment/{litige}", name="add_comment", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param Litige $litige
-     * @return Response
-     * @throws Exception
+     * @Route("/add_Comment/{litige}", name="add_comment", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function addComment(Request $request, Litige $litige): Response
     {
-        if ($request->isXmlHttpRequest() && $data = (json_decode($request->getContent(), true) ?? [])) {
+        if ($data = (json_decode($request->getContent(), true) ?? [])) {
             $em = $this->getDoctrine()->getManager();
 
             /** @var Utilisateur $currentUser */
@@ -277,15 +249,10 @@ class LitigeController extends AbstractController
 
     /**
      * @Route("/modifier", name="litige_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @return Response
+     * @HasPermission({Menu::QUALI, Action::EDIT})
      */
 	public function editLitige(Request $request): Response
 	{
-        if (!$this->userService->hasRightFunction(Menu::QUALI, Action::EDIT)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $post = $request->request;
         $isArrivage = $post->get('isArrivage');
 
@@ -297,19 +264,13 @@ class LitigeController extends AbstractController
 	}
 
     /**
-     * @Route("/supprimer", name="litige_delete", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/supprimer", name="litige_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::QUALI, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function deleteLitige(Request $request,
                                  EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::QUALI, Action::DELETE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($data = json_decode($request->getContent(), true)) {
             $litigeRepository = $entityManager->getRepository(Litige::class);
             $dispute = $litigeRepository->find($data['litige']);
 
@@ -326,42 +287,27 @@ class LitigeController extends AbstractController
 
     /**
      * @Route("/colonne-visible", name="save_column_visible_for_litige", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     *
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     *
-     * @return Response
+     * @HasPermission({Menu::QUALI, Action::DISPLAY_LITI}, mode=HasPermission::IN_JSON)
      */
     public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() ) {
-            if (!$this->userService->hasRightFunction(Menu::QUALI, Action::DISPLAY_LITI)) {
-                return $this->redirectToRoute('access_denied');
-            }
-            $data = json_decode($request->getContent(), true);
-            $champs = array_keys($data);
-            $user = $this->getUser();
-            /** @var $user Utilisateur */
-            $champs[] = "actions";
-            $user->setColumnsVisibleForLitige($champs);
-            $entityManager->flush();
+        $data = json_decode($request->getContent(), true);
+        $champs = array_keys($data);
+        $user = $this->getUser();
+        /** @var $user Utilisateur */
+        $champs[] = "actions";
+        $user->setColumnsVisibleForLitige($champs);
+        $entityManager->flush();
 
-            return new JsonResponse();
-        }
-        throw new BadRequestHttpException();
+        return new JsonResponse();
     }
 
     /**
      * @Route("/colonne-visible", name="get_column_visible_for_litige", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     *
-     * @return Response
+     * @HasPermission({Menu::QUALI, Action::DISPLAY_LITI}, mode=HasPermission::IN_JSON)
      */
     public function getColumnVisible(): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::QUALI, Action::DISPLAY_LITI)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         /** @var Utilisateur $user */
         $user = $this->getUser();
 
@@ -392,23 +338,17 @@ class LitigeController extends AbstractController
     }
 
     /**
-     * @Route("/autocomplete", name="get_dispute_number", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/autocomplete", name="get_dispute_number", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function getDisputeNumberAutoComplete(Request $request,
                                                  EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            $search = $request->query->get('term');
+        $search = $request->query->get('term');
 
-            $utilisateurRepository = $entityManager->getRepository(Litige::class);
-            $user = $utilisateurRepository->getIdAndDisputeNumberBySearch($search);
-            return new JsonResponse([
-                'results' => $user
-            ]);
-        }
-        throw new BadRequestHttpException();
+        $utilisateurRepository = $entityManager->getRepository(Litige::class);
+        $user = $utilisateurRepository->getIdAndDisputeNumberBySearch($search);
+        return new JsonResponse([
+            'results' => $user
+        ]);
     }
 }

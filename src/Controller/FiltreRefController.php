@@ -27,19 +27,14 @@ class FiltreRefController extends AbstractController
 {
 
     /**
-     * @Route("/creer", name="filter_ref_new", options={"expose"=true})
-     * @param Request $request
-     * @param VisibleColumnService $visibleColumnService
-     * @param RefArticleDataService $refArticleDataService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/creer", name="filter_ref_new", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      */
     public function new(Request $request,
                         VisibleColumnService $visibleColumnService,
                         RefArticleDataService $refArticleDataService,
                         EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
 
@@ -112,14 +107,10 @@ class FiltreRefController extends AbstractController
             }
             return new JsonResponse($result);
         }
-        throw new BadRequestHttpException();
     }
 
     /**
      * @Route("/supprimer", name="filter_ref_delete", options={"expose"=true}, methods={"DELETE"}, condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
      */
     public function delete(Request $request,
                            EntityManagerInterface $entityManager): Response
@@ -144,17 +135,13 @@ class FiltreRefController extends AbstractController
     }
 
     /**
-     * @Route("/affiche-liste", name="display_field_elements", options={"expose"=true}, methods={"GET","POST"})
-     * @param Request $request
-     * @param VisibleColumnService $visibleColumnService
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse
+     * @Route("/affiche-liste", name="display_field_elements", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
      */
 	public function displayFieldElements(Request $request,
                                          VisibleColumnService $visibleColumnService,
                                          EntityManagerInterface $entityManager)
 	{
-		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+		if ($data = json_decode($request->getContent(), true)) {
 
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $typeRepository = $entityManager->getRepository(Type::class);
