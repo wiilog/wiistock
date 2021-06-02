@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\IOT;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
@@ -9,7 +9,7 @@ use App\Entity\Menu;
 use App\Entity\Utilisateur;
 use App\Helper\PostHelper;
 
-use App\Service\SensorWrapperService;
+use App\Service\IOT\SensorWrapperService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -30,7 +30,7 @@ class SensorWrapperController extends AbstractController
      */
     public function index(): Response
     {
-        return $this->render('sensor_wrapper/index.html.twig');
+        return $this->render('iot/sensor_wrapper/index.html.twig');
     }
 
     /**
@@ -106,7 +106,7 @@ class SensorWrapperController extends AbstractController
         if ($data = json_decode($request->getContent(), true)) {
             $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->find($data['id']);
 
-            $json = $this->renderView('sensor_wrapper/edit_content.html.twig', [
+            $json = $this->renderView('iot/sensor_wrapper/edit_content.html.twig', [
                 'sensorWrapper' => $sensorWrapper,
             ]);
 

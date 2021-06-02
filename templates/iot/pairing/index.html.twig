@@ -1,0 +1,22 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}IoT | Capteurs | Eléments associés{% endblock %}
+{% block titleLink path('sensor_wrapper_index') %}
+
+{% block page_content %}
+    <div class="m-4 wii-page-card">
+        <div class="row wii-page-card-header">
+            <div class="col-12">
+                <table id="tablePairing" class="table w-100"></table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        let id = {{ sensor.id }}
+    </script>
+    <script src="{{ asset('js/pages/iot/pairing-index.js') }}?v={{ web_version }}"></script>
+{% endblock %}

@@ -814,6 +814,4 @@ class Emplacement
 
         return $this;
     }
-
-
 }
