@@ -4,6 +4,7 @@ import Chart from 'chart.js';
 import moment from 'moment';
 import 'datatables.net';
 import 'datatables.net-dt/js/dataTables.dataTables';
+import 'leaflet'
 import '@fortawesome/fontawesome-free/js/all.js';
 import Routing from '../../vendor/friendsofsymfony/jsrouting-bundle/Resources/public/js/router.min.js';
 import Quill from 'quill/dist/quill.js';
@@ -29,6 +30,7 @@ importMoment();
 importQuill();
 importRouting();
 importChart();
+importLeaflet();
 
 ///////////////// Functions
 
@@ -45,6 +47,11 @@ function importJquery() {
     jQuery.fn.exists = function() {
         return this.length !== 0;
     }
+}
+
+function importLeaflet() {
+    L.Icon.Default.imagePath = '/build/vendor/leaflet/images/'
+    global.Leaflet = L;
 }
 
 function importChart() {
