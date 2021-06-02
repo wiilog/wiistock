@@ -143,7 +143,6 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
     $.post(path, JSON.stringify(json), function (resp) {
         const $modalBody = modal.find('.modal-body');
         $modalBody.html(resp);
-        console.log(resp, $modalBody);
         modal.find('.select2').select2();
         Select2Old.initFree(modal.find('.select2-free'));
         Select2Old.provider(modal.find('.ajax-autocomplete-fournisseur-edit'));
@@ -399,7 +398,7 @@ function clearModal(modal) {
     // on vide tous les select2
     let selects = $modal
         .find('.modal-body')
-        .find('.ajax-autocomplete, .ajax-autocomplete-location, .ajax-autocomplete-fournisseur, .ajax-autocomplete-transporteur, .select2, .select2-free, .ajax-autocomplete-user');
+        .find('.ajax-autocomplete, .ajax-autocomplete-location, .ajax-autocomplete-fournisseur, .ajax-autocomplete-transporteur, .select2, .select2-free, .ajax-autocomplete-user, [data-s2-initialized]');
     selects.each(function () {
         const $this = $(this);
 

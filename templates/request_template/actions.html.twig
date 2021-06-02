@@ -3,9 +3,11 @@
         {% include 'datatable/dotsRow.html.twig' %}
         <div class="dropdown-menu dropdown-follow-gt pointer">
             <div class="d-none">
-                <div class="btn btn-col-action action-on-click" data-id='{{ request_template.id }}' data-target='#modalShowRequestTemplate' data-toggle='modal'
-                     onclick="editRow($(this), Routing.generate('request_template_show', true), $('#modalShowRequestTemplate'))">
-                </div>
+                {%  if request_template.type.label != 'service'%}
+                    <div class="btn btn-col-action action-on-click" data-id='{{ request_template.id }}' data-target='#modalShowRequestTemplate' data-toggle='modal'
+                         onclick="editRow($(this), Routing.generate('request_template_show', true), $('#modalShowRequestTemplate'))">
+                    </div>
+                {% endif %}
             </div>
             <div class="dropdown-item" data-target="#modalEditRequestTemplate" data-toggle="modal"
                  onclick="editRow($(this), Routing.generate('request_template_edit_api', true), $('#modalEditRequestTemplate'), $('#submitEditRequestTemplate'))"

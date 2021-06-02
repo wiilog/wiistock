@@ -15,7 +15,7 @@
 
                 <div class="form-group">
                     <label>Type de demande*</label>
-                    <select name="type" class="form-control data needed w-100" data-s2>
+                    <select name="type" class="form-control data needed w-100" data-s2 data-no-empty-option>
                         <option value="{{ constant('App\\Entity\\IOT\\RequestTemplate::TYPE_HANDLING') }}">Service</option>
                         <option value="{{ constant('App\\Entity\\IOT\\RequestTemplate::TYPE_DELIVERY') }}">Livraison</option>
                         <option value="{{ constant('App\\Entity\\IOT\\RequestTemplate::TYPE_COLLECT') }}">Collecte</option>

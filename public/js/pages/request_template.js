@@ -8,9 +8,6 @@ const TABLE_CONFIG = {
         url: pathEmplacement,
         type: "POST",
     },
-    drawConfig: {
-        needsEmplacementSearchOverride: true,
-    },
     rowConfig: {
         needsRowClickAction: true,
     },
