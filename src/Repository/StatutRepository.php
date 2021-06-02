@@ -26,6 +26,21 @@ class StatutRepository extends EntityRepository {
         'order' => 'displayOrder'
     ];
 
+    public function getForSelect(?string $term, ?string $type = null) {
+        $query = $this->createQueryBuilder("status");
+
+        if($type) {
+            $query->andWhere("status.type = :type")
+                ->setParameter("type", $type);
+        }
+
+        return $query->select("status.id AS id, status.nom AS text")
+            ->andWhere("status.nom LIKE :term")
+            ->setParameter("term", "%$term%")
+            ->getQuery()
+            ->getArrayResult();
+    }
+
     public function countDrafts($category, $type, $current = null) {
         $qb = $this->createQueryBuilder("s")
             ->select("COUNT(s)")

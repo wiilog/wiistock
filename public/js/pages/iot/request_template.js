@@ -34,3 +34,23 @@ let modalDeleteRequestTemplate = $('#modalDeleteRequestTemplate');
 let submitDeleteRequestTemplate = $('#submitDeleteRequestTemplate');
 let urlDeleteRequestTemplate = Routing.generate('request_template_delete', true);
 InitModal(modalDeleteRequestTemplate, submitDeleteRequestTemplate, urlDeleteRequestTemplate, {tables: [table]});
+
+$(document).ready(() => {
+    initEditor(' .editor-container');
+
+    $(`.type-selector`).on(`change`, function() {
+        const $select = $(this);
+        const $modal = $select.parents(`.modal`);
+
+        $modal.find(`.sub-form`).addClass(`d-none`);
+
+        const value = Number($select.val());
+        if(value === 1) {
+            $modal.find(`.handling-form`).removeClass(`d-none`);
+        } else if(value === 2) {
+            $modal.find(`.delivery-form`).removeClass(`d-none`);
+        } else if(value === 3) {
+            $modal.find(`.collect-form`).removeClass(`d-none`);
+        }
+    })
+})

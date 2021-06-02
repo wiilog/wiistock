@@ -71,6 +71,43 @@ function importRouting() {
     global.Routing = Routing;
 }
 
+export const NO_GROUPING = 0;
+export const GROUP_EVERYTHING = 0;
+export const GROUP_WHEN_NEEDED = 0;
+
+jQuery.fn.keymap = function(callable, grouping = NO_GROUPING) {
+    const values = {};
+    for(const input of this) {
+        const [key, value] = callable(input);
+
+        if(grouping === NO_GROUPING) {
+            values[key] = value;
+        } else if(grouping === GROUP_EVERYTHING) {
+            if(!values[key]) {
+                values[key] = [];
+            }
+
+            values[key].push(value);
+        } else if(grouping === GROUP_WHEN_NEEDED) {
+            if(values[key] === undefined) {
+                values[key] = {__single_value: value};
+            } else if(values[key].__single_value !== undefined) {
+                values[key] = [values[key].__single_value, value];
+            } else {
+                values[key].push(value);
+            }
+        }
+    }
+
+    if(grouping === GROUP_WHEN_NEEDED) {
+        for(const[key, value] of Object.entries(values)) {
+            values[key] = value.__single_value !== undefined ? value.__single_value : value;
+        }
+    }
+
+    return values;
+}
+
 jQuery.deepCopy = function(object) {
     return object !== undefined ? JSON.parse(JSON.stringify(object)) : object;
 };

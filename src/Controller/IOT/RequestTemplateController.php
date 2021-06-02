@@ -4,10 +4,15 @@ namespace App\Controller\IOT;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\CategorieCL;
+use App\Entity\CategoryType;
 use App\Entity\Emplacement;
+use App\Entity\FieldsParam;
+use App\Entity\FreeField;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\Menu;
 
+use App\Entity\Type;
 use App\Helper\FormatHelper;
 use App\Service\RequestTemplateService;
 
@@ -28,8 +33,14 @@ class RequestTemplateController extends AbstractController {
      * @Route("/", name="request_template_index")
      * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE})
      */
-    public function index(): Response {
-        return $this->render("request_template/index.html.twig");
+    public function index(EntityManagerInterface $manager): Response {
+        $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
+
+        return $this->render("request_template/index.html.twig", [
+            "new_request_template" => new class extends RequestTemplate {},
+            "fields_param" => $fieldsParam,
+        ]);
     }
 
     /**
@@ -66,7 +77,7 @@ class RequestTemplateController extends AbstractController {
      * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request, EntityManagerInterface $manager, RequestTemplateService $service): Response {
-        $data = json_decode($request->getContent(), true);
+        $data = $request->request->all();
 
         $requestTemplateRepository = $manager->getRepository(RequestTemplate::class);
 
@@ -79,7 +90,7 @@ class RequestTemplateController extends AbstractController {
         }
 
         $requestTemplate = $service->createRequestTemplate($data["type"]);
-        $service->updateRequestTemplate($requestTemplate, $data);
+        $service->updateRequestTemplate($requestTemplate, $request);
 
         $manager->persist($requestTemplate);
         $manager->flush();
@@ -116,8 +127,24 @@ class RequestTemplateController extends AbstractController {
             $requestTemplateRepository = $manager->getRepository(RequestTemplate::class);
             $requestTemplate = $requestTemplateRepository->find($data['id']);
 
-            return $this->json($this->renderView("request_template/edit_content.html.twig", [
-                "request_template" => $requestTemplate
+            $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
+            $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
+
+            $typeRepository = $manager->getRepository(Type::class);
+            $freeFieldsRepository = $manager->getRepository(FreeField::class);
+            $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
+
+            return $this->json($this->renderView("request_template/forms/form.html.twig", [
+                "request_template" => $requestTemplate,
+                "fields_param" => $fieldsParam,
+                "free_fields_types" => array_map(function (Type $type) use ($freeFieldsRepository) {
+                    $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_HANDLING);
+                    return [
+                        "typeLabel" => $type->getLabel(),
+                        "typeId" => $type->getId(),
+                        "freeFields" => $freeFields,
+                    ];
+                }, $types),
             ]));
         }
 
@@ -129,13 +156,13 @@ class RequestTemplateController extends AbstractController {
      * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
      */
     public function edit(Request $request, EntityManagerInterface $manager, RequestTemplateService $service): Response {
-        $data = json_decode($request->getContent(), true);
+        $data = $request->request->all();
 
         $requestTemplateRepository = $manager->getRepository(RequestTemplate::class);
 
         $requestTemplate = $requestTemplateRepository->find($data["id"]);
         if ($requestTemplate) {
-            $service->updateRequestTemplate($requestTemplate, $data);
+            $service->updateRequestTemplate($requestTemplate, $request);
             $manager->flush();
 
             return $this->json([

@@ -24,7 +24,7 @@
         </div>
     </div>
 
-    {% include "request_template/new.html.twig" %}
+    {% include "request_template/new.html.twig" with {request_template: new_request_template} %}
     {% include "request_template/edit.html.twig" %}
     {% include "request_template/delete.html.twig" %}
     {% include "request_template/show.html.twig" %}
@@ -32,5 +32,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/request_template.js') }}?v={{ web_version }}"></script>
+    <script src="{{ asset('js/pages/iot/request_template.js') }}?v={{ web_version }}"></script>
 {% endblock %}
