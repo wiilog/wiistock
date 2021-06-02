@@ -40,9 +40,9 @@ class RefArticleStateNotifier {
                     $reference = $receptionReferenceArticle->getReferenceArticle();
 
                     if ($receptionReferenceArticle->getQuantite() !== $receptionReferenceArticle->getQuantiteAR()) {
-                    $reference->setOrderState(ReferenceArticle::WAIT_FOR_RECEPTION_ORDER_STATE);
+                        $reference->setOrderState(ReferenceArticle::WAIT_FOR_RECEPTION_ORDER_STATE);
                     } else{
-                        $this->refService->setStateAccordingToRelations($reference,$purchaseRequestLineRepository,$receptionReferenceArticleRepository);
+                        $this->refService->setStateAccordingToRelations($reference, $purchaseRequestLineRepository, $receptionReferenceArticleRepository);
                     }
                 }
             } else if ($status === Reception::STATUT_EN_ATTENTE ) {
