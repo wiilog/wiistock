@@ -37,9 +37,21 @@ class RequestTemplateController extends AbstractController {
         $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
 
+        $typeRepository = $manager->getRepository(Type::class);
+        $freeFieldsRepository = $manager->getRepository(FreeField::class);
+        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
+
         return $this->render("request_template/index.html.twig", [
             "new_request_template" => new class extends RequestTemplate {},
             "fields_param" => $fieldsParam,
+            "free_fields_types" => array_map(function (Type $type) use ($freeFieldsRepository) {
+                $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_HANDLING);
+                return [
+                    "typeLabel" => $type->getLabel(),
+                    "typeId" => $type->getId(),
+                    "freeFields" => $freeFields,
+                ];
+            }, $types),
         ]);
     }
 
@@ -130,21 +142,9 @@ class RequestTemplateController extends AbstractController {
             $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
             $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
 
-            $typeRepository = $manager->getRepository(Type::class);
-            $freeFieldsRepository = $manager->getRepository(FreeField::class);
-            $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
-
             return $this->json($this->renderView("request_template/forms/form.html.twig", [
                 "request_template" => $requestTemplate,
                 "fields_param" => $fieldsParam,
-                "free_fields_types" => array_map(function (Type $type) use ($freeFieldsRepository) {
-                    $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_HANDLING);
-                    return [
-                        "typeLabel" => $type->getLabel(),
-                        "typeId" => $type->getId(),
-                        "freeFields" => $freeFields,
-                    ];
-                }, $types),
             ]));
         }
 
