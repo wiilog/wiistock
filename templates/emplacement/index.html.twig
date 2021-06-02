@@ -23,7 +23,7 @@
                         <button type="button"
                                 data-toggle="modal"
                                 data-target="#modalNewEmplacement"
-                                class="btn btn-primary btn-ripple split-button" style="display: none"
+                                class="btn btn-primary btn-ripple split-button d-none"
                                 onclick="clearModal('#modalNewEmplacement')">
                             <span class="fa fa-plus mr-2"></span>
                             Nouvel emplacement
@@ -32,7 +32,7 @@
                         <button type="button"
                                 data-toggle="modal"
                                 data-target="#modalNewLocationGroup"
-                                class="btn btn-primary btn-ripple split-button" style="display: none"
+                                class="btn btn-primary btn-ripple d-none"
                                 onclick="clearModal('#modalNewLocationGroup')">
                             <span class="fa fa-plus mr-2"></span>
                             Nouveau groupe
@@ -40,7 +40,7 @@
                     {% endif %}
 
                     <button type="button"
-                            class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                            class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split d-none action-button"
                             data-toggle="dropdown"
                             aria-haspopup="true"
                             aria-expanded="false">

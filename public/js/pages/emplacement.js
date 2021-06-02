@@ -40,11 +40,11 @@ const groupsTableConfig = {
         url: Routing.generate("location_group_api", true),
         type: "POST",
     },
-    drawConfig: {
-        needsEmplacementSearchOverride: true,
-    },
     rowConfig: {
         needsRowClickAction: true,
+    },
+    drawConfig: {
+        needsSearchOverride: true,
     },
     columns: [
         {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},
@@ -113,8 +113,9 @@ function switchLocations() {
         locationsTable.ajax.reload();
     }
 
-    $(`.locationsTableContainer, [data-target="#modalNewEmplacement"]`).show();
-    $(`.groupsTableContainer, [data-target="#modalNewLocationGroup"]`).hide();
+    $(`.locationsTableContainer, [data-target="#modalNewEmplacement"]`).removeClass('d-none');
+    $(`.action-button`).removeClass('d-none');
+    $(`.groupsTableContainer, [data-target="#modalNewLocationGroup"]`).addClass('d-none');
     $(`#locationsTable_filter`).parent().show();
     $(`#groupsTable_filter`).parent().hide();
 }
@@ -144,8 +145,9 @@ function switchGroups() {
         groupsTable.ajax.reload();
     }
 
-    $(`.locationsTableContainer, [data-target="#modalNewEmplacement"]`).hide();
-    $(`.groupsTableContainer, [data-target="#modalNewLocationGroup"]`).show();
+    $(`.locationsTableContainer, [data-target="#modalNewEmplacement"]`).addClass('d-none');
+    $(`.action-button`).addClass('d-none');
+    $(`.groupsTableContainer, [data-target="#modalNewLocationGroup"]`).removeClass('d-none');
     $(`#locationsTable_filter`).parent().hide();
     $(`#groupsTable_filter`).parent().show();
 }
