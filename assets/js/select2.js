@@ -75,9 +75,7 @@ export default class Select2 {
     }
 
     static includeParams($element, params) {
-        console.log("fuck you");
         if($element.is(`[data-include-params]`)) {
-            console.log("hello");
             const selector = $element.data(`include-params`);
             const closest = $element.data(`[data-include-params-parent]`) || `.modal`;
             const $fields = $element
@@ -87,7 +85,6 @@ export default class Select2 {
             const values = $fields
                 .filter((_, elem) => elem.name && elem.value)
                 .keymap((elem) => [elem.name, elem.value], GROUP_WHEN_NEEDED);
-            console.log(selector, closest, $fields, values);
 
             params = {
                 ...params,
