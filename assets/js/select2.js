@@ -2,6 +2,7 @@ import $ from 'jquery';
 import 'select2';
 
 const ROUTES = {
+    location: `ajax_select_locations`,
 }
 
 const INSTANT_SELECT_TYPES = {
