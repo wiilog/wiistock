@@ -35,7 +35,17 @@ class RefArticleStateNotifier {
             $status = $entity->getStatut() ? $entity->getStatut()->getCode() : null;
             $receptionReferenceArticles = $entity->getReceptionReferenceArticles();
 
-            if ($status === Reception::STATUT_EN_ATTENTE || $status === Reception::STATUT_RECEPTION_PARTIELLE) {
+            if ($status === Reception::STATUT_RECEPTION_PARTIELLE){
+                foreach ($receptionReferenceArticles as $receptionReferenceArticle) {
+                    $reference = $receptionReferenceArticle->getReferenceArticle();
+
+                    if ($receptionReferenceArticle->getQuantite() !== $receptionReferenceArticle->getQuantiteAR()) {
+                    $reference->setOrderState(ReferenceArticle::WAIT_FOR_RECEPTION_ORDER_STATE);
+                    } else{
+                        $this->refService->setStateAccordingToRelations($reference,$purchaseRequestLineRepository,$receptionReferenceArticleRepository);
+                    }
+                }
+            } else if ($status === Reception::STATUT_EN_ATTENTE ) {
                 foreach ($receptionReferenceArticles as $receptionReferenceArticle) {
                     $reference = $receptionReferenceArticle->getReferenceArticle();
                     $reference->setOrderState(ReferenceArticle::WAIT_FOR_RECEPTION_ORDER_STATE);
