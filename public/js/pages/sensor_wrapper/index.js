@@ -1,5 +1,4 @@
 $(function () {
-
     initPageDataTable();
 });
 
@@ -38,7 +37,8 @@ function sensorWrapperProvision() {
 }
 
 function associatedMessages($button) {
-
+    const id = $button.data('id');
+    window.location.href = Routing.generate('sensor_message_index', {id: id}, true);
 }
 
 function associatedObjects($button) {
