@@ -9,6 +9,8 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
+use App\Entity\IOT\Sensor;
+use App\Entity\IOT\SensorMessage;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Emplacement;
@@ -35,6 +37,7 @@ use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Exceptions\NegativeQuantityException;
+use App\Service\IOT\IOTService;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 use App\Repository\ArticleRepository;
@@ -103,18 +106,74 @@ class ApiController extends AbstractFOSRestController
     /**
      * @Route("/api/map-data", name="map_data_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-    public function getMapData() {
-        return new JsonResponse([
-            'les meilleurs' => [
-                'Chez Matteo' => [44.815551, -0.596798],
-                'Chez Adrien' => [44.788853, -0.611376],
-                'Chez Thomas' => [44.785798, -0.622523],
-            ],
-            'les gueux loin du centre' => [
-                'Chez Cédric' => [44.952707, -0.671605],
-                'Chez Marwane' => [44.850093, -0.521964],
-            ]
+    public function getMapData(EntityManagerInterface $entityManager) {
+        $sensorRepository = $entityManager->getRepository(Sensor::class);
+        $messageRepository = $entityManager->getRepository(SensorMessage::class);
+
+
+        $temperatureSensors = $sensorRepository->findBy([
+            'type' => IOTService::GPS_TYPE
         ]);
+        $associatedMessages = $messageRepository->findBy([
+            'sensor' => $temperatureSensors
+        ], ['date' => 'ASC']);
+
+        $data = [];
+
+        foreach ($associatedMessages as $message) {
+            $date = $message->getDate();
+            $sensor = $message->getSensor();
+
+            $index = $date->format('Y-m-d H:i:s');
+            $sensorIndex = $sensor->getCode();
+            if (!isset($data[$sensorIndex])) {
+                $data[$index] = [];
+            }
+            $coordinates = Stream::explode(',', $message->getContent())
+                ->map(fn($coordinate) => floatval($coordinate))
+                ->toArray();
+            $data[$sensorIndex][$index] = $coordinates;
+        }
+        return new JsonResponse($data);
+    }
+
+    /**
+     * @Route("/api/chart-data", name="chart_data_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     */
+    public function getChartData(EntityManagerInterface $entityManager) {
+        $sensorRepository = $entityManager->getRepository(Sensor::class);
+        $messageRepository = $entityManager->getRepository(SensorMessage::class);
+
+
+        $temperatureSensors = $sensorRepository->findBy([
+            'type' => IOTService::TEMP_TYPE
+        ]);
+        $associatedMessages = $messageRepository->findBy([
+            'sensor' => $temperatureSensors
+        ], ['date' => 'ASC']);
+
+        $data = [
+            'colors' => []
+        ];
+
+        foreach ($temperatureSensors as $sensor) {
+            srand($sensor->getId());
+            $data['colors'][$sensor->getCode()] = sprintf('#%06X', mt_rand(0, 0xFFFFFF));
+        }
+        srand();
+
+        foreach ($associatedMessages as $message) {
+            $date = $message->getDate();
+            $sensor = $message->getSensor();
+
+            $index = $date->format('Y-m-d H:i:s');
+            $sensorIndex = $sensor->getCode();
+            if (!isset($data[$index])) {
+                $data[$index] = [];
+            }
+            $data[$index][$sensorIndex] = floatval($message->getContent());
+        }
+        return new JsonResponse($data);
     }
 
     /**

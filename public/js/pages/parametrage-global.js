@@ -46,6 +46,8 @@ const handlingColorHasChanged = {
 };
 
 $(function () {
+    initLineChart();
+    initMap();
     Select2Old.init($('#locationArrivageDest'));
     Select2Old.init($('select[name=deliveryRequestType]'));
     Select2Old.location($('[name=param-default-location-if-custom]'));

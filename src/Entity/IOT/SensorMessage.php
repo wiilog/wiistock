@@ -19,7 +19,7 @@ class SensorMessage
     private ?int $id = null;
 
     /**
-     * @ORM\Column(type="array")
+     * @ORM\Column(type="json")
      */
     private array $payload = [];
 

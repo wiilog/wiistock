@@ -5,6 +5,9 @@ import moment from 'moment';
 import 'datatables.net';
 import 'datatables.net-dt/js/dataTables.dataTables';
 import 'leaflet'
+import 'leaflet.smooth_marker_bouncing'
+import 'leaflet.polyline.snakeanim'
+import 'leaflet-ant-path'
 import '@fortawesome/fontawesome-free/js/all.js';
 import Routing from '../../vendor/friendsofsymfony/jsrouting-bundle/Resources/public/js/router.min.js';
 import Quill from 'quill/dist/quill.js';

@@ -5,6 +5,14 @@
 {% block page_content %}
     <div class="m-4 wii-page-card">
         <div class="row mt-4">
+            <div class="max-h-px-400 w-100">
+                <canvas id="chart" width="400" height="400"></canvas>
+            </div>
+        </div>
+        <div class="row mt-4">
+            {% include 'IOT/map.html.twig' %}
+        </div>
+        <div class="row mt-4">
             {% include 'parametrage_global/labelSettings.html.twig' %}
         </div>
 
