@@ -9,8 +9,8 @@
             </div>
             <div class="dropdown-item"
                  data-id="{{ sensor_wrapper.id }}"
-                 onclick="associatedObjects($(this))">
-                <i class='fas fa-list mr-2'></i>Voir les objets associés
+                 onclick="associatedElements($(this))">
+                <i class='fas fa-list mr-2'></i>Voir les éléments associés
             </div>
             {% if hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::EDIT')) %}
                 <div class="dropdown-item"

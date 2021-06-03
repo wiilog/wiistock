@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Emplacement;
 use App\Entity\Menu;
 use App\Entity\Parametre;
 use App\Entity\ParametreRole;
@@ -65,7 +66,7 @@ class RoleController extends AbstractController {
 
     /**
      * @Route("/creer", name="role_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::CREATE}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request, RoleService $roleService, EntityManagerInterface $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
