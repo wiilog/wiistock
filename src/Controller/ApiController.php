@@ -35,6 +35,7 @@ use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Exceptions\NegativeQuantityException;
+use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 use App\Repository\ArticleRepository;
 use App\Repository\TrackingMovementRepository;
@@ -97,6 +98,23 @@ class ApiController extends AbstractFOSRestController
     public function setUser(Utilisateur $user)
     {
         $this->user = $user;
+    }
+
+    /**
+     * @Route("/api/map-data", name="map_data_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     */
+    public function getMapData() {
+        return new JsonResponse([
+            'les meilleurs' => [
+                'Chez Matteo' => [44.815551, -0.596798],
+                'Chez Adrien' => [44.788853, -0.611376],
+                'Chez Thomas' => [44.785798, -0.622523],
+            ],
+            'les gueux loin du centre' => [
+                'Chez Cédric' => [44.952707, -0.671605],
+                'Chez Marwane' => [44.850093, -0.521964],
+            ]
+        ]);
     }
 
     /**
