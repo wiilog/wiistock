@@ -3,7 +3,7 @@ $(function () {
 });
 
 function initPageDataTable() {
-    let pathPairing = Routing.generate('pairing_api', {sensor: id}, true);
+    let pathPairing = Routing.generate('sensors_pairing_api', {sensor: id}, true);
     let pairingTableConfig = {
         processing: true,
         serverSide: true,

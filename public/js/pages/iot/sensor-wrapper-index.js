@@ -43,7 +43,7 @@ function associatedMessages($button) {
 
 function associatedElements($button) {
     const id = $button.data('id');
-    window.location.href = Routing.generate('pairing_index', {id: id}, true);
+    window.location.href = Routing.generate('sensors_pairing_index', {id: id}, true);
 }
 
 function deleteSensorWrapper($button) {

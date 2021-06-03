@@ -18,13 +18,13 @@ class PairingRepository extends EntityRepository
     public function findByParams($params, Sensor $sensor)
     {
 
-        $qb = $this->createQueryBuilder("pairing")
-            ->leftJoin('pairing.sensorWrapper', 'sensor_wrapper')
+        $qb = $this->createQueryBuilder("sensors_pairing")
+            ->leftJoin('sensors_pairing.sensorWrapper', 'sensor_wrapper')
             ->leftJoin('sensor_wrapper.sensor', 'sensor')
             ->where('sensor = :sensor')
             ->setParameter('sensor', $sensor);
 
-        $total = QueryCounter::count($qb, "pairing");
+        $total = QueryCounter::count($qb, "sensors_pairing");
 
         if (!empty($params)) {
             if (!empty($params->get('search'))) {
@@ -34,8 +34,8 @@ class PairingRepository extends EntityRepository
                     $qb
                         ->andWhere('(' .
                             $exprBuilder->orX(
-                                "DATE_FORMAT(pairing.start, '%d/%m/%Y') LIKE :value",
-                                "DATE_FORMAT(pairing.end, '%d/%m/%Y') LIKE :value",
+                                "DATE_FORMAT(sensors_pairing.start, '%d/%m/%Y') LIKE :value",
+                                "DATE_FORMAT(sensors_pairing.end, '%d/%m/%Y') LIKE :value",
                                 'search_article.barCode LIKE :value',
                                 'search_collectOrder.numero LIKE :value',
                                 'search_location.label LIKE :value',
@@ -43,11 +43,11 @@ class PairingRepository extends EntityRepository
                                 'search_preparationOrder.numero LIKE :value',
                             )
                             . ')')
-                        ->leftJoin('pairing.article', 'search_article')
-                        ->leftJoin('pairing.collectOrder', 'search_collectOrder')
-                        ->leftJoin('pairing.location', 'search_location')
-                        ->leftJoin('pairing.pack', 'search_pack')
-                        ->leftJoin('pairing.preparationOrder', 'search_preparationOrder')
+                        ->leftJoin('sensors_pairing.article', 'search_article')
+                        ->leftJoin('sensors_pairing.collectOrder', 'search_collectOrder')
+                        ->leftJoin('sensors_pairing.location', 'search_location')
+                        ->leftJoin('sensors_pairing.pack', 'search_pack')
+                        ->leftJoin('sensors_pairing.preparationOrder', 'search_preparationOrder')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
@@ -60,15 +60,15 @@ class PairingRepository extends EntityRepository
                         case 'element':
                             $qb
                                 ->orderBy('IFNULL(order_article.barCode, IFNULL(order_collectOrder.numero, IFNULL(order_location.label, IFNULL(order_pack.code, order_preparationOrder.numero))))', $order)
-                                ->leftJoin('pairing.article', 'order_article')
-                                ->leftJoin('pairing.collectOrder', 'order_collectOrder')
-                                ->leftJoin('pairing.location', 'order_location')
-                                ->leftJoin('pairing.pack', 'order_pack')
-                                ->leftJoin('pairing.preparationOrder', 'order_preparationOrder');
+                                ->leftJoin('sensors_pairing.article', 'order_article')
+                                ->leftJoin('sensors_pairing.collectOrder', 'order_collectOrder')
+                                ->leftJoin('sensors_pairing.location', 'order_location')
+                                ->leftJoin('sensors_pairing.pack', 'order_pack')
+                                ->leftJoin('sensors_pairing.preparationOrder', 'order_preparationOrder');
                             break;
                         default:
                             if (property_exists(Pairing::class, $column)) {
-                                $qb->orderBy('pairing.' . $column, $order);
+                                $qb->orderBy('sensors_pairing.' . $column, $order);
                             }
                             break;
                     }
@@ -76,7 +76,7 @@ class PairingRepository extends EntityRepository
             }
         }
 
-        $countFiltered = QueryCounter::count($qb, 'pairing');
+        $countFiltered = QueryCounter::count($qb, 'sensors_pairing');
 
         if ($params) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));

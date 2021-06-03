@@ -7,11 +7,15 @@ use App\Entity\IOT\SensorMessage;
 use App\Entity\IOT\SensorWrapper;
 use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
+use Twig\Environment;
 
 class SensorWrapperService
 {
     /** @Required */
     public EntityManagerInterface $em;
+
+    /** @Required */
+    public Environment $templating;
 
     public function getDataForDatatable($params = null)
     {
