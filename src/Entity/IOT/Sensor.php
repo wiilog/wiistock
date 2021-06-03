@@ -5,8 +5,8 @@ namespace App\Entity\IOT;
 use App\Repository\IOT\SensorRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
-use App\Entity\Type;
 
 /**
  * @ORM\Entity(repositoryClass=SensorRepository::class)
@@ -26,14 +26,19 @@ class Sensor
     private ?string $code = null;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Type::class, inversedBy="sensors")
+     * @ORM\Column(type="string", length=255)
      */
-    private ?Type $type = null;
+    private ?string $type = null;
 
     /**
      * @ORM\Column(type="string", length=255)
      */
     private ?string $frequency = null;
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    private ?int $batteryLevel = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=SensorProfile::class, inversedBy="sensors")
@@ -51,16 +56,11 @@ class Sensor
     private Collection $sensorWrappers;
 
     /**
-     * @ORM\Column(type="integer")
-     */
-    private ?int $batteryLevel = null;
-
-    /**
      * @var null|SensorMessage
-     * @ORM\OneToOne(targetEntity="App\Entity\IOT\SensorMessage", inversedBy="linkedSensorLastMessage")
+     * @ORM\OneToOne(targetEntity=SensorMessage::class, inversedBy="linkedSensorLastMessage")
      * @ORM\JoinColumn(nullable=true)
      */
-    private $lastMessage;
+    private ?SensorMessage $lastMessage = null;
 
     public function __construct()
     {
@@ -85,19 +85,12 @@ class Sensor
         return $this;
     }
 
-    public function getType(): ?Type {
+    public function getType(): ?string {
         return $this->type;
     }
 
-    public function setType(?Type $type): self {
-        if($this->type && $this->type !== $type) {
-            $this->type->removeSensor($this);
-        }
+    public function setType(?string $type): self {
         $this->type = $type;
-        if($type) {
-            $type->addSensor($this);
-        }
-
         return $this;
     }
 
@@ -233,5 +226,16 @@ class Sensor
         }
 
         return $this;
+    }
+
+    public function getAvailableSensorWrapper(): ?SensorWrapper {
+        $criteria = Criteria::create();
+        $availableWrappers = $this->sensorWrappers
+            ->matching(
+                $criteria
+                    ->andWhere(Criteria::expr()->eq('deleted', false))
+                    ->orderBy(['id' => Criteria::DESC])
+            );
+        return $availableWrappers->first() ?: null;
     }
 }

@@ -7,14 +7,42 @@ use Symfony\Component\HttpFoundation\ParameterBag;
 
 class PostHelper {
 
-    private static EntityManagerInterface $manager;
-
-    public static function string(?ParameterBag $parameterBag, string $index, $else = "") {
-        return $parameterBag->has($index) ? $parameterBag->get($index) : $else;
+    public static function string($parameterBag,
+                                  string $index,
+                                  $else = null) {
+        return self::has($parameterBag, $index)
+            ? self::get($parameterBag, $index)
+            : $else;
     }
 
-    public static function entity(?ParameterBag $parameterBag, string $index, string $entity, $else = "") {
-        return $parameterBag->has($index) ? self::$manager->getRepository($entity)->find($index) : $else;
+    public static function entity(EntityManagerInterface $entityManager,
+                                  $parameterBag,
+                                  string $index,
+                                  string $entity,
+                                  $else = null) {
+        return self::has($parameterBag, $index)
+            ? $entityManager->getRepository($entity)->find(self::get($parameterBag, $index))
+            : $else;
+    }
+
+    /**
+     * @param ParameterBag|array $parameterBag
+     * @param mixed $index
+     */
+    private static function get($parameterBag, $index) {
+        return $parameterBag instanceof ParameterBag
+            ? $parameterBag->get($index)
+            : ($parameterBag[$index] ?? null);
+    }
+
+    /**
+     * @param ParameterBag|array $parameterBag
+     * @param mixed $index
+     */
+    private static function has($parameterBag, $index) {
+        return $parameterBag instanceof ParameterBag
+            ? $parameterBag->has($index)
+            : isset($parameterBag[$index]);
     }
 
 }

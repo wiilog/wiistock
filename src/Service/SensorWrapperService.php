@@ -7,7 +7,6 @@ use App\Entity\IOT\SensorMessage;
 use App\Entity\IOT\SensorWrapper;
 use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment as Twig_Environment;
 
 class SensorWrapperService
@@ -16,23 +15,12 @@ class SensorWrapperService
     public Twig_Environment $templating;
 
     /** @Required */
-    public RouterInterface $router;
-
-    /** @Required */
-    public EntityManagerInterface $em;
-
-    /** @Required */
-    public UniqueNumberService $uniqueNumberService;
-
-    public MailerService $mailerService;
-
-    public function __construct(MailerService $mailerService) {
-        $this->mailerService = $mailerService;
-    }
+    public EntityManagerInterface $entityManager;
 
     public function getDataForDatatable($params = null)
     {
-        $queryResult = $this->em->getRepository(SensorWrapper::class)->findByParams($params);
+        $sensorWrapperRepository = $this->entityManager->getRepository(SensorWrapper::class);
+        $queryResult = $sensorWrapperRepository->findByParams($params);
 
         $sensorWrappers = $queryResult['data'];
 
@@ -56,7 +44,7 @@ class SensorWrapperService
 
         return [
             'id' => $sensorWrapper->getId(),
-            'type' => $sensor ? FormatHelper::type($sensorWrapper->getSensor()->getType()) : '',
+            'type' => $sensor ? $sensor->getType() : '',
             'profile' => $sensor && $sensor->getProfile() ? $sensor->getProfile()->getName() : '',
             'name' => $sensorWrapper->getName() ?? '',
             'code' => $sensor ? $sensor->getCode() : '',

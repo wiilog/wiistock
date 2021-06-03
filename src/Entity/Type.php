@@ -155,11 +155,6 @@ class Type
     private $averageRequestTime;
 
     /**
-     * @ORM\OneToMany(targetEntity=Sensor::class, mappedBy="type")
-     */
-    private Collection $sensors;
-
-    /**
      * @ORM\OneToMany(targetEntity=AlertTemplate::class, mappedBy="type")
      */
     private Collection $alertTemplates;
@@ -190,7 +185,6 @@ class Type
         $this->arrivals = new ArrayCollection();
         $this->statuts = new ArrayCollection();
         $this->handlings = new ArrayCollection();
-        $this->sensors = new ArrayCollection();
         $this->alertTemplates = new ArrayCollection();
         $this->requestTemplates = new ArrayCollection();
         $this->requestTypeTemplates = new ArrayCollection();
@@ -755,36 +749,6 @@ class Type
         // set the owning side of the relation if necessary
         if ($averageRequestTime->getType() !== $this) {
             $averageRequestTime->setType($this);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Sensor[]
-     */
-    public function getSensors(): Collection
-    {
-        return $this->sensors;
-    }
-
-    public function addSensor(Sensor $sensor): self
-    {
-        if (!$this->sensors->contains($sensor)) {
-            $this->sensors[] = $sensor;
-            $sensor->setType($this);
-        }
-
-        return $this;
-    }
-
-    public function removeSensor(Sensor $sensor): self
-    {
-        if ($this->sensors->removeElement($sensor)) {
-            // set the owning side to null (unless already changed)
-            if ($sensor->getType() === $this) {
-                $sensor->setType(null);
-            }
         }
 
         return $this;

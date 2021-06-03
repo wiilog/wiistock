@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\IOT;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\Menu;
 use App\Entity\Utilisateur;
@@ -28,8 +29,7 @@ class SensorWrapperController extends AbstractController
      * @Route("/liste", name="sensor_wrapper_index")
      * @HasPermission({Menu::IOT, Action::DISPLAY_SENSOR})
      */
-    public function index(): Response
-    {
+    public function index(): Response {
         return $this->render('sensor_wrapper/index.html.twig');
     }
 
@@ -51,21 +51,22 @@ class SensorWrapperController extends AbstractController
                            EntityManagerInterface $entityManager): Response {
 
         if($data = json_decode($request->getContent(), true)) {
-            $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->find($data['id']);
+            $sensorWrapperRepository = $entityManager->getRepository(SensorWrapper::class);
+            $sensorWrapper = $sensorWrapperRepository->find($data['id']);
 
             $name = $sensorWrapper->getName();
 
-            $entityManager->remove($sensorWrapper);
+            $sensorWrapper->setDeleted(true);
+
             $entityManager->flush();
 
             return $this->json([
                 'success' => true,
                 'msg' => "Le capteur <strong>${name}</strong> a bien été supprimé"
             ]);
-
         }
-        throw new BadRequestHttpException();
 
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -76,15 +77,39 @@ class SensorWrapperController extends AbstractController
                         EntityManagerInterface $entityManager): Response
     {
 
-        $post = $request->request;
+        $post = json_decode($request->getContent(), true);
 
         $name = PostHelper::string($post, 'name');
-        $manager = PostHelper::entity($post, 'manager', Utilisateur::class);
+        $manager = PostHelper::entity($entityManager, $post, 'manager', Utilisateur::class);
+
+        /** @var Sensor|null $sensor */
+        $sensor = PostHelper::entity($entityManager, $post, 'sensor', Sensor::class);
+
+        if (empty($sensor)) {
+            return $this->json([
+                'success' => false,
+                'msg' => "Le capteur sélectionné n'est pas valide."
+            ]);
+        }
+        else if ($sensor->getAvailableSensorWrapper()) {
+            return $this->json([
+                'success' => false,
+                'msg' => "Le capteur est déjà approvisionné."
+            ]);
+        }
+
+        if (empty($name)) {
+            return $this->json([
+                'success' => false,
+                'msg' => "Le nom du capteur doit être saisi."
+            ]);
+        }
 
         $sensorWrapper = new SensorWrapper();
         $sensorWrapper
             ->setName($name)
-            ->setManager($manager);
+            ->setManager($manager)
+            ->setSensor($sensor);
 
         $entityManager->persist($sensorWrapper);
         $entityManager->flush();
@@ -98,7 +123,7 @@ class SensorWrapperController extends AbstractController
     }
 
     /**
-     * @Route("/api-modifier", name="sensor_wrapper_api_edit", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest")
+     * @Route("/api-modifier", name="sensor_wrapper_edit_api", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::IOT, Action::EDIT})
      */
     public function editApi(Request $request, EntityManagerInterface $entityManager): Response
@@ -122,11 +147,27 @@ class SensorWrapperController extends AbstractController
     public function edit(EntityManagerInterface $entityManager,
                          Request $request): Response {
 
-        $post = $request->request;
-        $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->find($post->get('id'));
+        $post = json_decode($request->getContent(), true);
 
-        $name = PostHelper::string($post, 'name', $sensorWrapper->getName());
-        $manager = PostHelper::entity($post, 'manager', Utilisateur::class, $sensorWrapper->getManager());
+        $name = PostHelper::string($post, 'name');
+        $manager = PostHelper::entity($entityManager, $post, 'manager', Utilisateur::class);
+
+        /** @var SensorWrapper|null $sensorWrapper */
+        $sensorWrapper = PostHelper::entity($entityManager, $post, 'id', SensorWrapper::class);
+
+        if (empty($sensorWrapper) || $sensorWrapper->isDeleted()) {
+            return $this->json([
+                'success' => false,
+                'msg' => "Cet approvisionnement de capteur n'existe plus."
+            ]);
+        }
+
+        if (empty($name)) {
+            return $this->json([
+                'success' => false,
+                'msg' => "Le nom du capteur doit être saisi."
+            ]);
+        }
 
         $sensorWrapper
             ->setName($name)
@@ -138,7 +179,7 @@ class SensorWrapperController extends AbstractController
 
         return $this->json([
             'success' => true,
-            'msg' => "Le capteur <strong>${name}</strong> a bien été modifié"
+            'msg' => "Le capteur <strong>${name}</strong> a bien été modifié."
         ]);
     }
 }
