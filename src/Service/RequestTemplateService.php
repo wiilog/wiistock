@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\CategoryType;
+use App\Entity\Emplacement;
 use App\Entity\IOT\CollectRequestTemplate;
 use App\Entity\IOT\DeliveryRequestTemplate;
 use App\Entity\IOT\HandlingRequestTemplate;
@@ -56,7 +57,6 @@ class RequestTemplateService {
         $data = $request->request->all();
 
         $typeRepository = $this->manager->getRepository(Type::class);
-        $statusRepository = $this->manager->getRepository(Statut::class);
 
         $template->setName($data["name"]);
         if (!$template->getType()) {
@@ -66,13 +66,17 @@ class RequestTemplateService {
         $template->setRequestType($typeRepository->find($data["requestType"]));
 
         if ($template instanceof HandlingRequestTemplate) {
+            $statusRepository = $this->manager->getRepository(Statut::class);
+
             $template->setSubject($data["subject"])
                 ->setRequestStatus($statusRepository->find($data["status"]))
                 ->setDelay($data["delay"])
                 ->setComment($data["comment"] ?? "")
                 ->setAttachments($this->attachmentService->createAttachements($request->files));
         } else if ($template instanceof DeliveryRequestTemplate) {
-            //TODO 4456: update the request template
+            $locationRepository = $this->manager->getRepository(Emplacement::class);
+
+            $template->setDestination($locationRepository->find($data["destination"]));
         } else if ($template instanceof CollectRequestTemplate) {
             //TODO 4457: update the request template
         } else {

@@ -1,20 +1,20 @@
 {% if not request_template.id %}
-    {% set ff_display = 'displayedFormsCreate' %}
-    {% set ff_required = 'mustToCreate' %}
+    {% set nf_display = 'displayedFormsCreate' %}
+    {% set nf_required = 'mustToCreate' %}
 {% else %}
-    {% set ff_display = 'displayedFormsEdit' %}
-    {% set ff_required = 'mustToModify' %}
+    {% set nf_display = 'displayedFormsEdit' %}
+    {% set nf_required = 'mustToModify' %}
 {% endif %}
 
 <div class="form-group">
     <label>Nom du modèle*</label>
-    <input type="text" class="form-control data needed" name="name" value="{{ request_template.name }}"/>
+    <input type="text" class="form-control data needed always-visible" name="name" value="{{ request_template.name }}"/>
 </div>
 
 <div class="form-group">
     <label>Type de demande*</label>
     {% if not request_template.id %}
-        <select name="type" class="form-control data needed w-100 type-selector" data-s2 data-no-empty-option>
+        <select name="type" class="form-control data needed always-visible w-100 type-selector" data-s2 data-no-empty-option>
             <option value="{{ constant('App\\Entity\\IOT\\RequestTemplate::TYPE_HANDLING') }}">Service</option>
             <option value="{{ constant('App\\Entity\\IOT\\RequestTemplate::TYPE_DELIVERY') }}">Livraison</option>
             <option value="{{ constant('App\\Entity\\IOT\\RequestTemplate::TYPE_COLLECT') }}">Collecte</option>
@@ -29,7 +29,7 @@
 </div>
 
 <div class="sub-form delivery-form {{ class(request_template) != 'App\\Entity\\IOT\\DeliveryRequestTemplate' ? 'd-none' }}">
-    pas fait
+    {% include 'request_template/forms/delivery.html.twig' %}
 </div>
 
 <div class="sub-form collect-form {{ class(request_template) != 'App\\Entity\\IOT\\CollectRequestTemplate' ? 'd-none' }}">

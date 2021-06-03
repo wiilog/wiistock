@@ -4,12 +4,16 @@ import {GROUP_WHEN_NEEDED} from "./app";
 
 const ROUTES = {
     handling_type: `ajax_select_handling_type`,
+    delivery_type: `ajax_select_delivery_type`,
+    collect_type: `ajax_select_collect_type`,
     status: `ajax_select_status`,
     location: `ajax_select_locations`,
 }
 
 const INSTANT_SELECT_TYPES = {
     handling_type: true,
+    delivery_type: true,
+    collect_type: true,
     status: true,
 }
 

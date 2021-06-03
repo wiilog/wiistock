@@ -26,7 +26,11 @@ class SelectController extends AbstractController {
      * @Route("/select/emplacement", name="ajax_select_locations", options={"expose": true})
      */
     public function locations(Request $request, EntityManagerInterface $manager): Response {
-        $results = $manager->getRepository(Emplacement::class)->getForSelect($request->query->get("term"));
+        $type = $request->query->get("type") ?? $request->query->get("requestType") ?? null;
+        $results = $manager->getRepository(Emplacement::class)->getForSelect(
+            $request->query->get("term"),
+            $type
+        );
 
         return $this->json([
             "results" => $results,
@@ -39,6 +43,34 @@ class SelectController extends AbstractController {
     public function handlingType(Request $request, EntityManagerInterface $manager): Response {
         $results = $manager->getRepository(Type::class)->getForSelect(
             CategoryType::DEMANDE_HANDLING,
+            $request->query->get("term")
+        );
+
+        return $this->json([
+            "results" => $results,
+        ]);
+    }
+
+    /**
+     * @Route("/select/types/livraisons", name="ajax_select_delivery_type", options={"expose": true})
+     */
+    public function deliveryType(Request $request, EntityManagerInterface $manager): Response {
+        $results = $manager->getRepository(Type::class)->getForSelect(
+            CategoryType::DEMANDE_LIVRAISON,
+            $request->query->get("term")
+        );
+
+        return $this->json([
+            "results" => $results,
+        ]);
+    }
+
+    /**
+     * @Route("/select/types/collectes", name="ajax_select_collect_type", options={"expose": true})
+     */
+    public function collectType(Request $request, EntityManagerInterface $manager): Response {
+        $results = $manager->getRepository(Type::class)->getForSelect(
+            CategoryType::DEMANDE_COLLECTE,
             $request->query->get("term")
         );
 

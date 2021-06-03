@@ -39,19 +39,37 @@ class RequestTemplateController extends AbstractController {
 
         $typeRepository = $manager->getRepository(Type::class);
         $freeFieldsRepository = $manager->getRepository(FreeField::class);
-        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
+        $handlingTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
+        $deliveryTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
+        $collectTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
 
         return $this->render("request_template/index.html.twig", [
             "new_request_template" => new class extends RequestTemplate {},
             "fields_param" => $fieldsParam,
-            "free_fields_types" => array_map(function (Type $type) use ($freeFieldsRepository) {
+            "handling_free_fields_types" => array_map(function (Type $type) use ($freeFieldsRepository) {
                 $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_HANDLING);
                 return [
                     "typeLabel" => $type->getLabel(),
                     "typeId" => $type->getId(),
                     "freeFields" => $freeFields,
                 ];
-            }, $types),
+            }, $handlingTypes),
+            "delivery_free_fields_types" => array_map(function (Type $type) use ($freeFieldsRepository) {
+                $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
+                return [
+                    "typeLabel" => $type->getLabel(),
+                    "typeId" => $type->getId(),
+                    "freeFields" => $freeFields,
+                ];
+            }, $deliveryTypes),
+            "collect_free_fields_types" => array_map(function (Type $type) use ($freeFieldsRepository) {
+                $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_COLLECTE);
+                return [
+                    "typeLabel" => $type->getLabel(),
+                    "typeId" => $type->getId(),
+                    "freeFields" => $freeFields,
+                ];
+            }, $collectTypes),
         ]);
     }
 

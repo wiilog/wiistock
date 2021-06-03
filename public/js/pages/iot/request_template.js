@@ -36,21 +36,33 @@ let urlDeleteRequestTemplate = Routing.generate('request_template_delete', true)
 InitModal(modalDeleteRequestTemplate, submitDeleteRequestTemplate, urlDeleteRequestTemplate, {tables: [table]});
 
 $(document).ready(() => {
-    initEditor(' .editor-container');
+    initEditor('.handling-editor-container');
+    initEditor('.delivery-editor-container');
+    initEditor('.collect-editor-container');
+
+    const $modal = $(`#modalNewRequestTemplate`);
+    const $forms = {
+        1: $modal.find(`.handling-form`),
+        2: $modal.find(`.delivery-form`),
+        3: $modal.find(`.collect-form`),
+    };
 
     $(`.type-selector`).on(`change`, function() {
         const $select = $(this);
-        const $modal = $select.parents(`.modal`);
-
-        $modal.find(`.sub-form`).addClass(`d-none`);
 
         const value = Number($select.val());
-        if(value === 1) {
-            $modal.find(`.handling-form`).removeClass(`d-none`);
-        } else if(value === 2) {
-            $modal.find(`.delivery-form`).removeClass(`d-none`);
-        } else if(value === 3) {
-            $modal.find(`.collect-form`).removeClass(`d-none`);
+        let $selected = $forms[value];
+
+        $modal.find(`.sub-form`).addClass(`d-none`);
+        $modal.find(`.data:not(.always-visible)`)
+            .addClass(`hidden-data`)
+            .removeClass(`data`);
+
+        if($selected) {
+            $selected.removeClass(`d-none`);
+            $selected.find(`.hidden-data`)
+                .addClass(`data`)
+                .removeClass(`hidden-data`);
         }
     })
 })
