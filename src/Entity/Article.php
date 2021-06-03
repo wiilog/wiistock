@@ -243,7 +243,7 @@ class Article extends FreeFieldEntity
 
     public function __toString(): ?string
     {
-        return $this->label;
+        return $this->barCode;
     }
 
     public function getCommentaire(): ?string

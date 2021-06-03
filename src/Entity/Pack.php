@@ -606,4 +606,8 @@ class Pack
         return $this;
     }
 
+    public function __toString()
+    {
+        return $this->getCode();
+    }
 }
