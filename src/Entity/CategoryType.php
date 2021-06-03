@@ -26,6 +26,7 @@ class CategoryType
     const PREPARATION_ORDER = 'ordre preparation';
     const TRANSFER_ORDER = 'ordre transfert';
     const SENSOR = 'capteur';
+    const REQUEST_TEMPLATE = 'modèle demande';
 
     /**
      * @ORM\Id()

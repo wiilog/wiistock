@@ -1,23 +1,25 @@
 <?php
 
-namespace App\Repository\IOT;
+namespace App\Repository;
 
-use App\Entity\IOT\RequestTemplate;
+use App\Entity\LocationGroup;
 use App\Helper\QueryCounter;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
+use function Doctrine\ORM\QueryBuilder;
 
 /**
- * @method RequestTemplate|null find($id, $lockMode = null, $lockVersion = null)
- * @method RequestTemplate|null findOneBy(array $criteria, array $orderBy = null)
- * @method RequestTemplate[]    findAll()
- * @method RequestTemplate[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method LocationGroup|null find($id, $lockMode = null, $lockVersion = null)
+ * @method LocationGroup|null findOneBy(array $criteria, array $orderBy = null)
+ * @method LocationGroup[]    findAll()
+ * @method LocationGroup[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class RequestTemplateRepository extends EntityRepository {
+class LocationGroupRepository extends EntityRepository {
 
     public function findByParamsAndFilters($params) {
-        $queryBuilder = $this->createQueryBuilder("request_template");
+        $queryBuilder = $this->createQueryBuilder("location_group");
 
-        $countTotal = QueryCounter::count($queryBuilder, "request_template");
+        $countTotal = QueryCounter::count($queryBuilder, "location_group");
 
         //Filter search
         if (!empty($params)) {
@@ -25,10 +27,9 @@ class RequestTemplateRepository extends EntityRepository {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
                     $queryBuilder
-                        ->join("request_template.type", "search_type")
                         ->andWhere($queryBuilder->expr()->orX(
-                            "request_template.name LIKE :value",
-                            "search_type.label LIKE :value",
+                            "location_group.name LIKE :value",
+                            "location_group.description LIKE :value",
                         ))
                         ->setParameter('value', '%' . $search . '%');
                 }
@@ -38,12 +39,12 @@ class RequestTemplateRepository extends EntityRepository {
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
                     $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
-                    $queryBuilder->orderBy("request_template.$column", $order);
+                    $queryBuilder->orderBy("location_group.$column", $order);
                 }
             }
         }
 
-        $countFiltered = QueryCounter::count($queryBuilder, "request_template");
+        $countFiltered = QueryCounter::count($queryBuilder, "location_group");
 
         if ($params) {
             if (!empty($params->get('start'))) $queryBuilder->setFirstResult($params->get('start'));

@@ -2,6 +2,7 @@
 
 namespace App\Entity\IOT;
 
+use App\Entity\LocationGroup;
 use App\Repository\IOT\PairingRepository;
 use App\Entity\Emplacement;
 use App\Entity\Pack;
@@ -28,6 +29,11 @@ class Pairing
      * @ORM\ManyToOne(targetEntity=Emplacement::class, inversedBy="pairings")
      */
     private ?Emplacement $location = null;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=LocationGroup::class, inversedBy="pairings")
+     */
+    private ?LocationGroup $locationGroup = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=Article::class, inversedBy="pairings")
@@ -104,6 +110,22 @@ class Pairing
 
     public function getLocation(): ?Emplacement {
         return $this->location;
+    }
+
+    public function setLocationGroup(?LocationGroup $locationGroup): self {
+        if($this->locationGroup && $this->locationGroup !== $locationGroup) {
+            $this->locationGroup->removePairing($this);
+        }
+        $this->locationGroup = $locationGroup;
+        if($locationGroup) {
+            $locationGroup->addPairing($this);
+        }
+
+        return $this;
+    }
+
+    public function getLocationGroup(): ?LocationGroup {
+        return $this->locationGroup;
     }
 
     public function setArticle(?Article $article): self {

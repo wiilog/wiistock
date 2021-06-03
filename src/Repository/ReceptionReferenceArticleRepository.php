@@ -121,15 +121,23 @@ class ReceptionReferenceArticleRepository extends EntityRepository
 
 	public function findByReferenceArticleAndReceptionStatus(ReferenceArticle $referenceArticle, array $statuses, ?Reception $ignored = null) {
 	    $queryBuilder = $this->createQueryBuilder('reception_reference_article');
-	    $query = $queryBuilder
+	    $queryExpression = $queryBuilder->expr();
+        $query = $queryBuilder
             ->join('reception_reference_article.referenceArticle', 'reference_article')
             ->join('reception_reference_article.reception', 'reception')
             ->join('reception.statut', 'status')
             ->where('reference_article = :ref')
             ->andWhere('status.code IN (:statuses)')
+            ->andWhere(
+                $queryExpression->orX(
+                    'reception_reference_article.quantite != reception_reference_article.quantiteAR',
+                    'status.code = :inProgress'
+                )
+            )
             ->setParameters([
                 'ref' => $referenceArticle,
-                'statuses' => $statuses
+                'statuses' => $statuses,
+                'inProgress' => Reception::STATUT_EN_ATTENTE
             ]);
 
 	    if ($ignored) {

@@ -3,6 +3,7 @@
 namespace App\Entity\IOT;
 
 use App\Repository\IOT\TriggerActionRepository;
+use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -37,6 +38,11 @@ class TriggerAction {
      * @ORM\ManyToOne(targetEntity=SensorWrapper::class, inversedBy="triggerActions")
      */
     private ?SensorWrapper $sensorWrapper = null;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+        private ?DateTimeInterface $lastTrigger = null;
 
     public function getId(): ?int {
         return $this->id;
@@ -96,6 +102,18 @@ class TriggerAction {
         if ($sensorWrapper) {
             $sensorWrapper->addTriggerAction($this);
         }
+
+        return $this;
+    }
+
+    public function getLastTrigger(): ?DateTimeInterface
+    {
+        return $this->lastTrigger;
+    }
+
+    public function setLastTrigger(DateTimeInterface $lastTrigger): self
+    {
+        $this->lastTrigger = $lastTrigger;
 
         return $this;
     }
