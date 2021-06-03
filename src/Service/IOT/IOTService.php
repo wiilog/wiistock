@@ -11,6 +11,9 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class IOTService
 {
+    const ACS_EVENT = 'EVENT';
+    const ACS_PRESENCE = 'PRESENCE';
+
     const INEO_SENS_ACS_TEMP = 'ineo-sens-acs';
     const INEO_SENS_ACS_BTN = 'acs-switch-bouton';
     const INEO_SENS_GPS = 'trk-tracer-gps-new';
@@ -108,6 +111,8 @@ class IOTService
 
     public function extractMainDataFromConfig(array $config) {
         switch ($config['profile']) {
+            case IOTService::INEO_SENS_ACS_BTN:
+                return $this->extractEventTypeFromMessage($config);
             case IOTService::INEO_SENS_ACS_TEMP:
                 if (isset($config['payload'])) {
                     $frame = $config['payload'][0]['data'];
@@ -130,6 +135,7 @@ class IOTService
 
     public function extractEventTypeFromMessage(array $config) {
         switch ($config['profile']) {
+            case IOTService::INEO_SENS_ACS_BTN:
             case IOTService::INEO_SENS_ACS_TEMP:
                 if (isset($config['payload'])) {
                     $frame = $config['payload'][0]['data'];
@@ -152,6 +158,7 @@ class IOTService
 
     public function extractBatteryLevelFromMessage(array $config) {
         switch ($config['profile']) {
+            case IOTService::INEO_SENS_ACS_BTN:
             case IOTService::INEO_SENS_ACS_TEMP:
                 if (isset($config['payload'])) {
                     $frame = $config['payload'][0]['data'];
