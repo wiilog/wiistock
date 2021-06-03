@@ -28,7 +28,7 @@
             </div>
         </div>
     </div>
-    {% include "collecte/modalNewCollecte.html.twig" %}
+    {% include "collecte/modalNewCollecte.html.twig" with { restrictResults : restrictResults} %}
     {% include "collecte/modalDeleteCollecte.html.twig" %}
 {% endblock %}
 

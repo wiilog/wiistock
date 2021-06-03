@@ -43,7 +43,7 @@
                         {% endif %}
                     </select>
                 </div>
-
+                {% set restrictedLocations = restrictedLocations is defined and restrictedLocations %}
                 <div class="form-group w-100">
                     <label for="destination">Destination*</label>
                     <select name="destination" class="form-control data ajax-autocomplete-location d-block needed" id="locationDemandeLivraison">
@@ -80,5 +80,6 @@
                 <button id="submitNewDemande" type="button" class="btn btn-primary">Enregistrer</button>
             </div>
         </div>
+        <input type="hidden" name="restrictedLocations" value="{{ restrictedLocations }}">
     </div>
 </form>

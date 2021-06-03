@@ -65,7 +65,7 @@
         </div>
     </div>
     <input type="hidden" value="{{ receptionFilter }}" id="receptionFilter">
-    {% include "demande/modalNewDemande.html.twig" with { types: types, } %}
+    {% include "demande/modalNewDemande.html.twig" with { types: types, restrictedLocations: restrictedLocations} %}
     {% include "demande/modalShowDemande.html.twig" %}
 {% endblock %}
 

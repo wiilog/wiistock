@@ -10,6 +10,7 @@ use App\Entity\FreeField;
 use App\Entity\Collecte;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
+use App\Entity\ParametrageGlobal;
 use App\Entity\ReferenceArticle;
 use App\Entity\CollecteReference;
 use App\Entity\Statut;
@@ -90,9 +91,10 @@ class CollecteController extends AbstractController
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
+        $paramGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
-
+        $restrictedResults = $paramGlobalRepository->getOneParamByLabel(ParametrageGlobal::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST);
 		$typeChampLibre = [];
 		foreach ($types as $type) {
 			$champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_COLLECTE);
@@ -108,7 +110,8 @@ class CollecteController extends AbstractController
             'statuts' => $statutRepository->findByCategorieName(Collecte::CATEGORIE),
 			'typeChampsLibres' => $typeChampLibre,
 			'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]),
-			'filterStatus' => $filter
+			'filterStatus' => $filter,
+            'restrictResults' => $restrictedResults,
         ]);
     }
 

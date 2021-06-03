@@ -97,19 +97,24 @@ $(function() {
         clearModal("#modalNewCollecte");
     });
 
-    $(`#modalNewCollecte select[name="type"]`).on(`change`, function() {
+        $modalNewCollecte.find(`select[name="type"]`).on(`change`, function() {
         const $locationSelector = $(`#modalNewCollecte select[name="emplacement"]`);
         const type = $(this).val();
+        const $restrictedResults = $modalNewCollecte.find(`input[name="restrictResults"]`);
 
         $locationSelector.prop(`disabled`, type === '');
         $locationSelector.val(null).trigger(`change`);
 
-        Select2Old.init($locationSelector, '', 1, {
-            route: 'get_locations_by_type',
-            param: {
-                type,
-            }
-        });
+        Select2Old.init(
+            $locationSelector,
+            '',
+            $restrictedResults.val() ? 0 : 1,
+            {
+                route: 'get_locations_by_type',
+                param: {
+                    type,
+                }
+            });
     })
 });
 
