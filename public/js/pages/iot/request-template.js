@@ -58,11 +58,29 @@ $(document).ready(() => {
             .addClass(`hidden-data`)
             .removeClass(`data`);
 
+        $modal.find(`.wii-switch:not(.always-visible)`)
+            .addClass(`hidden-switch`)
+            .removeClass(`wii-switch`);
+
+        $modal
+            .find('input[name=isFileNeeded][value=1]')
+            .addClass('isFileNeeded')
+            .val(0);
+
         if($selected) {
             $selected.removeClass(`d-none`);
             $selected.find(`.hidden-data`)
                 .addClass(`data`)
                 .removeClass(`hidden-data`);
+
+            $selected.find(`.hidden-switch`)
+                .addClass(`wii-switch`)
+                .removeClass(`hidden-switch`);
+
+            $selected
+                .find('input[name=isFileNeeded][value=0]')
+                .removeClass('isFileNeeded')
+                .val(1);
         }
     })
 })

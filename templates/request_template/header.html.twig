@@ -4,10 +4,8 @@
 
 {% block showActions %}
     <div class="btn-group">
-        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-            <a onclick="openEditRequestTemplateModal()" data-id="{{ request_template.id }}" class="dropdown-item pointer">
-                <i class="fas fa-pencil-alt mr-2" aria-hidden="true"></i>Modifier
-            </a>
-        </div>
+        <button onclick="openEditRequestTemplateModal($(this))" data-id="{{ request_template.id }}" class="pointer btn btn-primary btn-ripple">
+            <i class="fas fa-pencil-alt mr-2"></i>Modifier
+        </button>
     </div>
 {% endblock %}

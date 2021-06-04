@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Demande | Livraison | Détails{% endblock %}
+{% block title %}Paramétrage | Modèle de demande | Détails{% endblock %}
 {% block titleLink path('request_template_index') %}
 
 {% block page_content %}
@@ -21,7 +21,7 @@
                     <div class="row mb-2"><h5 class="col-auto h5">Liste des articles</h5></div>
                     <div class="row wii-page-card-header">
                         {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
-                            <div class="col-auto ml-auto" id="boutonCollecteInf">
+                            <div class="col-auto ml-auto">
                                 <div class="btn-group">
                                     <button class="btn btn-primary btn-ripple split-button"
                                        onclick="openAddArticleModal()">

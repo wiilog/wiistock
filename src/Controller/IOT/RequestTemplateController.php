@@ -38,7 +38,7 @@ class RequestTemplateController extends AbstractController {
      */
     public function index(EntityManagerInterface $manager): Response {
         $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
-        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
 
         $typeRepository = $manager->getRepository(Type::class);
         $freeFieldsRepository = $manager->getRepository(FreeField::class);
@@ -50,6 +50,7 @@ class RequestTemplateController extends AbstractController {
             "new_request_template" => new class extends RequestTemplate {
 
             },
+            'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY),
             "fields_param" => $fieldsParam,
             "handling_free_fields_types" => array_map(function(Type $type) use ($freeFieldsRepository) {
                 $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_HANDLING);
@@ -148,11 +149,12 @@ class RequestTemplateController extends AbstractController {
             $requestTemplate = $requestTemplateRepository->find($data['id']);
 
             $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
-            $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
+            $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
 
             return $this->json($this->renderView("request_template/forms/form.html.twig", [
                 "request_template" => $requestTemplate,
                 "fields_param" => $fieldsParam,
+                'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY),
             ]));
         }
 

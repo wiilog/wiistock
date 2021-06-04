@@ -36,7 +36,6 @@
             à la création
         </div>
     </div>
-
     {% set field_code = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
     {% if fields_param|isFieldRequired(field_code, nf_display) %}
         {% set required = fields_param|isFieldRequired(field_code, nf_required) %}
@@ -82,7 +81,7 @@
 
     {% set field_code = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT') %}
     {% if fields_param|isFieldRequired(field_code, nf_display) %}
-        {% set carriedOutOperationCount = request_template.carriedOutOperationCount is null ? '' : request_template.carriedOutOperationCount %}
+        {% set carriedOutOperationCount = request_template.carriedOutOperationCount ?? null %}
         <div class="form-group col-md-6 col-12">
             <label for="carriedOutOperationCount">{{ 'services.Nombre d\'opération(s) réalisée(s)'|trans }}{{ fields_param|isFieldRequired(field_code, nf_required) ? '*' }}</label>
             <input type="number"
