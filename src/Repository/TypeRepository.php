@@ -48,6 +48,17 @@ class TypeRepository extends EntityRepository
             : [];
     }
 
+    public function getForSelect(?string $category, ?string $term) {
+        return $this->createQueryBuilder("type")
+            ->select("type.id AS id, type.label AS text")
+            ->join("type.category", "category")
+            ->where("type.label LIKE :term")
+            ->andWhere("category.label = '$category'")
+            ->setParameter("term", "%$term%")
+            ->getQuery()
+            ->getArrayResult();
+    }
+
     public function getIdAndLabelByCategoryLabel($category)
     {
         $em = $this->getEntityManager();

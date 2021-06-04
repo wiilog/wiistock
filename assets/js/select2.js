@@ -1,12 +1,22 @@
 import $ from 'jquery';
 import 'select2';
+import {GROUP_WHEN_NEEDED} from "./app";
 
 const ROUTES = {
+    handling_type: `ajax_select_handling_type`,
+    delivery_type: `ajax_select_delivery_type`,
+    collect_type: `ajax_select_collect_type`,
+    status: `ajax_select_status`,
     location: `ajax_select_locations`,
     sensor: `ajax_select_sensors`,
+    reference: `ajax_select_references`,
 }
 
 const INSTANT_SELECT_TYPES = {
+    handling_type: true,
+    delivery_type: true,
+    collect_type: true,
+    status: true,
 }
 
 export default class Select2 {
@@ -28,6 +38,7 @@ export default class Select2 {
 
             config.ajax = {
                 url: Routing.generate(ROUTES[type]),
+                data: params => Select2.includeParams($element, params),
                 dataType: `json`
             };
         }
@@ -67,6 +78,27 @@ export default class Select2 {
                 setTimeout(() => $searchField[0].focus(), 300);
             }
         });
+    }
+
+    static includeParams($element, params) {
+        if($element.is(`[data-include-params]`)) {
+            const selector = $element.data(`include-params`);
+            const closest = $element.data(`[data-include-params-parent]`) || `.modal`;
+            const $fields = $element
+                .closest(closest)
+                .find(selector);
+
+            const values = $fields
+                .filter((_, elem) => elem.name && elem.value)
+                .keymap((elem) => [elem.name, elem.value], GROUP_WHEN_NEEDED);
+
+            params = {
+                ...params,
+                ...values,
+            };
+        }
+
+        return params;
     }
 }
 

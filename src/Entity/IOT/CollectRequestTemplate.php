@@ -3,7 +3,10 @@
 namespace App\Entity\IOT;
 
 use App\Entity\Emplacement;
+use App\Entity\ReferenceArticle;
 use App\Repository\IOT\CollectRequestTemplateRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -30,6 +33,17 @@ class CollectRequestTemplate extends RequestTemplate {
      * @ORM\Column(type="text", nullable=true)
      */
     private ?string $comment = null;
+
+    /**
+     * @ORM\OneToMany(targetEntity=RequestTemplateLine::class, mappedBy="collectRequestTemplate")
+     */
+    private Collection $lines;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->lines = new ArrayCollection();
+    }
 
     public function getSubject(): ?string
     {
@@ -64,6 +78,14 @@ class CollectRequestTemplate extends RequestTemplate {
         return $this->destination;
     }
 
+    public function isStock(): ?bool {
+        return $this->destination == 1;
+    }
+
+    public function isDestruct(): ?bool {
+        return $this->destination == 0;
+    }
+
     public function setDestination(int $destination): self
     {
         $this->destination = $destination;
@@ -79,6 +101,30 @@ class CollectRequestTemplate extends RequestTemplate {
     public function setComment(?string $comment): self
     {
         $this->comment = $comment;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ReferenceArticle[]
+     */
+    public function getLines(): Collection
+    {
+        return $this->lines;
+    }
+
+    public function addLine(ReferenceArticle $ref): self
+    {
+        if (!$this->lines->contains($ref)) {
+            $this->lines[] = $ref;
+        }
+
+        return $this;
+    }
+
+    public function removeLine(ReferenceArticle $ref): self
+    {
+        $this->lines->removeElement($ref);
 
         return $this;
     }
