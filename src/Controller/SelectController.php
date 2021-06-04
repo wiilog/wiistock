@@ -11,6 +11,7 @@ use App\Entity\Emplacement;
 use App\Entity\Group;
 use App\Entity\Location;
 use App\Entity\Quality;
+use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\User;
@@ -26,10 +27,12 @@ class SelectController extends AbstractController {
      * @Route("/select/emplacement", name="ajax_select_locations", options={"expose": true})
      */
     public function locations(Request $request, EntityManagerInterface $manager): Response {
-        $type = $request->query->get("type") ?? $request->query->get("requestType") ?? null;
+        $deliveryType = $request->query->get("deliveryType") ?? null;
+        $collectType = $request->query->get("collectType") ?? null;
         $results = $manager->getRepository(Emplacement::class)->getForSelect(
             $request->query->get("term"),
-            $type
+            $deliveryType,
+            $collectType
         );
 
         return $this->json([
@@ -83,10 +86,23 @@ class SelectController extends AbstractController {
      * @Route("/select/statuts", name="ajax_select_status", options={"expose": true})
      */
     public function status(Request $request, EntityManagerInterface $manager): Response {
-        $type = $request->query->get("type") ?? $request->query->get("requestType") ?? null;
+        $type = $request->query->get("type") ?? $request->query->get("handlingType") ?? null;
         $results = $manager->getRepository(Statut::class)->getForSelect(
             $request->query->get("term"),
             $type
+        );
+
+        return $this->json([
+            "results" => $results,
+        ]);
+    }
+
+    /**
+     * @Route("/select/references", name="ajax_select_references", options={"expose": true})
+     */
+    public function references(Request $request, EntityManagerInterface $manager): Response {
+        $results = $manager->getRepository(ReferenceArticle::class)->getForSelect(
+            $request->query->get("term"),
         );
 
         return $this->json([

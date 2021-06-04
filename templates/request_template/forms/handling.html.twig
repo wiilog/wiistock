@@ -1,7 +1,7 @@
 <div class="row">
     <div class="form-group col-md-6 col-12">
         <label>Type*</label>
-        <select name="requestType" class="form-control data d-block w-100 needed" data-s2="handling_type"
+        <select name="handlingType" class="form-control data d-block w-100 needed" data-s2="handling_type"
                 onchange="onTypeChange($(this))">
             {% if request_template.requestType %}
                 <option selected value={{ request_template.requestType.id }}>{{ request_template.requestType.label }}</option>
@@ -12,7 +12,7 @@
     <div class="form-group col-md-6 col-12">
         <label>Statut*</label>
         <select name="status" class="form-control data d-block w-100 needed"
-                data-s2="status" data-include-params="select[name=requestType]">
+                data-s2="status" data-include-params="select[name=handlingType]">
             {% if request_template.requestStatus is defined and request_template.requestStatus %}
                 <option selected value="{{ request_template.requestStatus.id }}">{{ request_template.requestStatus.nom }}</option>
             {% endif %}

@@ -9,7 +9,10 @@ use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
 use App\Entity\FreeField;
+use App\Entity\IOT\CollectRequestTemplate;
+use App\Entity\IOT\HandlingRequestTemplate;
 use App\Entity\IOT\RequestTemplate;
+use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\Menu;
 
 use App\Entity\Type;
@@ -44,9 +47,11 @@ class RequestTemplateController extends AbstractController {
         $collectTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
 
         return $this->render("request_template/index.html.twig", [
-            "new_request_template" => new class extends RequestTemplate {},
+            "new_request_template" => new class extends RequestTemplate {
+
+            },
             "fields_param" => $fieldsParam,
-            "handling_free_fields_types" => array_map(function (Type $type) use ($freeFieldsRepository) {
+            "handling_free_fields_types" => array_map(function(Type $type) use ($freeFieldsRepository) {
                 $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_HANDLING);
                 return [
                     "typeLabel" => $type->getLabel(),
@@ -54,7 +59,7 @@ class RequestTemplateController extends AbstractController {
                     "freeFields" => $freeFields,
                 ];
             }, $handlingTypes),
-            "delivery_free_fields_types" => array_map(function (Type $type) use ($freeFieldsRepository) {
+            "delivery_free_fields_types" => array_map(function(Type $type) use ($freeFieldsRepository) {
                 $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
                 return [
                     "typeLabel" => $type->getLabel(),
@@ -62,7 +67,7 @@ class RequestTemplateController extends AbstractController {
                     "freeFields" => $freeFields,
                 ];
             }, $deliveryTypes),
-            "collect_free_fields_types" => array_map(function (Type $type) use ($freeFieldsRepository) {
+            "collect_free_fields_types" => array_map(function(Type $type) use ($freeFieldsRepository) {
                 $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_COLLECTE);
                 return [
                     "typeLabel" => $type->getLabel(),
@@ -87,7 +92,7 @@ class RequestTemplateController extends AbstractController {
         $rows = [];
         foreach ($requestTemplates as $requestTemplate) {
             $rows[] = [
-                "actions" => $this->renderView("request_template/actions.html.twig", [
+                "actions" => $this->renderView("request_template/datatable/actions.html.twig", [
                     "request_template" => $requestTemplate
                 ]),
                 "name" => $requestTemplate->getName(),
@@ -107,7 +112,9 @@ class RequestTemplateController extends AbstractController {
      * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request, EntityManagerInterface $manager, RequestTemplateService $service): Response {
-        $data = $request->request->all();
+        if (!($data = json_decode($request->getContent(), true))) {
+            $data = $request->request->all();
+        }
 
         $requestTemplateRepository = $manager->getRepository(RequestTemplate::class);
 
@@ -129,23 +136,6 @@ class RequestTemplateController extends AbstractController {
             "success" => true,
             "msg" => "Le modèle de demande {$requestTemplate->getName()} a bien été créé",
         ]);
-    }
-
-    /**
-     * @Route("/voir", name="request_template_show", options={"expose"=true}, methods="GET|POST")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
-     */
-    public function show(Request $request, EntityManagerInterface $manager): Response {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $requestTemplateRepository = $manager->getRepository(RequestTemplate::class);
-            $requestTemplate = $requestTemplateRepository->find($data["id"]);
-
-            return $this->json($this->renderView("request_template/show_content.html.twig", [
-                "request_template" => $requestTemplate
-            ]));
-        }
-
-        throw new BadRequestHttpException();
     }
 
     /**
@@ -174,7 +164,9 @@ class RequestTemplateController extends AbstractController {
      * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
      */
     public function edit(Request $request, EntityManagerInterface $manager, RequestTemplateService $service): Response {
-        $data = $request->request->all();
+        if (!($data = json_decode($request->getContent(), true))) {
+            $data = $request->request->all();
+        }
 
         $requestTemplateRepository = $manager->getRepository(RequestTemplate::class);
 
@@ -219,7 +211,7 @@ class RequestTemplateController extends AbstractController {
         $requestTemplateRepository = $manager->getRepository(RequestTemplate::class);
 
         $requestTemplate = $requestTemplateRepository->find($data["id"]);
-        if($requestTemplate && $requestTemplate->getTriggerActions()->count() > 0) {
+        if ($requestTemplate && $requestTemplate->getTriggerActions()->count() > 0) {
             return $this->json([
                 "success" => false,
                 "msg" => "Vous ne pouvez pas supprimer ce modèle de demande car il est utilisé par un actionneur",
@@ -235,6 +227,131 @@ class RequestTemplateController extends AbstractController {
         }
 
         throw new NotFoundHttpException();
+    }
+
+    /**
+     * @Route("/voir/{requestTemplate}", name="request_template_show")
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE})
+     */
+    public function show(RequestTemplateService $service, RequestTemplate $requestTemplate): Response {
+        if ($requestTemplate instanceof HandlingRequestTemplate) {
+            return $this->render("securite/access_denied.html.twig");
+        }
+
+        return $this->render("request_template/show.html.twig", [
+            "request_template" => $requestTemplate,
+            "new_line" => new RequestTemplateLine(),
+            "details" => $service->createHeaderDetailsConfig($requestTemplate)
+        ]);
+    }
+
+    /**
+     * @Route("/ligne/api/{requestTemplate}", name="request_template_article_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
+     */
+    public function articleApi(Request $request, EntityManagerInterface $manager, RequestTemplate $requestTemplate): Response {
+        $requestTemplateLineRepository = $manager->getRepository(RequestTemplateLine::class);
+
+        $lines = $requestTemplateLineRepository->findByParams($requestTemplate, $request->request);
+
+        $rows = [];
+        foreach ($lines as $line) {
+            $rows[] = [
+                "actions" => $this->renderView("request_template/datatable/lines.html.twig", [
+                    "line" => $line
+                ]),
+                "reference" => $line->getReference()->getReference(),
+                "label" => $line->getReference()->getLibelle(),
+                "location" => FormatHelper::location($line->getReference()->getEmplacement()),
+                "quantity" => $line->getQuantityToTake(),
+            ];
+        }
+
+        return $this->json([
+            "data" => $rows,
+            "recordsFiltered" => count($lines),
+            "recordsTotal" => count($lines),
+        ]);
+    }
+
+    /**
+     * @Route("/ligne/{requestTemplate}/creer", name="request_template_line_new", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
+     */
+    public function newLine(Request $request, EntityManagerInterface $manager,
+                            RequestTemplateService $service, RequestTemplate $requestTemplate): Response {
+        if (!($data = json_decode($request->getContent(), true))) {
+            $data = $request->request->all();
+        }
+
+        $line = new RequestTemplateLine();
+        $line->setRequestTemplate($requestTemplate);
+
+        $service->updateRequestTemplateLine($line, $data);
+
+        $manager->persist($line);
+        $manager->flush();
+
+        return $this->json([
+            "success" => true,
+            "msg" => "L'article a été ajouté au modèle de demande",
+        ]);
+    }
+
+    /**
+     * @Route("/ligne/api-modifier", name="request_template_line_edit_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
+     */
+    public function editLineApi(Request $request, EntityManagerInterface $manager): Response {
+        if ($data = json_decode($request->getContent(), true)) {
+            $requestTemplateLineRepository = $manager->getRepository(RequestTemplateLine::class);
+            $line = $requestTemplateLineRepository->find($data["id"]);
+
+            return $this->json($this->renderView("request_template/forms/line.html.twig", [
+                "line" => $line,
+            ]));
+        }
+
+        throw new BadRequestHttpException();
+    }
+
+    /**
+     * @Route("/ligne/edit", name="request_template_line_edit", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
+     */
+    public function editLine(Request $request, EntityManagerInterface $manager, RequestTemplateService $service): Response {
+        if (!($data = json_decode($request->getContent(), true))) {
+            $data = $request->request->all();
+        }
+
+        $requestTemplateRepository = $manager->getRepository(RequestTemplateLine::class);
+
+        $line = $requestTemplateRepository->find($data["id"]);
+        if ($line) {
+            $service->updateRequestTemplateLine($line, $data);
+            $manager->flush();
+
+            return $this->json([
+                "success" => true,
+                "msg" => "La ligne a bien été modifiée",
+            ]);
+        }
+
+        throw new BadRequestHttpException();
+    }
+
+    /**
+     * @Route("/line/supprimer/{line}", name="request_template_line_remove", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
+     */
+    public function deleteLine(EntityManagerInterface $manager, RequestTemplateLine $line): Response {
+        $manager->remove($line);
+        $manager->flush();
+
+        return $this->json([
+            "success" => true,
+            "msg" => "La ligne article a été retirée du modèle de demande",
+        ]);
     }
 
 }
