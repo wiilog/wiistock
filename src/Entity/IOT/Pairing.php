@@ -252,4 +252,20 @@ class Pairing
                 break;
         }
     }
+
+    public function getEntity() {
+        if($this->getLocation() !== null) {
+            return $this->location;
+        } else if($this->getArticle() !== null) {
+            return $this->article;
+        } else if($this->getPack() !== null){
+            return $this->pack;
+        } else if($this->getPreparationOrder() !== null) {
+            return $this->preparationOrder;
+        } else if($this->getCollectOrder() !== null) {
+            return $this->collectOrder;
+        } else {
+            return '';
+        }
+    }
 }

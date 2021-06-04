@@ -3,6 +3,7 @@ import 'select2';
 
 const ROUTES = {
     location: `ajax_select_locations`,
+    sensor: `ajax_select_sensors`,
 }
 
 const INSTANT_SELECT_TYPES = {

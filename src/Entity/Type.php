@@ -158,11 +158,6 @@ class Type
     private $averageRequestTime;
 
     /**
-     * @ORM\OneToMany(targetEntity=Sensor::class, mappedBy="type")
-     */
-    private Collection $sensors;
-
-    /**
      * @ORM\OneToMany(targetEntity=AlertTemplate::class, mappedBy="type")
      */
     private Collection $alertTemplates;

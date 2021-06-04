@@ -5,8 +5,8 @@ namespace App\Entity\IOT;
 use App\Repository\IOT\SensorRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
-use App\Entity\Type;
 
 /**
  * @ORM\Entity(repositoryClass=SensorRepository::class)
@@ -28,7 +28,7 @@ class Sensor
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private ?string $type;
+    private ?string $type = null;
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -36,9 +36,21 @@ class Sensor
     private ?string $frequency = null;
 
     /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private ?int $battery = null;
+
+    /**
      * @ORM\ManyToOne(targetEntity=SensorProfile::class, inversedBy="sensors")
      */
     private ?SensorProfile $profile = null;
+
+    /**
+     * @var null|SensorMessage
+     * @ORM\OneToOne(targetEntity=SensorMessage::class, inversedBy="linkedSensorLastMessage")
+     * @ORM\JoinColumn(nullable=true)
+     */
+    private ?SensorMessage $lastMessage = null;
 
     /**
      * @ORM\OneToMany(targetEntity=SensorMessage::class, mappedBy="sensor")
@@ -49,11 +61,6 @@ class Sensor
      * @ORM\OneToMany(targetEntity=SensorWrapper::class, mappedBy="sensor")
      */
     private Collection $sensorWrappers;
-
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
-    private $battery;
 
     public function __construct()
     {
@@ -188,22 +195,47 @@ class Sensor
         return $this;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getBattery()
+    public function getBattery(): ?int
     {
         return $this->battery;
     }
 
-    /**
-     * @param mixed $battery
-     */
     public function setBattery($battery): self
     {
         $this->battery = $battery;
         return $this;
     }
 
+    public function getLastMessage(): ?SensorMessage
+    {
+        return $this->lastMessage;
+    }
 
+    public function setLastMessage(?SensorMessage $lastMessage): self
+    {
+        if($this->lastMessage && $this->lastMessage->getLinkedSensorLastMessage() !== $this) {
+            $oldLastMessage = $this->lastMessage;
+            $this->lastMessage = null;
+            $oldLastMessage->setLinkedSensorLastMessage(null);
+        }
+
+        $this->lastMessage = $lastMessage;
+
+        if($this->lastMessage && $this->lastMessage->getLinkedSensorLastMessage() !== $this) {
+            $this->lastMessage->setLinkedSensorLastMessage($this);
+        }
+
+        return $this;
+    }
+
+    public function getAvailableSensorWrapper(): ?SensorWrapper {
+        $criteria = Criteria::create();
+        $availableWrappers = $this->sensorWrappers
+            ->matching(
+                $criteria
+                    ->andWhere(Criteria::expr()->eq('deleted', false))
+                    ->orderBy(['id' => Criteria::DESC])
+            );
+        return $availableWrappers->first() ?: null;
+    }
 }
