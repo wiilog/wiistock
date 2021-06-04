@@ -12,14 +12,15 @@ use Twig\Environment;
 class SensorWrapperService
 {
     /** @Required */
-    public EntityManagerInterface $em;
+    public Environment $templating;
 
     /** @Required */
-    public Environment $templating;
+    public EntityManagerInterface $em;
 
     public function getDataForDatatable($params = null)
     {
-        $queryResult = $this->em->getRepository(SensorWrapper::class)->findByParams($params);
+        $sensorWrapperRepository = $this->em->getRepository(SensorWrapper::class);
+        $queryResult = $sensorWrapperRepository->findByParams($params);
 
         $sensorWrappers = $queryResult['data'];
 
@@ -43,7 +44,7 @@ class SensorWrapperService
 
         return [
             'id' => $sensorWrapper->getId(),
-            'type' => $sensor ? FormatHelper::type($sensorWrapper->getSensor()->getType()) : '',
+            'type' => $sensor ? $sensor->getType() : '',
             'profile' => $sensor && $sensor->getProfile() ? $sensor->getProfile()->getName() : '',
             'name' => $sensorWrapper->getName() ?? '',
             'code' => $sensor ? $sensor->getCode() : '',

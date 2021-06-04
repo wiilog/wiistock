@@ -8,7 +8,8 @@
             <div class="row wii-page-card-header">
                 <div class="col-auto ml-auto">
                     <div class="btn btn-primary btn-ripple"
-                         onclick="sensorWrapperProvision()">
+                         data-toggle='modal'
+                         data-target='#modalNewSensorWrapper'>
                         <span class="fa fa-file-csv mr-2"></span>Provisionner un capteur
                     </div>
                 </div>
@@ -20,6 +21,10 @@
             </div>
         </div>
     </div>
+
+    {% include 'iot/sensor_wrapper/new.html.twig' %}
+    {% include 'iot/sensor_wrapper/edit.html.twig' %}
+    {% include 'iot/sensor_wrapper/delete.html.twig' %}
 
 {% endblock %}
 

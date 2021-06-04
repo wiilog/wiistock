@@ -32,6 +32,11 @@ class SensorWrapper extends FreeFieldEntity
     private ?string $name = null;
 
     /**
+     * @ORM\Column(type="boolean", nullable=false, options={"default": false})
+     */
+    private bool $deleted = false;
+
+    /**
      * @ORM\ManyToOne(targetEntity=Utilisateur::class, inversedBy="sensorWrappers")
      */
     private ?Utilisateur $manager = null;
@@ -171,6 +176,15 @@ class SensorWrapper extends FreeFieldEntity
             $this->addTriggerAction($triggerAction);
         }
 
+        return $this;
+    }
+
+    public function isDeleted(): bool {
+        return $this->deleted;
+    }
+
+    public function setDeleted(bool $deleted): self {
+        $this->deleted = $deleted;
         return $this;
     }
 }

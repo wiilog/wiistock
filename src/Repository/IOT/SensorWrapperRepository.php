@@ -15,9 +15,11 @@ use Doctrine\ORM\EntityRepository;
  */
 class SensorWrapperRepository extends EntityRepository
 {
+
     public function findByParams($params) {
 
-        $qb = $this->createQueryBuilder("sensor_wrapper");
+        $qb = $this->createQueryBuilder("sensor_wrapper")
+            ->andWhere('sensor_wrapper.deleted = false');
         $total = QueryCounter::count($qb, "sensor_wrapper");
 
         if (!empty($params)) {
@@ -29,6 +31,8 @@ class SensorWrapperRepository extends EntityRepository
                         ->andWhere('(' .
                             $exprBuilder->orX(
                                 'search_sensorProfile.name LIKE :value',
+                                'search_sensor.type LIKE :value',
+                                'search_manager.username LIKE :value',
                                 'sensor_wrapper.name LIKE :value',
                                 'search_sensor.code LIKE :value',
                                 "DATE_FORMAT(search_lastMessage.date, '%d/%m/%Y') LIKE :value"
@@ -37,6 +41,7 @@ class SensorWrapperRepository extends EntityRepository
                         ->leftJoin('sensor_wrapper.sensor', 'search_sensor')
                         ->leftJoin('search_sensor.profile', 'search_sensorProfile')
                         ->leftJoin('search_sensor.lastMessage', 'search_lastMessage')
+                        ->leftJoin('sensor_wrapper.manager', 'search_manager')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
@@ -47,12 +52,6 @@ class SensorWrapperRepository extends EntityRepository
                     $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
 
                     switch ($column) {
-                        case 'type':
-                            $qb
-                                ->leftJoin('sensor_wrapper.sensor', 'order_sensor')
-                                ->leftJoin('order_sensor.type', 'order_sensorType')
-                                ->orderBy("order_sensorType.label", $order);
-                            break;
                         case 'profile':
                             $qb
                                 ->leftJoin('sensor_wrapper.sensor', 'order_sensor')
