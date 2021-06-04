@@ -103,6 +103,7 @@ class IOTService
             ->setDate($messageDate)
             ->setContent($this->extractMainDataFromConfig($message))
             ->setEvent($this->extractEventTypeFromMessage($message))
+            ->setLinkedSensorLastMessage($device)
             ->setSensor($device);
 
         $entityManager->persist($received);
