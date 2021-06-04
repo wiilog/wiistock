@@ -31,7 +31,7 @@ class SensorWrapperController extends AbstractController
      * @HasPermission({Menu::IOT, Action::DISPLAY_SENSOR})
      */
     public function index(): Response {
-        return $this->render('sensor_wrapper/index.html.twig');
+        return $this->render('iot/sensor_wrapper/index.html.twig');
     }
 
     /**
@@ -132,7 +132,7 @@ class SensorWrapperController extends AbstractController
         if ($data = json_decode($request->getContent(), true)) {
             $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->find($data['id']);
 
-            $json = $this->renderView('sensor_wrapper/edit_content.html.twig', [
+            $json = $this->renderView('iot/sensor_wrapper/edit_content.html.twig', [
                 'sensorWrapper' => $sensorWrapper,
             ]);
 

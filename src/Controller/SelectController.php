@@ -8,6 +8,7 @@ use App\Entity\Client;
 use App\Entity\DepositTicket;
 use App\Entity\Emplacement;
 use App\Entity\Group;
+use App\Entity\IOT\Sensor;
 use App\Entity\Location;
 use App\Entity\Quality;
 use App\Entity\User;
@@ -24,6 +25,17 @@ class SelectController extends AbstractController {
      */
     public function boxes(Request $request, EntityManagerInterface $manager): Response {
         $results = $manager->getRepository(Emplacement::class)->getForSelect($request->query->get("term"));
+
+        return $this->json([
+            "results" => $results,
+        ]);
+    }
+
+    /**
+     * @Route("/select/capteurs", name="ajax_select_sensors", options={"expose": true})
+     */
+    public function sensors(Request $request, EntityManagerInterface $manager): Response {
+        $results = $manager->getRepository(Sensor::class)->getForSelect($request->query->get("term"));
 
         return $this->json([
             "results" => $results,

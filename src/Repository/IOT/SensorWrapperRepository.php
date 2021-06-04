@@ -15,6 +15,7 @@ use Doctrine\ORM\EntityRepository;
  */
 class SensorWrapperRepository extends EntityRepository
 {
+
     public function findByParams($params) {
 
         $qb = $this->createQueryBuilder("sensor_wrapper")
