@@ -82,7 +82,11 @@ class RequestTemplateService {
                 ->setSubject($data["subject"])
                 ->setRequestStatus($statusRepository->find($data["status"]))
                 ->setDelay($data["delay"])
-                ->setComment($data["comment"] ?? "")
+                ->setEmergency($data["emergency"] ?? null)
+                ->setSource($data["source"] ?? null)
+                ->setDestination($data["destination"] ?? null)
+                ->setCarriedOutOperationCount($data["carriedOutOperationCount"] ?? null)
+                ->setComment($data["comment"] ?? null)
                 ->setAttachments($this->attachmentService->createAttachements($request->files));
         } else if ($template instanceof DeliveryRequestTemplate) {
             $locationRepository = $this->manager->getRepository(Emplacement::class);

@@ -27,6 +27,16 @@ $(document).ready(() => {
         {tables: [table]}
     );
 
+    let $modalModifyRequestTemplate = $('#modalEditRequestTemplate');
+    let $submitModifyRequestTemplate = $('#submitEditRequestTemplate');
+    let urlModifyRequestTemplate = Routing.generate('request_template_edit', true);
+    InitModal($modalModifyRequestTemplate, $submitModifyRequestTemplate, urlModifyRequestTemplate,
+        {
+            tables: [table],
+            success: () => {window.location.reload()}
+        }
+    );
+
     $(`select[name="reference"]`).on(`change`, function() {
         const $select = $(this);
         const data = $select.select2('data')[0];
@@ -73,11 +83,11 @@ function displayWarning() {
     })
 }
 
-function openEditRequestTemplateModal() {
+function openEditRequestTemplateModal($button) {
     const $editModal = $(`#modalEditRequestTemplate`);
     displayWarning().then(() => {
         editRow(
-            $(this),
+            $button,
             Routing.generate('request_template_edit_api', true),
             $('#modalEditRequestTemplate'),
             $('#submitEditRequestTemplate'),
