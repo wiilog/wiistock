@@ -1,0 +1,36 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Paramétrage | Modèles de demandes{% endblock %}
+
+{% block page_content %}
+    <div class="m-4 wii-page-card">
+        <div class="row wii-page-card-header">
+            <div class="col-auto ml-auto">
+                <button type="button"
+                        data-toggle="modal"
+                        data-target="#modalNewRequestTemplate"
+                        class="btn btn-primary btn-ripple split-button"
+                        onclick="clearModal('#modalNewRequestTemplate')">
+                    <span class="fa fa-plus mr-2"></span>
+                    Nouveau modèle de demande
+                </button>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <table id="tableRequestTemplate" class="table w-100"></table>
+            </div>
+        </div>
+    </div>
+
+    {% include "request_template/new.html.twig" %}
+    {% include "request_template/edit.html.twig" %}
+    {% include "request_template/delete.html.twig" %}
+    {% include "request_template/show.html.twig" %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/pages/request_template.js') }}?v={{ web_version }}"></script>
+{% endblock %}

@@ -10,7 +10,8 @@ use App\Entity\Menu;
 use App\Entity\Utilisateur;
 use App\Helper\PostHelper;
 
-use App\Service\SensorWrapperService;
+use App\Service\IOT\PairingService;
+use App\Service\IOT\SensorWrapperService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -182,5 +183,32 @@ class SensorWrapperController extends AbstractController
             'msg' => "Le capteur <strong>${name}</strong> a bien été modifié."
         ]);
     }
+
+    /**
+     * @Route("/{id}/elements-associes", name="sensors_pairing_index", options={"expose"=true})
+     * @HasPermission({Menu::IOT, Action::DISPLAY_SENSOR})
+     */
+    public function sensorPairingIndex($id, EntityManagerInterface $entityManager): Response
+    {
+        $sensor = $entityManager->getRepository(Sensor::class)->find($id);
+        return $this->render('iot/sensors_pairing/index.html.twig', [
+            'sensor' => $sensor
+        ]);
+    }
+
+    /**
+     * @Route("/elements-associes/api", name="sensors_pairing_api", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::IOT, Action::DISPLAY_SENSOR})
+     */
+    public function sensorPairingApi(Request $request,
+                                     PairingService $pairingService,
+                                     EntityManagerInterface $entityManager): Response {
+
+        $sensorId = $request->query->get('sensor');
+        $sensor = $entityManager->getRepository(Sensor::class)->find($sensorId);
+        $data = $pairingService->getDataForDatatable($sensor, $request->request);
+        return $this->json($data);
+    }
+
 }
 

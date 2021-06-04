@@ -110,7 +110,7 @@ class Action {
     const DISPLAY_STATU_LITI = 'afficher statuts litiges';
     const DISPLAY_NATU_COLI = 'afficher nature colis';
     const DISPLAY_CF = 'afficher champs fixes';
-    const DISPLAY_REQUEST_MODEL = 'afficher modèles de demandes';
+    const DISPLAY_REQUEST_TEMPLATE = 'afficher modèles de demandes';
     const DISPLAY_ALERT_MODEL = 'afficher modèles d\'alertes';
     const DISPLAY_IMPORT = 'afficher import et mise à jour';
 

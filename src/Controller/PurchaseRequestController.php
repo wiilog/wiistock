@@ -574,10 +574,6 @@ class PurchaseRequestController extends AbstractController
         $status = $data['status'];
         $treatedStatus = $statusRepository->find($status);
 
-        $purchaseRequest
-            ->setStatus($treatedStatus)
-            ->setProcessingDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
-
         if($treatedStatus->getAutomaticReceptionCreation()) {
             $unfilledLines = Stream::from($purchaseRequest->getPurchaseRequestLines()->toArray())
                 ->filter(fn (PurchaseRequestLine $line) => (!$line->getOrderedQuantity() || $line->getOrderedQuantity() == 0))
@@ -628,6 +624,10 @@ class PurchaseRequestController extends AbstractController
                 $entityManager->flush();
             }
         }
+
+        $purchaseRequest
+            ->setStatus($treatedStatus)
+            ->setProcessingDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
         $entityManager->flush();
         $purchaseRequestService->sendMailsAccordingToStatus($purchaseRequest);
 

@@ -34,6 +34,11 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
             CategoryType::MOUVEMENT_TRACA => [Type::LABEL_MVT_TRACA],
             CategoryType::TRANSFER_REQUEST => [Type::LABEL_STANDARD],
             CategoryType::SENSOR => [Type::LABEL_SENSOR],
+            CategoryType::REQUEST_TEMPLATE => [
+                Type::LABEL_HANDLING,
+                Type::LABEL_DELIVERY,
+                Type::LABEL_COLLECT
+            ],
         ];
 
         $typeRepository = $manager->getRepository(Type::class);

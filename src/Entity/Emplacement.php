@@ -147,6 +147,12 @@ class Emplacement
      */
     private Collection $collectRequestTemplates;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=LocationGroup::class, inversedBy="locations")
+     * @ORM\JoinColumn(onDelete="SET NULL")
+     */
+    private $locationGroup;
+
     public function __construct() {
         $this->clusters = new ArrayCollection();
         $this->articles = new ArrayCollection();
@@ -725,6 +731,18 @@ class Emplacement
         return $this;
     }
 
+    public function getLocationGroup(): ?LocationGroup
+    {
+        return $this->locationGroup;
+    }
+
+    public function setLocationGroup(?LocationGroup $locationGroup): self
+    {
+        $this->locationGroup = $locationGroup;
+
+        return $this;
+    }
+
     /**
      * @return Collection|Pairing[]
      */
@@ -814,6 +832,4 @@ class Emplacement
 
         return $this;
     }
-
-
 }

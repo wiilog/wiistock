@@ -1,25 +1,25 @@
 <?php
 
 
-namespace App\Service;
+namespace App\Service\IOT;
 
 use App\Entity\IOT\SensorMessage;
 use App\Entity\IOT\SensorWrapper;
 use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
-use Twig\Environment as Twig_Environment;
+use Twig\Environment;
 
 class SensorWrapperService
 {
     /** @Required */
-    public Twig_Environment $templating;
+    public Environment $templating;
 
     /** @Required */
-    public EntityManagerInterface $entityManager;
+    public EntityManagerInterface $em;
 
     public function getDataForDatatable($params = null)
     {
-        $sensorWrapperRepository = $this->entityManager->getRepository(SensorWrapper::class);
+        $sensorWrapperRepository = $this->em->getRepository(SensorWrapper::class);
         $queryResult = $sensorWrapperRepository->findByParams($params);
 
         $sensorWrappers = $queryResult['data'];
@@ -51,7 +51,7 @@ class SensorWrapperService
             'lastLift' => $lastLift ? FormatHelper::datetime($lastLift->getDate()) : '',
             'batteryLevel' => $sensor ? ($sensor->getBatteryLevel() . '%') : '',
             'manager' => FormatHelper::user($sensorWrapper->getManager()),
-            'actions' => $this->templating->render('sensor_wrapper/actions.html.twig', [
+            'actions' => $this->templating->render('iot/sensor_wrapper/actions.html.twig', [
                 'sensor_wrapper' => $sensorWrapper,
             ]),
         ];

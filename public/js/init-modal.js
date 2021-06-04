@@ -31,28 +31,19 @@ function InitModal($modal, $submit, path, options = {}) {
         $('[data-toggle="popover"]').popover("hide");
     });
 
-    $submit
-        .click(function () {
-            if ($submit.hasClass(LOADING_CLASS)) {
-                showBSAlert('L\'opération est en cours de traitement', 'warning');
-            } else {
-                SubmitAction(
-                    $modal,
-                    $submit,
-                    path,
-                    options
-                )
-                    .then((data) => {
-                        if (data
-                            && data.success
-                            && options
-                            && options.success) {
-                            options.success(data);
-                        }
-                    })
-                    .catch(() => {});
-            }
-        });
+    $submit.click(function () {
+        if ($submit.hasClass(LOADING_CLASS)) {
+            showBSAlert('L\'opération est en cours de traitement', 'warning');
+        } else {
+            SubmitAction($modal, $submit, path, options)
+                .then((data) => {
+                    if (data && data.success && options && options.success) {
+                        options.success(data);
+                    }
+                })
+                .catch(() => {});
+        }
+    });
 }
 
 /**
