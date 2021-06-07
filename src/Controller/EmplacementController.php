@@ -387,22 +387,19 @@ class EmplacementController extends AbstractController {
     }
 
     /**
-     * @Route("/autocomplete-locations-by-type", name="get_locations_by_type", options={"expose"=true}, methods={"GET"})
+     * @Route("/autocomplete-locations-by-type", name="get_locations_by_type", options={"expose"=true}, methods={"GET"}, condition="request.isXmlHttpRequest()")
      */
     public function getLocationsByType(Request $request, EntityManagerInterface $entityManager) {
-        if ($request->isXmlHttpRequest()) {
+        $search = $request->query->get('term');
+        $type = $request->query->get('type');
 
-            $search = $request->query->get('term');
-            $type = $request->query->get('type');
-
-            $locationRepository = $entityManager->getRepository(Emplacement::class);
-            $restrictResults = $entityManager->getRepository(ParametrageGlobal::class)->getOneParamByLabel(ParametrageGlobal::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST);
-            $locations = $locationRepository->getLocationsByType($type, $search, $restrictResults);
-            return $this->json([
-                'results' => $locations
-            ]);
-        }
-        throw new BadRequestHttpException();
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $restrictResults = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST);
+        $locations = $locationRepository->getLocationsByType($type, $search, $restrictResults);
+        return $this->json([
+            'results' => $locations
+        ]);
     }
 
 }

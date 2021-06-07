@@ -121,10 +121,10 @@ class EmplacementRepository extends EntityRepository
             $qb
                 ->andWhere('(:type MEMBER OF location.allowedDeliveryTypes) OR (:type MEMBER OF location.allowedCollectTypes)')
                 ->setParameter('type', $type);
+        }
 
-            if ($restrictResults) {
-                $qb->setMaxResults(50);
-            }
+        if ($restrictResults) {
+            $qb->setMaxResults(50);
         }
 
         return $qb->getQuery()->getResult();
