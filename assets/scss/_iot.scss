@@ -1,0 +1,33 @@
+.association-pane-item {
+    display: flex;
+    flex-wrap: nowrap;
+    margin: 0 10px;
+    min-height: 50px;
+
+    .wii-icon {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+    }
+
+    .right-column {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        margin-left: 10px;
+        flex: 1 1 auto;
+
+        .title {
+            display: block;
+            font-size: 1.3rem;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+        }
+    }
+
+    .association-actions {
+        cursor: pointer;
+    }
+}

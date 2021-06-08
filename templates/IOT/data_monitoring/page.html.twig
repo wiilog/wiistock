@@ -1,0 +1,26 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block titleLink title_link is defined ? path(title_link) %}
+
+{% block page_content %}
+    <div class="row mt-4">
+        <div class="col-md-4 col-12">
+            <div class="wii-page-card">
+                {% for item in left_pane %}
+                    {% include 'iot/data_monitoring/left_pane_item.html.twig' with item %}
+                {% endfor %}
+            </div>
+        </div>
+        <div class="col-md-8 col-12">
+            <div class="wii-page-card filterService">
+                <div class="filters filters-container row pt-2">
+                    {% include 'filters/filter_item/filterDate.html.twig' with {disabled: false} %}
+                </div>
+            </div>
+            {% for item in items %}
+                {% include 'iot/data_monitoring/content.html.twig' with item %}
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
