@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\IOT\Pairing;
+use App\Entity\IOT\SensorMessageTrait;
 use App\Repository\LocationGroupRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -12,6 +13,8 @@ use Doctrine\ORM\Mapping as ORM;
  * @ORM\Entity(repositoryClass=LocationGroupRepository::class)
  */
 class LocationGroup {
+
+    use SensorMessageTrait;
 
     /**
      * @ORM\Id

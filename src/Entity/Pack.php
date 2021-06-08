@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\IOT\SensorMessageTrait;
 use App\Helper\FormatHelper;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -15,6 +16,8 @@ use App\Entity\IOT\Pairing;
  */
 class Pack
 {
+
+    use SensorMessageTrait;
 
     public const PACK_IS_GROUP = 'PACK_IS_GROUP';
 

@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\IOT\SensorMessageTrait;
 use DateTime;
 use DateTimeZone;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -20,6 +21,9 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  */
 class Article extends FreeFieldEntity
 {
+
+    use SensorMessageTrait;
+
     const CATEGORIE = 'article';
 
     const STATUT_ACTIF = 'disponible';
