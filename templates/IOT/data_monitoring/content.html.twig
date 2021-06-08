@@ -1,0 +1,9 @@
+<div class="wii-page-card mt-4">
+    {% if type == 'chart' %}
+        <div class="max-h-px-400 w-100">
+            <canvas data-chart width="400" height="400"></canvas>
+        </div>
+    {% elseif type == 'map' %}
+        <div data-map style="height:500px;width:100%"></div>
+    {% endif %}
+</div>

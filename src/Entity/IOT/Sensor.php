@@ -63,14 +63,21 @@ class Sensor
     private ?string $frequency = null;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="integer", nullable=true)
      */
-    private ?int $batteryLevel = null;
+    private ?int $battery = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=SensorProfile::class, inversedBy="sensors")
      */
     private ?SensorProfile $profile = null;
+
+    /**
+     * @var null|SensorMessage
+     * @ORM\OneToOne(targetEntity=SensorMessage::class, inversedBy="linkedSensorLastMessage")
+     * @ORM\JoinColumn(nullable=true)
+     */
+    private ?SensorMessage $lastMessage = null;
 
     /**
      * @ORM\OneToMany(targetEntity=SensorMessage::class, mappedBy="sensor")
@@ -81,13 +88,6 @@ class Sensor
      * @ORM\OneToMany(targetEntity=SensorWrapper::class, mappedBy="sensor")
      */
     private Collection $sensorWrappers;
-
-    /**
-     * @var null|SensorMessage
-     * @ORM\OneToOne(targetEntity=SensorMessage::class, inversedBy="linkedSensorLastMessage")
-     * @ORM\JoinColumn(nullable=true)
-     */
-    private ?SensorMessage $lastMessage = null;
 
     public function __construct()
     {
@@ -118,6 +118,7 @@ class Sensor
 
     public function setType(?string $type): self {
         $this->type = $type;
+
         return $this;
     }
 
@@ -221,15 +222,14 @@ class Sensor
         return $this;
     }
 
-    public function getBatteryLevel(): ?int
+    public function getBattery(): ?int
     {
-        return $this->batteryLevel;
+        return $this->battery;
     }
 
-    public function setBatteryLevel(int $batteryLevel): self
+    public function setBattery($battery): self
     {
-        $this->batteryLevel = $batteryLevel;
-
+        $this->battery = $battery;
         return $this;
     }
 

@@ -48,6 +48,14 @@ class ReferenceArticleRepository extends EntityRepository {
         "dateLastInventory"
     ];
 
+    public function getForSelect(?string $term) {
+        return $this->createQueryBuilder("reference")
+            ->select("reference.id AS id, reference.reference AS text, reference.libelle AS label")
+            ->where("reference.reference LIKE :term")
+            ->setParameter("term", "%$term%")
+            ->getQuery()
+            ->getArrayResult();
+    }
 
     public function getIdAndLibelle() {
         $entityManager = $this->getEntityManager();

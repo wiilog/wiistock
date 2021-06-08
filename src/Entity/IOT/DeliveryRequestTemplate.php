@@ -3,7 +3,10 @@
 namespace App\Entity\IOT;
 
 use App\Entity\Emplacement;
+use App\Entity\ReferenceArticle;
 use App\Repository\IOT\DeliveryRequestTemplateRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -20,6 +23,17 @@ class DeliveryRequestTemplate extends RequestTemplate {
      * @ORM\Column(type="text", nullable=true)
      */
     private ?string $comment = null;
+
+    /**
+     * @ORM\OneToMany(targetEntity=RequestTemplateLine::class, mappedBy="deliveryRequestTemplate")
+     */
+    private Collection $lines;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->lines = new ArrayCollection();
+    }
 
     public function getDestination(): ?Emplacement {
         return $this->destination;
@@ -43,6 +57,30 @@ class DeliveryRequestTemplate extends RequestTemplate {
 
     public function setComment(?string $comment): self {
         $this->comment = $comment;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ReferenceArticle[]
+     */
+    public function getLines(): Collection
+    {
+        return $this->lines;
+    }
+
+    public function addLine(ReferenceArticle $ref): self
+    {
+        if (!$this->lines->contains($ref)) {
+            $this->lines[] = $ref;
+        }
+
+        return $this;
+    }
+
+    public function removeLine(ReferenceArticle $ref): self
+    {
+        $this->lines->removeElement($ref);
 
         return $this;
     }

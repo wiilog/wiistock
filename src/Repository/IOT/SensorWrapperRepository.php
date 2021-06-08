@@ -63,10 +63,10 @@ class SensorWrapperRepository extends EntityRepository
                                 ->leftJoin('sensor_wrapper.sensor', 'order_sensor')
                                 ->orderBy('order_sensor.code', $order);
                             break;
-                        case 'batteryLevel':
+                        case 'battery':
                             $qb
                                 ->leftJoin('sensor_wrapper.sensor', 'order_sensor')
-                                ->orderBy('order_sensor.batteryLevel', $order);
+                                ->orderBy('order_sensor.battery', $order);
                             break;
                         case 'lastLift':
                             $qb

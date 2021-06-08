@@ -18,24 +18,19 @@ class HandlingRequestTemplate extends RequestTemplate {
     use AttachmentTrait;
 
     /**
-     * @ORM\Column(type="array")
-     */
-    private array $handlingFields = [];
-
-    /**
-     * @ORM\ManyToOne(targetEntity=Type::class, inversedBy="handlingRequestTypeTemplates")
-     */
-    private ?Type $requestType = null;
-
-    /**
      * @ORM\ManyToOne(targetEntity=Statut::class, inversedBy="handlingRequestStatusTemplates")
      */
     private ?Statut $requestStatus = null;
 
     /**
-     * @ORM\Column(type="date", nullable=true)
+     * @ORM\Column(type="string")
      */
-    private ?DateTimeInterface $expected = null;
+    private ?string $subject = null;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private ?int $delay = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
@@ -67,19 +62,11 @@ class HandlingRequestTemplate extends RequestTemplate {
         $this->attachments = new ArrayCollection();
     }
 
-    public function getHandlingFields(): ?array
-    {
-        return $this->handlingFields;
+    public function getRequestStatus(): ?Statut {
+        return $this->requestStatus;
     }
 
-    public function setHandlingFields(array $handlingFields): self
-    {
-        $this->handlingFields = $handlingFields;
-
-        return $this;
-    }
-
-    public function getRequestStatus(?Statut $status): self {
+    public function setRequestStatus(?Statut $status): self {
         if($this->requestStatus && $this->requestStatus !== $status) {
             $this->requestStatus->removeHandlingRequestStatusTemplate($this);
         }
@@ -91,18 +78,23 @@ class HandlingRequestTemplate extends RequestTemplate {
         return $this;
     }
 
-    public function setRequestStatus(): ?Statut {
-        return $this->requestStatus;
+    public function getSubject(): ?string {
+        return $this->subject;
     }
 
-    public function getExpected(): ?DateTimeInterface
-    {
-        return $this->expected;
+    public function setSubject(?string $subject): self {
+        $this->subject = $subject;
+        return $this;
     }
 
-    public function setExpected(?DateTimeInterface $expected): self
+    public function getDelay(): ?int
     {
-        $this->expected = $expected;
+        return $this->delay;
+    }
+
+    public function setDelay(?int $delay): self
+    {
+        $this->delay = $delay;
 
         return $this;
     }

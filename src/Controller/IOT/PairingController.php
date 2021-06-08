@@ -15,8 +15,10 @@ use App\Entity\Pack;
 use App\Entity\Preparation;
 
 use Doctrine\ORM\EntityManagerInterface;
+use App\Service\DataMonitoringService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
+
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -80,4 +82,16 @@ class PairingController extends AbstractController {
 
         return $this->json($rows);
     }
+
+    /**
+     * @Route("/voir/{pairing}", name="pairing_show")
+     * @HasPermission({Menu::IOT, Action::DISPLAY_PAIRING})
+     */
+    public function show(DataMonitoringService $service, Pairing $pairing): Response {
+        return $service->render([
+            "title" => "IOT | Associations | Détails",
+            "entities" => [$pairing],
+        ]);
+    }
+
 }

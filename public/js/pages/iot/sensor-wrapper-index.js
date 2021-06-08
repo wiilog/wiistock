@@ -27,7 +27,7 @@ function initPageDataTable() {
             {"data": 'name', 'name': 'name', 'title': 'Nom'},
             {"data": 'code', 'name': 'code', 'title': 'Code'},
             {"data": 'lastLift', 'name': 'lastLift', 'title': 'Dernière remontée'},
-            {"data": 'batteryLevel', 'name': 'batteryLevel', 'title': 'Niveau de batterie'},
+            {"data": 'battery', 'name': 'battery', 'title': 'Niveau de batterie'},
             {"data": 'manager', 'name': 'manager', 'title': 'Gestionnaire'},
         ]
     };

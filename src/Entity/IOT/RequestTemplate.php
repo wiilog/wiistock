@@ -14,7 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
  * @ORM\InheritanceType("JOINED")
  * @ORM\DiscriminatorColumn(name="discr", type="string")
  */
-class RequestTemplate extends FreeFieldEntity {
+abstract class RequestTemplate extends FreeFieldEntity {
 
     public const TYPE_HANDLING = 1;
     public const TYPE_DELIVERY = 2;

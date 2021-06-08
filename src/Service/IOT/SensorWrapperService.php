@@ -49,7 +49,7 @@ class SensorWrapperService
             'name' => $sensorWrapper->getName() ?? '',
             'code' => $sensor ? $sensor->getCode() : '',
             'lastLift' => $lastLift ? FormatHelper::datetime($lastLift->getDate()) : '',
-            'batteryLevel' => $sensor ? ($sensor->getBatteryLevel() . '%') : '',
+            'battery' => $sensor ? ($sensor->getBattery() . '%') : '',
             'manager' => FormatHelper::user($sensorWrapper->getManager()),
             'actions' => $this->templating->render('iot/sensor_wrapper/actions.html.twig', [
                 'sensor_wrapper' => $sensorWrapper,
