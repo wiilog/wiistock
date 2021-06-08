@@ -15,7 +15,6 @@ use App\Entity\IOT\Pairing;
  */
 class OrdreCollecte
 {
-
     use SensorMessageTrait;
 
     const CATEGORIE = 'ordreCollecte';
@@ -88,6 +87,7 @@ class OrdreCollecte
         $this->ordreCollecteReferences = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
         $this->pairings = new ArrayCollection();
+        $this->sensorMessages = new ArrayCollection();
     }
 
 
