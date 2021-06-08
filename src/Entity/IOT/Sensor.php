@@ -13,6 +13,9 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Sensor
 {
+    const TEMP_TYPE = 'Température';
+    const GPS_TYPE = 'GPS';
+    const ACTION_TYPE = 'Action';
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -21,7 +24,7 @@ class Sensor
     private ?int $id = null;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, unique=true)
      */
     private ?string $code = null;
 

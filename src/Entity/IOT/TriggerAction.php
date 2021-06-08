@@ -3,14 +3,33 @@
 namespace App\Entity\IOT;
 
 use App\Repository\IOT\TriggerActionRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
+use phpDocumentor\Reflection\Types\Boolean;
 
 /**
  * @ORM\Entity(repositoryClass=TriggerActionRepository::class)
  * @ORM\Table(name="`trigger_action`")
  */
-class TriggerAction {
+class TriggerAction
+{
+    const REQUEST = "request";
+    const ALERT = "alert";
+
+    const TEMPLATE_TYPES = [
+        "Demande" => self::REQUEST,
+        "Alerte" => self::ALERT,
+    ];
+
+    const LOWER = "lower";
+    const HIGHER = "higher";
+
+    const TEMPLATE_TEMPERATURE = [
+        "Inférieure" => self::LOWER,
+        "Supérieure" => self::HIGHER,
+    ];
 
     /**
      * @ORM\Id
@@ -20,7 +39,7 @@ class TriggerAction {
     private ?int $id = null;
 
     /**
-     * @ORM\Column(type="array")
+     * @ORM\Column(type="json")
      */
     private ?array $config = [];
 
@@ -74,6 +93,10 @@ class TriggerAction {
         return $this;
     }
 
+    public function isRequest(): bool {
+        return $this->getRequestTemplate() != null;
+    }
+
     public function getAlertTemplate(): ?AlertTemplate {
         return $this->alertTemplate;
     }
@@ -88,6 +111,10 @@ class TriggerAction {
         }
 
         return $this;
+    }
+
+    public function isAlert(): bool {
+        return $this->getAlertTemplate() != null;
     }
 
     public function getSensorWrapper(): ?SensorWrapper {

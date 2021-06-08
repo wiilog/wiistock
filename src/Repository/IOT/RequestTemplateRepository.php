@@ -58,4 +58,13 @@ class RequestTemplateRepository extends EntityRepository {
         ];
     }
 
+    public function getTemplateForSelect(){
+        $qb = $this->createQueryBuilder("request_template");
+
+        $qb->select("request_template.id AS id")
+            ->addSelect("request_template.name AS text");
+
+        return $qb->getQuery()->getResult();
+    }
+
 }
