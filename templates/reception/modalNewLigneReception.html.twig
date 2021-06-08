@@ -1,3 +1,5 @@
+{% set restrictedLocations = restrictedLocations is defined and restrictedLocations %}
+
 <form method="" class="modal fade" id="modalNewLigneReception" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -56,6 +58,7 @@
                                     <option></option>
                                 </select>
                             </div>
+                            <input type="hidden" name="restrictedLocations" value="{{ restrictedLocations }}">
                         </div>
                     </div>
 

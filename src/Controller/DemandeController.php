@@ -111,6 +111,7 @@ class DemandeController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $demandeRepository = $entityManager->getRepository(Demande::class);
+            $globalSettingsRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
             $demande = $demandeRepository->find($data['id']);
 
@@ -145,7 +146,8 @@ class DemandeController extends AbstractController
                 'typeChampsLibres' => $typeChampLibre,
                 'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
                 'defaultDeliveryLocations' => $globalParamService->getDefaultDeliveryLocationsByTypeId($entityManager),
-            ]));
+                'restrictedLocations' => $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST),
+                ]));
         }
         throw new BadRequestHttpException();
     }

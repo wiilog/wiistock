@@ -390,6 +390,7 @@ class CollecteController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $collecteRepository = $entityManager->getRepository(Collecte::class);
+            $globalSettingsRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
             $collecte = $collecteRepository->find($data['id']);
 			$listTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
@@ -421,7 +422,8 @@ class CollecteController extends AbstractController
                 'collecte' => $collecte,
                 'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]),
 				'typeChampsLibres' => $typeChampLibre,
-                'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes
+                'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
+                'restrictedLocations' => $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST),
             ]);
 
             return new JsonResponse($json);

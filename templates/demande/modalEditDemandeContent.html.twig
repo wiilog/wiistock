@@ -1,3 +1,5 @@
+{% set restrictedLocations = restrictedLocations is defined and restrictedLocations %}
+
 <div class="form-group">
     <label for="utilisateur">Demandeur</label>
     <select disabled class="form-control select2 data" name="demandeur">
@@ -78,6 +80,7 @@
             {% endif %}
         </select>
     </div>
+    <input type="hidden" name="restrictedLocations" value="{{ restrictedLocations }}">
 
     <!-- CHAMPS LIBRES -->
     <span class="toggle-collapsible expanded">Champs libres</span>
