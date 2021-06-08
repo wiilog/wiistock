@@ -210,17 +210,5 @@ class SensorWrapperController extends AbstractController
         return $this->json($data);
     }
 
-    /**
-     * @Route("/get-sensor-wrappers", name="get_sensor_wrappers", options={"expose"=true}, methods={"POST|GET"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::IOT, Action::DISPLAY_SENSOR})
-     */
-    public function getSensorWrappers(EntityManagerInterface $entityManager): Response {
-
-        $sensorWrappers = $entityManager->getRepository(SensorWrapper::class)->getForSelect();
-        return $this->json([
-            'results' => $sensorWrappers
-        ]);
-    }
-
 }
 

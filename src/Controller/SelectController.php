@@ -10,6 +10,7 @@ use App\Entity\DepositTicket;
 use App\Entity\Emplacement;
 use App\Entity\Group;
 use App\Entity\IOT\Sensor;
+use App\Entity\IOT\SensorWrapper;
 use App\Entity\Location;
 use App\Entity\Quality;
 use App\Entity\ReferenceArticle;
@@ -112,13 +113,24 @@ class SelectController extends AbstractController {
     }
 
     /**
-     * @Route("/select/capteurs", name="ajax_select_sensors", options={"expose": true})
+     * @Route("/select/capteurs-bruts", name="ajax_select_sensors", options={"expose": true})
      */
     public function sensors(Request $request, EntityManagerInterface $manager): Response {
         $results = $manager->getRepository(Sensor::class)->getForSelect($request->query->get("term"));
 
         return $this->json([
             "results" => $results,
+        ]);
+    }
+
+    /**
+     * @Route("/select/capteurs", name="ajax_select_sensor_wrappers", options={"expose"=true})
+     */
+    public function getSensorWrappers(Request $request, EntityManagerInterface $entityManager): Response {
+        $results = $entityManager->getRepository(SensorWrapper::class)->getForSelect($request->query->get("term"));
+
+        return $this->json([
+            "results" => $results
         ]);
     }
 

@@ -3,10 +3,6 @@ let sensorWrappersSelectValue = '';
 $(function () {
     pairingList();
 
-    Select2Old.init($('.filter-select2[name=sensorWrappers]'), 'Capteur(s)', 1, {
-        route: 'get_sensor_wrappers'
-    });
-
     const $search = $('.search-bar').find('input[name=search]');
     $search.on('keyup', delay(() => {
         const activeButtons = getActiveButtonsValues();

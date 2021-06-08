@@ -3,19 +3,20 @@ import 'select2';
 import {GROUP_WHEN_NEEDED} from "./app";
 
 const ROUTES = {
-    handling_type: `ajax_select_handling_type`,
-    delivery_type: `ajax_select_delivery_type`,
-    collect_type: `ajax_select_collect_type`,
+    handlingType: `ajax_select_handling_type`,
+    deliveryType: `ajax_select_delivery_type`,
+    collectType: `ajax_select_collect_type`,
     status: `ajax_select_status`,
     location: `ajax_select_locations`,
     sensor: `ajax_select_sensors`,
+    sensorWrapper: `ajax_select_sensor_wrappers`,
     reference: `ajax_select_references`,
 }
 
 const INSTANT_SELECT_TYPES = {
-    handling_type: true,
-    delivery_type: true,
-    collect_type: true,
+    handlingType: true,
+    deliveryType: true,
+    collectType: true,
     status: true,
 }
 
