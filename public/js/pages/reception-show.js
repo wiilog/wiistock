@@ -561,6 +561,10 @@ function initNewLigneReception($button) {
         param: {reception: $('#receptionId').val()}
     });
 
+    if ($('#locationDemandeLivraison').length > 0) {
+        Select2Old.initValues($('#locationDemandeLivraison'), $('#locationDemandeLivraisonValue'));
+    }
+
     if ($('#storageTransfer').length > 0) {
         Select2Old.initValues($('#storage'), $('#storageTransfer'));
     }
