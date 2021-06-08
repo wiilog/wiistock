@@ -5,7 +5,6 @@ $(document).ready(() => $(`[data-chart]`).each((i, elem) => initLineChart(elem))
     .arrive(`[data-chart]`, elem => initLineChart(elem));
 
 function initMap(element, route = 'map_data_api') {
-    console.log(element);
     $.get(Routing.generate(route, true), function (response) {
         let map = Leaflet.map(element).setView([44.831598, -0.577096], 13);
 
@@ -66,7 +65,6 @@ function initMap(element, route = 'map_data_api') {
 }
 
 function initLineChart(element, route = 'chart_data_api') {
-    console.log(element);
     const $canvas = $(element);
 
     $.get(Routing.generate(route, true), function (response) {
@@ -101,5 +99,5 @@ function initLineChart(element, route = 'chart_data_api') {
                 spanGaps: true,
             }
         });
-    })
+    });
 }
