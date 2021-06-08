@@ -7,6 +7,7 @@ namespace App\Entity\IOT;
 use App\Entity\Attachment;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\Entity\IOT\SensorMessage as SensorMessage;
 
 trait SensorMessageTrait
 {
