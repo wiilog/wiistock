@@ -50,6 +50,7 @@ class LocationGroup {
 
     public function __construct() {
         $this->locations = new ArrayCollection();
+        $this->sensorMessages = new ArrayCollection();
     }
 
     public function getId(): ?int {

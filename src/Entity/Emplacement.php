@@ -17,9 +17,9 @@ use App\Entity\IOT\Pairing;
  */
 class Emplacement
 {
-    const LABEL_A_DETERMINER = 'A DETERMINER';
-
     use SensorMessageTrait;
+
+    const LABEL_A_DETERMINER = 'A DETERMINER';
 
     /**
      * @ORM\Id()
@@ -177,6 +177,7 @@ class Emplacement
         $this->pairings = new ArrayCollection();
         $this->deliveryRequestTemplates = new ArrayCollection();
         $this->collectRequestTemplates = new ArrayCollection();
+        $this->sensorMessages = new ArrayCollection();
     }
 
     public function getId(): ? int

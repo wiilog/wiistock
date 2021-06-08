@@ -93,6 +93,7 @@ class Preparation
         $this->articles = new ArrayCollection();
         $this->ligneArticlePreparations = new ArrayCollection();
         $this->pairings = new ArrayCollection();
+        $this->sensorMessages = new ArrayCollection();
     }
 
     public function getId(): ?int

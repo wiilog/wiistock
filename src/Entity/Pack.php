@@ -147,6 +147,7 @@ class Pack
         $this->childTrackingMovements = new ArrayCollection();
         $this->quantity = 1;
         $this->pairings = new ArrayCollection();
+        $this->sensorMessages = new ArrayCollection();
     }
 
     public function getId(): ?int

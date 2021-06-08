@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\IOT\SensorMessage;
 use App\Entity\IOT\SensorMessageTrait;
 use DateTime;
 use DateTimeZone;
@@ -21,7 +22,6 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  */
 class Article extends FreeFieldEntity
 {
-
     use SensorMessageTrait;
 
     const CATEGORIE = 'article';
@@ -214,6 +214,7 @@ class Article extends FreeFieldEntity
         $this->quantite = 0;
         $this->alerts = new ArrayCollection();
         $this->pairings = new ArrayCollection();
+        $this->sensorMessages = new ArrayCollection();
     }
 
     public function getId(): ?int
