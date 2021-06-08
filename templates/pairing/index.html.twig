@@ -1,0 +1,36 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}IoT | Associations{% endblock %}
+
+{% block page_filter %}
+    {% include 'filters/filtersPairing.html.twig' %}
+{% endblock %}
+
+{% block page_content %}
+    <div class="m-4 wii-page-card">
+        <div class="row">
+            <div class="form-group search-bar d-flex w-25 align-items-center ml-3">
+                <label class="mr-2 text-nowrap">Rechercher :</label>
+                <input class="form-control data w-50" type="text" name="search">
+            </div>
+            <div class="col-auto ml-auto">
+                <div class="btn-group">
+                    {% if hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::CREATE')) %}
+                        <button type="button"
+                                class="btn btn-primary split-button btn-ripple">
+                            <span class="fa fa-plus mr-2"></span>
+                            Associer un capteur
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="row pairings">
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/pages/iot/pairing-index.js') }}?v={{ web_version }}"></script>
+{% endblock %}

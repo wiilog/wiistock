@@ -103,4 +103,13 @@ class SensorWrapperRepository extends EntityRepository
             'total' => $total
         ];
     }
+
+    public function getForSelect() {
+        $qb = $this->createQueryBuilder("sensor_wrapper");
+
+        return $qb->select("sensor_wrapper.id AS id")
+            ->addSelect("sensor_wrapper.name AS text")
+            ->getQuery()
+            ->getResult();
+    }
 }

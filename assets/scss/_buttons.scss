@@ -9,8 +9,8 @@
 .btn-primary,
 .btn-primary.dropdown-toggle{
     &:hover,
-    &:focus,
-    &:active,
+    &:focus:not(.pairing-button),
+    &:active:not(.pairing-button),
     &:disabled {
         background-color: $blueButton !important;
         color: $white !important;

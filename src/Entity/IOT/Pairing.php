@@ -229,27 +229,17 @@ class Pairing
     }
 
     public function setEntity($entity) {
-        $ref = new ReflectionClass($entity);
-        $class = $ref->getShortName();
 
-        switch ($class) {
-            case Emplacement::class:
-                $this->setLocation($entity);
-                break;
-            case Article::class:
-                $this->setArticle($entity);
-                break;
-            case Pack::class:
-                $this->setPack($entity);
-                break;
-            case Preparation::class:
-                $this->setPreparationOrder($entity);
-                break;
-            case OrdreCollecte::class:
-                $this->setCollectOrder($entity);
-                break;
-            default:
-                break;
+        if($entity instanceof Emplacement) {
+            $this->setLocation($entity);
+        } else if($entity instanceof Article) {
+            $this->setArticle($entity);
+        } else if($entity instanceof Pack) {
+            $this->setPack($entity);
+        } else if($entity instanceof Preparation) {
+            $this->setPreparationOrder($entity);
+        } else if($entity instanceof OrdreCollecte) {
+            $this->setCollectOrder($entity);
         }
     }
 

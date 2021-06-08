@@ -34,5 +34,4 @@ class SensorRepository extends EntityRepository {
             ->getQuery()
             ->getArrayResult();
     }
-
 }

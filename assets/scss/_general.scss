@@ -418,3 +418,52 @@ label.required:after {
 .tooltip {
     pointer-events: none;
 }
+
+.wii-icon-pairing {
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+    background-color: white;
+    margin: auto 0;
+}
+
+.pairings {
+    .pairing-container {
+        border-radius: 5px;
+        width: 250px;
+        margin-bottom: 20px;
+
+        .sensor-details {
+            height: 80px;
+        }
+
+        .type {
+            background-color: #f5f7f6;;
+            width: 100%;
+
+            .wii-icon {
+                background-color: black;
+                width: 25px;
+                height: 25px;
+                display: inline-block;
+            }
+        }
+
+        .name {
+            width: 100%;
+        }
+
+        .element {
+            width: 100%;
+            height: 40px;
+            background-color: #FFF8DC;
+
+            .wii-icon {
+                background-color: black;
+                width: 25px;
+                height: 25px;
+                display: inline-block;
+            }
+        }
+    }
+}

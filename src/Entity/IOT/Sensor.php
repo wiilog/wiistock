@@ -13,6 +13,33 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Sensor
 {
+    const TEMP_TYPE = 'Température';
+    const GPS_TYPE = 'GPS';
+    const ACTION_TYPE = 'Action';
+
+    const TEMPERATURE = 'temperature';
+    const TRACKING = 'tracking';
+    const ACTION = 'action';
+
+    const SENSORS = [
+        self::TEMP_TYPE => self::TEMPERATURE,
+        self::GPS_TYPE => self::TRACKING,
+    ];
+
+    const LOCATION = 'location';
+    const PACK = 'pack';
+    const ARTICLE = 'article';
+    const PREPARATION = 'preparation';
+    const COLLECT = 'collect';
+
+    const CATEGORIES = [
+        'Emplacement' => self::LOCATION,
+        'Colis' => self::PACK,
+        'Article' => self::ARTICLE,
+        'Préparation' => self::PREPARATION,
+        'Ordre de collecte' => self::COLLECT,
+    ];
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
