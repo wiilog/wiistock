@@ -23,7 +23,8 @@ import '../scss/app.scss';
 
 import './tooltips';
 import './select2';
-import './modals-commons'
+import './modals-commons';
+import './data-monitoring';
 
 ///////////////// Main
 
