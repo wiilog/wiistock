@@ -32,8 +32,12 @@ class DataMonitoringService {
                     "type" => "sensor",
                     "icon" => "traca",
                     "title" => $entity->getSensorWrapper()->getName(),
-                    "subtitle" => ["Associé le : $start", "Fin le : $end"],
+                    "subtitle" => [
+                        "Associé le : $start",
+                        "Fin le : <span class=\"pairing-end-date-{$entity->getId()}\">$end</span>"
+                    ],
                     "color" => "#2A72B0",
+                    "pairing" => $entity,
                 ];
             }
         }

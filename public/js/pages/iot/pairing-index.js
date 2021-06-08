@@ -44,7 +44,7 @@ function pairingList(search = '', filter = '', types = '', elements = '') {
                 pairings.forEach((pairing) => {
                     const $pairingContainer = `
                     <div class="col-lg-3 col-md-4 col-12 pairing-container">
-                        <div class="card wii-card request-card pointer shadow-sm bg-white">
+                        <a class="card wii-card request-card pointer shadow-sm bg-white" href="${Routing.generate('pairing_show', {pairing: pairing.id})}">
                             <div class="d-flex sensor-details">
                                 <div class="type d-flex justify-content-center align-items-center">
                                     <span class="wii-icon wii-icon-iot-${pairing.typeIcon}"></span>
@@ -57,7 +57,7 @@ function pairingList(search = '', filter = '', types = '', elements = '') {
                                 <span class="wii-icon wii-icon-iot-${pairing.elementIcon} mr-2"></span>
                                 ${pairing.element}
                             </div>
-                        </div>
+                        </a>
                     </div>`;
 
                     $pairings.append($pairingContainer);

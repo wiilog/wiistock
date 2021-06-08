@@ -14,12 +14,16 @@ use App\Entity\OrdreCollecte;
 use App\Entity\Pack;
 use App\Entity\Preparation;
 
+use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Helper\FormatHelper;
 use App\Service\DataMonitoringService;
+use DateTime;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -72,6 +76,7 @@ class PairingController extends AbstractController {
             }
 
             $rows[] = [
+                "id" => $pairing->getId(),
                 "type" => $type,
                 "typeIcon" => Sensor::SENSORS[$type],
                 "name" => $pairing->getSensorWrapper() ? $pairing->getSensorWrapper()->getName() : '',
@@ -84,7 +89,7 @@ class PairingController extends AbstractController {
     }
 
     /**
-     * @Route("/voir/{pairing}", name="pairing_show")
+     * @Route("/voir/{pairing}", name="pairing_show", options={"expose"=true})
      * @HasPermission({Menu::IOT, Action::DISPLAY_PAIRING})
      */
     public function show(DataMonitoringService $service, Pairing $pairing): Response {
@@ -92,6 +97,50 @@ class PairingController extends AbstractController {
             "title" => "IOT | Associations | Détails",
             "entities" => [$pairing],
         ]);
+    }
+
+    /**
+     * @Route("/dissocier/{pairing}", name="unpair", options={"expose"=true})
+     * @HasPermission({Menu::IOT, Action::DISPLAY_PAIRING})
+     */
+    public function unpair(EntityManagerInterface $manager, Pairing $pairing): Response {
+        $pairing->setEnd(new DateTime());
+        $manager->flush();
+
+        return $this->json([
+            "success" =>  true,
+            "selector" => ".pairing-end-date-{$pairing->getId()}",
+            "date" => FormatHelper::datetime($pairing->getEnd()),
+        ]);
+    }
+
+    /**
+     * @Route("/modifier-fin", name="pairing_edit_end", options={"expose"=true})
+     * @HasPermission({Menu::IOT, Action::DISPLAY_PAIRING})
+     */
+    public function modifyEnd(Request $request, EntityManagerInterface $manager): Response {
+        if($data = json_decode($request->getContent(), true)) {
+            $pairing = $manager->find(Pairing::class, $data["id"]);
+
+            $end = new DateTime($data["end"], new DateTimeZone("Europe/Paris"));
+            if($end < new DateTime("now", new DateTimeZone("Europe/Paris"))) {
+                return $this->json([
+                    "success" => false,
+                    "msg" => "La date de fin doit être supérieure à la date actuelle",
+                ]);
+            }
+
+            $pairing->setEnd($end);
+            $manager->flush();
+
+            return $this->json([
+                "success" => true,
+                "selector" => ".pairing-end-date-{$pairing->getId()}",
+                "date" => FormatHelper::datetime($pairing->getEnd()),
+            ]);
+        }
+
+        throw new BadRequestHttpException();
     }
 
 }

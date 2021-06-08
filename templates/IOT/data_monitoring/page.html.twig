@@ -23,4 +23,11 @@
             {% endfor %}
         </div>
     </div>
+
+    {% include 'iot/data_monitoring/edit_pairing_end.html.twig' %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/pages/iot/data-monitoring.js') }}?v={{ web_version }}"></script>
 {% endblock %}

@@ -5,6 +5,8 @@ namespace App\Repository\IOT;
 use App\Entity\IOT\Pairing;
 use App\Helper\QueryCounter;
 use App\Entity\IOT\Sensor;
+use DateTime;
+use DateTimeZone;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -25,7 +27,9 @@ class PairingRepository extends EntityRepository
             ->leftJoin('sensors_pairing.sensorWrapper', 'sensor_wrapper')
             ->leftJoin('sensor_wrapper.sensor', 'sensor')
             ->where('sensor = :sensor')
-            ->setParameter('sensor', $sensor);
+            ->andWhere("sensors_pairing.end IS NULL or sensors_pairing.end > :now")
+            ->setParameter('sensor', $sensor)
+            ->setParameter("now", new DateTime("now", new DateTimeZone('Europe/Paris')));
 
         $total = QueryCounter::count($qb, "sensors_pairing");
 

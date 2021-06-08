@@ -7,13 +7,15 @@
         {% endif %}
     </div>
 
-    <div class="dropdown">
+    <div class="dropdown dropleft">
         <img src="{{ asset('svg/dotsblack.svg') }}" alt="Actions" height="20px" width="8px"
              data-toggle="dropdown" class="association-actions"/>
         <div class="dropdown-menu dropdown-follow-gt pointer">
             {% if type == 'sensor' %}
-                <button class="dropdown-item pointer"><i class="fas fa-edit"></i> Modifier fin association</button>
-                <button class="dropdown-item pointer"><i class="fas fa-unlink"></i> Dissocier</button>
+                <button class="dropdown-item pointer" data-toggle="modal" data-target="#modalEditPairingEnd" data-id="{{ pairing.id }}">
+                    <i class="fas fa-edit"></i> Modifier fin association
+                </button>
+                <button class="dropdown-item pointer" onclick="unpair({{ pairing.id }})"><i class="fas fa-unlink"></i> Dissocier</button>
             {% elseif type == 'entity' %}
                 <button class="dropdown-item pointer"><i class="fas fa-wifi"></i> Voir l'historique des données</button>
             {% endif %}

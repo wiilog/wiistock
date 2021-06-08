@@ -1,8 +1,35 @@
-$(document).ready(() => $(`[data-map]`).each((i, elem) => initMap(elem)))
-    .arrive(`[data-map]`, elem => initMap(elem));
+$(document).ready(() => {
+    $(`[data-map]`).each((i, elem) => initMap(elem));
+    $(`[data-chart]`).each((i, elem) => initLineChart(elem));
 
-$(document).ready(() => $(`[data-chart]`).each((i, elem) => initLineChart(elem)))
-    .arrive(`[data-chart]`, elem => initLineChart(elem));
+    $(document).arrive(`[data-map]`, elem => initMap(elem));
+    $(document).arrive(`[data-chart]`, elem => initLineChart(elem));
+
+    const $editEndButton = $(`button[data-target="#modalEditPairingEnd"]`);
+    if ($editEndButton.exists()) {
+        $editEndButton.click(function () {
+            console.log($(this), $(this).data('id'));
+            modalEditPairingEnd.find(`input[name="id"]`).val($(this).data(`id`));
+        });
+
+        const modalEditPairingEnd = $("#modalEditPairingEnd");
+        const submitEditPairingEnd = $("#submitEditPairingEnd");
+        const urlEditPairingEnd = Routing.generate('pairing_edit_end', {});
+        InitModal(modalEditPairingEnd, submitEditPairingEnd, urlEditPairingEnd, {
+            success: response => {
+                $(response.selector).text(response.date);
+            }
+        });
+    }
+});
+
+function unpair(pairing) {
+    $.post(Routing.generate(`unpair`, {pairing}), function (response) {
+        if (response.success) {
+            window.href.location = Routing.generate(`pairing_index`);
+        }
+    })
+}
 
 function initMap(element, route = 'map_data_api') {
     $.get(Routing.generate(route, true), function (response) {

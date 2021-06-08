@@ -229,6 +229,13 @@ class Pairing
     }
 
     public function setEntity($entity) {
+        if($entity === null) {
+            $this->setLocation(null);
+            $this->setArticle(null);
+            $this->setPack(null);
+            $this->setPreparationOrder(null);
+            $this->setCollectOrder(null);
+        }
 
         if($entity instanceof Emplacement) {
             $this->setLocation($entity);
@@ -255,7 +262,7 @@ class Pairing
         } else if($this->getCollectOrder() !== null) {
             return $this->collectOrder;
         } else {
-            return '';
+            return null;
         }
     }
 }
