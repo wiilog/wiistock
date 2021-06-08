@@ -19,6 +19,7 @@ function initPageDataTable() {
             needsSearchOverride: true,
         },
         columns: [
+            {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},
             {data: 'element', name: 'element', title: 'Elément'},
             {data: 'start', name: 'start', title: 'Date d\'association'},
             {data: 'end', name: 'end', title: 'Date de fin d\'association'},

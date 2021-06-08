@@ -7,15 +7,20 @@ use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
 use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
+use Twig\Environment as Twig_Environment;
 
 class PairingService
 {
     /** @Required */
-    public EntityManagerInterface $em;
+    public EntityManagerInterface $entityManager;
+
+    /** @Required */
+    public Twig_Environment $twigEnvironment;
 
     public function getDataForDatatable(Sensor $sensor, $params = null)
     {
-        $queryResult = $this->em->getRepository(Pairing::class)->findByParams($params, $sensor);
+        $pairingRepository = $this->entityManager->getRepository(Pairing::class);
+        $queryResult = $pairingRepository->findByParams($params, $sensor);
 
         $pairings = $queryResult['data'];
 
@@ -35,6 +40,9 @@ class PairingService
         $element = $pairing->getEntity();
 
         return [
+            'actions' => $this->twigEnvironment->render('IOT/sensors_pairing/actions.html.twig', [
+                'pairingId' => $pairing->getId()
+            ]),
             'id' => $pairing->getId(),
             'element' => (string) $element,
             'start' => FormatHelper::datetime($pairing->getStart()),
