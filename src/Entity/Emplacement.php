@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Entity\IOT\CollectRequestTemplate;
 use App\Entity\IOT\DeliveryRequestTemplate;
+use App\Entity\IOT\SensorMessageTrait;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -17,6 +18,8 @@ use App\Entity\IOT\Pairing;
 class Emplacement
 {
     const LABEL_A_DETERMINER = 'A DETERMINER';
+
+    use SensorMessageTrait;
 
     /**
      * @ORM\Id()

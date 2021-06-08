@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\IOT\SensorMessageTrait;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -14,6 +15,9 @@ use App\Entity\IOT\Pairing;
  */
 class OrdreCollecte
 {
+
+    use SensorMessageTrait;
+
     const CATEGORIE = 'ordreCollecte';
 
     const STATUT_A_TRAITER = 'à traiter';

@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\IOT\SensorMessageTrait;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -14,6 +15,8 @@ use App\Entity\IOT\Pairing;
  */
 class Preparation
 {
+    use SensorMessageTrait;
+
     const CATEGORIE = 'preparation';
     const STATUT_A_TRAITER = 'à traiter';
     const STATUT_EN_COURS_DE_PREPARATION = 'en cours de préparation';
