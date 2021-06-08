@@ -52,13 +52,15 @@ class IOTController extends AbstractFOSRestController
         $sensorRepository = $entityManager->getRepository(Sensor::class);
         $messageRepository = $entityManager->getRepository(SensorMessage::class);
 
-
         $temperatureSensors = $sensorRepository->findBy([
             'type' => IOTService::GPS_TYPE
         ]);
-        $associatedMessages = $messageRepository->findBy([
-            'sensor' => $temperatureSensors
-        ], ['date' => 'ASC']);
+
+
+        $associatedMessages = $messageRepository->findBy(
+            ['sensor' => $temperatureSensors],
+            ['date' => 'ASC']
+        );
 
         $data = [];
 
@@ -66,15 +68,15 @@ class IOTController extends AbstractFOSRestController
             $date = $message->getDate();
             $sensor = $message->getSensor();
 
-            $index = $date->format('Y-m-d H:i:s');
-            $sensorIndex = $sensor->getCode();
-            if (!isset($data[$sensorIndex])) {
-                $data[$index] = [];
+            $dateStr = $date->format('Y-m-d H:i:s');
+            $sensorCode = $sensor->getCode();
+            if (!isset($data[$sensorCode])) {
+                $data[$sensorCode] = [];
             }
             $coordinates = Stream::explode(',', $message->getContent())
                 ->map(fn($coordinate) => floatval($coordinate))
                 ->toArray();
-            $data[$sensorIndex][$index] = $coordinates;
+            $data[$sensorCode][$dateStr] = $coordinates;
         }
         return new JsonResponse($data);
     }
@@ -86,7 +88,6 @@ class IOTController extends AbstractFOSRestController
     {
         $sensorRepository = $entityManager->getRepository(Sensor::class);
         $messageRepository = $entityManager->getRepository(SensorMessage::class);
-
 
         $temperatureSensors = $sensorRepository->findBy([
             'type' => IOTService::TEMP_TYPE
@@ -109,12 +110,12 @@ class IOTController extends AbstractFOSRestController
             $date = $message->getDate();
             $sensor = $message->getSensor();
 
-            $index = $date->format('Y-m-d H:i:s');
-            $sensorIndex = $sensor->getCode();
-            if (!isset($data[$index])) {
-                $data[$index] = [];
+            $dateStr = $date->format('Y-m-d H:i:s');
+            $sensorCode = $sensor->getCode();
+            if (!isset($data[$dateStr])) {
+                $data[$dateStr] = [];
             }
-            $data[$index][$sensorIndex] = floatval($message->getContent());
+            $data[$dateStr][$sensorCode] = floatval($message->getContent());
         }
         return new JsonResponse($data);
     }
