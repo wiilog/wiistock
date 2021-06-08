@@ -30,6 +30,15 @@ let submitDeleteOrdreCollecte = $('#submitDeleteOrdreCollecte');
 let urlDeleteOrdreCollecte = Routing.generate('ordre_collecte_delete',{'id':id}, true);
 InitModal(modalDeleteOrdreCollecte, submitDeleteOrdreCollecte, urlDeleteOrdreCollecte, {tables: [tableArticle]});
 
+let modalNewSensorPairing = $("#modalNewSensorPairing");
+let submitNewSensorPairing = $("#submitNewSensorPairing");
+let urlNewSensorPairing = Routing.generate('sensor_pairing_new', true)
+InitModal(modalNewSensorPairing, submitNewSensorPairing, urlNewSensorPairing, {
+    success: () => {
+        window.location.reload();
+    }
+});
+
 let urlFinishCollecte = Routing.generate('ordre_collecte_finish', {'id': id}, true);
 let modalFinishCollecte = $("#modalFinishCollecte");
 let $submitFinishCollecte = $("#submitFinishCollecte");

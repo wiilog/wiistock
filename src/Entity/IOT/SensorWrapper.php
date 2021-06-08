@@ -108,7 +108,7 @@ class SensorWrapper extends FreeFieldEntity
 
     public function addPairing(Pairing $pairing): self {
         if (!$this->pairings->contains($pairing)) {
-            $this->$pairing[] = $pairing;
+            $this->pairings[] = $pairing;
             $pairing->setSensorWrapper($this);
         }
 

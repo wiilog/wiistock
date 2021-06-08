@@ -7,6 +7,8 @@ use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\IOT\Pairing;
+use App\Entity\IOT\SensorWrapper;
 use App\Entity\MailerServer;
 use App\Entity\MouvementStock;
 use App\Entity\TrackingMovement;
@@ -102,6 +104,14 @@ class OrdreCollecteService
                                    array $mouvements,
                                    bool $fromNomade = false)
 	{
+
+        $pairings = $ordreCollecte->getPairings();
+        foreach ($pairings as $pairing){
+            if($pairing->isActive()){
+                $pairing->setActive(false);
+            }
+        }
+
 		$em = $this->entityManager;
 
 		$statutRepository = $em->getRepository(Statut::class);
@@ -321,6 +331,11 @@ class OrdreCollecteService
 			'Type' => $demandeCollecte && $demandeCollecte->getType() ? $demandeCollecte->getType()->getLabel() : '',
 			'Actions' => $this->templating->render('ordre_collecte/datatableCollecteRow.html.twig', [
 				'url' => $url,
+                'titleLogo' => !$collecte
+                        ->getPairings()
+                        ->filter(fn(Pairing $pairing) =>
+                        $pairing->isActive()
+                        )->isEmpty() ? 'pairing' : null
 			])
 		];
 	}
@@ -515,4 +530,17 @@ class OrdreCollecteService
             $csvService->putLine($handle, $data);
         }
     }
+
+    public function createPairing(SensorWrapper $sensorWrapper, OrdreCollecte $orderCollect){
+        $pairing = new Pairing();
+        $start =  new DateTime("now", new DateTimeZone("Europe/Paris"));
+        $pairing
+            ->setStart($start)
+            ->setSensorWrapper($sensorWrapper)
+            ->setCollectOrder($orderCollect)
+            ->setActive(true);
+
+        return $pairing;
+    }
+
 }

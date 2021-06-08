@@ -9,6 +9,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\CollecteReference;
+use App\Entity\IOT\SensorWrapper;
 use App\Entity\Menu;
 use App\Entity\OrdreCollecte;
 use App\Entity\OrdreCollecteReference;
@@ -86,9 +87,13 @@ class OrdreCollecteController extends AbstractController
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_COLL})
      */
     public function show(OrdreCollecte $ordreCollecte,
-                         OrdreCollecteService $ordreCollecteService): Response
+                         OrdreCollecteService $ordreCollecteService,
+                         EntityManagerInterface $entityManager): Response
     {
+        $sensorWrappers= $entityManager->getRepository(SensorWrapper::class)->getWithNoActiveAssociation();
+
         return $this->render('ordre_collecte/show.html.twig', [
+            "sensorWrappers" => $sensorWrappers,
             'collecte' => $ordreCollecte,
             'finished' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_TRAITE,
             'detailsConfig' => $ordreCollecteService->createHeaderDetailsConfig($ordreCollecte)
@@ -437,5 +442,40 @@ class OrdreCollecteController extends AbstractController
         } else {
             throw new NotFoundHttpException('Aucune étiquette à imprimer');
         }
+    }
+
+    /**
+     * @Route("/associer", name="sensor_pairing_new",options={"expose"=true}, methods="GET|POST" )
+     * @HasPermission({Menu::ORDRE, Action::PAIR_SENSOR})
+     */
+    public function newSensorPairing(OrdreCollecteService $collecteService, EntityManagerInterface $entityManager, Request $request): Response
+    {
+        $data=json_decode($request->getContent(), true);
+
+        $orderCollectRepository = $entityManager->getRepository(OrdreCollecte::class);
+        $sensorWrapperRepository = $entityManager->getRepository(SensorWrapper::class);
+
+        /** @var OrdreCollecte $orderCollect */
+        $orderCollect = $orderCollectRepository->find($data['orderID']);
+
+        /** @var SensorWrapper $sensorWrapper */
+        $sensorWrapper = $sensorWrapperRepository->findByNameOrCode($data['sensor'],$data['sensorCode']);
+        $pairingOrderCollect = $collecteService->createPairing($sensorWrapper, $orderCollect);
+        $entityManager->persist($pairingOrderCollect);
+
+        try {
+            $entityManager->flush();
+        } /** @noinspection PhpRedundantCatchClauseInspection */
+        catch (UniqueConstraintViolationException $e) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => 'Une autre association est en cours de création, veuillez réessayer.'
+            ]);
+        }
+        $number = $data['sensorCode'];
+        return $this->json([
+            'success' => true,
+            'msg' => "L'assocation avec le capteur <strong>${number}</strong> a bien été créée"
+        ]);
     }
 }
