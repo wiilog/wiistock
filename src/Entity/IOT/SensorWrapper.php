@@ -107,6 +107,9 @@ class SensorWrapper extends FreeFieldEntity
         return $this;
     }
 
+    /**
+     * @return Collection|Pairing[]
+     */
     public function getPairings(): Collection {
         return $this->pairings;
     }

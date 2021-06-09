@@ -4,9 +4,11 @@
 namespace App\Service\IOT;
 
 
+use App\Entity\Article;
 use App\Entity\Collecte;
 use App\Entity\CollecteReference;
 use App\Entity\Demande;
+use App\Entity\Emplacement;
 use App\Entity\Handling;
 use App\Entity\IOT\CollectRequestTemplate;
 use App\Entity\IOT\DeliveryRequestTemplate;
@@ -18,9 +20,13 @@ use App\Entity\IOT\SensorProfile;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\IOT\TriggerAction;
 use App\Entity\LigneArticle;
+use App\Entity\LocationGroup;
 use App\Entity\OrdreCollecte;
 use App\Entity\OrdreCollecteReference;
+use App\Entity\Pack;
+use App\Entity\Preparation;
 use App\Entity\Statut;
+use App\Repository\PackRepository;
 use App\Repository\StatutRepository;
 use App\Service\DemandeLivraisonService;
 use App\Service\UniqueNumberService;
@@ -69,6 +75,8 @@ class IOTService
     public function onMessageReceived(array $frame, EntityManagerInterface $entityManager) {
         if (isset(self::PROFILE_TO_TYPE[$frame['profile']])) {
             $message = $this->parseAndCreateMessage($frame, $entityManager);
+            $this->linkWithSubEntities($message, $entityManager->getRepository(Pack::class));
+            $entityManager->flush();
             $this->treatTriggers($message, $entityManager);
             $entityManager->flush();
         }
@@ -347,6 +355,74 @@ class IOTService
 
         $entityManager->persist($received);
         return $received;
+    }
+
+    public function linkWithSubEntities(SensorMessage $sensorMessage, PackRepository $packRepository) {
+        $sensor = $sensorMessage->getSensor();
+        $wrapper = $sensor->getAvailableSensorWrapper();
+
+        if ($wrapper) {
+            foreach ($wrapper->getPairings() as $pairing) {
+                $entity = $pairing->getEntity();
+                $entity->addSensorMessage($sensorMessage);
+                if ($entity instanceof LocationGroup) {
+                    $this->treatAddMessageLocationGroup($entity, $sensorMessage, $packRepository);
+                } else if ($entity instanceof Emplacement) {
+                    $this->treatAddMessageLocation($entity, $sensorMessage, $packRepository);
+                } else if ($entity instanceof Pack) {
+                    $this->treatAddMessagePack($entity, $sensorMessage);
+                } else if ($entity instanceof Article) {
+                    $this->treatAddMessageArticle($entity, $sensorMessage);
+                } else if ($entity instanceof Preparation) {
+                    $this->treatAddMessageOrdrePrepa($entity, $sensorMessage);
+                } else if ($entity instanceof OrdreCollecte) {
+                    $this->treatAddMessageOrdreCollecte($entity, $sensorMessage);
+                }
+            }
+        }
+    }
+
+    private function treatAddMessageLocationGroup(LocationGroup $locationGroup, SensorMessage $sensorMessage, PackRepository $packRepository) {
+        $locationGroup->addSensorMessage($sensorMessage);
+        foreach ($locationGroup->getLocations() as $location) {
+            $this->treatAddMessageLocation($location, $sensorMessage, $packRepository);
+        }
+    }
+
+    private function treatAddMessageLocation(Emplacement $location, SensorMessage $sensorMessage, PackRepository $packRepository) {
+        $location->addSensorMessage($sensorMessage);
+        $packs = $packRepository->getCurrentPackOnLocations(
+            [$location->getId()],
+            [
+                'isCount' => false,
+                'field' => 'colis'
+            ]
+        );
+        foreach ($packs as $pack) {
+            $this->treatAddMessagePack($pack, $sensorMessage);
+        }
+    }
+
+    private function treatAddMessagePack(Pack $pack, SensorMessage $sensorMessage) {
+        $pack->addSensorMessage($sensorMessage);
+    }
+
+    private function treatAddMessageArticle(Article $article, SensorMessage $sensorMessage) {
+        $article->addSensorMessage($sensorMessage);
+    }
+
+    private function treatAddMessageOrdrePrepa(Preparation $preparation, SensorMessage $sensorMessage) {
+        $preparation->addSensorMessage($sensorMessage);
+        foreach ($preparation->getArticles() as $article) {
+            $this->treatAddMessageArticle($article, $sensorMessage);
+        }
+    }
+
+    private function treatAddMessageOrdreCollecte(OrdreCollecte $ordreCollecte, SensorMessage $sensorMessage) {
+        $ordreCollecte->addSensorMessage($sensorMessage);
+        foreach ($ordreCollecte->getArticles() as $article) {
+            $this->treatAddMessageArticle($article, $sensorMessage);
+        }
     }
 
     public function extractMainDataFromConfig(array $config) {
