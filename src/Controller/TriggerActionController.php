@@ -277,9 +277,9 @@ class TriggerActionController extends AbstractController
                 "success" => false,
                 "msg" => "Ce capteur n'existe pas",
             ]);
-        } else if((isset($sensorWrapper) || isset($sensor)) && $type === IOTService::ACTION_TYPE){
+        } else if((isset($sensorWrapper) || isset($sensor)) && $type === Sensor::ACTION_TYPE){
             $html = $this->renderView('trigger_action/modalButton.html.twig');
-        } else if((isset($sensorWrapper) || isset($sensor)) && $type === IOTService::TEMP_TYPE){
+        } else if((isset($sensorWrapper) || isset($sensor)) && $type === Sensor::TEMP_TYPE){
             $html = $this->renderView('trigger_action/modalTemperature.html.twig',[
                 "templateTemperatures" => TriggerAction::TEMPLATE_TEMPERATURE,
             ]);

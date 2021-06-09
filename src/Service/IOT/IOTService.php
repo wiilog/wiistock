@@ -18,10 +18,6 @@ class IOTService
     const INEO_SENS_ACS_BTN = 'acs-switch-bouton';
     const INEO_SENS_GPS = 'trk-tracer-gps-new';
 
-    const TEMP_TYPE = 'Capteur de température';
-    const GPS_TYPE = 'Capteur GPS';
-    const ACTION_TYPE = 'Action';
-
     const PROFILE_TO_MAX_TRIGGERS = [
         self::INEO_SENS_ACS_TEMP => 1,
         self::INEO_SENS_GPS => 1,
@@ -29,9 +25,9 @@ class IOTService
     ];
 
     const PROFILE_TO_TYPE = [
-        self::INEO_SENS_ACS_TEMP => self::TEMP_TYPE,
-        self::INEO_SENS_GPS => self::GPS_TYPE,
-        self::INEO_SENS_ACS_BTN => self::ACTION_TYPE,
+        self::INEO_SENS_ACS_TEMP => Sensor::TEMP_TYPE,
+        self::INEO_SENS_GPS => Sensor::GPS_TYPE,
+        self::INEO_SENS_ACS_BTN => Sensor::ACTION_TYPE,
     ];
 
     const PROFILE_TO_FREQUENCY = [
