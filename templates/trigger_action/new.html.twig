@@ -1,0 +1,84 @@
+<div class="modal fade" id="modalNewTriggerAction" role="dialog" aria-hidden="true">
+    <div class="modal-dialog  modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nouvel actionneur</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-input container-fluid">
+                <form>
+                    <div class="row align-items-center">
+                        <div class="form-group col-12 col-md-4">
+                            <label for="sensorWrapperList" title="sensorWrapper">
+                                Capteur*
+                            </label>
+                            <div class="w-100">
+                                <select class="select2 ajax-autocomplete form-control data needed" name="sensorWrapper">
+                                    <option value=""></option>
+                                    {% for sensorWrapper in sensorWrappers %}
+                                        <option value="{{ sensorWrapper.name }}">{{ sensorWrapper.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                        </div>
+                        <div class="col-auto m-auto">
+                            <label> OU </label>
+                        </div>
+                        <div class="form-group col-12 col-md-4">
+                            <label>Code</label>
+                            <div class="w-100">
+                                <select class="select2 ajax-autocomplete form-control data" name="sensorCode">
+                                    <option value=""></option>
+                                    {% for sensorWrapper in sensorWrappers %}
+                                        <option value="{{ sensorWrapper.name }}">{{ sensorWrapper.sensor.code }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-auto mx-auto mr-md-0">
+                            <button type="button" class="btn btn-success submit-sensor" onclick="submitSensor()">
+                                <i class='fas fa-check'></i>
+                            </button>
+                        </div>
+
+                    </div>
+                    <div class="row sensor-details-container flex-column d-none">
+                        <div class="sensor-type">
+
+                        </div>
+                        <div class="form-group col-12 col-md-6">
+                            <label>Type de modèle*</label>
+                            <div class="w-100">
+                                <select class="form-control data needed" name="templateType" onchange="onTemplateTypeChange($(this))">
+                                    <option value=""></option>
+                                    {% for templateType, index in templateTypes %}
+                                        <option value="{{ index }}">{{ templateType }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group col-12 col-md-6">
+                            <label>Modèle*</label>
+                            <div class="w-100">
+                                <select disabled class="form-control data needed" name="templates"></select>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="pl-2 error-msg"></div>
+            <div class="modal-footer">
+                <div class="btn btn-secondary" data-dismiss="modal">Annuler</div>
+                <button name="request"
+                        value=""
+                        type="button"
+                        class="btn data btn-primary submit-button">
+                    Ajouter
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
