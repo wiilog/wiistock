@@ -363,20 +363,22 @@ class IOTService
 
         if ($wrapper) {
             foreach ($wrapper->getPairings() as $pairing) {
-                $entity = $pairing->getEntity();
-                $entity->addSensorMessage($sensorMessage);
-                if ($entity instanceof LocationGroup) {
-                    $this->treatAddMessageLocationGroup($entity, $sensorMessage, $packRepository);
-                } else if ($entity instanceof Emplacement) {
-                    $this->treatAddMessageLocation($entity, $sensorMessage, $packRepository);
-                } else if ($entity instanceof Pack) {
-                    $this->treatAddMessagePack($entity, $sensorMessage);
-                } else if ($entity instanceof Article) {
-                    $this->treatAddMessageArticle($entity, $sensorMessage);
-                } else if ($entity instanceof Preparation) {
-                    $this->treatAddMessageOrdrePrepa($entity, $sensorMessage);
-                } else if ($entity instanceof OrdreCollecte) {
-                    $this->treatAddMessageOrdreCollecte($entity, $sensorMessage);
+                if ($pairing->getActive()) {
+                    $pairing->addSensorMessage($sensorMessage);
+                    $entity = $pairing->getEntity();
+                    if ($entity instanceof LocationGroup) {
+                        $this->treatAddMessageLocationGroup($entity, $sensorMessage, $packRepository);
+                    } else if ($entity instanceof Emplacement) {
+                        $this->treatAddMessageLocation($entity, $sensorMessage, $packRepository);
+                    } else if ($entity instanceof Pack) {
+                        $this->treatAddMessagePack($entity, $sensorMessage);
+                    } else if ($entity instanceof Article) {
+                        $this->treatAddMessageArticle($entity, $sensorMessage);
+                    } else if ($entity instanceof Preparation) {
+                        $this->treatAddMessageOrdrePrepa($entity, $sensorMessage);
+                    } else if ($entity instanceof OrdreCollecte) {
+                        $this->treatAddMessageOrdreCollecte($entity, $sensorMessage);
+                    }
                 }
             }
         }
