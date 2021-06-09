@@ -317,28 +317,27 @@ class OrdreCollecteService
 	 * @throws Twig_Error_Runtime
 	 * @throws Twig_Error_Syntax
 	 */
-	private function dataRowCollecte($collecte)
-	{
-		$demandeCollecte = $collecte->getDemandeCollecte();
+    private function dataRowCollecte($collecte)
+    {
+        $demandeCollecte = $collecte->getDemandeCollecte();
 
-		$url['show'] = $this->router->generate('ordre_collecte_show', ['id' => $collecte->getId()]);
-		return [
-			'id' => $collecte->getId() ?? '',
-			'Numéro' => $collecte->getNumero() ?? '',
-			'Date' => $collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : '',
-			'Statut' => $collecte->getStatut() ? $collecte->getStatut()->getNom() : '',
-			'Opérateur' => $collecte->getUtilisateur() ? $collecte->getUtilisateur()->getUsername() : '',
-			'Type' => $demandeCollecte && $demandeCollecte->getType() ? $demandeCollecte->getType()->getLabel() : '',
-			'Actions' => $this->templating->render('ordre_collecte/datatableCollecteRow.html.twig', [
-				'url' => $url,
+        $url['show'] = $this->router->generate('ordre_collecte_show', ['id' => $collecte->getId()]);
+        return [
+            'id' => $collecte->getId() ?? '',
+            'Numéro' => $collecte->getNumero() ?? '',
+            'Date' => $collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : '',
+            'Statut' => $collecte->getStatut() ? $collecte->getStatut()->getNom() : '',
+            'Opérateur' => $collecte->getUtilisateur() ? $collecte->getUtilisateur()->getUsername() : '',
+            'Type' => $demandeCollecte && $demandeCollecte->getType() ? $demandeCollecte->getType()->getLabel() : '',
+            'Actions' => $this->templating->render('ordre_collecte/datatableCollecteRow.html.twig', [
+                'url' => $url,
                 'titleLogo' => !$collecte
-                        ->getPairings()
-                        ->filter(fn(Pairing $pairing) =>
-                        $pairing->isActive()
-                        )->isEmpty() ? 'pairing' : null
-			])
-		];
-	}
+                    ->getPairings()
+                    ->filter(fn(Pairing $pairing) => $pairing->isActive()
+                    )->isEmpty() ? 'pairing' : null
+            ])
+        ];
+    }
 
     /**
      * @param Utilisateur $user

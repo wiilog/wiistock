@@ -1,50 +1,52 @@
 let id = $('#collecte-id').val();
 
-let pathArticle = Routing.generate('ordre_collecte_article_api', {'id': id });
-let tableArticleConfig = {
-    ajax: {
-        'url': pathArticle,
-        "type": "POST"
-    },
-    order: [['Référence', 'asc']],
-    columns: [
-        { "data": 'Actions', 'title': '', orderable: false, className: 'noVis' },
-        { "data": 'Référence', 'title': 'Référence' },
-        { "data": 'Libellé', 'title': 'Libellé' },
-        { "data": 'Emplacement', 'title': 'Emplacement' },
-        { "data": 'Quantité', 'title': 'Quantité' },
-    ],
-    rowConfig: {
-        needsRowClickAction: true,
-    },
-};
-let tableArticle = initDataTable('tableArticle', tableArticleConfig);
-
-let urlEditArticle = Routing.generate('ordre_collecte_edit_article', true);
-let modalEditArticle = $("#modalEditArticle");
-let submitEditArticle = $("#submitEditArticle");
-InitModal(modalEditArticle, submitEditArticle, urlEditArticle, {tables: [tableArticle]});
-
-let modalDeleteOrdreCollecte = $('#modalDeleteOrdreCollecte');
-let submitDeleteOrdreCollecte = $('#submitDeleteOrdreCollecte');
-let urlDeleteOrdreCollecte = Routing.generate('ordre_collecte_delete',{'id':id}, true);
-InitModal(modalDeleteOrdreCollecte, submitDeleteOrdreCollecte, urlDeleteOrdreCollecte, {tables: [tableArticle]});
-
-let modalNewSensorPairing = $("#modalNewSensorPairing");
-let submitNewSensorPairing = $("#submitNewSensorPairing");
-let urlNewSensorPairing = Routing.generate('sensor_pairing_new', true)
-InitModal(modalNewSensorPairing, submitNewSensorPairing, urlNewSensorPairing, {
-    success: () => {
-        window.location.reload();
-    }
-});
-
 let urlFinishCollecte = Routing.generate('ordre_collecte_finish', {'id': id}, true);
 let modalFinishCollecte = $("#modalFinishCollecte");
 let $submitFinishCollecte = $("#submitFinishCollecte");
 
-$submitFinishCollecte.on('click', function () {
-    finishCollecte($(this));
+$(function() {
+    let pathArticle = Routing.generate('ordre_collecte_article_api', {'id': id });
+    let tableArticleConfig = {
+        ajax: {
+            'url': pathArticle,
+            "type": "POST"
+        },
+        order: [['Référence', 'asc']],
+        columns: [
+            { "data": 'Actions', 'title': '', orderable: false, className: 'noVis' },
+            { "data": 'Référence', 'title': 'Référence' },
+            { "data": 'Libellé', 'title': 'Libellé' },
+            { "data": 'Emplacement', 'title': 'Emplacement' },
+            { "data": 'Quantité', 'title': 'Quantité' },
+        ],
+        rowConfig: {
+            needsRowClickAction: true,
+        },
+    };
+    let tableArticle = initDataTable('tableArticle', tableArticleConfig);
+
+    let urlEditArticle = Routing.generate('ordre_collecte_edit_article', true);
+    let modalEditArticle = $("#modalEditArticle");
+    let submitEditArticle = $("#submitEditArticle");
+    InitModal(modalEditArticle, submitEditArticle, urlEditArticle, {tables: [tableArticle]});
+
+    let modalDeleteOrdreCollecte = $('#modalDeleteOrdreCollecte');
+    let submitDeleteOrdreCollecte = $('#submitDeleteOrdreCollecte');
+    let urlDeleteOrdreCollecte = Routing.generate('ordre_collecte_delete',{'id':id}, true);
+    InitModal(modalDeleteOrdreCollecte, submitDeleteOrdreCollecte, urlDeleteOrdreCollecte, {tables: [tableArticle]});
+
+    let modalNewSensorPairing = $("#modalNewSensorPairing");
+    let submitNewSensorPairing = $("#submitNewSensorPairing");
+    let urlNewSensorPairing = Routing.generate('collect_sensor_pairing_new', true)
+    InitModal(modalNewSensorPairing, submitNewSensorPairing, urlNewSensorPairing, {
+        success: () => {
+            window.location.reload();
+        }
+    });
+
+    $submitFinishCollecte.on('click', function () {
+        finishCollecte($(this));
+    });
 });
 
 function toggleCheck($elem) {

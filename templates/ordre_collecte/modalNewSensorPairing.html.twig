@@ -1,4 +1,4 @@
-<form method="" class="modal fade" id="modalNewSensorPairing" role="dialog" aria-hidden="true">
+<form class="modal fade" id="modalNewSensorPairing" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -13,8 +13,7 @@
                     <div class="form-group col-md-4 col-12">
                         <label>Capteur*</label>
                         <div class="w-100">
-                            <select class="form-control data input" name="sensor" >
-                                <option value=""></option>
+                            <select class="form-control data input" name="sensor" data-s2 data-placeholder="Sélectionner un capteur...">
                                 {% for sensorWrapper in sensorWrappers %}
                                     <option value="{{ sensorWrapper.name }}">{{ sensorWrapper.name }}</option>
                                 {% endfor %}
@@ -22,13 +21,12 @@
                         </div>
                     </div>
                     <div class="col-2 d-flex justify-content-center my-auto">
-                        <label> OU </label>
+                        <label>OU</label>
                     </div>
                     <div class="form-group col-md-4 col-12">
                         <label>Code capteur*</label>
                         <div class="w-100">
-                            <select class="select2 ajax-autocomplete form-control data" name="sensorCode">
-                                <option value=""></option>
+                            <select class="form-control data" name="sensorCode" data-s2 data-placeholder="Sélectionner un code capteur...">
                                 {% for sensorWrapper in sensorWrappers %}
                                     <option value="{{ sensorWrapper.sensor.code }}">{{ sensorWrapper.sensor.code }}</option>
                                 {% endfor %}
@@ -36,10 +34,8 @@
                         </div>
                     </div>
                 </div>
-                <p>Le capteur sera dissocié automatiquement à la fin de la collecte</p>
+                <p class="font-italic">Le capteur sera dissocié automatiquement à la fin de la collecte</p>
             </div>
-
-
 
             <div class="error-msg"></div>
             <div class="modal-footer">

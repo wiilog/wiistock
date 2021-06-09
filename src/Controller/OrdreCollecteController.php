@@ -90,7 +90,7 @@ class OrdreCollecteController extends AbstractController
                          OrdreCollecteService $ordreCollecteService,
                          EntityManagerInterface $entityManager): Response
     {
-        $sensorWrappers= $entityManager->getRepository(SensorWrapper::class)->getWithNoActiveAssociation();
+        $sensorWrappers= $entityManager->getRepository(SensorWrapper::class)->findWithNoActiveAssociation();
 
         return $this->render('ordre_collecte/show.html.twig', [
             "sensorWrappers" => $sensorWrappers,
@@ -445,37 +445,44 @@ class OrdreCollecteController extends AbstractController
     }
 
     /**
-     * @Route("/associer", name="sensor_pairing_new",options={"expose"=true}, methods="GET|POST" )
-     * @HasPermission({Menu::ORDRE, Action::PAIR_SENSOR})
+     * @Route("/associer", name="collect_sensor_pairing_new",options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::PAIR_SENSOR}, mode=HasPermission::IN_JSON)
      */
-    public function newSensorPairing(OrdreCollecteService $collecteService, EntityManagerInterface $entityManager, Request $request): Response
+    public function newCollectSensorPairing(OrdreCollecteService $collecteService,
+                                            EntityManagerInterface $entityManager,
+                                            Request $request): Response
     {
-        $data=json_decode($request->getContent(), true);
+        if($data = json_decode($request->getContent(), true)) {
+            if(!$data['sensor'] && !$data['sensorCode']) {
+                return $this->json([
+                    'success' => false,
+                    'msg' => 'Un capteur/code capteur est obligatoire pour valider l\'association'
+                ]);
+            }
 
-        $orderCollectRepository = $entityManager->getRepository(OrdreCollecte::class);
-        $sensorWrapperRepository = $entityManager->getRepository(SensorWrapper::class);
+            $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->findByNameOrCode($data['sensor'], $data['sensorCode']);
+            $collectOrder = $entityManager->getRepository(OrdreCollecte::class)->find($data['orderID']);
 
-        /** @var OrdreCollecte $orderCollect */
-        $orderCollect = $orderCollectRepository->find($data['orderID']);
+            $pairingOrderCollect = $collecteService->createPairing($sensorWrapper, $collectOrder);
+            $entityManager->persist($pairingOrderCollect);
 
-        /** @var SensorWrapper $sensorWrapper */
-        $sensorWrapper = $sensorWrapperRepository->findByNameOrCode($data['sensor'],$data['sensorCode']);
-        $pairingOrderCollect = $collecteService->createPairing($sensorWrapper, $orderCollect);
-        $entityManager->persist($pairingOrderCollect);
+            try {
+                $entityManager->flush();
+            } /** @noinspection PhpRedundantCatchClauseInspection */
+            catch (UniqueConstraintViolationException $e) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'Une autre association est en cours de création, veuillez réessayer.'
+                ]);
+            }
 
-        try {
-            $entityManager->flush();
-        } /** @noinspection PhpRedundantCatchClauseInspection */
-        catch (UniqueConstraintViolationException $e) {
-            return new JsonResponse([
-                'success' => false,
-                'msg' => 'Une autre association est en cours de création, veuillez réessayer.'
+            $number = $sensorWrapper->getName();
+            return $this->json([
+                'success' => true,
+                'msg' => "L'assocation avec le capteur <strong>${number}</strong> a bien été créée"
             ]);
         }
-        $number = $data['sensorCode'];
-        return $this->json([
-            'success' => true,
-            'msg' => "L'assocation avec le capteur <strong>${number}</strong> a bien été créée"
-        ]);
+
+        throw new BadRequestHttpException();
     }
 }
