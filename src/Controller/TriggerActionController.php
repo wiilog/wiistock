@@ -15,6 +15,7 @@ use App\Entity\IOT\TriggerAction;
 use App\Entity\Menu;
 use App\Entity\Action;
 use App\Service\AttachmentService;
+use App\Service\IOT\IOTService;
 use App\Service\TriggerActionService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -74,42 +75,51 @@ class TriggerActionController extends AbstractController
             if($data['sensorWrapper']){
                 $name = $data['sensorWrapper'];
                 $sensorWrapper = $sensorWrapperRepository->findOneBy(["name" => $name]);
-                $triggerAction->setSensorWrapper($sensorWrapper);
             } else if($data['sensor']){
                 $code = $data['sensor'];
                 $sensor = $sensorRepository->findOneBy(["code" => $code]);
                 $sensorWrapper = $sensorWrapperRepository->findOneBy(["sensor" => $sensor]);
+            } else {
+                $sensorWrapper = null;
+            }
+            if ($sensorWrapper && $sensorWrapper->getSensor()->getProfile()->getMaxTriggers() > $sensorWrapper->getTriggerActions()->count()) {
                 $triggerAction->setSensorWrapper($sensorWrapper);
-            }
 
-            if($data['templateType'] === TriggerAction::REQUEST){
-                $name = $data['templates'];
-                $requestTemplate = $requestTemplateRepository->findOneBy(["id" => $name]);
-                $triggerAction->setRequestTemplate($requestTemplate);
-            } else if($data['templateType'] === TriggerAction::ALERT){
-                $name = $data['templates'];
-                $alertTemplate = $alertTemplateRepository->findOneBy(["id" => $name]);
-                $triggerAction->setAlertTemplate($alertTemplate);
-            }
+                if ($data['templateType'] === TriggerAction::REQUEST) {
+                    $name = $data['templates'];
+                    $requestTemplate = $requestTemplateRepository->findOneBy(["id" => $name]);
+                    $triggerAction->setRequestTemplate($requestTemplate);
+                } else if ($data['templateType'] === TriggerAction::ALERT) {
+                    $name = $data['templates'];
+                    $alertTemplate = $alertTemplateRepository->findOneBy(["id" => $name]);
+                    $triggerAction->setAlertTemplate($alertTemplate);
+                }
 
-            if(isset($data['functionZone'])){
-                $json = ['description' => $data['functionZone']];
-                $triggerAction->setConfig($json);
-            }
+                if (isset($data['functionZone'])) {
+                    $json = ['zone' => $data['functionZone']];
+                    $triggerAction->setConfig($json);
+                }
 
-            if(isset($data['sensorTemperatureLimit'])){
-                $json = ['limit' => $data['borneTemperature'], 'temperature' => $data['sensorTemperatureLimit']];
-                $triggerAction->setConfig($json);
-            }
+                if (isset($data['sensorTemperatureLimit'])) {
+                    $json = ['limit' => $data['borneTemperature'], 'temperature' => $data['sensorTemperatureLimit']];
+                    $triggerAction->setConfig($json);
+                }
 
-            $entityManager->persist($triggerAction);
-            try {
-                $entityManager->flush();
-            } /** @noinspection PhpRedundantCatchClauseInspection */
-            catch (UniqueConstraintViolationException $e) {
-                return new JsonResponse([
+                $entityManager->persist($triggerAction);
+                try {
+                    $entityManager->flush();
+                } /** @noinspection PhpRedundantCatchClauseInspection */
+                catch (UniqueConstraintViolationException $e) {
+                    return $this->json([
+                        'success' => false,
+                        'msg' => "Erreur lors de la création de l'actionneur"
+                    ]);
+                }
+            } else {
+                return $this->json([
                     'success' => false,
-                    'msg' => "Erreur lors de la création de l'actionneur"
+                    'msg' => "Le capteur choisi ne peut avoir plus de "
+                        . $sensorWrapper->getSensor()->getProfile()->getMaxTriggers() . " actions associées."
                 ]);
             }
 
@@ -233,8 +243,6 @@ class TriggerActionController extends AbstractController
             $templates = $requestTemplateRepository->getTemplateForSelect();
         }
 
-        dump($type);
-
         return $this->json([
             "results" => $templates
         ]);
@@ -269,9 +277,9 @@ class TriggerActionController extends AbstractController
                 "success" => false,
                 "msg" => "Ce capteur n'existe pas",
             ]);
-        } else if((isset($sensorWrapper) || isset($sensor)) && $type === Sensor::ACTION_TYPE){
+        } else if((isset($sensorWrapper) || isset($sensor)) && $type === IOTService::ACTION_TYPE){
             $html = $this->renderView('trigger_action/modalButton.html.twig');
-        } else if((isset($sensorWrapper) || isset($sensor)) && $type === Sensor::TEMP_TYPE){
+        } else if((isset($sensorWrapper) || isset($sensor)) && $type === IOTService::TEMP_TYPE){
             $html = $this->renderView('trigger_action/modalTemperature.html.twig',[
                 "templateTemperatures" => TriggerAction::TEMPLATE_TEMPERATURE,
             ]);

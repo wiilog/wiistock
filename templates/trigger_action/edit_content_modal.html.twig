@@ -16,9 +16,9 @@
     </div>
     <div class="row sensor-details-container flex-column">
         <div class="sensor-type">
-            {% if (triggerAction.sensorWrapper ? triggerAction.sensorWrapper.sensor.type : "") == constant('App\\Entity\\IOT\\Sensor::TEMP_TYPE') %}
+            {% if (triggerAction.sensorWrapper ? triggerAction.sensorWrapper.sensor.type : "") == constant('App\\Service\\IOT\\IOTService::TEMP_TYPE') %}
                 {% include ('trigger_action/modalTemperature.html.twig') %}
-            {% elseif (triggerAction.sensorWrapper ? triggerAction.sensorWrapper.sensor.type : "") == constant('App\\Entity\\IOT\\Sensor::ACTION_TYPE') %}
+            {% elseif (triggerAction.sensorWrapper ? triggerAction.sensorWrapper.sensor.type : "") == constant('App\\Service\\IOT\\IOTService::ACTION_TYPE') %}
                 {% include ('trigger_action/modalButton.html.twig') %}
             {% endif %}
         </div>
@@ -40,7 +40,12 @@
         <div class="form-group col-12 col-md-6">
             <label>Modèle*</label>
             <div class="w-100">
-                <select class="form-control data needed" name="templates"></select>
+                <select class="form-control data needed" name="templates">
+                    <option selected
+                            value="{{ triggerAction.requestTemplate ? triggerAction.requestTemplate.id : triggerAction.alertTemplate.id}}">
+                        {{ triggerAction.requestTemplate ? triggerAction.requestTemplate.name : triggerAction.alertTemplate.name }}
+                    </option>
+                </select>
             </div>
         </div>
     </div>

@@ -47,7 +47,6 @@ $(function() {
 
     let $modalEditTriggerAction = $('#modalEditTriggerAction');
     let $submitEditTriggerAction = $modalEditTriggerAction.find('.submit-button');
-    console.log($modalEditTriggerAction.find('.submit-button'));
     let urlEditTriggerAction = Routing.generate('trigger_action_edit', true);
     InitModal($modalEditTriggerAction, $submitEditTriggerAction, urlEditTriggerAction, {tables: [table]});
 });
