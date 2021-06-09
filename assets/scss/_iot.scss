@@ -4,6 +4,10 @@
     margin: 0 10px;
     min-height: 50px;
 
+    &:not(:last-of-type) {
+        margin-top: 15px;
+    }
+
     .wii-icon {
         display: inline-block;
         width: 40px;
@@ -26,8 +30,9 @@
             font-size: 1rem;
         }
     }
+}
 
-    .association-actions {
-        cursor: pointer;
-    }
+.association-actions {
+    position: absolute;
+    top: 0; right: 20px;
 }

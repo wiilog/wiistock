@@ -8,23 +8,27 @@ use App\Entity\Article;
 use App\Entity\Emplacement;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
+use App\Entity\IOT\SensorMessage;
 use App\Entity\Menu;
 
 use App\Entity\OrdreCollecte;
 use App\Entity\Pack;
 use App\Entity\Preparation;
 
+use App\Service\IOT\IOTService;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Helper\FormatHelper;
 use App\Service\DataMonitoringService;
 use DateTime;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use WiiCommon\Helper\Stream;
 
 /**
  * @Route("/iot/associations")
@@ -39,7 +43,6 @@ class PairingController extends AbstractController {
 
         return $this->render("pairing/index.html.twig", [
             'categories' => Sensor::CATEGORIES,
-            'sensorTypes' => Sensor::SENSORS
         ]);
     }
 
@@ -78,7 +81,7 @@ class PairingController extends AbstractController {
             $rows[] = [
                 "id" => $pairing->getId(),
                 "type" => $type,
-                "typeIcon" => Sensor::SENSORS[$type],
+                "typeIcon" => Sensor::SENSOR_ICONS[$type],
                 "name" => $pairing->getSensorWrapper() ? $pairing->getSensorWrapper()->getName() : '',
                 "element" => $pairing->getEntity()->__toString(),
                 "elementIcon" => $elementIcon
@@ -95,7 +98,7 @@ class PairingController extends AbstractController {
     public function show(DataMonitoringService $service, Pairing $pairing): Response {
         return $service->render([
             "title" => "IOT | Associations | Détails",
-            "entities" => [$pairing],
+            "entities" => [$pairing, $pairing->getEntity()],
         ]);
     }
 
@@ -141,6 +144,61 @@ class PairingController extends AbstractController {
         }
 
         throw new BadRequestHttpException();
+    }
+
+    /**
+     * @Route("/map-data", name="pairing_map_data", condition="request.isXmlHttpRequest()")
+     */
+    public function getMapData(Pairing $pairing): JsonResponse
+    {
+        $associatedMessages = $pairing->getSensorMessages();
+
+        $data = [];
+
+        foreach ($associatedMessages as $message) {
+            $date = $message->getDate();
+            $sensor = $message->getSensor();
+
+            $dateStr = $date->format('Y-m-d H:i:s');
+            $sensorCode = $sensor->getCode();
+            if (!isset($data[$sensorCode])) {
+                $data[$sensorCode] = [];
+            }
+            $coordinates = Stream::explode(',', $message->getContent())
+                ->map(fn($coordinate) => floatval($coordinate))
+                ->toArray();
+            $data[$sensorCode][$dateStr] = $coordinates;
+        }
+        return new JsonResponse($data);
+    }
+
+    /**
+     * @Route("/chart-data/{pairing}", name="pairing_chart_data", condition="request.isXmlHttpRequest()")
+     */
+    public function getChartData(Pairing $pairing): JsonResponse
+    {
+        $data = ["colors" => []];
+
+        foreach ( $pairing->getSensorMessages() as $message) {
+            $date = $message->getDate();
+            $sensor = $message->getSensor();
+
+            if(!isset($data['colors'][$sensor->getCode()])) {
+                srand($sensor->getId());
+                $data['colors'][$sensor->getCode()] = sprintf('#%06X', mt_rand(0, 0xFFFFFF));
+            }
+
+            $dateStr = $date->format('Y-m-d H:i:s');
+            $sensorCode = $sensor->getCode();
+            if (!isset($data[$dateStr])) {
+                $data[$dateStr] = [];
+            }
+            $data[$dateStr][$sensorCode] = floatval($message->getContent());
+        }
+
+        srand();
+
+        return new JsonResponse($data);
     }
 
 }

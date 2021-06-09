@@ -31,8 +31,11 @@ function unpair(pairing) {
     })
 }
 
-function initMap(element, route = 'map_data_api') {
-    $.get(Routing.generate(route, true), function (response) {
+function initMap(element) {
+    const $element = $(element);
+    console.log($element.data(`fetch-url`));
+
+    $.get($element.data(`fetch-url`), function (response) {
         let map = Leaflet.map(element).setView([44.831598, -0.577096], 13);
 
         Leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -91,10 +94,10 @@ function initMap(element, route = 'map_data_api') {
     })
 }
 
-function initLineChart(element, route = 'chart_data_api') {
-    const $canvas = $(element);
-
-    $.get(Routing.generate(route, true), function (response) {
+function initLineChart(element) {
+    const $element = $(element);
+console.log($element, $element.data(`fetch-url`));
+    $.get($element.data(`fetch-url`), function (response) {
         let data = {
             datasets: [],
             labels: []
@@ -118,7 +121,7 @@ function initLineChart(element, route = 'chart_data_api') {
             });
         });
         data.datasets = Object.values(datasets);
-        let chart = new Chart($canvas, {
+        let chart = new Chart($element, {
             type: 'line',
             data,
             options: {

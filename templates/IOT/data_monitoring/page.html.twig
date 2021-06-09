@@ -9,6 +9,9 @@
             <div class="wii-page-card">
                 {% for item in left_pane %}
                     {% include 'iot/data_monitoring/left_pane_item.html.twig' with item %}
+                    {% if not loop.last %}
+                        <hr>
+                    {% endif %}
                 {% endfor %}
             </div>
         </div>
@@ -18,7 +21,7 @@
                     {% include 'filters/filter_item/filterDate.html.twig' with {disabled: false} %}
                 </div>
             </div>
-            {% for item in items %}
+            {% for item in center_pane ?? [] %}
                 {% include 'iot/data_monitoring/content.html.twig' with item %}
             {% endfor %}
         </div>

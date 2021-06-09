@@ -1,15 +1,29 @@
-<div class="row association-pane-item">
-    <span class="wii-icon wii-icon-{{ icon }}" style="background: {{ color }}"></span>
-    <div class="right-column">
-        <span class="title" style="color: {{ color }}">{{ title }}</span>
-        {% if subtitle ?? null %}
-            <span class="subtitle">{{ subtitle | join('<br>') | raw }}</span>
-        {% endif %}
+{% macro paneItem(color, icon, title, subtitle) %}
+    <div class="col-12 association-pane-item">
+        <span class="wii-icon wii-icon-{{ icon }}" style="background: {{ color }}"></span>
+        <div class="right-column">
+            <span class="title" style="color: {{ color }}">{{ title }}</span>
+            {% if subtitle ?? null %}
+                <span class="subtitle">{{ subtitle | join('<br>') | raw }}</span>
+            {% endif %}
+        </div>
     </div>
+{% endmacro %}
 
-    <div class="dropdown dropleft">
+{% import _self as macros %}
+
+<div class="row position-relative">
+    {% if items is defined %}
+        {% for item in items %}
+            {{ macros.paneItem(item.color, item.icon, item.title, item.subtitle ?? null) }}
+        {% endfor %}
+    {% else %}
+        {{ macros.paneItem(color, icon, title, subtitle ?? null) }}
+    {% endif %}
+
+    <div class="dropdown dropleft association-actions">
         <img src="{{ asset('svg/dotsblack.svg') }}" alt="Actions" height="20px" width="8px"
-             data-toggle="dropdown" class="association-actions"/>
+             data-toggle="dropdown" class="pointer"/>
         <div class="dropdown-menu dropdown-follow-gt pointer">
             {% if type == 'sensor' %}
                 <button class="dropdown-item pointer" data-toggle="modal" data-target="#modalEditPairingEnd" data-id="{{ pairing.id }}">
@@ -22,4 +36,3 @@
         </div>
     </div>
 </div>
-<hr>

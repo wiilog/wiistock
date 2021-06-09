@@ -131,15 +131,11 @@ class PairingRepository extends EntityRepository
             }
 
             if($filters->has('types') && !empty($filters->get('types'))) {
-                $types = Stream::from($filters->get('types'))
-                    ->map(fn($type) => array_search($type, Sensor::SENSORS))
-                    ->toArray();
-
                 $queryBuilder
                     ->leftJoin('pairing.sensorWrapper', 'type_sensorWrapper')
                     ->leftJoin('type_sensorWrapper.sensor', 'type_sensor')
                     ->andWhere('type_sensor.type IN (:types)')
-                    ->setParameter('types', $types, Connection::PARAM_STR_ARRAY);
+                    ->setParameter('types', $filters->get('types'), Connection::PARAM_STR_ARRAY);
             }
 
             if($filters->has('elements') && !empty($filters->get('elements'))) {

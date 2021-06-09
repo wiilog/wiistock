@@ -9,9 +9,9 @@
             {% endfor %}
             <select hidden class="filter-input" name="sensorTypes" {{ disabled }}>
                 <option value>Entité</option>
-                {% for sensorType, index in sensorTypes %}
-                    <option value="{{ index }}">
-                        {{ sensorType }}
+                {% for type in constant('App\\Entity\\Sensor::SENSOR_ICONS') | keys %}
+                    <option value="{{ type }}">
+                        {{ type }}
                     </option>
                 {% endfor %}
             </select>

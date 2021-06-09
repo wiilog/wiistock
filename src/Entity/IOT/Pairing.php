@@ -10,6 +10,7 @@ use App\Entity\Preparation;
 use App\Entity\OrdreCollecte;
 use App\Entity\Article;
 use DateTimeInterface;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use ReflectionClass;
 
@@ -18,6 +19,9 @@ use ReflectionClass;
  */
 class Pairing
 {
+
+    use SensorMessageTrait;
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -74,6 +78,11 @@ class Pairing
      * @ORM\ManyToOne(targetEntity=SensorWrapper::class, inversedBy="pairings")
      */
     private ?SensorWrapper $sensorWrapper = null;
+
+    public function __construct()
+    {
+        $this->sensorMessages = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {

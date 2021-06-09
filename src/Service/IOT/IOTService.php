@@ -4,9 +4,16 @@
 namespace App\Service\IOT;
 
 
+use App\Entity\Article;
+use App\Entity\Emplacement;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;
 use App\Entity\IOT\SensorProfile;
+use App\Entity\LocationGroup;
+use App\Entity\OrdreCollecte;
+use App\Entity\Pack;
+use App\Entity\Preparation;
+use App\Repository\PackRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
 class IOTService
@@ -40,9 +47,12 @@ class IOTService
         self::INEO_SENS_ACS_BTN => 'à l\'action',
     ];
 
-    public function onMessageReceived(array $frame, EntityManagerInterface $entityManager) {
+    public function onMessageReceived(array $frame, EntityManagerInterface $entityManager)
+    {
         if (isset(self::PROFILE_TO_TYPE[$frame['profile']])) {
             $message = $this->parseAndCreateMessage($frame, $entityManager);
+            $this->linkWithSubEntities($message, $entityManager->getRepository(Pack::class));
+
             $profile = $message->getSensor()->getProfile();
             switch ($profile->getName()) {
                 case IOTService::INEO_SENS_ACS_TEMP:
@@ -50,6 +60,82 @@ class IOTService
                     break;
             }
             $entityManager->flush();
+        }
+    }
+
+    public function linkWithSubEntities(SensorMessage $sensorMessage, PackRepository $packRepository)
+    {
+        $sensor = $sensorMessage->getSensor();
+        $wrapper = $sensor->getAvailableSensorWrapper();
+        if ($wrapper) {
+            foreach ($wrapper->getPairings() as $pairing) {
+                if ($pairing->getActive()) {
+                    $pairing->addSensorMessage($sensorMessage);
+                    $entity = $pairing->getEntity();
+                    if ($entity instanceof LocationGroup) {
+                        $this->treatAddMessageLocationGroup($entity, $sensorMessage, $packRepository);
+                    } else if ($entity instanceof Emplacement) {
+                        $this->treatAddMessageLocation($entity, $sensorMessage, $packRepository);
+                    } else if ($entity instanceof Pack) {
+                        $this->treatAddMessagePack($entity, $sensorMessage);
+                    } else if ($entity instanceof Article) {
+                        $this->treatAddMessageArticle($entity, $sensorMessage);
+                    } else if ($entity instanceof Preparation) {
+                        $this->treatAddMessageOrdrePrepa($entity, $sensorMessage);
+                    } else if ($entity instanceof OrdreCollecte) {
+                        $this->treatAddMessageOrdreCollecte($entity, $sensorMessage);
+                    }
+                }
+            }
+        }
+    }
+
+    private function treatAddMessageLocationGroup(LocationGroup $locationGroup, SensorMessage $sensorMessage, PackRepository $packRepository)
+    {
+        $locationGroup->addSensorMessage($sensorMessage);
+        foreach ($locationGroup->getLocations() as $location) {
+            $this->treatAddMessageLocation($location, $sensorMessage, $packRepository);
+        }
+    }
+
+    private function treatAddMessageLocation(Emplacement $location, SensorMessage $sensorMessage, PackRepository $packRepository)
+    {
+        $location->addSensorMessage($sensorMessage);
+        $packs = $packRepository->getCurrentPackOnLocations(
+            [$location->getId()],
+            [
+                'isCount' => false,
+                'field' => 'colis'
+            ]
+        );
+        foreach ($packs as $pack) {
+            $this->treatAddMessagePack($pack, $sensorMessage);
+        }
+    }
+
+    private function treatAddMessagePack(Pack $pack, SensorMessage $sensorMessage)
+    {
+        $pack->addSensorMessage($sensorMessage);
+    }
+
+    private function treatAddMessageArticle(Article $article, SensorMessage $sensorMessage)
+    {
+        $article->addSensorMessage($sensorMessage);
+    }
+
+    private function treatAddMessageOrdrePrepa(Preparation $preparation, SensorMessage $sensorMessage)
+    {
+        $preparation->addSensorMessage($sensorMessage);
+        foreach ($preparation->getArticles() as $article) {
+            $this->treatAddMessageArticle($article, $sensorMessage);
+        }
+    }
+
+    private function treatAddMessageOrdreCollecte(OrdreCollecte $ordreCollecte, SensorMessage $sensorMessage)
+    {
+        $ordreCollecte->addSensorMessage($sensorMessage);
+        foreach ($ordreCollecte->getArticles() as $article) {
+            $this->treatAddMessageArticle($article, $sensorMessage);
         }
     }
 
@@ -110,7 +196,8 @@ class IOTService
         return $received;
     }
 
-    public function extractMainDataFromConfig(array $config) {
+    public function extractMainDataFromConfig(array $config)
+    {
         switch ($config['profile']) {
             case IOTService::INEO_SENS_ACS_BTN:
                 return $this->extractEventTypeFromMessage($config);
@@ -134,7 +221,8 @@ class IOTService
         return 'Donnée principale non trouvée';
     }
 
-    public function extractEventTypeFromMessage(array $config) {
+    public function extractEventTypeFromMessage(array $config)
+    {
         switch ($config['profile']) {
             case IOTService::INEO_SENS_ACS_BTN:
             case IOTService::INEO_SENS_ACS_TEMP:
@@ -157,7 +245,8 @@ class IOTService
         return 'Évenement non trouvé';
     }
 
-    public function extractBatteryLevelFromMessage(array $config) {
+    public function extractBatteryLevelFromMessage(array $config)
+    {
         switch ($config['profile']) {
             case IOTService::INEO_SENS_ACS_BTN:
             case IOTService::INEO_SENS_ACS_TEMP:
