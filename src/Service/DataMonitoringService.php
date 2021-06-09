@@ -74,12 +74,16 @@ class DataMonitoringService
         if ($type === Sensor::TEMPERATURE) {
             $config["center_pane"][] = [
                 "type" => "chart",
-                "fetch_url" => $this->router->generate("pairing_chart_data", ["pairing" => $pairing], UrlGeneratorInterface::ABSOLUTE_URL)
+                "fetch_url" => $this->router->generate("pairing_chart_data", [
+                    "pairing" => $pairing->getId()
+                ], UrlGeneratorInterface::ABSOLUTE_URL)
             ];
         } else if ($type === Sensor::GPS) {
             $config["center_pane"][] = [
                 "type" => "map",
-                "fetch_url" => $this->router->generate("pairing_map_data", ["pairing" => $pairing], UrlGeneratorInterface::ABSOLUTE_URL)
+                "fetch_url" => $this->router->generate("pairing_map_data", [
+                    "pairing" => $pairing->getId()
+                ], UrlGeneratorInterface::ABSOLUTE_URL)
             ];
         }
     }

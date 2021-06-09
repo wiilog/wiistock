@@ -147,7 +147,7 @@ class PairingController extends AbstractController {
     }
 
     /**
-     * @Route("/map-data", name="pairing_map_data", condition="request.isXmlHttpRequest()")
+     * @Route("/map-data/{pairing}", name="pairing_map_data", condition="request.isXmlHttpRequest()")
      */
     public function getMapData(Pairing $pairing): JsonResponse
     {

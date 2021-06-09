@@ -8,7 +8,6 @@ $(document).ready(() => {
     const $editEndButton = $(`button[data-target="#modalEditPairingEnd"]`);
     if ($editEndButton.exists()) {
         $editEndButton.click(function () {
-            console.log($(this), $(this).data('id'));
             modalEditPairingEnd.find(`input[name="id"]`).val($(this).data(`id`));
         });
 
@@ -33,7 +32,6 @@ function unpair(pairing) {
 
 function initMap(element) {
     const $element = $(element);
-    console.log($element.data(`fetch-url`));
 
     $.get($element.data(`fetch-url`), function (response) {
         let map = Leaflet.map(element).setView([44.831598, -0.577096], 13);
@@ -96,7 +94,7 @@ function initMap(element) {
 
 function initLineChart(element) {
     const $element = $(element);
-console.log($element, $element.data(`fetch-url`));
+
     $.get($element.data(`fetch-url`), function (response) {
         let data = {
             datasets: [],
