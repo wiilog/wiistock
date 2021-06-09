@@ -419,12 +419,14 @@ label.required:after {
     pointer-events: none;
 }
 
-.wii-icon-pairing {
-    width: 20px;
-    height: 20px;
-    display: inline-block;
-    background-color: white;
-    margin: auto 0;
+.pairing-button {
+    .wii-icon {
+        width: 20px;
+        height: 20px;
+        display: inline-block;
+        background-color: white;
+        margin: auto 0;
+    }
 }
 
 .pairings {
@@ -468,7 +470,7 @@ label.required:after {
     }
 }
 
-.wii-icon-pairing-2 {
+.wii-icon-pairing {
     background-color: darkblue;
     width:15px;
     height: 15px;

@@ -94,7 +94,7 @@ function delay(fn, ms) {
 }
 
 function getActiveButtonsValues() {
-    const $buttonContainer = $('.button-container');
+    const $buttonContainer = $('.pairing-button-container');
     const $activeTypeButtons = $buttonContainer.find('.sensor-types-container').children('button.active');
     const $activeElementButtons = $buttonContainer.find('.categories-container').children('button.active');
     let activeTypeButtons = [];
