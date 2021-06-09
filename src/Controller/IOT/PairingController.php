@@ -8,6 +8,7 @@ use App\Entity\Article;
 use App\Entity\Emplacement;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
+use App\Entity\IOT\SensorMessage;
 use App\Entity\Menu;
 
 use App\Entity\OrdreCollecte;
@@ -54,9 +55,9 @@ class PairingController extends AbstractController {
         $rows = [];
         /** @var Pairing $pairing */
         foreach ($pairings as $pairing) {
-            $type = ($pairing->getSensorWrapper() && $pairing->getSensorWrapper()->getSensor())
-                    ? $pairing->getSensorWrapper()->getSensor()->getType()
-                    : '';
+            /** @var Sensor $sensor */
+            $sensor = $pairing->getSensorWrapper() ? $pairing->getSensorWrapper()->getSensor() : null;
+            $type = $sensor ? $pairing->getSensorWrapper()->getSensor()->getType() : '';
 
             $elementIcon = "";
             if($pairing->getEntity() instanceof Emplacement) {
@@ -76,7 +77,12 @@ class PairingController extends AbstractController {
                 "typeIcon" => Sensor::SENSORS[$type],
                 "name" => $pairing->getSensorWrapper() ? $pairing->getSensorWrapper()->getName() : '',
                 "element" => $pairing->getEntity()->__toString(),
-                "elementIcon" => $elementIcon
+                "elementIcon" => $elementIcon,
+                "temperature" => ($sensor && ($sensor->getType() === Sensor::TEMP_TYPE) && $sensor->getLastMessage())
+                    ? $sensor->getLastMessage()->getContent()
+                    : '',
+                "lowTemperatureThreshold" => SensorMessage::LOW_TEMPERATURE_THRESHOLD,
+                "highTemperatureThreshold" => SensorMessage::HIGH_TEMPERATURE_THRESHOLD,
             ];
         }
 

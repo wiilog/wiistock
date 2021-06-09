@@ -42,14 +42,21 @@ function pairingList(search = '', filter = '', types = '', elements = '') {
             if (data.length > 0) {
                 const pairings = Object.values(data);
                 pairings.forEach((pairing) => {
+                    const temperature = parseFloat(pairing.temperature);
+                    const lowTemperatureThreshold = parseFloat(pairing.lowTemperatureThreshold);
+                    const highTemperatureThreshold = parseFloat(pairing.highTemperatureThreshold);
+
+                    const lowTemperatureAlert = temperature < lowTemperatureThreshold;
+                    const highTemperatureAlert = temperature > highTemperatureThreshold;
+
                     const $pairingContainer = `
                     <div class="col-lg-3 col-md-4 col-12 pairing-container">
-                        <div class="card wii-card request-card pointer shadow-sm bg-white">
+                        <div class="card wii-card request-card pointer shadow-sm bg-white pairing-card">
                             <div class="d-flex sensor-details">
-                                <div class="type d-flex justify-content-center align-items-center">
-                                    <span class="wii-icon wii-icon-iot-${pairing.typeIcon}"></span>
+                                <div class="type d-flex justify-content-center align-items-center ${lowTemperatureAlert ? 'low-temperature-bg' : highTemperatureAlert ? 'high-temperature-bg' : ''}">
+                                    <span class="wii-icon wii-icon-iot-${pairing.typeIcon} ${lowTemperatureAlert ? 'low-temperature-icon' : highTemperatureAlert ? 'high-temperature-icon' : ''}"></span>
                                 </div>
-                                <div class="name col-10 d-flex justify-content-center align-items-center">
+                                <div class="name col-10 d-flex justify-content-center align-items-center ${lowTemperatureAlert ? 'low-temperature-font' : highTemperatureAlert ? 'high-temperature-font' : ''}">
                                     ${pairing.name}
                                 </div>
                             </div>
