@@ -13,7 +13,7 @@ trait SensorMessageTrait
 {
 
     /**
-     * @ORM\ManyToMany(targetEntity=SensorMessage::class, mappedBy="sensor")
+     * @ORM\ManyToMany(targetEntity=SensorMessage::class)
      */
     private Collection $sensorMessages;
 

@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\Interfaces\Serializable;
+use App\Entity\IOT\SensorWrapper;
 use App\Entity\Traits\CommentTrait;
 use App\Entity\Traits\RequestTrait;
 use DateTimeInterface;
@@ -103,6 +104,11 @@ class Collecte extends FreeFieldEntity implements Serializable {
      */
     private $ordreCollecte;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=SensorWrapper::class)
+     */
+    private ?SensorWrapper $sensorWrapper = null;
+
     public function __construct() {
         $this->articles = new ArrayCollection();
         $this->collecteReferences = new ArrayCollection();
@@ -112,6 +118,15 @@ class Collecte extends FreeFieldEntity implements Serializable {
 
     public function getId(): ?int {
         return $this->id;
+    }
+
+    public function getSensor() : ?SensorWrapper {
+        return $this->sensorWrapper;
+    }
+
+    public function setFromSensor(?SensorWrapper $sensorWrapper) {
+        $this->sensorWrapper = $sensorWrapper;
+        return $this;
     }
 
     public function getNumero(): ?string {

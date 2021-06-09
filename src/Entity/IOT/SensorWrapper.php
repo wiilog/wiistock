@@ -143,6 +143,9 @@ class SensorWrapper extends FreeFieldEntity
         return $this;
     }
 
+    /**
+     * @return Collection|TriggerAction[]
+     */
     public function getTriggerActions(): Collection {
         return $this->triggerActions;
     }

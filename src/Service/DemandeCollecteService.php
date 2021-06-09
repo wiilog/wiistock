@@ -127,7 +127,7 @@ class DemandeCollecteService
                 'id' => $collecte->getId() ?? '',
                 'Création' => $collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : '',
                 'Validation' => $collecte->getValidationDate() ? $collecte->getValidationDate()->format('d/m/Y') : '',
-                'Demandeur' => $collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : '',
+                'Demandeur' => $collecte->getSensor() ? $collecte->getSensor()->getName() : ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : ''),
 				'Objet' => $collecte->getObjet() ?? '',
 				'Numéro' => $collecte->getNumero() ?? '',
                 'Statut' => $collecte->getStatut()->getNom() ?? '',

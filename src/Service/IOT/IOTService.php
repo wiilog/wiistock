@@ -4,10 +4,30 @@
 namespace App\Service\IOT;
 
 
+use App\Entity\Collecte;
+use App\Entity\CollecteReference;
+use App\Entity\Demande;
+use App\Entity\Handling;
+use App\Entity\IOT\CollectRequestTemplate;
+use App\Entity\IOT\DeliveryRequestTemplate;
+use App\Entity\IOT\HandlingRequestTemplate;
+use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;
 use App\Entity\IOT\SensorProfile;
+use App\Entity\IOT\SensorWrapper;
+use App\Entity\IOT\TriggerAction;
+use App\Entity\LigneArticle;
+use App\Entity\OrdreCollecte;
+use App\Entity\OrdreCollecteReference;
+use App\Entity\Statut;
+use App\Repository\StatutRepository;
+use App\Service\DemandeLivraisonService;
+use App\Service\UniqueNumberService;
+use DateTime;
+use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
+use http\Client\Request;
 
 class IOTService
 {
@@ -36,17 +56,240 @@ class IOTService
         self::INEO_SENS_ACS_BTN => 'à l\'action',
     ];
 
+    private DemandeLivraisonService $demandeLivraisonService;
+    private UniqueNumberService $uniqueNumberService;
+
+    public function __construct(DemandeLivraisonService $demandeLivraisonService, UniqueNumberService $uniqueNumberService)
+    {
+        $this->demandeLivraisonService = $demandeLivraisonService;
+        $this->uniqueNumberService = $uniqueNumberService;
+    }
+
+
     public function onMessageReceived(array $frame, EntityManagerInterface $entityManager) {
         if (isset(self::PROFILE_TO_TYPE[$frame['profile']])) {
             $message = $this->parseAndCreateMessage($frame, $entityManager);
-            $profile = $message->getSensor()->getProfile();
-            switch ($profile->getName()) {
-                case IOTService::INEO_SENS_ACS_TEMP:
-                    // treat temperature message receival
-                    break;
-            }
+            $this->treatTriggers($message, $entityManager);
             $entityManager->flush();
         }
+    }
+
+    private function treatTriggers(SensorMessage $sensorMessage, EntityManagerInterface $entityManager) {
+        $sensor = $sensorMessage->getSensor();
+        $wrapper = $sensor->getAvailableSensorWrapper();
+        if ($wrapper) {
+            foreach ($wrapper->getTriggerActions() as $triggerAction) {
+                $type = $sensor->getType();
+                switch ($type) {
+                    case Sensor::ACTION_TYPE:
+                        $this->treatActionTrigger($wrapper, $triggerAction, $sensorMessage, $entityManager);
+                        break;
+                    case Sensor::TEMP_TYPE:
+                        $this->treatTemperatureTrigger($triggerAction, $sensorMessage, $entityManager, $wrapper);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+        $entityManager->flush();
+    }
+
+    private function treatTemperatureTrigger(TriggerAction $triggerAction, SensorMessage $sensorMessage, EntityManagerInterface $entityManager, SensorWrapper $wrapper) {
+        $config = $triggerAction->getConfig();
+
+
+        $temperatureTreshold = floatval($config['temperature']);
+        $messageTemperature = floatval($sensorMessage->getContent());
+
+        $temperatureTresholdType = $config['limit'];
+
+        $needsTrigger = $temperatureTresholdType === 'lower' ?
+            $temperatureTreshold >= $messageTemperature
+            : $temperatureTreshold <= $messageTemperature;
+        $triggerAction->setLastTrigger(new \DateTime('now', new \DateTimeZone('Europe/Paris')));
+        if ($needsTrigger) {
+            if ($triggerAction->getRequestTemplate()) {
+                $this->treatRequestTemplateTriggerType($triggerAction->getRequestTemplate(), $entityManager, $wrapper);
+            } else if ($triggerAction->getRequestTemplate()) {
+                $this->treatAlertTemplateTriggerType();
+            }
+        }
+    }
+
+    private function treatActionTrigger(SensorWrapper $wrapper, TriggerAction $triggerAction, SensorMessage $sensorMessage, EntityManagerInterface $entityManager) {
+        $needsTrigger = $sensorMessage->getEvent() === self::ACS_EVENT;
+        if ($needsTrigger) {
+            if ($triggerAction->getRequestTemplate()) {
+                $this->treatRequestTemplateTriggerType($triggerAction->getRequestTemplate(), $entityManager, $wrapper);
+            } else if ($triggerAction->getRequestTemplate()) {
+                $this->treatAlertTemplateTriggerType();
+            }
+        }
+    }
+
+    private function treatRequestTemplateTriggerType(RequestTemplate $requestTemplate, EntityManagerInterface $entityManager, SensorWrapper $wrapper) {
+        $statutRepository = $entityManager->getRepository(Statut::class);
+
+        if ($requestTemplate instanceof DeliveryRequestTemplate) {
+            $request = $this->cleanCreateDeliveryRequest($statutRepository, $entityManager, $wrapper, $requestTemplate);
+            $entityManager->persist($request);
+            $valid = true;
+            $entityManager->flush();
+            foreach ($request->getLigneArticle() as $ligneArticle) {
+                $reference = $ligneArticle->getReference();
+                if ($reference->getQuantiteDisponible() < $ligneArticle->getQuantite()) {
+                    $valid = false;
+                    break;
+                }
+            }
+            if ($valid) {
+                $this->demandeLivraisonService->validateDLAfterCheck($entityManager, $request, false, true);
+            }
+            $entityManager->flush();
+        } else if ($requestTemplate instanceof CollectRequestTemplate) {
+            $request = $this->cleanCreateCollectRequest($statutRepository, $entityManager, $wrapper, $requestTemplate);
+            $entityManager->persist($request);
+            $entityManager->flush();
+        } else if ($requestTemplate instanceof HandlingRequestTemplate) {
+            $request = $this->cleanCreateHandlingRequest($entityManager, $wrapper, $requestTemplate);
+            $entityManager->persist($request);
+            $entityManager->flush();
+        }
+    }
+
+    private function cleanCreateHandlingRequest(EntityManagerInterface $entityManager,
+                                                SensorWrapper $sensorWrapper,
+                                                HandlingRequestTemplate $requestTemplate): Handling {
+        $handling = new Handling();
+        $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $handlingNumber = $this->uniqueNumberService->createUniqueNumber($entityManager, Handling::PREFIX_NUMBER, Handling::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
+
+        $desiredDate = $date->add(new \DateInterval('P' . $requestTemplate->getDelay() . 'D'));
+        $handling
+            ->setFreeFields($requestTemplate->getFreeFields())
+            ->setCarriedOutOperationCount($requestTemplate->getCarriedOutOperationCount())
+            ->setSource($requestTemplate->getSource())
+            ->setEmergency($requestTemplate->getEmergency())
+            ->setDestination($requestTemplate->getDestination())
+            ->setType($requestTemplate->getRequestType())
+            ->setCreationDate($date)
+            ->setFromSensor($sensorWrapper)
+            ->setNumber($handlingNumber)
+            ->setStatus($requestTemplate->getRequestStatus())
+            ->setComment($requestTemplate->getComment())
+            ->setAttachments($requestTemplate->getAttachments())
+            ->setSubject($requestTemplate->getSubject())
+            ->setDesiredDate($desiredDate);
+
+        return $handling;
+
+    }
+
+    private function cleanCreateDeliveryRequest(StatutRepository $statutRepository,
+                                                EntityManagerInterface $entityManager,
+                                                SensorWrapper $wrapper,
+                                                DeliveryRequestTemplate $requestTemplate): Demande {
+        $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
+        $numero = $this->demandeLivraisonService->generateNumeroForNewDL($entityManager);
+        $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+
+        $request = new Demande();
+        $request
+            ->setStatut($statut)
+            ->setDate($date)
+            ->setCommentaire($requestTemplate->getComment())
+            ->setFromSensor($wrapper)
+            ->setType($requestTemplate->getRequestType())
+            ->setDestination($requestTemplate->getDestination())
+            ->setNumero($numero)
+            ->setFreeFields($requestTemplate->getFreeFields());
+
+        foreach ($requestTemplate->getLines() as $requestTemplateLine) {
+            $ligneArticle = new LigneArticle();
+            $ligneArticle
+                ->setReference($requestTemplateLine->getReference())
+                ->setDemande($request)
+                ->setQuantite($requestTemplateLine->getQuantityToTake()); // protection contre quantités négatives
+            $entityManager->persist($ligneArticle);
+            $request->addLigneArticle($ligneArticle);
+        }
+        return $request;
+    }
+
+    private function cleanCreateCollectRequest(StatutRepository $statutRepository,
+                                                EntityManagerInterface $entityManager,
+                                                SensorWrapper $wrapper,
+                                                CollectRequestTemplate $requestTemplate): Collecte {
+        $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $numero = 'C-' . $date->format('YmdHis');
+        $status = $statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_BROUILLON);
+
+        $request = new Collecte();
+        $request
+            ->setFromSensor($wrapper)
+            ->setNumero($numero)
+            ->setDate($date)
+            ->setFreeFields($requestTemplate->getFreeFields())
+            ->setType($requestTemplate->getRequestType())
+            ->setStatut($status)
+            ->setPointCollecte($requestTemplate->getCollectPoint())
+            ->setObjet($requestTemplate->getSubject())
+            ->setCommentaire($requestTemplate->getComment())
+            ->setstockOrDestruct($requestTemplate->getDestination());
+        $entityManager->persist($request);
+        $entityManager->flush();
+
+        foreach ($requestTemplate->getLines() as $requestTemplateLine) {
+            $ligneArticle = new CollecteReference();
+            $ligneArticle
+                ->setReferenceArticle($requestTemplateLine->getReference())
+                ->setCollecte($request)
+                ->setQuantite($requestTemplateLine->getQuantityToTake()); // protection contre quantités négatives
+            $entityManager->persist($ligneArticle);
+            $request->addCollecteReference($ligneArticle);
+        }
+        $this->cleanCreateCollectOrder($statutRepository, $request, $entityManager);
+        $entityManager->flush();
+        return $request;
+    }
+
+    private function cleanCreateCollectOrder(StatutRepository $statutRepository, Collecte $demandeCollecte, EntityManagerInterface $entityManager) {
+
+        $statut = $statutRepository
+            ->findOneByCategorieNameAndStatutCode(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_A_TRAITER);
+        $ordreCollecte = new OrdreCollecte();
+        $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $ordreCollecte
+            ->setDate($date)
+            ->setNumero('C-' . $date->format('YmdHis'))
+            ->setStatut($statut)
+            ->setDemandeCollecte($demandeCollecte);
+        foreach ($demandeCollecte->getArticles() as $article) {
+            $ordreCollecte->addArticle($article);
+        }
+        foreach ($demandeCollecte->getCollecteReferences() as $collecteReference) {
+            $ordreCollecteReference = new OrdreCollecteReference();
+            $ordreCollecteReference
+                ->setOrdreCollecte($ordreCollecte)
+                ->setQuantite($collecteReference->getQuantite())
+                ->setReferenceArticle($collecteReference->getReferenceArticle());
+            $entityManager->persist($ordreCollecteReference);
+            $ordreCollecte->addOrdreCollecteReference($ordreCollecteReference);
+        }
+
+        $entityManager->persist($ordreCollecte);
+
+        // on modifie statut + date validation de la demande
+        $demandeCollecte
+            ->setStatut(
+                $statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_A_TRAITER)
+            )
+            ->setValidationDate($date);
+    }
+
+    private function treatAlertTemplateTriggerType() {
+
     }
 
     private function parseAndCreateMessage(array $message, EntityManagerInterface $entityManager): SensorMessage

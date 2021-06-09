@@ -62,7 +62,7 @@ class DeliveryRequestTemplate extends RequestTemplate {
     }
 
     /**
-     * @return Collection|ReferenceArticle[]
+     * @return Collection|RequestTemplateLine[]
      */
     public function getLines(): Collection
     {
