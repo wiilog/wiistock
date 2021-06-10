@@ -30,11 +30,10 @@ class ImportCommand extends Command
     private $em;
     private $importService;
 
-    public function __construct(AlertService $s, EntityManagerInterface $entityManager,
+    public function __construct(EntityManagerInterface $entityManager,
                                 ImportService $importService)
     {
         parent::__construct(self::$defaultName);
-$s->trigger((new AlertTemplate())->setType(AlertTemplate::SMS));
         $this->em = $entityManager;
         $this->importService = $importService;
     }
