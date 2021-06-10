@@ -13,4 +13,14 @@ use Doctrine\ORM\EntityRepository;
  */
 class AlertTemplateRepository extends EntityRepository
 {
+
+    public function getTemplateForSelect(){
+        $qb = $this->createQueryBuilder("alert_template");
+
+        $qb->select("alert_template.id AS id")
+            ->addSelect("alert_template.name AS text");
+
+        return $qb->getQuery()->getResult();
+    }
+
 }

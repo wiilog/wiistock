@@ -1,7 +1,9 @@
 <div class="form-group">
     <label for="utilisateur">Demandeur</label>
     <select disabled class="form-control select2 data" name="demandeur">
-        <option selected value="{{ demande.utilisateur.id }}">{{ demande.utilisateur.username }}</option>
+        {% if demande.utilisateur %}
+            <option selected value="{{ demande.utilisateur.id }}">{{ demande.utilisateur.username }}</option>
+        {% endif %}
     </select>
 </div>
 

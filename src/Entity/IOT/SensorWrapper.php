@@ -107,6 +107,9 @@ class SensorWrapper extends FreeFieldEntity
         return $this;
     }
 
+    /**
+     * @return Collection|Pairing[]
+     */
     public function getPairings(): Collection {
         return $this->pairings;
     }
@@ -143,13 +146,16 @@ class SensorWrapper extends FreeFieldEntity
         return $this;
     }
 
+    /**
+     * @return Collection|TriggerAction[]
+     */
     public function getTriggerActions(): Collection {
         return $this->triggerActions;
     }
 
     public function addTriggerAction(TriggerAction $triggerAction): self {
         if (!$this->triggerActions->contains($triggerAction)) {
-            $this->$triggerAction[] = $triggerAction;
+            $this->triggerActions[] = $triggerAction;
             $triggerAction->setSensorWrapper($this);
         }
 

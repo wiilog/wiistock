@@ -1,0 +1,21 @@
+{% set config = triggerAction is defined and triggerAction ? triggerAction.config : [] %}
+<div class="form-group col-12">
+    <label>Température*</label>
+    <div class="row align-items-center">
+        <label class="col-auto m-auto m-md-0">Si température</label>
+        <div class="col-12 col-md-4">
+            <div class="w-100">
+                <select class="form-control data needed" name="borneTemperature">
+                    {% for templateTemperature, index in templateTemperatures %}
+                        <option {{ config is not empty and config['limit'] == index ? 'selected' }} value="{{ index }}">{{ templateTemperature }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <label class="col-auto m-auto"> à </label>
+        <div class="col-12 col-md-3">
+            <input type="number" class="data w-100 form-control needed" value="{{ config is not empty ? config['temperature'] }}" name="sensorTemperatureLimit">
+        </div>
+        <label class="col-auto m-auto"> °C </label>
+    </div>
+</div>
