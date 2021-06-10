@@ -11,7 +11,8 @@
                     {% include "collecte/collecte-show-header.html.twig" with {
                         modifiable: modifiable,
                         collecte: collecte,
-                        showDetails: detailsConfig
+                        showDetails: detailsConfig,
+                        titleLogo: collecte.ordreCollecte|filter(oc=>oc.pairings|filter(p=>p.active)|length==1)|length==1 ? 'pairing' : null
                     } %}
                 </div>
             </div>

@@ -1113,7 +1113,9 @@ function updateImagePreview(preview, upload, $title = null, $delete = null, $cal
                                 $(preview)
                                     .attr('src', e.target.result)
                                     .removeClass('d-none');
-                                $delete.removeClass('d-none');
+                                if ($delete) {
+                                    $delete.removeClass('d-none');
+                                }
                             } else {
                                 showBSAlert('Veuillez choisir une image ne faisant pas plus de 1000x1000.', 'danger');
                             }

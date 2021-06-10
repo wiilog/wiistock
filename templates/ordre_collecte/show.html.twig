@@ -10,7 +10,8 @@
                 <div class="zone-entete">
                     {% include 'ordre_collecte/ordre-collecte-show-header.html.twig' with {
                         showDetails: detailsConfig,
-                        collecte: collecte
+                        collecte: collecte,
+                        titleLogo: collecte.pairings|filter(p=>p.active)|length==1 ? 'pairing' : null
                     } %}
                 </div>
             </div>
@@ -34,6 +35,7 @@
     {% include 'article/modalShowArticle.html.twig' %}
     {% include 'ordre_collecte/modalDeleteOrdreCollecte.html.twig' %}
     {% include 'ordre_collecte/modalFinishCollecte.html.twig' %}
+    {% include 'ordre_collecte/modalNewSensorPairing.html.twig' %}
 
 {% endblock %}
 {% block javascripts %}

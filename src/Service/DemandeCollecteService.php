@@ -10,6 +10,7 @@ use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
+use App\Entity\IOT\Pairing;
 use App\Entity\OrdreCollecte;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
@@ -134,6 +135,15 @@ class DemandeCollecteService
                 'Type' => $collecte->getType() ? $collecte->getType()->getLabel() : '',
                 'Actions' => $this->templating->render('collecte/datatableCollecteRow.html.twig', [
                     'url' => $url,
+                    'titleLogo' => !$collecte
+                                    ->getOrdreCollecte()
+                                    ->filter(fn(OrdreCollecte $ordreCollecte) =>
+                                        !$ordreCollecte
+                                            ->getPairings()
+                                            ->filter(fn(Pairing $pairing) =>
+                                                $pairing->isActive()
+                                            )->isEmpty()
+                                    )->isEmpty() ? 'pairing' : null
                 ]),
             ];
         return $row;

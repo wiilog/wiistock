@@ -6,7 +6,6 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-use App\Entity\IOT\Sensor;
 use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\RequestTemplate;
 
@@ -39,8 +38,8 @@ class Type
 	const LABEL_STANDARD = 'standard';
 	// types de la catégorie mouvement traça
     const LABEL_MVT_TRACA = 'MOUVEMENT TRACA';
-    const LABEL_SENSOR = 'capteur';
     const LABEL_HANDLING = 'service';
+    const LABEL_SENSOR = 'capteur';
     const LABEL_DELIVERY = 'livraison';
     const LABEL_COLLECT = 'collecte';
 

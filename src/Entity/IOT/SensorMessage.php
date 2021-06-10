@@ -11,6 +11,10 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class SensorMessage
 {
+
+    const LOW_TEMPERATURE_THRESHOLD = 10;
+    const HIGH_TEMPERATURE_THRESHOLD = 25;
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -47,7 +51,7 @@ class SensorMessage
      * @var Sensor|null
      * @ORM\OneToOne(targetEntity="App\Entity\IOT\Sensor", mappedBy="lastMessage")
      */
-    private ?Sensor $linkedSensorLastMessage;
+    private ?Sensor $linkedSensorLastMessage = null;
 
     public function getId(): ?int
     {

@@ -235,7 +235,6 @@ class RefArticleDataService {
         if(!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
             return new RedirectResponse($this->router->generate('access_denied'));
         }
-
         $typeRepository = $this->entityManager->getRepository(Type::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
         $inventoryCategoryRepository = $this->entityManager->getRepository(InventoryCategory::class);
@@ -281,7 +280,7 @@ class RefArticleDataService {
                 $refArticle->setUserThatTriggeredEmergency(null);
                 $refArticle->setEmergencyComment('');
             }
-            $refArticle->setIsUrgent($data['urgence']);
+            $refArticle->setIsUrgent($data['urgence'] === "true");
         }
 
         if(isset($data['prix'])) {
@@ -297,7 +296,7 @@ class RefArticleDataService {
         }
 
         if(isset($data['mobileSync'])) {
-            $refArticle->setNeedsMobileSync($data['mobileSync']);
+            $refArticle->setNeedsMobileSync($data['mobileSync'] === "true");
         }
 
         $refArticle->setBuyer(isset($data['buyer']) ? $userRepository->find($data['buyer']) : null);

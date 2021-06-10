@@ -1,10 +1,10 @@
 {% extends 'utils/show-header.html.twig' %}
 
 {% block showTitle ('Ordre de collecte n°' ~ collecte.numero) %}
-
 {% block showActions %}
     <div class="btn-group">
         {% set hasRightDemandeCollecte = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_COLL')) %}
+        {% set hasRightPairingOrder = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::PAIR_SENSOR')) %}
         {% set hasRightDeleteOrdre = (not finished and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE'))) %}
         {% set hasRightFinish = (not finished and ((collecte.utilisateur is null) or collecte.utilisateur.id == app.user.id)) %}
 
@@ -35,7 +35,7 @@
                         Aller vers la demande de collecte
                     </a>
                     <button onclick="printCollecteBarCodes()" class="dropdown-item pointer">
-                        <i class='fas fa-print print-button'></i> Imprimer les étiquettes
+                        <i class='fas fa-print print-button mr-2'></i> Imprimer les étiquettes
                     </button>
                 {% endif %}
                 {% if hasRightDeleteOrdre %}
@@ -45,6 +45,14 @@
                         <i class='fas fa-trash mr-2'></i>
                         Supprimer
                     </a>
+                {% endif %}
+                {% if hasRightPairingOrder and hasRightFinish and collecte.pairings|filter(p=>p.active)|length==0  and collecte.demandeCollecte.stock %}
+                <a class="dropdown-item pointer"
+                   data-toggle="modal"
+                   data-target="#modalNewSensorPairing">
+                    <span class="wii-icon wii-icon-pairing mr-2"></span>
+                    Associer à un capteur
+                </a>
                 {% endif %}
             </div>
         {% endif %}

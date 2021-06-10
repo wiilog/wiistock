@@ -113,7 +113,7 @@ class SensorWrapper extends FreeFieldEntity
 
     public function addPairing(Pairing $pairing): self {
         if (!$this->pairings->contains($pairing)) {
-            $this->$pairing[] = $pairing;
+            $this->pairings[] = $pairing;
             $pairing->setSensorWrapper($this);
         }
 
@@ -149,7 +149,7 @@ class SensorWrapper extends FreeFieldEntity
 
     public function addTriggerAction(TriggerAction $triggerAction): self {
         if (!$this->triggerActions->contains($triggerAction)) {
-            $this->$triggerAction[] = $triggerAction;
+            $this->triggerActions[] = $triggerAction;
             $triggerAction->setSensorWrapper($this);
         }
 

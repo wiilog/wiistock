@@ -1,0 +1,13 @@
+{% set config = triggerAction is defined and triggerAction ? triggerAction.config : [] %}
+<div class="form-group col-12">
+    <label>Bouton*</label>
+    <div class="button-container mx-auto mx-md-0">
+        <div class="d-flex justify-content-center my-2">
+            <button disabled name="middle"></button>
+        </div>
+    </div>
+    <div class="form-group col-12 col-md-6 p-0">
+        <label>Fonction/Zone</label>
+        <input type="text" class="data w-100 form-control" value="{{ config is not empty ? config['description'] }}" name="functionZone" title="Fonction/Zone">
+    </div>
+</div>
