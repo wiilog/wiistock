@@ -4,6 +4,8 @@ namespace App\Helper;
 
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
+use App\Entity\IOT\Sensor;
+use App\Entity\IOT\SensorMessage;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Statut;
@@ -94,6 +96,22 @@ class FormatHelper {
 
     public static function html(?string $comment, $else = "") {
         return $comment ? strip_tags($comment) : $else;
+    }
+
+    public static function messageContent(SensorMessage $sensorMessage) {
+        $type = $sensorMessage->getSensor() ? $sensorMessage->getSensor()->getType() : '';
+        $content = $sensorMessage->getContent();
+        switch ($type) {
+            case Sensor::TEMP_TYPE:
+                $measureUnit = '°C';
+                break;
+            case Sensor::GPS_TYPE:
+            case Sensor::ACTION_TYPE:
+            default:
+                $measureUnit = '';
+        }
+
+        return $content . $measureUnit;
     }
 
     public static function sqlString(string $sqlString): string {
