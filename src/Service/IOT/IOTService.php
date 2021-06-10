@@ -10,6 +10,7 @@ use App\Entity\CollecteReference;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Handling;
+use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\CollectRequestTemplate;
 use App\Entity\IOT\DeliveryRequestTemplate;
 use App\Entity\IOT\HandlingRequestTemplate;
@@ -33,7 +34,6 @@ use App\Service\UniqueNumberService;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
-use http\Client\Request;
 
 class IOTService
 {
@@ -51,9 +51,9 @@ class IOTService
     ];
 
     const PROFILE_TO_TYPE = [
-        self::INEO_SENS_ACS_TEMP => Sensor::TEMP_TYPE,
-        self::INEO_SENS_GPS => Sensor::GPS_TYPE,
-        self::INEO_SENS_ACS_BTN => Sensor::ACTION_TYPE,
+        self::INEO_SENS_ACS_TEMP => Sensor::TEMPERATURE,
+        self::INEO_SENS_GPS => Sensor::GPS,
+        self::INEO_SENS_ACS_BTN => Sensor::ACTION,
     ];
 
     const PROFILE_TO_FREQUENCY = [
@@ -62,15 +62,14 @@ class IOTService
         self::INEO_SENS_ACS_BTN => 'à l\'action',
     ];
 
-    private DemandeLivraisonService $demandeLivraisonService;
-    private UniqueNumberService $uniqueNumberService;
+    /** @Required */
+    public DemandeLivraisonService $demandeLivraisonService;
 
-    public function __construct(DemandeLivraisonService $demandeLivraisonService, UniqueNumberService $uniqueNumberService)
-    {
-        $this->demandeLivraisonService = $demandeLivraisonService;
-        $this->uniqueNumberService = $uniqueNumberService;
-    }
+    /** @Required */
+    public UniqueNumberService $uniqueNumberService;
 
+    /** @Required */
+    public AlertService $alertService;
 
     public function onMessageReceived(array $frame, EntityManagerInterface $entityManager) {
         if (isset(self::PROFILE_TO_TYPE[$frame['profile']])) {
@@ -89,10 +88,10 @@ class IOTService
             foreach ($wrapper->getTriggerActions() as $triggerAction) {
                 $type = $sensor->getType();
                 switch ($type) {
-                    case Sensor::ACTION_TYPE:
+                    case Sensor::ACTION:
                         $this->treatActionTrigger($wrapper, $triggerAction, $sensorMessage, $entityManager);
                         break;
-                    case Sensor::TEMP_TYPE:
+                    case Sensor::TEMPERATURE:
                         $this->treatTemperatureTrigger($triggerAction, $sensorMessage, $entityManager, $wrapper);
                         break;
                     default:
@@ -119,8 +118,8 @@ class IOTService
         if ($needsTrigger) {
             if ($triggerAction->getRequestTemplate()) {
                 $this->treatRequestTemplateTriggerType($triggerAction->getRequestTemplate(), $entityManager, $wrapper);
-            } else if ($triggerAction->getRequestTemplate()) {
-                $this->treatAlertTemplateTriggerType();
+            } else if ($triggerAction->getAlertTemplate()) {
+                $this->treatAlertTemplateTriggerType($triggerAction->getAlertTemplate(), $sensorMessage);
             }
         }
     }
@@ -130,8 +129,8 @@ class IOTService
         if ($needsTrigger) {
             if ($triggerAction->getRequestTemplate()) {
                 $this->treatRequestTemplateTriggerType($triggerAction->getRequestTemplate(), $entityManager, $wrapper);
-            } else if ($triggerAction->getRequestTemplate()) {
-                $this->treatAlertTemplateTriggerType();
+            } else if ($triggerAction->getAlertTemplate()) {
+                $this->treatAlertTemplateTriggerType($triggerAction->getAlertTemplate(), $sensorMessage);
             }
         }
     }
@@ -296,8 +295,8 @@ class IOTService
             ->setValidationDate($date);
     }
 
-    private function treatAlertTemplateTriggerType() {
-
+    private function treatAlertTemplateTriggerType(AlertTemplate $template, SensorMessage $message) {
+        $this->alertService->trigger($template, $message);
     }
 
     private function parseAndCreateMessage(array $message, EntityManagerInterface $entityManager): SensorMessage

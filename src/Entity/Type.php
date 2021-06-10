@@ -157,11 +157,6 @@ class Type
     private $averageRequestTime;
 
     /**
-     * @ORM\OneToMany(targetEntity=AlertTemplate::class, mappedBy="type")
-     */
-    private Collection $alertTemplates;
-
-    /**
      * @ORM\OneToMany(targetEntity=RequestTemplate::class, mappedBy="type")
      */
     private Collection $requestTemplates;
@@ -187,7 +182,6 @@ class Type
         $this->arrivals = new ArrayCollection();
         $this->statuts = new ArrayCollection();
         $this->handlings = new ArrayCollection();
-        $this->alertTemplates = new ArrayCollection();
         $this->requestTemplates = new ArrayCollection();
         $this->requestTypeTemplates = new ArrayCollection();
     }
@@ -751,36 +745,6 @@ class Type
         // set the owning side of the relation if necessary
         if ($averageRequestTime->getType() !== $this) {
             $averageRequestTime->setType($this);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|AlertTemplate[]
-     */
-    public function getAlertTemplates(): Collection
-    {
-        return $this->alertTemplates;
-    }
-
-    public function addAlertTemplate(AlertTemplate $alertTemplate): self
-    {
-        if (!$this->alertTemplates->contains($alertTemplate)) {
-            $this->alertTemplates[] = $alertTemplate;
-            $alertTemplate->setType($this);
-        }
-
-        return $this;
-    }
-
-    public function removeAlertTemplate(AlertTemplate $alertTemplate): self
-    {
-        if ($this->alertTemplates->removeElement($alertTemplate)) {
-            // set the owning side to null (unless already changed)
-            if ($alertTemplate->getType() === $this) {
-                $alertTemplate->setType(null);
-            }
         }
 
         return $this;

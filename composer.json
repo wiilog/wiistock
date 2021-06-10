@@ -18,6 +18,7 @@
         "knplabs/knp-snappy-bundle": "^1.8",
         "nelmio/cors-bundle": "^2.1",
         "nikitospush/barcode-bundle": "^3.0",
+        "ovh/ovh": "^3.0",
         "scienta/doctrine-json-functions": "^4.2",
         "sensio/framework-extra-bundle": "^5.6",
         "swiftmailer/swiftmailer": "^6.2",

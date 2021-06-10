@@ -19,9 +19,7 @@ class VariableService
         self::DATA => "Fonctionne seulement pour un capteur de type température. La température ayant déclenché l'alerte sera alors la donnée remontée",
     ];
 
-    public function replaceVariables(string $message, array $values): array {
-        $alreadyReplaced = [];
-
+    public function replaceVariables(string $message, array $values): string {
         foreach($values as $variable => $value) {
             $message = str_replace("@$variable", $value, $message);
         }

@@ -187,6 +187,14 @@ class Sensor
         return $this->sensorWrappers;
     }
 
+    public function getActiveSensorWrapper(): ?SensorWrapper {
+        $criteria = Criteria::create()->orderBy([
+            "deleted" => false,
+        ]);
+
+        return $this->sensorWrappers->matching($criteria)->first();
+    }
+
     public function addSensorWrapper(SensorWrapper $sensorWrapper): self {
         if (!$this->sensorWrappers->contains($sensorWrapper)) {
             $this->sensorWrappers[] = $sensorWrapper;

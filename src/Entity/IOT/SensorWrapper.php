@@ -62,6 +62,10 @@ class SensorWrapper extends FreeFieldEntity
         return $this->id;
     }
 
+    public function getSensor(): ?Sensor {
+        return $this->sensor;
+    }
+
     public function setSensor(?Sensor $sensor): self {
         if($this->sensor && $this->sensor !== $sensor) {
             $this->sensor->removeSensorWrapper($this);
@@ -73,11 +77,6 @@ class SensorWrapper extends FreeFieldEntity
 
         return $this;
     }
-
-    public function getSensor(): ?Sensor {
-        return $this->sensor;
-    }
-
 
     public function getName(): ?string
     {

@@ -6,9 +6,11 @@ namespace App\Command;
 
 use App\Entity\CategorieStatut;
 use App\Entity\Import;
+use App\Entity\IOT\AlertTemplate;
 use App\Entity\Statut;
 use App\Exceptions\ImportException;
 use App\Service\ImportService;
+use App\Service\IOT\AlertService;
 use DateTime;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -28,11 +30,11 @@ class ImportCommand extends Command
     private $em;
     private $importService;
 
-    public function __construct(EntityManagerInterface $entityManager,
+    public function __construct(AlertService $s, EntityManagerInterface $entityManager,
                                 ImportService $importService)
     {
         parent::__construct(self::$defaultName);
-
+$s->trigger((new AlertTemplate())->setType(AlertTemplate::SMS));
         $this->em = $entityManager;
         $this->importService = $importService;
     }

@@ -13,6 +13,10 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class AlertTemplate
 {
+
+    public const SMS = "sms";
+    public const MAIL = "mail";
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -21,19 +25,19 @@ class AlertTemplate
     private ?int $id = null;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Type::class, inversedBy="alertTemplates")
+     * @ORM\Column(type="string")
      */
-    private ?Type $type = null;
-
-    /**
-     * @ORM\Column(type="array")
-     */
-    private array $config = [];
+    private ?string $type = null;
 
     /**
      * @ORM\Column(type="string", length=255)
      */
     private ?string $name = null;
+
+    /**
+     * @ORM\Column(type="json")
+     */
+    private array $config = [];
 
     /**
      * @ORM\OneToMany(targetEntity=TriggerAction::class, mappedBy="alertTemplate")
@@ -50,30 +54,12 @@ class AlertTemplate
         return $this->id;
     }
 
-    public function getType(): ?Type {
+    public function getType(): ?string {
         return $this->type;
     }
 
-    public function setType(?Type $type): self {
-        if($this->type && $this->type !== $type) {
-            $this->type->removeAlertTemplate($this);
-        }
+    public function setType(?string $type): self {
         $this->type = $type;
-        if($type) {
-            $type->addAlertTemplate($this);
-        }
-
-        return $this;
-    }
-
-    public function getConfig(): ?array
-    {
-        return $this->config;
-    }
-
-    public function setConfig(array $config): self
-    {
-        $this->config = $config;
 
         return $this;
     }
@@ -86,6 +72,18 @@ class AlertTemplate
     public function setName(string $name): self
     {
         $this->name = $name;
+
+        return $this;
+    }
+
+    public function getConfig(): ?array
+    {
+        return $this->config;
+    }
+
+    public function setConfig(array $config): self
+    {
+        $this->config = $config;
 
         return $this;
     }
