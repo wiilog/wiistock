@@ -107,7 +107,8 @@ class PairingController extends AbstractController {
      * @HasPermission({Menu::IOT, Action::DISPLAY_PAIRING})
      */
     public function unpair(EntityManagerInterface $manager, Pairing $pairing): Response {
-        $pairing->setEnd(new DateTime());
+        $pairing->setEnd(new DateTime('now', new DateTimeZone('Europe/Paris')));
+        $pairing->setActive(false);
         $manager->flush();
 
         return $this->json([
@@ -154,7 +155,6 @@ class PairingController extends AbstractController {
         $associatedMessages = $pairing->getSensorMessages();
 
         $data = [];
-
         foreach ($associatedMessages as $message) {
             $date = $message->getDate();
             $sensor = $message->getSensor();
@@ -178,8 +178,7 @@ class PairingController extends AbstractController {
     public function getChartData(Pairing $pairing): JsonResponse
     {
         $data = ["colors" => []];
-
-        foreach ( $pairing->getSensorMessages() as $message) {
+        foreach ($pairing->getSensorMessages() as $message) {
             $date = $message->getDate();
             $sensor = $message->getSensor();
 

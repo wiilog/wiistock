@@ -48,7 +48,6 @@ class DataMonitoringService
         }
 
         unset($config["entities"]);
-        dump($config);
         return new Response($this->templating->render("iot/data_monitoring/page.html.twig", $config));
     }
 
@@ -70,7 +69,6 @@ class DataMonitoringService
         ];
 
         $type = $pairing->getSensorWrapper()->getSensor()->getType();
-        dump($type);
         if ($type === Sensor::TEMPERATURE) {
             $config["center_pane"][] = [
                 "type" => "chart",
