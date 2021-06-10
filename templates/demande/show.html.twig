@@ -12,7 +12,9 @@
                     {% include "demande/demande-show-header.html.twig" with {
                         demande: demande,
                         modifiable: modifiable,
-                        showDetails: showDetails
+                        showDetails: showDetails,
+                        titleLogo: demande.livraisons|filter(pr=>pr.pairings|length==1) ? 'pairing' : null,
+                        titleLogoTooltip: "Cette livraison est liée à un capteur"
                     } %}
                 </div>
             </div>

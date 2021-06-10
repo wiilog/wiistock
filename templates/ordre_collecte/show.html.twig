@@ -11,7 +11,8 @@
                     {% include 'ordre_collecte/ordre-collecte-show-header.html.twig' with {
                         showDetails: detailsConfig,
                         collecte: collecte,
-                        titleLogo: collecte.pairings|filter(p=>p.active)|length==1 ? 'pairing' : null
+                        titleLogo: collecte.pairings|filter(p=>p.active)|length==1 ? 'pairing' : null,
+                        titleLogoTooltip: "Cette collection est liée à un capteur"
                     } %}
                 </div>
             </div>
