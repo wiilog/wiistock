@@ -42,7 +42,7 @@ class PairingController extends AbstractController {
     public function index(): Response {
 
         return $this->render("pairing/index.html.twig", [
-            'categories' => Sensor::CATEGORIES,
+            "categories" => Sensor::CATEGORIES,
         ]);
     }
 
@@ -150,9 +150,13 @@ class PairingController extends AbstractController {
     /**
      * @Route("/map-data/{pairing}", name="pairing_map_data", condition="request.isXmlHttpRequest()")
      */
-    public function getMapData(Pairing $pairing): JsonResponse
+    public function getMapData(Request $request, Pairing $pairing): JsonResponse
     {
-        $associatedMessages = $pairing->getSensorMessages();
+        $filters = json_decode($request->getContent(), true);
+        $associatedMessages = $pairing->getSensorMessagesBetween(
+            $filters["start"],
+            $filters["end"],
+        );
 
         $data = [];
         foreach ($associatedMessages as $message) {
@@ -175,10 +179,16 @@ class PairingController extends AbstractController {
     /**
      * @Route("/chart-data/{pairing}", name="pairing_chart_data", condition="request.isXmlHttpRequest()")
      */
-    public function getChartData(Pairing $pairing): JsonResponse
+    public function getChartData(Request $request, Pairing $pairing): JsonResponse
     {
+        $filters = json_decode($request->getContent(), true);
+        $associatedMessages = $pairing->getSensorMessagesBetween(
+            $filters["start"],
+            $filters["end"],
+        );
+
         $data = ["colors" => []];
-        foreach ($pairing->getSensorMessages() as $message) {
+        foreach ($associatedMessages as $message) {
             $date = $message->getDate();
             $sensor = $message->getSensor();
 

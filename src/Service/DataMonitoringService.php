@@ -56,6 +56,8 @@ class DataMonitoringService
         $start = FormatHelper::datetime($pairing->getStart());
         $end = FormatHelper::datetime($pairing->getEnd());
 
+        $config["start"] = $pairing->getStart();
+        $config["end"] = $pairing->getEnd();
         $config["left_pane"][] = [
             "type" => "sensor",
             "icon" => "wifi",

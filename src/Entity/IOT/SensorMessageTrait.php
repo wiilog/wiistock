@@ -5,7 +5,9 @@ namespace App\Entity\IOT;
 
 
 use App\Entity\Attachment;
+use DateTime;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\IOT\SensorMessage as SensorMessage;
 
@@ -18,11 +20,28 @@ trait SensorMessageTrait
     private Collection $sensorMessages;
 
     /**
-     * @return Collection|Attachment[]
+     * @return Collection|SensorMessage[]
      */
     public function getSensorMessages(): Collection
     {
         return $this->sensorMessages;
+    }
+
+    /**
+     * @return Collection|SensorMessage[]
+     */
+    public function getSensorMessagesBetween($start, $end): Collection
+    {
+        $criteria = Criteria::create();
+        if($start) {
+            $criteria->andWhere(Criteria::expr()->gte("date", $start));
+        }
+
+        if($end) {
+            $criteria->andWhere(Criteria::expr()->lte("date", $end));
+        }
+
+        return $this->getSensorMessages()->matching($criteria);
     }
 
     public function addSensorMessage(SensorMessage $sensorMessage): self
