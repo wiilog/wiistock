@@ -31,9 +31,6 @@ function toggleLocationSelect($type, $modal = null) {
                 ? {value: preselectedLocation.id, text: preselectedLocation.label}
                 : {}
         );
-        if (!preselectedLocation) {
-            $locationSelector.val(null).trigger('change');
-        }
         $locationSelector.prop(`disabled`, false);
     } else {
         $locationSelector.val(null).trigger('change');

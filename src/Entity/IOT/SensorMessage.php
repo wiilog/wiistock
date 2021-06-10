@@ -11,6 +11,10 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class SensorMessage
 {
+
+    const LOW_TEMPERATURE_THRESHOLD = 10;
+    const HIGH_TEMPERATURE_THRESHOLD = 25;
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue

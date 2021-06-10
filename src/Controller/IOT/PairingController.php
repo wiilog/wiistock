@@ -36,7 +36,7 @@ use WiiCommon\Helper\Stream;
 class PairingController extends AbstractController {
 
     /**
-     * @Route("/", name="pairing_index")
+     * @Route("/", name="pairing_index", options={"expose"=true})
      * @HasPermission({Menu::IOT, Action::DISPLAY_SENSOR})
      */
     public function index(): Response {
@@ -61,9 +61,9 @@ class PairingController extends AbstractController {
         $rows = [];
         /** @var Pairing $pairing */
         foreach ($pairings as $pairing) {
-            $type = ($pairing->getSensorWrapper() && $pairing->getSensorWrapper()->getSensor())
-                    ? $pairing->getSensorWrapper()->getSensor()->getType()
-                    : '';
+            /** @var Sensor $sensor */
+            $sensor = $pairing->getSensorWrapper() ? $pairing->getSensorWrapper()->getSensor() : null;
+            $type = $sensor ? $pairing->getSensorWrapper()->getSensor()->getType() : '';
 
             $elementIcon = "";
             if($pairing->getEntity() instanceof Emplacement) {
@@ -84,7 +84,12 @@ class PairingController extends AbstractController {
                 "typeIcon" => Sensor::SENSOR_ICONS[$type],
                 "name" => $pairing->getSensorWrapper() ? $pairing->getSensorWrapper()->getName() : '',
                 "element" => $pairing->getEntity()->__toString(),
-                "elementIcon" => $elementIcon
+                "elementIcon" => $elementIcon,
+                "temperature" => ($sensor && ($sensor->getType() === Sensor::TEMP_TYPE) && $sensor->getLastMessage())
+                    ? $sensor->getLastMessage()->getContent()
+                    : '',
+                "lowTemperatureThreshold" => SensorMessage::LOW_TEMPERATURE_THRESHOLD,
+                "highTemperatureThreshold" => SensorMessage::HIGH_TEMPERATURE_THRESHOLD,
             ];
         }
 

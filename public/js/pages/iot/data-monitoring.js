@@ -25,7 +25,7 @@ $(document).ready(() => {
 function unpair(pairing) {
     $.post(Routing.generate(`unpair`, {pairing}), function (response) {
         if (response.success) {
-            window.href.location = Routing.generate(`pairing_index`);
+            window.location.href = Routing.generate(`pairing_index`);
         }
     })
 }

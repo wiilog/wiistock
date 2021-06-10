@@ -104,6 +104,37 @@ class SensorWrapperRepository extends EntityRepository
         ];
     }
 
+    public function findByNameOrCode($name, $code)
+    {
+        $qb = $this->createQueryBuilder('sensor_wrapper');
+
+        if ($name) {
+            $qb
+                ->andWhere('sensor_wrapper.name = :name')
+                ->setParameter('name', $name);
+        } else if ($code) {
+            $qb
+                ->join('sensor_wrapper.sensor', 'sensor')
+                ->andWhere('sensor.code = :code')
+                ->setParameter('code', $code);
+        }
+
+        return $qb
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function findWithNoActiveAssociation() {
+        $qb = $this->createQueryBuilder('sensor_wrapper');
+        $qb
+            ->leftJoin('sensor_wrapper.pairings', 'pairings')
+            ->where('pairings.active = 0');
+
+        return $qb
+            ->getQuery()
+            ->getResult();
+    }
+
     public function getForSelect(?string $term) {
         $qb = $this->createQueryBuilder("sensor_wrapper");
 

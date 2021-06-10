@@ -1,20 +1,12 @@
-<div class="d-flex mb-2 pr-0 button-container">
+<div class="d-flex mb-2 pr-0 pairing-button-container">
     {% if sensorTypes is defined %}
         <div class="sensor-types-container mr-4 d-flex">
             {% for sensorType, index in sensorTypes %}
                 <button class="btn btn-primary btn-ripple filter-tab minw-105px d-flex justify-content-center mr-2 pairing-button" data-id="{{ index }}">
-                    <span class="wii-icon wii-icon-{{ 'iot-' ~ index }} wii-icon-pairing mr-2"></span>
+                    <span class="wii-icon wii-icon-{{ 'iot-' ~ index }} mr-2"></span>
                     {{ sensorType }}
                 </button>
             {% endfor %}
-            <select hidden class="filter-input" name="sensorTypes" {{ disabled }}>
-                <option value>Entité</option>
-                {% for type in constant('App\\Entity\\Sensor::SENSOR_ICONS') | keys %}
-                    <option value="{{ type }}">
-                        {{ type }}
-                    </option>
-                {% endfor %}
-            </select>
         </div>
     {% endif %}
 
@@ -22,18 +14,10 @@
         <div class="categories-container d-flex">
             {% for category, index in categories %}
                 <button class="btn btn-primary btn-ripple filter-tab minw-105px d-flex justify-content-center mr-2 pairing-button" data-id="{{ index }}">
-                    <span class="wii-icon wii-icon-{{ 'iot-' ~ index }} wii-icon-pairing mr-2"></span>
+                    <span class="wii-icon wii-icon-{{ 'iot-' ~ index }} mr-2"></span>
                     {{ category }}
                 </button>
             {% endfor %}
-            <select hidden class="filter-input" name="categories" {{ disabled }}>
-                <option value>Entité</option>
-                {% for category, index in categories %}
-                    <option value="{{ index }}">
-                        {{ category }}
-                    </option>
-                {% endfor %}
-            </select>
         </div>
     {% endif %}
 </div>

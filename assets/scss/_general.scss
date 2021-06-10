@@ -419,12 +419,14 @@ label.required:after {
     pointer-events: none;
 }
 
-.wii-icon-pairing {
-    width: 20px;
-    height: 20px;
-    display: inline-block;
-    background-color: white;
-    margin: auto 0;
+.pairing-button {
+    .wii-icon {
+        width: 20px;
+        height: 20px;
+        display: inline-block;
+        background-color: white;
+        margin: auto 0;
+    }
 }
 
 .pairings {
@@ -433,37 +435,87 @@ label.required:after {
         width: 250px;
         margin-bottom: 20px;
 
+        .pairing-card {
+            border: 0 !important;
+        }
+
         .sensor-details {
             height: 80px;
         }
 
         .type {
-            background-color: #f5f7f6;;
+            background-color: #CBCBCB;
             width: 100%;
+            border-top-left-radius: 5px;
+
+            &.low-temperature-bg {
+                background-color: #CDF0EF;
+            }
+
+            &.high-temperature-bg {
+                background-color: #EFB3BF;
+            }
 
             .wii-icon {
                 background-color: black;
-                width: 25px;
-                height: 25px;
+                width: 30px;
+                height: 30px;
                 display: inline-block;
+                padding: 18px;
+
+                &.low-temperature-icon {
+                    background-color: #33D7D1;
+                }
+
+                &.high-temperature-icon {
+                    background-color: #D73353;
+                }
             }
         }
 
         .name {
             width: 100%;
+            background-color: #F2F3F7;
+            border-top-right-radius: 5px;
+            font-family: Myriad, sans-serif;
+            font-size: 17px;
+
+            &.low-temperature-font {
+                color: #33D7D1;
+                font-weight: 600;
+            }
+
+            &.high-temperature-font {
+                color: #D73353;
+                font-weight: 600;
+            }
         }
 
         .element {
             width: 100%;
             height: 40px;
-            background-color: #FFF8DC;
+            background-color: #DEE3F8;
+            border-bottom-left-radius: 5px;
+            border-bottom-right-radius: 5px;
+            font-family: Myriad, sans-serif;
+            font-weight: 600;
+            font-size: 18px;
+            color: #3353D7;
+            padding: 30px;
 
             .wii-icon {
-                background-color: black;
+                background-color: #3353D7;
                 width: 25px;
                 height: 25px;
                 display: inline-block;
             }
         }
     }
+}
+
+.wii-icon-pairing {
+    background-color: darkblue;
+    width:15px;
+    height: 15px;
+    display:inline-block;
 }

@@ -58,6 +58,7 @@ $icons: (
     'iot-collect': "../../public/svg/iot/collect.svg",
     'iot-tracking': "../../public/svg/iot/tracking.svg",
     'iot-temperature': "../../public/svg/iot/temperature.svg",
+    'pairing':"../../public/svg/pairing.svg",
 );
 
 @each $iconName, $iconPath in $icons {

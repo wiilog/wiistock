@@ -535,7 +535,7 @@ function demandeurChanged($select) {
     const $container = $select.closest('.demande-form');
     const $locationSelect = $container.find('[name="destination"]');
     const [resultSelected] = $select.select2('data');
-    if (resultSelected && !$locationSelect.val()) {
+    if (resultSelected) {
         let {idEmp, textEmp} = resultSelected;
         if (idEmp && textEmp) {
             const $value = $('<div/>');
@@ -560,6 +560,10 @@ function initNewLigneReception($button) {
         route: 'get_ref_article_reception',
         param: {reception: $('#receptionId').val()}
     });
+
+    if ($('#locationDemandeLivraison').length > 0) {
+        Select2Old.initValues($('#locationDemandeLivraison'), $('#locationDemandeLivraisonValue'));
+    }
 
     if ($('#storageTransfer').length > 0) {
         Select2Old.initValues($('#storage'), $('#storageTransfer'));

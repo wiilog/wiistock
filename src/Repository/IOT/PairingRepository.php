@@ -183,7 +183,10 @@ class PairingRepository extends EntityRepository
 
         $queryBuilder
             ->leftJoin('pairing.sensorWrapper', 'order_sensorWrapper')
-            ->addOrderBy('order_sensorWrapper.name', 'ASC');
+            ->leftJoin('order_sensorWrapper.sensor', 'order_sensor')
+            ->andWhere('order_sensor.type <> :actionType')
+            ->addOrderBy('order_sensorWrapper.name', 'ASC')
+            ->setParameter('actionType', Sensor::ACTION_TYPE);
 
         $query = $queryBuilder->getQuery();
         return [
