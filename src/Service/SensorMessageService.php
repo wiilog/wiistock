@@ -39,7 +39,7 @@ class SensorMessageService
         return [
             'id' => $sensorMessage->getId(),
             'date' => FormatHelper::datetime($sensorMessage->getDate()),
-            'content' => $sensorMessage->getContent() ?? "",
+            'content' => FormatHelper::messageContent($sensorMessage),
             'event' => $sensorMessage->getEvent() ?? ""
         ];
     }

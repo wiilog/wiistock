@@ -172,7 +172,9 @@ class IOTService
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         $handlingNumber = $this->uniqueNumberService->createUniqueNumber($entityManager, Handling::PREFIX_NUMBER, Handling::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 
-        $desiredDate = $date->add(new \DateInterval('P' . $requestTemplate->getDelay() . 'D'));
+        $desiredDate = clone $date;
+        $desiredDate = $desiredDate->add(new \DateInterval('PT' . $requestTemplate->getDelay() . 'H'));
+
         $handling
             ->setFreeFields($requestTemplate->getFreeFields())
             ->setCarriedOutOperationCount($requestTemplate->getCarriedOutOperationCount())
