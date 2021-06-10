@@ -53,7 +53,7 @@ class IOTController extends AbstractFOSRestController
         $messageRepository = $entityManager->getRepository(SensorMessage::class);
 
         $temperatureSensors = $sensorRepository->findBy([
-            'type' => IOTService::GPS_TYPE
+            'type' => Sensor::GPS_TYPE
         ]);
 
 
@@ -90,7 +90,7 @@ class IOTController extends AbstractFOSRestController
         $messageRepository = $entityManager->getRepository(SensorMessage::class);
 
         $temperatureSensors = $sensorRepository->findBy([
-            'type' => IOTService::TEMP_TYPE
+            'type' => Sensor::TEMP_TYPE
         ]);
         $associatedMessages = $messageRepository->findBy([
             'sensor' => $temperatureSensors

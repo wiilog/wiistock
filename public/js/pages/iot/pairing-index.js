@@ -68,6 +68,7 @@ function pairingList(search = '', filter = '', types = '', elements = '') {
                     </div>`;
 
                     $pairings.append($pairingContainer);
+                    $pairings.find('.pairing-container').last().hide().fadeIn(600);
                 });
             } else {
                 $pairings.addClass('d-flex justify-content-center');
@@ -84,7 +85,7 @@ function pairingList(search = '', filter = '', types = '', elements = '') {
                 });
 
                 $emptyResult.append($icon);
-                $pairings.append($emptyResult);
+                $pairings.append($emptyResult).hide().fadeIn(600);
             }
         } else {
             showBSAlert('Une erreur est survenue lors du chargement des données', 'warning');

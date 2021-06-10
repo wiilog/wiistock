@@ -33,7 +33,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class PairingController extends AbstractController {
 
     /**
-     * @Route("/", name="pairing_index")
+     * @Route("/", name="pairing_index", options={"expose"=true})
      * @HasPermission({Menu::IOT, Action::DISPLAY_SENSOR})
      */
     public function index(): Response {
