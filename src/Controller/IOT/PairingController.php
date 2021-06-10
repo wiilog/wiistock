@@ -43,6 +43,7 @@ class PairingController extends AbstractController {
 
         return $this->render("pairing/index.html.twig", [
             'categories' => Sensor::CATEGORIES,
+            'sensorTypes' => Sensor::SENSOR_ICONS,
         ]);
     }
 
@@ -85,7 +86,7 @@ class PairingController extends AbstractController {
                 "name" => $pairing->getSensorWrapper() ? $pairing->getSensorWrapper()->getName() : '',
                 "element" => $pairing->getEntity()->__toString(),
                 "elementIcon" => $elementIcon,
-                "temperature" => ($sensor && ($sensor->getType() === Sensor::TEMP_TYPE) && $sensor->getLastMessage())
+                "temperature" => ($sensor && ($sensor->getType() === Sensor::TEMPERATURE) && $sensor->getLastMessage())
                     ? $sensor->getLastMessage()->getContent()
                     : '',
                 "lowTemperatureThreshold" => SensorMessage::LOW_TEMPERATURE_THRESHOLD,

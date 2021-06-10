@@ -19,8 +19,7 @@ class Sensor
 
     const SENSOR_ICONS = [
         self::TEMPERATURE => 'temperature',
-        self::GPS => 'gps',
-        self::ACTION => 'action',
+        self::GPS => 'tracking',
     ];
 
     const LOCATION = 'location';

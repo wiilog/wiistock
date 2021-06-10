@@ -102,11 +102,11 @@ class FormatHelper {
         $type = $sensorMessage->getSensor() ? $sensorMessage->getSensor()->getType() : '';
         $content = $sensorMessage->getContent();
         switch ($type) {
-            case Sensor::TEMP_TYPE:
+            case Sensor::TEMPERATURE:
                 $measureUnit = '°C';
                 break;
-            case Sensor::GPS_TYPE:
-            case Sensor::ACTION_TYPE:
+            case Sensor::GPS:
+            case Sensor::ACTION:
             default:
                 $measureUnit = '';
         }
