@@ -113,7 +113,8 @@ class PairingController extends AbstractController {
      * @HasPermission({Menu::IOT, Action::DISPLAY_PAIRING})
      */
     public function unpair(EntityManagerInterface $manager, Pairing $pairing): Response {
-        $pairing->setEnd(new DateTime());
+        $pairing->setEnd(new DateTime('now', new DateTimeZone('Europe/Paris')));
+        $pairing->setActive(false);
         $manager->flush();
 
         return $this->json([
@@ -155,12 +156,15 @@ class PairingController extends AbstractController {
     /**
      * @Route("/map-data/{pairing}", name="pairing_map_data", condition="request.isXmlHttpRequest()")
      */
-    public function getMapData(Pairing $pairing): JsonResponse
+    public function getMapData(Request $request, Pairing $pairing): JsonResponse
     {
-        $associatedMessages = $pairing->getSensorMessages();
+        $filters = json_decode($request->getContent(), true);
+        $associatedMessages = $pairing->getSensorMessagesBetween(
+            $filters["start"],
+            $filters["end"],
+        );
 
         $data = [];
-
         foreach ($associatedMessages as $message) {
             $date = $message->getDate();
             $sensor = $message->getSensor();
@@ -181,11 +185,16 @@ class PairingController extends AbstractController {
     /**
      * @Route("/chart-data/{pairing}", name="pairing_chart_data", condition="request.isXmlHttpRequest()")
      */
-    public function getChartData(Pairing $pairing): JsonResponse
+    public function getChartData(Request $request, Pairing $pairing): JsonResponse
     {
-        $data = ["colors" => []];
+        $filters = json_decode($request->getContent(), true);
+        $associatedMessages = $pairing->getSensorMessagesBetween(
+            $filters["start"],
+            $filters["end"],
+        );
 
-        foreach ( $pairing->getSensorMessages() as $message) {
+        $data = ["colors" => []];
+        foreach ($associatedMessages as $message) {
             $date = $message->getDate();
             $sensor = $message->getSensor();
 

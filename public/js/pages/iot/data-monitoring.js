@@ -22,6 +22,11 @@ $(document).ready(() => {
     }
 });
 
+function filter() {
+    $(`[data-map]`).each((i, elem) => initMap(elem));
+    $(`[data-chart]`).each((i, elem) => initLineChart(elem));
+}
+
 function unpair(pairing) {
     $.post(Routing.generate(`unpair`, {pairing}), function (response) {
         if (response.success) {
@@ -30,11 +35,25 @@ function unpair(pairing) {
     })
 }
 
+function getFiltersValue() {
+    return JSON.stringify({
+        start: $(`input[name="start"]`).val(),
+        end: $(`input[name="end"]`).val(),
+    });
+}
+
+let previousMap = null;
 function initMap(element) {
     const $element = $(element);
 
-    $.get($element.data(`fetch-url`), function (response) {
+    $.post($element.data(`fetch-url`), getFiltersValue(), function (response) {
+        if(previousMap) {
+            previousMap.off();
+            previousMap.remove();
+        }
+
         let map = Leaflet.map(element).setView([44.831598, -0.577096], 13);
+        previousMap = map;
 
         Leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -95,7 +114,7 @@ function initMap(element) {
 function initLineChart(element) {
     const $element = $(element);
 
-    $.get($element.data(`fetch-url`), function (response) {
+    $.post($element.data(`fetch-url`), getFiltersValue(), function (response) {
         let data = {
             datasets: [],
             labels: []

@@ -48,7 +48,6 @@ class DataMonitoringService
         }
 
         unset($config["entities"]);
-        dump($config);
         return new Response($this->templating->render("iot/data_monitoring/page.html.twig", $config));
     }
 
@@ -57,6 +56,8 @@ class DataMonitoringService
         $start = FormatHelper::datetime($pairing->getStart());
         $end = FormatHelper::datetime($pairing->getEnd());
 
+        $config["start"] = $pairing->getStart();
+        $config["end"] = $pairing->getEnd();
         $config["left_pane"][] = [
             "type" => "sensor",
             "icon" => "wifi",
@@ -70,7 +71,6 @@ class DataMonitoringService
         ];
 
         $type = $pairing->getSensorWrapper()->getSensor()->getType();
-        dump($type);
         if ($type === Sensor::TEMPERATURE) {
             $config["center_pane"][] = [
                 "type" => "chart",
