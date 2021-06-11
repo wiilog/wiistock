@@ -57,6 +57,9 @@
                                     {{ not createDL ? 'disabled' }}>
                                     <option></option>
                                 </select>
+                                <input hidden id="locationDemandeLivraisonValue"
+                                       data-id="{{ app.user.dropzone and needsCurrentUser ? app.user.dropzone.id }}"
+                                       data-text="{{ app.user.dropzone and needsCurrentUser ? app.user.dropzone.label }}">
                             </div>
                             <input type="hidden" name="restrictedLocations" value="{{ restrictedLocations }}">
                         </div>
