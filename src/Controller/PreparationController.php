@@ -260,7 +260,7 @@ class PreparationController extends AbstractController
     public function show(Preparation $preparation,
                          EntityManagerInterface $entityManager): Response
     {
-        $sensorWrappers= $entityManager->getRepository(SensorWrapper::class)->findWithNoActiveAssociation();
+        $sensorWrappers = $entityManager->getRepository(SensorWrapper::class)->findWithNoActiveAssociation();
         $articleRepository = $entityManager->getRepository(Article::class);
 
         $preparationStatus = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;

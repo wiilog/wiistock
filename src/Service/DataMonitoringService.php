@@ -121,20 +121,24 @@ class DataMonitoringService
 
     public function createPreparation(array &$config, Preparation $preparation)
     {
+        $items = [];
+        if($preparation->getLivraison()) {
+            $items[] = [
+                "icon" => "iot-delivery",
+                "title" => $preparation->getLivraison()->getNumero(),
+                "color" => "#F5E342",
+            ];
+        }
+
+        $items[] = [
+            "icon" => "iot-preparation",
+            "title" => $preparation->getNumero(),
+            "color" => "#135FC2",
+        ];
+
         $config["left_pane"][] = [
             "type" => "entity",
-            "items" => [
-                [
-                    "icon" => "iot-delivery",
-                    "title" => $preparation->getLivraison()->getNumero(),
-                    "color" => "#F5E342",
-                ],
-                [
-                    "icon" => "iot-preparation",
-                    "title" => $preparation->getNumero(),
-                    "color" => "#135FC2",
-                ]
-            ]
+            "items" => $items
         ];
     }
 

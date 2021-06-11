@@ -125,12 +125,9 @@ class SensorWrapperRepository extends EntityRepository
     }
 
     public function findWithNoActiveAssociation() {
-        $qb = $this->createQueryBuilder('sensor_wrapper');
-        $qb
-            ->leftJoin('sensor_wrapper.pairings', 'pairings')
-            ->where('pairings.active = 0');
-
-        return $qb
+        return $this->createQueryBuilder('sensor_wrapper')
+            ->leftJoin('sensor_wrapper.pairings', 'pairing')
+            ->where('pairing.active = 0 OR pairing.id IS NULL')
             ->getQuery()
             ->getResult();
     }
