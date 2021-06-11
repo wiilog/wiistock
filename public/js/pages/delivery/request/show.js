@@ -74,8 +74,8 @@ function ajaxGetAndFillArticle($select) {
             $editNewArticle.html(data.modif);
             $modalFooter.removeClass('d-none');
             toggleRequiredChampsLibres($('#typeEdit'), 'edit');
-            Select2Old.location($('.ajax-autocomplete-location-edit'));
-            Select2Old.user($('.ajax-autocomplete-user-edit[name=managers]'));
+            Select2Old.location($editNewArticle.find('.ajax-autocomplete-location-edit'));
+            Select2Old.user($editNewArticle.find('.ajax-autocomplete-user-edit[name=managers]'));
 
             setMaxQuantity($select);
             registerNumberInputProtection($selection.find('input[type="number"]'));
@@ -190,4 +190,10 @@ function initPageDatatable() {
         }
     };
     return initDataTable('table-lignes', tableArticleConfig);
+}
+
+function initDeliveryRequestModal() {
+    const $modal = $('#modalEditDemande');
+    InitModal($modal, $('#submitEditDemande'), Routing.generate('demande_edit', true));
+    toggleLocationSelect($modal.find('[name="type"]'));
 }

@@ -8,7 +8,7 @@
         <div class="col-12">
             {% set checked = (collecteLocationDropdown == 1) ? 'checked' : '' %}
             <label class="switch">
-                <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-location-by-type-demande-livraison"
+                <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-location-by-type-collect"
                        data-param="{{ constant('App\\Entity\\ParametrageGlobal::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST') }}"
                        onchange="updateToggledParam($(this))">
                 <span class="slider round"></span>

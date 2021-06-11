@@ -131,6 +131,8 @@ function initNewCollecteEditor(modal) {
     const type = $(modal).find('select[name="type"] option:selected').val();
     const $locationSelector = $(modal).find(`select[name="emplacement"]`);
 
+    $locationSelector.val(null).trigger('change');
+
     if(!type) {
         $locationSelector.prop(`disabled`, true);
     }

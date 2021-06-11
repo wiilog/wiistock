@@ -116,9 +116,7 @@ function initEditModal(){
     InitModal($('#modalEditCollecte'), $('#submitEditCollecte'), Routing.generate('collecte_edit', true));
 
     const $modalEditCollecte = $('#modalEditCollecte');
-    $modalEditCollecte.on('show.bs.modal', function () {
-        resetEditTypeField($modalEditCollecte);
-    });
+    resetEditTypeField($modalEditCollecte);
 
     $modalEditCollecte.find('select[name="type"]').on('change', function() {
         onEditTypeChange($(this));
@@ -130,10 +128,7 @@ function resetEditTypeField($modal) {
 
     const type = $modal.find('select[name="type"] option:selected').val();
     const $locationSelector = $modal.find(`select[name="Pcollecte"]`);
-
-    if(!type) {
-        $locationSelector.prop(`disabled`, true);
-    }
+    $locationSelector.prop(`disabled`, !type);
 }
 
 function onEditTypeChange($type) {

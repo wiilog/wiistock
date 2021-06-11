@@ -147,7 +147,7 @@ class DemandeController extends AbstractController
                 'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
                 'defaultDeliveryLocations' => $globalParamService->getDefaultDeliveryLocationsByTypeId($entityManager),
                 'restrictedLocations' => $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST),
-                ]));
+            ]));
         }
         throw new BadRequestHttpException();
     }
