@@ -10,6 +10,7 @@ use App\Entity\Preparation;
 use App\Entity\OrdreCollecte;
 use App\Entity\Article;
 use DateTimeInterface;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use ReflectionClass;
 
@@ -18,6 +19,9 @@ use ReflectionClass;
  */
 class Pairing
 {
+
+    use SensorMessageTrait;
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -74,6 +78,11 @@ class Pairing
      * @ORM\ManyToOne(targetEntity=SensorWrapper::class, inversedBy="pairings")
      */
     private ?SensorWrapper $sensorWrapper = null;
+
+    public function __construct()
+    {
+        $this->sensorMessages = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -229,6 +238,13 @@ class Pairing
     }
 
     public function setEntity($entity) {
+        if($entity === null) {
+            $this->setLocation(null);
+            $this->setArticle(null);
+            $this->setPack(null);
+            $this->setPreparationOrder(null);
+            $this->setCollectOrder(null);
+        }
 
         if($entity instanceof Emplacement) {
             $this->setLocation($entity);
@@ -255,7 +271,7 @@ class Pairing
         } else if($this->getCollectOrder() !== null) {
             return $this->collectOrder;
         } else {
-            return '';
+            return null;
         }
     }
 }

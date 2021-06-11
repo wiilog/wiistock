@@ -8,13 +8,14 @@
 
 <div class="form-group">
     <label>Nom du modèle*</label>
-    <input type="text" class="form-control data needed always-visible" name="name" value="{{ request_template.name }}"/>
+    <input type="text" class="form-control data needed always-visible" name="name" value="{{ request_template.name }}" placeholder="Renseigner un nom de modèle..."/>
 </div>
 
 <div class="form-group">
     <label>Type de demande*</label>
     {% if not request_template.id %}
-        <select name="type" class="form-control data needed always-visible w-100 type-selector" data-s2 data-no-empty-option>
+        <select name="type" class="form-control data needed always-visible w-100 type-selector" data-s2 data-no-empty-option
+                data-placeholder="Sélectionner un type de demande...">
             <option value="{{ constant('App\\Entity\\IOT\\RequestTemplate::TYPE_HANDLING') }}">Service</option>
             <option value="{{ constant('App\\Entity\\IOT\\RequestTemplate::TYPE_DELIVERY') }}">Livraison</option>
             <option value="{{ constant('App\\Entity\\IOT\\RequestTemplate::TYPE_COLLECT') }}">Collecte</option>

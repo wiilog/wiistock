@@ -1,12 +1,59 @@
-$(document).ready(() => $(`[data-map]`).each((i, elem) => initMap(elem)))
-    .arrive(`[data-map]`, elem => initMap(elem));
+$(document).ready(() => {
+    $(`[data-map]`).each((i, elem) => initMap(elem));
+    $(`[data-chart]`).each((i, elem) => initLineChart(elem));
 
-$(document).ready(() => $(`[data-chart]`).each((i, elem) => initLineChart(elem)))
-    .arrive(`[data-chart]`, elem => initLineChart(elem));
+    $(document).arrive(`[data-map]`, elem => initMap(elem));
+    $(document).arrive(`[data-chart]`, elem => initLineChart(elem));
 
-function initMap(element, route = 'map_data_api') {
-    $.get(Routing.generate(route, true), function (response) {
+    const $editEndButton = $(`button[data-target="#modalEditPairingEnd"]`);
+    if ($editEndButton.exists()) {
+        $editEndButton.click(function () {
+            modalEditPairingEnd.find(`input[name="id"]`).val($(this).data(`id`));
+        });
+
+        const modalEditPairingEnd = $("#modalEditPairingEnd");
+        const submitEditPairingEnd = $("#submitEditPairingEnd");
+        const urlEditPairingEnd = Routing.generate('pairing_edit_end', {});
+        InitModal(modalEditPairingEnd, submitEditPairingEnd, urlEditPairingEnd, {
+            success: response => {
+                $(response.selector).text(response.date);
+            }
+        });
+    }
+});
+
+function filter() {
+    $(`[data-map]`).each((i, elem) => initMap(elem));
+    $(`[data-chart]`).each((i, elem) => initLineChart(elem));
+}
+
+function unpair(pairing) {
+    $.post(Routing.generate(`unpair`, {pairing}), function (response) {
+        if (response.success) {
+            window.location.href = Routing.generate(`pairing_index`);
+        }
+    })
+}
+
+function getFiltersValue() {
+    return JSON.stringify({
+        start: $(`input[name="start"]`).val(),
+        end: $(`input[name="end"]`).val(),
+    });
+}
+
+let previousMap = null;
+function initMap(element) {
+    const $element = $(element);
+
+    $.post($element.data(`fetch-url`), getFiltersValue(), function (response) {
+        if(previousMap) {
+            previousMap.off();
+            previousMap.remove();
+        }
+
         let map = Leaflet.map(element).setView([44.831598, -0.577096], 13);
+        previousMap = map;
 
         Leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -64,10 +111,10 @@ function initMap(element, route = 'map_data_api') {
     })
 }
 
-function initLineChart(element, route = 'chart_data_api') {
-    const $canvas = $(element);
+function initLineChart(element) {
+    const $element = $(element);
 
-    $.get(Routing.generate(route, true), function (response) {
+    $.post($element.data(`fetch-url`), getFiltersValue(), function (response) {
         let data = {
             datasets: [],
             labels: []
@@ -91,7 +138,7 @@ function initLineChart(element, route = 'chart_data_api') {
             });
         });
         data.datasets = Object.values(datasets);
-        let chart = new Chart($canvas, {
+        let chart = new Chart($element, {
             type: 'line',
             data,
             options: {

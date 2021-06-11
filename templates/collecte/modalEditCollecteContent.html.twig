@@ -28,7 +28,9 @@
     <label class="col-12" for="utilisateur">Utilisateur</label>
     <div class="col-12">
         <select class="form-control select2 data w-100" name="demandeur" disabled>
-            <option value="{{ collecte.demandeur.id }}">{{ collecte.demandeur.username }}</option>
+            {% if collecte.demandeur %}
+                <option value="{{ collecte.demandeur.id }}">{{ collecte.demandeur.username }}</option>
+            {% endif %}
         </select>
     </div>
 </div>

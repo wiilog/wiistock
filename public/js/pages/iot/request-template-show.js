@@ -86,6 +86,7 @@ function displayWarning() {
 function openEditRequestTemplateModal($button) {
     const $editModal = $(`#modalEditRequestTemplate`);
     displayWarning().then(() => {
+        $(`#modalConfirmEdit`).modal('hide');
         editRow(
             $button,
             Routing.generate('request_template_edit_api', true),
@@ -102,6 +103,7 @@ function openEditRequestTemplateModal($button) {
 function openAddArticleModal() {
     const $addLineModal = $(`#modalAddLine`);
     displayWarning().then(() => {
+        $(`#modalConfirmEdit`).modal('hide');
         clearModal($addLineModal);
         $addLineModal.modal(`show`);
     })
@@ -110,6 +112,7 @@ function openAddArticleModal() {
 function openEditArticleModal($button) {
     const $editLineModal = $(`#modalEditLine`);
     displayWarning().then(() => {
+        $(`#modalConfirmEdit`).modal('hide');
         editRow(
             $button,
             Routing.generate('request_template_line_edit_api'),
@@ -123,6 +126,7 @@ function openEditArticleModal($button) {
 
 function openRemoveArticleModal(line) {
     displayWarning().then(() => {
+        $(`#modalConfirmEdit`).modal('hide');
         $.post(Routing.generate('request_template_line_remove', {line}), response => {
             if(response.success) {
                 showBSAlert(response.msg, `success`);

@@ -13,17 +13,13 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Sensor
 {
-    const TEMP_TYPE = 'Température';
-    const GPS_TYPE = 'GPS';
-    const ACTION_TYPE = 'Action';
+    const TEMPERATURE = 'Température';
+    const GPS = 'GPS';
+    const ACTION = 'Action';
 
-    const TEMPERATURE = 'temperature';
-    const TRACKING = 'tracking';
-    const ACTION = 'action';
-
-    const SENSORS = [
-        self::TEMP_TYPE => self::TEMPERATURE,
-        self::GPS_TYPE => self::TRACKING,
+    const SENSOR_ICONS = [
+        self::TEMPERATURE => 'temperature',
+        self::GPS => 'tracking',
     ];
 
     const LOCATION = 'location';
@@ -188,6 +184,14 @@ class Sensor
 
     public function getSensorWrappers(): Collection {
         return $this->sensorWrappers;
+    }
+
+    public function getActiveSensorWrapper(): ?SensorWrapper {
+        $criteria = Criteria::create()->orderBy([
+            "deleted" => false,
+        ]);
+
+        return $this->sensorWrappers->matching($criteria)->first();
     }
 
     public function addSensorWrapper(SensorWrapper $sensorWrapper): self {

@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use App\Entity\IOT\Sensor;
+use App\Entity\IOT\SensorWrapper;
 use App\Entity\Traits\CommentTrait;
 use App\Entity\Traits\RequestTrait;
 use DateTime;
@@ -90,6 +92,11 @@ class Demande extends FreeFieldEntity
      */
     private $reception;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=SensorWrapper::class)
+     */
+    private ?SensorWrapper $sensorWrapper = null;
+
 
 	public function __construct() {
         $this->preparations = new ArrayCollection();
@@ -100,6 +107,15 @@ class Demande extends FreeFieldEntity
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getSensor() : ?SensorWrapper {
+	    return $this->sensorWrapper;
+    }
+
+    public function setFromSensor(?SensorWrapper $sensorWrapper) {
+	    $this->sensorWrapper = $sensorWrapper;
+	    return $this;
     }
 
     public function getNumero(): ?string
