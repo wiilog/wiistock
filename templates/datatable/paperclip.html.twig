@@ -1,0 +1,16 @@
+<button class="link-like d-flex ml-3 has-tooltip " title="X pieces jointe"
+    {% if reference is defined %}
+        data-reference="{{ reference }}"
+        onclick="redirectPaperclipClick($(this))"
+    {% endif %}
+    {% if mvt is defined %}
+        data-id='{{ mvt }}'
+        data-target='#modalShowMvtTraca'
+        data-toggle='modal'
+        onclick="showRow($(this), Routing.generate('mvt_traca_show', true), $('#modalShowMvtTraca'))"
+    {% endif %}
+>
+    <div>
+        <img class="mt-1" src="{{ asset('svg/paperclip.svg') }}" alt="Paperclip" height="16px" width="16px" border="0"/>
+    </div>
+</button>

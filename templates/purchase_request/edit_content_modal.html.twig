@@ -30,10 +30,12 @@
         </div>
     </div>
 
+{% set editAttachments = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
     <div class="form-group col-md-6 col-12">
         {% include 'attachment/attachment.html.twig' with {
             'isNew' : false,
-            'attachments': purchaseRequest.attachments
+            'attachments': purchaseRequest.attachments,
+            'editAttachments' : editAttachments
         } %}
     </div>
 </div>

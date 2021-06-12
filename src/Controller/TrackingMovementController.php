@@ -381,6 +381,7 @@ class TrackingMovementController extends AbstractController
                 'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
                 'attachments' => $trackingMovement->getAttachments(),
                 'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]),
+                'editAttachments' => $this->userService->hasRightFunction(Menu::TRACA, Action::EDIT),
             ]);
 
             return new JsonResponse($json);
@@ -557,7 +558,8 @@ class TrackingMovementController extends AbstractController
             $json = $this->renderView('mouvement_traca/modalShowMvtTracaContent.html.twig', [
                 'mvt' => $trackingMovement,
                 'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
-                'attachments' => $trackingMovement->getAttachments()
+                'attachments' => $trackingMovement->getAttachments(),
+                 'editAttachments' => $this->userService->hasRightFunction(Menu::TRACA, Action::EDIT),
             ]);
             return new JsonResponse($json);
         }

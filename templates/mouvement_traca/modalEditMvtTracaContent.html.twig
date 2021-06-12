@@ -76,11 +76,13 @@
         <div class="editor-container-edit" value="{{ mvt.commentaire }}">{{ mvt.commentaire|raw }}</div>
 
     </div>
+    {% set editAttachments = editAttachments is defined and editAttachments %}
     <div class="form-group col-12">
         <div>
             {% include 'attachment/attachment.html.twig' with {
                 'isNew': false,
-                attachments: mvt.attachments
+                attachments : mvt.attachments,
+                'editAttachments' : editAttachments,
             } %}
         </div>
     </div>

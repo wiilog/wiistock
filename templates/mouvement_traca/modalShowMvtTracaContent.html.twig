@@ -38,7 +38,8 @@
         {% for attachment in attachments %}
             {% include 'attachment/attachmentLine.html.twig' with {
                 attachment: attachment,
-                canRemove: false
+                canRemove: false,
+                'editAttachments': editAttachments,
             }%}
         {% endfor %}
     </div>

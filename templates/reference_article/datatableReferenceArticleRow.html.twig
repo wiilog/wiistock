@@ -1,9 +1,12 @@
 <div class="d-flex">
     <div class="dropdown dropright">
-        <div class="d-flex">
+        <div class="d-flex referenceRow">
             {% include 'datatable/dotsRow.html.twig' %}
             {% if active %}
-                {% include 'datatable/addRefToCart.html.twig' with {reference: reference_id}%}
+                {% include 'datatable/addRefToCart.html.twig' with {reference: reference_id} %}
+            {% endif %}
+            {% if attachment|length > 0 %}
+                {% include 'datatable/paperclip.html.twig' with {reference: reference_id} %}
             {% endif %}
             <div class="dropdown-menu dropdown-follow-gt pointer">
                 {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}

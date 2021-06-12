@@ -151,15 +151,7 @@ class TrackingMovementService
         $categoryFF = $categoryFFRepository->findOneByLabel(CategorieCL::MVT_TRACA);
         $category = CategoryType::MOUVEMENT_TRACA;
         $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
-
         $trackingPack = $movement->getPack();
-        $lastTracking = $trackingPack ? $trackingPack->getLastTracking() : null;
-
-        if(!$movement->getAttachments()->isEmpty()) {
-            $attachmentsCounter = $movement->getAttachments()->count();
-            $sAttachments = $attachmentsCounter > 1 ? 's' : '';
-            $attachments = "<i class=\"fas fa-paperclip\" title=\"{$attachmentsCounter} pièce{$sAttachments} jointe{$sAttachments}\"></i>";
-        }
 
         $rows = [
             'id' => $movement->getId(),
@@ -190,6 +182,7 @@ class TrackingMovementService
             "attachments" => $attachments ?? "",
             "actions" => $this->templating->render('mouvement_traca/datatableMvtTracaRow.html.twig', [
                 'mvt' => $movement,
+                'attachments' => $movement->getAttachments(),
             ])
         ];
 

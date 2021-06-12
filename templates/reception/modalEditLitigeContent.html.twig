@@ -83,9 +83,13 @@
                     onclick="getCommentAndAddHisto()">Ajouter</button>
         </div>
     </div>
+    {% set editAttachments = hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::EDIT')) %}
     <div class="form-group col-12">
         <div>
-            {% include 'attachment/attachment.html.twig' with {'isNew': false} %}
+            {% include 'attachment/attachment.html.twig' with {
+                'isNew': false,
+                'editAttachments': editAttachments,
+            } %}
         </div>
     </div>
 </div>

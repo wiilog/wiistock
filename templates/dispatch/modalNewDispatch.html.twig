@@ -256,12 +256,14 @@
                     {% endif %}
 
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_ATTACHMENTS_DISPATCH') %}
+                    {% set editAttachments = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_ACHE')) %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                         {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
                         <div class="form-group col-md-4 col-12">
                             {% include 'attachment/attachment.html.twig' with {
                                 'isNew': true,
-                                'required': required
+                                'required': required,
+                                'editAttachments': editAttachments,
                             } %}
                         </div>
                     {% else %}
