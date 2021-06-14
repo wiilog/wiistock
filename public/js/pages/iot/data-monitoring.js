@@ -55,21 +55,25 @@ function initMap(element) {
         let map = Leaflet.map(element).setView([44.831598, -0.577096], 13);
         previousMap = map;
 
-        Leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
+        Leaflet
+            .tileLayer(
+                'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                { attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}
+            )
+            .addTo(map);
 
         let sensors = Object.keys(response);
         let index = 0;
 
         let globalBounds = Leaflet.latLngBounds();
 
-        if(Object.values(response).length > 0) {
-            Object.values(response).forEach((date => {
-                Object.values(date).forEach(coordinates => {
-                    globalBounds.extend(coordinates)      // Extend LatLngBounds with coordinates
-                })
-            }))
+        const responseValues = Object.values(response);
+        if(responseValues.length > 0) {
+            responseValues.forEach(((date) => {
+                Object.values(date).forEach((coordinates) => {
+                    globalBounds.extend(coordinates);      // Extend LatLngBounds with coordinates
+                });
+            }));
 
             map.fitBounds(globalBounds);
 

@@ -21,7 +21,7 @@
         {{ macros.paneItem(color, icon, title, subtitle ?? null) }}
     {% endif %}
 
-    {% if type == 'sensor' or type == 'entity' or (type == constant('App\\Service\\DataMonitoringService::TIMELINE') and activeAssociation) %}
+    {% if type == 'sensor' or type == 'entity' or (type == constant('App\\Service\\IOT\\DataMonitoringService::TIMELINE') and activeAssociation) %}
         <div class="dropdown dropleft association-actions">
             <img src="{{ asset('svg/dotsblack.svg') }}" alt="Actions" height="20px" width="8px"
                  data-toggle="dropdown" class="pointer"/>
@@ -33,7 +33,7 @@
                     <button class="dropdown-item pointer" onclick="unpair({{ pairing.id }})"><i class="fas fa-unlink"></i> Dissocier</button>
                 {% elseif type == 'entity' %}
                     <button class="dropdown-item pointer"><i class="fas fa-wifi"></i> Voir l'historique des données</button>
-                {% elseif type == constant('App\\Service\\DataMonitoringService::TIMELINE') and activeAssociation %}
+                {% elseif type == constant('App\\Service\\IOT\\DataMonitoringService::TIMELINE') and activeAssociation %}
                     <a href="{{ path('pairing_show', {pairing: activeAssociation.id}) }}" class="dropdown-item pointer" target="_blank">
                         <i class="fas fa-wifi"></i> Aller sur l'association active
                     </a>

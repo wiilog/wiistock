@@ -310,7 +310,7 @@ class OrdreCollecteService
 		];
 	}
 
-    private function dataRowCollecte($collecte)
+    private function dataRowCollecte(OrdreCollecte $collecte)
     {
         $demandeCollecte = $collecte->getDemandeCollecte();
 
@@ -326,10 +326,7 @@ class OrdreCollecteService
                 'url' => $url,
             ]),
             'pairing' => $this->templating->render('pairing-icon.html.twig', [
-                'linkedPairing' => !$collecte
-                    ->getPairings()
-                    ->filter(fn(Pairing $pairing) => $pairing->isActive()
-                    )->isEmpty() ? 'Cette collecte est liée à un capteur' : null
+                'linkedPairing' => $collecte->getActivePairing() ? 'Cette collecte est liée à un capteur' : null
             ]),
         ];
     }

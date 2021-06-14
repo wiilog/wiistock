@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Service;
+namespace App\Service\IOT;
 
 use App\Entity\Article;
 use App\Entity\Emplacement;
+use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
@@ -12,7 +13,6 @@ use App\Entity\Pack;
 use App\Entity\Preparation;
 use App\Helper\FormatHelper;
 use DateTime;
-use Doctrine\Common\Collections\Criteria;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -46,16 +46,17 @@ class DataMonitoringService
     public function render($config): Response
     {
         if($config["type"] === self::PAIRING) {
+            /** @var Pairing $pairing */
             $pairing = $config["entity"];
             $entity = $pairing->getEntity();
-            $this->createContentAccordingToEntity($entity, $config);
+            $this->fillEntityConfig($entity, $config, false);
 
-            $this->createPairing($config, $pairing);
+            $this->fillPairingConfig($config, $pairing);
         } else if($config["type"] === self::TIMELINE) {
             $date = new DateTime('-1 month');
             $entity = $config['entity'];
 
-            $this->createContentAccordingToEntity($entity, $config, true);
+            $this->fillEntityConfig($entity, $config, true);
             $config['start'] = $date;
             $config['end'] = new DateTime('now');
             if (in_array(get_class($entity), self::ASSOCIATED_CLASSES[Sensor::TEMPERATURE])) {
@@ -82,7 +83,7 @@ class DataMonitoringService
         return new Response($this->templating->render("iot/data_monitoring/page.html.twig", $config));
     }
 
-    public function createPairing(array &$config, Pairing $pairing)
+    public function fillPairingConfig(array &$config, Pairing $pairing)
     {
         $start = FormatHelper::datetime($pairing->getStart());
         $end = FormatHelper::datetime($pairing->getEnd());
@@ -119,7 +120,7 @@ class DataMonitoringService
         }
     }
 
-    public function createPack(array &$config, Pack $pack, $isTimeline, $activeAssociation)
+    private function fillPackConfig(array &$config, Pack $pack, bool $isTimeline)
     {
         $config["left_pane"][] = [
             "type" => $isTimeline ? self::TIMELINE : "entity",
@@ -127,33 +128,33 @@ class DataMonitoringService
             "title" => $pack->getCode(),
             "color" => "#F5B642",
             "pack" => $pack,
-            "activeAssociation" => $isTimeline && $activeAssociation ? $activeAssociation : ''
+            "activeAssociation" => $isTimeline ? $pack->getActivePairing() : null
         ];
     }
 
-    public function createLocation(array &$config, Emplacement $location, $isTimeline, $activeAssociation)
+    private function fillLocationConfig(array &$config, Emplacement $location, bool $isTimeline)
     {
         $config["left_pane"][] = [
             "type" => $isTimeline ? self::TIMELINE : "entity",
             "icon" => "iot-location",
             "title" => $location->getLabel(),
             "color" => "#34C9EB",
-            "activeAssociation" => $isTimeline && $activeAssociation ? $activeAssociation : ''
+            "activeAssociation" => $isTimeline ? $location->getActivePairing() : null
         ];
     }
 
-    public function createLocationGroup(array &$config, LocationGroup $location, $isTimeline, $activeAssociation)
+    private function fillLocationGroupConfig(array &$config, LocationGroup $location, bool $isTimeline)
     {
         $config["left_pane"][] = [
             "type" => $isTimeline ? self::TIMELINE : "entity",
             "icon" => "iot-location",
             "title" => $location->getName(),
             "color" => "#34C9EB",
-            "activeAssociation" => $isTimeline && $activeAssociation ? $activeAssociation : ''
+            "activeAssociation" => $isTimeline ? $location->getActivePairing() : null
         ];
     }
 
-    public function createPreparation(array &$config, Preparation $preparation, $isTimeline, $activeAssociation)
+    private function fillPreparationConfig(array &$config, Preparation $preparation, bool $isTimeline)
     {
         $items = [];
         if($preparation->getLivraison()) {
@@ -173,29 +174,29 @@ class DataMonitoringService
         $config["left_pane"][] = [
             "type" => $isTimeline ? self::TIMELINE : "entity",
             "items" => $items,
-            "activeAssociation" => $isTimeline && $activeAssociation ? $activeAssociation : ''
+            "activeAssociation" => $isTimeline ? $preparation->getActivePairing() : null
         ];
     }
 
-    public function createCollectOrder(array &$config, OrdreCollecte $collect, $isTimeline, $activeAssociation)
+    private function fillCollectOrderConfig(array &$config, OrdreCollecte $collect, bool $isTimeline)
     {
         $config["left_pane"][] = [
             "type" => $isTimeline ? self::TIMELINE : "entity",
             "icon" => "iot-collect",
             "title" => $collect->getNumero(),
             "color" => "#F5BC14",
-            "activeAssociation" => $isTimeline && $activeAssociation ? $activeAssociation : ''
+            "activeAssociation" => $isTimeline ? $collect->getActivePairing() : null
         ];
     }
 
-    public function createArticle(array &$config, Article $article, $isTimeline, $activeAssociation)
+    private function fillArticleConfig(array &$config, Article $article, bool $isTimeline)
     {
         $config["left_pane"][] = [
             "type" => $isTimeline ? self::TIMELINE : "entity",
             "icon" => "iot-article",
             "title" => $article->getLabel(),
             "color" => "#B92BED",
-            "activeAssociation" => $isTimeline && $activeAssociation ? $activeAssociation : ''
+            "activeAssociation" => $isTimeline ? $article->getActivePairing() : null
         ];
     }
 
@@ -208,34 +209,22 @@ class DataMonitoringService
         ];
     }
 
-    public function createContentAccordingToEntity($entity, &$config, $isTimeline = false) {
-
-        $activeAssociation = null;
-        if($isTimeline) {
-            $activeAssociation = $this->findActiveAssociation($entity);
-        }
-
+    public function fillEntityConfig(?PairedEntity $entity, array &$config, bool $isTimeline) {
         if ($entity instanceof Pack) {
-            $this->createPack($config, $entity, $isTimeline, $activeAssociation);
+            $this->fillPackConfig($config, $entity, $isTimeline);
         } else if ($entity instanceof Emplacement) {
-            $this->createLocation($config, $entity, $isTimeline, $activeAssociation);
+            $this->fillLocationConfig($config, $entity, $isTimeline);
         } else if ($entity instanceof LocationGroup) {
-            $this->createLocationGroup($config, $entity, $isTimeline, $activeAssociation);
+            $this->fillLocationGroupConfig($config, $entity, $isTimeline);
         } else if ($entity instanceof Preparation) {
-            $this->createPreparation($config, $entity, $isTimeline, $activeAssociation);
+            $this->fillPreparationConfig($config, $entity, $isTimeline);
         } else if ($entity instanceof OrdreCollecte) {
-            $this->createCollectOrder($config, $entity, $isTimeline, $activeAssociation);
+            $this->fillCollectOrderConfig($config, $entity, $isTimeline);
         } else if ($entity instanceof Article) {
-            $this->createArticle($config, $entity, $isTimeline, $activeAssociation);
+            $this->fillArticleConfig($config, $entity, $isTimeline);
         } else {
             throw new RuntimeException("Unsupported class " . get_class($entity));
         }
-    }
-
-    public function findActiveAssociation($entity) {
-        $criteria = Criteria::create();
-        $pairings = $entity->getPairings()->matching($criteria->andWhere(Criteria::expr()->eq('active', true)));
-        return $pairings->first() ?: null;
     }
 
 }

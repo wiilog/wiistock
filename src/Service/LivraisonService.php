@@ -111,11 +111,7 @@ class LivraisonService
 			'Opérateur' => $livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : '',
 			'Type' => $demande && $demande->getType() ? $demande->getType()->getLabel() : '',
 			'Actions' => $this->templating->render('livraison/datatableLivraisonRow.html.twig', ['url' => $url,
-            'titleLogo' => !$livraison
-                ->getPreparation()
-                ->getPairings()
-                ->filter(fn(Pairing $pairing) => $pairing->isActive()
-                )->isEmpty() ? 'pairing' : null
+            'titleLogo' => $livraison->getPreparation()->getActivePairing() ? 'pairing' : null
             ])
 		];
     }

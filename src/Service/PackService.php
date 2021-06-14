@@ -114,10 +114,7 @@ class PackService
                 'pack' => $pack
             ]),
             'pairing' => $this->template->render('pairing-icon.html.twig', [
-                'linkedPairing' => !$pack
-                    ->getPairings()
-                    ->filter(fn(Pairing $pairing) => $pairing->isActive()
-                    )->isEmpty() ? 'Ce colis est lié à un capteur' : null
+                'linkedPairing' => $pack->getActivePairing() ? 'Ce colis est lié à un capteur' : null
             ]),
             'packNum' => $pack->getCode(),
             'packNature' => $pack->getNature() ? $pack->getNature()->getLabel() : '',

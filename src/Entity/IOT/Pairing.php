@@ -245,21 +245,24 @@ class Pairing
             $this->setPreparationOrder(null);
             $this->setCollectOrder(null);
         }
-
-        if($entity instanceof Emplacement) {
+        else if($entity instanceof Emplacement) {
             $this->setLocation($entity);
-        } else if($entity instanceof Article) {
+        }
+        else if($entity instanceof Article) {
             $this->setArticle($entity);
-        } else if($entity instanceof Pack) {
+        }
+        else if($entity instanceof Pack) {
             $this->setPack($entity);
-        } else if($entity instanceof Preparation) {
+        }
+        else if($entity instanceof Preparation) {
             $this->setPreparationOrder($entity);
-        } else if($entity instanceof OrdreCollecte) {
+        }
+        else if($entity instanceof OrdreCollecte) {
             $this->setCollectOrder($entity);
         }
     }
 
-    public function getEntity() {
+    public function getEntity(): ?PairedEntity {
         if($this->getLocation() !== null) {
             return $this->location;
         } else if($this->getArticle() !== null) {

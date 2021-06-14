@@ -63,7 +63,7 @@ class PairingService
                 $data['colors'][$sensor->getCode()] = sprintf('#%06X', mt_rand(0, 0xFFFFFF));
             }
 
-            $dateStr = $date->format('Y-m-d H:i:s');
+            $dateStr = $date->format('d/m/Y H:i:s');
             $sensorCode = $sensor->getCode();
             if (!isset($data[$dateStr])) {
                 $data[$dateStr] = [];

@@ -135,10 +135,7 @@ class DemandeLivraisonService
                         'url' => $url,
                         'titleLogo' => !$demande
                             ->getPreparations()
-                            ->filter(fn(Preparation $preparation) => !$preparation
-                                ->getPairings()
-                                ->filter(fn(Pairing $pairing) => $pairing->isActive())
-                                ->isEmpty())
+                            ->filter(fn(Preparation $preparation) => $preparation->getActivePairing())
                             ->isEmpty() ? 'pairing' : null
                     ]
                 ),

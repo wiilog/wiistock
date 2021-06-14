@@ -6,13 +6,14 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\Emplacement;
+use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Sensor;
 use App\Entity\Menu;
 
 use App\Entity\OrdreCollecte;
 use App\Entity\Pack;
 use App\Entity\Preparation;
-use App\Service\DataMonitoringService;
+use App\Service\IOT\DataMonitoringService;
 use App\Service\IOT\PairingService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -106,7 +107,7 @@ class DataHistoryController extends AbstractController {
         return new JsonResponse($data);
     }
 
-    public function getEntity(string $type, int $id) {
+    public function getEntity(string $type, int $id): ?PairedEntity {
         $entityManager = $this->getDoctrine()->getManager();
 
         $entity = null;

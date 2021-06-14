@@ -611,10 +611,7 @@ class PreparationsManagerService
             'Type' => $request && $request->getType() ? $request->getType()->getLabel() : '',
             'Actions' => $this->templating->render('preparation/datatablePreparationRow.html.twig', [
                 "url" => $this->router->generate('preparation_show', ["id" => $preparation->getId()]),
-                'titleLogo' => !$preparation
-                                    ->getPairings()
-                                        ->filter(fn(Pairing $pairing) => $pairing->isActive()
-                                    )->isEmpty() ? 'pairing' : null
+                'titleLogo' => $preparation->getActivePairing() ? 'pairing' : null
             ]),
         ];
     }
