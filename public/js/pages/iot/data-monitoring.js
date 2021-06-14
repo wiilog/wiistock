@@ -150,6 +150,19 @@ function initLineChart(element) {
             options: {
                 maintainAspectRatio: false,
                 spanGaps: true,
+                scales: {
+                    xAxes: [{
+                        ticks: {
+                            callback: (label) => {
+                                if (/\s/.test(label)) {
+                                    return label.split(` `);
+                                } else{
+                                    return label;
+                                }
+                            }
+                        }
+                    }]
+                }
             }
         });
     });
