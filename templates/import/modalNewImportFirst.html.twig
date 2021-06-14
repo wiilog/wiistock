@@ -17,15 +17,14 @@
     </div>
 </div>
 
-{% set editAttachments = hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::DISPLAY_IMPORT')) %}
 <div class="row">
     <div class="form-group col-12">
         <div>
             {% include 'attachment/attachment.html.twig' with {
                 'isNew': true,
                 'text': 'Faites glisser votre fichier csv',
-                unique: true,
-                'editAttachments': editAttachments,
+                'unique': true,
+                'editAttachments': true,
             } %}
         </div>
     </div>

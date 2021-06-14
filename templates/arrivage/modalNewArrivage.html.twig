@@ -206,7 +206,7 @@
                         <select class="form-control input-sm data needed {{ hasDefaultStatus ? 'needs-default' }}"
                                 name="status"
                             {% if hasDefaultStatus %}
-                            data-init="{{ defaultStatuses[(typesArrival|first).id] }}"
+                                data-init="{{ defaultStatuses[(typesArrival|first).id] }}"
                             {% endif %}>
                             <option value="">Choisir un statut...</option>
                             {% for status in statuses %}
@@ -231,8 +231,9 @@
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                         <div class="form-group w-100 col-4">
-                            <label for="destination">Emplacement de
-                                dépose{{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? '*' : '' }}</label>
+                            <label for="destination">
+                                Emplacement de dépose{{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? '*' : '' }}
+                            </label>
                             <select name="dropLocation"
                                     class="form-control data ajax-autocomplete-location no-clear d-block {{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? 'needed' : '' }}">
                                 {% if defaultLocation is defined and defaultLocation != null %}
@@ -241,7 +242,6 @@
                             </select>
                         </div>
                     {% endif %}
-
                 </div>
 
                 <div class="row">
@@ -424,13 +424,12 @@
                         </div>
                     {% endif %}
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PJ_ARRIVAGE') %}
-                    {% set editAttachments = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE')) %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                         <div class="form-group col-4">
                             <div>
                                 {% include 'attachment/attachment.html.twig' with {
                                     'isNew': true,
-                                    'editAttachments': editAttachments,
+                                    'editAttachments': true,
                                     'required': fieldsParam|isFieldRequired(fieldCode, 'mustToCreate')
                                 } %}
                             </div>

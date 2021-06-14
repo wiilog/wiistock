@@ -155,10 +155,9 @@
                         </div>
                     </div>
                     <div class="form-group col-md-4 col-12">
-                        {% set editAttachments = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) %}
                         {% include 'attachment/attachment.html.twig' with {
                             'isNew' : true,
-                            'editAttachments' : editAttachments,
+                            'editAttachments' : true,
                         } %}
                     </div>
                 </div>

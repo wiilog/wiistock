@@ -85,12 +85,11 @@
                                 <span class="slider round"></span>
                             </label>
                         </div>
-                        {% set editAttachments = hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::CREATE')) %}
                         <div class="form-group col-12">
                             <div>
                                 {% include 'attachment/attachment.html.twig' with {
                                     'isNew' : true,
-                                    'editAttachments': editAttachments,
+                                    'editAttachments': true,
                                 } %}
                             </div>
                         </div>

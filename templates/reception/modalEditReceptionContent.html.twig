@@ -199,7 +199,6 @@
         </div>
     {% endif %}
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_ATTACHMENTS') %}
-    {% set editAttachments = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
         <div class="form-group col-4">
             <div>
@@ -207,7 +206,7 @@
                     'isNew': false,
                     'required': fieldsParam|isFieldRequired(fieldCode, 'mustToModify'),
                     'attachments': reception.attachments,
-                    'editAttachments': editAttachments,
+                    'editAttachments': true,
                 } %}
             </div>
         </div>
