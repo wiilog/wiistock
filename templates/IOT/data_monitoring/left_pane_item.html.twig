@@ -1,6 +1,6 @@
 {% macro paneItem(color, icon, title, subtitle) %}
-    <div class="col-12 association-pane-item">
-        <span class="wii-icon wii-icon-{{ icon }}" style="background: {{ color }}"></span>
+    <div class="col-12 association-pane-item d-flex align-items-center">
+        <span class="wii-icon wii-icon-{{ icon }} mr-3" style="background: {{ color }}"></span>
         <div class="right-column">
             <span class="title" style="color: {{ color }}">{{ title }}</span>
             {% if subtitle ?? null %}
@@ -21,18 +21,24 @@
         {{ macros.paneItem(color, icon, title, subtitle ?? null) }}
     {% endif %}
 
-    <div class="dropdown dropleft association-actions">
-        <img src="{{ asset('svg/dotsblack.svg') }}" alt="Actions" height="20px" width="8px"
-             data-toggle="dropdown" class="pointer"/>
-        <div class="dropdown-menu dropdown-follow-gt pointer">
-            {% if type == 'sensor' %}
-                <button class="dropdown-item pointer" data-toggle="modal" data-target="#modalEditPairingEnd" data-id="{{ pairing.id }}">
-                    <i class="fas fa-edit"></i> Modifier fin association
-                </button>
-                <button class="dropdown-item pointer" onclick="unpair({{ pairing.id }})"><i class="fas fa-unlink"></i> Dissocier</button>
-            {% elseif type == 'entity' %}
-                <button class="dropdown-item pointer"><i class="fas fa-wifi"></i> Voir l'historique des données</button>
-            {% endif %}
+    {% if type == 'sensor' or type == 'entity' or (type == constant('App\\Service\\DataMonitoringService::TIMELINE') and activeAssociation) %}
+        <div class="dropdown dropleft association-actions">
+            <img src="{{ asset('svg/dotsblack.svg') }}" alt="Actions" height="20px" width="8px"
+                 data-toggle="dropdown" class="pointer"/>
+            <div class="dropdown-menu dropdown-follow-gt pointer">
+                {% if type == 'sensor' %}
+                    <button class="dropdown-item pointer" data-toggle="modal" data-target="#modalEditPairingEnd" data-id="{{ pairing.id }}">
+                        <i class="fas fa-edit"></i> Modifier fin association
+                    </button>
+                    <button class="dropdown-item pointer" onclick="unpair({{ pairing.id }})"><i class="fas fa-unlink"></i> Dissocier</button>
+                {% elseif type == 'entity' %}
+                    <button class="dropdown-item pointer"><i class="fas fa-wifi"></i> Voir l'historique des données</button>
+                {% elseif type == constant('App\\Service\\DataMonitoringService::TIMELINE') and activeAssociation %}
+                    <a href="{{ path('pairing_show', {pairing: activeAssociation.id}) }}" class="dropdown-item pointer" target="_blank">
+                        <i class="fas fa-wifi"></i> Aller sur l'association active
+                    </a>
+                {% endif %}
+            </div>
         </div>
-    </div>
+    {% endif %}
 </div>

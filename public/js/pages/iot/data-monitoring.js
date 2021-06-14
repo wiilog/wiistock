@@ -64,51 +64,53 @@ function initMap(element) {
 
         let globalBounds = Leaflet.latLngBounds();
 
-        Object.values(response).forEach((date => {
-            Object.values(date).forEach(coordinates => {
-                globalBounds.extend(coordinates)      // Extend LatLngBounds with coordinates
-            })
-        }))
+        if(Object.values(response).length > 0) {
+            Object.values(response).forEach((date => {
+                Object.values(date).forEach(coordinates => {
+                    globalBounds.extend(coordinates)      // Extend LatLngBounds with coordinates
+                })
+            }))
 
-        map.fitBounds(globalBounds);
+            map.fitBounds(globalBounds);
 
-        sensors.forEach((sensor) => {
-            const dates = Object.keys(response[sensor]);
-            let polyline = [];
-            dates.forEach((label, iteration) => {
-                const coordinates = response[sensor][label];
-                polyline.push(coordinates);
-                index++;
-                setTimeout(() => {
-                    Leaflet
-                        .marker(coordinates)
-                        .addTo(map)
-                        .bounce(1)
-                        .on('click', function () {
-                            this.bounce(1);
-                        })
-                        .bindPopup(`Capteur : ${sensor} <br> Date et heure : ${label}`);
-                    if (iteration === dates.length - 1) {
+            sensors.forEach((sensor) => {
+                const dates = Object.keys(response[sensor]);
+                let polyline = [];
+                dates.forEach((label, iteration) => {
+                    const coordinates = response[sensor][label];
+                    polyline.push(coordinates);
+                    index++;
+                    setTimeout(() => {
                         Leaflet
-                            .polyline(polyline, {color: 'blue', snakingSpeed: 500})
+                            .marker(coordinates)
                             .addTo(map)
-                            .snakeIn()
-                            .on('snakeend', function () {
-                                let antPolyline = new Leaflet.Polyline.AntPath(polyline, {
-                                    color: 'blue',
-                                    delay: 400,
-                                    dashArray: [
-                                        100,
-                                        100
-                                    ]
+                            .bounce(1)
+                            .on('click', function () {
+                                this.bounce(1);
+                            })
+                            .bindPopup(`Capteur : ${sensor} <br> Date et heure : ${label}`);
+                        if (iteration === dates.length - 1 && dates.length > 1) {
+                            Leaflet
+                                .polyline(polyline, {color: 'blue', snakingSpeed: 500})
+                                .addTo(map)
+                                .snakeIn()
+                                .on('snakeend', function () {
+                                    let antPolyline = new Leaflet.Polyline.AntPath(polyline, {
+                                        color: 'blue',
+                                        delay: 400,
+                                        dashArray: [
+                                            100,
+                                            100
+                                        ]
+                                    });
+                                    antPolyline.addTo(map);
                                 });
-                                antPolyline.addTo(map);
-                            });
-                    }
-                }, 200 * index);
+                        }
+                    }, 200 * index);
+                });
             });
-        });
-    })
+        }
+    });
 }
 
 function initLineChart(element) {

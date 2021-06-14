@@ -26,7 +26,7 @@ class AlertService
         $config = $template->getConfig();
 
         $sensor = $message->getSensor();
-        $sensorWrapper = $message->getSensor()->getActiveSensorWrapper();
+        $sensorWrapper = $message->getSensor()->getAvailableSensorWrapper();
 
         $values = [
             VariableService::SENSOR_NAME => $sensorWrapper->getName(),

@@ -5,6 +5,7 @@ namespace App\Service;
 
 use App\Entity\Arrivage;
 use App\Entity\FiltreSup;
+use App\Entity\IOT\Pairing;
 use App\Entity\Pack;
 use App\Entity\TrackingMovement;
 use App\Entity\Nature;
@@ -111,6 +112,12 @@ class PackService
         return [
             'actions' => $this->template->render('pack/datatablePackRow.html.twig', [
                 'pack' => $pack
+            ]),
+            'pairing' => $this->template->render('pairing-icon.html.twig', [
+                'linkedPairing' => !$pack
+                    ->getPairings()
+                    ->filter(fn(Pairing $pairing) => $pairing->isActive()
+                    )->isEmpty() ? 'Ce colis est lié à un capteur' : null
             ]),
             'packNum' => $pack->getCode(),
             'packNature' => $pack->getNature() ? $pack->getNature()->getLabel() : '',

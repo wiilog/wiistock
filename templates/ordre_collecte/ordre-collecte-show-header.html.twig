@@ -47,12 +47,12 @@
                     </a>
                 {% endif %}
                 {% if hasRightPairingOrder and hasRightFinish and collecte.pairings|filter(p=>p.active)|length==0  and collecte.demandeCollecte.stock %}
-                <a class="dropdown-item pointer"
-                   data-toggle="modal"
-                   data-target="#modalNewSensorPairing">
-                    <span class="wii-icon wii-icon-pairing mr-2"></span>
-                    Associer à un capteur
-                </a>
+                    <a class="dropdown-item pointer"
+                       data-toggle="modal"
+                       data-target="#modalNewSensorPairing">
+                        <span class="wii-icon wii-icon-pairing mr-2"></span>
+                        Associer à un capteur
+                    </a>
                 {% endif %}
             </div>
         {% endif %}

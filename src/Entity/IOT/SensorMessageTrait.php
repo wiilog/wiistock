@@ -4,12 +4,11 @@
 namespace App\Entity\IOT;
 
 
-use App\Entity\Attachment;
-use DateTime;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\IOT\SensorMessage as SensorMessage;
+use WiiCommon\Helper\Stream;
 
 trait SensorMessageTrait
 {
@@ -30,7 +29,7 @@ trait SensorMessageTrait
     /**
      * @return Collection|SensorMessage[]
      */
-    public function getSensorMessagesBetween($start, $end): Collection
+    public function getSensorMessagesBetween($start, $end, $type): array
     {
         $criteria = Criteria::create();
         if($start) {
@@ -41,7 +40,14 @@ trait SensorMessageTrait
             $criteria->andWhere(Criteria::expr()->lte("date", $end));
         }
 
-        return $this->getSensorMessages()->matching($criteria);
+        $messages = $this->getSensorMessages()->matching($criteria);
+
+        if ($type) {
+            $messages = Stream::from($messages)
+                ->filter(fn(SensorMessage $message) => $message->getSensor()->getType() === $type)
+                ->toArray();
+        }
+        return $messages;
     }
 
     public function addSensorMessage(SensorMessage $sensorMessage): self

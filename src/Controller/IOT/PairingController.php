@@ -15,7 +15,6 @@ use App\Entity\OrdreCollecte;
 use App\Entity\Pack;
 use App\Entity\Preparation;
 
-use App\Service\IOT\IOTService;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Helper\FormatHelper;
@@ -104,7 +103,8 @@ class PairingController extends AbstractController {
     public function show(DataMonitoringService $service, Pairing $pairing): Response {
         return $service->render([
             "title" => "IOT | Associations | Détails",
-            "entities" => [$pairing, $pairing->getEntity()],
+            "type" => DataMonitoringService::PAIRING,
+            "entity" => $pairing,
         ]);
     }
 
@@ -162,6 +162,7 @@ class PairingController extends AbstractController {
         $associatedMessages = $pairing->getSensorMessagesBetween(
             $filters["start"],
             $filters["end"],
+            Sensor::GPS
         );
 
         $data = [];
@@ -183,7 +184,7 @@ class PairingController extends AbstractController {
     }
 
     /**
-     * @Route("/chart-data/{pairing}", name="pairing_chart_data", condition="request.isXmlHttpRequest()")
+     * @Route("/chart-data/{pairing}", name="pairing_chart_data", condition="request.isXmlHttpRequest()", options={"expose"=true}, methods="GET|POST")
      */
     public function getChartData(Request $request, Pairing $pairing): JsonResponse
     {
@@ -191,6 +192,7 @@ class PairingController extends AbstractController {
         $associatedMessages = $pairing->getSensorMessagesBetween(
             $filters["start"],
             $filters["end"],
+            Sensor::TEMPERATURE
         );
 
         $data = ["colors" => []];

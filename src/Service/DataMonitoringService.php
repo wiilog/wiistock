@@ -11,6 +11,9 @@ use App\Entity\OrdreCollecte;
 use App\Entity\Pack;
 use App\Entity\Preparation;
 use App\Helper\FormatHelper;
+use DateTime;
+use Doctrine\Common\Collections\Criteria;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
@@ -18,6 +21,21 @@ use Twig\Environment;
 
 class DataMonitoringService
 {
+
+    public const ASSOCIATED_CLASSES = [
+        Sensor::TEMPERATURE => [
+            Pack::class,
+            Article::class,
+            Emplacement::class
+        ],
+        Sensor::GPS => [
+            Pack::class,
+            Article::class,
+        ]
+    ];
+
+    public const PAIRING = 1;
+    public const TIMELINE = 2;
 
     /** @Required */
     public Environment $templating;
@@ -27,27 +45,40 @@ class DataMonitoringService
 
     public function render($config): Response
     {
-        foreach ($config["entities"] as $entity) {
-            if ($entity instanceof Pairing) {
-                $this->createPairing($config, $entity);
-            } else if ($entity instanceof Pack) {
-                $this->createPack($config, $entity);
-            } else if ($entity instanceof Emplacement) {
-                $this->createLocation($config, $entity);
-            } else if ($entity instanceof LocationGroup) {
-                $this->createLocationGroup($config, $entity);
-            } else if ($entity instanceof Preparation) {
-                $this->createPreparation($config, $entity);
-            } else if ($entity instanceof OrdreCollecte) {
-                $this->createCollectOrder($config, $entity);
-            } else if ($entity instanceof Article) {
-                $this->createArticle($config, $entity);
-            } else {
-                throw new \RuntimeException("Unsupported class " . get_class($entity));
+        if($config["type"] === self::PAIRING) {
+            $pairing = $config["entity"];
+            $entity = $pairing->getEntity();
+            $this->createContentAccordingToEntity($entity, $config);
+
+            $this->createPairing($config, $pairing);
+        } else if($config["type"] === self::TIMELINE) {
+            $date = new DateTime('-1 month');
+            $entity = $config['entity'];
+
+            $this->createContentAccordingToEntity($entity, $config, true);
+            $config['start'] = $date;
+            $config['end'] = new DateTime('now');
+            if (in_array(get_class($entity), self::ASSOCIATED_CLASSES[Sensor::TEMPERATURE])) {
+                $config["center_pane"][] = [
+                    "type" => "chart",
+                    "fetch_url" => $this->router->generate("chart_data_history", [
+                        "type" => $config['entity_type'],
+                        "id" => $entity->getId()
+                    ], UrlGeneratorInterface::ABSOLUTE_URL)
+                ];
+            }
+
+            if (in_array(get_class($entity), self::ASSOCIATED_CLASSES[Sensor::GPS])) {
+                $config["center_pane"][] = [
+                    "type" => "map",
+                    "fetch_url" => $this->router->generate("map_data_history", [
+                        "type" => $config['entity_type'],
+                        "id" => $entity->getId()
+                    ], UrlGeneratorInterface::ABSOLUTE_URL)
+                ];
             }
         }
 
-        unset($config["entities"]);
         return new Response($this->templating->render("iot/data_monitoring/page.html.twig", $config));
     }
 
@@ -88,38 +119,41 @@ class DataMonitoringService
         }
     }
 
-    public function createPack(array &$config, Pack $pack)
+    public function createPack(array &$config, Pack $pack, $isTimeline, $activeAssociation)
     {
         $config["left_pane"][] = [
-            "type" => "entity",
+            "type" => $isTimeline ? self::TIMELINE : "entity",
             "icon" => "iot-pack",
             "title" => $pack->getCode(),
             "color" => "#F5B642",
             "pack" => $pack,
+            "activeAssociation" => $isTimeline && $activeAssociation ? $activeAssociation : ''
         ];
     }
 
-    public function createLocation(array &$config, Emplacement $location)
+    public function createLocation(array &$config, Emplacement $location, $isTimeline, $activeAssociation)
     {
         $config["left_pane"][] = [
-            "type" => "entity",
+            "type" => $isTimeline ? self::TIMELINE : "entity",
             "icon" => "iot-location",
             "title" => $location->getLabel(),
             "color" => "#34C9EB",
+            "activeAssociation" => $isTimeline && $activeAssociation ? $activeAssociation : ''
         ];
     }
 
-    public function createLocationGroup(array &$config, LocationGroup $location)
+    public function createLocationGroup(array &$config, LocationGroup $location, $isTimeline, $activeAssociation)
     {
         $config["left_pane"][] = [
-            "type" => "entity",
+            "type" => $isTimeline ? self::TIMELINE : "entity",
             "icon" => "iot-location",
             "title" => $location->getName(),
             "color" => "#34C9EB",
+            "activeAssociation" => $isTimeline && $activeAssociation ? $activeAssociation : ''
         ];
     }
 
-    public function createPreparation(array &$config, Preparation $preparation)
+    public function createPreparation(array &$config, Preparation $preparation, $isTimeline, $activeAssociation)
     {
         $items = [];
         if($preparation->getLivraison()) {
@@ -137,28 +171,31 @@ class DataMonitoringService
         ];
 
         $config["left_pane"][] = [
-            "type" => "entity",
-            "items" => $items
+            "type" => $isTimeline ? self::TIMELINE : "entity",
+            "items" => $items,
+            "activeAssociation" => $isTimeline && $activeAssociation ? $activeAssociation : ''
         ];
     }
 
-    public function createCollectOrder(array &$config, OrdreCollecte $collect)
+    public function createCollectOrder(array &$config, OrdreCollecte $collect, $isTimeline, $activeAssociation)
     {
         $config["left_pane"][] = [
-            "type" => "entity",
+            "type" => $isTimeline ? self::TIMELINE : "entity",
             "icon" => "iot-collect",
             "title" => $collect->getNumero(),
             "color" => "#F5BC14",
+            "activeAssociation" => $isTimeline && $activeAssociation ? $activeAssociation : ''
         ];
     }
 
-    public function createArticle(array &$config, Article $article)
+    public function createArticle(array &$config, Article $article, $isTimeline, $activeAssociation)
     {
         $config["left_pane"][] = [
-            "type" => "entity",
+            "type" => $isTimeline ? self::TIMELINE : "entity",
             "icon" => "iot-article",
             "title" => $article->getLabel(),
             "color" => "#B92BED",
+            "activeAssociation" => $isTimeline && $activeAssociation ? $activeAssociation : ''
         ];
     }
 
@@ -169,6 +206,36 @@ class DataMonitoringService
             ["type" => "map"],
             ["type" => "chart"],
         ];
+    }
+
+    public function createContentAccordingToEntity($entity, &$config, $isTimeline = false) {
+
+        $activeAssociation = null;
+        if($isTimeline) {
+            $activeAssociation = $this->findActiveAssociation($entity);
+        }
+
+        if ($entity instanceof Pack) {
+            $this->createPack($config, $entity, $isTimeline, $activeAssociation);
+        } else if ($entity instanceof Emplacement) {
+            $this->createLocation($config, $entity, $isTimeline, $activeAssociation);
+        } else if ($entity instanceof LocationGroup) {
+            $this->createLocationGroup($config, $entity, $isTimeline, $activeAssociation);
+        } else if ($entity instanceof Preparation) {
+            $this->createPreparation($config, $entity, $isTimeline, $activeAssociation);
+        } else if ($entity instanceof OrdreCollecte) {
+            $this->createCollectOrder($config, $entity, $isTimeline, $activeAssociation);
+        } else if ($entity instanceof Article) {
+            $this->createArticle($config, $entity, $isTimeline, $activeAssociation);
+        } else {
+            throw new RuntimeException("Unsupported class " . get_class($entity));
+        }
+    }
+
+    public function findActiveAssociation($entity) {
+        $criteria = Criteria::create();
+        $pairings = $entity->getPairings()->matching($criteria->andWhere(Criteria::expr()->eq('active', true)));
+        return $pairings->first() ?: null;
     }
 
 }

@@ -310,13 +310,6 @@ class OrdreCollecteService
 		];
 	}
 
-	/**
-	 * @param OrdreCollecte $collecte
-	 * @return array
-	 * @throws Twig_Error_Loader
-	 * @throws Twig_Error_Runtime
-	 * @throws Twig_Error_Syntax
-	 */
     private function dataRowCollecte($collecte)
     {
         $demandeCollecte = $collecte->getDemandeCollecte();
@@ -331,25 +324,16 @@ class OrdreCollecteService
             'Type' => $demandeCollecte && $demandeCollecte->getType() ? $demandeCollecte->getType()->getLabel() : '',
             'Actions' => $this->templating->render('ordre_collecte/datatableCollecteRow.html.twig', [
                 'url' => $url,
-                'titleLogo' => !$collecte
+            ]),
+            'pairing' => $this->templating->render('pairing-icon.html.twig', [
+                'linkedPairing' => !$collecte
                     ->getPairings()
                     ->filter(fn(Pairing $pairing) => $pairing->isActive()
-                    )->isEmpty() ? 'pairing' : null
-            ])
+                    )->isEmpty() ? 'Cette collecte est liée à un capteur' : null
+            ]),
         ];
     }
 
-    /**
-     * @param Utilisateur $user
-     * @param ReferenceArticle|Article $article
-     * @param DateTime $date
-     * @param Emplacement $locationFrom
-     * @param Emplacement $locationTo
-     * @param int $quantity
-     * @param bool $fromNomade
-     * @param OrdreCollecte $ordreCollecte
-     * @throws Exception
-     */
     private function persistMouvementsFromStock(Utilisateur $user,
                                                 $article,
                                                 ?DateTime $date,

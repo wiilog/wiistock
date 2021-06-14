@@ -15,6 +15,7 @@ const packsTableConfig = {
     },
     columns: [
         {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},
+        {data: 'pairing', name: 'pairing', title: '', orderable: false},
         {data: 'packNum', name: 'packNum', title: 'colis.Numéro colis', translated: true},
         {data: 'packNature', name: 'packNature', title: 'natures.Nature de colis', translated: true},
         {data: "quantity", name: 'quantity', title: 'Quantité'},
