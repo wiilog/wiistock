@@ -20,4 +20,5 @@ interface PairedEntity {
     public function setSensorMessage($sensorMessages): self;
     public function clearSensorMessages(): self;
     public function removeSensorMessages(array $excludeIds): self;
+    public function getLastMessage(): ?SensorMessage;
 }

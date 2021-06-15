@@ -26,12 +26,8 @@ use WiiCommon\Helper\Stream;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
-use Twig\Error\LoaderError as Twig_Error_Loader;
-use Twig\Error\RuntimeError as Twig_Error_Runtime;
-use Twig\Error\SyntaxError as Twig_Error_Syntax;
 use Twig\Environment as Twig_Environment;
 
 class ArticleDataService
@@ -40,52 +36,32 @@ class ArticleDataService
     private $router;
     private $refArticleDataService;
     private $userService;
-    private $specificService;
-    private $mailerService;
     private $entityManager;
     private $wantCLOnLabel;
 	private $clWantedOnLabel;
 	private $clIdWantedOnLabel;
 	private $typeCLOnLabel;
 	private $freeFieldService;
-    private $mouvementStockService;
     private $visibleColumnService;
 
     public function __construct(FreeFieldService $champLibreService,
-                                MailerService $mailerService,
-                                SpecificService $specificService,
                                 RouterInterface $router,
                                 UserService $userService,
                                 RefArticleDataService $refArticleDataService,
                                 EntityManagerInterface $entityManager,
                                 VisibleColumnService $visibleColumnService,
-                                MouvementStockService $mouvementStockService,
                                 Twig_Environment $templating) {
         $this->refArticleDataService = $refArticleDataService;
         $this->templating = $templating;
         $this->entityManager = $entityManager;
         $this->userService = $userService;
         $this->router = $router;
-        $this->specificService = $specificService;
-        $this->mailerService = $mailerService;
         $this->freeFieldService = $champLibreService;
-        $this->mouvementStockService = $mouvementStockService;
         $this->visibleColumnService = $visibleColumnService;
     }
 
-    /**
-     * @param ReferenceArticle $refArticle
-     * @param string $demande
-     * @param bool $byRef
-     * @return bool|string
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
-     */
     public function getArticleOrNoByRefArticle($refArticle, $demande, $byRef)
     {
-        $statutRepository = $this->entityManager->getRepository(Statut::class);
-
         if ($demande === 'livraison') {
             $demande = 'demande';
         }
@@ -133,17 +109,6 @@ class ArticleDataService
         return $json;
     }
 
-
-    //TODOO les méthode getCollecteArticleOrNoByRefArticle() et getLivraisonArticleOrNoByRefArticle() ont le même fonctionnement la seul différence et le statut de l'article (actif/ inactif)
-
-    /**
-     * @param ReferenceArticle $refArticle
-     * @return array
-     *
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
-     */
     public function getCollecteArticleOrNoByRefArticle($refArticle)
     {
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
@@ -162,16 +127,6 @@ class ArticleDataService
         return $data;
     }
 
-    /**
-     * @param ReferenceArticle $refArticle
-     * @param Utilisateur $user
-     * @param int|null $deliveryRequestId
-     * @return array
-     *
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
-     */
     public function getLivraisonArticlesByRefArticle(ReferenceArticle $refArticle, Utilisateur $user, ?int $deliveryRequestId)
     {
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
@@ -212,7 +167,6 @@ class ArticleDataService
                     ])];
             } else {
                 $management = $refArticle->getStockManagement();
-                $articleToPreselect = null;
                 if ($management) {
                     $articles = Stream::from($articles)
                         ->sort(function (Article $article1, Article $article2) use ($management) {
@@ -253,14 +207,6 @@ class ArticleDataService
         return $data;
     }
 
-    /**
-     * @param Article $article
-     * @param bool $isADemand
-     * @return string
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
-     */
     public function getViewEditArticle($article,
                                        $isADemand = false)
     {
@@ -299,10 +245,6 @@ class ArticleDataService
         ]);
     }
 
-    /**
-     * @param $data
-     * @return bool|RedirectResponse
-     */
     public function editArticle($data)
     {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
@@ -345,15 +287,6 @@ class ArticleDataService
         }
     }
 
-    /**
-     * @param array $data
-     * @param EntityManagerInterface $entityManager
-     * @param Demande|null $demande
-     * @return Article
-     *
-     * @throws NonUniqueResultException
-     * @throws \Exception
-     */
     public function newArticle($data, EntityManagerInterface $entityManager, Demande $demande = null) {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
@@ -402,10 +335,10 @@ class ArticleDataService
 
         $quantity = max((int)$data['quantite'], 0); // protection contre quantités négatives
         $toInsert
-            ->setLabel(isset($data['libelle']) ? $data['libelle'] : $refArticle->getLibelle())
-            ->setConform(isset($data['conform']) ? !$data['conform'] : true)
+            ->setLabel($data['libelle'] ?? $refArticle->getLibelle())
+            ->setConform(!isset($data['conform']) || !$data['conform'])
             ->setStatut($statut)
-            ->setCommentaire(isset($data['commentaire']) ? $data['commentaire'] : null)
+            ->setCommentaire($data['commentaire'] ?? null)
             ->setPrixUnitaire($price)
             ->setReference($refReferenceArticle . $formattedDate . $cpt)
             ->setQuantite($quantity)
@@ -454,13 +387,6 @@ class ArticleDataService
         return $data;
     }
 
-    /**
-     * @param ReceptionReferenceArticle $ligne
-     * @return array
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
-     */
     public function getArticleDataByReceptionLigne(ReceptionReferenceArticle $ligne)
     {
         $articles = $ligne->getArticles();
@@ -502,14 +428,6 @@ class ArticleDataService
         ];
     }
 
-    /**
-     * @param Article $article
-     * @param Reception|null $reception
-     * @return array
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
-     */
     public function dataRowArticle($article, Reception $reception = null)
     {
         $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
@@ -528,6 +446,9 @@ class ArticleDataService
 
         $supplierArticle = $article->getArticleFournisseur();
         $referenceArticle = $supplierArticle ? $supplierArticle->getReferenceArticle() : null;
+
+        $lastMessage = $article->getLastMessage();
+        $sensorCode = ($lastMessage && $lastMessage->getSensor()) ? $lastMessage->getSensor()->getCode() : null;
 
         $row = [
             "id" => $article->getId() ?? "Non défini",
@@ -551,7 +472,11 @@ class ArticleDataService
                 'demandeId' => $article->getDemande() ? $article->getDemande()->getId() : null,
                 'articleFilter' => $article->getBarCode(),
                 'fromReception' => isset($reception),
-                'receptionId' => $reception ? $reception->getId() : null
+                'receptionId' => $reception ? $reception->getId() : null,
+                'pairings' => $article->getPairings() ?? null,
+            ]),
+            'pairing' => $this->templating->render('pairing-icon.html.twig', [
+                'linkedPairing' => $sensorCode ? "Dernier capteur ayant remonté un message : <strong>${sensorCode}</strong>" : null
             ]),
         ];
 
@@ -567,9 +492,6 @@ class ArticleDataService
         return $row;
     }
 
-    /**
-     * @return string
-     */
 	public function generateBarCode()
 	{
         $articleRepository = $this->entityManager->getRepository(Article::class);
@@ -584,11 +506,6 @@ class ArticleDataService
 		return Article::BARCODE_PREFIX . $dateCode . $newCounter;
 	}
 
-    /**
-     * @param Article $article
-     * @param Reception|null $reception
-     * @return array
-     */
     public function getBarcodeConfig(Article $article, Reception $reception = null): array {
         $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
 
@@ -719,6 +636,7 @@ class ArticleDataService
 
         $fieldConfig = [
             ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true],
+            ['name' => "pairing", "alwaysVisible" => true],
             ["title" => "Libellé", "name" => "label", 'searchable' => true],
             ["title" => "Référence article", "name" => "articleReference", 'searchable' => true],
             ["title" => "Référence fournisseur", "name" => "supplierReference", 'searchable' => true],
