@@ -314,6 +314,9 @@ class OrdreCollecteService
     {
         $demandeCollecte = $collecte->getDemandeCollecte();
 
+        $lastMessage = $collecte->getLastMessage();
+        $sensorCode = ($lastMessage && $lastMessage->getSensor()) ? $lastMessage->getSensor()->getCode() : null;
+
         $url['show'] = $this->router->generate('ordre_collecte_show', ['id' => $collecte->getId()]);
         return [
             'id' => $collecte->getId() ?? '',
@@ -326,7 +329,7 @@ class OrdreCollecteService
                 'url' => $url,
             ]),
             'pairing' => $this->templating->render('pairing-icon.html.twig', [
-                'linkedPairing' => $collecte->getActivePairing() ? 'Cette collecte est liée à un capteur' : null
+                'linkedPairing' => $sensorCode ? "Dernier capteur ayant remonté un message : <strong>${sensorCode}</strong>" : null
             ]),
         ];
     }

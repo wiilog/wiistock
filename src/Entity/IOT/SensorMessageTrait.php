@@ -87,4 +87,16 @@ trait SensorMessageTrait
         }
         return $this;
     }
+
+    public function getLastMessage(): ?SensorMessage {
+        $criteria = Criteria::create();
+        $orderedSensorMessages = $this->sensorMessages
+            ->matching(
+                $criteria->orderBy([
+                    'date' => Criteria::DESC,
+                    'id' => Criteria::DESC,
+                ])
+            );
+        return $orderedSensorMessages->first() ?: null;
+    }
 }
