@@ -21,13 +21,9 @@ use App\Repository\StatutRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
-use Twig\Error\LoaderError as Twig_Error_Loader;
-use Twig\Error\RuntimeError as Twig_Error_Runtime;
-use Twig\Error\SyntaxError as Twig_Error_Syntax;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
@@ -57,7 +53,6 @@ class DispatchService {
     private $trackingMovementService;
     private $fieldsParamService;
     private $visibleColumnService;
-    private $userService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
@@ -68,7 +63,6 @@ class DispatchService {
                                 TrackingMovementService $trackingMovementService,
                                 MailerService $mailerService,
                                 VisibleColumnService $visibleColumnService,
-                                UserService $userService,
                                 FieldsParamService $fieldsParamService) {
         $this->templating = $templating;
         $this->trackingMovementService = $trackingMovementService;
@@ -80,16 +74,8 @@ class DispatchService {
         $this->mailerService = $mailerService;
         $this->fieldsParamService = $fieldsParamService;
         $this->visibleColumnService = $visibleColumnService;
-        $this->userService = $userService;
     }
 
-    /**
-     * @param null $params
-     * @return array
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
-     */
     public function getDataForDatatable($params = null) {
 
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -113,13 +99,6 @@ class DispatchService {
         ];
     }
 
-    /**
-     * @param Dispatch $dispatch
-     * @return array
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
-     */
     public function dataRowDispatch(Dispatch $dispatch) {
 
         $url = $this->router->generate('dispatch_show', ['id' => $dispatch->getId()]);
@@ -127,7 +106,7 @@ class DispatchService {
         $categoryFFRepository = $this->entityManager->getRepository(CategorieCL::class);
         $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
 
-        $categoryFF = $categoryFFRepository->findOneByLabel(CategorieCL::DEMANDE_DISPATCH);
+        $categoryFF = $categoryFFRepository->findOneBy(['label' => CategorieCL::DEMANDE_DISPATCH]);
         $category = CategoryType::DEMANDE_DISPATCH;
         $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
         $receivers = $dispatch->getReceivers() ?? null;
@@ -452,15 +431,6 @@ class DispatchService {
         }
     }
 
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @param Dispatch $dispatch
-     * @param Statut $treatedStatus
-     * @param Utilisateur $loggedUser
-     * @param bool $fromNomade
-     * @param array $treatedPacks
-     * @throws Exception
-     */
     public function treatDispatchRequest(EntityManagerInterface $entityManager,
                                          Dispatch $dispatch,
                                          Statut $treatedStatus,
@@ -523,7 +493,7 @@ class DispatchService {
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
         $columnsVisible = $currentUser->getColumnsVisibleForDispatch();
-        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::DEMANDE_DISPATCH);
+        $categorieCL = $categorieCLRepository->findOneBy(['label' => CategorieCL::DEMANDE_DISPATCH]);
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_DISPATCH, $categorieCL);
 
         $columns = [
@@ -550,12 +520,6 @@ class DispatchService {
         return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }
 
-    /**
-     * @param Dispatch $dispatch
-     * @param DateService $dateService
-     * @param array $averageRequestTimesByType
-     * @return array
-     */
     public function parseRequestForCard(Dispatch $dispatch,
                                         DateService $dateService,
                                         array $averageRequestTimesByType): array {

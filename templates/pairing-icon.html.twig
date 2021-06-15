@@ -1,4 +1,5 @@
-{% if linkedPairing is defined and linkedPairing %}
+{% if sensorCode is defined and sensorCode %}
+    {% set sensorCode = '<strong>' ~ sensorCode ~ '</strong>' %}
     <i class="wii-icon wii-icon-pairing has-tooltip"
-       title="{{ linkedPairing }}"></i>
+       title="Dernier capteur ayant remonté un message : {{ sensorCode }}"></i>
 {% endif %}

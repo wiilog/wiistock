@@ -3,16 +3,8 @@
 namespace App\Service;
 
 use App\Entity\Emplacement;
-use App\Entity\FiltreSup;
 use App\Entity\LocationGroup;
-use App\Entity\Pack;
-use App\Entity\TrackingMovement;
-use App\Entity\Utilisateur;
-use App\Repository\PackRepository;
-use DateTime;
-use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Security\Core\Security;
 use Twig\Environment;
 
 class LocationGroupService {
@@ -43,9 +35,23 @@ class LocationGroupService {
     }
 
     public function dataRowGroup(LocationGroup $group) {
+
+        $groupLastMessage = $group->getLastMessage();
+        $locationLastMessage = $group->getLocations()->filter(fn(Emplacement $location) => $location->getLastMessage())->first();
+
+        $sensorCode = $groupLastMessage
+            ? $groupLastMessage->getSensor()->getCode()
+            : ($locationLastMessage
+                ? $locationLastMessage->getSensor()->getCode()
+                : null);
+
         return [
             "actions" => $this->template->render('location_group/actions.html.twig', [
-                "group" => $group
+                "group" => $group,
+                "locationLastMessage" => $locationLastMessage
+            ]),
+            'pairing' => $this->template->render('pairing-icon.html.twig', [
+                'sensorCode' => $sensorCode
             ]),
             "name" => $group->getName(),
             "description" => $group->getDescription(),

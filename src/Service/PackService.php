@@ -25,17 +25,14 @@ class PackService
     private $template;
     private $trackingMovementService;
     private $arrivageDataService;
-    private $specificService;
 
     public function __construct(TrackingMovementService $trackingMovementService,
                                 ArrivageDataService $arrivageDataService,
-                                SpecificService $specificService,
                                 Security $security,
                                 Twig_Environment $template,
                                 EntityManagerInterface $entityManager)
     {
         $this->entityManager = $entityManager;
-        $this->specificService = $specificService;
         $this->trackingMovementService = $trackingMovementService;
         $this->arrivageDataService = $arrivageDataService;
         $this->security = $security;
@@ -98,7 +95,7 @@ class PackService
                 'pack' => $pack
             ]),
             'pairing' => $this->template->render('pairing-icon.html.twig', [
-                'linkedPairing' => $sensorCode ? "Dernier capteur ayant remonté un message : <strong>${sensorCode}</strong>" : null
+                'sensorCode' => $sensorCode
             ]),
             'packNum' => $pack->getCode(),
             'packNature' => $pack->getNature() ? $pack->getNature()->getLabel() : '',

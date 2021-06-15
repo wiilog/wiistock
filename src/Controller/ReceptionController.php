@@ -839,7 +839,7 @@ class ReceptionController extends AbstractController {
             ];
         }
 
-        $createDL = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION);
+        $createDL = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::CREATE_DL_AFTER_RECEPTION]);
         $needsCurrentUser = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEMANDEUR_DANS_DL);
 
         $defaultDisputeStatus = $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::LITIGE_RECEPT);
@@ -1739,7 +1739,7 @@ class ReceptionController extends AbstractController {
 
             if($needCreateLivraison) {
                 // optionnel : crée l'ordre de prépa
-                $paramCreatePrepa = $paramGlobalRepository->findOneByLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL);
+                $paramCreatePrepa = $paramGlobalRepository->findOneBy(['label' => ParametrageGlobal::CREATE_PREPA_AFTER_DL]);
                 $needCreatePrepa = $paramCreatePrepa ? $paramCreatePrepa->getValue() : false;
                 $data['needPrepa'] = $needCreatePrepa && !$createDirectDelivery;
 

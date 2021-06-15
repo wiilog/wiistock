@@ -9,8 +9,6 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
-use App\Entity\IOT\Sensor;
-use App\Entity\IOT\SensorMessage;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Emplacement;
@@ -34,11 +32,13 @@ use App\Entity\TransferOrder;
 use App\Entity\Translation;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+
+use WiiCommon\Helper\Stream;
+
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Exceptions\NegativeQuantityException;
-use App\Service\IOT\IOTService;
-use WiiCommon\Helper\Stream;
+
 use App\Repository\ArticleRepository;
 use App\Repository\TrackingMovementRepository;
 use App\Repository\ReferenceArticleRepository;
@@ -60,13 +60,11 @@ use App\Service\OrdreCollecteService;
 use App\Service\TransferOrderService;
 use App\Service\UserService;
 use App\Service\FreeFieldService;
+
 use DateTimeInterface;
 use DateTimeZone;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\ORMException;
 use Exception;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use FOS\RestBundle\Controller\Annotations as Rest;
@@ -77,9 +75,6 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use DateTime;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Throwable;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 
 
 /**
@@ -106,11 +101,6 @@ class ApiController extends AbstractFOSRestController
      * @Rest\Post("/api/api-key", condition="request.isXmlHttpRequest()")
      * @Rest\View()
      * @Wii\RestVersionChecked()
-     *
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param UserService $userService
-     * @return Response
      */
     public function postApiKey(Request $request,
                                EntityManagerInterface $entityManager,
@@ -146,7 +136,6 @@ class ApiController extends AbstractFOSRestController
      * @Rest\Get("/api/ping", condition="request.isXmlHttpRequest()")
      * @Rest\View()
      * @Wii\RestVersionChecked()
-     * @return Response
      */
     public function ping()
     {
@@ -162,18 +151,6 @@ class ApiController extends AbstractFOSRestController
      * @Rest\View()
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
-     *
-     * @param Request $request
-     * @param MailerService $mailerService
-     * @param MouvementStockService $mouvementStockService
-     * @param TrackingMovementService $trackingMovementService
-     * @param ExceptionLoggerService $exceptionLoggerService
-     * @param FreeFieldService $freeFieldService
-     * @param AttachmentService $attachmentService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NonUniqueResultException
-     * @throws ORMException
      */
     public function postTrackingMovement(Request $request,
                                          MailerService $mailerService,
@@ -238,7 +215,7 @@ class ApiController extends AbstractFOSRestController
                             'uniqueIdForMobile' => $mvt['date'],
                             'entityManager' => $entityManager,
                         ];
-                        $location = $emplacementRepository->findOneByLabel($mvt['ref_emplacement']);
+                        $location = $emplacementRepository->findOneBy(['label' => $mvt['ref_emplacement']]);
                         $type = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, $mvt['type']);
 
                         // création de l'emplacement s'il n'existe pas
@@ -485,10 +462,6 @@ class ApiController extends AbstractFOSRestController
      * @Rest\View()
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
-     *
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse
      */
     public function beginPrepa(Request $request,
                                EntityManagerInterface $entityManager)
@@ -517,14 +490,6 @@ class ApiController extends AbstractFOSRestController
      * @Rest\View()
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
-     *
-     * @param Request $request
-     * @param ExceptionLoggerService $exceptionLoggerService
-     * @param LivraisonsManagerService $livraisonsManager
-     * @param PreparationsManagerService $preparationsManager
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse
-     * @throws ORMException
      */
     public function finishPrepa(Request $request,
                                 ExceptionLoggerService $exceptionLoggerService,
@@ -591,7 +556,7 @@ class ApiController extends AbstractFOSRestController
                         $articlesToKeep = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $nomadUser, $entityManager);
 
                         foreach ($mouvementsNomade as $mouvementNomade) {
-                            $emplacement = $emplacementRepository->findOneByLabel($mouvementNomade['location']);
+                            $emplacement = $emplacementRepository->findOneBy(['label' => $mouvementNomade['location']]);
                             $preparationsManager->createMouvementLivraison(
                                 $mouvementNomade['quantity'],
                                 $nomadUser,
@@ -609,7 +574,7 @@ class ApiController extends AbstractFOSRestController
                             $ligneArticle = $ligneArticlePreparationRepository->findOneByRefArticleAndDemande($refArticle, $preparation->getDemande());
                             $preparationsManager->deleteLigneRefOrNot($ligneArticle);
                         }
-                        $emplacementPrepa = $emplacementRepository->findOneByLabel($preparationArray['emplacement']);
+                        $emplacementPrepa = $emplacementRepository->findOneBy(['label' => $preparationArray['emplacement']]);
                         $insertedPreparation = $preparationsManager->treatPreparation($preparation, $nomadUser, $emplacementPrepa, $articlesToKeep, $entityManager);
 
                         if ($insertedPreparation) {
@@ -683,10 +648,6 @@ class ApiController extends AbstractFOSRestController
      * @Rest\View()
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
-     *
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse
      */
     public function beginLivraison(Request $request, EntityManagerInterface $entityManager)
     {
@@ -720,10 +681,6 @@ class ApiController extends AbstractFOSRestController
      * @Rest\View()
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
-     *
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse
      */
     public function beginCollecte(Request $request,
                                   EntityManagerInterface $entityManager)
@@ -758,17 +715,6 @@ class ApiController extends AbstractFOSRestController
      * @Rest\View()
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
-     *
-     * @param Request $request
-     * @param AttachmentService $attachmentService
-     * @param EntityManagerInterface $entityManager
-     * @param FreeFieldService $freeFieldService
-     * @param StatusService $statusService
-     * @param HandlingService $handlingService
-     * @return JsonResponse
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
      */
     public function postHandlings(Request $request,
                                   AttachmentService $attachmentService,
@@ -862,15 +808,6 @@ class ApiController extends AbstractFOSRestController
      * @Rest\View()
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
-     *
-     * @param Request $request
-     * @param ExceptionLoggerService $exceptionLoggerService
-     * @param EntityManagerInterface $entityManager
-     * @param LivraisonsManagerService $livraisonsManager
-     * @return JsonResponse
-     * @throws NonUniqueResultException
-     * @throws ORMException
-     * @throws OptimisticLockException
      */
     public function finishLivraison(Request $request,
                                     ExceptionLoggerService $exceptionLoggerService,
@@ -893,7 +830,7 @@ class ApiController extends AbstractFOSRestController
 
             if ($livraison) {
                 $dateEnd = DateTime::createFromFormat(DateTimeInterface::ATOM, $livraisonArray['date_end']);
-                $location = $emplacementRepository->findOneByLabel($livraisonArray['location']);
+                $location = $emplacementRepository->findOneBy(['label' => $livraisonArray['location']]);
                 try {
                     if ($location) {
                         // flush auto at the end
@@ -1086,13 +1023,6 @@ class ApiController extends AbstractFOSRestController
      * @Rest\View()
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
-     *
-     * @param Request $request
-     * @param ExceptionLoggerService $exceptionLoggerService
-     * @param OrdreCollecteService $ordreCollecteService
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse
-     * @throws ORMException
      */
     public function finishCollecte(Request $request,
                                    ExceptionLoggerService $exceptionLoggerService,
@@ -1227,16 +1157,6 @@ class ApiController extends AbstractFOSRestController
      * @Rest\View()
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
-     *
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param DemandeLivraisonService $demandeLivraisonService
-     * @param FreeFieldService $champLibreService
-     * @return Response
-     * @throws LoaderError
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
      */
     public function checkAndValidateDL(Request $request,
                                        EntityManagerInterface $entityManager,
@@ -1278,12 +1198,6 @@ class ApiController extends AbstractFOSRestController
      * @Rest\View()
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
-     *
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NonUniqueResultException
-     * @throws Exception
      */
     public function addInventoryEntries(Request $request, EntityManagerInterface $entityManager)
     {
@@ -1301,7 +1215,7 @@ class ApiController extends AbstractFOSRestController
 
         foreach ($entries as $entry) {
             $mission = $inventoryMissionRepository->find($entry['id_mission']);
-            $location = $emplacementRepository->findOneByLabel($entry['location']);
+            $location = $emplacementRepository->findOneBy(['label' => $entry['location']]);
 
             $articleToInventory = $entry['is_ref']
                 ? $referenceArticleRepository->findOneBy(['barCode' => $entry['bar_code']])
@@ -1381,10 +1295,6 @@ class ApiController extends AbstractFOSRestController
      * @Rest\View()
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
-     *
-     * @param UserService $userService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
      */
     public function getDemandeLivraisonData(UserService $userService, EntityManagerInterface $entityManager): Response
     {
@@ -1423,11 +1333,6 @@ class ApiController extends AbstractFOSRestController
      * @Rest\View()
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
-     *
-     * @param Request $request
-     * @param TransferOrderService $transferOrderService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
      */
     public function finishTransfers(Request $request,
                                     TransferOrderService $transferOrderService,
@@ -1452,15 +1357,6 @@ class ApiController extends AbstractFOSRestController
         return new JsonResponse($dataResponse, $httpCode);
     }
 
-    /**
-     * @param Utilisateur $user
-     * @param UserService $userService
-     * @param NatureService $natureService
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return array
-     * @throws Exception
-     */
     private function getDataArray(Utilisateur $user,
                                   UserService $userService,
                                   TrackingMovementService $trackingMovementService,
@@ -1701,13 +1597,6 @@ class ApiController extends AbstractFOSRestController
      * @Rest\Post("/api/getData", name="api-get-data")
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
-     *
-     * @param Request $request
-     * @param UserService $userService
-     * @param NatureService $natureService
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse
-     * @throws Exception
      */
     public function getData(Request $request,
                             UserService $userService,
@@ -1740,14 +1629,6 @@ class ApiController extends AbstractFOSRestController
      * @Rest\Post("/api/treatAnomalies", name= "api-treat-anomalies-inv", condition="request.isXmlHttpRequest()")
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
-     *
-     * @param Request $request
-     * @param InventoryService $inventoryService
-     * @param ExceptionLoggerService $exceptionLoggerService
-     * @return Response
-     * @throws ArticleNotAvailableException
-     * @throws RequestNeedToBeProcessedException
-     * @throws Throwable
      */
     public function treatAnomalies(Request $request,
                                    InventoryService $inventoryService,
@@ -1800,17 +1681,12 @@ class ApiController extends AbstractFOSRestController
      * @Rest\Post("/api/emplacement", name="api-new-emp", condition="request.isXmlHttpRequest()")
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
-     *
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse
-     * @throws NonUniqueResultException
      */
     public function addEmplacement(Request $request, EntityManagerInterface $entityManager): Response
     {
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
-        if (!$emplacementRepository->findOneByLabel($request->request->get('label'))) {
+        if (!$emplacementRepository->findOneBy(['label' => $request->request->get('label')])) {
             $toInsert = new Emplacement();
             $toInsert
                 ->setLabel($request->request->get('label'))
@@ -1833,11 +1709,6 @@ class ApiController extends AbstractFOSRestController
      * @Rest\Get("/api/articles", name="api-get-articles", condition="request.isXmlHttpRequest()")
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
-     *
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NonUniqueResultException
      */
     public function getArticles(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -1892,11 +1763,6 @@ class ApiController extends AbstractFOSRestController
      * @Rest\Get("/api/tracking-drops", name="api-get-tracking-drops-on-location", condition="request.isXmlHttpRequest()")
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
-     *
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws NonUniqueResultException
      */
     public function getTrackingDropsOnLocation(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -1906,7 +1772,7 @@ class ApiController extends AbstractFOSRestController
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
         $location = !empty($locationLabel)
-            ? $emplacementRepository->findOneByLabel($locationLabel)
+            ? $emplacementRepository->findOneBy(['label' => $locationLabel])
             : null;
 
         if (!empty($locationLabel) && !isset($location)) {
@@ -1945,11 +1811,6 @@ class ApiController extends AbstractFOSRestController
      * @Rest\Get("/api/packs", name="api_get_pack_data", condition="request.isXmlHttpRequest()")
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
-     *
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param NatureService $natureService
-     * @return JsonResponse
      */
     public function getPackData(Request $request,
                                 EntityManagerInterface $entityManager,
@@ -1994,11 +1855,6 @@ class ApiController extends AbstractFOSRestController
      * @Rest\Get("/api/pack-groups", name="api_get_pack_groups", condition="request.isXmlHttpRequest()")
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
-     *
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param NatureService $natureService
-     * @return JsonResponse
      */
     public function getPacksGroups(Request $request, EntityManagerInterface $entityManager): Response {
         $code = $request->query->get('code');
@@ -2134,12 +1990,6 @@ class ApiController extends AbstractFOSRestController
     /**
      * @Rest\Get("/api/server-images", name="api_images", condition="request.isXmlHttpRequest()")
      * @Wii\RestVersionChecked()
-     *
-     * @param EntityManagerInterface $entityManager
-     * @param KernelInterface $kernel
-     * @param Request $request
-     * @return JsonResponse
-     * @throws NonUniqueResultException
      */
     public function getLogos(EntityManagerInterface $entityManager,
                              KernelInterface $kernel,
@@ -2187,12 +2037,6 @@ class ApiController extends AbstractFOSRestController
      * @Rest\Post("/api/dispatches", name="api_patch_dispatches", condition="request.isXmlHttpRequest()")
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
-     *
-     * @param Request $request
-     * @param DispatchService $dispatchService
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse
-     * @throws Exception
      */
     public function patchDispatches(Request $request,
                                     DispatchService $dispatchService,

@@ -98,7 +98,7 @@ Class GlobalParamService
 
         if(!$font) {
             $parametrageGlobalRepository = $this->em->getRepository(ParametrageGlobal::class);
-            $param = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::FONT_FAMILY);
+            $param = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::FONT_FAMILY]);
             $font = $param ? $param->getValue() : ParametrageGlobal::DEFAULT_FONT_FAMILY;
         } else {
             $font = $font->getValue();
