@@ -69,6 +69,14 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface {
                 SpecificService::CLIENT_COLLINS_SOA => true,
                 SpecificService::CLIENT_COLLINS_VERNON => true
             ],
+            ParametrageGlobal::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST =>[
+                'default' => false,
+                SpecificService::CLIENT_SAFRAN_ED => true,
+            ],
+            ParametrageGlobal::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST =>[
+                'default' => false,
+                SpecificService::CLIENT_SAFRAN_ED => true,
+            ],
             ParametrageGlobal::INCLUDE_BL_IN_LABEL => [
                 'default' => false,
                 SpecificService::CLIENT_COLLINS_SOA => true,

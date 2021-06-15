@@ -1,3 +1,5 @@
+{% set restrictedLocations = restrictedLocations is defined and restrictedLocations %}
+
 <form method="" class="modal fade" id="modalNewLigneReception" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -59,6 +61,7 @@
                                        data-id="{{ app.user.dropzone and needsCurrentUser ? app.user.dropzone.id }}"
                                        data-text="{{ app.user.dropzone and needsCurrentUser ? app.user.dropzone.label }}">
                             </div>
+                            <input type="hidden" name="restrictedLocations" value="{{ restrictedLocations }}">
                         </div>
                     </div>
 

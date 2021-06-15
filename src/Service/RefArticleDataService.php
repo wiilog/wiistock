@@ -167,7 +167,7 @@ class RefArticleDataService {
     public function getViewEditRefArticle($refArticle,
                                           $isADemand = false,
                                           $preloadCategories = true,
-                                          $showAttachments = false) {
+                                          $editAttachments = false) {
         $articleFournisseurRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
         $typeRepository = $this->entityManager->getRepository(Type::class);
         $inventoryCategoryRepository = $this->entityManager->getRepository(InventoryCategory::class);
@@ -223,7 +223,7 @@ class RefArticleDataService {
                         'managerUsername' => $managerUsername
                     ];
                 }),
-            'showAttachments' => $showAttachments
+            'editAttachments' => $editAttachments,
         ]);
     }
 

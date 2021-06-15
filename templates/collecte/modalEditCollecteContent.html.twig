@@ -1,3 +1,5 @@
+{% set restrictedLocations = restrictedLocations is defined and restrictedLocations %}
+
 <div class="form-group row">
     <label class="col-12" for="date-collecte">Date de la collecte</label>
     <div class="col-12">
@@ -74,6 +76,7 @@
             {% endif %}
         </select>
     </div>
+    <input type="hidden" name="restrictedLocations" value="{{ restrictedLocations }}">
 </div>
 
 <div class="form-group">
@@ -83,7 +86,6 @@
         <input type="radio" name="destination" value="1" content="Mise en stock" {% if collecte.isStock %}checked{% endif %}>
     </div>
 </div>
-
 <!-- CHAMPS LIBRES -->
 {% if collecte.filled %}
     <span class="toggle-collapsible expanded">Champs libres</span>

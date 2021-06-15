@@ -6,6 +6,7 @@ function onDeliveryTypeChange($type, mode) {
 function toggleLocationSelect($type, $modal = null) {
     $modal = $modal || $type.closest('.modal');
     const $locationSelector = $modal.find(`select[name="destination"]`);
+    const $restrictedResults = $modal.find(`input[name="restrictedLocations"]`);
     const typeId = $type.val();
     if (typeId) {
         const defaultDeliveryLocations = $modal.find('[name="defaultDeliveryLocations"]').data('value');
@@ -19,7 +20,7 @@ function toggleLocationSelect($type, $modal = null) {
         Select2Old.init(
             $locationSelector,
             '',
-            1,
+            $restrictedResults.val() ? 0 : 1,
             {
                 route: 'get_locations_by_type',
                 param: {
