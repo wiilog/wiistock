@@ -1,5 +1,5 @@
 $(function () {
-    Select2Old.location($('.ajax-autocomplete-emplacements'), {}, "Emplacements", 3);
+    Select2Old.location($('.ajax-autocomplete-emplacements'), {}, "Emplacements", 1);
     Select2Old.init($('.filter-select2[name="natures"]'), 'Natures');
 
     const isPreFilledFilter = $('.filters-container [name="isPreFilledFilter"]').val() === '1';
