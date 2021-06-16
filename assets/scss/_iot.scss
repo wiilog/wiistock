@@ -1,7 +1,6 @@
 .association-pane-item {
     display: flex;
     flex-wrap: nowrap;
-    margin: 0 10px;
     min-height: 50px;
 
     .wii-icon {
@@ -31,4 +30,55 @@
 .association-actions {
     position: absolute;
     top: 0; right: 20px;
+}
+
+.timeline-container {
+    .timeline-row {
+        display: flex;
+        flex-wrap: nowrap;
+
+        &:last-child  {
+            .timeline-cell {
+                &.timeline-cell-right{
+                    &:after {
+                        height: 80%;
+                    }
+                }
+            }
+        }
+
+        .timeline-cell {
+            padding: 12px;
+            &.timeline-cell-left {
+                flex: 40%;
+                text-align: right;
+            }
+            &.timeline-cell-right {
+                flex: 60%;
+                text-align: left;
+                position: relative;
+
+                &:before {
+                    content: "";
+                    width: 10px;
+                    height: 10px;
+                    border-radius: 5px;
+                    background-color: black;
+                    position: absolute;
+                    top: 16px;
+                    left: -4px;
+                }
+
+                &:after {
+                    content: "";
+                    position: absolute;
+                    width: 2px;
+                    background-color: black;
+                    top: 20px;
+                    left: 0;
+                    height: 100%;
+                }
+            }
+        }
+    }
 }

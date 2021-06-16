@@ -22,6 +22,14 @@ use Twig\Environment;
 class DataMonitoringService
 {
 
+    public const COLOR_PAIRING = "#2A72B0";
+    public const COLOR_PACK = "#F5B642";
+    public const COLOR_LOCATION = "#34C9EB";
+    public const COLOR_DELIVERY_ORDER = "#F5E342";
+    public const COLOR_PREPARATION_ORDER = "#135FC2";
+    public const COLOR_COLLECT_ORDER = "#F5BC14";
+    public const COLOR_ARTICLE_ORDER = "#B92BED";
+
     public const ASSOCIATED_CLASSES = [
         Sensor::TEMPERATURE => [
             Pack::class,
@@ -98,7 +106,7 @@ class DataMonitoringService
                 "Associé le : $start",
                 $end ? "Fin le : <span class=\"pairing-end-date-{$pairing->getId()}\">$end</span>" : null,
             ],
-            "color" => "#2A72B0",
+            "color" => self::COLOR_PAIRING,
             "pairing" => $pairing,
         ];
 
@@ -126,10 +134,20 @@ class DataMonitoringService
             "type" => $isTimeline ? self::TIMELINE : "entity",
             "icon" => "iot-pack",
             "title" => $pack->getCode(),
-            "color" => "#F5B642",
+            "color" => self::COLOR_PACK,
             "pack" => $pack,
             "activeAssociation" => $isTimeline ? $pack->getActivePairing() : null
         ];
+
+        if ($isTimeline) {
+            $config["left_pane"][] = [
+                "isTimeline" => true,
+                "timelineDataPath" => $this->router->generate('get_data_history_timeline_api', [
+                    "type" => Sensor::PACK,
+                    "id" => $pack->getId()
+                ])
+            ];
+        }
     }
 
     private function fillLocationConfig(array &$config, Emplacement $location, bool $isTimeline)
@@ -138,7 +156,7 @@ class DataMonitoringService
             "type" => $isTimeline ? self::TIMELINE : "entity",
             "icon" => "iot-location",
             "title" => $location->getLabel(),
-            "color" => "#34C9EB",
+            "color" => self::COLOR_LOCATION,
             "activeAssociation" => $isTimeline ? $location->getActivePairing() : null
         ];
     }
@@ -149,7 +167,7 @@ class DataMonitoringService
             "type" => $isTimeline ? self::TIMELINE : "entity",
             "icon" => "iot-location",
             "title" => $location->getName(),
-            "color" => "#34C9EB",
+            "color" => self::COLOR_LOCATION,
             "activeAssociation" => $isTimeline ? $location->getActivePairing() : null
         ];
     }
@@ -161,14 +179,14 @@ class DataMonitoringService
             $items[] = [
                 "icon" => "iot-delivery",
                 "title" => $preparation->getLivraison()->getNumero(),
-                "color" => "#F5E342",
+                "color" => self::COLOR_DELIVERY_ORDER,
             ];
         }
 
         $items[] = [
             "icon" => "iot-preparation",
             "title" => $preparation->getNumero(),
-            "color" => "#135FC2",
+            "color" => self::COLOR_PREPARATION_ORDER,
         ];
 
         $config["left_pane"][] = [
@@ -184,7 +202,7 @@ class DataMonitoringService
             "type" => $isTimeline ? self::TIMELINE : "entity",
             "icon" => "iot-collect",
             "title" => $collect->getNumero(),
-            "color" => "#F5BC14",
+            "color" => self::COLOR_COLLECT_ORDER,
             "activeAssociation" => $isTimeline ? $collect->getActivePairing() : null
         ];
     }
@@ -195,7 +213,7 @@ class DataMonitoringService
             "type" => $isTimeline ? self::TIMELINE : "entity",
             "icon" => "iot-article",
             "title" => $article->getLabel(),
-            "color" => "#B92BED",
+            "color" => self::COLOR_ARTICLE_ORDER,
             "activeAssociation" => $isTimeline ? $article->getActivePairing() : null
         ];
     }

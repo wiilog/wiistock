@@ -5,6 +5,13 @@ $(document).ready(() => {
     $(document).arrive(`[data-map]`, elem => initMap(elem));
     $(document).arrive(`[data-chart]`, elem => initLineChart(elem));
 
+    const $timelineContainer = $('.timeline-container');
+    if ($timelineContainer.exists()) {
+        $timelineContainer.each(function() {
+            initTimeline($(this));
+        });
+    }
+
     const $editEndButton = $(`button[data-target="#modalEditPairingEnd"]`);
     if ($editEndButton.exists()) {
         $editEndButton.click(function () {
@@ -166,4 +173,76 @@ function initLineChart(element) {
             }
         });
     });
+}
+
+function initTimeline($timelineContainer, showMore = false) {
+    $timelineContainer.pushLoader('black', 'normal');
+
+    const timelineDataPath = $timelineContainer.data('timeline-data-path');
+    const ended = $timelineContainer.data('timeline-end');
+    const $oldShowMoreButton = $timelineContainer.find('.timeline-show-more-button');
+
+    if (!showMore) {
+        $timelineContainer.find('.timeline-row').remove();
+    }
+
+    if (!ended) {
+        $
+            .get(timelineDataPath)
+            .then(({data, isEnd}) => {
+                $timelineContainer.data('timeline-end', Boolean(isEnd));
+                if ($oldShowMoreButton.exists()) {
+                    $oldShowMoreButton.parent().remove();
+                }
+
+                const timeline = data || [];
+                let lastGroupTitle;
+                const $timeline = timeline.map(({title, subtitle, active, group}) => {
+                    const groupTitle = group ? group.title : null;
+                    const groupColor = group ? group.color : null;
+                    const displayGroup = lastGroupTitle !== groupTitle;
+                    lastGroupTitle = groupTitle;
+                    return $('<div/>', {
+                        class: 'timeline-row',
+                        html: [
+                            $('<div/>', {
+                                class: `timeline-cell timeline-cell-left`,
+                                ...(displayGroup
+                                    ? {
+                                        style: groupColor ? `color: ${groupColor};` : null,
+                                        text: groupTitle ? groupTitle : null
+                                    }
+                                    : {})
+                            }),
+                            $('<div/>', {
+                                class: 'timeline-cell timeline-cell-right',
+                                html: [
+                                    `<span style="${active ? `color: green;` : ''}">${title}</span>`,
+                                    `<br/>`,
+                                    `<span>${subtitle}</span>`
+                                ]
+                            })
+                        ]
+                    })
+                });
+                $timelineContainer.append($timeline);
+
+                if (!isEnd) {
+                    $timelineContainer.append(
+                        $('<div/>', {
+                            class: 'timeline-row justify-content-center pt-4',
+                            html: $('<button/>', {
+                                class: 'btn btn-outline-primary timeline-show-more-button',
+                                text: 'Voir plus',
+                                click: () => {
+                                    initTimeline($timelineContainer, true);
+                                }
+                            })
+                        })
+                    );
+                }
+
+                $timelineContainer.popLoader();
+            });
+    }
 }

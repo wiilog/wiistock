@@ -12,8 +12,23 @@
 
 {% import _self as macros %}
 
+{% set type = type is defined ? type %}
+{% set activeAssociation = activeAssociation is defined ? activeAssociation %}
+{% set pairing = pairing is defined ? pairing %}
+{% set isTimeline = isTimeline is defined ? isTimeline %}
+{% set color = color is defined ? color %}
+{% set icon = icon is defined ? icon %}
+{% set title = title is defined ? title %}
+{% set subtitle = subtitle is defined ? subtitle %}
+
+{% set isTimelineHeader = (type == constant('App\\Service\\IOT\\DataMonitoringService::TIMELINE')) %}
+
 <div class="row position-relative">
-    {% if items is defined %}
+    {% if isTimeline %}
+        <div class="col-12 py-3 timeline-container"
+             data-timeline-data-path="{{ timelineDataPath }}">
+        </div>
+    {% elseif items is defined %}
         {% for item in items %}
             {{ macros.paneItem(item.color, item.icon, item.title, item.subtitle ?? null) }}
         {% endfor %}
@@ -21,12 +36,17 @@
         {{ macros.paneItem(color, icon, title, subtitle ?? null) }}
     {% endif %}
 
-    {% if type == 'sensor' or type == 'entity' or (type == constant('App\\Service\\IOT\\DataMonitoringService::TIMELINE') and activeAssociation) %}
+    {% if type == 'sensor'
+          or type == 'entity'
+          or (isTimelineHeader and activeAssociation) %}
         <div class="dropdown dropleft association-actions">
-            <img src="{{ asset('svg/dotsblack.svg') }}" alt="Actions" height="20px" width="8px"
+            <img src="{{ asset('svg/dotsblack.svg') }}"
+                 alt="Actions"
+                 height="20px"
+                 width="8px"
                  data-toggle="dropdown" class="pointer"/>
             <div class="dropdown-menu dropdown-follow-gt pointer">
-                {% if type == 'sensor' %}
+                {% if type == 'sensor' and pairing %}
                     <button class="dropdown-item pointer" data-toggle="modal" data-target="#modalEditPairingEnd" data-id="{{ pairing.id }}">
                         <i class="fas fa-edit"></i> Modifier fin association
                     </button>
