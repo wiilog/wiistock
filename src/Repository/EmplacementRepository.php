@@ -242,4 +242,27 @@ class EmplacementRepository extends EntityRepository
             ->setParameter('type', $type);
         return $qb->getQuery()->getResult();
     }
+
+    public function getWithNoAssociationForSelect() {
+        $qb = $this->createQueryBuilder('location');
+        $qb
+            ->select("CONCAT('location:', location.id) AS id")
+            ->addSelect('location.label AS text')
+            ->leftJoin('location.pairings', 'pairings')
+            ->where('pairings.location is null');
+        return $qb
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findWithActivePairing(){
+        $qb = $this->createQueryBuilder('location');
+        $qb
+            ->leftJoin('location.pairings', 'pairings')
+            ->where('pairings.active = 1');
+
+        return $qb
+            ->getQuery()
+            ->getResult();
+    }
 }

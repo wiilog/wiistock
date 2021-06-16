@@ -138,7 +138,7 @@ class LocationGroup {
     {
         if (!$this->pairings->contains($pairing)) {
             $this->pairings[] = $pairing;
-            $pairing->setLocation($this);
+            $pairing->setLocationGroup($this);
         }
 
         return $this;
@@ -148,8 +148,8 @@ class LocationGroup {
     {
         if ($this->pairings->removeElement($pairing)) {
             // set the owning side to null (unless already changed)
-            if ($pairing->getLocation() === $this) {
-                $pairing->setLocation(null);
+            if ($pairing->getLocationGroup() === $this) {
+                $pairing->setLocationGroup(null);
             }
         }
 

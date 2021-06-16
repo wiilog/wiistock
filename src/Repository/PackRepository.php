@@ -444,4 +444,14 @@ class PackRepository extends EntityRepository
             })
             ->toArray();
     }
+
+    public function findWithNoPairing() {
+        $qb = $this->createQueryBuilder('pack');
+        $qb
+            ->leftJoin('pack.pairings', 'pairings')
+            ->where('pairings.pack is null');
+        return $qb
+            ->getQuery()
+            ->getResult();
+    }
 }

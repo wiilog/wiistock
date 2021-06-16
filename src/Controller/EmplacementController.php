@@ -12,6 +12,7 @@ use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Livraison;
+use App\Entity\LocationGroup;
 use App\Entity\Menu;
 
 use App\Entity\MouvementStock;
@@ -409,4 +410,16 @@ class EmplacementController extends AbstractController {
         ]);
     }
 
+    /**
+     * @Route("/get-locations-and-groups", name="get_locations_and_groups", options={"expose"=true}, methods="GET|POST")
+     */
+    public function getLocationsAndGroups(EntityManagerInterface $entityManager){
+        $locationGroups = $entityManager->getRepository(LocationGroup::class)->getWithNoAssociationForSelect();
+        $locations = $entityManager->getRepository(Emplacement::class)->getWithNoAssociationForSelect();
+        $allLocations = array_merge($locations, $locationGroups);
+        usort($allLocations, fn($a, $b) => strtolower($a['text']) <=> strtolower($b['text']));
+        return $this->json([
+            'results' => $allLocations
+        ]);
+    }
 }

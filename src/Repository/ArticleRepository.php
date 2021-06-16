@@ -1208,5 +1208,13 @@ class ArticleRepository extends EntityRepository {
             return [];
         }
     }
-
+    public function findWithNoPairing() {
+        $qb = $this->createQueryBuilder('article');
+        $qb
+            ->leftJoin('article.pairings', 'pairings')
+            ->where('pairings.article is null');
+        return $qb
+            ->getQuery()
+            ->getResult();
+    }
 }

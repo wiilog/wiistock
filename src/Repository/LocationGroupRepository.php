@@ -14,9 +14,11 @@ use function Doctrine\ORM\QueryBuilder;
  * @method LocationGroup[]    findAll()
  * @method LocationGroup[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class LocationGroupRepository extends EntityRepository {
+class LocationGroupRepository extends EntityRepository
+{
 
-    public function findByParamsAndFilters($params) {
+    public function findByParamsAndFilters($params)
+    {
         $queryBuilder = $this->createQueryBuilder("location_group");
 
         $countTotal = QueryCounter::count($queryBuilder, "location_group");
@@ -57,6 +59,19 @@ class LocationGroupRepository extends EntityRepository {
             'count' => $countFiltered,
             'total' => $countTotal
         ];
+    }
+
+    public function getWithNoAssociationForSelect()
+    {
+        $qb = $this->createQueryBuilder('location_group');
+        $qb
+            ->select("CONCAT('locationGroup:', location_group.id) AS id")
+            ->addSelect('location_group.name AS text')
+            ->leftJoin('location_group.pairings', 'pairings')
+            ->where('pairings.locationGroup is null');
+        return $qb
+            ->getQuery()
+            ->getResult();
     }
 
 }

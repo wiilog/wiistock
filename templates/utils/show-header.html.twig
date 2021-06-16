@@ -5,7 +5,7 @@
             <h5 class="my-0 h5" title="{% block showTitleTooltip '' %}">{% block showTitle '' %}</h5>
         </div>
 
-        {% if titleLogo %}
+        {% if titleLogo is defined%}
             <i class="wii-icon wii-icon-{{ titleLogo }} mr-2 has-tooltip" title="Cette collecte est liée à un capteur"></i>
         {% endif %}
 

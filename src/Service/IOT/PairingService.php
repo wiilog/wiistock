@@ -5,7 +5,10 @@ namespace App\Service\IOT;
 
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
+use App\Entity\IOT\SensorWrapper;
 use App\Helper\FormatHelper;
+use DateTime;
+use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
 
@@ -48,5 +51,21 @@ class PairingService
             'start' => FormatHelper::datetime($pairing->getStart()),
             'end' => FormatHelper::datetime($pairing->getEnd()),
         ];
+    }
+
+    public function createPairing(DateTime $end, SensorWrapper $sensorWrapper,  $article,  $location, $locationGroup, $pack){
+        $pairing = new Pairing();
+        $start =  new DateTime("now", new DateTimeZone("Europe/Paris"));
+        $pairing
+            ->setStart($start)
+            ->setEnd($end)
+            ->setSensorWrapper($sensorWrapper)
+            ->setArticle($article)
+            ->setLocationGroup($locationGroup)
+            ->setLocation($location)
+            ->setPack($pack)
+            ->setActive(true);
+
+        return $pairing;
     }
 }

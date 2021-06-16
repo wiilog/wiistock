@@ -16,6 +16,16 @@ $(function () {
 
         pairingList(searchValue, sensorWrappersSelectValue, activeButtons.activeTypeButtons, activeButtons.activeElementButtons)
     });
+
+    let modalNewPairing = $("#modalNewPairing");
+    let submitNewPairing = $("#submitNewPairing");
+    let urlNewPairing = Routing.generate('pairing_new', true)
+    InitModal(modalNewPairing, submitNewPairing, urlNewPairing);
+
+    Select2Old.init(modalNewPairing.find('select[name=locations]'), "Sélectionner un emplacement ...", 1, {
+        route: "get_locations_and_groups"
+    });
+
 });
 
 function filter() {
@@ -126,3 +136,9 @@ function getSearchValue() {
 function getFilterValue() {
     return $('.filter-select2[name=sensorWrappers]').val();
 }
+
+let visible = function (element, submit) {
+    $('.container').addClass('d-none');
+    element.removeClass('d-none');
+    submit.removeClass('d-none');
+};
