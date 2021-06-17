@@ -187,8 +187,9 @@ function initTimeline($timelineContainer, showMore = false) {
     }
 
     if (!ended) {
+        const start = $timelineContainer.find('.timeline-row:not(.timeline-show-more-button-container)').length;
         $
-            .get(timelineDataPath)
+            .get(timelineDataPath, {start})
             .then(({data, isEnd}) => {
                 $timelineContainer.data('timeline-end', Boolean(isEnd));
                 if ($oldShowMoreButton.exists()) {
@@ -197,16 +198,19 @@ function initTimeline($timelineContainer, showMore = false) {
 
                 const timeline = data || [];
                 let lastGroupTitle;
-                const $timeline = timeline.map(({title, subtitle, active, group}) => {
+                const $timeline = timeline.map(({title, subtitle, active, group}, index) => {
                     const groupTitle = group ? group.title : null;
                     const groupColor = group ? group.color : null;
                     const displayGroup = lastGroupTitle !== groupTitle;
                     lastGroupTitle = groupTitle;
+
+                    const lastClass = (isEnd && (timeline.length - 1) === index) ? 'last-timeline-cell' : '';
+
                     return $('<div/>', {
                         class: 'timeline-row',
                         html: [
                             $('<div/>', {
-                                class: `timeline-cell timeline-cell-left`,
+                                class: `timeline-cell timeline-cell-left ${lastClass}`,
                                 ...(displayGroup
                                     ? {
                                         style: groupColor ? `color: ${groupColor};` : null,
@@ -215,7 +219,7 @@ function initTimeline($timelineContainer, showMore = false) {
                                     : {})
                             }),
                             $('<div/>', {
-                                class: 'timeline-cell timeline-cell-right',
+                                class: `timeline-cell timeline-cell-right ${lastClass}`,
                                 html: [
                                     `<span style="${active ? `color: green;` : ''}">${title}</span>`,
                                     `<br/>`,
@@ -230,7 +234,7 @@ function initTimeline($timelineContainer, showMore = false) {
                 if (!isEnd) {
                     $timelineContainer.append(
                         $('<div/>', {
-                            class: 'timeline-row justify-content-center pt-4',
+                            class: 'timeline-row timeline-show-more-button-container justify-content-center pt-4',
                             html: $('<button/>', {
                                 class: 'btn btn-outline-primary timeline-show-more-button',
                                 text: 'Voir plus',

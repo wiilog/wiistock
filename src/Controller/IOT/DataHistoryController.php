@@ -15,11 +15,13 @@ use App\Entity\Pack;
 use App\Entity\Preparation;
 use App\Service\IOT\DataMonitoringService;
 use App\Service\IOT\PairingService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 
@@ -153,11 +155,26 @@ class DataHistoryController extends AbstractController {
     /**
      * @Route("/{type}/{id}/timeline", name="get_data_history_timeline_api", condition="request.isXmlHttpRequest()")
      */
-    public function getPairingTimelineApi(string $type,
+    public function getPairingTimelineApi(DataMonitoringService $dataMonitoringService,
+                                          EntityManagerInterface $entityManager,
+                                          Request $request,
+                                          string $type,
                                           string $id): Response {
 
-        // TODO
-//        $entity = $this->getEntity($type, $id);
+        $entity = $this->getEntity($type, $id);
+
+        $sizeTimelinePage = 10;
+        $startTimeline = $request->query->get('start') ?: 0;
+
+        if ($entity) {
+            $data = $dataMonitoringService->getTimelineData($entityManager, $entity, $startTimeline, $sizeTimelinePage);
+            return $this->json($data);
+        }
+        else {
+            throw new NotFoundHttpException();
+        }
+
+        // TODO remove
         return $this->json([
             "data" => [
                 [

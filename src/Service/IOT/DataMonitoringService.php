@@ -13,11 +13,13 @@ use App\Entity\Pack;
 use App\Entity\Preparation;
 use App\Helper\FormatHelper;
 use DateTime;
+use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment;
+use WiiCommon\Helper\Stream;
 
 class DataMonitoringService
 {
@@ -243,6 +245,51 @@ class DataMonitoringService
         } else {
             throw new RuntimeException("Unsupported class " . get_class($entity));
         }
+    }
+
+    public function getTimelineData(EntityManagerInterface $entityManager,
+                                    PairedEntity $entity,
+                                    int $start,
+                                    int $count): ?array {
+
+        if ($entity instanceof Pack) {
+            return $this->getPackTimelineData($entityManager, $entity, $start, $count);
+        }
+
+        return null;
+    }
+
+    private function getPackTimelineData(EntityManagerInterface $entityManager,
+                                         Pack $pack,
+                                         int $start,
+                                         int $count): array {
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $pairingData = $packRepository->getSensorPairingData($pack, $start, $count);
+        $pairingDataCount = $packRepository->countSensorPairingData($pack);
+        $subtitlePrefix = [
+            'start' => 'Associé le : ',
+            'end' => 'Dissocié le : '
+        ];
+
+        return [
+            'data' => Stream::from($pairingData)
+                ->filterMap(function ($data) use ($subtitlePrefix) {
+                    $dateStr = $data['date'] ?? null;
+                    $type = $data['type'] ?? null;
+                    $date = $dateStr
+                        ? DateTime::createFromFormat('Y-m-d H:i:s', $dateStr)
+                        : null;
+                    return $date && $subtitlePrefix[$type]
+                        ? [
+                            'title' => $data['name'] ?? '',
+                            'subtitle' => $subtitlePrefix[$type] . $date->format('d/m/Y H:i'),
+                            'date' => $date->format('d/m/Y H:i')
+                        ]
+                        : null;
+                })
+                ->toArray(),
+            'isEnd' => $pairingDataCount <= ($start + $count)
+        ];
     }
 
 }

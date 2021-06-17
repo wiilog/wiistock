@@ -11,6 +11,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
+use WiiCommon\Helper\StringHelper;
 
 /**
  * @method Pack|null find($id, $lockMode = null, $lockVersion = null)
@@ -444,4 +445,78 @@ class PackRepository extends EntityRepository
             })
             ->toArray();
     }
+
+    private function createSensorPairingDataQueryUnion(Pack $pack): string {
+        $createQueryBuilder = function (Pack $packFilter) {
+            return $this->createQueryBuilder('pack')
+                ->select('sensorWrapper.name AS name')
+                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
+                ->join('pack.pairings', 'pairing')
+                ->join('pairing.sensorWrapper', 'sensorWrapper')
+                ->where('pack = :pack')
+                ->setParameter('pack', $packFilter);
+        };
+
+        $startQueryBuilder = $createQueryBuilder($pack);
+        $startQueryBuilder
+            ->addSelect("pairing.start AS date")
+            ->addSelect("'start' AS type")
+            ->where('pairing.start IS NOT NULL');
+
+        $endQueryBuilder = $createQueryBuilder($pack);
+        $endQueryBuilder
+            ->addSelect("pairing.end AS date")
+            ->addSelect("'end' AS type")
+            ->where('pairing.end IS NOT NULL');
+
+        $sqlAliases = [
+            '/AS \w+_0/' => 'AS name',
+            '/AS \w+_1/' => 'AS active',
+            '/AS \w+_2/' => 'AS date',
+            '/AS \w+_3/' => 'AS type',
+        ];
+
+        $startSQL = $startQueryBuilder->getQuery()->getSQL();
+        $startSQL = StringHelper::multple_preg_replace($sqlAliases, $startSQL);
+
+        $endSQL = $endQueryBuilder->getQuery()->getSQL();
+        $endSQL = StringHelper::multple_preg_replace($sqlAliases, $endSQL);
+
+        return "
+            ($startSQL)
+            UNION
+            ($endSQL)
+        ";
+    }
+
+    public function getSensorPairingData(Pack $pack, int $start, int $count): array {
+        $unionSQL = $this->createSensorPairingDataQueryUnion($pack);
+
+        $entityManager = $this->getEntityManager();
+        $connection = $entityManager->getConnection();
+        /** @noinspection SqlResolve */
+        return $connection
+            ->executeQuery("
+                SELECT *
+                FROM ($unionSQL) AS pairing
+                ORDER BY `date` DESC
+                LIMIT $count OFFSET $start
+            ")
+            ->fetchAllAssociative();
+    }
+
+    public function countSensorPairingData(Pack $pack): int {
+        $unionSQL = $this->createSensorPairingDataQueryUnion($pack);
+
+        $entityManager = $this->getEntityManager();
+        $connection = $entityManager->getConnection();
+        $unionQuery = $connection->executeQuery("
+            SELECT COUNT(*) AS count
+            FROM ($unionSQL) AS pairing
+        ");
+        $res = $unionQuery->fetchAllAssociative();
+        return $res[0]['count'] ?? 0;
+    }
+
+
 }
