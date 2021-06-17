@@ -188,9 +188,16 @@ function initTimeline($timelineContainer, showMore = false) {
 
     if (!ended) {
         const start = $timelineContainer.find('.timeline-row:not(.timeline-show-more-button-container)').length;
+        const firstLoading = start === 0;
+        if (firstLoading) {
+            $timelineContainer
+                .removeClass('py-3')
+                .addClass('py-5');
+        }
+
         $
             .get(timelineDataPath, {start})
-            .then(({data, isEnd}) => {
+            .then(({data, isEnd, isGrouped}) => {
                 $timelineContainer.data('timeline-end', Boolean(isEnd));
                 if ($oldShowMoreButton.exists()) {
                     $oldShowMoreButton.parent().remove();
@@ -198,38 +205,59 @@ function initTimeline($timelineContainer, showMore = false) {
 
                 const timeline = data || [];
                 let lastGroupTitle;
-                const $timeline = timeline.map(({title, subtitle, active, group}, index) => {
+                let lastTitle;
+                const $timeline = timeline.map(({title, subtitle, active, group, datePrefix, date}, index) => {
                     const groupTitle = group ? group.title : null;
                     const groupColor = group ? group.color : null;
                     const displayGroup = lastGroupTitle !== groupTitle;
                     lastGroupTitle = groupTitle;
 
+                    const hideTitle = lastTitle === title;
+                    lastTitle = title;
+
                     const lastClass = (isEnd && (timeline.length - 1) === index) ? 'last-timeline-cell' : '';
+                    const activeClass = active ? 'timeline-cell-active' : '';
+                    const withoutTitleClass = hideTitle ? 'timeline-cell-without-title' : '';
+                    const largeTimelineCellClass = !isGrouped ? 'timeline-cell-large' : '';
 
                     return $('<div/>', {
                         class: 'timeline-row',
                         html: [
+                            isGrouped
+                                ? $('<div/>', {
+                                    class: `timeline-cell timeline-cell-left ${lastClass}`,
+                                    ...(displayGroup
+                                        ? {
+                                            style: groupColor ? `color: ${groupColor};` : null,
+                                            text: groupTitle ? groupTitle : null
+                                        }
+                                        : {})
+                                })
+                                : undefined,
                             $('<div/>', {
-                                class: `timeline-cell timeline-cell-left ${lastClass}`,
-                                ...(displayGroup
-                                    ? {
-                                        style: groupColor ? `color: ${groupColor};` : null,
-                                        text: groupTitle ? groupTitle : null
-                                    }
-                                    : {})
-                            }),
-                            $('<div/>', {
-                                class: `timeline-cell timeline-cell-right ${lastClass}`,
+                                class: `timeline-cell timeline-cell-right ${lastClass} ${activeClass} ${withoutTitleClass} ${largeTimelineCellClass}`,
                                 html: [
-                                    `<span style="${active ? `color: green;` : ''}">${title}</span>`,
+                                    ...(!hideTitle
+                                        ? [
+                                            `<span class="timeline-cell-title">${title}</span>`,
+                                            `<br/>`,
+                                        ]
+                                        : []),
+                                    `<span class="timeline-cell-date-prefix">${datePrefix}</span>`,
                                     `<br/>`,
-                                    `<span>${subtitle}</span>`
+                                    `<span class="timeline-cell-date">${date}</span>`
                                 ]
                             })
                         ]
                     })
                 });
                 $timelineContainer.append($timeline);
+
+                if (firstLoading) {
+                    $timelineContainer
+                        .addClass('py-3')
+                        .removeClass('py-5');
+                }
 
                 if (!isEnd) {
                     $timelineContainer.append(

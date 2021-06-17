@@ -163,7 +163,7 @@ class DataHistoryController extends AbstractController {
 
         $entity = $this->getEntity($type, $id);
 
-        $sizeTimelinePage = 10;
+        $sizeTimelinePage = 6;
         $startTimeline = $request->query->get('start') ?: 0;
 
         if ($entity) {
@@ -182,7 +182,7 @@ class DataHistoryController extends AbstractController {
                     "subtitle" => "Associé le : 23/03/2021 17:03",
                     "group" => [
                         "title" => "P-202108795875-2",
-                        "color" => DataMonitoringService::COLOR_PREPARATION_ORDER
+
                     ],
                     "date" => "2021-03-23 17:03",
                     "active" => true
@@ -192,7 +192,6 @@ class DataHistoryController extends AbstractController {
                     "subtitle" => "Dissocié le : 23/03/2021 16:03",
                     "group" => [
                         "title" => "P-202108795875-2",
-                        "color" => DataMonitoringService::COLOR_PREPARATION_ORDER
                     ],
                     "date" => "2021-03-23 16:03",
                     "active" => false
@@ -202,7 +201,6 @@ class DataHistoryController extends AbstractController {
                     "subtitle" => "Associé le : 23/03/2021 15:03",
                     "group" => [
                         "title" => "P-202108795875-2",
-                        "color" => DataMonitoringService::COLOR_PREPARATION_ORDER
                     ],
                     "date" => "2021-03-23 15:03",
                     "active" => false
@@ -211,8 +209,7 @@ class DataHistoryController extends AbstractController {
                     "title" => "GPS3",
                     "subtitle" => "Dissocié le : 23/03/2021 12:03",
                     "group" => [
-                        "title" => "L-20210879165-01",
-                        "color" => DataMonitoringService::COLOR_DELIVERY_ORDER
+                        "title" => "L-20210879165-01"
                     ],
                     "date" => "2021-03-23 12:03",
                     "active" => false
@@ -222,7 +219,6 @@ class DataHistoryController extends AbstractController {
                     "subtitle" => "Associé le : 23/03/2021 11:03",
                     "group" => [
                         "title" => "P-202106565265-01",
-                        "color" => DataMonitoringService::COLOR_PREPARATION_ORDER
                     ],
                     "date" => "2021-03-23 11:03",
                     "active" => false

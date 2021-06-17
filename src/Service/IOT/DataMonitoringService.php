@@ -24,14 +24,6 @@ use WiiCommon\Helper\Stream;
 class DataMonitoringService
 {
 
-    public const COLOR_PAIRING = "#2A72B0";
-    public const COLOR_PACK = "#F5B642";
-    public const COLOR_LOCATION = "#34C9EB";
-    public const COLOR_DELIVERY_ORDER = "#F5E342";
-    public const COLOR_PREPARATION_ORDER = "#135FC2";
-    public const COLOR_COLLECT_ORDER = "#F5BC14";
-    public const COLOR_ARTICLE_ORDER = "#B92BED";
-
     public const ASSOCIATED_CLASSES = [
         Sensor::TEMPERATURE => [
             Pack::class,
@@ -108,7 +100,6 @@ class DataMonitoringService
                 "Associé le : $start",
                 $end ? "Fin le : <span class=\"pairing-end-date-{$pairing->getId()}\">$end</span>" : null,
             ],
-            "color" => self::COLOR_PAIRING,
             "pairing" => $pairing,
         ];
 
@@ -136,7 +127,6 @@ class DataMonitoringService
             "type" => $isTimeline ? self::TIMELINE : "entity",
             "icon" => "iot-pack",
             "title" => $pack->getCode(),
-            "color" => self::COLOR_PACK,
             "pack" => $pack,
             "activeAssociation" => $isTimeline ? $pack->getActivePairing() : null
         ];
@@ -158,7 +148,6 @@ class DataMonitoringService
             "type" => $isTimeline ? self::TIMELINE : "entity",
             "icon" => "iot-location",
             "title" => $location->getLabel(),
-            "color" => self::COLOR_LOCATION,
             "activeAssociation" => $isTimeline ? $location->getActivePairing() : null
         ];
     }
@@ -169,7 +158,6 @@ class DataMonitoringService
             "type" => $isTimeline ? self::TIMELINE : "entity",
             "icon" => "iot-location",
             "title" => $location->getName(),
-            "color" => self::COLOR_LOCATION,
             "activeAssociation" => $isTimeline ? $location->getActivePairing() : null
         ];
     }
@@ -181,14 +169,12 @@ class DataMonitoringService
             $items[] = [
                 "icon" => "iot-delivery",
                 "title" => $preparation->getLivraison()->getNumero(),
-                "color" => self::COLOR_DELIVERY_ORDER,
             ];
         }
 
         $items[] = [
             "icon" => "iot-preparation",
             "title" => $preparation->getNumero(),
-            "color" => self::COLOR_PREPARATION_ORDER,
         ];
 
         $config["left_pane"][] = [
@@ -204,7 +190,6 @@ class DataMonitoringService
             "type" => $isTimeline ? self::TIMELINE : "entity",
             "icon" => "iot-collect",
             "title" => $collect->getNumero(),
-            "color" => self::COLOR_COLLECT_ORDER,
             "activeAssociation" => $isTimeline ? $collect->getActivePairing() : null
         ];
     }
@@ -215,7 +200,6 @@ class DataMonitoringService
             "type" => $isTimeline ? self::TIMELINE : "entity",
             "icon" => "iot-article",
             "title" => $article->getLabel(),
-            "color" => self::COLOR_ARTICLE_ORDER,
             "activeAssociation" => $isTimeline ? $article->getActivePairing() : null
         ];
     }
@@ -282,8 +266,9 @@ class DataMonitoringService
                     return $date && $subtitlePrefix[$type]
                         ? [
                             'title' => $data['name'] ?? '',
-                            'subtitle' => $subtitlePrefix[$type] . $date->format('d/m/Y H:i'),
-                            'date' => $date->format('d/m/Y H:i')
+                            'datePrefix' => $subtitlePrefix[$type],
+                            'date' => $date->format('d/m/Y à H:i'),
+                            'active' => ($data['active'] ?? '0') === '1'
                         ]
                         : null;
                 })

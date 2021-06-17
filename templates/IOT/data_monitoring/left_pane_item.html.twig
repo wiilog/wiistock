@@ -1,11 +1,13 @@
-{% macro paneItem(color, icon, title, subtitle) %}
-    <div class="col-12 association-pane-item d-flex align-items-center">
-        <span class="wii-icon wii-icon-{{ icon }} mr-3" style="background: {{ color }}"></span>
-        <div class="right-column">
-            <span class="title" style="color: {{ color }}">{{ title }}</span>
-            {% if subtitle ?? null %}
-                <span class="subtitle">{{ subtitle | join('<br>') | raw }}</span>
-            {% endif %}
+{% macro paneItem(icon, title, subtitle, isFirst) %}
+    <div class="col-12">
+        <div class="px-3 py-2 association-pane-item d-flex align-items-center {{ isFirst ? 'first-association-pane-item' }}">
+            <span class="wii-icon wii-icon-{{ icon }} mr-2"></span>
+            <div class="right-column ml-2">
+                <span class="title">{{ title }}</span>
+                {% if subtitle ?? null %}
+                    <span class="subtitle">{{ subtitle | join('<br>') | raw }}</span>
+                {% endif %}
+            </div>
         </div>
     </div>
 {% endmacro %}
@@ -16,29 +18,27 @@
 {% set activeAssociation = activeAssociation is defined ? activeAssociation %}
 {% set pairing = pairing is defined ? pairing %}
 {% set isTimeline = isTimeline is defined ? isTimeline %}
-{% set color = color is defined ? color %}
 {% set icon = icon is defined ? icon %}
 {% set title = title is defined ? title %}
 {% set subtitle = subtitle is defined ? subtitle %}
 
 {% set isTimelineHeader = (type == constant('App\\Service\\IOT\\DataMonitoringService::TIMELINE')) %}
 
-<div class="row position-relative">
+<div class="row position-relative association-pane-item-container">
     {% if isTimeline %}
-        <div class="col-12 py-3 timeline-container"
+        <div class="col-12 timeline-container"
              data-timeline-data-path="{{ timelineDataPath }}">
         </div>
     {% elseif items is defined %}
         {% for item in items %}
-            {{ macros.paneItem(item.color, item.icon, item.title, item.subtitle ?? null) }}
+            {{ macros.paneItem(item.icon, item.title, item.subtitle ?? null, loop.first) }}
         {% endfor %}
     {% else %}
-        {{ macros.paneItem(color, icon, title, subtitle ?? null) }}
+        {{ macros.paneItem(icon, title, subtitle ?? null, true) }}
     {% endif %}
 
     {% if type == 'sensor'
-          or type == 'entity'
-          or (isTimelineHeader and activeAssociation) %}
+          or type == 'entity' %}
         <div class="dropdown dropleft association-actions">
             <img src="{{ asset('svg/dotsblack.svg') }}"
                  alt="Actions"
@@ -53,12 +53,14 @@
                     <button class="dropdown-item pointer" onclick="unpair({{ pairing.id }})"><i class="fas fa-unlink"></i> Dissocier</button>
                 {% elseif type == 'entity' %}
                     <button class="dropdown-item pointer"><i class="fas fa-wifi"></i> Voir l'historique des données</button>
-                {% elseif type == constant('App\\Service\\IOT\\DataMonitoringService::TIMELINE') and activeAssociation %}
-                    <a href="{{ path('pairing_show', {pairing: activeAssociation.id}) }}" class="dropdown-item pointer" target="_blank">
-                        <i class="fas fa-wifi"></i> Aller sur l'association active
-                    </a>
                 {% endif %}
             </div>
         </div>
+    {% elseif (isTimelineHeader and activeAssociation) %}
+        <a class="btn btn-sm btn-outline-primary association-actions"
+           href="{{ path('pairing_show', {pairing: activeAssociation.id}) }}"
+           title="Aller sur l'association active">
+            <i class="fas fa-wifi"></i>
+        </a>
     {% endif %}
 </div>

@@ -6,12 +6,9 @@
 {% block page_content %}
     <div class="row mt-4">
         <div class="col-md-4 col-12">
-            <div class="wii-page-card">
+            <div class="wii-page-card p-0">
                 {% for item in left_pane %}
                     {% include 'iot/data_monitoring/left_pane_item.html.twig' with item %}
-                    {% if not loop.last %}
-                        <hr>
-                    {% endif %}
                 {% endfor %}
             </div>
         </div>
