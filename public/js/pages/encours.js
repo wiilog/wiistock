@@ -55,7 +55,8 @@ function loadEncoursDatatable($table) {
         $table.DataTable().ajax.reload();
     }
     else {
-        let routeForApi = Routing.generate('en_cours_api', true);
+        const fromDashboard = $('input[name=fromDashboard]').val();
+        let routeForApi = Routing.generate('en_cours_api', {fromDashboard: fromDashboard});
         let tableConfig = {
             processing: true,
             responsive: true,
