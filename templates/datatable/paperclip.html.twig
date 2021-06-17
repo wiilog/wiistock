@@ -1,4 +1,5 @@
-<button class="link-like d-flex ml-3 has-tooltip " title="X pieces jointe"
+{% set nbAttachmentsPlural = attachmentsLength > 1 ? 's' %}
+<button class="link-like d-flex ml-3 has-tooltip " title="{{ attachmentsLength }} piece{{ nbAttachmentsPlural }} jointe{{ nbAttachmentsPlural }}"
     {% if reference is defined %}
         data-reference="{{ reference }}"
         onclick="redirectPaperclipClick($(this))"

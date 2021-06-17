@@ -1,5 +1,5 @@
 {% set required = required is defined and required %}
-{% set editAttachments = editAttachments is defined and editAttachments %}
+{% set editAttachments = editAttachments is not defined or editAttachments %}
 
 <input type="hidden" name="isAttachmentForm" value="1"/>
 <input type="hidden" name="isFileNeeded" value="{{ required ? 1 : 0 }}"/>
@@ -26,7 +26,7 @@
     {% for attachment in attachments %}
         {% include 'attachment/attachmentLine.html.twig' with {
             attachment: attachment,
-            editAttachments: editAttachments
+            canRemove: editAttachments
         } %}
     {% endfor %}
 {% endif %}

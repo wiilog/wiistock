@@ -192,8 +192,7 @@
                             <div>
                                 {% include 'attachment/attachment.html.twig' with {
                                     'isNew': true,
-                                    'required': fieldsParam|isFieldRequired(fieldCode, 'mustToCreate'),
-                                    'editAttachments': true,
+                                    'required': fieldsParam|isFieldRequired(fieldCode, 'mustToCreate')
                                 } %}
                             </div>
                         </div>

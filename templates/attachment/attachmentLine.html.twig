@@ -10,7 +10,7 @@
        download="{{ attachment.originalName }}">
         <i class="fa fa-file mr-2"></i>{{ attachment.originalName }}
     </a>
-    {% if canRemove is not defined or canRemove or editAttachments %}
+    {% if canRemove is not defined or canRemove %}
         <i class="fa fa-times red pointer"
            onclick="removeAttachment($(this))"></i>
     {% endif %}

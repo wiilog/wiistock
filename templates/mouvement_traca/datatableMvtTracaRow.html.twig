@@ -2,8 +2,11 @@
     <div class="dropdown dropright">
         <div class="d-flex">
             {% include 'datatable/dotsRow.html.twig' %}
-            {% if attachments|length > 0 %}
-                {% include 'datatable/paperclip.html.twig' with {mvt: mvt.id} %}
+            {% if attachmentsLength > 0 %}
+                {% include 'datatable/paperclip.html.twig' with {
+                    mvt: mvt.id,
+                    attachmentsLength: attachmentsLength
+                } %}
             {% endif %}
             <div class="dropdown-menu dropdown-follow-gt pointer">
                 <div class="dropdown-item"

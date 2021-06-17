@@ -42,7 +42,6 @@ class RefArticleDataService {
 
     private const REF_ARTICLE_FIELDS = [
         ["name" => "actions", "class" => "noVis", "alwaysVisible" => true, "orderable" => false],
-        ['name' => 'attachments', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
         ["title" => "Libellé", "name" => "label", "type" => "text", "searchable" => true],
         ["title" => "Référence", "name" => "reference", "type" => "text", "searchable" => true],
         ["title" => "Code barre", "name" => "barCode", "type" => "text", "searchable" => true],
@@ -400,7 +399,7 @@ class RefArticleDataService {
                 ->unique()
                 ->join(", "),
             "actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
-                "attachment" => $refArticle->getAttachments() ?? null,
+                "attachmentsLength" => $refArticle->getAttachments()->count(),
                 "reference_id" => $refArticle->getId(),
                 "active" => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF : 0,
             ]),

@@ -205,8 +205,7 @@
                 {% include 'attachment/attachment.html.twig' with {
                     'isNew': false,
                     'required': fieldsParam|isFieldRequired(fieldCode, 'mustToModify'),
-                    'attachments': reception.attachments,
-                    'editAttachments': true,
+                    'attachments': reception.attachments
                 } %}
             </div>
         </div>

@@ -179,10 +179,9 @@ class TrackingMovementService
             "quantity" => $movement->getQuantity() ?: '',
             "type" => FormatHelper::status($movement->getType()),
             "operator" => FormatHelper::user($movement->getOperateur()),
-            "attachments" => $attachments ?? "",
             "actions" => $this->templating->render('mouvement_traca/datatableMvtTracaRow.html.twig', [
                 'mvt' => $movement,
-                'attachments' => $movement->getAttachments(),
+                'attachmentsLength' => $movement->getAttachments()->count(),
             ])
         ];
 
@@ -637,7 +636,6 @@ class TrackingMovementService
 
         $columns = [
             ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
-            ['name' => 'attachments', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
             ['title' => 'Issu de', 'name' => 'origin', 'orderable' => false],
             ['title' => 'Date', 'name' => 'date'],
             ['title' => 'mouvement de traçabilité.Colis', 'name' => 'code', 'translated' => true],
