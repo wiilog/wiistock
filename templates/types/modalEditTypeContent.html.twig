@@ -21,7 +21,7 @@
                class="form-control data needed"
                name="label"
                required=""
-               value="{{ type.label }}">
+               value="{{ type.label }}" {{ isSensor ? 'disabled' }}>
     </div>
 
     <div class="form-group">
@@ -31,7 +31,7 @@
         <input type="text"
                class="form-control data"
                name="description"
-               value="{{ type.description }}">
+               value="{{ type.description }}" {{ isSensor ? 'disabled' }}>
     </div>
     {% set needsHide = type.category.label != constant('App\\Entity\\CategoryType::DEMANDE_LIVRAISON') %}
     <div class="form-group {{ needsHide ? 'd-none' }} send-mail">

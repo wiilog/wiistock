@@ -27,6 +27,7 @@ use App\Entity\OrdreCollecteReference;
 use App\Entity\Pack;
 use App\Entity\Preparation;
 use App\Entity\Statut;
+use App\Helper\FormatHelper;
 use App\Repository\PackRepository;
 use App\Repository\StatutRepository;
 use App\Service\DemandeLivraisonService;
@@ -86,7 +87,7 @@ class IOTService
         $wrapper = $sensor->getAvailableSensorWrapper();
         if ($wrapper) {
             foreach ($wrapper->getTriggerActions() as $triggerAction) {
-                $type = $sensor->getType();
+                $type = FormatHelper::type($sensor->getType());
                 switch ($type) {
                     case Sensor::ACTION:
                         $this->treatActionTrigger($wrapper, $triggerAction, $sensorMessage, $entityManager);

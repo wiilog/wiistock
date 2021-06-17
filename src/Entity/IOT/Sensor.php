@@ -2,6 +2,7 @@
 
 namespace App\Entity\IOT;
 
+use App\Entity\Type;
 use App\Repository\IOT\SensorRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -49,9 +50,10 @@ class Sensor
     private ?string $code = null;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="sensors")
+     * @ORM\JoinColumn(nullable=false)
      */
-    private ?string $type = null;
+    private $type;
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -104,16 +106,6 @@ class Sensor
     public function setCode(string $code): self
     {
         $this->code = $code;
-
-        return $this;
-    }
-
-    public function getType(): ?string {
-        return $this->type;
-    }
-
-    public function setType(?string $type): self {
-        $this->type = $type;
 
         return $this;
     }
@@ -260,5 +252,17 @@ class Sensor
                     ->orderBy(['id' => Criteria::DESC])
             );
         return $availableWrappers->first() ?: null;
+    }
+
+    public function getType(): ?Type
+    {
+        return $this->type;
+    }
+
+    public function setType(?Type $type): self
+    {
+        $this->type = $type;
+
+        return $this;
     }
 }

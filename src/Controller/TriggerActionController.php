@@ -5,17 +5,13 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\IOT\AlertTemplate;
-use App\Entity\IOT\CollectRequestTemplate;
-use App\Entity\IOT\DeliveryRequestTemplate;
-use App\Entity\IOT\HandlingRequestTemplate;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\IOT\TriggerAction;
 use App\Entity\Menu;
 use App\Entity\Action;
-use App\Service\AttachmentService;
-use App\Service\IOT\IOTService;
+use App\Helper\FormatHelper;
 use App\Service\TriggerActionService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -268,7 +264,7 @@ class TriggerActionController extends AbstractController
         } else if ($query->has('code')){
             $code = $query->get('code');
             $sensor = $sensorRepository->findOneBy(["code" => $code]);
-            $type = $sensor->getType();
+            $type = FormatHelper::type($sensor->getType());
         }
 
         $html = "";
