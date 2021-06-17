@@ -994,7 +994,7 @@ class DashboardSettingsService {
                 $locations = $config['locations'] ?? [];
                 $redirect = $config['redirect'] ?? false;
                 $link = !empty($locations) && $redirect
-                    ? $this->router->generate('en_cours', ['locations' => implode(',', $locations)])
+                    ? $this->router->generate('en_cours', ['locations' => implode(',', $locations), 'fromDashboard' => true ])
                     : null;
                 break;
             default:
