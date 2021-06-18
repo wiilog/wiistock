@@ -42,7 +42,6 @@ class RefArticleDataService {
 
     private const REF_ARTICLE_FIELDS = [
         ["name" => "actions", "class" => "noVis", "alwaysVisible" => true, "orderable" => false],
-        ['name' => 'attachments', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
         ["title" => "Libellé", "name" => "label", "type" => "text", "searchable" => true],
         ["title" => "Référence", "name" => "reference", "type" => "text", "searchable" => true],
         ["title" => "Code barre", "name" => "barCode", "type" => "text", "searchable" => true],
@@ -366,12 +365,6 @@ class RefArticleDataService {
             ->unique()
             ->toArray();
 
-        if(!$refArticle->getAttachments()->isEmpty()) {
-            $attachmentsCounter = $refArticle->getAttachments()->count();
-            $sAttachments = $attachmentsCounter > 1 ? 's' : '';
-            $attachments = "<i class=\"fas fa-paperclip\" title=\"{$attachmentsCounter} pièce{$sAttachments} jointe{$sAttachments}\"></i>";
-        }
-
         $row = [
             "id" => $refArticle->getId(),
             "attachments" => $attachments ?? "",
@@ -406,6 +399,7 @@ class RefArticleDataService {
                 ->unique()
                 ->join(", "),
             "actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
+                "attachmentsLength" => $refArticle->getAttachments()->count(),
                 "reference_id" => $refArticle->getId(),
                 "active" => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF : 0,
             ]),
