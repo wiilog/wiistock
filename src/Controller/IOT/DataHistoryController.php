@@ -23,6 +23,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\RouterInterface;
 use WiiCommon\Helper\Stream;
 
 /**
@@ -156,6 +157,7 @@ class DataHistoryController extends AbstractController {
      * @Route("/{type}/{id}/timeline", name="get_data_history_timeline_api", condition="request.isXmlHttpRequest()")
      */
     public function getPairingTimelineApi(DataMonitoringService $dataMonitoringService,
+                                          RouterInterface $router,
                                           EntityManagerInterface $entityManager,
                                           Request $request,
                                           string $type,
@@ -167,7 +169,7 @@ class DataHistoryController extends AbstractController {
         $startTimeline = $request->query->get('start') ?: 0;
 
         if ($entity) {
-            $data = $dataMonitoringService->getTimelineData($entityManager, $entity, $startTimeline, $sizeTimelinePage);
+            $data = $dataMonitoringService->getTimelineData($entityManager, $router, $entity, $startTimeline, $sizeTimelinePage);
             return $this->json($data);
         }
         else {

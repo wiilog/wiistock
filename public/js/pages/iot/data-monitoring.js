@@ -206,7 +206,7 @@ function initTimeline($timelineContainer, showMore = false) {
                 const timeline = data || [];
                 let lastGroupTitle;
                 let lastTitle;
-                const $timeline = timeline.map(({title, subtitle, active, group, datePrefix, date}, index) => {
+                const $timeline = timeline.map(({title, titleHref, active, group, datePrefix, date}, index) => {
                     const groupTitle = group ? group.title : null;
                     const groupColor = group ? group.color : null;
                     const displayGroup = lastGroupTitle !== groupTitle;
@@ -239,7 +239,7 @@ function initTimeline($timelineContainer, showMore = false) {
                                 html: [
                                     ...(!hideTitle
                                         ? [
-                                            `<span class="timeline-cell-title">${title}</span>`,
+                                            `<a href="${titleHref}" class="timeline-cell-title">${title}</a>`,
                                             `<br/>`,
                                         ]
                                         : []),
@@ -264,7 +264,7 @@ function initTimeline($timelineContainer, showMore = false) {
                         $('<div/>', {
                             class: 'timeline-row timeline-show-more-button-container justify-content-center pt-4',
                             html: $('<button/>', {
-                                class: 'btn btn-outline-primary timeline-show-more-button',
+                                class: 'btn btn-outline-info timeline-show-more-button',
                                 text: 'Voir plus',
                                 click: () => {
                                     initTimeline($timelineContainer, true);

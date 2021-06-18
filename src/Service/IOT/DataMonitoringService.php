@@ -232,18 +232,20 @@ class DataMonitoringService
     }
 
     public function getTimelineData(EntityManagerInterface $entityManager,
+                                    RouterInterface $router,
                                     PairedEntity $entity,
                                     int $start,
                                     int $count): ?array {
 
         if ($entity instanceof Pack) {
-            return $this->getPackTimelineData($entityManager, $entity, $start, $count);
+            return $this->getPackTimelineData($entityManager, $router, $entity, $start, $count);
         }
 
         return null;
     }
 
     private function getPackTimelineData(EntityManagerInterface $entityManager,
+                                         RouterInterface $routerInterface,
                                          Pack $pack,
                                          int $start,
                                          int $count): array {
@@ -257,7 +259,7 @@ class DataMonitoringService
 
         return [
             'data' => Stream::from($pairingData)
-                ->filterMap(function ($data) use ($subtitlePrefix) {
+                ->filterMap(function ($data) use ($subtitlePrefix, $routerInterface) {
                     $dateStr = $data['date'] ?? null;
                     $type = $data['type'] ?? null;
                     $date = $dateStr
@@ -265,6 +267,7 @@ class DataMonitoringService
                         : null;
                     return $date && $subtitlePrefix[$type]
                         ? [
+                            'titleHref' => $routerInterface->generate('pairing_show', ['pairing' => $data['pairingId']]),
                             'title' => $data['name'] ?? '',
                             'datePrefix' => $subtitlePrefix[$type],
                             'date' => $date->format('d/m/Y à H:i'),
