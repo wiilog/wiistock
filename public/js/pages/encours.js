@@ -1,5 +1,8 @@
+fromDashboard = $('input[name=fromDashboard]').val();
+
 $(function () {
-    Select2Old.location($('.ajax-autocomplete-emplacements'), {}, "Emplacements", 3);
+    $('.filters-container').find('.submit-button').prop('disabled', fromDashboard);
+    Select2Old.location($('.ajax-autocomplete-emplacements'), {}, "Emplacements", 1);
     Select2Old.init($('.filter-select2[name="natures"]'), 'Natures');
 
     const isPreFilledFilter = $('.filters-container [name="isPreFilledFilter"]').val() === '1';
@@ -55,7 +58,6 @@ function loadEncoursDatatable($table) {
         $table.DataTable().ajax.reload();
     }
     else {
-        const fromDashboard = $('input[name=fromDashboard]').val();
         let routeForApi = Routing.generate('en_cours_api', {fromDashboard: fromDashboard});
         let tableConfig = {
             processing: true,
