@@ -11,7 +11,7 @@ use App\Entity\Utilisateur;
 use App\Helper\PostHelper;
 
 use App\Service\IOT\PairingService;
-use App\Service\IOT\SensorWrapperService;
+use App\Service\IOT\AlertTemplateService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -39,8 +39,8 @@ class SensorWrapperController extends AbstractController
      * @HasPermission({Menu::IOT, Action::DISPLAY_SENSOR})
      */
     public function api(Request $request,
-                        SensorWrapperService $sensorWrapperService): Response {
-        $data = $sensorWrapperService->getDataForDatatable($request->request);
+                        AlertTemplateService $alertTemplateService): Response {
+        $data = $alertTemplateService->getDataForDatatable($request->request);
         return $this->json($data);
     }
 

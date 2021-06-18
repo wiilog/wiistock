@@ -1,0 +1,54 @@
+{% set template = template is defined and template ? template : '' %}
+{% set config = config is defined and config is not empty ? config : [] %}
+<div class="form-group mt-4 phone-number-wrapper">
+    <label class="ml-3">Destinataires</label>
+    {% if phoneNumbers is defined and phoneNumbers is not empty %}
+        {% for phoneNumber in phoneNumbers %}
+            <div class="phone-number-container d-flex ml-3 {{ loop.index != 1 ? 'mt-2' }}">
+                <input class="form-control data-array" name="receivers" type="text" value="{{ phoneNumber }}">
+                {% if loop.index != 1 %}
+                    <button class="btn d-block" onclick="deletePhoneNumber($(this))"><i class="far fa-trash-alt"></i></button>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="phone-number-container ml-3">
+            <input class="form-control data-array" name="receivers" type="text">
+        </div>
+    {% endif %}
+    <button class="btn btn-primary ml-3 mt-3"
+            onclick="addPhoneNumber($(this))" type="button">
+        <i class="fa fa-plus"></i>
+    </button>
+</div>
+
+<div class="col-12 form-group mt-4">
+    <div class="d-flex justify-content-between align-items-end mb-2">
+        <label class="mb-2">SMS*</label>
+        <button class="btn btn-primary btn-ripple" onclick="openVariablesDictionary()">
+            Voir le dictionnaire des variables
+        </button>
+    </div>
+<textarea name="content"
+          style="resize: none"
+          rows="7"
+          class="form-control data needed">{{ config ? config['content'] }}</textarea>
+</div>
+
+<template class="phone-number-template">
+    <div class="phone-number-container d-flex ml-3 mt-2">
+        <input class="form-control data-array" name="receivers" type="text">
+        <button class="btn d-block" onclick="deletePhoneNumber($(this))"><i class="far fa-trash-alt"></i></button>
+    </div>
+</template>
+
+<script>
+    $('input[name=receivers]').each(function () {
+        const iti = intlTelInput($(this)[0], {
+            utilsScript: '/build/vendor/intl-tel-input/utils.js',
+            preferredCountries: ['fr'],
+            initialCountry: 'fr'
+        });
+        $(this).data('iti', iti);
+    });
+</script>

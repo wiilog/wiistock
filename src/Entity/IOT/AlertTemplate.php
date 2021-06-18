@@ -17,6 +17,11 @@ class AlertTemplate
     public const SMS = "sms";
     public const MAIL = "mail";
 
+    public const TEMPLATE_TYPES = [
+        self::SMS => 'SMS',
+        self::MAIL => 'Mail'
+    ];
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue

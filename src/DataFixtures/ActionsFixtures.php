@@ -135,7 +135,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 				Action::DISPLAY_NATU_COLI,
 				Action::DISPLAY_CF,
 				Action::DISPLAY_REQUEST_TEMPLATE,
-				Action::DISPLAY_ALERT_MODEL,
+				Action::DISPLAY_ALERT_TEMPLATE,
 				Action::EDIT,
 				Action::DELETE,
 				Action::DISPLAY_IMPORT

@@ -51,5 +51,13 @@ Encore
                 to: 'vendor/leaflet/images'
             }
         ]
+    }))
+    .addPlugin(new CopyPlugin({
+        patterns : [
+            {
+                from: 'node_modules/intl-tel-input/build/js/utils.js',
+                to: 'vendor/intl-tel-input/utils.js'
+            }
+        ]
     }));
 module.exports = Encore.getWebpackConfig();

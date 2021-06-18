@@ -4,10 +4,11 @@ import Chart from 'chart.js';
 import moment from 'moment';
 import 'datatables.net';
 import 'datatables.net-dt/js/dataTables.dataTables';
-import 'leaflet'
-import 'leaflet.smooth_marker_bouncing'
-import 'leaflet.polyline.snakeanim'
-import 'leaflet-ant-path'
+import 'leaflet';
+import 'leaflet.smooth_marker_bouncing';
+import 'leaflet.polyline.snakeanim';
+import 'leaflet-ant-path';
+import intlTelInput from 'intl-tel-input';
 import '@fortawesome/fontawesome-free/js/all.js';
 import Routing from '../../vendor/friendsofsymfony/jsrouting-bundle/Resources/public/js/router.min.js';
 import Quill from 'quill/dist/quill.js';
@@ -34,6 +35,7 @@ importQuill();
 importRouting();
 importChart();
 importLeaflet();
+importIntlTelInput();
 
 ///////////////// Functions
 
@@ -50,6 +52,10 @@ function importJquery() {
     jQuery.fn.exists = function() {
         return this.length !== 0;
     }
+}
+
+function importIntlTelInput() {
+    global.intlTelInput = intlTelInput;
 }
 
 function importLeaflet() {

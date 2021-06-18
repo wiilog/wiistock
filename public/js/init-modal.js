@@ -517,6 +517,22 @@ function processFilesForm($modal, data) {
         });
     }
 
+    const $dataFiles = $modal.find('.data-file');
+    if ($dataFiles.length > 0) {
+        $dataFiles.each(function (index, field) {
+            const $field = $(field);
+            const files = $field[0].files;
+            const fieldName = $field.attr('name');
+            if(!$field.is('[multiple]')) {
+                data[fieldName] = files[0];
+            } else {
+                for(let fileIndex = 0; fileIndex < files.length; fileIndex++) {
+                    data[`${fieldName}[${fileIndex}]`] = files[fileIndex];
+                }
+            }
+        });
+    }
+
     const isInvalidRequired = required && droppedFiles.length === 0 && $savedFiles.length === 0;
 
     return {
