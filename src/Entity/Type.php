@@ -169,7 +169,7 @@ class Type
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\IOT\Sensor", mappedBy="type")
      */
-    private $sensors;
+    private Collection $sensors;
 
     public function __construct()
     {
@@ -824,7 +824,7 @@ class Type
         return $this->sensors;
     }
 
-    public function addSensors(Sensor $sensor): self
+    public function addSensor(Sensor $sensor): self
     {
         if (!$this->sensors->contains($sensor)) {
             $this->sensors[] = $sensor;
@@ -834,7 +834,7 @@ class Type
         return $this;
     }
 
-    public function removeSensors(Sensor $sensor): self
+    public function removeSensor(Sensor $sensor): self
     {
         if ($this->sensors->removeElement($sensor)) {
             if ($sensor->getType() === $this) {

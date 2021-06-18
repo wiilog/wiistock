@@ -53,7 +53,7 @@ class Sensor
      * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="sensors")
      * @ORM\JoinColumn(nullable=false)
      */
-    private $type;
+    private ?Type $type = null;
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -261,8 +261,13 @@ class Sensor
 
     public function setType(?Type $type): self
     {
+        if($this->type && $this->type !== $type) {
+            $this->type->removeSensor($this);
+        }
         $this->type = $type;
-
+        if($type) {
+            $type->addSensor($this);
+        }
         return $this;
     }
 }

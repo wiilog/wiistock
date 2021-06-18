@@ -131,8 +131,7 @@ class TypeController extends AbstractController
 
             $json = $this->renderView('types/modalEditTypeContent.html.twig', [
                 'type' => $type,
-                'categories' => $categories,
-                'isSensor' => $type->getCategory()->getLabel() === CategoryType::SENSOR
+                'categories' => $categories
             ]);
 
             return new JsonResponse($json);
