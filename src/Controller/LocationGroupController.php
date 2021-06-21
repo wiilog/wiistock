@@ -47,7 +47,6 @@ class LocationGroupController extends AbstractController {
      */
     public function new(Request $request, EntityManagerInterface $manager): Response {
         $data = json_decode($request->getContent(), true);
-        dump($data);
 
         $locationRepository = $manager->getRepository(Emplacement::class);
         $locationGroupRepository = $manager->getRepository(LocationGroup::class);
@@ -100,7 +99,6 @@ class LocationGroupController extends AbstractController {
      */
     public function edit(Request $request, EntityManagerInterface $manager): Response {
         $data = json_decode($request->getContent(), true);
-        dump($data);
 
         $locationRepository = $manager->getRepository(Emplacement::class);
         $locationGroupRepository = $manager->getRepository(LocationGroup::class);

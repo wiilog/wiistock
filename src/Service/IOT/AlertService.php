@@ -32,7 +32,7 @@ class AlertService
             VariableService::SENSOR_NAME => $sensorWrapper->getName(),
             VariableService::SENSOR_CODE => $sensor->getCode(),
             VariableService::ALERT_DATE => FormatHelper::datetime($message->getDate()),
-            VariableService::DATA => $sensor->getType() === Sensor::TEMPERATURE ? "{$message->getContent()}°C" : null,
+            VariableService::DATA => FormatHelper::type($sensor->getType()) === Sensor::TEMPERATURE ? "{$message->getContent()}°C" : null,
         ];
 
         $content = $this->variableService->replaceVariables($config["content"], $values);

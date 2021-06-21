@@ -4,6 +4,7 @@
 namespace App\Entity\IOT;
 
 
+use App\Helper\FormatHelper;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
@@ -43,7 +44,7 @@ trait SensorMessageTrait
 
         if ($type) {
             $messages = $messages
-                ->filter(fn(SensorMessage $message) => ($message->getSensor() && $message->getSensor()->getType() === $type));
+                ->filter(fn(SensorMessage $message) => ($message->getSensor() && FormatHelper::type($message->getSensor()->getType()) === $type));
         }
         return $messages->toArray();
     }

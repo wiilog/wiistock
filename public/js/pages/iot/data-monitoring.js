@@ -5,6 +5,13 @@ $(document).ready(() => {
     $(document).arrive(`[data-map]`, elem => initMap(elem));
     $(document).arrive(`[data-chart]`, elem => initLineChart(elem));
 
+    const $timelineContainer = $('.timeline-container');
+    if ($timelineContainer.exists()) {
+        $timelineContainer.each(function() {
+            initTimeline($(this));
+        });
+    }
+
     const $editEndButton = $(`button[data-target="#modalEditPairingEnd"]`);
     if ($editEndButton.exists()) {
         $editEndButton.click(function () {
@@ -166,4 +173,108 @@ function initLineChart(element) {
             }
         });
     });
+}
+
+function initTimeline($timelineContainer, showMore = false) {
+    $timelineContainer.pushLoader('black', 'normal');
+
+    const timelineDataPath = $timelineContainer.data('timeline-data-path');
+    const ended = $timelineContainer.data('timeline-end');
+    const $oldShowMoreButton = $timelineContainer.find('.timeline-show-more-button');
+
+    if (!showMore) {
+        $timelineContainer.find('.timeline-row').remove();
+    }
+
+    if (!ended) {
+        const start = $timelineContainer.find('.timeline-row:not(.timeline-show-more-button-container)').length;
+        const firstLoading = start === 0;
+        if (firstLoading) {
+            $timelineContainer
+                .removeClass('py-3')
+                .addClass('py-5');
+        }
+
+        $
+            .get(timelineDataPath, {start})
+            .then(({data, isEnd, isGrouped}) => {
+                $timelineContainer.data('timeline-end', Boolean(isEnd));
+                if ($oldShowMoreButton.exists()) {
+                    $oldShowMoreButton.parent().remove();
+                }
+
+                const timeline = data || [];
+                let lastGroupTitle;
+                let lastTitle;
+                const $timeline = timeline.map(({title, titleHref, active, group, datePrefix, date}, index) => {
+                    const groupTitle = group ? group.title : null;
+                    const groupColor = group ? group.color : null;
+                    const displayGroup = lastGroupTitle !== groupTitle;
+                    lastGroupTitle = groupTitle;
+
+                    const hideTitle = lastTitle === title;
+                    lastTitle = title;
+
+                    const lastClass = (isEnd && (timeline.length - 1) === index) ? 'last-timeline-cell' : '';
+                    const activeClass = active ? 'timeline-cell-active' : '';
+                    const withoutTitleClass = hideTitle ? 'timeline-cell-without-title' : '';
+                    const largeTimelineCellClass = !isGrouped ? 'timeline-cell-large' : '';
+
+                    return $('<div/>', {
+                        class: 'timeline-row',
+                        html: [
+                            isGrouped
+                                ? $('<div/>', {
+                                    class: `timeline-cell timeline-cell-left ${lastClass}`,
+                                    ...(displayGroup
+                                        ? {
+                                            style: groupColor ? `color: ${groupColor};` : null,
+                                            text: groupTitle ? groupTitle : null
+                                        }
+                                        : {})
+                                })
+                                : undefined,
+                            $('<div/>', {
+                                class: `timeline-cell timeline-cell-right ${lastClass} ${activeClass} ${withoutTitleClass} ${largeTimelineCellClass}`,
+                                html: [
+                                    ...(!hideTitle
+                                        ? [
+                                            `<a href="${titleHref}" class="timeline-cell-title">${title}</a>`,
+                                            `<br/>`,
+                                        ]
+                                        : []),
+                                    `<span class="pairing-date-prefix">${datePrefix}</span>`,
+                                    `<br/>`,
+                                    `<span class="pairing-date">${date}</span>`
+                                ]
+                            })
+                        ]
+                    })
+                });
+                $timelineContainer.append($timeline);
+
+                if (firstLoading) {
+                    $timelineContainer
+                        .addClass('py-3')
+                        .removeClass('py-5');
+                }
+
+                if (!isEnd) {
+                    $timelineContainer.append(
+                        $('<div/>', {
+                            class: 'timeline-row timeline-show-more-button-container justify-content-center pt-4',
+                            html: $('<button/>', {
+                                class: 'btn btn-outline-info timeline-show-more-button',
+                                text: 'Voir plus',
+                                click: () => {
+                                    initTimeline($timelineContainer, true);
+                                }
+                            })
+                        })
+                    );
+                }
+
+                $timelineContainer.popLoader();
+            });
+    }
 }

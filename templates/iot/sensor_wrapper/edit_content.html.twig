@@ -9,7 +9,7 @@
 <div class="row form-group sensor-data">
     <div class="col-12 mb-1">
         <span class="sensor-data-label">Type&nbsp;:&nbsp;</span>
-        <span class="sensor-data-value font-weight-bold">{{ sensor ? sensor.type }}</span>
+        <span class="sensor-data-value font-weight-bold">{{ sensor ? sensor.type.label }}</span>
     </div>
     <div class="col-12 mb-1">
         <span class="sensor-data-label">Profil&nbsp;:&nbsp;</span>
@@ -38,3 +38,15 @@
         </select>
     </div>
 </div>
+{% if sensor.type.champsLibres.count > 0 %}
+    <span class="toggle-collapsible expanded">Champs libres</span>
+    <div class="collapsible expanded free-fields-container mb-2">
+        {% include 'free_field/freeFieldsViewing.html.twig' with {
+            freeFields: sensorWrapper.sensor.type.champsLibres,
+            freeFieldValues: sensorWrapper.freeFields,
+            colType: 'col-md-6 col-12',
+            requiredType: 'requiredEdit',
+            actionType: 'edit'
+        } %}
+    </div>
+{% endif %}

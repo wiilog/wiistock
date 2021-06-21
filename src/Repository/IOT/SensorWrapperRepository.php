@@ -31,7 +31,7 @@ class SensorWrapperRepository extends EntityRepository
                         ->andWhere('(' .
                             $exprBuilder->orX(
                                 'search_sensorProfile.name LIKE :value',
-                                'search_sensor.type LIKE :value',
+                                'search_type.label LIKE :value',
                                 'search_manager.username LIKE :value',
                                 'sensor_wrapper.name LIKE :value',
                                 'search_sensor.code LIKE :value',
@@ -39,6 +39,7 @@ class SensorWrapperRepository extends EntityRepository
                             )
                             . ')')
                         ->leftJoin('sensor_wrapper.sensor', 'search_sensor')
+                        ->leftJoin('search_sensor.type', 'search_type')
                         ->leftJoin('search_sensor.profile', 'search_sensorProfile')
                         ->leftJoin('search_sensor.lastMessage', 'search_lastMessage')
                         ->leftJoin('sensor_wrapper.manager', 'search_manager')
@@ -78,6 +79,12 @@ class SensorWrapperRepository extends EntityRepository
                             $qb
                                 ->leftJoin('sensor_wrapper.manager', 'order_sensorWrapperManager')
                                 ->orderBy('order_sensorWrapperManager.username', $order);
+                            break;
+                        case 'type':
+                            $qb
+                                ->leftJoin('sensor_wrapper.sensor', 'order_sensor')
+                                ->leftJoin('order_sensor.type', 'order_type')
+                                ->orderBy('order_type.label', $order);
                             break;
                         default:
                             if (property_exists(Sensor::class, $column)) {

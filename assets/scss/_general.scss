@@ -514,8 +514,11 @@ label.required:after {
 }
 
 .wii-icon-pairing {
-    background-color: darkblue;
+    background-color: $blueGT;
     width:15px;
     height: 15px;
     display:inline-block;
+    .dropdown-item:active & {
+        background-color: $white;
+    }
 }
