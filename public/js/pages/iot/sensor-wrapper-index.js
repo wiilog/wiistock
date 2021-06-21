@@ -82,19 +82,26 @@ function initPageModals(tables) {
 function onSensorCodeChange($sensor) {
     const $modal = $sensor.closest(`.modal`);
     const $sensorRequiredDiv = $modal.find(`.sensor-required`);
+    const $freeFieldsContainer = $modal.find('.free-fields-container');
     const $sensorData = $modal.find(`.sensor-data`);
+
+    $freeFieldsContainer.children().addClass('d-none');
 
     const [sensor] = $sensor.select2(`data`) || [];
 
     if (sensor) {
-        const {type, profile, frequency} = sensor;
-        $sensorData.find('.sensor-data-type').html(type);
+        const {typeLabel, typeId, profile, frequency} = sensor;
+        $sensorData.find('.sensor-data-type').html(typeLabel);
         $sensorData.find('.sensor-data-profile').html(profile);
         $sensorData.find('.sensor-data-frequency').html(frequency);
 
+        toggleRequiredChampsLibres(typeId, 'create', $freeFieldsContainer);
+        $freeFieldsContainer.children(`[data-type="${typeId}"]`).removeClass('d-none');
+
+        $freeFieldsContainer.parent('div').removeClass('d-none');
         $sensorRequiredDiv.removeClass('d-none');
-    }
-    else {
+    } else {
+        $freeFieldsContainer.parent('div').addClass('d-none');
         $sensorRequiredDiv.addClass('d-none');
         $sensorData.find('.sensor-data-value').html('');
     }

@@ -293,15 +293,14 @@ function updateQuantityDisplay($elem) {
     }
 }
 
-function toggleRequiredChampsLibres($select, require, $freeFieldContainer = null) {
+function toggleRequiredChampsLibres(type, require, $freeFieldContainer = null) {
     const $bloc = $freeFieldContainer
         ? $freeFieldContainer
-        : $select
+        : type
             .closest('.modal')
             .find('.free-fields-container');
 
-    const typeId = $select.val();
-
+    const typeId = type instanceof jQuery ? type.val() : type;
     let params = {};
     if (typeId) {
         $bloc

@@ -4,12 +4,17 @@ namespace App\Controller\IOT;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\CategorieCL;
+use App\Entity\CategoryType;
+use App\Entity\FreeField;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\Menu;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\PostHelper;
 
+use App\Service\FreeFieldService;
 use App\Service\IOT\PairingService;
 use App\Service\IOT\AlertTemplateService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -19,6 +24,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use WiiCommon\Helper\Stream;
 
 
 /**
@@ -30,8 +36,22 @@ class SensorWrapperController extends AbstractController
      * @Route("/liste", name="sensor_wrapper_index")
      * @HasPermission({Menu::IOT, Action::DISPLAY_SENSOR})
      */
-    public function index(): Response {
-        return $this->render('iot/sensor_wrapper/index.html.twig');
+    public function index(EntityManagerInterface $entityManager): Response {
+        $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
+
+        $types = $entityManager->getRepository(Type::class)->findByCategoryLabels([CategoryType::SENSOR]);
+
+        return $this->render('iot/sensor_wrapper/index.html.twig', [
+            'freeFieldsTypes' => Stream::from($types)->map(function (Type $type) use ($freeFieldsRepository) {
+                $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::SENSOR);
+
+                return [
+                    'typeLabel' => $type->getLabel(),
+                    'typeId' => $type->getId(),
+                    'freeFields' => $freeFields,
+                ];
+            })
+        ]);
     }
 
     /**
@@ -75,7 +95,8 @@ class SensorWrapperController extends AbstractController
      * @HasPermission({Menu::IOT, Action::CREATE})
      */
     public function new(Request $request,
-                        EntityManagerInterface $entityManager): Response
+                        EntityManagerInterface $entityManager,
+                        FreeFieldService $freeFieldService): Response
     {
 
         $post = json_decode($request->getContent(), true);
@@ -112,6 +133,8 @@ class SensorWrapperController extends AbstractController
             ->setManager($manager)
             ->setSensor($sensor);
 
+        $freeFieldService->manageFreeFields($sensorWrapper, $post, $entityManager);
+
         $entityManager->persist($sensorWrapper);
         $entityManager->flush();
 
@@ -146,7 +169,8 @@ class SensorWrapperController extends AbstractController
      * @HasPermission({Menu::IOT, Action::EDIT})
      */
     public function edit(EntityManagerInterface $entityManager,
-                         Request $request): Response {
+                         Request $request,
+                         FreeFieldService $freeFieldService): Response {
 
         $post = json_decode($request->getContent(), true);
 
@@ -173,6 +197,8 @@ class SensorWrapperController extends AbstractController
         $sensorWrapper
             ->setName($name)
             ->setManager($manager);
+
+        $freeFieldService->manageFreeFields($sensorWrapper, $post, $entityManager);
 
         $entityManager->flush();
 

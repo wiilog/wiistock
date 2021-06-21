@@ -138,7 +138,8 @@ class PairingRepository extends EntityRepository
                 $queryBuilder
                     ->leftJoin('pairing.sensorWrapper', 'type_sensorWrapper')
                     ->leftJoin('type_sensorWrapper.sensor', 'type_sensor')
-                    ->andWhere('type_sensor.type IN (:types)')
+                    ->leftJoin('type_sensor.type', 'type')
+                    ->andWhere('type.label IN (:types)')
                     ->setParameter('types', $types, Connection::PARAM_STR_ARRAY);
             }
 
@@ -188,7 +189,8 @@ class PairingRepository extends EntityRepository
         $queryBuilder
             ->leftJoin('pairing.sensorWrapper', 'order_sensorWrapper')
             ->leftJoin('order_sensorWrapper.sensor', 'order_sensor')
-            ->andWhere('order_sensor.type <> :actionType')
+            ->leftJoin('order_sensor.type', 'order_type')
+            ->andWhere('order_type.label <> :actionType')
             ->addOrderBy('order_sensorWrapper.name', 'ASC')
             ->setParameter('actionType', Sensor::ACTION);
 

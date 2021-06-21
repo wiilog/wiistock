@@ -99,7 +99,7 @@ class FormatHelper {
     }
 
     public static function messageContent(SensorMessage $sensorMessage) {
-        $type = $sensorMessage->getSensor() ? $sensorMessage->getSensor()->getType() : '';
+        $type = $sensorMessage->getSensor() ? self::type($sensorMessage->getSensor()->getType()) : '';
         $content = $sensorMessage->getContent();
         switch ($type) {
             case Sensor::TEMPERATURE:

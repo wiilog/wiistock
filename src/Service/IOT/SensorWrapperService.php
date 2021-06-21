@@ -44,7 +44,7 @@ class SensorWrapperService
 
         return [
             'id' => $sensorWrapper->getId(),
-            'type' => $sensor ? $sensor->getType() : '',
+            'type' => $sensor ? FormatHelper::type($sensor->getType()) : '',
             'profile' => $sensor && $sensor->getProfile() ? $sensor->getProfile()->getName() : '',
             'name' => $sensorWrapper->getName() ?? '',
             'code' => $sensor ? $sensor->getCode() : '',
