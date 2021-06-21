@@ -82,7 +82,7 @@ class PairingController extends AbstractController {
             } else if($pairing->getEntity() instanceof OrdreCollecte) {
                 $elementIcon = Sensor::COLLECT;
             }
-dump($pairing);
+
             $rows[] = [
                 "id" => $pairing->getId(),
                 "type" => $type,
