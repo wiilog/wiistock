@@ -5,7 +5,7 @@
     {% if phoneNumbers is defined and phoneNumbers is not empty %}
         {% for phoneNumber in phoneNumbers %}
             <div class="phone-number-container d-flex ml-3 {{ loop.index != 1 ? 'mt-2' }}">
-                <input class="form-control data-array" name="receivers" type="text" value="{{ phoneNumber }}">
+                <input class="form-control data-array phone-number" name="receivers" type="text" value="{{ phoneNumber }}">
                 {% if loop.index != 1 %}
                     <button class="btn d-block" onclick="deletePhoneNumber($(this))"><i class="far fa-trash-alt"></i></button>
                 {% endif %}
@@ -13,7 +13,7 @@
         {% endfor %}
     {% else %}
         <div class="phone-number-container ml-3">
-            <input class="form-control data-array" name="receivers" type="text">
+            <input class="form-control data-array phone-number" name="receivers" type="text">
         </div>
     {% endif %}
     <button class="btn btn-primary ml-3 mt-3"

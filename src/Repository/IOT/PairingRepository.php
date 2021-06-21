@@ -99,7 +99,6 @@ class PairingRepository extends EntityRepository
 
     public function findByParamsAndFilters(InputBag $filters) {
         $queryBuilder = $this->createQueryBuilder("pairing");
-
         if (!empty($filters)) {
             if ($filters->has('search') && !empty($filters->get('search'))) {
                 $search = $filters->get('search');

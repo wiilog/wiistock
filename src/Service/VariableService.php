@@ -23,7 +23,6 @@ class VariableService
         foreach($values as $variable => $value) {
             $message = str_replace("@$variable", $value, $message);
         }
-
         return $message;
     }
 

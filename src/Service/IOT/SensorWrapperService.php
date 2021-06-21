@@ -41,7 +41,6 @@ class SensorWrapperService
         $lastLift = $sensorWrapper->getSensor() ? $sensorWrapper->getSensor()->getLastMessage() : null;
 
         $sensor = $sensorWrapper->getSensor();
-
         return [
             'id' => $sensorWrapper->getId(),
             'type' => $sensor ? FormatHelper::type($sensor->getType()) : '',

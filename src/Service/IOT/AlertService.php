@@ -11,6 +11,8 @@ use App\Helper\FormatHelper;
 use App\Service\MailerService;
 use App\Service\VariableService;
 use Ovh\Api;
+use Symfony\Component\HttpKernel\KernelInterface;
+use function GuzzleHttp\json_decode;
 
 class AlertService
 {
@@ -20,6 +22,9 @@ class AlertService
 
     /** @Required */
     public MailerService $mailerService;
+
+    /** @Required */
+    public KernelInterface $kernel;
 
     public function trigger(AlertTemplate $template, SensorMessage $message)
     {
@@ -36,7 +41,6 @@ class AlertService
         ];
 
         $content = $this->variableService->replaceVariables($config["content"], $values);
-
         if ($template->getType() == AlertTemplate::SMS) {
             $conn = new Api($_SERVER["APPLICATION_KEY"], $_SERVER["APPLICATION_SECRET"], "ovh-eu", $_SERVER["CONSUMER_KEY"]);
             $smsServices = $conn->get("/sms");
@@ -47,7 +51,7 @@ class AlertService
                 "coding" => "7bit",
                 "noStopClause" => false,
                 "priority" => "high",
-                "receivers" => $config["recipients"],
+                "receivers" => json_decode($config["receivers"]),
                 "message" => $content,
                 "senderForResponse" => true,
                 "validityPeriod" => 2880
@@ -57,7 +61,19 @@ class AlertService
                 return true;
             }
         } else if ($template->getType() == AlertTemplate::MAIL) {
-            return $this->mailerService->sendMail($config["subject"], $content, $config["recipients"]);
+            if (isset($config['image']) && !empty($config['image'])) {
+                $src = $this->kernel->getProjectDir() . '/public/uploads/attachements/' . $config['image'];
+                $type = pathinfo($src, PATHINFO_EXTENSION);
+                $imageContent = base64_encode(file_get_contents($src));
+
+                if($type == "svg") {
+                    $type = "svg+xml";
+                }
+
+                $data = "data:image/$type;base64,$imageContent";
+                $content = '<img src="' . $data . '"><br>' . $content;
+            }
+            return $this->mailerService->sendMail($config["subject"], $content, explode(",", $config["receivers"]));
         }
     }
 }

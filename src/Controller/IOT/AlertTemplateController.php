@@ -25,8 +25,6 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 class AlertTemplateController extends AbstractController
 {
 
-    private const PHONE_REGEX = '^(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}$^';
-
     /**
      * @Route("/liste", name="alert_template_index")
      * @HasPermission({Menu::PARAM, Action::DISPLAY_ALERT_TEMPLATE})
@@ -58,7 +56,12 @@ class AlertTemplateController extends AbstractController
             $alertTemplateRepository = $entityManager->getRepository(AlertTemplate::class);
             $alertTemplate = $alertTemplateRepository->find($data['id']);
             $name = $alertTemplate->getName();
-
+            if (!$alertTemplate->getTriggers()->isEmpty()) {
+                return $this->json([
+                    'success' => false,
+                    'msg' => "Le modèle d'alerte <strong>${name}</strong> est lié à un ou plusieurs actionneurs, veuillez les supprimer avant."
+                ]);
+            }
             $entityManager->remove($alertTemplate);
 
             $entityManager->flush();
@@ -124,24 +127,6 @@ class AlertTemplateController extends AbstractController
                 'image' => $hasFile ? $fileName[$name] : ''
             ];
         } else if($type === AlertTemplate::SMS) {
-            $receivers = PostHelper::string($post, 'receivers');
-
-            $counter = 0;
-            foreach (json_decode($receivers) as $receiver) {
-                if(!preg_match(self::PHONE_REGEX, $receiver)) {
-                    $counter++;
-                }
-            }
-
-            if($counter !== 0) {
-                return $this->json([
-                    'success' => false,
-                    'msg' => $counter === 1
-                        ? 'Un numéro de téléphone n\'est pas valide dans votre saisie'
-                        : 'Plusieurs numéros de téléphone ne sont pas valides dans votre saisie'
-                ]);
-            }
-
             $config = [
                 'receivers' => PostHelper::string($post, 'receivers'),
                 'content' => PostHelper::string($post, 'content'),
@@ -200,6 +185,7 @@ class AlertTemplateController extends AbstractController
 
         $config = [];
         if($alertTemplate->getType() === AlertTemplate::MAIL) {
+
             $receivers = PostHelper::string($post, 'receivers');
 
             $counter = 0;
@@ -233,23 +219,6 @@ class AlertTemplateController extends AbstractController
                 'image' => $hasFile ? $fileName[$name] : ''
             ];
         } else if($alertTemplate->getType() === AlertTemplate::SMS) {
-            $receivers = PostHelper::string($post, 'receivers');
-
-            $counter = 0;
-            foreach (json_decode($receivers) as $receiver) {
-                if(!preg_match(self::PHONE_REGEX, $receiver)) {
-                    $counter++;
-                }
-            }
-
-            if($counter !== 0) {
-                return $this->json([
-                    'success' => false,
-                    'msg' => $counter === 1
-                        ? 'Un numéro de téléphone n\'est pas valide dans votre saisie'
-                        : 'Plusieurs numéros de téléphone ne sont pas valides dans votre saisie'
-                ]);
-            }
 
             $config = [
                 'receivers' => PostHelper::string($post, 'receivers'),

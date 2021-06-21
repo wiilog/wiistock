@@ -55,9 +55,7 @@ class PairingController extends AbstractController {
         $filters = $request->query;
 
         $queryResult = $pairingRepository->findByParamsAndFilters($filters);
-
         $pairings = $queryResult["data"];
-
         $rows = [];
         /** @var Pairing $pairing */
         foreach ($pairings as $pairing) {
