@@ -636,33 +636,6 @@ class ReferenceArticleRepository extends EntityRepository {
         return $query->getSingleScalarResult();
     }
 
-    public function setTypeIdNull($typeId)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "UPDATE App\Entity\ReferenceArticle ra
-            SET ra.type = null
-            WHERE ra.type = :typeId"
-        )->setParameter('typeId', $typeId);
-
-        return $query->execute();
-    }
-
-    public function getIdAndLabelByFournisseur($fournisseurId)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT DISTINCT(ra.id) as id, ra.libelle, IDENTITY(af.fournisseur) as fournisseur
-            FROM App\Entity\ArticleFournisseur af
-            JOIN af.referenceArticle ra
-            WHERE af.fournisseur = :fournisseurId
-            "
-        )->setParameter('fournisseurId', $fournisseurId);
-
-        return $query->execute();
-    }
-
     public function countAll(): int {
         return $this->createQueryBuilder("r")
             ->select("COUNT(r)")

@@ -3,29 +3,33 @@
         {% include 'datatable/dotsRow.html.twig' %}
         <div class="dropdown-menu dropdown-follow-gt pointer">
             <div class="d-none">
-                <div class="btn btn-col-action action-on-click" data-id='{{ typeId }}' data-toggle='modal' data-target='#modalEditType'
-                     onclick="editRow($(this),
-                     Routing.generate('types_api_edit', true),
-                     $('#modalEditType'),
-                     $('#submitEditType'),
-                     false,
-                     'editor-container-edit',
-                     false,
-                     ($modal) => {
-                         initTypeLocations($modal)
-                     })">
-                    <i class='fas fa-pencil-alt'></i>
-                </div>
+                {% if type.category.label is not constant('App\\Entity\\CategoryType::SENSOR') %}
+                    <div class="btn btn-col-action action-on-click" data-id='{{ typeId }}' data-toggle='modal' data-target='#modalEditType'
+                         onclick="editRow($(this),
+                         Routing.generate('types_api_edit', true),
+                         $('#modalEditType'),
+                         $('#submitEditType'),
+                         false,
+                         'editor-container-edit',
+                         false,
+                         ($modal) => {
+                             initTypeLocations($modal)
+                         })">
+                        <i class='fas fa-pencil-alt'></i>
+                    </div>
+                {% endif %}
             </div>
             {% if type.category.label is not constant('App\\Entity\\CategoryType::LITIGE') %}
                 <a href="{{ path('champs_libre_show', {type: type.id}) }}" class="dropdown-item">
                     <i class='fas fa-cog mr-2'></i>Gérer les champs libres
                 </a>
             {% endif %}
-            <div onclick="checkAndDeleteRow($(this), '#modalDeleteType', 'types_check_delete', '#submitDeleteType')"
-                 data-id='{{ typeId }}' data-target='#modalDeleteType' data-toggle='modal' class="dropdown-item">
-                <i class='fas fa-trash mr-2'></i>Supprimer
-            </div>
+            {% if type.category.label is not constant('App\\Entity\\CategoryType::SENSOR') %}
+                <div onclick="checkAndDeleteRow($(this), '#modalDeleteType', 'types_check_delete', '#submitDeleteType')"
+                     data-id='{{ typeId }}' data-target='#modalDeleteType' data-toggle='modal' class="dropdown-item">
+                    <i class='fas fa-trash mr-2'></i>Supprimer
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>

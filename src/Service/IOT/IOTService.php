@@ -27,6 +27,8 @@ use App\Entity\OrdreCollecteReference;
 use App\Entity\Pack;
 use App\Entity\Preparation;
 use App\Entity\Statut;
+use App\Entity\Type;
+use App\Helper\FormatHelper;
 use App\Repository\PackRepository;
 use App\Repository\StatutRepository;
 use App\Service\DemandeLivraisonService;
@@ -86,7 +88,7 @@ class IOTService
         $wrapper = $sensor->getAvailableSensorWrapper();
         if ($wrapper) {
             foreach ($wrapper->getTriggerActions() as $triggerAction) {
-                $type = $sensor->getType();
+                $type = FormatHelper::type($sensor->getType());
                 switch ($type) {
                     case Sensor::ACTION:
                         $this->treatActionTrigger($wrapper, $triggerAction, $sensorMessage, $entityManager);
@@ -327,13 +329,17 @@ class IOTService
         ]);
 
         if (!isset($device)) {
+            $typeLabel = self::PROFILE_TO_TYPE[$profileName] ?? 'Type non détecté';
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $type = $typeRepository->findOneBy(['label' => $typeLabel]);
+
             $device = new Sensor();
             $device
                 ->setCode($deviceCode)
                 ->setProfile($profile)
                 ->setBattery(-1)
                 ->setFrequency(self::PROFILE_TO_FREQUENCY[$profileName] ?? 'jamais')
-                ->setType(self::PROFILE_TO_TYPE[$profileName] ?? 'Type non détecté');
+                ->setType($type);
             $entityManager->persist($device);
         }
 

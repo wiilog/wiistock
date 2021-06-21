@@ -103,7 +103,7 @@ class DataMonitoringService
             "pairing" => $pairing,
         ];
 
-        $type = $pairing->getSensorWrapper()->getSensor()->getType();
+        $type = FormatHelper::type($pairing->getSensorWrapper()->getSensor()->getType());
         if ($type === Sensor::TEMPERATURE) {
             $config["center_pane"][] = [
                 "type" => "chart",

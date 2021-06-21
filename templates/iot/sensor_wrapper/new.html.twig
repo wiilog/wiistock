@@ -45,6 +45,24 @@
                         </select>
                     </div>
                 </div>
+                {% if freeFieldsTypes is not empty %}
+                    <div class="d-none">
+                        <span class="toggle-collapsible expanded">Champs libres</span>
+                        <div class="collapsible expanded free-fields-container">
+                            {% for type in freeFieldsTypes %}
+                                <div class="d-none" data-type="{{ type.typeId }}">
+                                    {% include 'free_field/freeFieldsViewing.html.twig' with {
+                                        freeFields: type.freeFields,
+                                        freeFieldValues: [],
+                                        colType: 'col-12',
+                                        requiredType: 'requiredCreate',
+                                        actionType: 'new'
+                                    } %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>

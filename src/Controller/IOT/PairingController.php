@@ -63,7 +63,7 @@ class PairingController extends AbstractController {
         foreach ($pairings as $pairing) {
             /** @var Sensor $sensor */
             $sensor = $pairing->getSensorWrapper() ? $pairing->getSensorWrapper()->getSensor() : null;
-            $type = $sensor ? $pairing->getSensorWrapper()->getSensor()->getType() : '';
+            $type = $sensor ? FormatHelper::type($sensor->getType()) : '';
 
             $elementIcon = "";
             if($pairing->getEntity() instanceof Emplacement) {
@@ -85,7 +85,7 @@ class PairingController extends AbstractController {
                 "name" => $pairing->getSensorWrapper() ? $pairing->getSensorWrapper()->getName() : '',
                 "element" => $pairing->getEntity()->__toString(),
                 "elementIcon" => $elementIcon,
-                "temperature" => ($sensor && ($sensor->getType() === Sensor::TEMPERATURE) && $sensor->getLastMessage())
+                "temperature" => ($sensor && (FormatHelper::type($sensor->getType()) === Sensor::TEMPERATURE) && $sensor->getLastMessage())
                     ? $sensor->getLastMessage()->getContent()
                     : '',
                 "lowTemperatureThreshold" => SensorMessage::LOW_TEMPERATURE_THRESHOLD,
