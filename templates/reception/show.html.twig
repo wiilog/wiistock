@@ -6,6 +6,7 @@
 
 {% block page_content %}
     {% set displayLitiges = hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::DISPLAY_LITI')) %}
+    {% set restrictedLocations = restrictedLocations is defined and restrictedLocations %}
     <div class="m-4">
         <div class="row">
             <div class="col-12">
@@ -112,7 +113,7 @@
     {% include "article/modalDeleteArticle.html.twig" %}
     {% include 'reception/modalNewLitige.html.twig' %}
     {% include 'reception/modalEditLitige.html.twig' %}
-    {% include 'reception/modalNewLigneReception.html.twig' with {createDL: createDL} %}
+    {% include 'reception/modalNewLigneReception.html.twig' with { createDL: createDL, restrictedLocations: 'restrictedLocations' } %}
     {% include 'reception/modalDeleteLitige.html.twig' %}
     {% include 'reception/modalFinishReception.html.twig' %}
     {% include 'reception/modalCancelReception.html.twig' %}
@@ -123,7 +124,7 @@
     {{ parent() }}
 
     <script src="{{ asset('js/pages/form-litiges.js') }}?v={{ web_version }}"></script>
-    <script src="{{ asset('js/pages/form-delivery-request.js') }}?v={{ web_version }}"></script>
+    <script src="{{ asset('js/pages/delivery/request/common.js') }}?v={{ web_version }}"></script>
     <script src="{{ asset('js/pages/form-reference-article.js') }}?v={{ web_version }}"></script>
     <script src="{{ asset('js/pages/reception-show.js') }}?v={{ web_version }}"></script>
 {% endblock %}

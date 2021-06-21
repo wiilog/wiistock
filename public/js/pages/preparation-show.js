@@ -13,6 +13,15 @@ $(function () {
     $(document).on('hidden.bs.modal','#modalSplitting', function () {
         $('.action-on-click-single').data('clicked', false);
     });
+
+    let modalNewSensorPairing = $("#modalNewSensorPairing");
+    let submitNewSensorPairing = $("#submitNewSensorPairing");
+    let urlNewSensorPairing = Routing.generate('preparation_sensor_pairing_new', true)
+    InitModal(modalNewSensorPairing, submitNewSensorPairing, urlNewSensorPairing, {
+        success: () => {
+            window.location.reload();
+        }
+    });
 });
 
 let tableArticleConfig = {

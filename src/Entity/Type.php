@@ -2,11 +2,11 @@
 
 namespace App\Entity;
 
+use App\Entity\IOT\Sensor;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\RequestTemplate;
 
 /**
@@ -157,11 +157,6 @@ class Type
     private $averageRequestTime;
 
     /**
-     * @ORM\OneToMany(targetEntity=AlertTemplate::class, mappedBy="type")
-     */
-    private Collection $alertTemplates;
-
-    /**
      * @ORM\OneToMany(targetEntity=RequestTemplate::class, mappedBy="type")
      */
     private Collection $requestTemplates;
@@ -170,6 +165,11 @@ class Type
      * @ORM\OneToMany(targetEntity=RequestTemplate::class, mappedBy="requestType")
      */
     private Collection $requestTypeTemplates;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\IOT\Sensor", mappedBy="type")
+     */
+    private Collection $sensors;
 
     public function __construct()
     {
@@ -187,9 +187,9 @@ class Type
         $this->arrivals = new ArrayCollection();
         $this->statuts = new ArrayCollection();
         $this->handlings = new ArrayCollection();
-        $this->alertTemplates = new ArrayCollection();
         $this->requestTemplates = new ArrayCollection();
         $this->requestTypeTemplates = new ArrayCollection();
+        $this->sensors = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -757,36 +757,6 @@ class Type
     }
 
     /**
-     * @return Collection|AlertTemplate[]
-     */
-    public function getAlertTemplates(): Collection
-    {
-        return $this->alertTemplates;
-    }
-
-    public function addAlertTemplate(AlertTemplate $alertTemplate): self
-    {
-        if (!$this->alertTemplates->contains($alertTemplate)) {
-            $this->alertTemplates[] = $alertTemplate;
-            $alertTemplate->setType($this);
-        }
-
-        return $this;
-    }
-
-    public function removeAlertTemplate(AlertTemplate $alertTemplate): self
-    {
-        if ($this->alertTemplates->removeElement($alertTemplate)) {
-            // set the owning side to null (unless already changed)
-            if ($alertTemplate->getType() === $this) {
-                $alertTemplate->setType(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
      * @return Collection|RequestTemplate[]
      */
     public function getRequestTemplates(): Collection
@@ -840,6 +810,35 @@ class Type
             // set the owning side to null (unless already changed)
             if ($requestTypeTemplate->getRequestType() === $this) {
                 $requestTypeTemplate->setRequestType(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Sensor[]
+     */
+    public function getSensors(): Collection
+    {
+        return $this->sensors;
+    }
+
+    public function addSensor(Sensor $sensor): self
+    {
+        if (!$this->sensors->contains($sensor)) {
+            $this->sensors[] = $sensor;
+            $sensor->setType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSensor(Sensor $sensor): self
+    {
+        if ($this->sensors->removeElement($sensor)) {
+            if ($sensor->getType() === $this) {
+                $sensor->setType(null);
             }
         }
 

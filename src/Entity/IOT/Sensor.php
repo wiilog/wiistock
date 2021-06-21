@@ -2,6 +2,7 @@
 
 namespace App\Entity\IOT;
 
+use App\Entity\Type;
 use App\Repository\IOT\SensorRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -13,17 +14,13 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Sensor
 {
-    const TEMP_TYPE = 'Température';
-    const GPS_TYPE = 'GPS';
-    const ACTION_TYPE = 'Action';
+    const TEMPERATURE = 'Température';
+    const GPS = 'GPS';
+    const ACTION = 'Action';
 
-    const TEMPERATURE = 'temperature';
-    const TRACKING = 'tracking';
-    const ACTION = 'action';
-
-    const SENSORS = [
-        self::TEMP_TYPE => self::TEMPERATURE,
-        self::GPS_TYPE => self::TRACKING,
+    const SENSOR_ICONS = [
+        self::TEMPERATURE => 'temperature',
+        self::GPS => 'tracking',
     ];
 
     const LOCATION = 'location';
@@ -53,9 +50,10 @@ class Sensor
     private ?string $code = null;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="sensors")
+     * @ORM\JoinColumn(nullable=false)
      */
-    private ?string $type = null;
+    private ?Type $type = null;
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -108,16 +106,6 @@ class Sensor
     public function setCode(string $code): self
     {
         $this->code = $code;
-
-        return $this;
-    }
-
-    public function getType(): ?string {
-        return $this->type;
-    }
-
-    public function setType(?string $type): self {
-        $this->type = $type;
 
         return $this;
     }
@@ -264,5 +252,22 @@ class Sensor
                     ->orderBy(['id' => Criteria::DESC])
             );
         return $availableWrappers->first() ?: null;
+    }
+
+    public function getType(): ?Type
+    {
+        return $this->type;
+    }
+
+    public function setType(?Type $type): self
+    {
+        if($this->type && $this->type !== $type) {
+            $this->type->removeSensor($this);
+        }
+        $this->type = $type;
+        if($type) {
+            $type->addSensor($this);
+        }
+        return $this;
     }
 }

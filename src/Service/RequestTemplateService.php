@@ -85,7 +85,7 @@ class RequestTemplateService {
                 ->setEmergency($data["emergency"] ?? null)
                 ->setSource($data["source"] ?? null)
                 ->setDestination($data["destination"] ?? null)
-                ->setCarriedOutOperationCount($data["carriedOutOperationCount"] ?? null)
+                ->setCarriedOutOperationCount(($data["carriedOutOperationCount"] ?? null) ?: null)
                 ->setComment($data["comment"] ?? null)
                 ->setAttachments($this->attachmentService->createAttachements($request->files));
         } else if ($template instanceof DeliveryRequestTemplate) {

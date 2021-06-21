@@ -5,17 +5,13 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\IOT\AlertTemplate;
-use App\Entity\IOT\CollectRequestTemplate;
-use App\Entity\IOT\DeliveryRequestTemplate;
-use App\Entity\IOT\HandlingRequestTemplate;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\IOT\TriggerAction;
 use App\Entity\Menu;
 use App\Entity\Action;
-use App\Service\AttachmentService;
-use App\Service\IOT\IOTService;
+use App\Helper\FormatHelper;
 use App\Service\TriggerActionService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -252,7 +248,7 @@ class TriggerActionController extends AbstractController
      * @Route("/get-sensor-by-name", name="get_sensor_by_name", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      */
     public function getSensorByName(EntityManagerInterface $entityManager,
-                                 Request $request): Response {
+                                    Request $request): Response {
 
         $sensorWrapperRepository = $entityManager->getRepository(SensorWrapper::class);
         $sensorRepository = $entityManager->getRepository(Sensor::class);
@@ -262,12 +258,13 @@ class TriggerActionController extends AbstractController
         if ($query->has('name')){
             $name = $query->get('name');
             $sensorWrapper = $sensorWrapperRepository->findOneBy(["name" => $name]);
-            $type =  $sensorWrapper->getSensor() ? $sensorWrapper->getSensor()->getType() : "";
+            $sensor = $sensorWrapper->getSensor();
         } else if ($query->has('code')){
             $code = $query->get('code');
             $sensor = $sensorRepository->findOneBy(["code" => $code]);
-            $type = $sensor->getType();
         }
+        $type = isset($sensor) ? $sensor->getType() : null;
+        $typeLabel = isset($type) ? $type->getLabel() : null;
 
         $html = "";
         if(!isset($sensorWrapper) && !isset($sensor)){
@@ -275,9 +272,9 @@ class TriggerActionController extends AbstractController
                 "success" => false,
                 "msg" => "Ce capteur n'existe pas",
             ]);
-        } else if((isset($sensorWrapper) || isset($sensor)) && $type === Sensor::ACTION_TYPE){
+        } else if((isset($sensorWrapper) || isset($sensor)) && $typeLabel === Sensor::ACTION){
             $html = $this->renderView('trigger_action/modalButton.html.twig');
-        } else if((isset($sensorWrapper) || isset($sensor)) && $type === Sensor::TEMP_TYPE){
+        } else if((isset($sensorWrapper) || isset($sensor)) && $typeLabel === Sensor::TEMPERATURE){
             $html = $this->renderView('trigger_action/modalTemperature.html.twig',[
                 "templateTemperatures" => TriggerAction::TEMPLATE_TEMPERATURE,
             ]);

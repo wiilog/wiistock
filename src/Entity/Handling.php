@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\IOT\SensorWrapper;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -45,7 +46,6 @@ class Handling extends FreeFieldEntity
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="handlings")
-     * @ORM\JoinColumn(nullable=false)
      */
     private $requester;
 
@@ -112,6 +112,11 @@ class Handling extends FreeFieldEntity
      */
     private Collection $receivers;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=SensorWrapper::class)
+     */
+    private ?SensorWrapper $sensorWrapper = null;
+
     public function __construct()
     {
         $this->attachments = new ArrayCollection();
@@ -122,6 +127,15 @@ class Handling extends FreeFieldEntity
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getSensor() : ?SensorWrapper {
+        return $this->sensorWrapper;
+    }
+
+    public function setFromSensor(?SensorWrapper $sensorWrapper) {
+        $this->sensorWrapper = $sensorWrapper;
+        return $this;
     }
 
     public function getCreationDate(): ?DateTime
@@ -273,6 +287,15 @@ class Handling extends FreeFieldEntity
     public function getAttachments(): Collection
     {
         return $this->attachments;
+    }
+
+    public function setAttachments($attachments): self
+    {
+        foreach($attachments as $attachment) {
+            $this->addAttachment($attachment);
+        }
+
+        return $this;
     }
 
     public function addAttachment(Attachment $attachment): self

@@ -4,9 +4,11 @@ namespace App\Entity;
 
 use App\Entity\IOT\CollectRequestTemplate;
 use App\Entity\IOT\DeliveryRequestTemplate;
+use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\SensorMessageTrait;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 
 use App\Entity\IOT\Pairing;
@@ -15,7 +17,7 @@ use App\Entity\IOT\Pairing;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\EmplacementRepository")
  */
-class Emplacement
+class Emplacement implements PairedEntity
 {
     use SensorMessageTrait;
 
@@ -154,7 +156,7 @@ class Emplacement
      * @ORM\ManyToOne(targetEntity=LocationGroup::class, inversedBy="locations")
      * @ORM\JoinColumn(onDelete="SET NULL")
      */
-    private $locationGroup;
+    private ?LocationGroup $locationGroup = null;
 
     public function __construct() {
         $this->clusters = new ArrayCollection();
@@ -753,6 +755,13 @@ class Emplacement
     public function getPairings(): Collection
     {
         return $this->pairings;
+    }
+
+    public function getActivePairing(): ?Pairing {
+        $criteria = Criteria::create();
+        return $this->pairings
+            ->matching($criteria->andWhere(Criteria::expr()->eq('active', true)))
+            ->first() ?: null;
     }
 
     public function addPairing(Pairing $pairing): self

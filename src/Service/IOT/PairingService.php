@@ -6,6 +6,7 @@ namespace App\Service\IOT;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
+use App\Entity\IOT\SensorMessage;
 use App\Helper\FormatHelper;
 use DateTime;
 use DateTimeZone;
@@ -51,6 +52,29 @@ class PairingService
             'start' => FormatHelper::datetime($pairing->getStart()),
             'end' => FormatHelper::datetime($pairing->getEnd()),
         ];
+    }
+
+    public function buildChartDataFromMessages(array $associatedMessages) {
+        $data = ["colors" => []];
+        /** @var SensorMessage $message */
+        foreach ($associatedMessages as $message) {
+            $date = $message->getDate();
+            $sensor = $message->getSensor();
+
+            if(!isset($data['colors'][$sensor->getCode()])) {
+                srand($sensor->getId());
+                $data['colors'][$sensor->getCode()] = sprintf('#%06X', mt_rand(0, 0xFFFFFF));
+            }
+
+            $dateStr = $date->format('d/m/Y H:i:s');
+            $sensorCode = $sensor->getCode();
+            if (!isset($data[$dateStr])) {
+                $data[$dateStr] = [];
+            }
+            $data[$dateStr][$sensorCode] = floatval($message->getContent());
+        }
+        srand();
+        return $data;
     }
 
     public function createPairing(DateTime $end, SensorWrapper $sensorWrapper,  $article,  $location, $locationGroup, $pack){

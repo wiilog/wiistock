@@ -6,11 +6,8 @@ use App\Entity\Article;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FreeField;
-use App\Entity\InventoryFrequency;
-use App\Entity\InventoryMission;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
-use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 
 use App\Helper\QueryCounter;
@@ -20,12 +17,9 @@ use DateTime;
 use DateTimeZone;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 
 use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
-use Exception;
 
 /**
  * @method Article|null find($id, $lockMode = null, $lockVersion = null)
@@ -47,11 +41,6 @@ class ArticleRepository extends EntityRepository {
         "stockEntryDate"
     ];
 
-    /**
-     * @param int $delay
-     * @return int|mixed|string
-     * @throws Exception
-     */
     public function findExpiredToGenerate($delay = 0) {
         $since = new DateTime("now", new DateTimeZone("Europe/Paris"));
         $since->modify("+{$delay}day");
@@ -90,10 +79,6 @@ class ArticleRepository extends EntityRepository {
         return $query->execute();
     }
 
-    /**
-     * @param int $id
-     * @return Article[]|null
-     */
     public function findByCollecteId($id)
     {
         $entityManager = $this->getEntityManager();
@@ -107,28 +92,6 @@ class ArticleRepository extends EntityRepository {
         return $query->getResult();
     }
 
-	/**
-	 * @param int $ordreCollecteId
-	 * @return Article[]|null
-	 */
-	public function findByOrdreCollecteId($ordreCollecteId)
-	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-		/** @lang DQL */
-			"SELECT a
-             FROM App\Entity\Article a
-             JOIN a.ordreCollecte oc
-             WHERE oc.id =:id
-            "
-		)->setParameter('id', $ordreCollecteId);
-		return $query->getResult();
-	}
-
-    /**
-     * @param $demandes
-     * @return Article[]
-     */
     public function findByDemandes($demandes, $needAssoc = false)
     {
         $queryBuilder = $this->createQueryBuilder('article')
@@ -161,21 +124,6 @@ class ArticleRepository extends EntityRepository {
         return $result;
     }
 
-    public function getByDemandeAndType($demande, $type)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT a
-             FROM App\Entity\Article a
-             WHERE a.demande =:demande AND a.type = :type
-            "
-        )->setParameters([
-            'demande' => $demande,
-            'type' => $type
-        ]);
-        return $query->execute();
-    }
-
     public function countByType($typeId)
     {
         $entityManager = $this->getEntityManager();
@@ -187,19 +135,6 @@ class ArticleRepository extends EntityRepository {
         )->setParameter('typeId', $typeId);
 
         return $query->getSingleScalarResult();
-    }
-
-    public function setTypeIdNull($typeId)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            /** @lang DQL */
-            "UPDATE App\Entity\Article a
-            SET a.type = null
-            WHERE a.type = :typeId"
-        )->setParameter('typeId', $typeId);
-
-        return $query->execute();
     }
 
     public function getArticleByReception($id)
@@ -306,25 +241,6 @@ class ArticleRepository extends EntityRepository {
             ->execute();
 	}
 
-    public function getRefByRecep($id)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT a.reference
-            FROM App\Entity\Article a
-            JOIN a.reception r
-            WHERE r.id =:id
-            "
-        )->setParameter('id', $id);
-        return $query->getResult();
-    }
-
-    /**
-     * @param ReferenceArticle $refArticle
-     * @param array $statusNames
-     * @param string|null $refArticleStatusName
-     * @return Article[]
-     */
 	public function findByRefArticleAndStatut($refArticle, array $statusNames, string $refArticleStatusName = null)
 	{
 
@@ -375,26 +291,6 @@ class ArticleRepository extends EntityRepository {
         return $query->getSingleScalarResult();
     }
 
-    public function getTotalQuantiteByRefAndStatusLabel($refArticle, $statusLabel)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            'SELECT SUM(a.quantite)
-			FROM App\Entity\Article a
-			JOIN a.articleFournisseur af
-			JOIN af.referenceArticle ra
-			JOIN a.statut s
-			WHERE s.nom =:statusLabel AND ra = :refArticle
-			'
-		)->setParameters([
-			'refArticle' => $refArticle,
-			'statusLabel' => $statusLabel
-		]);
-
-		return $query->getSingleScalarResult();
-	}
-
 	public function findActifByRefArticleWithoutDemand($refArticle = null, $preparation = null, $demande = null)
 	{
 		return $this->createQueryBuilderActifWithoutDemand($refArticle, $preparation, $demande)
@@ -431,14 +327,6 @@ class ArticleRepository extends EntityRepository {
 
 	}
 
-    /**
-     * @param array|null $params
-     * @param array $filters
-     * @param Utilisateur $user
-     * @return array
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
     public function findByParamsAndFilters($params, $filters, $user)
     {
         $qb = $this->createQueryBuilder("a");
@@ -603,6 +491,10 @@ class ArticleRepository extends EntityRepository {
                             $qb->leftJoin('a.statut', 's_sort')
                                 ->orderBy('s_sort.nom', $order);
                             break;
+                        case "pairing":
+                            $qb->leftJoin('a.pairings', 'order_pairings')
+                                ->orderBy('order_pairings.active', $order);
+                            break;
                         default:
                             $field = self::FIELD_ENTITY_NAME[$column] ?? $column;
                             $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
@@ -660,9 +552,6 @@ class ArticleRepository extends EntityRepository {
         return $query->getSingleScalarResult();
     }
 
-    /**
-     * @return Article[]|null
-     */
     public function findDoublons()
     {
         $em = $this->getEntityManager();
@@ -817,13 +706,6 @@ class ArticleRepository extends EntityRepository {
 		return $query->execute();
 	}
 
-    /**
-     * @param string $statusName
-     * @param string $typeLabel
-     * @param array $statutsPrepa
-     * @param array $statutsLivraison
-     * @return Article[]
-     */
     public function getByStatutAndTypeWithoutInProgressPrepaNorLivraison(string $statusName,
                                                                          string $typeLabel,
                                                                          array $statutsPrepa,
@@ -879,11 +761,6 @@ class ArticleRepository extends EntityRepository {
 		);
 	}
 
-    /**
-     * @param string $reference
-     * @return Article|null
-     * @throws NonUniqueResultException
-     */
     public function findOneByReference($reference)
     {
         $em = $this->getEntityManager();
@@ -897,29 +774,6 @@ class ArticleRepository extends EntityRepository {
 		return $query->getOneOrNullResult();
 	}
 
-	/**
-	 * @param string $reference
-	 * @return int
-	 * @throws NonUniqueResultException
-	 * @throws NoResultException
-	 */
-    public function countByReference($reference)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(a)
-			FROM App\Entity\Article a
-			WHERE a.reference = :reference"
-		)->setParameter('reference', $reference);
-
-		return $query->getSingleScalarResult();
-	}
-
-	/**
-	 * @param string $reference
-	 * @return Article|null
-	 */
 	public function findByReference($reference)
 	{
 		$em = $this->getEntityManager();
@@ -946,12 +800,6 @@ class ArticleRepository extends EntityRepository {
         return $query->getSingleScalarResult();
     }
 
-    /**
-     * @param InventoryMission $mission
-     * @param $artId
-     * @return mixed
-     * @throws NonUniqueResultException
-     */
     public function getEntryByMission($mission, $artId)
     {
         $em = $this->getEntityManager();
@@ -981,34 +829,8 @@ class ArticleRepository extends EntityRepository {
         return $query->getSingleScalarResult();
     }
 
-    public function getIdAndReferenceBySearch($search, $activeOnly = false)
-    {
-        $em = $this->getEntityManager();
-
-        $dql = "SELECT a.id as id, a.reference as text
-          FROM App\Entity\Article a
-          LEFT JOIN a.statut s
-          WHERE a.reference LIKE :search";
-
-        if ($activeOnly) {
-            $dql .= " AND s.nom = '" . Article::STATUT_ACTIF . "'";
-        }
-
-        $query = $em
-            ->createQuery($dql)
-            ->setParameter('search', '%' . $search . '%');
-
-        return $query->execute();
-    }
-
-    /**
-     * @param InventoryFrequency $frequency
-     * @param int $limit
-     * @return Article[]
-     */
     public function findActiveByFrequencyWithoutDateInventoryOrderedByEmplacementLimited($frequency, $limit)
     {
-
 
         $queryBuilder = $this->createQueryBuilder('article');
         $exprBuilder = $queryBuilder->expr();
@@ -1043,10 +865,6 @@ class ArticleRepository extends EntityRepository {
             ->getResult();
     }
 
-	/**
-	 * @param string $dateCode
-	 * @return mixed
-     */
 	public function getHighestBarCodeByDateCode($dateCode)
 	{
 		$em = $this->getEntityManager();
@@ -1064,31 +882,6 @@ class ArticleRepository extends EntityRepository {
         return $result ? $result[0]['barCode'] : null;;
     }
 
-    public function getRefAndLabelRefAndArtAndBarcodeAndBLById($id)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT ra.libelle as refLabel,
-                    ra.reference as refRef,
-                    a.label as artLabel,
-                    a.barCode as barcode
-		FROM App\Entity\Article a
-		LEFT JOIN a.articleFournisseur af
-		LEFT JOIN af.referenceArticle ra
-		WHERE a.id = :id
-		")
-            ->setParameter('id', $id);
-
-        return $query->execute();
-    }
-
-	/**
-	 * @param Article $article
-	 * @return int
-	 * @throws NonUniqueResultException
-	 * @throws NoResultException
-	 */
     public function countInventoryAnomaliesByArt($article)
     {
         $em = $this->getEntityManager();
@@ -1162,11 +955,6 @@ class ArticleRepository extends EntityRepository {
             ->getResult();
     }
 
-    /**
-     * @param TransferRequest[] $requests
-     * @param bool $isRequests
-     * @return int|mixed|string
-     */
     public function getArticlesGroupedByTransfer(array $requests, bool $isRequests = true) {
         if(!empty($requests)) {
             $queryBuilder = $this->createQueryBuilder('article')

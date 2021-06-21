@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\IOT\Sensor;
+use App\Entity\IOT\SensorWrapper;
 use App\Entity\Menu;
 use App\Service\SensorMessageService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -24,11 +25,11 @@ class SensorMessageController extends AbstractController
      * @Route("/{id}/messages", name="sensor_message_index", options={"expose"=true})
      * @HasPermission({Menu::IOT, Action::DISPLAY_SENSOR})
      */
-    public function index($id, EntityManagerInterface $entityManager, Request $request): Response
+    public function index($id, EntityManagerInterface $entityManager): Response
     {
-        $sensorRepository = $entityManager->getRepository(Sensor::class);
+        $sensorWrapperRepository = $entityManager->getRepository(SensorWrapper::class);
         return $this->render('sensor_message/index.html.twig', [
-            'sensor' => $sensorRepository->find($id)
+            'sensor' => $sensorWrapperRepository->find($id)->getSensor()
         ]);
     }
 

@@ -16,9 +16,9 @@
     </div>
     <div class="row sensor-details-container flex-column">
         <div class="sensor-type">
-            {% if (triggerAction.sensorWrapper ? triggerAction.sensorWrapper.sensor.type : "") == constant('App\\Entity\\IOT\\Sensor::TEMP_TYPE') %}
+            {% if (triggerAction.sensorWrapper ? triggerAction.sensorWrapper.sensor.type.label : "") == constant('App\\Entity\\IOT\\Sensor::TEMPERATURE') %}
                 {% include ('trigger_action/modalTemperature.html.twig') %}
-            {% elseif (triggerAction.sensorWrapper ? triggerAction.sensorWrapper.sensor.type : "") == constant('App\\Entity\\IOT\\Sensor::ACTION_TYPE') %}
+            {% elseif (triggerAction.sensorWrapper ? triggerAction.sensorWrapper.sensor.type.label : "") == constant('App\\Entity\\IOT\\Sensor::ACTION') %}
                 {% include ('trigger_action/modalButton.html.twig') %}
             {% endif %}
         </div>

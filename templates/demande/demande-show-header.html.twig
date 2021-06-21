@@ -62,7 +62,7 @@
                         $('#submitEditdemande'),
                         true,
                         '#modalEditDemande .editor-container-edit', false,
-                        () => InitModal($('#modalEditDemande'), $('#submitEditDemande'), Routing.generate('demande_edit', true))
+                        () => initDeliveryRequestModal()
                 );"
                    data-id='{{ demande.id }}'
                    data-target='#modalEditDemande'

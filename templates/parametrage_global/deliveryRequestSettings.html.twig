@@ -42,6 +42,18 @@
             <label class="pl-1" for="param-demandeur-livraison">Le demandeur est l'utilisateur de la session en cours</label>
         </div>
     </div>
+    <div class="row mt-2 mb-2">
+        <div class="col-12">
+            {% set checked = (deliveryLocationDropdown == 1) ? 'checked' : '' %}
+            <label class="switch">
+                <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-location-by-type-demande-livraison"
+                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST') }}"
+                       onchange="updateToggledParam($(this))">
+                <span class="slider round"></span>
+            </label>
+            <label class="pl-1" for="param-manage-livraison-location">Gérer le champ "Destination" en liste déroulante</label>
+        </div>
+    </div>
     <div class="float-right btn btn-success" onclick="updateDeliveryRequestDefaultLocations()">
         <i class='fas fa-check'></i>
     </div>

@@ -117,7 +117,7 @@ class HandlingService
             'number' => $handling->getNumber() ? $handling->getNumber() : '',
             'creationDate' => FormatHelper::datetime($handling->getCreationDate()),
             'type' => $handling->getType() ? $handling->getType()->getLabel() : '',
-            'requester' => $handling->getRequester() ? $handling->getRequester()->getUserName() : null,
+            'requester' => $handling->getSensor() ? $handling->getSensor()->getName() : ($handling->getRequester() ? $handling->getRequester()->getUserName() : null),
             'subject' => $handling->getSubject() ? $handling->getSubject() : '',
             "receivers" => FormatHelper::users($handling->getReceivers()->toArray()),
             'desiredDate' => $includeDesiredTime

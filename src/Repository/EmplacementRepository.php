@@ -131,7 +131,7 @@ class EmplacementRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function getLocationsByType($type, $search) {
+    public function getLocationsByType($type, $search, $restrictResults) {
         $qb = $this->createQueryBuilder('location');
 
         $qb->select('location.id AS id')
@@ -143,6 +143,10 @@ class EmplacementRepository extends EntityRepository
             $qb
                 ->andWhere('(:type MEMBER OF location.allowedDeliveryTypes) OR (:type MEMBER OF location.allowedCollectTypes)')
                 ->setParameter('type', $type);
+        }
+
+        if ($restrictResults) {
+            $qb->setMaxResults(50);
         }
 
         return $qb->getQuery()->getResult();
@@ -230,17 +234,6 @@ class EmplacementRepository extends EntityRepository
             ORDER BY nb DESC"
         );
         return $query->execute();
-    }
-
-    public function getLocationByType($type)
-    {
-        $qb = $this->createQueryBuilder('location');
-
-        $qb->select('location.id AS id')
-            ->addSelect('location.label AS text')
-            ->where('(:type MEMBER OF location.allowedDeliveryTypes)')
-            ->setParameter('type', $type);
-        return $qb->getQuery()->getResult();
     }
 
     public function getWithNoAssociationForSelect() {

@@ -2,17 +2,19 @@
 
 namespace App\Entity;
 
+use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
 use App\Repository\LocationGroupRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity(repositoryClass=LocationGroupRepository::class)
  */
-class LocationGroup {
+class LocationGroup implements PairedEntity {
 
     use SensorMessageTrait;
 
@@ -154,6 +156,13 @@ class LocationGroup {
         }
 
         return $this;
+    }
+
+    public function getActivePairing(): ?Pairing {
+        $criteria = Criteria::create();
+        return $this->pairings
+            ->matching($criteria->andWhere(Criteria::expr()->eq('active', true)))
+            ->first() ?: null;
     }
 
 }

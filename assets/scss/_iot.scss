@@ -26,8 +26,9 @@
             font-size: 1rem;
         }
     }
+}
 
-    .association-actions {
-        cursor: pointer;
-    }
+.association-actions {
+    position: absolute;
+    top: 0; right: 20px;
 }

@@ -270,6 +270,10 @@ class PackRepository extends EntityRepository
                         $queryBuilder
                             ->leftJoin('pack.arrivage', 'arrivage3')
                             ->orderBy('arrivage3.type', $order);
+                    } else if ($column === 'pairing') {
+                        $queryBuilder
+                            ->leftJoin('pack.pairings', 'order_pairings')
+                            ->orderBy('order_pairings.active', $order);
                     } else {
                         $queryBuilder
                             ->orderBy('pack.' . $column, $order);

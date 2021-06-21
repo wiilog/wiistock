@@ -16,6 +16,7 @@ use App\Entity\LocationGroup;
 use App\Entity\Menu;
 
 use App\Entity\MouvementStock;
+use App\Entity\ParametrageGlobal;
 use App\Entity\TrackingMovement;
 use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
@@ -348,15 +349,6 @@ class EmplacementController extends AbstractController {
         );
     }
 
-    /**
-     * @Route("/{type}", name="get_locations_by_type", options={"expose"=true}, methods={"GET"})
-     */
-    public function getLocationByType($type,
-                                      EntityManagerInterface $entityManager) {
-        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-        return $emplacementRepository->getLocationByType($type);
-    }
-
     private function checkLocationLabel(?string $label, $locationId = null) {
         $labelTrimmed = $label ? trim($label) : null;
         if (!empty($labelTrimmed)) {
@@ -399,12 +391,13 @@ class EmplacementController extends AbstractController {
      * @Route("/autocomplete-locations-by-type", name="get_locations_by_type", options={"expose"=true}, methods={"GET"}, condition="request.isXmlHttpRequest()")
      */
     public function getLocationsByType(Request $request, EntityManagerInterface $entityManager) {
-
         $search = $request->query->get('term');
         $type = $request->query->get('type');
 
         $locationRepository = $entityManager->getRepository(Emplacement::class);
-        $locations = $locationRepository->getLocationsByType($type, $search);
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $restrictResults = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST);
+        $locations = $locationRepository->getLocationsByType($type, $search, $restrictResults);
         return $this->json([
             'results' => $locations
         ]);

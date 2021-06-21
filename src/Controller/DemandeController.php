@@ -106,6 +106,7 @@ class DemandeController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $demandeRepository = $entityManager->getRepository(Demande::class);
+            $globalSettingsRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
             $demande = $demandeRepository->find($data['id']);
 
@@ -140,6 +141,7 @@ class DemandeController extends AbstractController
                 'typeChampsLibres' => $typeChampLibre,
                 'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
                 'defaultDeliveryLocations' => $globalParamService->getDefaultDeliveryLocationsByTypeId($entityManager),
+                'restrictedLocations' => $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST),
             ]));
         }
         throw new BadRequestHttpException();
@@ -250,6 +252,7 @@ class DemandeController extends AbstractController
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
+        $globalSettingsRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
 
@@ -270,7 +273,8 @@ class DemandeController extends AbstractController
             'types' => $types,
             'filterStatus' => $filter,
             'receptionFilter' => $reception,
-            'defaultDeliveryLocations' => $globalParamService->getDefaultDeliveryLocationsByTypeId($entityManager)
+            'defaultDeliveryLocations' => $globalParamService->getDefaultDeliveryLocationsByTypeId($entityManager),
+            'restrictedLocations' => $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST),
         ]);
     }
 
@@ -330,6 +334,7 @@ class DemandeController extends AbstractController
     public function show(EntityManagerInterface $entityManager,
                          DemandeLivraisonService $demandeLivraisonService,
                          Demande $demande): Response {
+
         $statutRepository = $entityManager->getRepository(Statut::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
@@ -486,6 +491,7 @@ class DemandeController extends AbstractController
                                    Request $request): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
+
             $statutRepository = $entityManager->getRepository(Statut::class);
             $articleRepository = $entityManager->getRepository(Article::class);
             $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
@@ -527,7 +533,7 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/csv", name="get_demandes_csv", options={"expose"=true}, methods={"GET"} )
+     * @Route("/csv", name="get_demandes_csv", options={"expose"=true}, methods={"GET"})
      * @HasPermission({Menu::DEM, Action::EXPORT})
      */
     public function getDemandesCSV(EntityManagerInterface $entityManager,

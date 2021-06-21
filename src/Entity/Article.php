@@ -2,12 +2,13 @@
 
 namespace App\Entity;
 
-use App\Entity\IOT\SensorMessage;
+use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\SensorMessageTrait;
 use DateTime;
 use DateTimeZone;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Selectable;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -20,7 +21,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  * @ORM\Entity(repositoryClass="App\Repository\ArticleRepository")
  * @UniqueEntity("reference")
  */
-class Article extends FreeFieldEntity
+class Article extends FreeFieldEntity implements PairedEntity
 {
     use SensorMessageTrait;
 
@@ -826,12 +827,15 @@ class Article extends FreeFieldEntity
         return $this;
     }
 
-    /**
-     * @return Collection|Pairing[]
-     */
-    public function getPairings(): Collection
-    {
+    public function getPairings(): Collection {
         return $this->pairings;
+    }
+
+    public function getActivePairing(): ?Pairing {
+        $criteria = Criteria::create();
+        return $this->pairings
+            ->matching($criteria->andWhere(Criteria::expr()->eq('active', true)))
+            ->first() ?: null;
     }
 
     public function addPairing(Pairing $pairing): self

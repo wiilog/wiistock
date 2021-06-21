@@ -6,7 +6,7 @@
         </div>
 
         {% if titleLogo is defined%}
-            <i class="wii-icon wii-icon-{{ titleLogo }} mr-2 has-tooltip" title="Cette collecte est liée à un capteur"></i>
+            <i class="wii-icon wii-icon-{{ titleLogo }} mr-2 has-tooltip" title="{{ titleLogoTooltip }}"></i>
         {% endif %}
 
         {% set showActionsBlock = block('showActions') is defined ? block('showActions') %}

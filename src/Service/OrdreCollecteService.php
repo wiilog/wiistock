@@ -310,16 +310,12 @@ class OrdreCollecteService
 		];
 	}
 
-	/**
-	 * @param OrdreCollecte $collecte
-	 * @return array
-	 * @throws Twig_Error_Loader
-	 * @throws Twig_Error_Runtime
-	 * @throws Twig_Error_Syntax
-	 */
-    private function dataRowCollecte($collecte)
+    private function dataRowCollecte(OrdreCollecte $collecte)
     {
         $demandeCollecte = $collecte->getDemandeCollecte();
+
+        $lastMessage = $collecte->getLastMessage();
+        $sensorCode = ($lastMessage && $lastMessage->getSensor()) ? $lastMessage->getSensor()->getCode() : null;
 
         $url['show'] = $this->router->generate('ordre_collecte_show', ['id' => $collecte->getId()]);
         return [
@@ -331,25 +327,13 @@ class OrdreCollecteService
             'Type' => $demandeCollecte && $demandeCollecte->getType() ? $demandeCollecte->getType()->getLabel() : '',
             'Actions' => $this->templating->render('ordre_collecte/datatableCollecteRow.html.twig', [
                 'url' => $url,
-                'titleLogo' => !$collecte
-                    ->getPairings()
-                    ->filter(fn(Pairing $pairing) => $pairing->isActive()
-                    )->isEmpty() ? 'pairing' : null
-            ])
+            ]),
+            'pairing' => $this->templating->render('pairing-icon.html.twig', [
+                'linkedPairing' => $sensorCode ? "Dernier capteur ayant remonté un message : <strong>${sensorCode}</strong>" : null
+            ]),
         ];
     }
 
-    /**
-     * @param Utilisateur $user
-     * @param ReferenceArticle|Article $article
-     * @param DateTime $date
-     * @param Emplacement $locationFrom
-     * @param Emplacement $locationTo
-     * @param int $quantity
-     * @param bool $fromNomade
-     * @param OrdreCollecte $ordreCollecte
-     * @throws Exception
-     */
     private function persistMouvementsFromStock(Utilisateur $user,
                                                 $article,
                                                 ?DateTime $date,

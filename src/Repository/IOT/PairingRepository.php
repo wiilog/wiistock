@@ -132,13 +132,14 @@ class PairingRepository extends EntityRepository
 
             if($filters->has('types') && !empty($filters->get('types'))) {
                 $types = Stream::from($filters->get('types'))
-                    ->map(fn($type) => array_search($type, Sensor::SENSORS))
+                    ->map(fn($type) => array_search($type, Sensor::SENSOR_ICONS))
                     ->toArray();
 
                 $queryBuilder
                     ->leftJoin('pairing.sensorWrapper', 'type_sensorWrapper')
                     ->leftJoin('type_sensorWrapper.sensor', 'type_sensor')
-                    ->andWhere('type_sensor.type IN (:types)')
+                    ->leftJoin('type_sensor.type', 'type')
+                    ->andWhere('type.label IN (:types)')
                     ->setParameter('types', $types, Connection::PARAM_STR_ARRAY);
             }
 
@@ -188,9 +189,10 @@ class PairingRepository extends EntityRepository
         $queryBuilder
             ->leftJoin('pairing.sensorWrapper', 'order_sensorWrapper')
             ->leftJoin('order_sensorWrapper.sensor', 'order_sensor')
-            ->andWhere('order_sensor.type <> :actionType')
+            ->leftJoin('order_sensor.type', 'order_type')
+            ->andWhere('order_type.label <> :actionType')
             ->addOrderBy('order_sensorWrapper.name', 'ASC')
-            ->setParameter('actionType', Sensor::ACTION_TYPE);
+            ->setParameter('actionType', Sensor::ACTION);
 
         $query = $queryBuilder->getQuery();
         return [
