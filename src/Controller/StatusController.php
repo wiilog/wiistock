@@ -237,6 +237,7 @@ class StatusController extends AbstractController {
                     ->setDefaultForCategory((bool)$data['defaultForCategory'])
                     ->setSendNotifToBuyer((bool)$data['sendMails'])
                     ->setCommentNeeded((bool)$data['commentNeeded'])
+                    ->setNeedsMobileSync((bool)$data['needsMobileSync'])
                     ->setSendNotifToDeclarant((bool)$data['sendMailsDeclarant'])
                     ->setSendNotifToRecipient((bool)$data['sendMailsRecipient'])
                     ->setAutomaticReceptionCreation((bool)$data['automaticReceptionCreation'])
