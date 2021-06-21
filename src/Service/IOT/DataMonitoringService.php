@@ -51,9 +51,8 @@ class DataMonitoringService
             /** @var Pairing $pairing */
             $pairing = $config["entity"];
             $entity = $pairing->getEntity();
-            $this->fillEntityConfig($entity, $config, false);
-
             $this->fillPairingConfig($config, $pairing);
+            $this->fillEntityConfig($entity, $config, false);
         } else if($config["type"] === self::TIMELINE) {
             $date = new DateTime('-1 month');
             $entity = $config['entity'];
@@ -87,8 +86,8 @@ class DataMonitoringService
 
     public function fillPairingConfig(array &$config, Pairing $pairing)
     {
-        $start = FormatHelper::datetime($pairing->getStart());
-        $end = FormatHelper::datetime($pairing->getEnd());
+        $start = FormatHelper::datetime($pairing->getStart(), null, true);
+        $end = FormatHelper::datetime($pairing->getEnd(), null, true);
 
         $config["start"] = $pairing->getStart();
         $config["end"] = $pairing->getEnd();
@@ -96,11 +95,14 @@ class DataMonitoringService
             "type" => "sensor",
             "icon" => "wifi",
             "title" => $pairing->getSensorWrapper()->getName(),
-            "subtitle" => [
-                "Associé le : $start",
-                $end ? "Fin le : <span class=\"pairing-end-date-{$pairing->getId()}\">$end</span>" : null,
-            ],
             "pairing" => $pairing,
+            "header" => true
+        ];
+
+        $config["left_pane"][] = [
+            "type" => "pairingInfo",
+            "start" => $start,
+            "end" => $end
         ];
 
         $type = FormatHelper::type($pairing->getSensorWrapper()->getSensor()->getType());
@@ -121,48 +123,41 @@ class DataMonitoringService
         }
     }
 
-    private function fillPackConfig(array &$config, Pack $pack, bool $isTimeline)
+    private function fillPackConfig(array &$config, Pack $pack, bool $header)
     {
         $config["left_pane"][] = [
-            "type" => $isTimeline ? self::TIMELINE : "entity",
+            "type" => "entity",
             "icon" => "iot-pack",
             "title" => $pack->getCode(),
             "pack" => $pack,
-            "activeAssociation" => $isTimeline ? $pack->getActivePairing() : null
+            "header" => $header,
+            "hideActions" => $header
         ];
-
-        if ($isTimeline) {
-            $config["left_pane"][] = [
-                "isTimeline" => true,
-                "timelineDataPath" => $this->router->generate('get_data_history_timeline_api', [
-                    "type" => Sensor::PACK,
-                    "id" => $pack->getId()
-                ])
-            ];
-        }
     }
 
-    private function fillLocationConfig(array &$config, Emplacement $location, bool $isTimeline)
+    private function fillLocationConfig(array &$config, Emplacement $location, bool $header)
     {
         $config["left_pane"][] = [
-            "type" => $isTimeline ? self::TIMELINE : "entity",
+            "type" => "entity",
             "icon" => "iot-location",
             "title" => $location->getLabel(),
-            "activeAssociation" => $isTimeline ? $location->getActivePairing() : null
+            "header" => $header,
+            "hideActions" => $header
         ];
     }
 
-    private function fillLocationGroupConfig(array &$config, LocationGroup $location, bool $isTimeline)
+    private function fillLocationGroupConfig(array &$config, LocationGroup $location, bool $header)
     {
         $config["left_pane"][] = [
-            "type" => $isTimeline ? self::TIMELINE : "entity",
+            "type" => "entity",
             "icon" => "iot-location",
             "title" => $location->getName(),
-            "activeAssociation" => $isTimeline ? $location->getActivePairing() : null
+            "header" => $header,
+            "hideActions" => $header
         ];
     }
 
-    private function fillPreparationConfig(array &$config, Preparation $preparation, bool $isTimeline)
+    private function fillPreparationConfig(array &$config, Preparation $preparation, bool $header)
     {
         $items = [];
         if($preparation->getLivraison()) {
@@ -178,29 +173,47 @@ class DataMonitoringService
         ];
 
         $config["left_pane"][] = [
-            "type" => $isTimeline ? self::TIMELINE : "entity",
+            "type" => "entity",
             "items" => $items,
-            "activeAssociation" => $isTimeline ? $preparation->getActivePairing() : null
+            "header" => $header,
+            "hideActions" => $header
         ];
     }
 
-    private function fillCollectOrderConfig(array &$config, OrdreCollecte $collect, bool $isTimeline)
+    private function fillCollectOrderConfig(array &$config, OrdreCollecte $collect, bool $header)
     {
         $config["left_pane"][] = [
-            "type" => $isTimeline ? self::TIMELINE : "entity",
+            "type" => "entity",
             "icon" => "iot-collect",
             "title" => $collect->getNumero(),
-            "activeAssociation" => $isTimeline ? $collect->getActivePairing() : null
+            "header" => $header,
+            "hideActions" => $header
         ];
     }
 
-    private function fillArticleConfig(array &$config, Article $article, bool $isTimeline)
+    private function fillArticleConfig(array &$config, Article $article, bool $header)
     {
         $config["left_pane"][] = [
-            "type" => $isTimeline ? self::TIMELINE : "entity",
+            "type" => "entity",
             "icon" => "iot-article",
             "title" => $article->getLabel(),
-            "activeAssociation" => $isTimeline ? $article->getActivePairing() : null
+            "header" => $header,
+            "hideActions" => $header
+        ];
+    }
+
+    private function fillTimelineConfig(array &$config, PairedEntity $pairedEntity)
+    {
+        $type = $pairedEntity instanceof Pack
+            ? Sensor::PACK
+            : null; // TODO
+
+        $config["left_pane"][] = [
+            "type" => "timeline",
+            "timelineDataPath" => $this->router->generate('get_data_history_timeline_api', [
+                "type" => $type,
+                "id" => $pairedEntity->getId()
+            ])
         ];
     }
 
@@ -213,21 +226,25 @@ class DataMonitoringService
         ];
     }
 
-    public function fillEntityConfig(?PairedEntity $entity, array &$config, bool $isTimeline) {
+    public function fillEntityConfig(?PairedEntity $entity, array &$config, bool $isHistoric) {
         if ($entity instanceof Pack) {
-            $this->fillPackConfig($config, $entity, $isTimeline);
+            $this->fillPackConfig($config, $entity, $isHistoric);
         } else if ($entity instanceof Emplacement) {
-            $this->fillLocationConfig($config, $entity, $isTimeline);
+            $this->fillLocationConfig($config, $entity, $isHistoric);
         } else if ($entity instanceof LocationGroup) {
-            $this->fillLocationGroupConfig($config, $entity, $isTimeline);
+            $this->fillLocationGroupConfig($config, $entity, $isHistoric);
         } else if ($entity instanceof Preparation) {
-            $this->fillPreparationConfig($config, $entity, $isTimeline);
+            $this->fillPreparationConfig($config, $entity, $isHistoric);
         } else if ($entity instanceof OrdreCollecte) {
-            $this->fillCollectOrderConfig($config, $entity, $isTimeline);
+            $this->fillCollectOrderConfig($config, $entity, $isHistoric);
         } else if ($entity instanceof Article) {
-            $this->fillArticleConfig($config, $entity, $isTimeline);
+            $this->fillArticleConfig($config, $entity, $isHistoric);
         } else {
             throw new RuntimeException("Unsupported class " . get_class($entity));
+        }
+
+        if ($isHistoric) {
+            $this->fillTimelineConfig($config, $entity);
         }
     }
 

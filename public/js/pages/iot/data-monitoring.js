@@ -243,9 +243,9 @@ function initTimeline($timelineContainer, showMore = false) {
                                             `<br/>`,
                                         ]
                                         : []),
-                                    `<span class="timeline-cell-date-prefix">${datePrefix}</span>`,
+                                    `<span class="pairing-date-prefix">${datePrefix}</span>`,
                                     `<br/>`,
-                                    `<span class="timeline-cell-date">${date}</span>`
+                                    `<span class="pairing-date">${date}</span>`
                                 ]
                             })
                         ]

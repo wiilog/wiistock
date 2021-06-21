@@ -5,23 +5,44 @@
         border-top: 1px solid rgba(0, 0, 0, 0.1);
     }
 
+    &.first-association-pane-item {
+        border-radius: 10px;
+        background-color: #F2F3F7;
+        color: $info;
+
+        .wii-icon {
+            background-color: $info;
+        }
+    }
+
+    .wii-icon {
+        display: flex;
+        width: 20px;
+        height: 20px;
+        background-color: black;
+    }
+
+    .btn-outline-info {
+        .wii-icon {
+            background-color: $info;
+        }
+
+        &:hover {
+            .wii-icon {
+                background-color: $white !important;
+            }
+        }
+    }
+
     .association-pane-item {
         display: flex;
         flex-wrap: nowrap;
         min-height: 50px;
-        color: $info;
         font-weight: bold;
 
-        &.first-association-pane-item {
-            border-radius: 10px;
-            background-color: #F2F3F7;
-        }
-
         .wii-icon {
-            display: inline-block;
             width: 30px;
             height: 30px;
-            background-color: $info;
         }
 
         .right-column {
@@ -36,16 +57,16 @@
             }
 
             .subtitle {
-                font-size: 1rem;
+                font-size: .9rem;
+                color: black;
+                font-weight: normal;
             }
         }
     }
 
-    .association-actions {
-        position: absolute;
-        right: $grid-gutter-width;
-        top: 50%;
-        transform: translateY(-50%);
+    .pairing-date-prefix {
+        color: #666666;
+        font-size: 14px;
     }
 
     .timeline-container {
@@ -113,8 +134,7 @@
                         font-weight: bold;
                     }
 
-                    .timeline-cell-date-prefix {
-                        color: #666666;
+                    .pairing-date-prefix {
                         font-size: 14px;
                     }
                 }

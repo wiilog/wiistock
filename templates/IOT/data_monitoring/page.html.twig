@@ -8,7 +8,7 @@
         <div class="col-md-4 col-12">
             <div class="wii-page-card p-0">
                 {% for item in left_pane %}
-                    {% include 'iot/data_monitoring/left_pane_item.html.twig' with item %}
+                    {% include 'iot/data_monitoring/left_pane_item.html.twig' with item|merge({firstItem: loop.first}) %}
                 {% endfor %}
             </div>
         </div>
