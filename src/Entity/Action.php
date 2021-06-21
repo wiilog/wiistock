@@ -111,6 +111,7 @@ class Action {
     const MODULE_ACCESS_GROUP = 'Accès Groupage';
     const MODULE_ACCESS_UNGROUP = 'Accès Dégroupage';
     const MODULE_ACCESS_HAND = 'Accès Demande';
+    const MODULE_NOTIFICATIONS = 'Activer les notifications';
     const DEMO_MODE = 'Mode découverte';
 
     /**

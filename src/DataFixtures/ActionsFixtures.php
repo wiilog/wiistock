@@ -133,6 +133,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
                 Action::MODULE_ACCESS_GROUP,
                 Action::MODULE_ACCESS_UNGROUP,
                 Action::MODULE_ACCESS_HAND,
+                Action::MODULE_NOTIFICATIONS,
                 Action::DEMO_MODE
             ]
 		];
