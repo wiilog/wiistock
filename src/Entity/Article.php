@@ -834,7 +834,11 @@ class Article extends FreeFieldEntity implements PairedEntity
     public function getActivePairing(): ?Pairing {
         $criteria = Criteria::create();
         return $this->pairings
-            ->matching($criteria->andWhere(Criteria::expr()->eq('active', true)))
+            ->matching(
+                $criteria
+                    ->andWhere(Criteria::expr()->eq('active', true))
+                    ->setMaxResults(1)
+            )
             ->first() ?: null;
     }
 

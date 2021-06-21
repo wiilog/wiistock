@@ -250,6 +250,7 @@ class Sensor
                 $criteria
                     ->andWhere(Criteria::expr()->eq('deleted', false))
                     ->orderBy(['id' => Criteria::DESC])
+                    ->setMaxResults(1)
             );
         return $availableWrappers->first() ?: null;
     }

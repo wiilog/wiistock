@@ -513,15 +513,19 @@ label.required:after {
     }
 }
 
-.wii-icon-pairing, .wii-icon-iot-article, .wii-icon-iot-location, .wii-icon-iot-pack{
+.wii-icon-iot-article, .wii-icon-iot-location, .wii-icon-iot-pack {
     background-color: white;
     width:15px;
     height: 15px;
     display:inline-block;
 }
-.wii-icon-pairing{
-    background-color: darkblue;
+
+.wii-icon-pairing {
+    background-color: $blueGT;
     width:15px;
     height: 15px;
     display:inline-block;
+    .dropdown-item:active & {
+        background-color: $white;
+    }
 }
