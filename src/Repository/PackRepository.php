@@ -483,10 +483,10 @@ class PackRepository extends EntityRepository
         ];
 
         $startSQL = $startQueryBuilder->getQuery()->getSQL();
-        $startSQL = StringHelper::multple_preg_replace($sqlAliases, $startSQL);
+        $startSQL = StringHelper::multiplePregReplace($sqlAliases, $startSQL);
 
         $endSQL = $endQueryBuilder->getQuery()->getSQL();
-        $endSQL = StringHelper::multple_preg_replace($sqlAliases, $endSQL);
+        $endSQL = StringHelper::multiplePregReplace($sqlAliases, $endSQL);
 
         return "
             ($startSQL)
