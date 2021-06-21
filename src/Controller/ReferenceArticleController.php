@@ -773,7 +773,7 @@ class ReferenceArticleController extends AbstractController
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $refArticle  = $referenceArticleRepository->find($data);
             $json = $refArticle
-                ? $refArticleDataService->getViewEditRefArticle($refArticle, false, false)
+                ? $refArticleDataService->getViewEditRefArticle($refArticle, false, false, true)
                 : false;
             return new JsonResponse($json);
         }

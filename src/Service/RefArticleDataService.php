@@ -166,7 +166,7 @@ class RefArticleDataService {
     public function getViewEditRefArticle($refArticle,
                                           $isADemand = false,
                                           $preloadCategories = true,
-                                          $editAttachments = false) {
+                                          $showAttachments = false) {
         $articleFournisseurRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
         $typeRepository = $this->entityManager->getRepository(Type::class);
         $inventoryCategoryRepository = $this->entityManager->getRepository(InventoryCategory::class);
@@ -175,9 +175,10 @@ class RefArticleDataService {
         $data = $this->getDataEditForRefArticle($refArticle);
         $articlesFournisseur = $articleFournisseurRepository->findByRefArticle($refArticle->getId());
         $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
+        $editAttachments = $this->userService->hasRightFunction(Menu::STOCK, Action::EDIT);
 
         $categories = $preloadCategories
-            ? $inventoryCategoryRepository->findAll()
+            ? $inventoryCategoryRepository->findBy([], ['label' => 'ASC'])
             : [];
 
         $freeFieldsGroupedByTypes = [];
@@ -223,6 +224,7 @@ class RefArticleDataService {
                     ];
                 }),
             'editAttachments' => $editAttachments,
+            'showAttachments' => $showAttachments
         ]);
     }
 
@@ -322,8 +324,9 @@ class RefArticleDataService {
 
 
         $refArticle->getManagers()->clear();
-        if (!empty($data["managers"])) {
-            foreach (explode(",", $data["managers"]) as $manager) {
+        $managers = is_string($data["managers"]) ? explode(',', $data['managers']) : $data["managers"];
+        if (!empty($managers)) {
+            foreach ($managers as $manager) {
                 $refArticle->addManager($userRepository->find($manager));
             }
         }
