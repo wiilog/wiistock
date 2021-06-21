@@ -996,13 +996,15 @@ class ArticleRepository extends EntityRepository {
             return [];
         }
     }
-    public function findWithNoPairing() {
-        $qb = $this->createQueryBuilder('article');
-        $qb
-            ->leftJoin('article.pairings', 'pairings')
-            ->where('pairings.article is null');
-        return $qb
+    public function findWithNoPairing(?string $term) {
+        return $this->createQueryBuilder("article")
+            ->select("article.id AS id, article.barCode AS text")
+            ->leftJoin("article.pairings", "pairings")
+            ->where("pairings.article is null")
+            ->andWhere("article.barCode LIKE :term")
+            ->setParameter("term", "%$term%")
+            ->setMaxResults(100)
             ->getQuery()
-            ->getResult();
+            ->getArrayResult();
     }
 }

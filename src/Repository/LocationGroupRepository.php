@@ -61,15 +61,15 @@ class LocationGroupRepository extends EntityRepository
         ];
     }
 
-    public function getWithNoAssociationForSelect()
+    public function getWithNoAssociationForSelect($term)
     {
-        $qb = $this->createQueryBuilder('location_group');
-        $qb
+        return $this->createQueryBuilder('location_group')
             ->select("CONCAT('locationGroup:', location_group.id) AS id")
             ->addSelect('location_group.name AS text')
             ->leftJoin('location_group.pairings', 'pairings')
-            ->where('pairings.locationGroup is null');
-        return $qb
+            ->where('pairings.locationGroup IS NULL')
+            ->andWhere("location_group.name LIKE :term")
+            ->setParameter("term", "%$term%")
             ->getQuery()
             ->getResult();
     }

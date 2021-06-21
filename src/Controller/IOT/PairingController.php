@@ -31,6 +31,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Throwable;
 use WiiCommon\Helper\Stream;
 
 /**
@@ -43,16 +44,12 @@ class PairingController extends AbstractController {
      * @HasPermission({Menu::IOT, Action::DISPLAY_SENSOR})
      */
     public function index(EntityManagerInterface $entityManager): Response {
-        $packs = $entityManager->getRepository(Pack::class)->findWithNoPairing();
-        $articles = $entityManager->getRepository(Article::class)->findWithNoPairing();
         $sensorWrappers= $entityManager->getRepository(SensorWrapper::class)->findWithNoActiveAssociation();
 
         return $this->render("pairing/index.html.twig", [
             'categories' => Sensor::CATEGORIES,
             'sensorTypes' => Sensor::SENSOR_ICONS,
             "sensorWrappers" => $sensorWrappers,
-            'packs' => $packs,
-            'articles' => $articles
         ]);
     }
 
@@ -76,7 +73,7 @@ class PairingController extends AbstractController {
             $type = $sensor ? FormatHelper::type($sensor->getType()) : '';
 
             $elementIcon = "";
-            if($pairing->getEntity() instanceof Emplacement) {
+            if($pairing->getEntity() instanceof Emplacement || $pairing->getEntity() instanceof LocationGroup) {
                 $elementIcon = Sensor::LOCATION;
             } else if($pairing->getEntity() instanceof Article) {
                 $elementIcon = Sensor::ARTICLE;
@@ -87,7 +84,7 @@ class PairingController extends AbstractController {
             } else if($pairing->getEntity() instanceof OrdreCollecte) {
                 $elementIcon = Sensor::COLLECT;
             }
-
+dump($pairing);
             $rows[] = [
                 "id" => $pairing->getId(),
                 "type" => $type,
@@ -164,12 +161,12 @@ class PairingController extends AbstractController {
     }
 
     /**
-     * @Route("/creer", name="pairing_new",options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::PAIR_SENSOR}, mode=HasPermission::IN_JSON)
+     * @Route("/creer", name="pairing_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::IOT, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
     public function new(PairingService $pairingService,
-                                            EntityManagerInterface $entityManager,
-                                            Request $request): Response
+                        EntityManagerInterface $entityManager,
+                        Request $request): Response
     {
         if($data = json_decode($request->getContent(), true)) {
             if(!$data['sensor'] && !$data['sensorCode']) {
@@ -181,43 +178,21 @@ class PairingController extends AbstractController {
 
             $end = new DateTime($data['date-pairing']);
             $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->findByNameOrCode($data['sensor'], $data['sensorCode']);
-            $article = $entityManager->getRepository(Article::class)->find($data['article']);
-            $pack = $entityManager->getRepository(Pack::class)->find($data['pack']);
 
-            $typeLocation = explode(':',$data['locations']);
-            if($typeLocation[0] == 'location'){
-                $location = $entityManager->getRepository(Emplacement::class)->find($typeLocation[1]);
-                $locationGroup = null;
-            }else {
-                $locationGroup = $entityManager->getRepository(LocationGroup::class)->find($typeLocation[1]);
-                $location = null;
-                $locations = $locationGroup->getLocations();
-                foreach ($locations as $locationPairing) {
-                    $pairings = $locationPairing->getPairings();
-                    foreach ($pairings as $pairing) {
-                        if ($pairing->isActive()) {
-                            return new JsonResponse([
-                                'success' => false,
-                                'msg' => 'Ce groupe contient un emplacement ayant déjà une association. Veuillez la supprimer pour continuer'
-                            ]);}
-                    }
-                    $pairingLocation = $pairingService->createPairing($end, $sensorWrapper, $article, $locationPairing, null, $pack);
-
-                    $entityManager->persist($pairingLocation);
-
-                    try {
-                        $entityManager->flush();
-                    } /** @noinspection PhpRedundantCatchClauseInspection */
-                    catch (UniqueConstraintViolationException $e) {
-                        return new JsonResponse([
-                            'success' => false,
-                            'msg' => 'Une autre association est en cours de création, veuillez réessayer.'
-                        ]);
-                    }
+            if($data['article']) {
+                $article = $entityManager->getRepository(Article::class)->find($data['article']);
+            } else if($data['pack']) {
+                $pack = $entityManager->getRepository(Pack::class)->find($data['pack']);
+            } else {
+                $typeLocation = explode(':', $data['locations']);
+                if ($typeLocation[0] == 'location') {
+                    $location = $entityManager->getRepository(Emplacement::class)->find($typeLocation[1]);
+                } else {
+                    $locationGroup = $entityManager->getRepository(LocationGroup::class)->find($typeLocation[1]);
                 }
             }
-            $pairingLocation = $pairingService->createPairing($end, $sensorWrapper, $article, $location, $locationGroup, $pack);
 
+            $pairingLocation = $pairingService->createPairing($end, $sensorWrapper, $article ?? null, $location ?? null, $locationGroup ?? null, $pack ?? null);
             $entityManager->persist($pairingLocation);
 
             try {

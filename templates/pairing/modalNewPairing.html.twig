@@ -13,7 +13,7 @@
                     <div class="form-group col-md-4 col-12">
                         <label>Nom capteur*</label>
                         <div class="w-100">
-                            <select class="form-control data input" name="sensor"  data-s2 data-placeholder="Sélectionner un capteur...">
+                            <select class="form-control data input" name="sensor" data-s2 data-placeholder="Sélectionner un capteur...">
                                 {% for sensorWrapper in sensorWrappers %}
                                     <option value="{{ sensorWrapper.name }}">{{ sensorWrapper.name }}</option>
                                 {% endfor %}
@@ -37,62 +37,61 @@
                     <div class="col-12">
                         <input type="date" class="form-control data w-100" name="date-pairing" id="datePairing">
                     </div>
-                    <label class="col-12">Element*</label>
-
-                        <div class="col-3 d-flex justify-content-center my-auto">
+                    <label class="col-12 mt-2">Element*</label>
+                    <div class="col-12 d-flex">
+                        <div class="d-flex justify-content-center mr-2">
                             <button type="button"
                                     class="btn btn-primary button-location data"
-                                    onclick="visible($('.location'), $('.modal-footer') )">
+                                    onclick="visible($('.location'))">
                                 <span class="wii-icon wii-icon-iot-location mr-2"></span>
                                 Emplacement
                             </button>
                         </div>
-                        <div class="col-3 d-flex justify-content-center my-auto" >
+                        <div class="d-flex justify-content-center mr-2">
                             <button type="button"
                                     class="btn btn-primary button-pack data"
-                                    onclick="visible($('.pack'), $('.modal-footer') )">
+                                    onclick="visible($('.pack'))">
                                 <span class="wii-icon wii-icon-iot-pack mr-2"></span>
                                 Colis
                             </button>
                         </div>
-                        <div class="col- d-flex justify-content-center my-auto" >
+                        <div class="d-flex justify-content-center mr-2">
                             <button type="button"
                                     class="btn btn-primary button-article data"
-                                    onclick="visible($('.article'), $('.modal-footer') )">
+                                    onclick="visible($('.article'))">
                                 <span class="wii-icon wii-icon-iot-article mr-2"></span>
                                 Article
                             </button>
                         </div>
+                    </div>
 
-                    <div class="w-100 container location d-none">
-                        <label class="col-12">Emplacement*</label>
-                        <div class="form-group col-md-4 col-12 ">
-                            <select class="form-control data" name="locations">
-
-                            </select>
+                    <div class="col-12 mt-2 container location d-none">
+                        <div class="row">
+                            <label class="col-12">Emplacement*</label>
+                            <div class="form-group col-md-4 col-12">
+                                <select class="form-control data w-100" name="locations" data-s2="locationWithoutPairing"
+                                        data-placeholder="Sélectionnez un emplacement"></select>
+                            </div>
                         </div>
                     </div>
 
-
-                    <div class="w-100 container pack d-none">
-                        <label class="col-12">Colis*</label>
-                        <div class="form-group col-md-4 col-12 ">
-                            <select class="form-control data" name="pack" data-s2 data-placeholder="Sélectionner un code colis...">
-                                {% for  pack in packs %}
-                                    <option value="{{ pack }}">{{ pack }}</option>
-                                {% endfor %}
-                            </select>
+                    <div class="col-12 mt-2 container pack d-none">
+                        <div class="row">
+                            <label class="col-12">Colis*</label>
+                            <div class="form-group col-md-4 col-12">
+                                <select class="form-control data w-100" name="pack" data-s2="packWithoutPairing"
+                                        data-placeholder="Sélectionnez un code colis">
+                                </select>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="w-100 container article disabled d-none">
-                        <label class="col-12">Code-barre article *</label>
-                        <div class="form-group col-md-4 col-12 ">
-                            <div class="w-100">
-                                <select class="form-control data" name="article" data-s2 data-placeholder="Sélectionner un code barre...">
-                                    {% for article in articles %}
-                                        <option value="{{ article.barCode }}">{{ article.barCode }}</option>
-                                    {% endfor %}
+                    <div class="col-12 mt-2 container article d-none">
+                        <div class="row">
+                            <label class="col-12">Code-barre article*</label>
+                            <div class="form-group col-md-4 col-12">
+                                <select class="form-control data w-100" name="article" data-s2="articleWithoutPairing"
+                                        data-placeholder="Sélectionnez un code barre">
                                 </select>
                             </div>
                         </div>

@@ -236,14 +236,14 @@ class EmplacementRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function getWithNoAssociationForSelect() {
-        $qb = $this->createQueryBuilder('location');
-        $qb
+    public function getWithNoAssociationForSelect($term) {
+        return $this->createQueryBuilder('location')
             ->select("CONCAT('location:', location.id) AS id")
             ->addSelect('location.label AS text')
             ->leftJoin('location.pairings', 'pairings')
-            ->where('pairings.location is null');
-        return $qb
+            ->where('pairings.location is null')
+            ->andWhere("location.label LIKE :term")
+            ->setParameter("term", "%$term%")
             ->getQuery()
             ->getResult();
     }
