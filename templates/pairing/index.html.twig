@@ -17,6 +17,8 @@
                 <div class="btn-group">
                     {% if hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::CREATE')) %}
                         <button type="button"
+                                data-toggle="modal"
+                                data-target="#modalNewPairing"
                                 class="btn btn-primary split-button btn-ripple">
                             <span class="fa fa-plus mr-2"></span>
                             Associer un capteur
@@ -28,6 +30,8 @@
         <div class="row pairings">
         </div>
     </div>
+
+    {% include 'pairing/modalNewPairing.html.twig' %}
 {% endblock %}
 
 {% block javascripts %}

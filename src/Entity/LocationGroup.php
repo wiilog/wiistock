@@ -14,7 +14,8 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass=LocationGroupRepository::class)
  */
-class LocationGroup implements PairedEntity {
+class LocationGroup implements PairedEntity
+{
 
     use SensorMessageTrait;
 
@@ -50,40 +51,48 @@ class LocationGroup implements PairedEntity {
      */
     private Collection $pairings;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->locations = new ArrayCollection();
         $this->sensorMessages = new ArrayCollection();
     }
 
-    public function getId(): ?int {
+    public function getId(): ?int
+    {
         return $this->id;
     }
 
-    public function getName(): ?string {
+    public function getName(): ?string
+    {
         return $this->name;
     }
 
-    public function setName(string $name): self {
+    public function setName(string $name): self
+    {
         $this->name = $name;
 
         return $this;
     }
 
-    public function getDescription(): ?string {
+    public function getDescription(): ?string
+    {
         return $this->description;
     }
 
-    public function setDescription(?string $description): self {
+    public function setDescription(?string $description): self
+    {
         $this->description = $description;
 
         return $this;
     }
 
-    public function isActive(): ?string {
+    public function isActive(): ?string
+    {
         return $this->active;
     }
 
-    public function setActive(?string $active): self {
+    public function setActive(?string $active): self
+    {
         $this->active = $active;
 
         return $this;
@@ -92,11 +101,13 @@ class LocationGroup implements PairedEntity {
     /**
      * @return Collection|Emplacement[]
      */
-    public function getLocations(): Collection {
+    public function getLocations(): Collection
+    {
         return $this->locations;
     }
 
-    public function addLocation(Emplacement $location): self {
+    public function addLocation(Emplacement $location): self
+    {
         if (!$this->locations->contains($location)) {
             $this->locations[] = $location;
             $location->setLocationGroup($this);
@@ -105,7 +116,8 @@ class LocationGroup implements PairedEntity {
         return $this;
     }
 
-    public function removeLocation(Emplacement $location): self {
+    public function removeLocation(Emplacement $location): self
+    {
         if ($this->locations->removeElement($location)) {
             if ($location->getLocationGroup() === $this) {
                 $location->setLocationGroup(null);
@@ -115,7 +127,8 @@ class LocationGroup implements PairedEntity {
         return $this;
     }
 
-    public function setLocations(?array $locations): self {
+    public function setLocations(?array $locations): self
+    {
         foreach ($this->getLocations()->toArray() as $location) {
             $this->removeLocation($location);
         }
@@ -158,11 +171,18 @@ class LocationGroup implements PairedEntity {
         return $this;
     }
 
-    public function getActivePairing(): ?Pairing {
+    public function getActivePairing(): ?Pairing
+    {
         $criteria = Criteria::create();
         return $this->pairings
             ->matching($criteria->andWhere(Criteria::expr()->eq('active', true)))
             ->first() ?: null;
     }
+
+    public function __toString(): string
+    {
+        return $this->getName();
+    }
+
 
 }

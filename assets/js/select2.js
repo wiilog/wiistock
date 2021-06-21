@@ -11,6 +11,9 @@ const ROUTES = {
     sensor: `ajax_select_sensors`,
     sensorWrapper: `ajax_select_sensor_wrappers`,
     reference: `ajax_select_references`,
+    packWithoutPairing: `ajax_select_packs_without_pairing`,
+    articleWithoutPairing: `ajax_select_articles_without_pairing`,
+    locationWithoutPairing: `ajax_select_locations_without_pairing`,
 }
 
 const INSTANT_SELECT_TYPES = {

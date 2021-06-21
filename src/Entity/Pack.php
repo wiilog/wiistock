@@ -367,9 +367,9 @@ class Pack implements PairedEntity
     }
 
     /**
-     * @return ArrayCollection
+     * @return LocationClusterRecord[]|Collection
      */
-    public function getLocationClusterRecords(): ArrayCollection {
+    public function getLocationClusterRecords(): Collection {
         return $this->locationClusterRecords;
     }
 

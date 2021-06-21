@@ -1,5 +1,7 @@
 let sensorWrappersSelectValue = '';
 
+let $modalNewPairing = $("#modalNewPairing");
+
 $(function () {
     pairingList();
 
@@ -15,6 +17,15 @@ $(function () {
         const activeButtons = getActiveButtonsValues();
 
         pairingList(searchValue, sensorWrappersSelectValue, activeButtons.activeTypeButtons, activeButtons.activeElementButtons)
+    });
+
+    let submitNewPairing = $("#submitNewPairing");
+    let urlNewPairing = Routing.generate('pairing_new', true)
+    InitModal($modalNewPairing, submitNewPairing, urlNewPairing, {
+        success: () => {
+            $modalNewPairing.find(`.container`).addClass(`d-none`);
+            filter();
+        }
     });
 });
 
@@ -125,4 +136,19 @@ function getSearchValue() {
 
 function getFilterValue() {
     return $('.filter-select2[name=sensorWrappers]').val();
+}
+
+function visible($element) {
+    const $containers = $modalNewPairing.find(`.container`);
+    $containers.addClass('d-none');
+    $containers.find(`.data`)
+        .addClass(`data-hidden`)
+        .removeClass(`data`)
+        .val(null)
+        .trigger(`change`);
+
+    $element.removeClass('d-none');
+    $element.find(`.data-hidden`).removeClass(`data-hidden`).addClass(`data`);
+
+    $modalNewPairing.find(`.modal-footer`).removeClass('d-none');
 }

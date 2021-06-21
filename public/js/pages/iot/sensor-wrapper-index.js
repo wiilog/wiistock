@@ -21,16 +21,17 @@ function initPageDataTable() {
             needsSearchOverride: true,
         },
         columns: [
-            {"data": 'actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},
-            {"data": 'type', 'name': 'type', 'title': 'Type'},
-            {"data": 'profile', 'name': 'profile', 'title': 'Profil'},
-            {"data": 'name', 'name': 'name', 'title': 'Nom'},
-            {"data": 'code', 'name': 'code', 'title': 'Code'},
-            {"data": 'lastLift', 'name': 'lastLift', 'title': 'Dernière remontée'},
-            {"data": 'battery', 'name': 'battery', 'title': 'Niveau de batterie'},
-            {"data": 'manager', 'name': 'manager', 'title': 'Gestionnaire'},
+            {data: 'actions', name: 'Actions', title: '', className: 'noVis', orderable: false},
+            {data: 'type', name: 'type', title: 'Type'},
+            {data: 'profile', name: 'profile', title: 'Profil'},
+            {data: 'name', name: 'name', title: 'Nom'},
+            {data: 'code', name: 'code', title: 'Code'},
+            {data: 'lastLift', name: 'lastLift', title: 'Dernière remontée'},
+            {data: 'battery', name: 'battery', title: 'Niveau de batterie'},
+            {data: 'manager', name: 'manager', title: 'Gestionnaire'},
         ]
     };
+
     return initDataTable('tableSensorWrapper', sensorWrapperTableConfig);
 }
 

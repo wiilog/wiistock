@@ -265,6 +265,8 @@ class Pairing
     public function getEntity(): ?PairedEntity {
         if($this->getLocation() !== null) {
             return $this->location;
+        } else if($this->getLocationGroup() !== null) {
+            return $this->locationGroup;
         } else if($this->getArticle() !== null) {
             return $this->article;
         } else if($this->getPack() !== null){

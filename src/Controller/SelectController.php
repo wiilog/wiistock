@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Article;
 use App\Entity\Box;
 use App\Entity\BoxType;
 use App\Entity\CategoryType;
@@ -12,6 +13,8 @@ use App\Entity\Group;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\Location;
+use App\Entity\LocationGroup;
+use App\Entity\Pack;
 use App\Entity\Quality;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
@@ -131,6 +134,42 @@ class SelectController extends AbstractController {
 
         return $this->json([
             "results" => $results
+        ]);
+    }
+
+    /**
+     * @Route("/select/colis-sans-association", name="ajax_select_packs_without_pairing", options={"expose"=true})
+     */
+    public function packsWithoutPairing(Request $request, EntityManagerInterface $entityManager): Response {
+        $results = $entityManager->getRepository(Pack::class)->findWithNoPairing($request->query->get("term"));
+
+        return $this->json([
+            "results" => $results
+        ]);
+    }
+
+    /**
+     * @Route("/select/articles-sans-association", name="ajax_select_articles_without_pairing", options={"expose"=true})
+     */
+    public function articlesWithoutPairing(Request $request, EntityManagerInterface $entityManager): Response {
+        $results = $entityManager->getRepository(Article::class)->findWithNoPairing($request->query->get("term"));
+
+        return $this->json([
+            "results" => $results
+        ]);
+    }
+
+    /**
+     * @Route("/select/emplacements-sans-association", name="ajax_select_locations_without_pairing", options={"expose"=true}, methods="GET|POST")
+     */
+    public function locationsWithoutPairing(Request $request, EntityManagerInterface $entityManager){
+        $locationGroups = $entityManager->getRepository(LocationGroup::class)->getWithNoAssociationForSelect($request->query->get("term"));
+        $locations = $entityManager->getRepository(Emplacement::class)->getWithNoAssociationForSelect($request->query->get("term"));
+        $allLocations = array_merge($locations, $locationGroups);
+        usort($allLocations, fn($a, $b) => strtolower($a['text']) <=> strtolower($b['text']));
+
+        return $this->json([
+            'results' => $allLocations
         ]);
     }
 

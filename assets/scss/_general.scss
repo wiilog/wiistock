@@ -513,7 +513,13 @@ label.required:after {
     }
 }
 
-.wii-icon-pairing {
+.wii-icon-pairing, .wii-icon-iot-article, .wii-icon-iot-location, .wii-icon-iot-pack{
+    background-color: white;
+    width:15px;
+    height: 15px;
+    display:inline-block;
+}
+.wii-icon-pairing{
     background-color: darkblue;
     width:15px;
     height: 15px;

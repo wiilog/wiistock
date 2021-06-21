@@ -12,6 +12,7 @@ use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Livraison;
+use App\Entity\LocationGroup;
 use App\Entity\Menu;
 
 use App\Entity\MouvementStock;

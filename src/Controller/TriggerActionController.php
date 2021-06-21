@@ -254,7 +254,6 @@ class TriggerActionController extends AbstractController
         $sensorRepository = $entityManager->getRepository(Sensor::class);
 
         $query = $request->query;
-
         $type = "";
         if ($query->has('name')){
             $name = $query->get('name');
