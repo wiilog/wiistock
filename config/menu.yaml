@@ -236,6 +236,11 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::PARAM
                         action: App\Entity\Action::DISPLAY_CF
+                -   label: 'Modèles de notifications'
+                    #path: 'notifications_template'
+                    rights:
+                        menu: App\Entity\Menu::PARAM
+                        action: App\Entity\Action::DISPLAY_NOTIFICATIONS
                 -   label: 'Import et mise à jour'
                     path: 'import_index'
                     rights:
