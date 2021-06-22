@@ -47,31 +47,25 @@ function ajaxGetCollecteArticle(select) {
     let $selection = $('#selection');
     let $editNewArticle = $('#editNewArticle');
     let modalNewArticle = '#modalNewArticle';
-    let xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            data = JSON.parse(this.responseText);
-            $selection.html(data.selection);
-            if (data.modif) {
-                $editNewArticle.html(data.modif);
-                registerNumberInputProtection($editNewArticle.find('input[type="number"]'));
-            }
-            $(modalNewArticle).find('.modal-footer').removeClass('d-none');
-            toggleRequiredChampsLibres(select.closest('.modal').find('#type'), 'edit');
-            Select2Old.location($('.ajax-autocomplete-location-edit'));
-            Select2Old.user($('.ajax-autocomplete-user-edit[name=managers]'));
-            initEditor(modalNewArticle + ' .editor-container-edit');
-            $('.list-multiple').select2();
-        }
-    }
-    path = Routing.generate('get_collecte_article_by_refArticle', true);
-    $selection.html('');
-    $editNewArticle.html('');
     let data = {};
     data['referenceArticle'] = $(select).val();
-    json = JSON.stringify(data);
-    xhttp.open("POST", path, true);
-    xhttp.send(json);
+
+    let path = Routing.generate('get_collecte_article_by_refArticle', true);
+    let params = JSON.stringify(data);
+    $.post(path, params).then((data) => {
+        if (data.modif) {
+            $editNewArticle.html(data.modif);
+            registerNumberInputProtection($editNewArticle.find('input[type="number"]'));
+        }
+        $(modalNewArticle).find('.modal-footer').removeClass('d-none');
+        toggleRequiredChampsLibres(select.closest('.modal').find('#type'), 'edit');
+        Select2Old.location($('.ajax-autocomplete-location-edit'));
+        Select2Old.user($('.ajax-autocomplete-user-edit[name=managers]'));
+        initEditor(modalNewArticle + ' .editor-container-edit');
+        $('.list-multiple').select2();
+    });
+    $selection.html('');
+    $editNewArticle.html('');
 }
 
 function validateCollecte(collecteId, $button) {

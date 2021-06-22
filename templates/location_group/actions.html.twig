@@ -2,6 +2,14 @@
     <div class="dropdown dropright">
         {{ include('datatable/dotsRow.html.twig') }}
         <div class="dropdown-menu dropdown-follow-gt pointer">
+            {% if hasPairing
+                and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')) %}
+                <a class="dropdown-item"
+                   href="{{ path('show_data_history', {id: group.id, type: constant('App\\Entity\\IOT\\Sensor::LOCATION_GROUP')}) }}">
+                    <span class="wii-icon wii-icon-pairing"></span>
+                    Historique des données
+                </a>
+            {% endif %}
             {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::EDIT')) %}
                 <div class="d-none">
                     <div class="action-on-click"
@@ -9,7 +17,7 @@
                          data-target="#modalEditLocationGroup"
                          data-id="{{ group.id }}"
                          onclick="editRow($(this), Routing.generate('location_group_edit_api', true), $('#modalEditLocationGroup'), $('#submitEditLocationGroup'))">
-                        <i class="fas fa-trash mr-2"></i>Supprime
+                        <i class="fas fa-trash mr-2"></i>Modifier
                     </div>
                 </div>
             {% endif %}

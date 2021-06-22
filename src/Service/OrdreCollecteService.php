@@ -9,7 +9,6 @@ use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorWrapper;
-use App\Entity\MailerServer;
 use App\Entity\MouvementStock;
 use App\Entity\TrackingMovement;
 use App\Entity\OrdreCollecte;
@@ -26,9 +25,6 @@ use Symfony\Component\Routing\Router;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Twig\Environment as Twig_Environment;
-use Twig\Error\LoaderError as Twig_Error_Loader;
-use Twig\Error\RuntimeError as Twig_Error_Runtime;
-use Twig\Error\SyntaxError as Twig_Error_Syntax;
 
 class OrdreCollecteService
 {
@@ -86,18 +82,6 @@ class OrdreCollecteService
         return $this;
     }
 
-    /**
-     * @param OrdreCollecte $ordreCollecte
-     * @param Utilisateur $user
-     * @param DateTime $date
-     * @param array $mouvements
-     * @param bool $fromNomade
-     * @return OrdreCollecte|null
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
-     * @throws ArticleNotAvailableException
-     */
     public function finishCollecte(OrdreCollecte $ordreCollecte,
                                    Utilisateur $user,
                                    DateTime $date,
@@ -117,7 +101,6 @@ class OrdreCollecteService
 		$statutRepository = $em->getRepository(Statut::class);
 		$ordreCollecteReferenceRepository = $em->getRepository(OrdreCollecteReference::class);
         $emplacementRepository = $em->getRepository(Emplacement::class);
-        $mailerServerRepository = $em->getRepository(MailerServer::class);
 
         $statusActiveReference = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF);
 
@@ -273,14 +256,6 @@ class OrdreCollecteService
 		return $newCollecte ?? null;
 	}
 
-    /**
-     * @param null $params
-     * @param null $demandeCollecteIdFilter
-     * @return array
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
-     */
 	public function getDataForDatatable($params = null, $demandeCollecteIdFilter = null)
 	{
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -316,6 +291,7 @@ class OrdreCollecteService
 
         $lastMessage = $collecte->getLastMessage();
         $sensorCode = ($lastMessage && $lastMessage->getSensor()) ? $lastMessage->getSensor()->getCode() : null;
+        $hasPairing = !$collecte->getPairings()->isEmpty();
 
         $url['show'] = $this->router->generate('ordre_collecte_show', ['id' => $collecte->getId()]);
         return [
@@ -327,9 +303,11 @@ class OrdreCollecteService
             'Type' => $demandeCollecte && $demandeCollecte->getType() ? $demandeCollecte->getType()->getLabel() : '',
             'Actions' => $this->templating->render('ordre_collecte/datatableCollecteRow.html.twig', [
                 'url' => $url,
+                'hasPairing' => $hasPairing,
             ]),
             'pairing' => $this->templating->render('pairing-icon.html.twig', [
-                'linkedPairing' => $sensorCode ? "Dernier capteur ayant remonté un message : <strong>${sensorCode}</strong>" : null
+                'sensorCode' => $sensorCode,
+                'hasPairing' => $hasPairing
             ]),
         ];
     }

@@ -4,10 +4,8 @@ namespace App\Controller;
 
 use App\Entity\Role;
 use App\Service\MailerService;
-use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Form\UtilisateurType;
 use App\Entity\Utilisateur;
@@ -22,9 +20,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use App\Service\UserService;
 use Twig\Environment as Twig_Environment;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 use DateTime;
 use DateTimeZone;
 
@@ -87,10 +82,6 @@ class SecuriteController extends AbstractController {
 
     /**
      * @Route("/login/{info}", name="login", options={"expose"=true})
-     * @param AuthenticationUtils $authenticationUtils
-     * @param EntityManagerInterface $entityManager
-     * @param string $info
-     * @return Response
      */
     public function login(AuthenticationUtils $authenticationUtils,
                           EntityManagerInterface $entityManager,
@@ -125,16 +116,8 @@ class SecuriteController extends AbstractController {
 
     /**
      * @Route("/register", name="register")
-     * @param Request $request
-     * @param UserPasswordEncoderInterface $passwordEncoder
-     * @param EntityManagerInterface $entityManager
-     * @return RedirectResponse|Response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
      */
     public function register(Request $request,
-                             UserPasswordEncoderInterface $passwordEncoder,
                              PasswordService $passwordService,
                              EntityManagerInterface $entityManager) {
         $session = $request->getSession();
@@ -153,11 +136,11 @@ class SecuriteController extends AbstractController {
                 $form->get("plainPassword")->get("second")->addError(new FormError($check["message"]));
             } else {
                 $uniqueMobileKey = $this->userService->createUniqueMobileLoginKey($entityManager);
-                $password = $passwordEncoder->encodePassword($user, $user->getPlainPassword());
+                $password = $this->passwordEncoder->encodePassword($user, $user->getPlainPassword());
                 $user
                     ->setStatus(true)
                     ->setPassword($password)
-                    ->setRole($roleRepository->findOneByLabel(Role::NO_ACCESS_USER))
+                    ->setRole($roleRepository->findOneBy(['label' => Role::NO_ACCESS_USER]))
                     ->setMobileLoginKey($uniqueMobileKey);
                 $entityManager->persist($user);
                 $entityManager->flush();
@@ -189,9 +172,6 @@ class SecuriteController extends AbstractController {
 
     /**
      * @Route("/check_last_login", name="check_last_login")
-     * @param EntityManagerInterface $em
-     * @return RedirectResponse
-     * @throws Exception
      */
     public function checkLastLogin(EntityManagerInterface $em) {
         /** @var Utilisateur $user */
@@ -266,8 +246,6 @@ class SecuriteController extends AbstractController {
 
     /**
      * @Route("/change-password", name="change_password", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @return Response
      */
     public function change_password(Request $request) {
         $token = $request->get('token');
@@ -278,8 +256,7 @@ class SecuriteController extends AbstractController {
      * @Route("/change-password-in-bdd", name="change_password_in_bdd", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function change_password_in_bdd(Request $request,
-                                           EntityManagerInterface $entityManager,
-                                           UserPasswordEncoderInterface $passwordEncoder): Response {
+                                           EntityManagerInterface $entityManager): Response {
         if($data = json_decode($request->getContent(), true)) {
 
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
@@ -295,7 +272,7 @@ class SecuriteController extends AbstractController {
 
                 if($result['response'] == true) {
                     if($password !== '') {
-                        $password = $passwordEncoder->encodePassword($user, $password);
+                        $password = $this->passwordEncoder->encodePassword($user, $password);
                         $user->setPassword($password);
                         $user->setToken(null);
 

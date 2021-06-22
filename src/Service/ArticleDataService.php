@@ -323,7 +323,7 @@ class ArticleDataService
         if (isset($data['emplacement'])) {
 			$location = $emplacementRepository->find($data['emplacement']);
 		} else {
-        	$location = $emplacementRepository->findOneByLabel(Emplacement::LABEL_A_DETERMINER);
+        	$location = $emplacementRepository->findOneBy(['label' => Emplacement::LABEL_A_DETERMINER]);
         	if (!$location) {
         		$location = new Emplacement();
         		$location
@@ -428,11 +428,11 @@ class ArticleDataService
         ];
     }
 
-    public function dataRowArticle($article, Reception $reception = null)
+    public function dataRowArticle(Article $article, Reception $reception = null)
     {
         $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
         $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
-        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
+        $categorieCL = $categorieCLRepository->findOneBy(['label' => CategorieCL::ARTICLE]);
 
         $category = CategoryType::ARTICLE;
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
@@ -449,6 +449,7 @@ class ArticleDataService
 
         $lastMessage = $article->getLastMessage();
         $sensorCode = ($lastMessage && $lastMessage->getSensor()) ? $lastMessage->getSensor()->getCode() : null;
+        $hasPairing = !$article->getPairings()->isEmpty(); // TODO check pairing of preparations ?
 
         $row = [
             "id" => $article->getId() ?? "Non défini",
@@ -473,10 +474,11 @@ class ArticleDataService
                 'articleFilter' => $article->getBarCode(),
                 'fromReception' => isset($reception),
                 'receptionId' => $reception ? $reception->getId() : null,
-                'pairings' => $article->getPairings() ?? null,
+                'hasPairing' => $hasPairing
             ]),
             'pairing' => $this->templating->render('pairing-icon.html.twig', [
-                'linkedPairing' => $sensorCode ? "Dernier capteur ayant remonté un message : <strong>${sensorCode}</strong>" : null
+                'sensorCode' => $sensorCode,
+                'hasPairing' => $hasPairing
             ]),
         ];
 
@@ -520,7 +522,7 @@ class ArticleDataService
 
             if (isset($this->clWantedOnLabel)) {
                 $champLibre = $champLibreRepository->findOneBy([
-                    'categorieCL' => $categoryCLRepository->findOneByLabel(CategoryType::ARTICLE),
+                    'categorieCL' => $categoryCLRepository->findOneBy(['label' => CategoryType::ARTICLE]),
                     'label' => $this->clWantedOnLabel
                 ]);
 
@@ -631,7 +633,7 @@ class ArticleDataService
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
-        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
+        $categorieCL = $categorieCLRepository->findOneBy(['label' => CategorieCL::ARTICLE]);
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, $categorieCL);
 
         $fieldConfig = [

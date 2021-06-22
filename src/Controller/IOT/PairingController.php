@@ -71,8 +71,10 @@ class PairingController extends AbstractController {
             $type = $sensor ? FormatHelper::type($sensor->getType()) : '';
 
             $elementIcon = "";
-            if($pairing->getEntity() instanceof Emplacement || $pairing->getEntity() instanceof LocationGroup) {
+            if($pairing->getEntity() instanceof Emplacement) {
                 $elementIcon = Sensor::LOCATION;
+            } else if($pairing->getEntity() instanceof LocationGroup) {
+                $elementIcon = Sensor::LOCATION_GROUP;
             } else if($pairing->getEntity() instanceof Article) {
                 $elementIcon = Sensor::ARTICLE;
             } else if($pairing->getEntity() instanceof Pack) {

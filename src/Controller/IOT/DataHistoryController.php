@@ -8,6 +8,7 @@ use App\Entity\Article;
 use App\Entity\Emplacement;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Sensor;
+use App\Entity\LocationGroup;
 use App\Entity\Menu;
 
 use App\Entity\OrdreCollecte;
@@ -118,6 +119,9 @@ class DataHistoryController extends AbstractController {
             case Sensor::LOCATION:
                 $entity = $entityManager->getRepository(Emplacement::class)->find($id);
                 break;
+            case Sensor::LOCATION_GROUP:
+                $entity = $entityManager->getRepository(LocationGroup::class)->find($id);
+                break;
             case Sensor::ARTICLE:
                 $entity = $entityManager->getRepository(Article::class)->find($id);
                 break;
@@ -140,6 +144,8 @@ class DataHistoryController extends AbstractController {
         $breadcrumb = 'IOT | Associations';
         if($entity instanceof Emplacement) {
             $breadcrumb = 'Référentiel | Emplacements';
+        } else if($entity instanceof LocationGroup) {
+            $breadcrumb = "Référentiel | Groupe d'emplacement";
         } else if($entity instanceof Article) {
             $breadcrumb = 'Stock | Articles';
         } else if($entity instanceof Pack) {
