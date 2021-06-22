@@ -86,16 +86,19 @@ class PackService
         $fromColumnData = $this->trackingMovementService->getFromColumnData($firstMovement ?: null);
 
         $lastMessage = $pack->getLastMessage();
+        $hasPairing = !$pack->getPairings()->isEmpty();
         $sensorCode = ($lastMessage && $lastMessage->getSensor()) ? $lastMessage->getSensor()->getCode() : null;
 
         /** @var TrackingMovement $lastPackMovement */
         $lastPackMovement = $pack->getLastTracking();
         return [
             'actions' => $this->template->render('pack/datatablePackRow.html.twig', [
-                'pack' => $pack
+                'pack' => $pack,
+                'hasPairing' => $hasPairing
             ]),
             'pairing' => $this->template->render('pairing-icon.html.twig', [
-                'sensorCode' => $sensorCode
+                'sensorCode' => $sensorCode,
+                'hasPairing' => $hasPairing
             ]),
             'packNum' => $pack->getCode(),
             'packNature' => $pack->getNature() ? $pack->getNature()->getLabel() : '',

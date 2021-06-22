@@ -2,9 +2,10 @@
     <div class="dropdown dropright">
         {{ include('datatable/dotsRow.html.twig') }}
         <div class="dropdown-menu dropdown-follow-gt pointer">
-            {% if (group.lastMessage or locationLastMessage) and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')) %}
+            {% if hasPairing
+                and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')) %}
                 <a class="dropdown-item"
-                   href="{{ path('show_data_history', {id: group.id, type: constant('App\\Entity\\IOT\\Sensor::LOCATION')}) }}" target="_blank">
+                   href="{{ path('show_data_history', {id: group.id, type: constant('App\\Entity\\IOT\\Sensor::LOCATION_GROUP')}) }}">
                     <span class="wii-icon wii-icon-pairing"></span>
                     Historique des données
                 </a>

@@ -97,6 +97,14 @@ class EmplacementDataService {
                 ? $locationLastMessage->getSensor()->getCode()
                 : null);
 
+        $hasPairing = (
+            !$emplacement->getPairings()->isEmpty()
+            || (
+                $emplacement->getLocationGroup()
+                && $emplacement->getLocationGroup()->getPairings()->isEmpty()
+            )
+        );
+
         return [
             'id' => $emplacement->getId(),
             'name' => $emplacement->getLabel() ?: 'Non défini',
@@ -110,10 +118,12 @@ class EmplacementDataService {
                 'url' => $url,
                 'emplacementId' => $emplacement->getId(),
                 'location' => $emplacement,
-                'linkedGroup' => $linkedGroup
+                'linkedGroup' => $linkedGroup,
+                'hasPairing' => $hasPairing
             ]),
             'pairing' => $this->templating->render('pairing-icon.html.twig', [
-                'sensorCode' => $sensorCode
+                'sensorCode' => $sensorCode,
+                'hasPairing' => $hasPairing
             ]),
         ];
     }

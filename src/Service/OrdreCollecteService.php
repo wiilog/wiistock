@@ -291,6 +291,7 @@ class OrdreCollecteService
 
         $lastMessage = $collecte->getLastMessage();
         $sensorCode = ($lastMessage && $lastMessage->getSensor()) ? $lastMessage->getSensor()->getCode() : null;
+        $hasPairing = !$collecte->getPairings()->isEmpty();
 
         $url['show'] = $this->router->generate('ordre_collecte_show', ['id' => $collecte->getId()]);
         return [
@@ -302,9 +303,11 @@ class OrdreCollecteService
             'Type' => $demandeCollecte && $demandeCollecte->getType() ? $demandeCollecte->getType()->getLabel() : '',
             'Actions' => $this->templating->render('ordre_collecte/datatableCollecteRow.html.twig', [
                 'url' => $url,
+                'hasPairing' => $hasPairing,
             ]),
             'pairing' => $this->templating->render('pairing-icon.html.twig', [
-                'sensorCode' => $sensorCode
+                'sensorCode' => $sensorCode,
+                'hasPairing' => $hasPairing
             ]),
         ];
     }

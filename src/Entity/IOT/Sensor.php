@@ -24,6 +24,7 @@ class Sensor
     ];
 
     const LOCATION = 'location';
+    const LOCATION_GROUP = 'location-group';
     const PACK = 'pack';
     const ARTICLE = 'article';
     const PREPARATION = 'preparation';
@@ -35,6 +36,7 @@ class Sensor
         'Article' => self::ARTICLE,
         'Préparation' => self::PREPARATION,
         'Ordre de collecte' => self::COLLECT,
+        "Groupe d'emplacement" => self::LOCATION_GROUP,
     ];
 
     /**

@@ -9,6 +9,7 @@ use App\Entity\Emplacement;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;
+use App\Entity\LocationGroup;
 use App\Entity\Menu;
 
 use App\Entity\OrdreCollecte;
@@ -66,7 +67,9 @@ class PairingController extends AbstractController {
             $type = $sensor ? FormatHelper::type($sensor->getType()) : '';
 
             $elementIcon = "";
-            if($pairing->getEntity() instanceof Emplacement) {
+            if($pairing->getEntity() instanceof LocationGroup) {
+                $elementIcon = Sensor::LOCATION_GROUP;
+            } else if($pairing->getEntity() instanceof Emplacement) {
                 $elementIcon = Sensor::LOCATION;
             } else if($pairing->getEntity() instanceof Article) {
                 $elementIcon = Sensor::ARTICLE;

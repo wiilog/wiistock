@@ -37,7 +37,14 @@ class LocationGroupService {
     public function dataRowGroup(LocationGroup $group) {
 
         $groupLastMessage = $group->getLastMessage();
-        $locationLastMessage = $group->getLocations()->filter(fn(Emplacement $location) => $location->getLastMessage())->first();
+
+        $locationLastMessage = null;
+        foreach ($group->getLocations() as $location) {
+            if ($location->getLastMessage()) {
+                $locationLastMessage = $location->getLastMessage();
+                break;
+            }
+        }
 
         $sensorCode = $groupLastMessage
             ? $groupLastMessage->getSensor()->getCode()
@@ -45,13 +52,24 @@ class LocationGroupService {
                 ? $locationLastMessage->getSensor()->getCode()
                 : null);
 
+        $hasPairing = !$group->getPairings()->isEmpty();
+        if (!$hasPairing) {
+            foreach ($group->getLocations() as $location) {
+                if (!$location->getPairings()->isEmpty()) {
+                    $hasPairing = true;
+                    break;
+                }
+            }
+        }
+
         return [
             "actions" => $this->template->render('location_group/actions.html.twig', [
                 "group" => $group,
-                "locationLastMessage" => $locationLastMessage
+                "hasPairing" => $hasPairing
             ]),
             'pairing' => $this->template->render('pairing-icon.html.twig', [
-                'sensorCode' => $sensorCode
+                'sensorCode' => $sensorCode,
+                'hasPairing' => $hasPairing
             ]),
             "name" => $group->getName(),
             "description" => $group->getDescription(),

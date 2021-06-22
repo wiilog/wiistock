@@ -449,6 +449,7 @@ class ArticleDataService
 
         $lastMessage = $article->getLastMessage();
         $sensorCode = ($lastMessage && $lastMessage->getSensor()) ? $lastMessage->getSensor()->getCode() : null;
+        $hasPairing = !$article->getPairings()->isEmpty(); // TODO check pairing of preparations ?
 
         $row = [
             "id" => $article->getId() ?? "Non défini",
@@ -473,10 +474,11 @@ class ArticleDataService
                 'articleFilter' => $article->getBarCode(),
                 'fromReception' => isset($reception),
                 'receptionId' => $reception ? $reception->getId() : null,
-                'hasLastMessage' => $article->getLastMessage(),
+                'hasPairing' => $hasPairing
             ]),
             'pairing' => $this->templating->render('pairing-icon.html.twig', [
-                'sensorCode' => $sensorCode
+                'sensorCode' => $sensorCode,
+                'hasPairing' => $hasPairing
             ]),
         ];
 
