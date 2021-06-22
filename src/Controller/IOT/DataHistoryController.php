@@ -56,7 +56,7 @@ class DataHistoryController extends AbstractController {
      */
     public function getChartDataHistory(Request $request, PairingService $pairingService): JsonResponse
     {
-        $filters = json_decode($request->getContent(), true);
+        $filters = $request->query->all();
         $query = $request->query;
         $type = $query->get('type');
         $id = $query->get('id');
@@ -79,7 +79,7 @@ class DataHistoryController extends AbstractController {
      */
     public function getMapDataHistory(Request $request): JsonResponse
     {
-        $filters = json_decode($request->getContent(), true);
+        $filters = $request->query->all();
         $query = $request->query;
         $type = $query->get('type');
         $id = $query->get('id');
