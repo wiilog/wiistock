@@ -26,6 +26,11 @@ $(function () {
 
 });
 
+function redirectPaperclipClick(button) {
+    const $actionOnClick = button.closest('.referenceRow').find('.action-on-click')
+    $actionOnClick .trigger('click');
+}
+
 function initPageModals(table) {
     let modalRefArticleNew = $("#modalNewRefArticle");
     let submitNewRefArticle = $("#submitNewRefArticle");
@@ -367,21 +372,15 @@ function initNewReferenceArticleEditor(modal) {
 }
 
 function deleteArticleFournisseur(button) {
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            dataReponse = JSON.parse(this.responseText);
-            $('#articleFournisseursEdit').html(dataReponse);
-        }
-    }
-
-    let path = Routing.generate('ajax_render_remove_fournisseur', true);
     let sendArray = {};
     sendArray['articleF'] = $(button).data('value');
     sendArray['articleRef'] = $(button).data('title');
-    let toSend = JSON.stringify(sendArray);
-    xhttp.open("POST", path, true);
-    xhttp.send(toSend);
+
+    let path = Routing.generate('ajax_render_remove_fournisseur', true);
+    let params = JSON.stringify(sendArray);
+    $.post(path, params).then((data) => {
+        $('#articleFournisseursEdit').html(data);
+    });
 }
 
 function passArgsToModal(button) {

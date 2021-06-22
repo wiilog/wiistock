@@ -187,8 +187,8 @@
                                 id="type"
                                 name="type"
                                 onchange="onTypeChange($(this))"
-                                {{ uniqueType ? 'disabled' }}
-                                {{ uniqueType ? ('data-init="' ~ (typesArrival|first).id ~ '"')|raw }}>
+                            {{ uniqueType ? 'disabled' }}
+                            {{ uniqueType ? ('data-init="' ~ (typesArrival|first).id ~ '"')|raw }}>
                             {% if uniqueType %}
                                 <option value="{{ (typesArrival|first).id }}">{{ (typesArrival|first).label }}</option>
                             {% else %}
@@ -205,15 +205,15 @@
                         {% set hasDefaultStatus = uniqueType and defaultStatuses|length > 0 %}
                         <select class="form-control input-sm data needed {{ hasDefaultStatus ? 'needs-default' }}"
                                 name="status"
-                                {% if hasDefaultStatus %}
-                                    data-init="{{ defaultStatuses[(typesArrival|first).id] }}"
-                                {% endif %}>
+                            {% if hasDefaultStatus %}
+                                data-init="{{ defaultStatuses[(typesArrival|first).id] }}"
+                            {% endif %}>
                             <option value="">Choisir un statut...</option>
                             {% for status in statuses %}
                                 <option class="d-none"
                                         data-type-id="{{ status.type.id }}"
                                         value="{{ status.id }}"
-                                        {{ hasDefaultStatus and defaultStatuses[(typesArrival|first).id] == status.id ? 'selected' }}>
+                                    {{ hasDefaultStatus and defaultStatuses[(typesArrival|first).id] == status.id ? 'selected' }}>
                                     {{ status.nom }}
                                 </option>
                             {% endfor %}
@@ -231,16 +231,17 @@
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                         <div class="form-group w-100 col-4">
-                            <label for="destination">Emplacement de dépose{{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? '*' : '' }}</label>
+                            <label for="destination">
+                                Emplacement de dépose{{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? '*' : '' }}
+                            </label>
                             <select name="dropLocation"
                                     class="form-control data ajax-autocomplete-location no-clear d-block {{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? 'needed' : '' }}">
                                 {% if defaultLocation is defined and defaultLocation != null %}
-                                    <option value="{{defaultLocation.id}}" selected>{{defaultLocation.label}}</option>
+                                    <option value="{{ defaultLocation.id }}" selected>{{ defaultLocation.label }}</option>
                                 {% endif %}
                             </select>
                         </div>
                     {% endif %}
-
                 </div>
 
                 <div class="row">
@@ -290,7 +291,7 @@
                         <div class="form-group col-2">
                             <label title="arrivage">Imprimer {{ 'arrivage.arrivage'|trans }}</label>
                             <label class="switch d-block-switch mt-2">
-                                <input class="checkbox no-clear" type="checkbox" name="printArrivage"  {{ checked }}>
+                                <input class="checkbox no-clear" type="checkbox" name="printArrivage" {{ checked }}>
                                 <span class="slider round"></span>
                             </label>
                         </div>
@@ -375,7 +376,7 @@
                         <div class="form-group col-2">
                             <label>{{ 'arrivage.douane'|trans }}</label>
                             <label class="switch d-block-switch mt-2">
-                                <input class="checkbox {{ not isClientSafranED ? 'no-clear'}}" type="checkbox" name="customs">
+                                <input class="checkbox {{ not isClientSafranED ? 'no-clear' }}" type="checkbox" name="customs">
                                 <span class="slider round"></span>
                             </label>
                         </div>
@@ -395,7 +396,7 @@
                 <!-- CHAMPS LIBRES -->
                 <span class="toggle-collapsible expanded">Champs libres</span>
                 <div class="collapsible expanded free-fields-container mb-2">
-                    {% for type in typesArrival %}
+                {% for type in typesArrival %}
                         <div class="d-none"
                              data-type="{{ type.id }}">
                             {% include 'free_field/freeFieldsViewing.html.twig' with {

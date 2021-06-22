@@ -97,14 +97,21 @@ function loadAndDisplayInfos(select) {
     }
 }
 
-let getArticleFournisseur = function () {
-    let xhttp = new XMLHttpRequest();
+function getArticleFournisseur() {
     let $articleFourn = $('#newContent');
     let modalfooter = $('#modalNewArticle').find('.modal-footer');
-    xhttp.onreadystatechange = function () {
-        if (this.readyState === 4 && this.status === 200) {
-            data = JSON.parse(this.responseText);
 
+    let data = {};
+    $articleFourn.html('');
+    data['referenceArticle'] = $('#referenceCEA').val();
+    data['fournisseur'] = $('#fournisseurID').val();
+    $articleFourn.html('')
+    modalfooter.addClass('d-none')
+
+    let path = Routing.generate('ajax_article_new_content', true)
+    let json = JSON.stringify(data);
+    if (data['referenceArticle'] && data['fournisseur']) {
+        $.post(path, json).then((data) => {
             if (data.content) {
                 modalfooter.removeClass('d-none')
                 $articleFourn.parent('div').addClass('d-block');
@@ -116,21 +123,9 @@ let getArticleFournisseur = function () {
             } else if (data.error) {
                 $('.error-msg').html(data.error)
             }
-        }
+        });
     }
-    let path = Routing.generate('ajax_article_new_content', true)
-    let data = {};
-    $articleFourn.html('');
-    data['referenceArticle'] = $('#referenceCEA').val();
-    data['fournisseur'] = $('#fournisseurID').val();
-    $articleFourn.html('')
-    modalfooter.addClass('d-none')
-    if (data['referenceArticle'] && data['fournisseur']) {
-        json = JSON.stringify(data);
-        xhttp.open("POST", path, true);
-        xhttp.send(json);
-    }
-};
+}
 
 function clearNewArticleContent(button) {
     button.parent().addClass('d-none');
@@ -142,35 +137,33 @@ function clearNewArticleContent(button) {
     clearModal('#' + $modal.attr('id'));
 }
 
-let ajaxGetFournisseurByRefArticle = function (select) {
+function ajaxGetFournisseurByRefArticle(select) {
+    let refArticleId = select.val();
+    let json = {};
+    json['refArticle'] = refArticleId;
+
     if (select.val()) {
         let fournisseur = $('#fournisseur');
         let modalfooter = $('#modalNewArticle').find('.modal-footer');
-        let xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function () {
-            if (this.readyState === 4 && this.status === 200) {
-                let data = JSON.parse(this.responseText);
-                if (data === false) {
-                    $('.error-msg').html('Vous ne pouvez par créer d\'article quand la quantité est gérée à la référence.');
-                } else {
-                    fournisseur.removeClass('d-none');
-                    fournisseur.find('select').html(data);
-                    $('.error-msg').html('');
-                }
-            }
-        };
+
         let path = Routing.generate('ajax_fournisseur_by_refarticle', true)
+        let params = JSON.stringify(json);
+        $.post(path, params).then((data) => {
+            console.log(data);
+            if (!data) {
+                $('.error-msg').html('Vous ne pouvez par créer d\'article quand la quantité est gérée à la référence.');
+            } else {
+                fournisseur.removeClass('d-none');
+                fournisseur.find('select').html(data);
+                $('.error-msg').html('');
+            }
+        });
+
         $('#newContent').html('');
         fournisseur.addClass('d-none');
         modalfooter.addClass('d-none')
-        let refArticleId = select.val();
-        let json = {};
-        json['refArticle'] = refArticleId;
-        let Json = JSON.stringify(json);
-        xhttp.open("POST", path, true);
-        xhttp.send(Json);
     }
-};
+}
 
 function printArticlesBarCodes($button, event) {
     if (!$button.hasClass('dropdown-item') || !$button.hasClass('disabled')) {

@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\ParametrageGlobal;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
 
 /**
  * @method ParametrageGlobal|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,28 +13,6 @@ use Doctrine\ORM\NonUniqueResultException;
  */
 class ParametrageGlobalRepository extends EntityRepository
 {
-
-    /**
-     * @param $label
-     * @return ParametrageGlobal
-     * @throws NonUniqueResultException
-     */
-    public function findOneByLabel($label) {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT pg
-            FROM App\Entity\ParametrageGlobal pg
-            WHERE pg.label LIKE :label
-            "
-        )->setParameter('label', $label);
-        return $query->getOneOrNullResult();
-    }
-
-	/**
-	 * @param $label
-	 * @return string
-	 * @throws NonUniqueResultException
-	 */
     public function getOneParamByLabel($label) {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(

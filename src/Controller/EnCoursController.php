@@ -37,8 +37,10 @@ class EnCoursController extends AbstractController
         $natureRepository = $entityManager->getRepository(Nature::class);
 
         $minLocationFilter = 1;
+        $query = $request->query;
 
-        $locationsFilterStr = $request->query->get('locations', '');
+        $locationsFilterStr = $query->has('locations') ? $query->get('locations', '') : '';
+        $fromDashboard = $query->has('fromDashboard') ? $query->get('fromDashboard') : '' ;
         if (!empty($locationsFilterStr)) {
             $locationsFilterId = explode(',', $locationsFilterStr);
             $locationsFilter = !empty($locationsFilterId)
@@ -53,7 +55,8 @@ class EnCoursController extends AbstractController
             'locationsFilter' => $locationsFilter,
             'natures' => $natureRepository->findAll(),
             'minLocationFilter' => $minLocationFilter,
-            'multiple' => true
+            'multiple' => true,
+            'fromDashboard' => $fromDashboard,
         ]);
     }
 
@@ -67,12 +70,17 @@ class EnCoursController extends AbstractController
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
         $emplacement = $emplacementRepository->find($request->request->get('id'));
-
-        $filtersParam = $filtreSupRepository->getOnebyFieldAndPageAndUser(
-            FiltreSup::FIELD_NATURES,
-            FiltreSup::PAGE_ENCOURS,
-            $this->getUser()
-        );
+        $query = $request->query;
+        $fromDashboard = $query->has('fromDashboard') && $query->get('fromDashboard');
+        if (!$fromDashboard) {
+            $filtersParam = $filtreSupRepository->getOnebyFieldAndPageAndUser(
+                FiltreSup::FIELD_NATURES,
+                FiltreSup::PAGE_ENCOURS,
+                $this->getUser()
+            );
+        } else {
+            $filtersParam = null;
+        }
         $natureIds = array_map(
             function (string $natureParam) {
                 $natureParamSplit = explode(';', $natureParam);

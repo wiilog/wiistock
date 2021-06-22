@@ -47,24 +47,12 @@ class TrackingMovementController extends AbstractController
 {
 
     /**
-     * @var UserService
-     */
-    private $userService;
-
-    /**
      * @var AttachmentService
      */
     private $attachmentService;
 
-    /**
-     * TrackingMovementController constructor.
-     * @param AttachmentService $attachmentService
-     * @param UserService $userService
-     */
-    public function __construct(AttachmentService $attachmentService,
-                                UserService $userService)
+    public function __construct(AttachmentService $attachmentService)
     {
-        $this->userService = $userService;
         $this->attachmentService = $attachmentService;
     }
 
@@ -96,7 +84,7 @@ class TrackingMovementController extends AbstractController
         $currentUser = $this->getUser();
         $fields = $trackingMovementService->getVisibleColumnsConfig($entityManager, $currentUser);
 
-        $redirectAfterTrackingMovementCreation = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT);
+        $redirectAfterTrackingMovementCreation = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT]);
 
         return $this->render('mouvement_traca/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
@@ -378,6 +366,7 @@ class TrackingMovementController extends AbstractController
                 'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
                 'attachments' => $trackingMovement->getAttachments(),
                 'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]),
+                'editAttachments' => $this->userService->hasRightFunction(Menu::TRACA, Action::EDIT),
             ]);
 
             return new JsonResponse($json);
@@ -465,12 +454,6 @@ class TrackingMovementController extends AbstractController
 
     /**
      * @Route("/csv", name="get_mouvements_traca_csv", options={"expose"=true}, methods={"GET"})
-     * @param Request $request
-     * @param CSVExportService $CSVExportService
-     * @param FreeFieldService $freeFieldService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws Exception
      */
     public function getTrackingMovementCSV(Request $request,
                                            CSVExportService $CSVExportService,
@@ -554,7 +537,8 @@ class TrackingMovementController extends AbstractController
             $json = $this->renderView('mouvement_traca/modalShowMvtTracaContent.html.twig', [
                 'mvt' => $trackingMovement,
                 'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
-                'attachments' => $trackingMovement->getAttachments()
+                'attachments' => $trackingMovement->getAttachments(),
+                 'editAttachments' => $this->userService->hasRightFunction(Menu::TRACA, Action::EDIT),
             ]);
             return new JsonResponse($json);
         }
@@ -600,12 +584,6 @@ class TrackingMovementController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @param TrackingMovement $trackingMovement
-     * @param AttachmentService $attachmentService
-     * @param FileBag|array $files
-     * @param EntityManagerInterface $entityManager
-     */
     private function persistAttachments(TrackingMovement $trackingMovement, AttachmentService $attachmentService, $files, EntityManagerInterface $entityManager)
     {
         $attachments = $attachmentService->createAttachements($files);
