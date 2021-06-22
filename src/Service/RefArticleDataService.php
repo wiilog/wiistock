@@ -653,9 +653,9 @@ class RefArticleDataService {
             $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
             $alertRepository = $entityManager->getRepository(Alert::class);
 
-            if($reference->getLimitSecurity() !== null && $reference->getLimitSecurity() >= $reference->getQuantiteDisponible()) {
+            if($reference->getLimitSecurity() !== null && $reference->getLimitSecurity() >= $reference->getQuantiteStock()) {
                 $type = Alert::SECURITY;
-            } else if($reference->getLimitWarning() !== null && $reference->getLimitWarning() >= $reference->getQuantiteDisponible()) {
+            } else if($reference->getLimitWarning() !== null && $reference->getLimitWarning() >= $reference->getQuantiteStock()) {
                 $type = Alert::WARNING;
             }
 
