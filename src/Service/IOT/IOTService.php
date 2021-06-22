@@ -45,23 +45,31 @@ class IOTService
     const INEO_SENS_ACS_TEMP = 'ineo-sens-acs';
     const INEO_SENS_ACS_BTN = 'acs-switch-bouton';
     const INEO_SENS_GPS = 'trk-tracer-gps-new';
+    const SYMES_ACTION_SINGLE = 'symes-action-single';
+    const SYMES_ACTION_MULTI = 'symes-action-multi';
 
     const PROFILE_TO_MAX_TRIGGERS = [
         self::INEO_SENS_ACS_TEMP => 1,
         self::INEO_SENS_GPS => 1,
         self::INEO_SENS_ACS_BTN => 1,
+        self::SYMES_ACTION_MULTI => 4,
+        self::SYMES_ACTION_SINGLE => 1,
     ];
 
     const PROFILE_TO_TYPE = [
         self::INEO_SENS_ACS_TEMP => Sensor::TEMPERATURE,
         self::INEO_SENS_GPS => Sensor::GPS,
         self::INEO_SENS_ACS_BTN => Sensor::ACTION,
+        self::SYMES_ACTION_MULTI => Sensor::ACTION,
+        self::SYMES_ACTION_SINGLE => Sensor::ACTION,
     ];
 
     const PROFILE_TO_FREQUENCY = [
         self::INEO_SENS_ACS_TEMP => 'x minutes',
         self::INEO_SENS_GPS => 'x minutes',
         self::INEO_SENS_ACS_BTN => 'à l\'action',
+        self::SYMES_ACTION_SINGLE => 'à l\'action',
+        self::SYMES_ACTION_MULTI => 'à l\'action',
     ];
 
     /** @Required */
@@ -128,6 +136,12 @@ class IOTService
 
     private function treatActionTrigger(SensorWrapper $wrapper, TriggerAction $triggerAction, SensorMessage $sensorMessage, EntityManagerInterface $entityManager) {
         $needsTrigger = $sensorMessage->getEvent() === self::ACS_EVENT;
+        if ($sensorMessage->getSensor()->getProfile()->getName() === IOTService::SYMES_ACTION_MULTI) {
+            $button = intval(substr($sensorMessage->getContent(), 7, 1)); //EVENT (2)
+            $config = $triggerAction->getConfig();
+            $wanted = intval($config['buttonIndex']);
+            $needsTrigger = ($button === $wanted);
+        }
         if ($needsTrigger) {
             if ($triggerAction->getRequestTemplate()) {
                 $this->treatRequestTemplateTriggerType($triggerAction->getRequestTemplate(), $entityManager, $wrapper);
@@ -438,6 +452,13 @@ class IOTService
         switch ($config['profile']) {
             case IOTService::INEO_SENS_ACS_BTN:
                 return $this->extractEventTypeFromMessage($config);
+            case IOTService::SYMES_ACTION_MULTI:
+            case IOTService::SYMES_ACTION_SINGLE:
+                if (isset($config['payload_cleartext'])) {
+                    $event = hexdec(substr($config['payload_cleartext'], 0, 2)) >> 5;
+                    return $event === 0 ? self::ACS_PRESENCE : (self::ACS_EVENT . " (" . $event . ")");
+                }
+                break;
             case IOTService::INEO_SENS_ACS_TEMP:
                 if (isset($config['payload'])) {
                     $frame = $config['payload'][0]['data'];
@@ -477,6 +498,13 @@ class IOTService
                     }
                 }
                 break;
+            case IOTService::SYMES_ACTION_SINGLE:
+            case IOTService::SYMES_ACTION_MULTI:
+                if (isset($config['payload_cleartext'])) {
+                    $event = hexdec(substr($config['payload_cleartext'], 0 , 2)) >> 5;
+                    return $event === 0 ? self::ACS_PRESENCE : self::ACS_EVENT;
+                }
+                break;
         }
         return 'Évenement non trouvé';
     }
@@ -496,7 +524,15 @@ class IOTService
                     return $frame['NEW_BATT'] ?? -1;
                 }
                 break;
+            case IOTService::SYMES_ACTION_MULTI:
+            case IOTService::SYMES_ACTION_SINGLE:
+                $level = hexdec(substr($config['payload_cleartext'], 22, 2));
+                $minVoltage = 2400;
+                $maxVoltage = 3700;
+                $incertitudeLevel = 10;
+                $currentVoltage = $level * $incertitudeLevel + $minVoltage;
+                return (($currentVoltage - $minVoltage) / ($maxVoltage - $minVoltage)) * 100;
         }
-        return 'Évenement non trouvé';
+        return -1;
     }
 }
