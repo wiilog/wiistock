@@ -5,7 +5,6 @@ namespace App\Controller;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Article;
-use App\Entity\Cart;
 use App\Entity\CategoryType;
 use App\Entity\Fournisseur;
 use App\Entity\FreeField;

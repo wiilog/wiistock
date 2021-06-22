@@ -26,12 +26,8 @@ use App\Repository\TrackingMovementRepository;
 use DateTime;
 use Exception;
 use Symfony\Component\Security\Core\Security;
-use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 use DateTimeInterface;
 
 class TrackingMovementService
@@ -39,8 +35,6 @@ class TrackingMovementService
     public const INVALID_LOCATION_TO = 'invalid-location-to';
 
     private $templating;
-    private $router;
-    private $userService;
     private $security;
     private $entityManager;
     private $attachmentService;
@@ -49,9 +43,7 @@ class TrackingMovementService
     private $visibleColumnService;
     private $groupService;
 
-    public function __construct(UserService $userService,
-                                RouterInterface $router,
-                                EntityManagerInterface $entityManager,
+    public function __construct(EntityManagerInterface $entityManager,
                                 LocationClusterService $locationClusterService,
                                 Twig_Environment $templating,
                                 FreeFieldService $freeFieldService,
@@ -62,8 +54,6 @@ class TrackingMovementService
     {
         $this->templating = $templating;
         $this->entityManager = $entityManager;
-        $this->router = $router;
-        $this->userService = $userService;
         $this->security = $security;
         $this->attachmentService = $attachmentService;
         $this->locationClusterService = $locationClusterService;
@@ -72,11 +62,6 @@ class TrackingMovementService
         $this->groupService = $groupService;
     }
 
-    /**
-     * @param array|null $params
-     * @return array
-     * @throws Exception
-     */
     public function getDataForDatatable($params = null)
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -134,13 +119,6 @@ class TrackingMovementService
         return $data;
     }
 
-    /**
-     * @param TrackingMovement $movement
-     * @return array
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
     public function dataRowMouvement(TrackingMovement $movement)
     {
         $fromColumnData = $this->getFromColumnData($movement);
@@ -148,7 +126,7 @@ class TrackingMovementService
         $categoryFFRepository = $this->entityManager->getRepository(CategorieCL::class);
         $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
 
-        $categoryFF = $categoryFFRepository->findOneByLabel(CategorieCL::MVT_TRACA);
+        $categoryFF = $categoryFFRepository->findOneBy(['label' => CategorieCL::MVT_TRACA]);
         $category = CategoryType::MOUVEMENT_TRACA;
         $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
         $trackingPack = $movement->getPack();
@@ -288,24 +266,6 @@ class TrackingMovementService
         }
     }
 
-    /**
-     * @param string|Pack $packOrCode
-     * @param Emplacement|null $location
-     * @param Utilisateur $user
-     * @param DateTime $date
-     * @param bool $fromNomade
-     * @param bool|null $finished
-     * @param string|int $trackingType label ou id du mouvement traca
-     * @param array $options = [
-     *      'commentaire' => string|null,
-     *      'quantity' => int|null,
-     *      'natureId' => int|null,
-     *      'mouvementStock' => MouvementStock|null,
-     *      'fileBag' => FileBag|null, from => Arrivage|Reception|null],
-     *      'entityManager' => EntityManagerInterface|null
-     * @return TrackingMovement
-     * @throws Exception
-     */
     public function createTrackingMovement($packOrCode,
                                            ?Emplacement $location,
                                            Utilisateur $user,
@@ -394,14 +354,6 @@ class TrackingMovementService
         return $tracking;
     }
 
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @param Pack|string $packOrCode
-     * @param $quantity
-     * @param $natureId
-     * @return Pack
-     * @throws Exception
-     */
     public function persistPack(EntityManagerInterface $entityManager,
                                 $packOrCode,
                                 $quantity,
@@ -481,10 +433,6 @@ class TrackingMovementService
         }
     }
 
-    /**
-     * @param TrackingMovement $tracking
-     * @param $fileBag
-     */
     private function manageTrackingFiles(TrackingMovement $tracking, $fileBag) {
         if (isset($fileBag)) {
             $attachments = $this->attachmentService->createAttachements($fileBag);
@@ -532,10 +480,6 @@ class TrackingMovementService
         }
     }
 
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @param TrackingMovement $tracking
-     */
     public function managePackLinksWithTracking(EntityManagerInterface $entityManager,
                                                 TrackingMovement $tracking): void {
 
@@ -631,7 +575,7 @@ class TrackingMovementService
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
         $columnsVisible = $currentUser->getColumnsVisibleForTrackingMovement();
-        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::MVT_TRACA);
+        $categorieCL = $categorieCLRepository->findOneBy(['label' => CategorieCL::MVT_TRACA]);
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::MOUVEMENT_TRACA, $categorieCL);
 
         $columns = [
@@ -651,15 +595,6 @@ class TrackingMovementService
         return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }
 
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @param Pack $pack
-     * @param Emplacement $location
-     * @param Utilisateur $user
-     * @param DateTime $date
-     * @param Arrivage $arrivage
-     * @throws Exception
-     */
     public function persistTrackingForArrivalPack(EntityManagerInterface $entityManager,
                                                   Pack $pack,
                                                   ?Emplacement $location,
@@ -681,14 +616,6 @@ class TrackingMovementService
         $entityManager->persist($mouvementDepose);
     }
 
-    /**
-     * @param $handle
-     * @param CSVExportService $CSVExportService
-     * @param FreeFieldService $freeFieldService
-     * @param array $movement
-     * @param array $attachement
-     * @param array $freeFieldsConfig
-     */
     public function putMovementLine($handle,
                                     CSVExportService $CSVExportService,
                                     FreeFieldService $freeFieldService,

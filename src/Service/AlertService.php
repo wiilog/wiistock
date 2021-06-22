@@ -8,7 +8,6 @@ use App\Entity\ArticleFournisseur;
 use App\Entity\FreeField;
 use App\Entity\ParametrageGlobal;
 use App\Entity\ReferenceArticle;
-use App\Entity\Utilisateur;
 use WiiCommon\Helper\Stream;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;

@@ -14,7 +14,7 @@
         <strong>{{ handling.type.label }}</strong>
     </div>
     <div>Demandeur :
-        <strong>{{ handling.requester.username }}</strong>
+        <strong>{{ handling.requester ? handling.requester.username }}</strong>
     </div>
     {% set fieldCodeReceiversHandling = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVERS_HANDLING') %}
     {% if (fieldsParam|isFieldRequired(fieldCodeReceiversHandling, 'displayedFormsCreate')

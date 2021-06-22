@@ -7,6 +7,8 @@ use App\Entity\CategorieStatut;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\IOT\Pairing;
+use App\Entity\IOT\SensorWrapper;
 use App\Entity\LigneArticlePreparation;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
@@ -18,6 +20,7 @@ use App\Exceptions\NegativeQuantityException;
 use App\Repository\ArticleRepository;
 use App\Repository\StatutRepository;
 use DateTime;
+use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -600,7 +603,6 @@ class PreparationsManagerService
     private function dataRowPreparation($preparation)
     {
         $request = $preparation->getDemande();
-
         return [
             'Numéro' => $preparation->getNumero() ?? '',
             'Date' => $preparation->getDate() ? $preparation->getDate()->format('d/m/Y') : '',
@@ -608,7 +610,8 @@ class PreparationsManagerService
             'Statut' => $preparation->getStatut() ? $preparation->getStatut()->getNom() : '',
             'Type' => $request && $request->getType() ? $request->getType()->getLabel() : '',
             'Actions' => $this->templating->render('preparation/datatablePreparationRow.html.twig', [
-                "url" => $this->router->generate('preparation_show', ["id" => $preparation->getId()])
+                "url" => $this->router->generate('preparation_show', ["id" => $preparation->getId()]),
+                'titleLogo' => $preparation->getActivePairing() ? 'pairing' : null
             ]),
         ];
     }
@@ -730,5 +733,17 @@ class PreparationsManagerService
                 $article->getBarCode()
             ]));
         }
+    }
+
+    public function createPairing(SensorWrapper $sensorWrapper, Preparation $preparation){
+        $pairing = new Pairing();
+        $start =  new DateTime("now", new DateTimeZone("Europe/Paris"));
+        $pairing
+            ->setStart($start)
+            ->setSensorWrapper($sensorWrapper)
+            ->setPreparationOrder($preparation)
+            ->setActive(true);
+
+        return $pairing;
     }
 }

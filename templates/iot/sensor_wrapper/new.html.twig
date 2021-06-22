@@ -1,0 +1,73 @@
+<div class="modal fade" role="dialog" id="modalNewSensorWrapper" data-modal-type="new">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Provisionner un capteur</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group row">
+                    <label class="col-12">Code*</label>
+                    <div class="col-12">
+                        <select name="sensor" data-s2="sensor" required
+                                onchange="onSensorCodeChange($(this))"
+                                class="w-100 form-control needed data">
+                        </select>
+                    </div>
+                </div>
+                <div class="row form-group sensor-data sensor-required">
+                    <div class="col-12 mb-1">
+                        <span class="sensor-data-label">Type&nbsp;:&nbsp;</span>
+                        <span class="sensor-data-value sensor-data-type font-weight-bold"></span>
+                    </div>
+                    <div class="col-12 mb-1">
+                        <span class="sensor-data-label">Profil&nbsp;:&nbsp;</span>
+                        <span class="sensor-data-value sensor-data-profile font-weight-bold"></span>
+                    </div>
+                    <div class="col-12">
+                        <span class="sensor-data-label">Remontée d'information toutes les&nbsp;:&nbsp;</span>
+                        <span class="sensor-data-value sensor-data-frequency font-weight-bold"></span>
+                    </div>
+                </div>
+                <div class="row form-group sensor-required d-none">
+                    <label class="col-12">Nom*</label>
+                    <div class="col-12">
+                        <input class="data needed form-control" name="name" title="Nom">
+                    </div>
+                </div>
+                <div class="row form-group sensor-required d-none">
+                    <label class="col-12">Gestionnaire</label>
+                    <div class="col-12">
+                        <select name="manager"
+                                class="w-100 form-control data ajax-autocomplete-user">
+                        </select>
+                    </div>
+                </div>
+                {% if freeFieldsTypes is not empty %}
+                    <div class="d-none">
+                        <span class="toggle-collapsible expanded">Champs libres</span>
+                        <div class="collapsible expanded free-fields-container">
+                            {% for type in freeFieldsTypes %}
+                                <div class="d-none" data-type="{{ type.typeId }}">
+                                    {% include 'free_field/freeFieldsViewing.html.twig' with {
+                                        freeFields: type.freeFields,
+                                        freeFieldValues: [],
+                                        colType: 'col-12',
+                                        requiredType: 'requiredCreate',
+                                        actionType: 'new'
+                                    } %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary submit-button">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</div>

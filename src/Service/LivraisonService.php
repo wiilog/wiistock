@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\FiltreSup;
+use App\Entity\IOT\Pairing;
 use App\Entity\Livraison;
 
 use App\Helper\FormatHelper;
@@ -109,7 +110,9 @@ class LivraisonService
 			'Statut' => $livraison->getStatut() ? $livraison->getStatut()->getNom() : '',
 			'Opérateur' => $livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : '',
 			'Type' => $demande && $demande->getType() ? $demande->getType()->getLabel() : '',
-			'Actions' => $this->templating->render('livraison/datatableLivraisonRow.html.twig', ['url' => $url])
+			'Actions' => $this->templating->render('livraison/datatableLivraisonRow.html.twig', ['url' => $url,
+            'titleLogo' => $livraison->getPreparation()->getActivePairing() ? 'pairing' : null
+            ])
 		];
     }
 

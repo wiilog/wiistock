@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CommentTrait;
 use DateTimeInterface;
@@ -236,6 +237,11 @@ class ReferenceArticle extends FreeFieldEntity
      */
     private ?Collection $purchaseRequestLines;
 
+    /**
+     * @ORM\OneToMany(targetEntity=RequestTemplateLine::class, mappedBy="reference", orphanRemoval=true)
+     */
+    private $requestTemplateLines;
+
     public function __construct()
     {
         $this->ligneArticles = new ArrayCollection();
@@ -258,6 +264,9 @@ class ReferenceArticle extends FreeFieldEntity
         $this->alerts = new ArrayCollection();
         $this->carts = new ArrayCollection();
         $this->purchaseRequestLines = new ArrayCollection();
+        $this->deliveryRequestTemplates = new ArrayCollection();
+        $this->collectRequestTemplates = new ArrayCollection();
+        $this->requestTemplateLines = new ArrayCollection();
     }
 
     public function getId()
@@ -1101,6 +1110,36 @@ class ReferenceArticle extends FreeFieldEntity
 
     public function setOrderState(?string $orderState): self {
         $this->orderState = $orderState;
+        return $this;
+    }
+
+    /**
+     * @return Collection|RequestTemplateLine[]
+     */
+    public function getRequestTemplateLines(): Collection
+    {
+        return $this->requestTemplateLines;
+    }
+
+    public function addRequestTemplateLine(RequestTemplateLine $requestTemplateLine): self
+    {
+        if (!$this->requestTemplateLines->contains($requestTemplateLine)) {
+            $this->requestTemplateLines[] = $requestTemplateLine;
+            $requestTemplateLine->setReference($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRequestTemplateLine(RequestTemplateLine $requestTemplateLine): self
+    {
+        if ($this->requestTemplateLines->removeElement($requestTemplateLine)) {
+            // set the owning side to null (unless already changed)
+            if ($requestTemplateLine->getReference() === $this) {
+                $requestTemplateLine->setReference(null);
+            }
+        }
+
         return $this;
     }
 }

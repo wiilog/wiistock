@@ -36,8 +36,17 @@
                 </div>
             {% endif %}
             <a href="{{ path('mvt_traca_index') }}{{ articleFilter is defined and articleFilter is not empty ? ('?colis=' ~ articleFilter) }}" class="dropdown-item">
-                <i class="fas fa-list mr-2"></i>Voir mouvements de tracabilité
+                <i class="fas fa-list mr-2"></i>Voir mouvements de traçabilité
             </a>
+            {% if hasPairing
+                and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')) %}
+                <a class="dropdown-item"
+                   href="{{ path('show_data_history', {id: articleId, type: constant('App\\Entity\\IOT\\Sensor::ARTICLE')}) }}"
+                   target="_blank">
+                    <span class="wii-icon wii-icon-pairing"></span>
+                    Historique des données
+                </a>
+            {% endif %}
             {% if  hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::DELETE')) %}
                 {% set checkAndDeleteRowParams = fromReception ? ', {fromReception: 1}' %}
                 <div class="dropdown-item"

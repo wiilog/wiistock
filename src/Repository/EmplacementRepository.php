@@ -4,8 +4,6 @@ namespace App\Repository;
 
 use App\Entity\Emplacement;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 
 /**
  * @method Emplacement|null find($id, $lockMode = null, $lockVersion = null)
@@ -22,7 +20,30 @@ class EmplacementRepository extends EntityRepository
         'ongoingVisibleOnMobile' => 'isOngoingVisibleOnMobile',
         'maxDelay' => 'dateMaxTime',
         'active' => 'isActive',
+        'pairing' => 'pairing',
     ];
+
+    public function getForSelect(?string $term, $deliveryType = null, $collectType = null) {
+        $query = $this->createQueryBuilder("location");
+
+        if($deliveryType) {
+            $query->leftJoin("location.allowedDeliveryTypes", "allowed_delivery_types")
+                ->andWhere("allowed_delivery_types.id = :type")
+                ->setParameter("type", $deliveryType);
+        }
+
+        if($collectType) {
+            $query->leftJoin("location.allowedCollectTypes", "allowed_collect_types")
+                ->andWhere("allowed_collect_types.id = :type")
+                ->setParameter("type", $collectType);
+        }
+
+        return $query->select("location.id AS id, location.label AS text")
+            ->andWhere("location.label LIKE :term")
+            ->setParameter("term", "%$term%")
+            ->getQuery()
+            ->getArrayResult();
+    }
 
     public function getLocationsArray()
     {
@@ -36,77 +57,51 @@ class EmplacementRepository extends EntityRepository
 
     public function countAll()
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(e)
-            FROM App\Entity\Emplacement e"
-        );
-        return $query->getSingleScalarResult();
+        $qb = $this->createQueryBuilder('location');
+
+        $qb->select('COUNT(location)');
+
+        return $qb
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
-
-    /**
-	 * @param string $label
-	 * @param int|null $emplacementId
-	 * @return int
-	 * @throws NonUniqueResultException
-	 * @throws NoResultException
-	 */
     public function countByLabel($label, $emplacementId = null)
     {
-        $entityManager = $this->getEntityManager();
-        $dql = /** @lang DQL */
-			"SELECT COUNT(e.label)
-            FROM App\Entity\Emplacement e
-            WHERE e.label = :label";
+        $qb = $this->createQueryBuilder('location');
+
+        $qb->select('COUNT(location.label')
+            ->where('location.label = :label');
 
 		if ($emplacementId) {
-			$dql .= " AND e.id != :id";
+            $qb->andWhere('location.id != :id');
 		}
 
-        $query = $entityManager
-			->createQuery($dql)
-			->setParameter('label', $label);
+        $qb->setParameter('label', $label);
 
 		if ($emplacementId) {
-			$query->setParameter('id', $emplacementId);
+            $qb->setParameter('id', $emplacementId);
 		}
 
-        return $query->getSingleScalarResult();
-    }
-
-    /**
-     * @param string $label
-     * @return Emplacement|null
-     * @throws NonUniqueResultException
-     */
-    public function findOneByLabel($label)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT e
-            FROM App\Entity\Emplacement e
-            WHERE e.label = :label
-            "
-        )->setParameter('label', $label);;
-        return $query->getOneOrNullResult();
+        return $qb
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function getIdAndLabelActiveBySearch($search)
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT e.id, e.label as text
-          FROM App\Entity\Emplacement e
-          WHERE e.label LIKE :search
-          AND e.isActive = 1
-          ORDER BY e.label ASC
-          "
-        )->setParameter('search', '%' . str_replace('_', '\_', $search) . '%');
+        $qb = $this->createQueryBuilder('location');
 
-        return $query->execute();
+        $qb->select('location.id AS id')
+            ->addSelect('location.label AS text')
+            ->where('location.label LIKE :search')
+            ->andWhere('location.isActive = 1')
+            ->orderBy('location.label', 'ASC')
+            ->setParameter('search', '%' . str_replace('_', '\_', $search) . '%');
+
+        return $qb
+            ->getQuery()
+            ->execute();
     }
 
     public function getLocationsByType($type, $search, $restrictResults) {
@@ -130,13 +125,6 @@ class EmplacementRepository extends EntityRepository
         return $qb->getQuery()->getResult();
     }
 
-    /**
-     * @param null $params
-     * @param false $excludeInactive
-     * @return array
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
     public function findByParamsAndExcludeInactive($params = null, $excludeInactive = false)
     {
         $countTotal = $this->countAll();
@@ -150,8 +138,6 @@ class EmplacementRepository extends EntityRepository
             $qb->where('e.isActive = 1');
         }
 
-        $allEmplacementDataTable = null;
-        // prise en compte des paramètres issus du datatable
         if (!empty($params)) {
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
@@ -163,9 +149,16 @@ class EmplacementRepository extends EntityRepository
             }
             if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
-                $field =  self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['name']];
+                $field = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['name']];
                 if (!empty($order) && $field) {
-                    $qb->orderBy("e.${field}", $order);
+                    if($field === 'pairing') {
+                        $qb->leftJoin('e.pairings', 'order_pairings')
+                            ->leftJoin('e.locationGroup', 'order_locationGroup')
+                            ->leftJoin('order_locationGroup.pairings', 'order_locationGroupPairings')
+                            ->orderBy('IFNULL(order_pairings.active, order_locationGroupPairings.active)', $order);
+                    } else if(property_exists(Emplacement::class, $field)) {
+                        $qb->orderBy("e.${field}", $order);
+                    }
                 }
             }
             $qb->select('count(e)');
@@ -190,11 +183,6 @@ class EmplacementRepository extends EntityRepository
         ];
     }
 
-
-    //VERIFCECILE
-    /**
-     * @return Emplacement[]
-     */
     public function findWhereArticleIs()
     {
         $em = $this->getEntityManager();
@@ -212,5 +200,28 @@ class EmplacementRepository extends EntityRepository
             ORDER BY nb DESC"
         );
         return $query->execute();
+    }
+
+    public function getWithNoAssociationForSelect($term) {
+        return $this->createQueryBuilder('location')
+            ->select("CONCAT('location:', location.id) AS id")
+            ->addSelect('location.label AS text')
+            ->leftJoin('location.pairings', 'pairings')
+            ->where('pairings.location is null')
+            ->andWhere("location.label LIKE :term")
+            ->setParameter("term", "%$term%")
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findWithActivePairing(){
+        $qb = $this->createQueryBuilder('location');
+        $qb
+            ->leftJoin('location.pairings', 'pairings')
+            ->where('pairings.active = 1');
+
+        return $qb
+            ->getQuery()
+            ->getResult();
     }
 }

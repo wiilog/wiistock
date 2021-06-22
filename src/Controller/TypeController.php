@@ -13,11 +13,9 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use WiiCommon\Helper\Stream;
 use App\Service\GlobalParamService;
-use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -39,7 +37,8 @@ class TypeController extends AbstractController
 
         $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
 
-        $categories = $categoryTypeRepository->findAll();
+        $categories = $categoryTypeRepository->findBy([], ['label' => 'ASC']);
+        $categories = Stream::from($categories)->filter(fn(CategoryType $category) => $category->getLabel() !== CategoryType::SENSOR);
 
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $dispatchEmergencies = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY);
@@ -145,7 +144,8 @@ class TypeController extends AbstractController
             $type = $entityManager->find(Type::class, $data['id']);
             $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
 
-            $categories = $categoryTypeRepository->findAll();
+            $categories = $categoryTypeRepository->findBy([], ['label' => 'ASC']);
+            $categories = Stream::from($categories)->filter(fn(CategoryType $category) => $category->getLabel() !== CategoryType::SENSOR);
 
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
             $dispatchEmergencies = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY);

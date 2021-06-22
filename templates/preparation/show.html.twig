@@ -13,7 +13,9 @@
                         isPrepaEditable: isPrepaEditable,
                         demande: demande,
                         livraison: livraison,
-                        showDetails: headerConfig
+                        showDetails: headerConfig,
+                        titleLogo: preparation.pairings|filter(p=>p.active)|length==1 ? 'pairing' : null,
+                        titleLogoTooltip: "Cette préparation est liée à un capteur"
                     } %}
                 </div>
             </div>
@@ -39,6 +41,7 @@
     {% include 'preparation/modalEditLigneArticle.html.twig' %}
     {% include 'reference_article/modalShowRefArticle.html.twig' %}
     {% include 'article/modalShowArticle.html.twig' %}
+    {% include 'preparation/modalNewSensorPairing.html.twig' %}
 
     <div id="splittingContent">
         {% include 'preparation/modalSplitting.html.twig' with

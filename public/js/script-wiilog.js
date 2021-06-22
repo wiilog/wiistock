@@ -293,15 +293,14 @@ function updateQuantityDisplay($elem) {
     }
 }
 
-function toggleRequiredChampsLibres($select, require, $freeFieldContainer = null) {
+function toggleRequiredChampsLibres(type, require, $freeFieldContainer = null) {
     const $bloc = $freeFieldContainer
         ? $freeFieldContainer
-        : $select
+        : type
             .closest('.modal')
             .find('.free-fields-container');
 
-    const typeId = $select.val();
-
+    const typeId = type instanceof jQuery ? type.val() : type;
     let params = {};
     if (typeId) {
         $bloc
@@ -398,7 +397,7 @@ function clearModal(modal) {
     // on vide tous les select2
     let selects = $modal
         .find('.modal-body')
-        .find('.ajax-autocomplete, .ajax-autocomplete-location, .ajax-autocomplete-fournisseur, .ajax-autocomplete-transporteur, .select2, .select2-free, .ajax-autocomplete-user');
+        .find('.ajax-autocomplete, .ajax-autocomplete-location, .ajax-autocomplete-fournisseur, .ajax-autocomplete-transporteur, .select2, .select2-free, .ajax-autocomplete-user, [data-s2-initialized]');
     selects.each(function () {
         const $this = $(this);
 
