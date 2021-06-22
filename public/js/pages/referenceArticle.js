@@ -26,6 +26,11 @@ $(function () {
 
 });
 
+function redirectPaperclipClick(button) {
+    const $actionOnClick = button.closest('.referenceRow').find('.action-on-click')
+    $actionOnClick .trigger('click');
+}
+
 function initPageModals(table) {
     let modalRefArticleNew = $("#modalNewRefArticle");
     let submitNewRefArticle = $("#submitNewRefArticle");
