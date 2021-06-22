@@ -43,17 +43,17 @@ function unpair(pairing) {
 }
 
 function getFiltersValue() {
-    return JSON.stringify({
+    return {
         start: $(`input[name="start"]`).val(),
         end: $(`input[name="end"]`).val(),
-    });
+    };
 }
 
 let previousMap = null;
 function initMap(element) {
     const $element = $(element);
 
-    $.post($element.data(`fetch-url`), getFiltersValue(), function (response) {
+    $.get($element.data(`fetch-url`), getFiltersValue(), function (response) {
         if(previousMap) {
             previousMap.off();
             previousMap.remove();
@@ -127,7 +127,7 @@ function initMap(element) {
 function initLineChart(element) {
     const $element = $(element);
 
-    $.post($element.data(`fetch-url`), getFiltersValue(), function (response) {
+    $.get($element.data(`fetch-url`), getFiltersValue(), function (response) {
         let data = {
             datasets: [],
             labels: []

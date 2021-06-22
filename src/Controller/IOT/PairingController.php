@@ -177,9 +177,9 @@ class PairingController extends AbstractController {
             $end = new DateTime($data['date-pairing']);
             $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->findByNameOrCode($data['sensor'], $data['sensorCode']);
 
-            if($data['article']) {
+            if(isset($data['article'])) {
                 $article = $entityManager->getRepository(Article::class)->find($data['article']);
-            } else if($data['pack']) {
+            } else if(isset($data['pack'])) {
                 $pack = $entityManager->getRepository(Pack::class)->find($data['pack']);
             } else {
                 $typeLocation = explode(':', $data['locations']);
@@ -218,7 +218,7 @@ class PairingController extends AbstractController {
      */
     public function getMapData(Request $request, Pairing $pairing): JsonResponse
     {
-        $filters = json_decode($request->getContent(), true);
+        $filters = $request->query->all();
         $associatedMessages = $pairing->getSensorMessagesBetween(
             $filters["start"],
             $filters["end"],
@@ -248,7 +248,7 @@ class PairingController extends AbstractController {
      */
     public function getChartData(Request $request, Pairing $pairing): JsonResponse
     {
-        $filters = json_decode($request->getContent(), true);
+        $filters = $request->query->all();
         $associatedMessages = $pairing->getSensorMessagesBetween(
             $filters["start"],
             $filters["end"],

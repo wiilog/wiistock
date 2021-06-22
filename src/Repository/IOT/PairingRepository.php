@@ -189,6 +189,7 @@ class PairingRepository extends EntityRepository
             ->leftJoin('pairing.sensorWrapper', 'order_sensorWrapper')
             ->leftJoin('order_sensorWrapper.sensor', 'order_sensor')
             ->leftJoin('order_sensor.type', 'order_type')
+            ->andWhere('pairing.active = 1')
             ->andWhere('order_type.label <> :actionType')
             ->addOrderBy('order_sensorWrapper.name', 'ASC')
             ->setParameter('actionType', Sensor::ACTION);

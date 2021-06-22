@@ -135,7 +135,7 @@ class Pack implements PairedEntity
     private ?Collection $childTrackingMovements;
 
     /**
-     * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="pack")
+     * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="pack", cascade={"remove"})
      */
     private Collection $pairings;
 
