@@ -62,7 +62,7 @@
         </select>
     </div>
 
-    {% if type.category.label in constant('App\\Entity\\CategoryType::NOTIFICATIONS_TYPES') %}
+    {% if type.category.label in constant('App\\Entity\\NotificationTemplate::NOTIFICATIONS_TYPES') %}
         <div class="row">
             <div class="col-12 form-group enable-notifications">
                 <label>Activer les notifications ?</label>
@@ -74,7 +74,7 @@
         </div>
     {% endif %}
 
-    {% if type.category.label in constant('App\\Entity\\CategoryType::NOTIFICATIONS_EMERGENCIES') %}
+    {% if type.category.label in constant('App\\Entity\\NotificationTemplate::NOTIFICATIONS_EMERGENCIES') %}
         <div class="row">
             <div class="col-12 form-group notifications-emergencies">
                 <label>Activer les notifications seulement si urgence ?</label>

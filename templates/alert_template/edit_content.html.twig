@@ -12,7 +12,7 @@
     </select>
 </div>
 
-<div class="template-container">
+<div class="row template-container">
     {% if alert_template.type == constant('App\\Entity\\IOT\\AlertTemplate::MAIL') %}
         {% include('alert_template/templates/mail.html.twig') with {
             config: alert_template.config

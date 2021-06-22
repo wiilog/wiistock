@@ -154,14 +154,6 @@ function switchGroups() {
     $(`#groupsTable_filter`).parent().show();
 }
 
-function toExport() {
-    if(selectedTab === TAB_LOCATIONS) {
-        saveExportFile(`export_locations`);
-    } else {
-        saveExportFile(`export_groups`);
-    }
-}
-
 function checkAndDeleteRowEmplacement(icon) {
     let modalBody = modalDeleteEmplacement.find('.modal-body');
     let id = icon.data('id');

@@ -26,18 +26,8 @@ class AlertTemplateController extends AbstractController
 {
 
     /**
-     * @Route("/liste", name="alert_template_index")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_ALERT_TEMPLATE})
-     */
-    public function index(): Response {
-        return $this->render('alert_template/index.html.twig', [
-            'templateTypes' => AlertTemplate::TEMPLATE_TYPES
-        ]);
-    }
-
-    /**
      * @Route("/api", name="alert_template_api", options={"expose"=true}, methods={"POST|GET"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_ALERT_TEMPLATE})
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_NOTIFICATIONS})
      */
     public function api(Request $request,
                         AlertTemplateService $alertTemplateService): Response {
@@ -239,7 +229,7 @@ class AlertTemplateController extends AbstractController
     }
 
     /**
-     * @Route("/toggle-template", name="toggle_template", options={"expose"=true}, methods={"GET"})
+     * @Route("/toggle-template", name="alert_template_toggle_template", options={"expose"=true}, methods={"GET"})
      */
     public function toggleTemplate(Request $request) {
         $query = $request->query;
@@ -247,9 +237,7 @@ class AlertTemplateController extends AbstractController
 
         $html = '';
         if($type === AlertTemplate::SMS) {
-            $html = $this->renderView('alert_template/templates/sms.html.twig', [
-                ''
-            ]);
+            $html = $this->renderView('alert_template/templates/sms.html.twig');
         } else if ($type === AlertTemplate::MAIL) {
             $html = $this->renderView('alert_template/templates/mail.html.twig');
         }

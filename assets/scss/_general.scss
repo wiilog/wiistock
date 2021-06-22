@@ -529,3 +529,12 @@ label.required:after {
         background-color: $white;
     }
 }
+
+.form-control.phone-number::placeholder {
+    color: #bbb;
+    opacity: 1;
+}
+
+.editor-container .highlighted-variable {
+    color: #00a3ff;
+}

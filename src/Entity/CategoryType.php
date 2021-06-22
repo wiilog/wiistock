@@ -28,19 +28,6 @@ class CategoryType
     const SENSOR = 'capteur';
     const REQUEST_TEMPLATE = 'modèle demande';
 
-    const NOTIFICATIONS_TYPES = [
-        self::DEMANDE_LIVRAISON,
-        self::DEMANDE_COLLECTE,
-        self::TRANSFER_REQUEST,
-        self::DEMANDE_DISPATCH,
-        self::DEMANDE_HANDLING,
-    ];
-
-    const NOTIFICATIONS_EMERGENCIES = [
-        self::DEMANDE_DISPATCH,
-        self::DEMANDE_HANDLING,
-    ];
-
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

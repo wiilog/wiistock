@@ -1,6 +1,6 @@
 {% set template = template is defined and template ? template : '' %}
 {% set config = config is defined and config is not empty ? config : [] %}
-<div class="form-group mt-4 phone-number-wrapper">
+<div class="form-group phone-number-wrapper">
     <label class="ml-3">Destinataires</label>
     {% if phoneNumbers is defined and phoneNumbers is not empty %}
         {% for phoneNumber in phoneNumbers %}

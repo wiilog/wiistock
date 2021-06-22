@@ -19,8 +19,8 @@
                                         data-category="{{ category.label }}"
                                         data-needs-default-locations="{{ category.label == constant('App\\Entity\\CategoryType::DEMANDE_DISPATCH') }}"
                                         data-needs-send-mail="{{ category.label == constant('App\\Entity\\CategoryType::DEMANDE_LIVRAISON') }}"
-                                        data-enable-notifications="{{ category.label in constant('App\\Entity\\CategoryType::NOTIFICATIONS_TYPES') }}"
-                                        data-notifications-emergencies="{{ category.label in constant('App\\Entity\\CategoryType::NOTIFICATIONS_EMERGENCIES') }}">
+                                        data-enable-notifications="{{ category.label in constant('App\\Entity\\NotificationTemplate::NOTIFICATIONS_TYPES') }}"
+                                        data-notifications-emergencies="{{ category.label in constant('App\\Entity\\NotificationTemplate::NOTIFICATIONS_EMERGENCIES') }}">
                                     {{ category.label }}
                                 </option>
                             {% endfor %}
