@@ -7,6 +7,7 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
+use App\Entity\FieldsParam;
 use App\Entity\Menu;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -40,8 +41,14 @@ class TypeController extends AbstractController
 
         $categories = $categoryTypeRepository->findAll();
 
-        return $this->render('types/index.html.twig', [
-            'categories' => $categories,
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $dispatchEmergencies = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY);
+        $handlingEmergencies = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY);
+
+        return $this->render("types/index.html.twig", [
+            "categories" => $categories,
+            "dispatchEmergencies" => $dispatchEmergencies,
+            "handlingEmergencies" => $handlingEmergencies,
         ]);
     }
 
@@ -58,6 +65,16 @@ class TypeController extends AbstractController
         foreach ($types as $type) {
             $url['edit'] = $this->generateUrl('types_api_edit', ['id' => $type->getId()]);
 
+            if($type->getNotificationsEnabled()) {
+                if(!empty($type->getNotificationsEmergencies())) {
+                    $notifications = "Activées si urgence";
+                } else {
+                    $notifications = "Activées";
+                }
+            } else {
+                $notifications = "Désactivées";
+            }
+
             $rows[] = [
                 'Label' => $type->getLabel(),
                 'Categorie' => $type->getCategory() ? $type->getCategory()->getLabel() : '',
@@ -65,6 +82,7 @@ class TypeController extends AbstractController
                 'sendMail' => $type->getCategory() && ($type->getCategory()->getLabel() === CategoryType::DEMANDE_LIVRAISON)
                     ? ($type->getSendMail() ? 'Oui' : 'Non')
                     : '',
+                'notifications' => $notifications,
                 'Actions' => $this->renderView('types/datatableTypeRow.html.twig', [
                     'url' => $url,
                     'typeId' => $type->getId(),
@@ -129,12 +147,16 @@ class TypeController extends AbstractController
 
             $categories = $categoryTypeRepository->findAll();
 
-            $json = $this->renderView('types/modalEditTypeContent.html.twig', [
-                'type' => $type,
-                'categories' => $categories,
-            ]);
+            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+            $dispatchEmergencies = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY);
+            $handlingEmergencies = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY);
 
-            return new JsonResponse($json);
+            return $this->json($this->renderView('types/modalEditTypeContent.html.twig', [
+                "type" => $type,
+                "categories" => $categories,
+                "dispatchEmergencies" => $dispatchEmergencies,
+                "handlingEmergencies" => $handlingEmergencies,
+            ]));
         }
         throw new BadRequestHttpException();
     }
