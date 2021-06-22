@@ -12,6 +12,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Expr\Join;
+use WiiCommon\Helper\StringHelper;
 
 /**
  * @method Demande|null find($id, $lockMode = null, $lockVersion = null)
@@ -374,6 +375,81 @@ class DemandeRepository extends EntityRepository
         else {
             return null;
         }
+    }
+
+    private function createSensorPairingDataQueryUnion(Demande $deliveryRequest): string {
+        $createQueryBuilder = function (Demande $deliveryRequestFilter) {
+            return $this->createQueryBuilder('deliveryRequest')
+                ->select('pairing.id AS pairingId')
+                ->addSelect('sensorWrapper.name AS name')
+                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
+                ->join('deliveryRequest.preparations', 'preparations')
+                ->join('preparations.pairings', 'pairing')
+                ->join('pairing.sensorWrapper', 'sensorWrapper')
+                ->where('deliveryRequest = :deliveryRequest')
+                ->setParameter('deliveryRequest', $deliveryRequestFilter);
+        };
+
+        $startQueryBuilder = $createQueryBuilder($deliveryRequest);
+        $startQueryBuilder
+            ->addSelect("pairing.start AS date")
+            ->addSelect("'start' AS type")
+            ->where('pairing.start IS NOT NULL');
+
+        $endQueryBuilder = $createQueryBuilder($deliveryRequest);
+        $endQueryBuilder
+            ->addSelect("pairing.end AS date")
+            ->addSelect("'end' AS type")
+            ->where('pairing.end IS NOT NULL');
+
+        $sqlAliases = [
+            '/AS \w+_0/' => 'AS pairingId',
+            '/AS \w+_1/' => 'AS name',
+            '/AS \w+_2/' => 'AS active',
+            '/AS \w+_3/' => 'AS date',
+            '/AS \w+_4/' => 'AS type',
+        ];
+
+        $startSQL = $startQueryBuilder->getQuery()->getSQL();
+        $startSQL = StringHelper::multiplePregReplace($sqlAliases, $startSQL);
+
+        $endSQL = $endQueryBuilder->getQuery()->getSQL();
+        $endSQL = StringHelper::multiplePregReplace($sqlAliases, $endSQL);
+
+        return "
+            ($startSQL)
+            UNION
+            ($endSQL)
+        ";
+    }
+
+    public function getSensorPairingData(Demande $deliveryRequest, int $start, int $count): array {
+        $unionSQL = $this->createSensorPairingDataQueryUnion($deliveryRequest);
+
+        $entityManager = $this->getEntityManager();
+        $connection = $entityManager->getConnection();
+        /** @noinspection SqlResolve */
+        return $connection
+            ->executeQuery("
+                SELECT *
+                FROM ($unionSQL) AS pairing
+                ORDER BY `date` DESC
+                LIMIT $count OFFSET $start
+            ")
+            ->fetchAllAssociative();
+    }
+
+    public function countSensorPairingData(Demande $deliveryRequest): int {
+        $unionSQL = $this->createSensorPairingDataQueryUnion($deliveryRequest);
+
+        $entityManager = $this->getEntityManager();
+        $connection = $entityManager->getConnection();
+        $unionQuery = $connection->executeQuery("
+            SELECT COUNT(*) AS count
+            FROM ($unionSQL) AS pairing
+        ");
+        $res = $unionQuery->fetchAllAssociative();
+        return $res[0]['count'] ?? 0;
     }
 
 }

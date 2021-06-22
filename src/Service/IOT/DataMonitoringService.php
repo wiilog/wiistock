@@ -3,6 +3,7 @@
 namespace App\Service\IOT;
 
 use App\Entity\Article;
+use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
@@ -44,6 +45,9 @@ class DataMonitoringService
 
     /** @Required */
     public RouterInterface $router;
+
+    /** @Required */
+    public IOTService $IOTService;
 
     public function render($config): Response
     {
@@ -180,6 +184,17 @@ class DataMonitoringService
         ];
     }
 
+    private function fillDeliveryRequestConfig(array &$config, Demande $deliveryRequest, bool $header)
+    {
+        $config["left_pane"][] = [
+            "type" => "entity",
+            "icon" => "iot-delivery",
+            "title" => $deliveryRequest->getNumero(),
+            "header" => $header,
+            "hideActions" => $header
+        ];
+    }
+
     private function fillCollectOrderConfig(array &$config, OrdreCollecte $collect, bool $header)
     {
         $config["left_pane"][] = [
@@ -204,14 +219,16 @@ class DataMonitoringService
 
     private function fillTimelineConfig(array &$config, PairedEntity $pairedEntity)
     {
-        $type = $pairedEntity instanceof Pack
-            ? Sensor::PACK
-            : null; // TODO
+        $entityCode = $this->IOTService->getEntityCodeFromEntity($pairedEntity);
+
+        if (!isset($entityCode)) {
+            throw new RuntimeException("Unsupported class " . get_class($pairedEntity));
+        }
 
         $config["left_pane"][] = [
             "type" => "timeline",
             "timelineDataPath" => $this->router->generate('get_data_history_timeline_api', [
-                "type" => $type,
+                "type" => $entityCode,
                 "id" => $pairedEntity->getId()
             ])
         ];
@@ -235,6 +252,8 @@ class DataMonitoringService
             $this->fillLocationGroupConfig($config, $entity, $isHistoric);
         } else if ($entity instanceof Preparation) {
             $this->fillPreparationConfig($config, $entity, $isHistoric);
+        } else if ($entity instanceof Demande) {
+            $this->fillDeliveryRequestConfig($config, $entity, $isHistoric);
         } else if ($entity instanceof OrdreCollecte) {
             $this->fillCollectOrderConfig($config, $entity, $isHistoric);
         } else if ($entity instanceof Article) {
@@ -256,6 +275,9 @@ class DataMonitoringService
 
         if ($entity instanceof Pack) {
             return $this->getPackTimelineData($entityManager, $router, $entity, $start, $count);
+        }
+        else if ($entity instanceof Demande) {
+            return $this->getDeliveryRequestTimelineData($entityManager, $router, $entity, $start, $count);
         }
 
         return null;
@@ -297,4 +319,39 @@ class DataMonitoringService
         ];
     }
 
+    private function getDeliveryRequestTimelineData(EntityManagerInterface $entityManager,
+                                                    RouterInterface $routerInterface,
+                                                    Demande $deliveryRequest,
+                                                    int $start,
+                                                    int $count): array {
+        $demandeRepository = $entityManager->getRepository(Demande::class);
+        $pairingData = $demandeRepository->getSensorPairingData($deliveryRequest, $start, $count);
+        $pairingDataCount = $demandeRepository->countSensorPairingData($deliveryRequest);
+        $subtitlePrefix = [
+            'start' => 'Associé le : ',
+            'end' => 'Dissocié le : '
+        ];
+
+        return [
+            'data' => Stream::from($pairingData)
+                ->filterMap(function ($data) use ($subtitlePrefix, $routerInterface) {
+                    $dateStr = $data['date'] ?? null;
+                    $type = $data['type'] ?? null;
+                    $date = $dateStr
+                        ? DateTime::createFromFormat('Y-m-d H:i:s', $dateStr)
+                        : null;
+                    return $date && $subtitlePrefix[$type]
+                        ? [
+                            'titleHref' => $routerInterface->generate('pairing_show', ['pairing' => $data['pairingId']]),
+                            'title' => $data['name'] ?? '',
+                            'datePrefix' => $subtitlePrefix[$type],
+                            'date' => $date->format('d/m/Y à H:i'),
+                            'active' => ($data['active'] ?? '0') === '1'
+                        ]
+                        : null;
+                })
+                ->toArray(),
+            'isEnd' => $pairingDataCount <= ($start + $count)
+        ];
+    }
 }

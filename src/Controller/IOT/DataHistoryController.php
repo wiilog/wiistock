@@ -5,6 +5,7 @@ namespace App\Controller\IOT;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Article;
+use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Sensor;
@@ -82,6 +83,7 @@ class DataHistoryController extends AbstractController {
     {
         $filters = json_decode($request->getContent(), true);
         $query = $request->query;
+
         $type = $query->get('type');
         $id = $query->get('id');
 
@@ -128,8 +130,8 @@ class DataHistoryController extends AbstractController {
             case Sensor::PACK:
                 $entity = $entityManager->getRepository(Pack::class)->find($id);
                 break;
-            case Sensor::PREPARATION:
-                $entity = $entityManager->getRepository(Preparation::class)->find($id);
+            case Sensor::DELIVERY_REQUEST:
+                $entity = $entityManager->getRepository(Demande::class)->find($id);
                 break;
             case Sensor::COLLECT:
                 $entity = $entityManager->getRepository(OrdreCollecte::class)->find($id);

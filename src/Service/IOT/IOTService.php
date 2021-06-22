@@ -14,6 +14,7 @@ use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\CollectRequestTemplate;
 use App\Entity\IOT\DeliveryRequestTemplate;
 use App\Entity\IOT\HandlingRequestTemplate;
+use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;
@@ -420,8 +421,13 @@ class IOTService
         $article->addSensorMessage($sensorMessage);
     }
 
+    private function treatAddMessageDeliveryRequest(Demande $request, SensorMessage $sensorMessage) {
+        $request->addSensorMessage($sensorMessage);
+    }
+
     private function treatAddMessageOrdrePrepa(Preparation $preparation, SensorMessage $sensorMessage) {
         $preparation->addSensorMessage($sensorMessage);
+        $this->treatAddMessageDeliveryRequest($preparation->getDemande(), $sensorMessage);
         foreach ($preparation->getArticles() as $article) {
             $this->treatAddMessageArticle($article, $sensorMessage);
         }
@@ -498,5 +504,24 @@ class IOTService
                 break;
         }
         return 'Évenement non trouvé';
+    }
+
+    public function getEntityCodeFromEntity(?PairedEntity $pairedEntity): ?string {
+        if($pairedEntity instanceof Emplacement) {
+            $code = Sensor::LOCATION;
+        } else if($pairedEntity instanceof LocationGroup) {
+            $code = Sensor::LOCATION_GROUP;
+        } else if($pairedEntity instanceof Article) {
+            $code = Sensor::ARTICLE;
+        } else if($pairedEntity instanceof Pack) {
+            $code = Sensor::PACK;
+        } else if($pairedEntity instanceof Preparation) {
+            $code = Sensor::PREPARATION;
+        } else if($pairedEntity instanceof OrdreCollecte) {
+            $code = Sensor::COLLECT;
+        } else if($pairedEntity instanceof Demande) {
+            $code = Sensor::DELIVERY_REQUEST;
+        }
+        return $code ?? null;
     }
 }
