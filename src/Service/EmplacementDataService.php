@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by VisualStudioCode.
- * User: jv.Sicot
- * Date: 03/04/2019
- * Time: 15:09.
- */
 
 namespace App\Service;
 
@@ -35,17 +29,11 @@ class EmplacementDataService {
      */
     private $router;
 
-    /**
-     * @var UserService
-     */
-    private $userService;
-
     private $security;
 
     private $entityManager;
 
-    public function __construct(UserService $userService,
-                                RouterInterface $router,
+    public function __construct(RouterInterface $router,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
                                 Security $security) {
@@ -53,17 +41,9 @@ class EmplacementDataService {
         $this->templating = $templating;
         $this->entityManager = $entityManager;
         $this->router = $router;
-        $this->userService = $userService;
         $this->security = $security;
     }
 
-    /**
-     * @param null $params
-     * @return array
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
     public function getEmplacementDataByParams($params = null) {
         $user = $this->security->getUser();
 
@@ -95,14 +75,7 @@ class EmplacementDataService {
         ];
     }
 
-    /**
-     * @param Emplacement $emplacement
-     * @return array
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
-    public function dataRowEmplacement($emplacement) {
+    public function dataRowEmplacement(Emplacement $emplacement) {
         $url['edit'] = $this->router->generate('emplacement_edit', ['id' => $emplacement->getId()]);
         $allowedNatures = implode(
             ';',
@@ -113,10 +86,29 @@ class EmplacementDataService {
                 $emplacement->getAllowedNatures()->toArray()
             )
         );
+
+        $linkedGroup = $emplacement->getLocationGroup();
+        $groupLastMessage = $linkedGroup ? $linkedGroup->getLastMessage() : null;
+        $locationLastMessage = $emplacement->getLastMessage();
+
+        $sensorCode = $groupLastMessage
+            ? $groupLastMessage->getSensor()->getCode()
+            : ($locationLastMessage
+                ? $locationLastMessage->getSensor()->getCode()
+                : null);
+
+        $hasPairing = (
+            !$emplacement->getPairings()->isEmpty()
+            || (
+                $emplacement->getLocationGroup()
+                && $emplacement->getLocationGroup()->getPairings()->isEmpty()
+            )
+        );
+
         return [
-            'id' => ($emplacement->getId() ? $emplacement->getId() : 'Non défini'),
-            'name' => ($emplacement->getLabel() ? $emplacement->getLabel() : 'Non défini'),
-            'description' => ($emplacement->getDescription() ? $emplacement->getDescription() : 'Non défini'),
+            'id' => $emplacement->getId(),
+            'name' => $emplacement->getLabel() ?: 'Non défini',
+            'description' => $emplacement->getDescription() ?: 'Non défini',
             'deliveryPoint' => $emplacement->getIsDeliveryPoint() ? 'oui' : 'non',
             'ongoingVisibleOnMobile' => $emplacement->isOngoingVisibleOnMobile() ? 'oui' : 'non',
             'maxDelay' => $emplacement->getDateMaxTime() ?? '',
@@ -125,6 +117,13 @@ class EmplacementDataService {
             'actions' => $this->templating->render('emplacement/datatableEmplacementRow.html.twig', [
                 'url' => $url,
                 'emplacementId' => $emplacement->getId(),
+                'location' => $emplacement,
+                'linkedGroup' => $linkedGroup,
+                'hasPairing' => $hasPairing
+            ]),
+            'pairing' => $this->templating->render('pairing-icon.html.twig', [
+                'sensorCode' => $sensorCode,
+                'hasPairing' => $hasPairing
             ]),
         ];
     }

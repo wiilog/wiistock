@@ -30,8 +30,7 @@ class EnCoursController extends AbstractController
      * @Route("/", name="en_cours", methods={"GET"})
      * @HasPermission({Menu::TRACA, Action::DISPLAY_ENCO})
      */
-    public function index(UserService $userService,
-                          Request $request,
+    public function index(Request $request,
                           EntityManagerInterface $entityManager): Response
     {
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);

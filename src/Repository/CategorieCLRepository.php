@@ -13,19 +13,6 @@ use Doctrine\ORM\EntityRepository;
  */
 class CategorieCLRepository extends EntityRepository
 {
-    public function findOneByLabel($label)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT c
-            FROM App\Entity\CategorieCL c
-            WHERE c.label = :label
-           "
-        )->setParameter('label', $label);
-
-        return $query->getOneOrNullResult();
-    }
-
     public function findByLabel(array $labels) {
         $qb = $this->createQueryBuilder('categorie_cl');
 

@@ -5,7 +5,6 @@ namespace App\Service;
 use App\Entity\CategorieCL;
 use App\Entity\FreeField;
 use App\Entity\FreeFieldEntity;
-use WiiCommon\Helper\Stream;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
@@ -34,15 +33,6 @@ class FreeFieldService {
         return $formattedValue;
     }
 
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @param array $freeFieldCategoryLabels
-     * @return array[
-     *     'freeFieldIds' => int[],
-     *     'freeFieldsHeader' => string[],
-     *     'freeFieldsIdToTyping' => array[int][string]
-     * ]
-     */
     public function createExportArrayConfig(EntityManagerInterface $entityManager,
                                             array $freeFieldCategoryLabels): array
     {
@@ -126,7 +116,7 @@ class FreeFieldService {
         $categorieCLRepository =  $entityManager->getRepository(CategorieCL::class);
 
         if (!empty($categoryCLLabel)) {
-            $categorieCL = $categorieCLRepository->findOneByLabel($categoryCLLabel);
+            $categorieCL = $categorieCLRepository->findOneBy(['label' => $categoryCLLabel]);
             $freeFieldResult = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
         }
         else {
@@ -161,19 +151,4 @@ class FreeFieldService {
 
         return $detailsChampLibres;
     }
-
-    public function getFreeFieldsById(EntityManagerInterface $entityManager, string $categoryCLLabel, string $category) {
-        $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
-        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
-
-        $categorieCL = $categorieCLRepository->findOneByLabel($categoryCLLabel);
-        $champs = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-
-        return Stream::from($champs)
-            ->keymap(function($field) {
-                return [$field["id"], $field["label"]];
-            })
-            ->toArray();
-    }
-
 }

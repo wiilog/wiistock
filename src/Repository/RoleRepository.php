@@ -14,12 +14,6 @@ use Doctrine\ORM\EntityRepository;
 class RoleRepository extends EntityRepository
 {
 
-    /**
-     * @param string $label
-     * @return mixed
-     * @throws \Doctrine\ORM\NonUniqueResultException
-     * @throws \Doctrine\ORM\NoResultException
-     */
     public function countByLabel($label)
     {
         $em = $this->getEntityManager();
@@ -33,11 +27,6 @@ class RoleRepository extends EntityRepository
         return $query->getSingleScalarResult();
     }
 
-    /**
-     * @param string $label
-     * @return Role
-     * @throws \Doctrine\ORM\NonUniqueResultException
-     */
     public function findByLabel($label)
     {
         $em = $this->getEntityManager();
@@ -51,9 +40,6 @@ class RoleRepository extends EntityRepository
         return $query->getOneOrNullResult();
     }
 
-    /**
-     * @return Role[]
-     */
     public function findAllExceptNoAccess()
     {
         $em = $this->getEntityManager();

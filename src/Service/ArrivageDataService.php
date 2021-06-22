@@ -18,14 +18,10 @@ use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 
 
 class ArrivageDataService
 {
-    private $userService;
     private $specificService;
     private $stringService;
     private $translator;
@@ -51,8 +47,7 @@ class ArrivageDataService
     /** @Required */
     public UrgenceService $urgenceService;
 
-    public function __construct(UserService $userService,
-                                SpecificService $specificService,
+    public function __construct(SpecificService $specificService,
                                 StringService $stringService,
                                 FreeFieldService $champLibreService,
                                 FieldsParamService $fieldsParamService,
@@ -64,19 +59,10 @@ class ArrivageDataService
         $this->fieldsParamService = $fieldsParamService;
         $this->translator = $translator;
         $this->stringService = $stringService;
-        $this->userService = $userService;
         $this->specificService = $specificService;
         $this->visibleColumnService = $visibleColumnService;
     }
 
-    /**
-     * @param array $params
-     * @param int|null $userId
-     * @return array
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
     public function getDataForDatatable($params, $userId)
     {
         $arrivalRepository = $this->entityManager->getRepository(Arrivage::class);
@@ -102,13 +88,6 @@ class ArrivageDataService
         ];
     }
 
-    /**
-     * @param Arrivage $arrival
-     * @return array
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
     public function dataRowArrivage($arrival)
     {
         $url = $this->router->generate('arrivage_show', [
@@ -117,7 +96,7 @@ class ArrivageDataService
         $arrivalRepository = $this->entityManager->getRepository(Arrivage::class);
         $categoryFFRepository = $this->entityManager->getRepository(CategorieCL::class);
         $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
-        $categoryFF = $categoryFFRepository->findOneByLabel(CategorieCL::ARRIVAGE);
+        $categoryFF = $categoryFFRepository->findOneBy(['label' => CategorieCL::ARRIVAGE]);
 
         $category = CategoryType::ARRIVAGE;
         $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
@@ -168,13 +147,6 @@ class ArrivageDataService
         return array_merge($rowCL, $row);
     }
 
-    /**
-     * @param Arrivage $arrival
-     * @param Urgence[] $emergencies
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
     public function sendArrivalEmails(Arrivage $arrival, array $emergencies = []): void {
         $isUrgentArrival = !empty($emergencies);
         $finalRecipients = [];
@@ -222,13 +194,6 @@ class ArrivageDataService
         }
     }
 
-    /**
-     * @param Arrivage $arrivage
-     * @param Urgence[] $emergencies
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
     public function setArrivalUrgent(Arrivage $arrivage, array $emergencies): void
     {
         if (!empty($emergencies)) {
@@ -240,12 +205,6 @@ class ArrivageDataService
         }
     }
 
-    /**
-     * @param Arrivage $arrivage
-     * @param bool $askQuestion
-     * @param Urgence[] $urgences
-     * @return array
-     */
     public function createArrivalAlertConfig(Arrivage $arrivage,
                                              bool $askQuestion,
                                              array $urgences = []): array
@@ -307,13 +266,6 @@ class ArrivageDataService
         ];
     }
 
-    /**
-     * @param Arrivage $arrival
-     * @return array List of alertConfig to display to the client
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
     public function processEmergenciesOnArrival(Arrivage $arrival): array
     {
         $numeroCommandeList = $arrival->getNumeroCommandeList();
@@ -490,7 +442,7 @@ class ArrivageDataService
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
         $columnsVisible = $currentUser->getColumnsVisibleForArrivage();
-        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::ARRIVAGE);
+        $categorieCL = $categorieCLRepository->findOneBy(['label' => CategorieCL::ARRIVAGE]);
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARRIVAGE, $categorieCL);
 
         $columns = [
@@ -537,7 +489,7 @@ class ArrivageDataService
             $location = $emplacementRepository->find($emergenciesArrivalsLocation);
         }
         else if ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED) && $arrivage->getDestinataire()) {
-            $location = $emplacementRepository->findOneByLabel(SpecificService::ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE);
+            $location = $emplacementRepository->findOneBy(['label' => SpecificService::ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE]);
         } else if ($arrivage->getDropLocation()) {
             $location = $arrivage->getDropLocation();
         } else if($defaultArrivalsLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION)) {

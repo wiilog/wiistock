@@ -21,6 +21,7 @@ const locationsTableConfig = {
     },
     columns: [
         {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},
+        {data: 'pairing', name: 'pairing', title: ''},
         {data: 'name', name: 'name', title: 'Nom'},
         {data: 'description', name: 'description', title: 'Description'},
         {data: 'deliveryPoint', name: 'deliveryPoint', title: 'Point de livraison'},
@@ -48,6 +49,7 @@ const groupsTableConfig = {
     },
     columns: [
         {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},
+        {data: 'pairing', name: 'pairing', title: ''},
         {data: 'name', name: 'name', title: 'Nom'},
         {data: 'description', name: 'description', title: 'Description'},
         {data: 'active', name: 'active', title: 'Actif / Inactif'},

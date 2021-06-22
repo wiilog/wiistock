@@ -21,7 +21,7 @@ class PatchEmptyEmplacementsFixtures extends Fixture implements FixtureGroupInte
     public function load(ObjectManager $manager)
     {
         $emplacementRepository = $manager->getRepository(Emplacement::class);
-        $emplacementDef = $emplacementRepository->findOneByLabel('A définir');
+        $emplacementDef = $emplacementRepository->findOneBy(['label' => 'A définir']);
 
         if (!$emplacementDef) {
         	$emplacementDef = new Emplacement();
@@ -31,7 +31,7 @@ class PatchEmptyEmplacementsFixtures extends Fixture implements FixtureGroupInte
 				->setIsActive(true);
 		}
         $manager->flush();
-		$emplacementDef = $emplacementRepository->findOneByLabel('A définir');
+		$emplacementDef = $emplacementRepository->findOneBy(['label' => 'A définir']);
 
 		$query = $this->em->createQuery(
 		/** @lang DQL */
