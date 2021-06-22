@@ -149,6 +149,16 @@ class Type
      */
     private $averageRequestTime;
 
+    /**
+     * @ORM\Column(type="boolean", options={"default": 0})
+     */
+    private ?bool $notificationsEnabled;
+
+    /**
+     * @ORM\Column(type="json", nullable=true)
+     */
+    private ?array $notificationsEmergencies = [];
+
     public function __construct()
     {
         $this->champsLibres = new ArrayCollection();
@@ -727,6 +737,30 @@ class Type
         if ($averageRequestTime->getType() !== $this) {
             $averageRequestTime->setType($this);
         }
+
+        return $this;
+    }
+
+    public function getNotificationsEnabled(): ?bool
+    {
+        return $this->notificationsEnabled;
+    }
+
+    public function setNotificationsEnabled(bool $notificationsEnabled): self
+    {
+        $this->notificationsEnabled = $notificationsEnabled;
+
+        return $this;
+    }
+
+    public function getNotificationsEmergencies(): ?array
+    {
+        return $this->notificationsEmergencies;
+    }
+
+    public function setNotificationsEmergencies(?array $notificationsEmergencies): self
+    {
+        $this->notificationsEmergencies = $notificationsEmergencies;
 
         return $this;
     }

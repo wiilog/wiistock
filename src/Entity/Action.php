@@ -103,6 +103,7 @@ class Action {
     const DISPLAY_STATU_LITI = 'afficher statuts litiges';
     const DISPLAY_NATU_COLI = 'afficher nature colis';
     const DISPLAY_CF = 'afficher champs fixes';
+    const DISPLAY_NOTIFICATIONS = 'afficher modèles de notifications';
     const DISPLAY_IMPORT = 'afficher import et mise à jour';
 
     // menu nomade
@@ -111,6 +112,7 @@ class Action {
     const MODULE_ACCESS_GROUP = 'Accès Groupage';
     const MODULE_ACCESS_UNGROUP = 'Accès Dégroupage';
     const MODULE_ACCESS_HAND = 'Accès Demande';
+    const MODULE_NOTIFICATIONS = 'Activer les notifications';
     const DEMO_MODE = 'Mode découverte';
 
     /**
