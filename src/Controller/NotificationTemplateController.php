@@ -30,7 +30,8 @@ class NotificationTemplateController extends AbstractController
      * @Route("/liste", name="notification_template_index")
      * @HasPermission({Menu::PARAM, Action::DISPLAY_NOTIFICATIONS})
      */
-    public function index(): Response {
+    public function index(): Response
+    {
         return $this->render('notification_template/index.html.twig', [
             'templateTypes' => AlertTemplate::TEMPLATE_TYPES
         ]);
@@ -40,7 +41,8 @@ class NotificationTemplateController extends AbstractController
      * @Route("/api", name="notification_template_api", options={"expose"=true}, methods={"POST|GET"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::DISPLAY_NOTIFICATIONS})
      */
-    public function api(Request $request, EntityManagerInterface $manager): Response {
+    public function api(Request $request, EntityManagerInterface $manager): Response
+    {
         $notificationTemplateRepository = $manager->getRepository(NotificationTemplate::class);
         $queryResult = $notificationTemplateRepository->findByParams($request->request);
 
@@ -87,11 +89,25 @@ class NotificationTemplateController extends AbstractController
      * @Route("/modifier", name="notification_template_edit", options={"expose"=true}, methods={"GET", "POST"})
      * @HasPermission({Menu::PARAM, Action::EDIT})
      */
-    public function edit(EntityManagerInterface $entityManager, Request $request): Response {
+    public function edit(EntityManagerInterface $entityManager, Request $request): Response
+    {
         $post = json_decode($request->getContent(), true);
 
         $notificationTemplate = PostHelper::entity($entityManager, $post, "id", NotificationTemplate::class);
         $notificationTemplate->setContent(PostHelper::string($post, "content"));
+        dump(PostHelper::string($post, "content"));
+
+        if (substr_count($notificationTemplate->getContent(), "<p>") > 5) {
+            return $this->json([
+                "success" => false,
+                "msg" => "La notification ne peut pas faire plus de 5 lignes"
+            ]);
+        } else if (strlen(strip_tags($notificationTemplate->getContent())) > 500) {
+            return $this->json([
+                "success" => false,
+                "msg" => "La notification ne peut pas faire plus de 500 caractères"
+            ]);
+        }
 
         $entityManager->flush();
 
