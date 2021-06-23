@@ -79,7 +79,7 @@ class OrdreCollecte implements PairedEntity
 	private $mouvements;
 
     /**
-     * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="collectOrder")
+     * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="collectOrder", cascade={"remove"})
      */
     private Collection $pairings;
 

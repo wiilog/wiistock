@@ -65,7 +65,7 @@ class DataHistoryController extends AbstractController {
                                         IOTService $IOTService,
                                         PairingService $pairingService): JsonResponse
     {
-        $filters = json_decode($request->getContent(), true);
+        $filters = $request->query->all();
         $query = $request->query;
         $type = $query->get('type');
         $id = $query->get('id');
@@ -90,7 +90,7 @@ class DataHistoryController extends AbstractController {
                                       EntityManagerInterface $entityManager,
                                       IOTService $IOTService): JsonResponse
     {
-        $filters = json_decode($request->getContent(), true);
+        $filters = $request->query->all();
         $query = $request->query;
 
         $type = $query->get('type');

@@ -198,7 +198,7 @@ class Article extends FreeFieldEntity implements PairedEntity
     private $stockEntryDate;
 
     /**
-     * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="article")
+     * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="article", cascade={"remove"})
      */
     private Collection $pairings;
 
