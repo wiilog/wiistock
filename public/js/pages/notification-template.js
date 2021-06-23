@@ -104,6 +104,10 @@ function switchAlerts() {
         let urlEditAlertTemplate = Routing.generate('alert_template_edit', true);
         InitModal($modalEditAlertTemplate, $modalEditAlertTemplate.find('.submit-button'), urlEditAlertTemplate, {tables: [alertsTable]});
 
+        $modalEditAlertTemplate.arrive(`input[name=receivers]`, function () {
+            initTelInput($(this));
+        });
+
         let $modalDeleteAlertTemplate = $("#modalDeleteAlertTemplate");
         let urlDeleteAlerteTemplate = Routing.generate('alert_template_delete', true);
         InitModal($modalDeleteAlertTemplate, $modalDeleteAlertTemplate.find('.submit-button'), urlDeleteAlerteTemplate, {tables: [alertsTable]});
@@ -122,6 +126,7 @@ const CURSOR_BEGIN_PLACEHOLDER = `<i data-from></i>`;
 const CURSOR_END_PLACEHOLDER = `<i data-to></i>`;
 
 function onEditModalLoad($modal, editor) {
+    $modal.find(`.notification-example`).html(editor.root.innerHTML);
     // pour la coloration des variables mais ça marche pas c'est pas prioritaire donc en pause pour l'instant
     //
     // editor.on(`text-change`, function() {
@@ -201,10 +206,4 @@ function initTelInput($input) {
         initialCountry: 'fr'
     });
     return $input.data('iti', iti);
-}
-
-function openVariablesDictionary() {
-    const $variablesModal = $('#variablesModal');
-
-    $variablesModal.modal('show');
 }

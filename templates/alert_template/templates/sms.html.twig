@@ -22,17 +22,16 @@
     </button>
 </div>
 
-<div class="col-12 form-group mt-4">
-    <div class="d-flex justify-content-between align-items-end mb-2">
-        <label class="mb-2">SMS*</label>
-        <button class="btn btn-primary btn-ripple" onclick="openVariablesDictionary()">
-            Voir le dictionnaire des variables
-        </button>
-    </div>
-<textarea name="content"
-          style="resize: none"
-          rows="7"
-          class="form-control data needed">{{ config ? config['content'] }}</textarea>
+<div class="col-12 form-group mt-1">
+    <label class="mb-2">SMS*</label>
+    <textarea name="content"
+              style="resize: none"
+              rows="6"
+              class="form-control data needed">{{ config ? config['content'] }}</textarea>
+</div>
+
+<div class="col-12">
+    {% include 'variables_dictionary.html.twig' with {dictionary: 'ALERT_DICTIONARY'} %}
 </div>
 
 <template class="phone-number-template">
@@ -41,9 +40,3 @@
         <button class="btn d-block" onclick="deletePhoneNumber($(this))"><i class="far fa-trash-alt"></i></button>
     </div>
 </template>
-
-<script>
-    $('input[name=receivers]').each(function () {
-        initTelInput($(this));
-    });
-</script>

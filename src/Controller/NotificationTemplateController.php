@@ -76,6 +76,7 @@ class NotificationTemplateController extends AbstractController
 
             return $this->json($this->renderView("notification_template/edit_content.html.twig", [
                 "notification_template" => $notificationTemplate,
+                "dictionary" => NotificationTemplate::DICTIONARIES[$notificationTemplate->getType()],
             ]));
         }
 

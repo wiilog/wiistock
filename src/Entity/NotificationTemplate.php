@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\NotificationTemplateRepository;
+use App\Service\VariableService;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -40,13 +41,13 @@ class NotificationTemplate
         self::HANDLING => "Demande de service",
     ];
 
-    public const CATEGORIES = [
-        self::PREPARATION => CategoryType::DEMANDE_LIVRAISON,
-        self::DELIVERY => CategoryType::DEMANDE_LIVRAISON,
-        self::COLLECT => CategoryType::DEMANDE_COLLECTE,
-        self::TRANSFER => CategoryType::TRANSFER_REQUEST,
-        self::DISPATCH => CategoryType::DEMANDE_DISPATCH,
-        self::HANDLING => CategoryType::DEMANDE_HANDLING,
+    public const DICTIONARIES = [
+        self::PREPARATION => VariableService::DELIVERY_DICTIONARY,
+        self::DELIVERY => VariableService::DELIVERY_DICTIONARY,
+        self::COLLECT => VariableService::COLLECT_DICTIONARY,
+        self::TRANSFER => VariableService::TRANSFER_DICTIONARY,
+        self::DISPATCH => VariableService::DISPATCH_DICTIONARY,
+        self::HANDLING => VariableService::HANDLING_DICTIONARY,
     ];
 
     /**
