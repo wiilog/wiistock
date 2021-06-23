@@ -67,7 +67,8 @@
             <div class="col-12 form-group enable-notifications">
                 <label>Activer les notifications ?</label>
                 <label class="switch">
-                    <input class="checkbox" type="checkbox" name="notificationsEnabled" {{ type.notificationsEnabled ? 'checked' }}>
+                    <input class="checkbox" type="checkbox" name="notificationsEnabled" {{ type.notificationsEnabled ? 'checked' }}
+                           onchange="onNotificationChange($(this))">
                     <span class="slider round"></span>
                 </label>
             </div>

@@ -53,12 +53,18 @@ $(document).on(`click`, `.enable-notifications-emergencies`, function () {
         .val(null).trigger(`change`);
 })
 
+function onNotificationChange($modal){
+    const $emergency = $modal.closest(`.modal`).find(`.notifications-emergencies`);
+    $emergency.toggleClass(`d-none`)
+    $emergency.find(`select`)
+        .val(null).trigger(`change`);
+}
+
 function typeSelectChange($typeSelect, $modal) {
     const $selectedOption = $typeSelect.find('option:selected');
     const $mailCheckContainer = $modal.find('.send-mail');
     const $defaultLocations = $modal.find('.needs-default-locations');
     const $notificationsContainer = $modal.find('.enable-notifications');
-    const $notificationsEmergenciesContainer = $modal.find('.notifications-emergencies');
     const $mailCheck = $mailCheckContainer.find('input[name="sendMail"]');
     const $notificationsEmergencies = $modal.find('select[name=notificationsEmergencies]');
 
@@ -79,12 +85,6 @@ function typeSelectChange($typeSelect, $modal) {
         $notificationsContainer.removeClass('d-none');
     } else {
         $notificationsContainer.addClass('d-none');
-    }
-
-    if ($selectedOption.data('notifications-emergencies')) {
-        $notificationsEmergenciesContainer.removeClass('d-none');
-    } else {
-        $notificationsEmergenciesContainer.addClass('d-none');
     }
 
     if ($selectedOption.data('needs-default-locations')) {
