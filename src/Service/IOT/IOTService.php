@@ -524,4 +524,26 @@ class IOTService
         }
         return $code ?? null;
     }
+
+    public function getEntityClassFromCode(?string $code): ?string {
+        $association = [
+            Sensor::LOCATION => Emplacement::class,
+            Sensor::LOCATION_GROUP => LocationGroup::class,
+            Sensor::ARTICLE => Article::class,
+            Sensor::PACK => Pack::class,
+            Sensor::DELIVERY_REQUEST => Demande::class,
+            Sensor::COLLECT => OrdreCollecte::class,
+            Sensor::PREPARATION => Preparation::class
+        ];
+        return $association[$code] ?? null;
+    }
+
+    public function getEntity(EntityManagerInterface $entityManager,
+                              string $type,
+                              int $id): ?PairedEntity {
+        $className = $this->getEntityClassFromCode($type);
+        return $className
+            ? $entityManager->find($className, $id)
+            : null;
+    }
 }

@@ -378,36 +378,41 @@ class DemandeRepository extends EntityRepository
     }
 
     private function createSensorPairingDataQueryUnion(Demande $deliveryRequest): string {
-        $createQueryBuilder = function (Demande $deliveryRequestFilter) {
+        $createQueryBuilder = function () {
             return $this->createQueryBuilder('deliveryRequest')
                 ->select('pairing.id AS pairingId')
                 ->addSelect('sensorWrapper.name AS name')
                 ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
-                ->join('deliveryRequest.preparations', 'preparations')
-                ->join('preparations.pairings', 'pairing')
+                ->addSelect('preparation.numero AS preparationNumber')
+                ->addSelect('deliveryOrder.numero AS deliveryNumber')
+                ->join('deliveryRequest.preparations', 'preparation')
+                ->leftJoin('preparation.livraison', 'deliveryOrder')
+                ->join('preparation.pairings', 'pairing')
                 ->join('pairing.sensorWrapper', 'sensorWrapper')
-                ->where('deliveryRequest = :deliveryRequest')
-                ->setParameter('deliveryRequest', $deliveryRequestFilter);
+                ->where('deliveryRequest = :deliveryRequest');
         };
 
-        $startQueryBuilder = $createQueryBuilder($deliveryRequest);
+        $startQueryBuilder = $createQueryBuilder();
         $startQueryBuilder
             ->addSelect("pairing.start AS date")
             ->addSelect("'start' AS type")
-            ->where('pairing.start IS NOT NULL');
+            ->andWhere('pairing.start IS NOT NULL');
 
-        $endQueryBuilder = $createQueryBuilder($deliveryRequest);
+        $endQueryBuilder = $createQueryBuilder();
         $endQueryBuilder
             ->addSelect("pairing.end AS date")
             ->addSelect("'end' AS type")
-            ->where('pairing.end IS NOT NULL');
+            ->andWhere('pairing.end IS NOT NULL');
 
         $sqlAliases = [
             '/AS \w+_0/' => 'AS pairingId',
             '/AS \w+_1/' => 'AS name',
             '/AS \w+_2/' => 'AS active',
-            '/AS \w+_3/' => 'AS date',
-            '/AS \w+_4/' => 'AS type',
+            '/AS \w+_3/' => 'AS preparationNumber',
+            '/AS \w+_4/' => 'AS deliveryNumber',
+            '/AS \w+_5/' => 'AS date',
+            '/AS \w+_6/' => 'AS type',
+            '/\?/' => $deliveryRequest->getId()
         ];
 
         $startSQL = $startQueryBuilder->getQuery()->getSQL();
@@ -416,10 +421,29 @@ class DemandeRepository extends EntityRepository
         $endSQL = $endQueryBuilder->getQuery()->getSQL();
         $endSQL = StringHelper::multiplePregReplace($sqlAliases, $endSQL);
 
+        $startDeliverySQL = $this->createQueryBuilder('deliveryRequest')
+            ->select("'' AS pairingId")
+            ->addSelect("'' AS name")
+            ->addSelect("'' AS active")
+            ->addSelect("'' AS preparationNumber")
+            ->addSelect('deliveryOrder.numero AS deliveryNumber')
+            ->addSelect("deliveryOrder.date AS date")
+            ->addSelect("'startOrder' AS type")
+            ->join('deliveryRequest.preparations', 'preparation')
+            ->leftJoin('preparation.livraison', 'deliveryOrder')
+            ->where('deliveryRequest = :deliveryRequest')
+            ->setParameter('deliveryRequest', $deliveryRequest)
+            ->getQuery()
+            ->getSQL();
+
+        $startDeliverySQL = StringHelper::multiplePregReplace($sqlAliases, $startDeliverySQL);
+
         return "
             ($startSQL)
             UNION
             ($endSQL)
+            UNION
+            ($startDeliverySQL)
         ";
     }
 
