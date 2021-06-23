@@ -341,13 +341,6 @@ class Collecte extends FreeFieldEntity implements Serializable {
         return $this;
     }
 
-    /**
-     * @return Collection|OrdreCollecte[]
-     */
-    public function getOrdreCollecte(): Collection {
-        return $this->ordreCollecte;
-    }
-
     public function needsToBeProcessed(): bool {
         $demandeStatus = $this->getStatut();
         return (

@@ -96,6 +96,7 @@ function initPageDatatable() {
         },
         columns: [
             {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},
+            {"data": 'pairing', 'name': '', 'title': '', className: 'noVis', orderable: false},
             {"data": 'Date', 'name': 'Date', 'title': 'Date'},
             {"data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur'},
             {"data": 'Numéro', 'name': 'Numéro', 'title': 'Numéro'},

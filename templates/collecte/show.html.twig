@@ -12,8 +12,9 @@
                         modifiable: modifiable,
                         collecte: collecte,
                         showDetails: detailsConfig,
-                        titleLogo: collecte.ordreCollecte|filter(oc=>oc.pairings|filter(p=>p.active)|length==1)|length==1 ? 'pairing' : null,
-                        titleLogoTooltip : "Cette demande de collecte est liée à un capteur"
+                        titleLogo: collecte.ordresCollecte|filter(oc=>oc.pairings|filter(p=>p.active)|length==1)|length==1 ? 'pairing' : null,
+                        titleLogoTooltip : "Cette demande de collecte est liée à un capteur",
+                        collectOrder: collectOrder
                     } %}
                 </div>
             </div>

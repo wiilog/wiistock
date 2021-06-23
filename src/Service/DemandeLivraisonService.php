@@ -32,6 +32,7 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
+use WiiCommon\Helper\Stream;
 
 class DemandeLivraisonService
 {
@@ -122,25 +123,34 @@ class DemandeLivraisonService
     {
         $idDemande = $demande->getId();
         $url = $this->router->generate('demande_show', ['id' => $idDemande]);
-        $row =
-            [
-                'Date' => $demande->getDate() ? $demande->getDate()->format('d/m/Y') : '',
-                'Demandeur' => $demande->getSensor() ? $demande->getSensor()->getName() : ($demande->getUtilisateur() ? $demande->getUtilisateur()->getUsername() : ''),
-                'Numéro' => $demande->getNumero() ?? '',
-                'Statut' => $demande->getStatut() ? $demande->getStatut()->getNom() : '',
-                'Type' => $demande->getType() ? $demande->getType()->getLabel() : '',
-                'Actions' => $this->templating->render('demande/datatableDemandeRow.html.twig',
-                    [
-                        'idDemande' => $idDemande,
-                        'url' => $url,
-                        'titleLogo' => !$demande
-                            ->getPreparations()
-                            ->filter(fn(Preparation $preparation) => $preparation->getActivePairing())
-                            ->isEmpty() ? 'pairing' : null
-                    ]
-                ),
-            ];
-        return $row;
+
+        $pairing = $demande->getPreparations()
+            ? Stream::from($demande->getPreparations())
+                ->map(fn(Preparation $preparation) => $preparation->getPairings()->toArray())
+                ->flatten()
+                ->sort(fn(Pairing $p1, Pairing $p2) => $p1->getEnd() <=> $p2->getEnd())
+                ->first()
+            : null;
+
+        $sensorCode = $pairing ? $pairing->getSensorWrapper()->getSensor()->getCode() : null;
+
+        return [
+            'Date' => $demande->getDate() ? $demande->getDate()->format('d/m/Y') : '',
+            'Demandeur' => $demande->getSensor() ? $demande->getSensor()->getName() : ($demande->getUtilisateur() ? $demande->getUtilisateur()->getUsername() : ''),
+            'Numéro' => $demande->getNumero() ?? '',
+            'Statut' => $demande->getStatut() ? $demande->getStatut()->getNom() : '',
+            'Type' => $demande->getType() ? $demande->getType()->getLabel() : '',
+            'Actions' => $this->templating->render('demande/datatableDemandeRow.html.twig',
+                [
+                    'idDemande' => $idDemande,
+                    'url' => $url,
+                ]
+            ),
+            'pairing' => $this->templating->render('pairing-icon.html.twig', [
+                'sensorCode' => $sensorCode,
+                'hasPairing' => (bool)$pairing,
+            ]),
+        ];
     }
 
     /**

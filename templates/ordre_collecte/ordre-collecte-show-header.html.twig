@@ -11,7 +11,7 @@
         {% if hasRightFinish %}
             <button class="btn btn-primary btn-ripple {{ ( hasRightDemandeCollecte or hasRightDeleteOrdre )? 'split-button' }}"
                     {% if collecte.demandeCollecte ? collecte.demandeCollecte.stock : false %}
-                        onclick="Select2Old.location($('.ajax-autocomplete-location')), checkIfRowSelected(openLocationModal)"
+                        onclick="Select2Old.location($('.ajax-autocomplete-location')); checkIfRowSelected(openLocationModal);"
                     {% else %}
                         onclick="checkIfRowSelected(() => finishCollecte($(this), true))"
                     {% endif %}>
@@ -37,6 +37,14 @@
                     <button onclick="printCollecteBarCodes()" class="dropdown-item pointer">
                         <i class='fas fa-print print-button mr-2'></i> Imprimer les étiquettes
                     </button>
+                {% endif %}
+                {% if (collecte.pairings|filter(p=>p.active)|length>=1)
+                    and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')) %}
+                    <a class="dropdown-item"
+                       href="{{ path('show_data_history', {id: collecte.id, type: constant('App\\Entity\\IOT\\Sensor::COLLECT')}) }}">
+                        <span class="wii-icon wii-icon-pairing"></span>
+                        Historique des données
+                    </a>
                 {% endif %}
                 {% if hasRightDeleteOrdre %}
                     <a href="" onclick="deleteRow($(this), $('#modalDeleteOrdreCollecte'), $('#submitDeleteOrdreCollecte'))"

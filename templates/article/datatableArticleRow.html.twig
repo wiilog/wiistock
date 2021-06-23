@@ -41,8 +41,7 @@
             {% if hasPairing
                 and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')) %}
                 <a class="dropdown-item"
-                   href="{{ path('show_data_history', {id: articleId, type: constant('App\\Entity\\IOT\\Sensor::ARTICLE')}) }}"
-                   target="_blank">
+                   href="{{ path('show_data_history', {id: articleId, type: constant('App\\Entity\\IOT\\Sensor::ARTICLE')}) }}">
                     <span class="wii-icon wii-icon-pairing"></span>
                     Historique des données
                 </a>

@@ -20,6 +20,7 @@ let tableCollecteConfig = {
     },
     columns: [
         {"data": 'Actions', 'title': '', 'name': 'Actions', className: 'noVis', orderable: false},
+        {"data": 'pairing', 'title': '', 'name': 'Actions', className: 'noVis', orderable: false},
         {"data": 'Numéro', 'title': 'Numéro', 'name': 'Numéro'},
         {"data": 'Statut', 'title': 'Statut', 'name': 'Statut'},
         {"data": 'Date', 'title': 'Date de création', 'name': 'Date'},

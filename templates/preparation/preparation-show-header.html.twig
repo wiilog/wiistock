@@ -53,6 +53,14 @@
                     Associer à un capteur
                 </a>
             {% endif %}
+            {% if (preparation.pairings is not empty)
+                and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')) %}
+                <a class="dropdown-item"
+                   href="{{ path('show_data_history', {id: preparation.id, type: constant('App\\Entity\\IOT\\Sensor::PREPARATION')}) }}">
+                    <span class="wii-icon wii-icon-pairing"></span>
+                    Historique des données
+                </a>
+            {% endif %}
         </div>
     </div>
 {% endblock %}
