@@ -28,6 +28,7 @@ class Sensor
     const PACK = 'pack';
     const ARTICLE = 'article';
     const PREPARATION = 'preparation';
+    const DELIVERY_REQUEST = 'delivery-request';
     const COLLECT = 'collect';
 
     const CATEGORIES = [
@@ -35,6 +36,7 @@ class Sensor
         'Colis' => self::PACK,
         'Article' => self::ARTICLE,
         'Préparation' => self::PREPARATION,
+        'Livraison' => self::DELIVERY_REQUEST,
         'Ordre de collecte' => self::COLLECT,
         "Groupe d'emplacement" => self::LOCATION_GROUP,
     ];

@@ -2,7 +2,9 @@
 
 namespace App\Entity;
 
-use App\Entity\IOT\Sensor;
+use App\Entity\IOT\PairedEntity;
+use App\Entity\IOT\Pairing;
+use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\Traits\CommentTrait;
 use App\Entity\Traits\RequestTrait;
@@ -11,11 +13,12 @@ use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use WiiCommon\Helper\Stream;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\DemandeRepository")
  */
-class Demande extends FreeFieldEntity
+class Demande extends FreeFieldEntity implements PairedEntity
 {
     const CATEGORIE = 'demande';
 
@@ -28,6 +31,7 @@ class Demande extends FreeFieldEntity
 
     use CommentTrait;
     use RequestTrait;
+    use SensorMessageTrait;
 
     /**
      * @ORM\Id()
@@ -334,5 +338,24 @@ class Demande extends FreeFieldEntity
             ? $preparationOrders->first()->getDate()
             : null;
     }
+
+    public function getPairings(): Collection {
+        $pairingsArray = Stream::from($this->getPreparations()->toArray())
+            ->flatMap(fn(Preparation $preparation) => $preparation->getPairings()->toArray())
+            ->toArray();
+        return new ArrayCollection($pairingsArray);
+    }
+
+    public function getActivePairing(): ?Pairing {
+        $activePairing = null;
+        foreach ($this->getPreparations() as $preparation) {
+            $activePairing = $preparation->getActivePairing();
+            if (isset($activePairing)) {
+                break;
+            }
+        }
+        return $activePairing;
+    }
+
 
 }

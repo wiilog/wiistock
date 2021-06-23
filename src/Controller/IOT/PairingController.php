@@ -13,10 +13,9 @@ use App\Entity\IOT\SensorWrapper;
 use App\Entity\LocationGroup;
 use App\Entity\Menu;
 
-use App\Entity\OrdreCollecte;
 use App\Entity\Pack;
-use App\Entity\Preparation;
 
+use App\Service\IOT\IOTService;
 use App\Service\IOT\PairingService;
 use DateTimeZone;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -57,7 +56,9 @@ class PairingController extends AbstractController {
      * @Route("/api", name="pairing_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::IOT, Action::DISPLAY_SENSOR}, mode=HasPermission::IN_JSON)
      */
-    public function api(Request $request, EntityManagerInterface $manager): Response {
+    public function api(Request $request,
+                        IOTService $IOTService,
+                        EntityManagerInterface $manager): Response {
         $pairingRepository = $manager->getRepository(Pairing::class);
         $filters = $request->query;
 
@@ -70,20 +71,7 @@ class PairingController extends AbstractController {
             $sensor = $pairing->getSensorWrapper() ? $pairing->getSensorWrapper()->getSensor() : null;
             $type = $sensor ? FormatHelper::type($sensor->getType()) : '';
 
-            $elementIcon = "";
-            if($pairing->getEntity() instanceof Emplacement) {
-                $elementIcon = Sensor::LOCATION;
-            } else if($pairing->getEntity() instanceof LocationGroup) {
-                $elementIcon = Sensor::LOCATION_GROUP;
-            } else if($pairing->getEntity() instanceof Article) {
-                $elementIcon = Sensor::ARTICLE;
-            } else if($pairing->getEntity() instanceof Pack) {
-                $elementIcon = Sensor::PACK;
-            } else if($pairing->getEntity() instanceof Preparation) {
-                $elementIcon = Sensor::PREPARATION;
-            } else if($pairing->getEntity() instanceof OrdreCollecte) {
-                $elementIcon = Sensor::COLLECT;
-            }
+            $elementIcon = $IOTService->getEntityCodeFromEntity($pairing->getEntity()) ?? '';
 
             $rows[] = [
                 "id" => $pairing->getId(),
