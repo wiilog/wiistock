@@ -2,6 +2,10 @@
 
 namespace App\Entity;
 
+use App\Entity\IOT\PairedEntity;
+use App\Entity\IOT\Pairing;
+use App\Entity\IOT\SensorMessageTrait;
+use App\Entity\IOT\SensorWrapper;
 use App\Entity\Traits\CommentTrait;
 use App\Entity\Traits\RequestTrait;
 use DateTime;
@@ -9,11 +13,12 @@ use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use WiiCommon\Helper\Stream;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\DemandeRepository")
  */
-class Demande extends FreeFieldEntity
+class Demande extends FreeFieldEntity implements PairedEntity
 {
     const CATEGORIE = 'demande';
 
@@ -26,6 +31,7 @@ class Demande extends FreeFieldEntity
 
     use CommentTrait;
     use RequestTrait;
+    use SensorMessageTrait;
 
     /**
      * @ORM\Id()
@@ -90,6 +96,11 @@ class Demande extends FreeFieldEntity
      */
     private $reception;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=SensorWrapper::class)
+     */
+    private ?SensorWrapper $sensorWrapper = null;
+
 
 	public function __construct() {
         $this->preparations = new ArrayCollection();
@@ -100,6 +111,15 @@ class Demande extends FreeFieldEntity
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getSensor() : ?SensorWrapper {
+	    return $this->sensorWrapper;
+    }
+
+    public function setFromSensor(?SensorWrapper $sensorWrapper) {
+	    $this->sensorWrapper = $sensorWrapper;
+	    return $this;
     }
 
     public function getNumero(): ?string
@@ -318,5 +338,24 @@ class Demande extends FreeFieldEntity
             ? $preparationOrders->first()->getDate()
             : null;
     }
+
+    public function getPairings(): Collection {
+        $pairingsArray = Stream::from($this->getPreparations()->toArray())
+            ->flatMap(fn(Preparation $preparation) => $preparation->getPairings()->toArray())
+            ->toArray();
+        return new ArrayCollection($pairingsArray);
+    }
+
+    public function getActivePairing(): ?Pairing {
+        $activePairing = null;
+        foreach ($this->getPreparations() as $preparation) {
+            $activePairing = $preparation->getActivePairing();
+            if (isset($activePairing)) {
+                break;
+            }
+        }
+        return $activePairing;
+    }
+
 
 }

@@ -2,9 +2,12 @@
 
 namespace App\Entity;
 
+use App\Entity\IOT\Sensor;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+
+use App\Entity\IOT\RequestTemplate;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\TypeRepository")
@@ -35,6 +38,10 @@ class Type
 	const LABEL_STANDARD = 'standard';
 	// types de la catégorie mouvement traça
     const LABEL_MVT_TRACA = 'MOUVEMENT TRACA';
+    const LABEL_HANDLING = 'service';
+    const LABEL_SENSOR = 'capteur';
+    const LABEL_DELIVERY = 'livraison';
+    const LABEL_COLLECT = 'collecte';
 
 
 	/**
@@ -42,17 +49,17 @@ class Type
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $label;
+    private ?string $label = null;
 
 	/**
 	 * @ORM\Column(type="text", nullable=true)
 	 */
-    private $description;
+    private ?string $description = null;
 
     /**
      * @ORM\OneToMany(targetEntity="FreeField", mappedBy="type")
@@ -149,6 +156,21 @@ class Type
      */
     private $averageRequestTime;
 
+    /**
+     * @ORM\OneToMany(targetEntity=RequestTemplate::class, mappedBy="type")
+     */
+    private Collection $requestTemplates;
+
+    /**
+     * @ORM\OneToMany(targetEntity=RequestTemplate::class, mappedBy="requestType")
+     */
+    private Collection $requestTypeTemplates;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\IOT\Sensor", mappedBy="type")
+     */
+    private Collection $sensors;
+
     public function __construct()
     {
         $this->champsLibres = new ArrayCollection();
@@ -165,6 +187,9 @@ class Type
         $this->arrivals = new ArrayCollection();
         $this->statuts = new ArrayCollection();
         $this->handlings = new ArrayCollection();
+        $this->requestTemplates = new ArrayCollection();
+        $this->requestTypeTemplates = new ArrayCollection();
+        $this->sensors = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -730,4 +755,94 @@ class Type
 
         return $this;
     }
+
+    /**
+     * @return Collection|RequestTemplate[]
+     */
+    public function getRequestTemplates(): Collection
+    {
+        return $this->requestTemplates;
+    }
+
+    public function addRequestTemplate(RequestTemplate $requestTemplate): self
+    {
+        if (!$this->requestTemplates->contains($requestTemplate)) {
+            $this->requestTemplates[] = $requestTemplate;
+            $requestTemplate->setType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRequestTemplate(RequestTemplate $requestTemplate): self
+    {
+        if ($this->requestTemplates->removeElement($requestTemplate)) {
+            // set the owning side to null (unless already changed)
+            if ($requestTemplate->getType() === $this) {
+                $requestTemplate->setType(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|RequestTemplate[]
+     */
+    public function getRequestTypeTemplates(): Collection
+    {
+        return $this->requestTypeTemplates;
+    }
+
+    public function addRequestTypeTemplate(RequestTemplate $requestTypeTemplate): self
+    {
+        if (!$this->requestTypeTemplates->contains($requestTypeTemplate)) {
+            $this->requestTypeTemplates[] = $requestTypeTemplate;
+            $requestTypeTemplate->setRequestType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRequestTypeTemplate(RequestTemplate $requestTypeTemplate): self
+    {
+        if ($this->requestTypeTemplates->removeElement($requestTypeTemplate)) {
+            // set the owning side to null (unless already changed)
+            if ($requestTypeTemplate->getRequestType() === $this) {
+                $requestTypeTemplate->setRequestType(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Sensor[]
+     */
+    public function getSensors(): Collection
+    {
+        return $this->sensors;
+    }
+
+    public function addSensor(Sensor $sensor): self
+    {
+        if (!$this->sensors->contains($sensor)) {
+            $this->sensors[] = $sensor;
+            $sensor->setType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSensor(Sensor $sensor): self
+    {
+        if ($this->sensors->removeElement($sensor)) {
+            if ($sensor->getType() === $this) {
+                $sensor->setType(null);
+            }
+        }
+
+        return $this;
+    }
+
 }

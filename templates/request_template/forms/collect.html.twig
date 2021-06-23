@@ -1,0 +1,81 @@
+<div class="row">
+    <div class="form-group needed col-md-6 col-12">
+        <label for="subject">Objet*</label>
+        <input class="form-control data needed" name="subject" value="{{ request_template.subject ?? '' }}">
+    </div>
+
+    <div class="form-group col-md-6 col-12">
+        <label>Type*</label>
+        <select name="collectType" class="form-control data d-block w-100 needed" data-s2="collectType"
+                onchange="onTypeChange($(this))">
+            {% if request_template.requestType %}
+                <option selected value={{ request_template.requestType.id }}>{{ request_template.requestType.label }}</option>
+            {% endif %}
+        </select>
+    </div>
+
+    <div class="form-group col-md-6 col-12">
+        <label>Point de collecte*</label>
+        <select name="collectPoint" class="form-control data needed w-100"
+                data-s2="location" data-include-params="select[name=collectType]">
+            {% if request_template.collectPoint is defined and request_template.collectPoint %}
+                <option selected value="{{ request_template.collectPoint.id }}">{{ request_template.collectPoint.label }}</option>
+            {% endif %}
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Destination*</label><br>
+        <div class="wii-switch needed" data-title="Destination">
+            <input type="radio" name="destination" value="0" content="Destruction" {% if request_template.destination is defined and request_template.isDestruct %}checked{% endif %}>
+            <input type="radio" name="destination" value="1" content="Mise en stock" {% if request_template.destination is defined and request_template.isStock %}checked{% endif %}>
+        </div>
+    </div>
+
+    {% if request_template.id %} {# edit request #}
+        {% if request_template.requestType is not null and request_template.requestType.champsLibres.count > 0 %}
+            <div class="col-12">
+                <span class="toggle-collapsible expanded">Champs libres</span>
+                <div class="collapsible expanded free-fields-container mb-2">
+                    {% include 'free_field/freeFieldsViewing.html.twig' with {
+                        freeFields: request_template.requestType.champsLibres,
+                        freeFieldValues: request_template.freeFields,
+                        colType: 'col-md-6 col-12',
+                        requiredType: 'requiredEdit',
+                        actionType: 'edit'
+                    } %}
+                </div>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="col-12">
+            <span class="toggle-collapsible expanded">Champs libres</span>
+            <div class="collapsible expanded free-fields-container mb-2">
+                {% for type in collect_free_fields_types %}
+                    <div class="d-none" data-type="{{ type.typeId }}">
+                        {% include 'free_field/freeFieldsViewing.html.twig' with {
+                            freeFields: type.freeFields,
+                            freeFieldValues: [],
+                            colType: 'col-12',
+                            requiredType: 'requiredCreate',
+                            actionType: 'new',
+                            disabledNeeded: true
+                        } %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="form-group col-12">
+        <label for="commentaire">Commentaire</label>
+        <input id='commentaire'
+               class="comment form-control data"
+               name="comment"
+               type="hidden"
+               value="{{ request_template.comment ?? '' }}">
+        <div class="collect-editor-container{{ request_template.id ? '-edit' }}" value="{{ request_template.comment ?? '' }}">
+            {{ (request_template.comment ?? '') | raw }}
+        </div>
+    </div>
+</div>

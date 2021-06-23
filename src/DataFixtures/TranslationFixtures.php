@@ -186,6 +186,10 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "Votre demande de service a été créée" => "Votre demande de service a été créée",
                 "Création d'une demande de service" => "Création d'une demande de service",
                 "Une autre demande de service est en cours de création, veuillez réessayer" => "Une autre demande de service est en cours de création, veuillez réessayer"
+            ],
+            'IoT' => [
+                'IoT' => 'IoT',
+                'Fonction/Zone' => 'Fonction/Zone',
             ]
         ];
 

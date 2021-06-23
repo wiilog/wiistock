@@ -19,6 +19,7 @@ class MenusFixtures extends Fixture implements FixtureGroupInterface {
         Menu::ORDRE,
         Menu::STOCK,
         Menu::REFERENTIEL,
+        Menu::IOT,
         Menu::PARAM,
         Menu::NOMADE
     ];

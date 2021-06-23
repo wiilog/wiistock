@@ -8,18 +8,13 @@ use App\Entity\FiltreSup;
 use App\Entity\Pack;
 use App\Entity\TrackingMovement;
 use App\Entity\Nature;
-use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Repository\NatureRepository;
 use App\Repository\PackRepository;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use Symfony\Component\Security\Core\Security;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 use Twig\Environment as Twig_Environment;
 
 class PackService
@@ -30,28 +25,20 @@ class PackService
     private $template;
     private $trackingMovementService;
     private $arrivageDataService;
-    private $specificService;
 
     public function __construct(TrackingMovementService $trackingMovementService,
                                 ArrivageDataService $arrivageDataService,
-                                SpecificService $specificService,
                                 Security $security,
                                 Twig_Environment $template,
                                 EntityManagerInterface $entityManager)
     {
         $this->entityManager = $entityManager;
-        $this->specificService = $specificService;
         $this->trackingMovementService = $trackingMovementService;
         $this->arrivageDataService = $arrivageDataService;
         $this->security = $security;
         $this->template = $template;
     }
 
-    /**
-     * @param array|null $params
-     * @return array
-     * @throws Exception
-     */
     public function getDataForDatatable($params = null)
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -93,24 +80,25 @@ class PackService
         ];
     }
 
-    /**
-     * @param Pack $pack
-     * @return array
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
     public function dataRowPack(Pack $pack)
     {
         $firstMovement = $pack->getTrackingMovements('ASC')->first();
         $fromColumnData = $this->trackingMovementService->getFromColumnData($firstMovement ?: null);
 
+        $lastMessage = $pack->getLastMessage();
+        $hasPairing = !$pack->getPairings()->isEmpty();
+        $sensorCode = ($lastMessage && $lastMessage->getSensor()) ? $lastMessage->getSensor()->getCode() : null;
 
         /** @var TrackingMovement $lastPackMovement */
         $lastPackMovement = $pack->getLastTracking();
         return [
             'actions' => $this->template->render('pack/datatablePackRow.html.twig', [
-                'pack' => $pack
+                'pack' => $pack,
+                'hasPairing' => $hasPairing
+            ]),
+            'pairing' => $this->template->render('pairing-icon.html.twig', [
+                'sensorCode' => $sensorCode,
+                'hasPairing' => $hasPairing
             ]),
             'packNum' => $pack->getCode(),
             'packNature' => $pack->getNature() ? $pack->getNature()->getLabel() : '',
@@ -138,10 +126,6 @@ class PackService
         ];
     }
 
-    /**
-     * @param array $data
-     * @return array ['success' => bool, 'msg': string]
-     */
     public function checkPackDataBeforeEdition(array $data): array
     {
         $quantity = $data['quantity'] ?? null;
@@ -195,10 +179,6 @@ class PackService
             ->setComment($comment);
     }
 
-    /**
-     * @param array $options Either ['arrival' => Arrivage, 'nature' => Nature] or ['code' => string]
-     * @return Pack
-     */
     public function createPack(array $options = []): Pack
     {
         if (!empty($options['code'])) {
@@ -229,10 +209,6 @@ class PackService
         return $pack;
     }
 
-    /**
-     * @param string code
-     * @return Pack
-     */
     public function createPackWithCode(string $code): Pack
     {
         $pack = new Pack();
@@ -240,15 +216,6 @@ class PackService
         return $pack;
     }
 
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @param Arrivage $arrivage
-     * @param array $colisByNatures
-     * @param Utilisateur $user
-     * @param bool $persistTrackingMovements
-     * @return Pack[]
-     * @throws Exception
-     */
     public function persistMultiPacks(EntityManagerInterface $entityManager,
                                       Arrivage $arrivage,
                                       array $colisByNatures,

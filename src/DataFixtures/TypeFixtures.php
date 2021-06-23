@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\CategoryType;
+use App\Entity\IOT\Sensor;
 use App\Entity\Type;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -33,6 +34,16 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
             CategoryType::ARRIVAGE => [Type::LABEL_STANDARD],
             CategoryType::MOUVEMENT_TRACA => [Type::LABEL_MVT_TRACA],
             CategoryType::TRANSFER_REQUEST => [Type::LABEL_STANDARD],
+            CategoryType::SENSOR => [
+                Sensor::TEMPERATURE,
+                Sensor::ACTION,
+                Sensor::GPS,
+            ],
+            CategoryType::REQUEST_TEMPLATE => [
+                Type::LABEL_HANDLING,
+                Type::LABEL_DELIVERY,
+                Type::LABEL_COLLECT
+            ],
         ];
 
         $typeRepository = $manager->getRepository(Type::class);

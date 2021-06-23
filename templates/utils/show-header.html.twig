@@ -5,6 +5,10 @@
             <h5 class="my-0 h5" title="{% block showTitleTooltip '' %}">{% block showTitle '' %}</h5>
         </div>
 
+        {% if titleLogo is defined%}
+            <i class="wii-icon wii-icon-{{ titleLogo }} mr-2 has-tooltip" title="{{ titleLogoTooltip }}"></i>
+        {% endif %}
+
         {% set showActionsBlock = block('showActions') is defined ? block('showActions') %}
         {% if showActionsBlock is defined and showActionsBlock is not empty %}
             <div class="col-auto ml-auto">

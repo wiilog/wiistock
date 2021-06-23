@@ -1,14 +1,17 @@
 $('.select2').select2();
-let pathEmplacement = Routing.generate("emplacement_api", true);
-let tableEmplacementConfig = {
+let modalDeleteEmplacement = $('#modalDeleteEmplacement');
+let submitDeleteEmplacement = $('#submitDeleteEmplacement');
+let urlDeleteEmplacement = Routing.generate('emplacement_delete', true);
+
+const locationsTableConfig = {
     processing: true,
     serverSide: true,
-    "lengthMenu": [10, 25, 50, 100, 1000],
+    lengthMenu: [10, 25, 50, 100, 1000],
     order: [['name', 'desc']],
     ajax: {
-        "url": pathEmplacement,
-        "type": "POST",
-        'dataSrc': function (json) {
+        url: Routing.generate("emplacement_api", true),
+        type: "POST",
+        dataSrc: function (json) {
             $('#listEmplacementIdToPrint').val(json.listId);
             return json.data;
         }
@@ -20,43 +23,149 @@ let tableEmplacementConfig = {
         needsRowClickAction: true,
     },
     columns: [
-        {"data": 'actions', 'name': 'actions', 'title': '', className: 'noVis', orderable: false},
-        {"data": 'name', 'name': 'name', 'title': 'Nom'},
-        {"data": 'description', 'name': 'description', 'title': 'Description'},
-        {"data": 'deliveryPoint', 'name': 'deliveryPoint', 'title': 'Point de livraison'},
-        {"data": 'ongoingVisibleOnMobile', 'name': 'ongoingVisibleOnMobile', 'title': 'Encours visible'},
-        {"data": 'maxDelay', 'name': 'maxDelay', 'title': 'Délai maximum'},
-        {"data": 'active', 'name': 'active', 'title': 'Actif / Inactif'},
-        {"data": 'allowedNatures', 'name': 'allowedNatures', 'title': 'natures.Natures de colis autorisées', translated: true, orderable: false},
+        {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},
+        {data: 'pairing', name: 'pairing', title: ''},
+        {data: 'name', name: 'name', title: 'Nom'},
+        {data: 'description', name: 'description', title: 'Description'},
+        {data: 'deliveryPoint', name: 'deliveryPoint', title: 'Point de livraison'},
+        {data: 'ongoingVisibleOnMobile', name: 'ongoingVisibleOnMobile', title: 'Encours visible'},
+        {data: 'maxDelay', name: 'maxDelay', title: 'Délai maximum'},
+        {data: 'active', name: 'active', title: 'Actif / Inactif'},
+        {data: 'allowedNatures', name: 'allowedNatures', title: 'natures.Natures de colis autorisées', translated: true, orderable: false},
     ]
 };
-let tableEmplacement = initDataTable('tableEmplacement_id', tableEmplacementConfig);
 
-let $modalNewEmplacement = $("#modalNewEmplacement");
-let $submitNewEmplacement = $("#submitNewEmplacement");
-let urlNewEmplacement = Routing.generate('emplacement_new', true);
-InitModal($modalNewEmplacement, $submitNewEmplacement, urlNewEmplacement, {tables: [tableEmplacement]});
+const groupsTableConfig = {
+    processing: true,
+    serverSide: true,
+    lengthMenu: [10, 25, 50, 100, 1000],
+    order: [['name', 'desc']],
+    ajax: {
+        url: Routing.generate("location_group_api", true),
+        type: "POST",
+    },
+    rowConfig: {
+        needsRowClickAction: true,
+    },
+    drawConfig: {
+        needsSearchOverride: true,
+    },
+    columns: [
+        {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},
+        {data: 'pairing', name: 'pairing', title: ''},
+        {data: 'name', name: 'name', title: 'Nom'},
+        {data: 'description', name: 'description', title: 'Description'},
+        {data: 'active', name: 'active', title: 'Actif / Inactif'},
+        {data: 'locations', name: 'locations', title: 'Nombre emplacements', orderable: false},
+    ]
+};
 
-let modalDeleteEmplacement = $('#modalDeleteEmplacement');
-let submitDeleteEmplacement = $('#submitDeleteEmplacement');
-let urlDeleteEmplacement = Routing.generate('emplacement_delete', true);
-InitModal(modalDeleteEmplacement, submitDeleteEmplacement, urlDeleteEmplacement, {tables: [tableEmplacement]});
+const TAB_LOCATIONS = 1;
+const TAB_GROUPS = 2;
 
-let $modalModifyEmplacement = $('#modalEditEmplacement');
-let $submitModifyEmplacement = $('#submitEditEmplacement');
-let urlModifyEmplacement = Routing.generate('emplacement_edit', true);
-InitModal($modalModifyEmplacement, $submitModifyEmplacement, urlModifyEmplacement, {tables: [tableEmplacement]});
+const HASH_LOCATIONS = `#emplacements`;
+const HASH_GROUPS = `#groupes`;
 
-$(function () {
-    const $printButton = $('#btnPrint');
-    managePrintButtonTooltip(true, $printButton);
-});
+let selectedTab = TAB_LOCATIONS;
+let locationsTable;
+let groupsTable;
+
+$(document).ready(() => {
+    managePrintButtonTooltip(true, $('#btnPrint'));
+
+    switchPageBasedOnHash();
+    $(window).on("hashchange", switchPageBasedOnHash);
+})
+
+
+function switchPageBasedOnHash() {
+    let hash = window.location.hash;
+    if (hash === HASH_LOCATIONS) {
+        switchLocations();
+    } else if(hash === HASH_GROUPS) {
+        switchGroups();
+    } else {
+        switchLocations();
+        window.location.hash = HASH_LOCATIONS;
+    }
+
+    $(`.location-tabs a`).removeClass(`active`);
+    $(`.location-tabs a[href="${hash}"]`).addClass(`active`);
+}
+
+function switchLocations() {
+    selectedTab = TAB_LOCATIONS;
+    window.location.hash = HASH_LOCATIONS;
+
+    if(!locationsTable) {
+        locationsTable = initDataTable(`locationsTable`, locationsTableConfig);
+
+        let $modalNewEmplacement = $("#modalNewEmplacement");
+        let $submitNewEmplacement = $("#submitNewEmplacement");
+        let urlNewEmplacement = Routing.generate('emplacement_new', true);
+        InitModal($modalNewEmplacement, $submitNewEmplacement, urlNewEmplacement, {tables: [locationsTable]});
+
+        InitModal(modalDeleteEmplacement, submitDeleteEmplacement, urlDeleteEmplacement, {tables: [locationsTable]});
+
+        let $modalModifyEmplacement = $('#modalEditEmplacement');
+        let $submitModifyEmplacement = $('#submitEditEmplacement');
+        let urlModifyEmplacement = Routing.generate('emplacement_edit', true);
+        InitModal($modalModifyEmplacement, $submitModifyEmplacement, urlModifyEmplacement, {tables: [locationsTable]});
+    } else {
+        locationsTable.ajax.reload();
+    }
+
+    $(`.locationsTableContainer, [data-target="#modalNewEmplacement"]`).removeClass('d-none');
+    $(`.action-button`).removeClass('d-none');
+    $(`.groupsTableContainer, [data-target="#modalNewLocationGroup"]`).addClass('d-none');
+    $(`#locationsTable_filter`).parent().show();
+    $(`#groupsTable_filter`).parent().hide();
+}
+
+function switchGroups() {
+    selectedTab = TAB_GROUPS;
+    window.location.hash = HASH_GROUPS;
+
+    if(!groupsTable) {
+        groupsTable = initDataTable(`groupsTable`, groupsTableConfig);
+
+        let $modalNewEmplacement = $("#modalNewLocationGroup");
+        let $submitNewEmplacement = $("#submitNewLocationGroup");
+        let urlNewEmplacement = Routing.generate('location_group_new', true);
+        InitModal($modalNewEmplacement, $submitNewEmplacement, urlNewEmplacement, {tables: [groupsTable]});
+
+        const modalDeleteEmplacement = $('#modalDeleteLocationGroup');
+        const submitDeleteEmplacement = $('#submitDeleteLocationGroup');
+        const urlDeleteEmplacement = Routing.generate('location_group_delete', true);
+        InitModal(modalDeleteEmplacement, submitDeleteEmplacement, urlDeleteEmplacement, {tables: [groupsTable]});
+
+        const $modalModifyEmplacement = $('#modalEditLocationGroup');
+        const $submitModifyEmplacement = $('#submitEditLocationGroup');
+        const urlModifyEmplacement = Routing.generate('location_group_edit', true);
+        InitModal($modalModifyEmplacement, $submitModifyEmplacement, urlModifyEmplacement, {tables: [groupsTable]});
+    } else {
+        groupsTable.ajax.reload();
+    }
+
+    $(`.locationsTableContainer, [data-target="#modalNewEmplacement"]`).addClass('d-none');
+    $(`.action-button`).addClass('d-none');
+    $(`.groupsTableContainer, [data-target="#modalNewLocationGroup"]`).removeClass('d-none');
+    $(`#locationsTable_filter`).parent().hide();
+    $(`#groupsTable_filter`).parent().show();
+}
+
+function toExport() {
+    if(selectedTab === TAB_LOCATIONS) {
+        saveExportFile(`export_locations`);
+    } else {
+        saveExportFile(`export_groups`);
+    }
+}
 
 function checkAndDeleteRowEmplacement(icon) {
     let modalBody = modalDeleteEmplacement.find('.modal-body');
     let id = icon.data('id');
     let param = JSON.stringify(id);
-
     $.post(Routing.generate('emplacement_check_delete'), param, function (resp) {
         modalBody.html(resp.html);
         submitDeleteEmplacement.attr('value', id);

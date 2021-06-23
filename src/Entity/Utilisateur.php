@@ -9,6 +9,8 @@ use Symfony\Component\Security\Core\User\EquatableInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
+use App\Entity\IOT\SensorWrapper;
+
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UtilisateurRepository")
  * @UniqueEntity(fields="email", message="Cette adresse email est déjà utilisée.")
@@ -334,6 +336,11 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private ?Collection $purchaseRequestBuyers;
 
+    /**
+     * @ORM\OneToMany(targetEntity=SensorWrapper::class, mappedBy="manager")
+     */
+    private Collection $sensorWrappers;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -381,6 +388,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->referencesBuyer = new ArrayCollection();
         $this->purchaseRequestBuyers = new ArrayCollection();
         $this->purchaseRequestRequesters = new ArrayCollection();
+        $this->sensorWrappers = new ArrayCollection();
     }
 
     public function getId()
@@ -1794,6 +1802,36 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->purchaseRequestBuyers = new ArrayCollection();
         foreach($purchaseRequestBuyers as $purchaseRequestBuyer) {
             $this->addPurchaseRequestBuyer($purchaseRequestBuyer);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|SensorWrapper[]
+     */
+    public function getSensorWrappers(): Collection
+    {
+        return $this->sensorWrappers;
+    }
+
+    public function addSensorWrapper(SensorWrapper $sensorWrapper): self
+    {
+        if (!$this->sensorWrappers->contains($sensorWrapper)) {
+            $this->sensorWrappers[] = $sensorWrapper;
+            $sensorWrapper->setManager($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSensorWrapper(SensorWrapper $sensorWrapper): self
+    {
+        if ($this->sensorWrappers->removeElement($sensorWrapper)) {
+            // set the owning side to null (unless already changed)
+            if ($sensorWrapper->getManager() === $this) {
+                $sensorWrapper->setManager(null);
+            }
         }
 
         return $this;

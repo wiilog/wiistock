@@ -6,7 +6,7 @@
 
         &:active {
             background-color: $backgroundBodyColorDark;
-            color: white;
+            color: white !important;
         }
     }
 }

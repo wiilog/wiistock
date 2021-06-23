@@ -34,7 +34,6 @@ function initPageDataTable() {
     let purchaseRequestTableConfig = {
         processing: true,
         serverSide: true,
-        order: [['creationDate', 'desc']],
         ajax: {
             "url": pathPurchaseRequest,
             "type": "POST",

@@ -26,6 +26,14 @@
                     <i class="fas fa-trash mr-2"></i>Supprimer
                 </div>
             {% endif %}
+            {% if hasPairing
+                and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')) %}
+                <a class="dropdown-item"
+                   href="{{ path('show_data_history', {id: pack.id, type: constant('App\\Entity\\IOT\\Sensor::PACK')}) }}">
+                    <span class="wii-icon wii-icon-pairing"></span>
+                    Historique des données
+                </a>
+            {% endif %}
         </div>
     </div>
 </div>

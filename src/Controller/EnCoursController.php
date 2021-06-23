@@ -14,12 +14,8 @@ use App\Service\CSVExportService;
 use App\Service\EnCoursService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
-use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -34,8 +30,7 @@ class EnCoursController extends AbstractController
      * @Route("/", name="en_cours", methods={"GET"})
      * @HasPermission({Menu::TRACA, Action::DISPLAY_ENCO})
      */
-    public function index(UserService $userService,
-                          Request $request,
+    public function index(Request $request,
                           EntityManagerInterface $entityManager): Response
     {
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);

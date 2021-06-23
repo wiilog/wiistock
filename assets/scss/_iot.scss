@@ -1,0 +1,150 @@
+@import "~bootstrap/scss/variables";
+
+.association-pane-item-container {
+    &:last-child {
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    &.first-association-pane-item {
+        border-radius: 10px;
+        background-color: #F2F3F7;
+        color: $info;
+
+        .wii-icon {
+            background-color: $info;
+        }
+    }
+
+    .wii-icon {
+        display: flex;
+        width: 20px;
+        height: 20px;
+        background-color: black;
+    }
+
+    .btn-outline-info {
+        .wii-icon {
+            background-color: $info;
+        }
+
+        &:hover {
+            .wii-icon {
+                background-color: $white !important;
+            }
+        }
+    }
+
+    .association-pane-item {
+        display: flex;
+        flex-wrap: nowrap;
+        min-height: 50px;
+        font-weight: bold;
+
+        .wii-icon {
+            width: 30px;
+            height: 30px;
+        }
+
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            flex: 1 1 auto;
+
+            .title {
+                display: block;
+                font-size: 1.1rem;
+            }
+
+            .subtitle {
+                font-size: .9rem;
+                color: black;
+                font-weight: normal;
+            }
+        }
+    }
+
+    .pairing-date-prefix {
+        color: #666666;
+        font-size: 14px;
+    }
+
+    .timeline-container {
+        .timeline-row {
+            display: flex;
+            flex-wrap: nowrap;
+
+            &:last-child  {
+                .timeline-cell {
+                    &.timeline-cell-right{
+                        &:after {
+                            height: 80%;
+                        }
+                    }
+                }
+            }
+
+            .timeline-cell {
+                padding: 12px;
+                font-size: 15px;
+
+                &.timeline-cell-left {
+                    flex: 50%;
+                    text-align: right;
+                    color: #666666;
+                }
+
+                &.timeline-cell-right {
+                    flex: 50%;
+                    text-align: left;
+                    position: relative;
+
+                    &:not(.timeline-cell-without-title):before {
+                        content: "";
+                        width: 10px;
+                        height: 10px;
+                        border-radius: 5px;
+                        background-color: black;
+                        position: absolute;
+                        top: 16px;
+                        left: -4px;
+                        z-index: 10;
+                    }
+
+                    &:not(.last-timeline-cell):after {
+                        content: "";
+                        position: absolute;
+                        width: 2px;
+                        background-color: #DADADA;
+                        top: 20px;
+                        left: 0;
+                        height: 105%;
+                    }
+
+                    &.timeline-cell-active {
+                        &:before {
+                            background-color: #2FC2AB;
+                        }
+
+                        .timeline-cell-title {
+                            color: #2FC2AB;
+                        }
+                    }
+
+                    .timeline-cell-title {
+                        font-weight: bold;
+                    }
+
+                    .pairing-date-prefix {
+                        font-size: 14px;
+                    }
+                }
+
+                &.timeline-cell-large {
+                    flex: 80%;
+                    margin-left: 8%;
+                }
+            }
+        }
+    }
+}

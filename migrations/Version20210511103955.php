@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace DoctrineMigrations;
 
 use App\Entity\CategoryType;
-use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
-use Psr\Log\LoggerInterface;
 use WiiCommon\Helper\Stream;
 use App\Service\SpecificService;
 

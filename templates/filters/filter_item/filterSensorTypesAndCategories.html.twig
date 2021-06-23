@@ -1,0 +1,23 @@
+<div class="d-flex mb-2 pr-0 pairing-button-container">
+    {% if sensorTypes is defined %}
+        <div class="sensor-types-container mr-4 d-flex">
+            {% for sensorType, index in sensorTypes %}
+                <button class="btn btn-primary btn-ripple filter-tab minw-105px d-flex justify-content-center mr-2 pairing-button" data-id="{{ index }}">
+                    <span class="wii-icon wii-icon-{{ 'iot-' ~ index }} mr-2"></span>
+                    {{ sensorType }}
+                </button>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if categories is defined %}
+        <div class="categories-container d-flex">
+            {% for category, index in categories %}
+                <button class="btn btn-primary btn-ripple filter-tab minw-105px d-flex justify-content-center mr-2 pairing-button" data-id="{{ index }}">
+                    <span class="wii-icon wii-icon-{{ 'iot-' ~ index }} mr-2"></span>
+                    {{ category }}
+                </button>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>

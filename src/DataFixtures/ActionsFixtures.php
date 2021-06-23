@@ -76,6 +76,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
                 Action::GENERATE_WAY_BILL,
                 Action::TREAT_HANDLING,
                 Action::CREATE_PURCHASE_REQUESTS,
+                Action::TRACK_SENSOR,
 			],
 			Menu::ORDRE => [
                 Action::DISPLAY_ORDRE_COLL,
@@ -87,7 +88,9 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 				Action::CREATE,
 				Action::EDIT,
 				Action::DELETE,
-				Action::EXPORT
+				Action::EXPORT,
+				Action::TRACK_SENSOR,
+				Action::PAIR_SENSOR,
 			],
 			Menu::STOCK => [
 				Action::DISPLAY_ARTI,
@@ -112,6 +115,14 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 				Action::EDIT,
 				Action::DELETE
 			],
+			Menu::IOT => [
+				Action::DISPLAY_SENSOR,
+				Action::DISPLAY_TRIGGER,
+				Action::DISPLAY_PAIRING,
+                Action::CREATE,
+                Action::EDIT,
+                Action::DELETE
+			],
 			Menu::PARAM => [
 				Action::DISPLAY_GLOB,
 				Action::DISPLAY_ROLE,
@@ -123,6 +134,8 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 				Action::DISPLAY_STATU_LITI,
 				Action::DISPLAY_NATU_COLI,
 				Action::DISPLAY_CF,
+				Action::DISPLAY_REQUEST_TEMPLATE,
+				Action::DISPLAY_ALERT_TEMPLATE,
 				Action::EDIT,
 				Action::DELETE,
 				Action::DISPLAY_IMPORT

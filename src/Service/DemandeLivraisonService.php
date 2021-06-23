@@ -4,7 +4,6 @@
 namespace App\Service;
 
 
-use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
@@ -12,8 +11,8 @@ use App\Entity\FreeField;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\IOT\Pairing;
 use App\Entity\LigneArticlePreparation;
-use App\Entity\Menu;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Preparation;
 use App\Entity\Reception;
@@ -126,7 +125,7 @@ class DemandeLivraisonService
         $row =
             [
                 'Date' => $demande->getDate() ? $demande->getDate()->format('d/m/Y') : '',
-                'Demandeur' => $demande->getUtilisateur() ? $demande->getUtilisateur()->getUsername() : '',
+                'Demandeur' => $demande->getSensor() ? $demande->getSensor()->getName() : ($demande->getUtilisateur() ? $demande->getUtilisateur()->getUsername() : ''),
                 'Numéro' => $demande->getNumero() ?? '',
                 'Statut' => $demande->getStatut() ? $demande->getStatut()->getNom() : '',
                 'Type' => $demande->getType() ? $demande->getType()->getLabel() : '',
@@ -134,6 +133,10 @@ class DemandeLivraisonService
                     [
                         'idDemande' => $idDemande,
                         'url' => $url,
+                        'titleLogo' => !$demande
+                            ->getPreparations()
+                            ->filter(fn(Preparation $preparation) => $preparation->getActivePairing())
+                            ->isEmpty() ? 'pairing' : null
                     ]
                 ),
             ];
@@ -532,7 +535,7 @@ class DemandeLivraisonService
     public function createHeaderDetailsConfig(Demande $demande): array
     {
         $status = $demande->getStatut();
-        $requester = $demande->getUtilisateur();
+        $requester = $demande->getSensor() ? $demande->getSensor()->getName() : $demande->getUtilisateur();
         $destination = $demande->getDestination();
         $date = $demande->getDate();
         $validationDate = $demande->getValidationDate();
@@ -549,7 +552,7 @@ class DemandeLivraisonService
         return array_merge(
             [
                 ['label' => 'Statut', 'value' => $status ? $this->stringService->mbUcfirst($status->getNom()) : ''],
-                ['label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : ''],
+                ['label' => 'Demandeur', 'value' => is_string($requester) ? $requester : ($requester ? $requester->getUsername() : '')],
                 ['label' => 'Destination', 'value' => $destination ? $destination->getLabel() : ''],
                 ['label' => 'Date de la demande', 'value' => $date ? $date->format('d/m/Y') : ''],
                 ['label' => 'Date de validation', 'value' => $validationDate ? $validationDate->format('d/m/Y H:i') : ''],

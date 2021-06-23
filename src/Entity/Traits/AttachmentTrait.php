@@ -13,7 +13,7 @@ trait AttachmentTrait
 {
 
     /**
-     * @ManyToMany(targetEntity="Attachment")
+     * @ManyToMany(targetEntity=Attachment::class, cascade={"persist", "remove"})
      * @var ArrayCollection $attachments
      */
     private $attachments;
@@ -39,6 +39,15 @@ trait AttachmentTrait
         if ($this->attachments->contains($attachment)) {
             $this->attachments->removeElement($attachment);
         }
+        return $this;
+    }
+
+    public function setAttachments($attachments): self
+    {
+        foreach($attachments as $attachment) {
+            $this->addAttachment($attachment);
+        }
+
         return $this;
     }
 

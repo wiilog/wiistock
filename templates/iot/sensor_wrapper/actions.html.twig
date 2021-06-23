@@ -1,0 +1,31 @@
+<div class="d-flex">
+    <div class="dropdown dropright">
+        {{ include('datatable/dotsRow.html.twig') }}
+        <div class="dropdown-menu dropdown-follow-gt pointer">
+            <div class="dropdown-item"
+                 data-id="{{ sensor_wrapper.id }}"
+                 onclick="associatedMessages($(this))">
+                <i class='fas fa-list mr-2'></i>Voir les messages
+            </div>
+            <div class="dropdown-item"
+                 data-id="{{ sensor_wrapper.id }}"
+                 onclick="associatedElements($(this))">
+                <i class='fas fa-list mr-2'></i>Voir les éléments associés
+            </div>
+            {% if hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::EDIT')) %}
+                <div class="dropdown-item"
+                     data-toggle="modal"
+                     data-target="#modalEditSensorWrapper"
+                     data-id="{{ sensor_wrapper.id }}"
+                     onclick="editRow($(this), Routing.generate('sensor_wrapper_edit_api', true), $('#modalEditSensorWrapper'), $('#modalEditSensorWrapper').find('.submit-button'))">
+                    <i class='fas fa-edit mr-2'></i>Modifier
+                </div>
+                <div class="dropdown-item"
+                     data-id="{{ sensor_wrapper.id }}"
+                     onclick="deleteSensorWrapper($(this))">
+                    <i class="fas fa-trash mr-2"></i>Supprimer
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>

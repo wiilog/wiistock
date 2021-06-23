@@ -4,7 +4,7 @@
 
     <div>Numéro : {{ livraison.numero }}</div>
     <div>Date de demande : {{ livraison.date|date('d/m/Y') }}</div>
-    <div>Demandeur : {{ livraison.utilisateur.username }}</div>
+    <div>Demandeur : {{ livraison.utilisateur ? livraison.utilisateur.username }}</div>
     <div>Destination : {{ livraison.destination.label }}</div>
     {% if (livraison.commentaire is not empty and livraison.commentaire != '<p><br></p>') %}
         <div>Commentaire : {{ livraison.commentaire|raw }}</div>

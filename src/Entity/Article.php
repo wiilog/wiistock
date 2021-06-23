@@ -2,12 +2,17 @@
 
 namespace App\Entity;
 
+use App\Entity\IOT\PairedEntity;
+use App\Entity\IOT\SensorMessageTrait;
 use DateTime;
 use DateTimeZone;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Selectable;
 use Doctrine\ORM\Mapping as ORM;
+
+use App\Entity\IOT\Pairing;
 
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
@@ -16,8 +21,10 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  * @ORM\Entity(repositoryClass="App\Repository\ArticleRepository")
  * @UniqueEntity("reference")
  */
-class Article extends FreeFieldEntity
+class Article extends FreeFieldEntity implements PairedEntity
 {
+    use SensorMessageTrait;
+
     const CATEGORIE = 'article';
 
     const STATUT_ACTIF = 'disponible';
@@ -190,6 +197,11 @@ class Article extends FreeFieldEntity
      */
     private $stockEntryDate;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="article", cascade={"remove"})
+     */
+    private Collection $pairings;
+
     public function __construct()
     {
         $this->collectes = new ArrayCollection();
@@ -202,6 +214,8 @@ class Article extends FreeFieldEntity
 
         $this->quantite = 0;
         $this->alerts = new ArrayCollection();
+        $this->pairings = new ArrayCollection();
+        $this->sensorMessages = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -235,7 +249,7 @@ class Article extends FreeFieldEntity
 
     public function __toString(): ?string
     {
-        return $this->label;
+        return $this->barCode;
     }
 
     public function getCommentaire(): ?string
@@ -809,6 +823,43 @@ class Article extends FreeFieldEntity
     public function setStockEntryDate(?\DateTimeInterface $stockEntryDate): self
     {
         $this->stockEntryDate = $stockEntryDate;
+
+        return $this;
+    }
+
+    public function getPairings(): Collection {
+        return $this->pairings;
+    }
+
+    public function getActivePairing(): ?Pairing {
+        $criteria = Criteria::create();
+        return $this->pairings
+            ->matching(
+                $criteria
+                    ->andWhere(Criteria::expr()->eq('active', true))
+                    ->setMaxResults(1)
+            )
+            ->first() ?: null;
+    }
+
+    public function addPairing(Pairing $pairing): self
+    {
+        if (!$this->pairings->contains($pairing)) {
+            $this->pairings[] = $pairing;
+            $pairing->setArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removePairing(Pairing $pairing): self
+    {
+        if ($this->pairings->removeElement($pairing)) {
+            // set the owning side to null (unless already changed)
+            if ($pairing->getArticle() === $this) {
+                $pairing->setArticle(null);
+            }
+        }
 
         return $this;
     }
