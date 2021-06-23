@@ -430,28 +430,27 @@ class PackRepository extends EntityRepository
     }
 
     private function createSensorPairingDataQueryUnion(Pack $pack): string {
-        $createQueryBuilder = function (Pack $packFilter) {
+        $createQueryBuilder = function () {
             return $this->createQueryBuilder('pack')
                 ->select('pairing.id AS pairingId')
                 ->addSelect('sensorWrapper.name AS name')
                 ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
                 ->join('pack.pairings', 'pairing')
                 ->join('pairing.sensorWrapper', 'sensorWrapper')
-                ->where('pack = :pack')
-                ->setParameter('pack', $packFilter);
+                ->where('pack = :pack');
         };
 
-        $startQueryBuilder = $createQueryBuilder($pack);
+        $startQueryBuilder = $createQueryBuilder();
         $startQueryBuilder
             ->addSelect("pairing.start AS date")
             ->addSelect("'start' AS type")
-            ->where('pairing.start IS NOT NULL');
+            ->andWhere('pairing.start IS NOT NULL');
 
-        $endQueryBuilder = $createQueryBuilder($pack);
+        $endQueryBuilder = $createQueryBuilder();
         $endQueryBuilder
             ->addSelect("pairing.end AS date")
             ->addSelect("'end' AS type")
-            ->where('pairing.end IS NOT NULL');
+            ->andWhere('pairing.end IS NOT NULL');
 
         $sqlAliases = [
             '/AS \w+_0/' => 'AS pairingId',
@@ -459,6 +458,7 @@ class PackRepository extends EntityRepository
             '/AS \w+_2/' => 'AS active',
             '/AS \w+_3/' => 'AS date',
             '/AS \w+_4/' => 'AS type',
+            '/?/' => $pack->getId(),
         ];
 
         $startSQL = $startQueryBuilder->getQuery()->getSQL();
