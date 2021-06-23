@@ -56,11 +56,19 @@ Class GlobalParamService
 
         $isDispatch = ($category->getLabel() === CategoryType::DEMANDE_DISPATCH);
 
+        if($data["notificationsEnabled"] ?? false) {
+            $notificationsEmergencies = $data["notificationsEmergencies"] ?? [];
+        } else {
+            $notificationsEmergencies = null;
+        }
+
         $type
             ->setLabel($data['label'])
             ->setSendMail($data["sendMail"] ?? false)
             ->setCategory($category)
-            ->setDescription($data['description']);
+            ->setDescription($data['description'])
+            ->setNotificationsEnabled($data["notificationsEnabled"] ?? false)
+            ->setNotificationsEmergencies($notificationsEmergencies);
 
         if ($isDispatch) {
             $dropLocation = $data["depose"] ? $emplacementRepository->find($data["depose"]) : null;

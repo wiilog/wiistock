@@ -61,4 +61,52 @@
             {% endif %}
         </select>
     </div>
+
+    {% if type.category.label in constant('App\\Entity\\CategoryType::NOTIFICATIONS_TYPES') %}
+        <div class="row">
+            <div class="col-12 form-group enable-notifications">
+                <label>Activer les notifications ?</label>
+                <label class="switch">
+                    <input class="checkbox" type="checkbox" name="notificationsEnabled" {{ type.notificationsEnabled ? 'checked' }}
+                           onchange="onNotificationChange($(this))">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if type.category.label in constant('App\\Entity\\CategoryType::NOTIFICATIONS_EMERGENCIES') %}
+        <div class="row">
+            <div class="col-12 form-group notifications-emergencies">
+                <label>Activer les notifications seulement si urgence ?</label>
+                <label class="switch">
+                    <input class="checkbox enable-notifications-emergencies"
+                           type="checkbox" {{ type.notificationsEmergencies is not empty ? 'checked' }}>
+                    <span class="slider round"></span>
+                </label>
+                <label class="ml-4 notifications-emergencies-select {{ type.notificationsEmergencies is empty ? 'd-none' }}">
+                    Pour les valeurs<br>
+                    <select class="form-control data w-218px" name="notificationsEmergencies" data-s2 data-no-empty-option multiple>
+                        {% for emergency in dispatchEmergencies %}
+                            <option value="{{ emergency }}"
+                                    data-category="{{ constant('App\\Entity\\CategoryType::DEMANDE_DISPATCH') }}"
+                                {{ type.category.label != constant('App\\Entity\\CategoryType::DEMANDE_DISPATCH') ? 'disabled' }}
+                                {{ type.category.label == constant('App\\Entity\\CategoryType::DEMANDE_DISPATCH') and emergency in type.notificationsEmergencies ? 'selected' }}>
+                                {{ emergency }}
+                            </option>
+                        {% endfor %}
+
+                        {% for emergency in handlingEmergencies %}
+                            <option value="{{ emergency }}"
+                                    data-category="{{ constant('App\\Entity\\CategoryType::DEMANDE_HANDLING') }}"
+                                {{ type.category.label != constant('App\\Entity\\CategoryType::DEMANDE_HANDLING') ? 'disabled' }}
+                                {{ type.category.label == constant('App\\Entity\\CategoryType::DEMANDE_HANDLING') and emergency in type.notificationsEmergencies ? 'selected' }}>
+                                {{ emergency }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </label>
+            </div>
+        </div>
+    {% endif %}
 </form>
