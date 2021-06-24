@@ -165,7 +165,13 @@ class LivraisonController extends AbstractController
         $demande = $livraison->getDemande();
 
         $utilisateurPreparation = $livraison->getPreparation() ? $livraison->getPreparation()->getUtilisateur() : null;
-        $demandeur = $demande ? $demande->getUtilisateur() : null;
+        $requester = $demande
+            ? ($demande->getUtilisateur()
+                ? $demande->getUtilisateur()->getUsername()
+                : ($demande->getSensor()
+                    ? $demande->getSensor()->getName()
+                    : "")
+            ) : "";
         $destination = $demande ? $demande->getDestination() : null;
         $dateLivraison = $livraison->getDateFin();
         $comment = $demande->getCommentaire();
@@ -179,7 +185,7 @@ class LivraisonController extends AbstractController
                 [ 'label' => 'Numéro', 'value' => $livraison->getNumero() ],
                 [ 'label' => 'Statut', 'value' => $livraison->getStatut() ? ucfirst($livraison->getStatut()->getNom()) : '' ],
                 [ 'label' => 'Opérateur', 'value' => $utilisateurPreparation ? $utilisateurPreparation->getUsername() : '' ],
-                [ 'label' => 'Demandeur', 'value' => $demandeur ? $demandeur->getUsername() : '' ],
+                [ 'label' => 'Demandeur', 'value' => $requester ],
                 [ 'label' => 'Point de livraison', 'value' => $destination ? $destination->getLabel() : '' ],
                 [ 'label' => 'Date de livraison', 'value' => $dateLivraison ? $dateLivraison->format('d/m/Y') : '' ],
                 [

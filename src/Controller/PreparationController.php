@@ -268,7 +268,13 @@ class PreparationController extends AbstractController
         $demande = $preparation->getDemande();
         $destination = $demande ? $demande->getDestination() : null;
         $operator = $preparation ? $preparation->getUtilisateur() : null;
-        $requester = $demande ? $demande->getUtilisateur() : null;
+        $requester = $demande
+            ? ($demande->getUtilisateur()
+                ? $demande->getUtilisateur()->getUsername()
+                : ($demande->getSensor()
+                    ? $demande->getSensor()->getName()
+                    : "")
+            ) : "";
         $comment = $preparation->getCommentaire();
 
         return $this->render('preparation/show.html.twig', [
@@ -283,7 +289,7 @@ class PreparationController extends AbstractController
                 ['label' => 'Statut', 'value' => $preparation->getStatut() ? ucfirst($preparation->getStatut()->getNom()) : ''],
                 ['label' => 'Point de livraison', 'value' => $destination ? $destination->getLabel() : ''],
                 ['label' => 'Opérateur', 'value' => $operator ? $operator->getUsername() : ''],
-                ['label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : ''],
+                ['label' => 'Demandeur', 'value' => $requester],
                 [
                     'label' => 'Commentaire',
                     'value' => $comment ?: '',
