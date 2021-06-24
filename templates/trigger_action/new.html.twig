@@ -10,13 +10,13 @@
             <div class="modal-body modal-input container-fluid">
                 <form>
                     <div class="row align-items-center">
-                        <div class="form-group col-12 col-md-4">
+                        <div class="form-group col-12 col-md-5">
                             <label for="sensorWrapperList" title="sensorWrapper">
                                 Capteur*
                             </label>
                             <div class="w-100">
                                 <select class="select2 ajax-autocomplete form-control data needed" name="sensorWrapper"
-                                        onchange="onDeviceChanged($(this))">
+                                        onchange="onDeviceChanged($(this), true)">
                                     <option value=""></option>
                                     {% for sensorWrapper in sensorWrappers %}
                                         {% if sensorWrapper.sensor.type.label != constant('App\\Entity\\IOT\\Sensor::GPS') %}
@@ -30,11 +30,11 @@
                         <div class="col-auto m-auto">
                             <label> OU </label>
                         </div>
-                        <div class="form-group col-12 col-md-4">
+                        <div class="form-group col-12 col-md-5">
                             <label>Code</label>
                             <div class="w-100">
                                 <select class="select2 ajax-autocomplete form-control data" name="sensorCode"
-                                        onchange="onDeviceChanged($(this))">
+                                        onchange="onDeviceChanged($(this), true)">
                                     <option value=""></option>
                                     {% for sensorWrapper in sensorWrappers %}
                                         {% if sensorWrapper.sensor.type.label != constant('App\\Entity\\IOT\\Sensor::GPS') %}
@@ -44,12 +44,6 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-auto mx-auto mr-md-0">
-                            <button type="button" class="btn btn-success submit-sensor" onclick="submitSensor()">
-                                <i class='fas fa-check'></i>
-                            </button>
-                        </div>
-
                     </div>
                     <div class="row sensor-details-container flex-column d-none">
                         <div class="sensor-type">
