@@ -213,13 +213,12 @@ class PairingController extends AbstractController {
             $filters["end"],
             Sensor::GPS
         );
-
         $data = [];
         foreach ($associatedMessages as $message) {
             $date = $message->getDate();
             $sensor = $message->getSensor();
 
-            $dateStr = $date->format('Y-m-d H:i:s');
+            $dateStr = $date->format('d/m/Y H:i:s');
             $sensorCode = $sensor->getCode();
             if (!isset($data[$sensorCode])) {
                 $data[$sensorCode] = [];
@@ -254,7 +253,7 @@ class PairingController extends AbstractController {
                 $data['colors'][$sensor->getCode()] = sprintf('#%06X', mt_rand(0, 0xFFFFFF));
             }
 
-            $dateStr = $date->format('Y-m-d H:i:s');
+            $dateStr = $date->format('d/m/Y H:i:s');
             $sensorCode = $sensor->getCode();
             if (!isset($data[$dateStr])) {
                 $data[$dateStr] = [];
