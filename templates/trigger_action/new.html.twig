@@ -19,7 +19,9 @@
                                         onchange="onDeviceChanged($(this))">
                                     <option value=""></option>
                                     {% for sensorWrapper in sensorWrappers %}
-                                        <option value="{{ sensorWrapper.name }}" data-value="{{ sensorWrapper.name }}">{{ sensorWrapper.name }}</option>
+                                        {% if sensorWrapper.sensor.type.label != constant('App\\Entity\\IOT\\Sensor::GPS') %}
+                                            <option value="{{ sensorWrapper.name }}" data-value="{{ sensorWrapper.name }}">{{ sensorWrapper.name }}</option>
+                                        {% endif %}
                                     {% endfor %}
                                 </select>
                             </div>
@@ -35,7 +37,9 @@
                                         onchange="onDeviceChanged($(this))">
                                     <option value=""></option>
                                     {% for sensorWrapper in sensorWrappers %}
-                                        <option value="{{ sensorWrapper.name }}" data-value="{{ sensorWrapper.name }}">{{ sensorWrapper.sensor.code }}</option>
+                                        {% if sensorWrapper.sensor.type.label != constant('App\\Entity\\IOT\\Sensor::GPS') %}
+                                            <option value="{{ sensorWrapper.name }}" data-value="{{ sensorWrapper.name }}">{{ sensorWrapper.sensor.code }}</option>
+                                        {% endif %}
                                     {% endfor %}
                                 </select>
                             </div>
