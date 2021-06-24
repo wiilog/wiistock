@@ -6,6 +6,7 @@ use App\Entity\LocationGroup;
 use App\Helper\QueryCounter;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
+use WiiCommon\Helper\StringHelper;
 use function Doctrine\ORM\QueryBuilder;
 
 /**
@@ -72,6 +73,80 @@ class LocationGroupRepository extends EntityRepository
             ->setParameter("term", "%$term%")
             ->getQuery()
             ->getResult();
+    }
+
+    private function createSensorPairingDataQueryUnion(LocationGroup $locationGroup): string {
+        $createQueryBuilder = function () {
+            return $this->createQueryBuilder('locationGroup')
+                ->select('pairing.id AS pairingId')
+                ->addSelect('sensorWrapper.name AS name')
+                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
+                ->join('locationGroup.pairings', 'pairing')
+                ->join('pairing.sensorWrapper', 'sensorWrapper')
+                ->where('locationGroup = :locationGroup');
+        };
+
+        $startQueryBuilder = $createQueryBuilder();
+        $startQueryBuilder
+            ->addSelect("pairing.start AS date")
+            ->addSelect("'start' AS type")
+            ->andWhere('pairing.start IS NOT NULL');
+
+        $endQueryBuilder = $createQueryBuilder();
+        $endQueryBuilder
+            ->addSelect("pairing.end AS date")
+            ->addSelect("'end' AS type")
+            ->andWhere('pairing.end IS NOT NULL');
+
+        $sqlAliases = [
+            '/AS \w+_0/' => 'AS pairingId',
+            '/AS \w+_1/' => 'AS name',
+            '/AS \w+_2/' => 'AS active',
+            '/AS \w+_3/' => 'AS date',
+            '/AS \w+_4/' => 'AS type',
+            '/\?/' => $locationGroup->getId()
+        ];
+
+        $startSQL = $startQueryBuilder->getQuery()->getSQL();
+        $startSQL = StringHelper::multiplePregReplace($sqlAliases, $startSQL);
+
+        $endSQL = $endQueryBuilder->getQuery()->getSQL();
+        $endSQL = StringHelper::multiplePregReplace($sqlAliases, $endSQL);
+
+        return "
+            ($startSQL)
+            UNION
+            ($endSQL)
+        ";
+    }
+
+    public function getSensorPairingData(LocationGroup $locationGroup, int $start, int $count): array {
+        $unionSQL = $this->createSensorPairingDataQueryUnion($locationGroup);
+
+        $entityManager = $this->getEntityManager();
+        $connection = $entityManager->getConnection();
+        /** @noinspection SqlResolve */
+        return $connection
+            ->executeQuery("
+                SELECT *
+                FROM ($unionSQL) AS pairing
+                ORDER BY `date` DESC
+                LIMIT $count OFFSET $start
+            ")
+            ->fetchAllAssociative();
+    }
+
+    public function countSensorPairingData(LocationGroup $locationGroup): int {
+        $unionSQL = $this->createSensorPairingDataQueryUnion($locationGroup);
+
+        $entityManager = $this->getEntityManager();
+        $connection = $entityManager->getConnection();
+        $unionQuery = $connection->executeQuery("
+            SELECT COUNT(*) AS count
+            FROM ($unionSQL) AS pairing
+        ");
+        $res = $unionQuery->fetchAllAssociative();
+        return $res[0]['count'] ?? 0;
     }
 
 }
