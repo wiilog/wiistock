@@ -1,10 +1,10 @@
 {% set template = template is defined and template ? template : '' %}
 {% set config = config is defined and config is not empty ? config : [] %}
-<div class="form-group mt-4 phone-number-wrapper">
-    <label class="ml-3">Destinataires</label>
+<div class="form-group col-12 phone-number-wrapper">
+    <label>Destinataires</label>
     {% if phoneNumbers is defined and phoneNumbers is not empty %}
         {% for phoneNumber in phoneNumbers %}
-            <div class="phone-number-container d-flex ml-3 {{ loop.index != 1 ? 'mt-2' }}">
+            <div class="phone-number-container d-flex {{ loop.index != 1 ? 'mt-2' }}">
                 <input class="form-control data-array phone-number" name="receivers" type="text" value="{{ phoneNumber }}">
                 {% if loop.index != 1 %}
                     <button class="btn d-block" onclick="deletePhoneNumber($(this))"><i class="far fa-trash-alt"></i></button>
@@ -12,17 +12,17 @@
             </div>
         {% endfor %}
     {% else %}
-        <div class="phone-number-container ml-3">
+        <div class="phone-number-container">
             <input class="form-control data-array phone-number" name="receivers" type="text">
         </div>
     {% endif %}
-    <button class="btn btn-primary ml-3 mt-3"
+    <button class="btn btn-primary mt-3"
             onclick="addPhoneNumber($(this))" type="button">
         <i class="fa fa-plus"></i>
     </button>
 </div>
 
-<div class="col-12 form-group mt-4">
+<div class="col-12 form-group mt-1">
     <div class="d-flex justify-content-between align-items-end mb-2">
         <label class="mb-2">SMS*</label>
         <button class="btn btn-primary btn-ripple" onclick="openVariablesDictionary()">
@@ -39,7 +39,7 @@
 </div>
 
 <template class="phone-number-template">
-    <div class="phone-number-container d-flex ml-3 mt-2">
+    <div class="phone-number-container d-flex mt-2">
         <input class="form-control data-array" name="receivers" type="text">
         <button class="btn d-block" onclick="deletePhoneNumber($(this))"><i class="far fa-trash-alt"></i></button>
     </div>

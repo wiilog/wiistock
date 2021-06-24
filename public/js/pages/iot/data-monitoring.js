@@ -12,7 +12,7 @@ $(document).ready(() => {
         });
     }
 
-    const $editEndButton = $(`button[data-target="#modalEditPairingEnd"]`);
+    const $editEndButton = $(`[data-target="#modalEditPairingEnd"]`);
     if ($editEndButton.exists()) {
         $editEndButton.click(function () {
             modalEditPairingEnd.find(`input[name="id"]`).val($(this).data(`id`));

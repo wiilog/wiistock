@@ -133,7 +133,7 @@ class DemandeLivraisonService
                 ->first()
             : null;
 
-        $sensorCode = $pairing ? $pairing->getSensorWrapper()->getSensor()->getCode() : null;
+        $sensorCode = $pairing ? $pairing->getSensorWrapper()->getName() : null;
         $emergency = !Stream::from($demande->getLigneArticle())
             ->filter(function(LigneArticle $ligne) {
                 $reference = $ligne->getReference();

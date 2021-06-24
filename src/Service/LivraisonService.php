@@ -75,7 +75,7 @@ class LivraisonService
 
 		$preparation = $livraison->getPreparation() ?? null;
 		$lastMessage = $preparation ? $livraison->getPreparation()->getLastMessage() : null;
-        $sensorCode = ($lastMessage && $lastMessage->getSensor()) ? $lastMessage->getSensor()->getCode() : null;
+        $sensorCode = ($lastMessage && $lastMessage->getSensor()) ? $lastMessage->getSensor()->getAvailableSensorWrapper()->getName() : null;
         $hasPairing = $preparation && !$preparation->getPairings()->isEmpty();
 
 		$demande = $livraison->getDemande();
