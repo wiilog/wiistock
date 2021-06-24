@@ -76,40 +76,47 @@ let modalEditLigneArticle = $("#modalEditLigneArticle");
 let submitEditLigneArticle = $("#submitEditLigneArticle");
 InitModal(modalEditLigneArticle, submitEditLigneArticle, urlEditLigneArticle, {tables: [tableArticle]});
 
-function submitSplitting(submit) {
-    const success = validatePreparationArticlesSplitting();
-    if (success) {
-        const $inputs = $('#tableSplittingArticles').find('.input');
-        const chosenArticles = $inputs
-            .toArray()
-            .reduce((acc, input) => {
-                const $input = $(input);
-                const val = Number($input.val());
-                return {
-                    ...acc,
-                    [$input.data('id')]: val || 0
-                };
-            }, {})
+function submitSplitting($submit) {
+    if (!$submit.hasClass('loading')) {
+        const success = validatePreparationArticlesSplitting();
+        if (success) {
+            $submit.pushLoader('white');
+            $submit.addClass('loading');
+            const $inputs = $('#tableSplittingArticles').find('.input');
+            const chosenArticles = $inputs
+                .toArray()
+                .reduce((acc, input) => {
+                    const $input = $(input);
+                    const val = Number($input.val());
+                    return {
+                        ...acc,
+                        [$input.data('id')]: val || 0
+                    };
+                }, {})
 
-        let path = Routing.generate('submit_splitting', true);
-        let params = {
-            'articles': chosenArticles,
-            'quantite': submit.data('qtt'),
-            'demande': submit.data('demande'),
-            'refArticle': submit.data('ref'),
-            'preparation': submit.data('prep')
-        };
+            let path = Routing.generate('submit_splitting', true);
+            let params = {
+                articles: chosenArticles,
+                quantite: $submit.data('qtt'),
+                demande: $submit.data('demande'),
+                refArticle: $submit.data('ref'),
+                preparation: $submit.data('prep')
+            };
 
-        $.post(path, JSON.stringify(params), function (response) {
-            if (response.success == true) {
-                $('#modalSplitting').find('.close').click();
-                tableArticle.ajax.reload();
-            }
-            else if (response.msg) {
-                $('#modalSplitting').find('.error-msg').html(response.msg);
-                showBSAlert(response.msg, 'danger');
-            }
-        });
+            $.post(path, JSON.stringify(params))
+                .then((data) => {
+                    const $modal = $submit.closest('.modal');
+                    if (data.success) {
+                        $modal.find('.close').click();
+                        tableArticle.ajax.reload();
+                    } else if (data.msg) {
+                        $submit.removeClass('loading');
+                        $submit.popLoader();
+                        $modal.find('.error-msg').html(data.msg);
+                        showBSAlert(data.msg, 'danger');
+                    }
+                });
+        }
     }
 }
 
