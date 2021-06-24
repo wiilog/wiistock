@@ -290,7 +290,7 @@ class OrdreCollecteService
         $demandeCollecte = $collecte->getDemandeCollecte();
 
         $lastMessage = $collecte->getLastMessage();
-        $sensorCode = ($lastMessage && $lastMessage->getSensor()) ? $lastMessage->getSensor()->getCode() : null;
+        $sensorCode = ($lastMessage && $lastMessage->getSensor()) ? $lastMessage->getSensor()->getAvailableSensorWrapper()->getName() : null;
         $hasPairing = !$collecte->getPairings()->isEmpty();
 
         $url['show'] = $this->router->generate('ordre_collecte_show', ['id' => $collecte->getId()]);

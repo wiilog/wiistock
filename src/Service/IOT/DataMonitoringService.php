@@ -51,13 +51,13 @@ class DataMonitoringService
 
     public function render($config): Response
     {
-        if($config["type"] === self::PAIRING) {
+        if ($config["type"] === self::PAIRING) {
             /** @var Pairing $pairing */
             $pairing = $config["entity"];
             $entity = $pairing->getEntity();
             $this->fillPairingConfig($config, $pairing);
             $this->fillEntityConfig($entity, $config, false);
-        } else if($config["type"] === self::TIMELINE) {
+        } else if ($config["type"] === self::TIMELINE) {
             $date = new DateTime('-1 month');
             $entity = $config['entity'];
 
@@ -105,6 +105,7 @@ class DataMonitoringService
 
         $config["left_pane"][] = [
             "type" => "pairingInfo",
+            "pairing" => $pairing,
             "start" => $start,
             "end" => $end
         ];
@@ -135,7 +136,11 @@ class DataMonitoringService
             "title" => $pack->getCode(),
             "pack" => $pack,
             "header" => $header,
-            "hideActions" => $header
+            "hideActions" => $header,
+            "entity_info" => [
+                "id" => $pack->getId(),
+                "type" => IOTService::getEntityCodeFromEntity($pack),
+            ],
         ];
     }
 
@@ -146,7 +151,11 @@ class DataMonitoringService
             "icon" => "iot-location",
             "title" => $location->getLabel(),
             "header" => $header,
-            "hideActions" => $header
+            "hideActions" => $header,
+            "entity_info" => [
+                "id" => $location->getId(),
+                "type" => IOTService::getEntityCodeFromEntity($location),
+            ],
         ];
     }
 
@@ -157,14 +166,18 @@ class DataMonitoringService
             "icon" => "iot-location",
             "title" => $location->getName(),
             "header" => $header,
-            "hideActions" => $header
+            "hideActions" => $header,
+            "entity_info" => [
+                "id" => $location->getId(),
+                "type" => IOTService::getEntityCodeFromEntity($location),
+            ],
         ];
     }
 
     private function fillPreparationConfig(array &$config, Preparation $preparation, bool $header)
     {
         $items = [];
-        if($preparation->getLivraison()) {
+        if ($preparation->getLivraison()) {
             $items[] = [
                 "icon" => "iot-delivery",
                 "title" => $preparation->getLivraison()->getNumero(),
@@ -174,6 +187,10 @@ class DataMonitoringService
         $items[] = [
             "icon" => "iot-preparation",
             "title" => $preparation->getNumero(),
+            "entity_info" => [
+                "id" => $preparation->getId(),
+                "type" => IOTService::getEntityCodeFromEntity($preparation),
+            ],
         ];
 
         $config["left_pane"][] = [
@@ -191,7 +208,11 @@ class DataMonitoringService
             "icon" => "iot-delivery",
             "title" => $deliveryRequest->getNumero(),
             "header" => $header,
-            "hideActions" => $header
+            "hideActions" => $header,
+            "entity_info" => [
+                "id" => $deliveryRequest->getId(),
+                "type" => IOTService::getEntityCodeFromEntity($deliveryRequest),
+            ],
         ];
     }
 
@@ -202,7 +223,11 @@ class DataMonitoringService
             "icon" => "iot-collect",
             "title" => $collect->getNumero(),
             "header" => $header,
-            "hideActions" => $header
+            "hideActions" => $header,
+            "entity_info" => [
+                "id" => $collect->getId(),
+                "type" => IOTService::getEntityCodeFromEntity($collect),
+            ],
         ];
     }
 
@@ -211,9 +236,13 @@ class DataMonitoringService
         $config["left_pane"][] = [
             "type" => "entity",
             "icon" => "iot-article",
-            "title" => $article->getLabel(),
+            "title" => $article->__toString(),
             "header" => $header,
-            "hideActions" => $header
+            "hideActions" => $header,
+            "entity_info" => [
+                "id" => $article->getId(),
+                "type" => IOTService::getEntityCodeFromEntity($article),
+            ],
         ];
     }
 
@@ -243,7 +272,8 @@ class DataMonitoringService
         ];
     }
 
-    public function fillEntityConfig(?PairedEntity $entity, array &$config, bool $isHistoric) {
+    public function fillEntityConfig(?PairedEntity $entity, array &$config, bool $isHistoric)
+    {
         if ($entity instanceof Pack) {
             $this->fillPackConfig($config, $entity, $isHistoric);
         } else if ($entity instanceof Emplacement) {
@@ -272,7 +302,8 @@ class DataMonitoringService
                                     string $type,
                                     string $id,
                                     int $start,
-                                    int $count): ?array {
+                                    int $count): ?array
+    {
         $className = $this->IOTService->getEntityClassFromCode($type);
 
         if ($className) {
@@ -292,7 +323,7 @@ class DataMonitoringService
 
         return [
             'data' => Stream::from($pairingData)
-                ->filterMap(fn (array $dataRow) => $this->getTimelineDataRow($dataRow, $entity, $router))
+                ->filterMap(fn(array $dataRow) => $this->getTimelineDataRow($dataRow, $entity, $router))
                 ->toArray(),
             'isEnd' => $pairingDataCount <= ($start + $count),
             'isGrouped' => $entity instanceof Demande
@@ -301,10 +332,11 @@ class DataMonitoringService
 
     public function getTimelineDataRow(array $dataRow,
                                        PairedEntity $entity,
-                                       RouterInterface $routerInterface) {
+                                       RouterInterface $routerInterface)
+    {
         $subtitlePrefix = [
             'start' => 'Associé le : ',
-            'end' => 'Dissocié le : '
+            'end' => $date > new DateTime() ? "Fin le : " : "Dissocié le : ",
         ];
 
         $dateStr = $dataRow['date'] ?? null;
@@ -332,8 +364,7 @@ class DataMonitoringService
             }
 
             return $row;
-        }
-        else {
+        } else {
             return null;
         }
     }

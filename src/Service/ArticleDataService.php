@@ -448,7 +448,7 @@ class ArticleDataService
         $referenceArticle = $supplierArticle ? $supplierArticle->getReferenceArticle() : null;
 
         $lastMessage = $article->getLastMessage();
-        $sensorCode = ($lastMessage && $lastMessage->getSensor()) ? $lastMessage->getSensor()->getCode() : null;
+        $sensorCode = ($lastMessage && $lastMessage->getSensor()) ? $lastMessage->getSensor()->getAvailableSensorWrapper()->getName() : null;
         $hasPairing = !$article->getPairings()->isEmpty(); // TODO check pairing of preparations ?
 
         $row = [

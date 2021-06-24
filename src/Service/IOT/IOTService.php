@@ -542,7 +542,7 @@ class IOTService
         return -1;
     }
 
-    public function getEntityCodeFromEntity(?PairedEntity $pairedEntity): ?string {
+    public static function getEntityCodeFromEntity(?PairedEntity $pairedEntity): ?string {
         if($pairedEntity instanceof Emplacement) {
             $code = Sensor::LOCATION;
         } else if($pairedEntity instanceof LocationGroup) {
