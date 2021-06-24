@@ -13,9 +13,10 @@
                     <div class="form-group col-md-4 col-12">
                         <label>Nom capteur*</label>
                         <div class="w-100">
-                            <select class="form-control data input" name="sensor" data-s2 data-placeholder="Sélectionner un capteur...">
+                            <select class="form-control data input" name="sensor" data-s2 data-placeholder="Sélectionner un capteur..."
+                                    onchange="onDeviceChanged($(this))">
                                 {% for sensorWrapper in sensorWrappers %}
-                                    <option value="{{ sensorWrapper.name }}">{{ sensorWrapper.name }}</option>
+                                    <option value="{{ sensorWrapper.name }}" data-value="{{ sensorWrapper.sensor.code }}">{{ sensorWrapper.name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -26,9 +27,10 @@
                     <div class="form-group col-md-4 col-12">
                         <label>Code capteur*</label>
                         <div class="w-100">
-                            <select class="form-control data" name="sensorCode" data-s2 data-placeholder="Sélectionner un code capteur...">
-                                {% for sensorWrapper in sensorWrappers %}
-                                    <option value="{{ sensorWrapper.sensor.code }}">{{ sensorWrapper.sensor.code }}</option>
+                            <select class="form-control data" name="sensorCode" data-s2 data-placeholder="Sélectionner un code capteur..."
+                                    onchange="onDeviceChanged($(this))">
+                            {% for sensorWrapper in sensorWrappers %}
+                                    <option value="{{ sensorWrapper.sensor.code }}" data-value="{{ sensorWrapper.name }}">{{ sensorWrapper.sensor.code }}</option>
                                 {% endfor %}
                             </select>
                         </div>
