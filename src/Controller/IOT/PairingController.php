@@ -44,7 +44,12 @@ class PairingController extends AbstractController {
      */
     public function index(EntityManagerInterface $entityManager): Response {
         $sensorWrappers= $entityManager->getRepository(SensorWrapper::class)->findWithNoActiveAssociation(false);
-
+        $sensorWrappers = Stream::from($sensorWrappers)
+            ->filter(function(SensorWrapper $wrapper) {
+                return $wrapper->getPairings()->filter(function(Pairing $pairing) {
+                    return $pairing->isActive();
+                })->isEmpty();
+            });
         return $this->render("pairing/index.html.twig", [
             'categories' => Sensor::PAIRING_CATEGORIES,
             'sensorTypes' => Sensor::SENSOR_ICONS,

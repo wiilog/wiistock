@@ -134,8 +134,7 @@ class SensorWrapperRepository extends EntityRepository
     public function findWithNoActiveAssociation($action = true) {
         $qb = $this->createQueryBuilder('sensor_wrapper')
             ->leftJoin('sensor_wrapper.pairings', 'pairing')
-            ->where('pairing.active = 0 OR pairing.id IS NULL')
-            ->andWhere('sensor_wrapper.deleted = 0');
+            ->where('sensor_wrapper.deleted = 0');
 
         if (!$action) {
             $qb

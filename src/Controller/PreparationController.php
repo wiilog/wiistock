@@ -8,6 +8,7 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
+use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\LigneArticlePreparation;
 use App\Entity\Menu;
@@ -41,6 +42,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
+use WiiCommon\Helper\Stream;
 
 /**
  * @Route("/preparation")
@@ -261,6 +263,12 @@ class PreparationController extends AbstractController
                          EntityManagerInterface $entityManager): Response
     {
         $sensorWrappers = $entityManager->getRepository(SensorWrapper::class)->findWithNoActiveAssociation();
+        $sensorWrappers = Stream::from($sensorWrappers)
+            ->filter(function(SensorWrapper $wrapper) {
+                return $wrapper->getPairings()->filter(function(Pairing $pairing) {
+                    return $pairing->isActive();
+                })->isEmpty();
+            });
         $articleRepository = $entityManager->getRepository(Article::class);
 
         $preparationStatus = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;

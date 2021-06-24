@@ -9,6 +9,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\CollecteReference;
+use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\Menu;
 use App\Entity\OrdreCollecte;
@@ -42,6 +43,7 @@ use Throwable;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
+use WiiCommon\Helper\Stream;
 
 
 /**
@@ -91,7 +93,12 @@ class OrdreCollecteController extends AbstractController
                          EntityManagerInterface $entityManager): Response
     {
         $sensorWrappers= $entityManager->getRepository(SensorWrapper::class)->findWithNoActiveAssociation();
-
+        $sensorWrappers = Stream::from($sensorWrappers)
+            ->filter(function(SensorWrapper $wrapper) {
+                return $wrapper->getPairings()->filter(function(Pairing $pairing) {
+                    return $pairing->isActive();
+                })->isEmpty();
+            });
         return $this->render('ordre_collecte/show.html.twig', [
             "sensorWrappers" => $sensorWrappers,
             'collecte' => $ordreCollecte,
