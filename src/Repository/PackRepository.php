@@ -458,7 +458,7 @@ class PackRepository extends EntityRepository
             '/AS \w+_2/' => 'AS active',
             '/AS \w+_3/' => 'AS date',
             '/AS \w+_4/' => 'AS type',
-            '/?/' => $pack->getId(),
+            '/\?/' => $pack->getId(),
         ];
 
         $startSQL = $startQueryBuilder->getQuery()->getSQL();
