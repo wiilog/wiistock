@@ -76,11 +76,6 @@ $(document).ready(() => {
             $selected.find(`.hidden-switch`)
                 .addClass(`wii-switch`)
                 .removeClass(`hidden-switch`);
-
-            $selected
-                .find('input[name=isFileNeeded][value=0]')
-                .removeClass('isFileNeeded')
-                .val(1);
         }
     })
 })

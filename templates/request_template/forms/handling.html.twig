@@ -28,7 +28,7 @@
         <label>Date attendue</label>
         <div>
             H +
-            <input class="form-control data needed d-inline-block w-50px"
+            <input class="form-control data needed d-inline-block w-100px"
                    type="number"
                    value="{{ request_template.delay ?? '' }}"
                    name="delay"
@@ -141,6 +141,6 @@
     </div>
 
     <div class="form-group col-md-6 col-12">
-        {% include 'attachment/attachment.html.twig' with {'isNew' : not request_template.id, 'attachments': request_template.attachments ?? []} %}
+        {% include 'attachment/attachment.html.twig' with {'required': false, 'isNew' : not request_template.id, 'attachments': request_template.attachments ?? []} %}
     </div>
 </div>
