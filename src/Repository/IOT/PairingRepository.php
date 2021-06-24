@@ -108,8 +108,23 @@ class PairingRepository extends EntityRepository
         ];
     }
 
+    public function countAllActive() {
+        return $this->createQueryBuilder("pairing")
+            ->select('COUNT(pairing)')
+            ->leftJoin('pairing.sensorWrapper', 'order_sensorWrapper')
+            ->leftJoin('order_sensorWrapper.sensor', 'order_sensor')
+            ->leftJoin('order_sensor.type', 'order_type')
+            ->andWhere('pairing.active = 1')
+            ->andWhere('order_type.label <> :actionType')
+            ->addOrderBy('order_sensorWrapper.name', 'ASC')
+            ->setParameter('actionType', Sensor::ACTION)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     public function findByParamsAndFilters(InputBag $filters) {
         $queryBuilder = $this->createQueryBuilder("pairing");
+
         if (!empty($filters)) {
             if ($filters->has('search') && !empty($filters->get('search'))) {
                 $search = $filters->get('search');
@@ -128,7 +143,7 @@ class PairingRepository extends EntityRepository
                             'search_article.barCode LIKE :value',
                             'search_collectOrder.numero LIKE :value',
                             'search_location.label LIKE :value',
-                            'locationGroup.name LIKE :value',
+                            'search_locationGroup.name LIKE :value',
                             'search_pack.code LIKE :value',
                             'search_preparationOrder.numero LIKE :value',
                             'search_deliveryRequest.numero LIKE :value',
@@ -163,9 +178,11 @@ class PairingRepository extends EntityRepository
 
                 if(Stream::from($elements)->indexOf(Sensor::LOCATION) !== false) {
                     $queryBuilder
-                        ->leftJoin('pairing.location', 'element_location');
+                        ->leftJoin('pairing.location', 'element_location')
+                        ->leftJoin('pairing.locationGroup', 'element_location_group');
 
                     $expr->add('element_location IS NOT NULL');
+                    $expr->add('element_location_group IS NOT NULL');
                 }
 
                 if(Stream::from($elements)->indexOf(Sensor::LOCATION_GROUP) !== false) {
@@ -226,7 +243,8 @@ class PairingRepository extends EntityRepository
 
         $query = $queryBuilder->getQuery();
         return [
-            'data' => $query ? $query->getResult() : null
+            'data' => $query ? $query->getResult() : null,
+            'total' => $this->countAllActive()
         ];
     }
 }

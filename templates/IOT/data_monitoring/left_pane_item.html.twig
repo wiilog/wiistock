@@ -15,7 +15,6 @@
 {% import _self as macros %}
 
 {% set type = type is defined ? type %}
-{% set pairing = pairing is defined ? pairing %}
 {% set icon = icon is defined ? icon %}
 {% set title = title is defined ? title %}
 {% set subtitle = subtitle is defined ? subtitle %}
@@ -39,7 +38,7 @@
                     {% if end is not null %}
                         {% if start is not null %}<br/><br/>{% endif %}
                         <span class="pairing-date-prefix">Fin le : </span><br/>
-                        <span class="date-prefix">{{ end }}</span>
+                        <span class="date-prefix pairing-end-date-{{ pairing.id }}">{{ end }}</span>
                     {% endif %}
                 </div>
             </div>
@@ -77,7 +76,7 @@
                     </div>
                 {% elseif type == 'entity' %}
                     <a class="btn btn-sm btn-outline-info"
-                       href="" {# TODO #}
+                       href="{{ path('show_data_history', entity_info) }}" {# TODO #}
                        title="Voir l'historique des données">
                         <span class="wii-icon wii-icon-iot-historic"></span>
                     </a>

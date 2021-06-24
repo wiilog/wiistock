@@ -48,12 +48,19 @@ class DataHistoryController extends AbstractController {
         $id = $query->get('id');
 
         $entity = $IOTService->getEntity($entityManager, $type, $id);
-
+        $end = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $end->modify('last day of this month');
+        $end->setTime(23, 59, 59);
+        $start = clone $end;
+        $start->setTime(0, 0, 0);
+        $start->modify('first day of this month');
         return $dataMonitoringService->render([
             "title" => $this->getBreadcrumb($entity),
             "entity" => $entity,
             "type" => DataMonitoringService::TIMELINE,
-            "entity_type" => $type
+            "entity_type" => $type,
+            'startFilter' => $start,
+            "endFilter" => $end
         ]);
     }
 
@@ -109,7 +116,7 @@ class DataHistoryController extends AbstractController {
             $date = $message->getDate();
             $sensor = $message->getSensor();
 
-            $dateStr = $date->format('Y-m-d H:i:s');
+            $dateStr = $date->format('d/m/Y H:i:s');
             $sensorCode = $sensor->getCode();
             if (!isset($data[$sensorCode])) {
                 $data[$sensorCode] = [];
@@ -157,58 +164,5 @@ class DataHistoryController extends AbstractController {
 
         $data = $dataMonitoringService->getTimelineData($entityManager, $router, $type, $id, $startTimeline, $sizeTimelinePage);
         return $this->json($data);
-
-        // TODO remove
-        return $this->json([
-            "data" => [
-                [
-                    "title" => "Température 1",
-                    "subtitle" => "Associé le : 23/03/2021 17:03",
-                    "group" => [
-                        "title" => "P-202108795875-2",
-
-                    ],
-                    "date" => "2021-03-23 17:03",
-                    "active" => true
-                ],
-                [
-                    "title" => "GPS3",
-                    "subtitle" => "Dissocié le : 23/03/2021 16:03",
-                    "group" => [
-                        "title" => "P-202108795875-2",
-                    ],
-                    "date" => "2021-03-23 16:03",
-                    "active" => false
-                ],
-                [
-                    "title" => "GPS3",
-                    "subtitle" => "Associé le : 23/03/2021 15:03",
-                    "group" => [
-                        "title" => "P-202108795875-2",
-                    ],
-                    "date" => "2021-03-23 15:03",
-                    "active" => false
-                ],
-                [
-                    "title" => "GPS3",
-                    "subtitle" => "Dissocié le : 23/03/2021 12:03",
-                    "group" => [
-                        "title" => "L-20210879165-01"
-                    ],
-                    "date" => "2021-03-23 12:03",
-                    "active" => false
-                ],
-                [
-                    "title" => "GPS3",
-                    "subtitle" => "Associé le : 23/03/2021 11:03",
-                    "group" => [
-                        "title" => "P-202106565265-01",
-                    ],
-                    "date" => "2021-03-23 11:03",
-                    "active" => false
-                ]
-            ],
-            "isEnd" => false
-        ]);
     }
 }

@@ -86,8 +86,8 @@ class PackService
         $fromColumnData = $this->trackingMovementService->getFromColumnData($firstMovement ?: null);
 
         $lastMessage = $pack->getLastMessage();
-        $hasPairing = !$pack->getPairings()->isEmpty();
-        $sensorCode = ($lastMessage && $lastMessage->getSensor()) ? $lastMessage->getSensor()->getCode() : null;
+        $hasPairing = !$pack->getPairings()->isEmpty() || $lastMessage;
+        $sensorCode = ($lastMessage && $lastMessage->getSensor()) ? $lastMessage->getSensor()->getAvailableSensorWrapper()->getName() : null;
 
         /** @var TrackingMovement $lastPackMovement */
         $lastPackMovement = $pack->getLastTracking();

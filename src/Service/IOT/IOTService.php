@@ -385,7 +385,7 @@ class IOTService
 
         if ($wrapper) {
             foreach ($wrapper->getPairings() as $pairing) {
-                if ($pairing->getActive()) {
+                if ($pairing->isActive()) {
                     $pairing->addSensorMessage($sensorMessage);
                     $entity = $pairing->getEntity();
                     if ($entity instanceof LocationGroup) {
@@ -542,7 +542,7 @@ class IOTService
         return -1;
     }
 
-    public function getEntityCodeFromEntity(?PairedEntity $pairedEntity): ?string {
+    public static function getEntityCodeFromEntity(?PairedEntity $pairedEntity): ?string {
         if($pairedEntity instanceof Emplacement) {
             $code = Sensor::LOCATION;
         } else if($pairedEntity instanceof LocationGroup) {

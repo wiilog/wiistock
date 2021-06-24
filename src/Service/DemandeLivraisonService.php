@@ -12,6 +12,7 @@ use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\IOT\Pairing;
+use App\Entity\LigneArticle;
 use App\Entity\LigneArticlePreparation;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Preparation;
@@ -132,8 +133,13 @@ class DemandeLivraisonService
                 ->first()
             : null;
 
-        $sensorCode = $pairing ? $pairing->getSensorWrapper()->getSensor()->getCode() : null;
-
+        $sensorCode = $pairing ? $pairing->getSensorWrapper()->getName() : null;
+        $emergency = !Stream::from($demande->getLigneArticle())
+            ->filter(function(LigneArticle $ligne) {
+                $reference = $ligne->getReference();
+                return $reference->getQuantiteDisponible() < $ligne->getQuantite();
+            })
+            ->isEmpty();
         return [
             'Date' => $demande->getDate() ? $demande->getDate()->format('d/m/Y') : '',
             'Demandeur' => $demande->getSensor() ? $demande->getSensor()->getName() : ($demande->getUtilisateur() ? $demande->getUtilisateur()->getUsername() : ''),
@@ -146,6 +152,7 @@ class DemandeLivraisonService
                     'url' => $url,
                 ]
             ),
+            "emergency" => $emergency,
             'pairing' => $this->templating->render('pairing-icon.html.twig', [
                 'sensorCode' => $sensorCode,
                 'hasPairing' => (bool)$pairing,

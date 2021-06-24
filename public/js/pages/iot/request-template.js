@@ -12,9 +12,9 @@ const TABLE_CONFIG = {
         needsRowClickAction: true,
     },
     columns: [
-        {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},
-        {data: 'name', name: 'name', title: 'Nom'},
-        {data: 'type', name: 'type', title: 'Type'},
+        {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false, width: '10px'},
+        {data: 'name', name: 'name', title: 'Nom', width: '50%'},
+        {data: 'type', name: 'type', title: 'Type', width: '50%'},
     ]
 };
 
@@ -76,11 +76,6 @@ $(document).ready(() => {
             $selected.find(`.hidden-switch`)
                 .addClass(`wii-switch`)
                 .removeClass(`hidden-switch`);
-
-            $selected
-                .find('input[name=isFileNeeded][value=0]')
-                .removeClass('isFileNeeded')
-                .val(1);
         }
     })
 })

@@ -19,15 +19,15 @@ let collecteTableConfig = {
         needsSearchOverride: true,
     },
     columns: [
-        {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},
-        {"data": 'pairing', 'title': '', 'name': 'Actions', className: 'noVis', orderable: false},
-        {"data": 'Création', 'name': 'Création', 'title': 'Création'},
-        {"data": 'Validation', 'name': 'Validation', 'title': 'Validation'},
-        {"data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur'},
-        {"data": 'Numéro', 'name': 'Numéro', 'title': 'Numéro'},
-        {"data": 'Objet', 'name': 'Objet', 'title': 'Objet'},
-        {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
-        {"data": 'Type', 'name': 'Type', 'title': 'Type'},
+        {data: 'Actions', name: 'Actions', title: '', className: 'noVis', orderable: false},
+        {data: 'pairing', title: '', name: 'Actions', className: 'pairing-row', orderable: false},
+        {data: 'Création', name: 'Création', title: 'Création'},
+        {data: 'Validation', name: 'Validation', title: 'Validation'},
+        {data: 'Demandeur', name: 'Demandeur', title: 'Demandeur'},
+        {data: 'Numéro', name: 'Numéro', title: 'Numéro'},
+        {data: 'Objet', name: 'Objet', title: 'Objet'},
+        {data: 'Statut', name: 'Statut', title: 'Statut'},
+        {data: 'Type', name: 'Type', title: 'Type'},
     ]
 };
 let table = initDataTable('tableCollecte_id', collecteTableConfig);

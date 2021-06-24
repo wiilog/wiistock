@@ -217,7 +217,7 @@ class SensorWrapperController extends AbstractController
      */
     public function sensorPairingIndex($id, EntityManagerInterface $entityManager): Response
     {
-        $sensor = $entityManager->getRepository(Sensor::class)->find($id);
+        $sensor = $entityManager->getRepository(SensorWrapper::class)->find($id);
         return $this->render('iot/sensors_pairing/index.html.twig', [
             'sensor' => $sensor
         ]);
@@ -230,11 +230,10 @@ class SensorWrapperController extends AbstractController
     public function sensorPairingApi(Request $request,
                                      PairingService $pairingService,
                                      EntityManagerInterface $entityManager): Response {
-
         $sensorId = $request->query->get('sensor');
-        $sensorRepository = $entityManager->getRepository(Sensor::class);
+        $sensorRepository = $entityManager->getRepository(SensorWrapper::class);
         $sensor = $sensorRepository->find($sensorId);
-        $data = $pairingService->getDataForDatatable($sensor, $request->request);
+        $data = $pairingService->getDataForDatatable($sensor->getSensor(), $request->request);
         return $this->json($data);
     }
 

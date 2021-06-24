@@ -43,10 +43,15 @@ class PairingController extends AbstractController {
      * @HasPermission({Menu::IOT, Action::DISPLAY_SENSOR})
      */
     public function index(EntityManagerInterface $entityManager): Response {
-        $sensorWrappers= $entityManager->getRepository(SensorWrapper::class)->findWithNoActiveAssociation();
-
+        $sensorWrappers= $entityManager->getRepository(SensorWrapper::class)->findWithNoActiveAssociation(false);
+        $sensorWrappers = Stream::from($sensorWrappers)
+            ->filter(function(SensorWrapper $wrapper) {
+                return $wrapper->getPairings()->filter(function(Pairing $pairing) {
+                    return $pairing->isActive();
+                })->isEmpty();
+            });
         return $this->render("pairing/index.html.twig", [
-            'categories' => Sensor::CATEGORIES,
+            'categories' => Sensor::PAIRING_CATEGORIES,
             'sensorTypes' => Sensor::SENSOR_ICONS,
             "sensorWrappers" => $sensorWrappers,
         ]);
@@ -87,8 +92,7 @@ class PairingController extends AbstractController {
                 "highTemperatureThreshold" => SensorMessage::HIGH_TEMPERATURE_THRESHOLD,
             ];
         }
-
-        return $this->json($rows);
+        return $this->json(['data' => $rows, 'empty' => intval($queryResult['total']) === 0]);
     }
 
     /**
@@ -99,7 +103,7 @@ class PairingController extends AbstractController {
         return $service->render([
             "title" => "IOT | Associations | Détails",
             "type" => DataMonitoringService::PAIRING,
-            "entity" => $pairing,
+            "entity" => $pairing
         ]);
     }
 
@@ -214,13 +218,12 @@ class PairingController extends AbstractController {
             $filters["end"],
             Sensor::GPS
         );
-
         $data = [];
         foreach ($associatedMessages as $message) {
             $date = $message->getDate();
             $sensor = $message->getSensor();
 
-            $dateStr = $date->format('Y-m-d H:i:s');
+            $dateStr = $date->format('d/m/Y H:i:s');
             $sensorCode = $sensor->getCode();
             if (!isset($data[$sensorCode])) {
                 $data[$sensorCode] = [];
@@ -255,7 +258,7 @@ class PairingController extends AbstractController {
                 $data['colors'][$sensor->getCode()] = sprintf('#%06X', mt_rand(0, 0xFFFFFF));
             }
 
-            $dateStr = $date->format('Y-m-d H:i:s');
+            $dateStr = $date->format('d/m/Y H:i:s');
             $sensorCode = $sensor->getCode();
             if (!isset($data[$dateStr])) {
                 $data[$dateStr] = [];

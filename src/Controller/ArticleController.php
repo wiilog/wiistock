@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\ArticleFournisseur;
 use App\Entity\FreeField;
@@ -15,20 +14,22 @@ use App\Entity\TrackingMovement;
 use App\Entity\ReferenceArticle;
 use App\Entity\CategorieCL;
 use App\Entity\Utilisateur;
+
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Service\CSVExportService;
 use App\Service\DemandeLivraisonService;
-use App\Service\GlobalParamService;
 use App\Service\MouvementStockService;
 use App\Service\PDFGeneratorService;
 use App\Service\ArticleDataService;
 use App\Service\PreparationsManagerService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
+use App\Service\FreeFieldService;
+use App\Annotation\HasPermission;
+
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -36,19 +37,12 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Twig\Environment as Twig_Environment;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
-use App\Service\FreeFieldService;
 
 /**
  * @Route("/article")
  */
 class ArticleController extends AbstractController
 {
-
-    const MAX_CSV_FILE_LENGTH = 5000;
 
     private const ARTICLE_IS_USED_MESSAGES = [
         Article::USED_ASSOC_COLLECTE => "Cet article est lié à une ou plusieurs collectes.",
@@ -71,41 +65,16 @@ class ArticleController extends AbstractController
      */
     private $userService;
 
-    /**
-     * @var Twig_Environment
-     */
-    private $templating;
-
-    /**
-     * @var GlobalParamService
-     */
-    private $globalParamService;
-
-    /**
-     * @var FreeFieldService
-     */
-    private $champLibreService;
-
-    public function __construct(Twig_Environment $templating,
-                                GlobalParamService $globalParamService,
-                                ArticleDataService $articleDataService,
-                                UserService $userService,
-                                FreeFieldService $champLibreService )
+    public function __construct(ArticleDataService $articleDataService,
+                                UserService $userService)
     {
-        $this->globalParamService = $globalParamService;
         $this->articleDataService = $articleDataService;
         $this->userService = $userService;
-        $this->templating = $templating;
-        $this->champLibreService = $champLibreService;
     }
 
     /**
      * @Route("/", name="article_index", methods={"GET", "POST"})
      * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI})
-     * @param EntityManagerInterface $entityManager
-     * @param ArticleDataService $articleDataService
-     * @return Response
-     * @throws NonUniqueResultException
      */
     public function index(EntityManagerInterface $entityManager, ArticleDataService $articleDataService): Response {
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
@@ -165,8 +134,6 @@ class ArticleController extends AbstractController
     /**
      * @Route("/api", name="article_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI}, mode=HasPermission::IN_JSON)
-     * @param Request $request
-     * @return Response
      */
     public function api(Request $request): Response
     {
@@ -177,9 +144,6 @@ class ArticleController extends AbstractController
     /**
      * @Route("/api-columns", name="article_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI}, mode=HasPermission::IN_JSON)
-     * @param ArticleDataService $articleDataService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
      */
     public function apiColumns(ArticleDataService $articleDataService,
                                EntityManagerInterface $entityManager): Response
@@ -453,9 +417,6 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/autocompleteArticleFournisseur", name="get_articleRef_fournisseur", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse
      */
     public function getRefArticles(Request $request, EntityManagerInterface $entityManager)
     {
@@ -485,12 +446,6 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/get-article-collecte", name="get_collecte_article_by_refArticle", options={"expose"=true})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
      */
     public function getCollecteArticleByRefArticle(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -536,9 +491,6 @@ class ArticleController extends AbstractController
     /**
      * @Route("/colonne-visible", name="save_column_visible_for_article", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI}, mode=HasPermission::IN_JSON)
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
      */
     public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -580,9 +532,6 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/ajax_article_new_content", name="ajax_article_new_content", options={"expose"=true})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
      */
     public function ajaxArticleNewContent(Request $request,
                                           EntityManagerInterface $entityManager): Response
@@ -625,9 +574,6 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/ajax-fournisseur-by-refarticle", name="ajax_fournisseur_by_refarticle", options={"expose"=true})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
      */
     public function ajaxFournisseurByRefArticle(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -654,10 +600,6 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/exporter-articles", name="export_all_arts", options={"expose"=true}, methods="GET|POST")
-     * @param EntityManagerInterface $entityManager
-     * @param FreeFieldService $freeFieldService
-     * @param CSVExportService $csvService
-     * @return Response
      */
     public function exportAllArticles(EntityManagerInterface $entityManager,
                                       FreeFieldService $freeFieldService,
@@ -726,14 +668,6 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/etiquettes", name="article_print_bar_codes", options={"expose"=true}, methods={"GET"})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param PDFGeneratorService $PDFGeneratorService
-     * @param ArticleDataService $articleDataService
-     * @return Response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
      */
     public function printArticlesBarCodes(Request $request,
                                           EntityManagerInterface $entityManager,
@@ -757,13 +691,6 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/{article}/etiquette", name="article_single_bar_code_print", options={"expose"=true})
-     * @param Article $article
-     * @param ArticleDataService $articleDataService
-     * @param PDFGeneratorService $PDFGeneratorService
-     * @return Response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
      */
     public function getSingleArticleBarCode(Article $article,
                                             ArticleDataService $articleDataService,

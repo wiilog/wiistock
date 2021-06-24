@@ -11,7 +11,7 @@ $(function () {
         pairingList($search.val(), sensorWrappersSelectValue, activeButtons.activeTypeButtons, activeButtons.activeElementButtons);
     }, 500));
 
-    $('.sensor-types-container, .categories-container').find('button').click(function() {
+    $('.pairing-button-container').find('button').click(function() {
         $(this).toggleClass('active');
         const searchValue = getSearchValue();
         const activeButtons = getActiveButtonsValues();
@@ -46,8 +46,9 @@ function pairingList(search = '', filter = '', types = '', elements = '') {
         elements: elements
     }, true);
 
-    $.get(path, (data) => {
-        if (data) {
+    $.get(path, (response) => {
+        if (response) {
+            let data = response.data;
             $pairings.removeClass('justify-content-center')
             $pairings.empty();
             if (data.length > 0) {
@@ -61,22 +62,23 @@ function pairingList(search = '', filter = '', types = '', elements = '') {
                     const highTemperatureAlert = temperature > highTemperatureThreshold;
 
                     const $pairingContainer = `
-                    <div class="col-lg-3 col-md-4 col-12 pairing-container">
-                        <a class="card wii-card request-card pointer shadow-sm bg-white pairing-card" href="${Routing.generate('pairing_show', {pairing: pairing.id})}">
-                            <div class="d-flex sensor-details">
-                                <div class="type d-flex justify-content-center align-items-center ${lowTemperatureAlert ? 'low-temperature-bg' : highTemperatureAlert ? 'high-temperature-bg' : ''}">
-                                    <span class="wii-icon wii-icon-iot-${pairing.typeIcon} ${lowTemperatureAlert ? 'low-temperature-icon' : highTemperatureAlert ? 'high-temperature-icon' : ''}"></span>
+                        <div class="col-lg-3 col-md-4 col-12 pairing-container">
+                            <a class="card wii-card request-card pointer shadow-sm bg-white pairing-card" href="${Routing.generate('pairing_show', {pairing: pairing.id})}">
+                                <div class="d-flex sensor-details">
+                                    <div class="type d-flex justify-content-center align-items-center ${lowTemperatureAlert ? 'low-temperature-bg' : highTemperatureAlert ? 'high-temperature-bg' : ''}">
+                                        <span class="wii-icon wii-icon-${pairing.typeIcon} ${lowTemperatureAlert ? 'low-temperature-icon' : highTemperatureAlert ? 'high-temperature-icon' : ''}"></span>
+                                    </div>
+                                    <div class="name col-10 d-flex justify-content-center align-items-center ${lowTemperatureAlert ? 'low-temperature-font' : highTemperatureAlert ? 'high-temperature-font' : ''}">
+                                        ${pairing.name}
+                                    </div>
                                 </div>
-                                <div class="name col-10 d-flex justify-content-center align-items-center ${lowTemperatureAlert ? 'low-temperature-font' : highTemperatureAlert ? 'high-temperature-font' : ''}">
-                                    ${pairing.name}
+                                <div class="element d-flex justify-content-center align-items-center">
+                                    <span class="wii-icon wii-icon-iot-${pairing.elementIcon} mr-2"></span>
+                                    ${pairing.element}
                                 </div>
-                            </div>
-                            <div class="element d-flex justify-content-center align-items-center">
-                                <span class="wii-icon wii-icon-iot-${pairing.elementIcon} mr-2"></span>
-                                ${pairing.element}
-                            </div>
-                        </a>
-                    </div>`;
+                            </a>
+                        </div>
+                    `;
 
                     $pairings.append($pairingContainer);
                     $pairings.find('.pairing-container').last().hide().fadeIn(600);
@@ -87,7 +89,7 @@ function pairingList(search = '', filter = '', types = '', elements = '') {
                     class: `d-flex flex-column align-items-center`,
                     html: $(`<p/>`, {
                         class: `h4`,
-                        text: `Aucune association ne correspond à votre recherche`
+                        text: response.empty ? 'Aucune association créée' : `Aucune association ne correspond à votre recherche`
                     })
                 });
 
@@ -114,8 +116,8 @@ function delay(fn, ms) {
 
 function getActiveButtonsValues() {
     const $buttonContainer = $('.pairing-button-container');
-    const $activeTypeButtons = $buttonContainer.find('.sensor-types-container').children('button.active');
-    const $activeElementButtons = $buttonContainer.find('.categories-container').children('button.active');
+    const $activeTypeButtons = $buttonContainer.find('.sensor-types.active');
+    const $activeElementButtons = $buttonContainer.find('.categories.active');
     let activeTypeButtons = [];
     let activeElementButtons = [];
 
