@@ -2,14 +2,14 @@
 {% set hidden_submit = (((hidden_submit is defined) and (hidden_submit == true)) ? 'hidden' : '') %}
 
 <div class="filterService m-4">
-    <div class="filters filters-container row pt-2">
+    <div class="filters filters-container row">
         <div class="col">
-            <div class="row no-gutters filters-wrapper-row">
+            <div class="row no-gutters filters-wrapper-row align-items-center">
                 {% block filters %}
                 {% endblock %}
             </div>
         </div>
-        <div class="col-auto">
+        <div class="col-auto d-flex align-items-center" {{ hidden_submit }}>
             <button class="btn btn-primary btn-ripple minw-105px submit-button"
                     {{ hidden_submit }}
                     tabindex="0"

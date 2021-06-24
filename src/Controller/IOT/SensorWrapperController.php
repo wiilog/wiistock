@@ -217,7 +217,7 @@ class SensorWrapperController extends AbstractController
      */
     public function sensorPairingIndex($id, EntityManagerInterface $entityManager): Response
     {
-        $sensor = $entityManager->getRepository(Sensor::class)->find($id);
+        $sensor = $entityManager->getRepository(SensorWrapper::class)->find($id);
         return $this->render('iot/sensors_pairing/index.html.twig', [
             'sensor' => $sensor
         ]);

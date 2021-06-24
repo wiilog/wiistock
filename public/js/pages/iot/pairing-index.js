@@ -11,7 +11,7 @@ $(function () {
         pairingList($search.val(), sensorWrappersSelectValue, activeButtons.activeTypeButtons, activeButtons.activeElementButtons);
     }, 500));
 
-    $('.sensor-types-container, .categories-container').find('button').click(function() {
+    $('.pairing-button-container').find('button').click(function() {
         $(this).toggleClass('active');
         const searchValue = getSearchValue();
         const activeButtons = getActiveButtonsValues();
@@ -114,8 +114,8 @@ function delay(fn, ms) {
 
 function getActiveButtonsValues() {
     const $buttonContainer = $('.pairing-button-container');
-    const $activeTypeButtons = $buttonContainer.find('.sensor-types-container').children('button.active');
-    const $activeElementButtons = $buttonContainer.find('.categories-container').children('button.active');
+    const $activeTypeButtons = $buttonContainer.find('.sensor-types.active');
+    const $activeElementButtons = $buttonContainer.find('.categories.active');
     let activeTypeButtons = [];
     let activeElementButtons = [];
 
