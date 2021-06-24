@@ -43,7 +43,7 @@ class PairingController extends AbstractController {
      * @HasPermission({Menu::IOT, Action::DISPLAY_SENSOR})
      */
     public function index(EntityManagerInterface $entityManager): Response {
-        $sensorWrappers= $entityManager->getRepository(SensorWrapper::class)->findWithNoActiveAssociation();
+        $sensorWrappers= $entityManager->getRepository(SensorWrapper::class)->findWithNoActiveAssociation(false);
 
         return $this->render("pairing/index.html.twig", [
             'categories' => Sensor::CATEGORIES,
