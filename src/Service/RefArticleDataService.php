@@ -324,7 +324,8 @@ class RefArticleDataService {
 
 
         $refArticle->getManagers()->clear();
-        $managers = is_string($data["managers"]) ? explode(',', $data['managers']) : $data["managers"];
+
+        $managers = $data['managers'] && is_string($data["managers"]) ? explode(',', $data['managers']) : $data["managers"];
         if (!empty($managers)) {
             foreach ($managers as $manager) {
                 $refArticle->addManager($userRepository->find($manager));
