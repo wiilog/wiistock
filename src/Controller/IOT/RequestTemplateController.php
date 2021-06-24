@@ -10,6 +10,7 @@ use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\IOT\CollectRequestTemplate;
+use App\Entity\IOT\DeliveryRequestTemplate;
 use App\Entity\IOT\HandlingRequestTemplate;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\RequestTemplateLine;
@@ -132,11 +133,16 @@ class RequestTemplateController extends AbstractController {
 
         $manager->persist($requestTemplate);
         $manager->flush();
-
-        return $this->json([
+        $response = [
             "success" => true,
             "msg" => "Le modèle de demande {$requestTemplate->getName()} a bien été créé",
-        ]);
+        ];
+        if ($requestTemplate instanceof CollectRequestTemplate || $requestTemplate instanceof DeliveryRequestTemplate) {
+            $response['redirect'] = $this->generateUrl('request_template_show', [
+                'requestTemplate' => $requestTemplate->getId()
+            ]);
+        }
+        return $this->json($response);
     }
 
     /**
