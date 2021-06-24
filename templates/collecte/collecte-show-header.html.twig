@@ -23,6 +23,14 @@
                 <span class="fa fa-angle-down"></span>
             </button>
             <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+                {% if (linkedPairingCollectOrder is defined and linkedPairingCollectOrder)
+                    and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')) %}
+                    <a class="dropdown-item"
+                       href="{{ path('show_data_history', {id: linkedPairingCollectOrder.id, type: constant('App\\Entity\\IOT\\Sensor::COLLECT')}) }}">
+                        <span class="wii-icon wii-icon-pairing"></span>
+                        Historique des données
+                    </a>
+                {% endif %}
                 {% if hasRightEdit %}
                     <a data-id='{{ collecte.id }}'
                        data-target='#modalEditCollecte'
@@ -59,6 +67,14 @@
                     <span class="fa fa-angle-down"></span>
                 </button>
                 <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+                    {% if (linkedPairingCollectOrder is defined and linkedPairingCollectOrder)
+                        and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')) %}
+                        <a class="dropdown-item"
+                           href="{{ path('show_data_history', {id: linkedPairingCollectOrder.id, type: constant('App\\Entity\\IOT\\Sensor::COLLECT')}) }}">
+                            <span class="wii-icon wii-icon-pairing"></span>
+                            Historique des données
+                        </a>
+                    {% endif %}
                     {% if collecte.ordresCollecte|length > 1 %}
                         <a href="{{ path('ordre_collecte_index', {'demandId': collecte.id}) }}"
                            class="dropdown-item">

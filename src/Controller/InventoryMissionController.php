@@ -17,10 +17,7 @@ use App\Service\InventoryEntryService;
 use App\Service\InventoryService;
 use App\Service\InvMissionService;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -30,9 +27,6 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use App\Service\UserService;
 
 use DateTime;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 
 
 /**

@@ -1,0 +1,53 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block titleLink title_link is defined ? path(title_link) %}
+
+{% block page_content %}
+    <div class="row mt-4">
+        <div class="col-md-4 col-12">
+            <div class="wii-page-card p-0">
+                {% for item in left_pane %}
+                    {% include 'IOT/data_monitoring/left_pane_item.html.twig' with item|merge({firstItem: loop.first}) %}
+                {% endfor %}
+            </div>
+        </div>
+        <div class="col-md-8 col-12">
+            <div class="wii-page-card filterService">
+                <div class="filters filters-container row pt-2">
+                    <div class="col-auto mb-2 pr-0">
+                        <div class="h-100 w-450px">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text w-50px">Du</span>
+                                </div>
+                                <input type="datetime-local" name="start" value="{{ (startFilter is defined ? startFilter : start) | date('Y-m-d\\TH:i') }}"
+                                       class="form-control cursor-default filter-date-min filter-input w-218px"/>
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text w-50px">Au</span>
+                                </div>
+                                <input type="datetime-local" name="end" value="{{ (endFilter is defined ? endFilter : end) | date('Y-m-d\\TH:i') }}"
+                                       class="form-control cursor-default filter-date-max filter-input w-218px"/>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <button class="btn btn-primary btn-ripple minw-105px mb-2 ml-3" onclick="filter()">
+                        <i class="fas fa-filter mr-1"></i> Filtrer
+                    </button>
+                </div>
+            </div>
+            {% for item in center_pane ?? [] %}
+                {% include 'IOT/data_monitoring/content.html.twig' with item %}
+            {% endfor %}
+        </div>
+    </div>
+
+    {% include 'IOT/data_monitoring/edit_pairing_end.html.twig' %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/pages/iot/data-monitoring.js') }}?v={{ web_version }}"></script>
+{% endblock %}

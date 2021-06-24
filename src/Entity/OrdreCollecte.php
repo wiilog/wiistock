@@ -2,16 +2,23 @@
 
 namespace App\Entity;
 
+use App\Entity\IOT\PairedEntity;
+use App\Entity\IOT\SensorMessageTrait;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
+
+use App\Entity\IOT\Pairing;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\OrdreCollecteRepository")
  */
-class OrdreCollecte
+class OrdreCollecte implements PairedEntity
 {
+    use SensorMessageTrait;
+
     const CATEGORIE = 'ordreCollecte';
 
     const STATUT_A_TRAITER = 'à traiter';
@@ -71,11 +78,18 @@ class OrdreCollecte
 	 */
 	private $mouvements;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="collectOrder", cascade={"remove"})
+     */
+    private Collection $pairings;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
         $this->ordreCollecteReferences = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
+        $this->pairings = new ArrayCollection();
+        $this->sensorMessages = new ArrayCollection();
     }
 
 
@@ -254,4 +268,49 @@ class OrdreCollecte
         );
     }
 
+    /**
+     * @return Collection|Pairing[]
+     */
+    public function getPairings(): Collection
+    {
+        return $this->pairings;
+    }
+
+    public function getActivePairing(): ?Pairing {
+        $criteria = Criteria::create();
+        return $this->pairings
+            ->matching(
+                $criteria
+                    ->andWhere(Criteria::expr()->eq('active', true))
+                    ->setMaxResults(1)
+            )
+            ->first() ?: null;
+    }
+
+    public function addPairing(Pairing $pairing): self
+    {
+        if (!$this->pairings->contains($pairing)) {
+            $this->pairings[] = $pairing;
+            $pairing->setCollectOrder($this);
+        }
+
+        return $this;
+    }
+
+    public function removePairing(Pairing $pairing): self
+    {
+        if ($this->pairings->removeElement($pairing)) {
+            // set the owning side to null (unless already changed)
+            if ($pairing->getCollectOrder() === $this) {
+                $pairing->setCollectOrder(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function __toString()
+    {
+        return $this->numero;
+    }
 }

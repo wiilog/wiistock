@@ -1,0 +1,11 @@
+{% extends 'utils/show-header.html.twig' %}
+
+{% block showTitle ('Modèle de demande de livraison ' ~ request_template.name) %}
+
+{% block showActions %}
+    <div class="btn-group">
+        <button onclick="openEditRequestTemplateModal($(this))" data-id="{{ request_template.id }}" class="pointer btn btn-primary btn-ripple">
+            <i class="fas fa-pencil-alt mr-2"></i>Modifier
+        </button>
+    </div>
+{% endblock %}

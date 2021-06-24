@@ -7,18 +7,11 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use App\Entity\CategorieCL;
 
 class CategorieCLFixtures extends Fixture implements FixtureGroupInterface
 {
-    private $encoder;
-
-    public function __construct(UserPasswordEncoderInterface $encoder)
-    {
-        $this->encoder = $encoder;
-    }
 
     public function load(ObjectManager $manager)
     {
@@ -37,10 +30,11 @@ class CategorieCLFixtures extends Fixture implements FixtureGroupInterface
             CategorieCL::DEMANDE_HANDLING => CategoryType::DEMANDE_HANDLING,
 			CategorieCL::DEMANDE_COLLECTE => CategoryType::DEMANDE_COLLECTE,
             CategorieCL::ARRIVAGE => CategoryType::ARRIVAGE,
-			CategorieCL::MVT_TRACA => CategoryType::MOUVEMENT_TRACA
+			CategorieCL::MVT_TRACA => CategoryType::MOUVEMENT_TRACA,
+			CategorieCL::SENSOR => CategoryType::SENSOR
         ];
         foreach ($categoriesNames as $index => $categorieName) {
-            $categorie = $categorieCLRepository->findOneByLabel($index);
+            $categorie = $categorieCLRepository->findOneBy(['label' => $index]);
             $categorieType = $categorieTypeRepository->findOneBy(['label' => $categorieName]);
 
             if (empty($categorie)) {

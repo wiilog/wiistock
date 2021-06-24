@@ -21,14 +21,16 @@ use App\Entity\Translation;
 use App\Entity\Type;
 use App\Entity\WorkFreeDay;
 use App\Entity\ParametrageGlobal;
+
 use App\Service\AlertService;
 use App\Service\AttachmentService;
+use App\Service\CacheService;
 use App\Service\GlobalParamService;
 use App\Service\SpecificService;
 use App\Service\TranslationService;
 use App\Service\UserService;
+
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -86,7 +88,7 @@ class ParametrageGlobalController extends AbstractController
         $deliveryTypeSettings = $globalParamService->getDefaultDeliveryLocationsByType($entityManager);
 
         $clsForLabels = $champsLibreRepository->findBy([
-            'categorieCL' => $categoryCLRepository->findOneByLabel(CategorieCL::ARTICLE)
+            'categorieCL' => $categoryCLRepository->findOneBy(['label' => CategorieCL::ARTICLE])
         ]);
         $workFreeDays = array_map(
             function(WorkFreeDay $workFreeDay) {
@@ -118,6 +120,10 @@ class ParametrageGlobalController extends AbstractController
                     'paramDemandeurLivraison' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEMANDEUR_DANS_DL),
                     'deliveryRequestTypes' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]),
                     'deliveryTypeSettings' => json_encode($deliveryTypeSettings),
+                    'deliveryLocationDropdown' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST),
+                ],
+                'collectSetting' => [
+                    'collecteLocationDropdown' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST),
                 ],
                 'arrivalSettings' => [
                     'redirect' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL) ?? true,
@@ -222,7 +228,7 @@ class ParametrageGlobalController extends AbstractController
             ->setHeight(intval($data['height']))
             ->setWidth(intval($data['width']));
 
-        $parametrageGlobalQtt = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_QTT_IN_LABEL);
+        $parametrageGlobalQtt = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::INCLUDE_QTT_IN_LABEL]);
 
         if(empty($parametrageGlobalQtt)) {
             $parametrageGlobalQtt = new ParametrageGlobal();
@@ -232,7 +238,7 @@ class ParametrageGlobalController extends AbstractController
         $parametrageGlobalQtt
             ->setValue((int)($data['param-qtt-etiquette'] === 'true'));
 
-        $parametrageGlobalRecipient = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_LABEL);
+        $parametrageGlobalRecipient = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::INCLUDE_RECIPIENT_IN_LABEL]);
 
         if(empty($parametrageGlobalRecipient)) {
             $parametrageGlobalRecipient = new ParametrageGlobal();
@@ -243,7 +249,7 @@ class ParametrageGlobalController extends AbstractController
         $parametrageGlobalRecipient
             ->setValue((int)($data['param-recipient-etiquette'] === 'true'));
 
-        $parametrageGlobalDZLocation = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_DZ_LOCATION_IN_LABEL);
+        $parametrageGlobalDZLocation = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::INCLUDE_DZ_LOCATION_IN_LABEL]);
 
         if(empty($parametrageGlobalDZLocation)) {
             $parametrageGlobalDZLocation = new ParametrageGlobal();
@@ -254,7 +260,7 @@ class ParametrageGlobalController extends AbstractController
         $parametrageGlobalDZLocation
             ->setValue((int)($data['param-dz-location-etiquette'] === 'true'));
 
-        $parametrageGlobalArrivalType = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_ARRIVAL_TYPE_IN_LABEL);
+        $parametrageGlobalArrivalType = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::INCLUDE_ARRIVAL_TYPE_IN_LABEL]);
 
         if(empty($parametrageGlobalArrivalType)) {
             $parametrageGlobalArrivalType = new ParametrageGlobal();
@@ -265,7 +271,7 @@ class ParametrageGlobalController extends AbstractController
         $parametrageGlobalArrivalType
             ->setValue((int)($data['param-type-arrival-etiquette'] === 'true'));
 
-        $globalSettingsDestinationLocation = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL);
+        $globalSettingsDestinationLocation = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL]);
 
         if(empty($globalSettingsDestinationLocation)) {
             $globalSettingsDestinationLocation = new ParametrageGlobal();
@@ -276,7 +282,7 @@ class ParametrageGlobalController extends AbstractController
         $globalSettingsDestinationLocation
             ->setValue((int)($data['param-add-destination-location-article-label'] === 'true'));
 
-        $globalSettingsRecipientOnArticleLabel = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_ARTICLE_LABEL);
+        $globalSettingsRecipientOnArticleLabel = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::INCLUDE_RECIPIENT_IN_ARTICLE_LABEL]);
 
         if(empty($globalSettingsRecipientOnArticleLabel)) {
             $globalSettingsRecipientOnArticleLabel = new ParametrageGlobal();
@@ -287,7 +293,7 @@ class ParametrageGlobalController extends AbstractController
         $globalSettingsRecipientOnArticleLabel
             ->setValue((int)($data['param-add-recipient-article-label'] === 'true'));
 
-        $globalSettingsRecipientDropzoneOnArticleLabel = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL);
+        $globalSettingsRecipientDropzoneOnArticleLabel = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL]);
 
         if(empty($globalSettingsRecipientDropzoneOnArticleLabel)) {
             $globalSettingsRecipientDropzoneOnArticleLabel = new ParametrageGlobal();
@@ -298,7 +304,7 @@ class ParametrageGlobalController extends AbstractController
         $globalSettingsRecipientDropzoneOnArticleLabel
             ->setValue((int)($data['param-add-recipient-dropzone-location-article-label'] === 'true'));
 
-        $globalSettingsBatchNumberOnArticleLabel = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL);
+        $globalSettingsBatchNumberOnArticleLabel = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL]);
 
         if(empty($globalSettingsBatchNumberOnArticleLabel)) {
             $globalSettingsBatchNumberOnArticleLabel = new ParametrageGlobal();
@@ -309,7 +315,7 @@ class ParametrageGlobalController extends AbstractController
         $globalSettingsBatchNumberOnArticleLabel
             ->setValue((int)($data['param-add-batch-number-article-label'] === 'true'));
 
-        $globalSettingsExpirationDateOnArticleLabel = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL);
+        $globalSettingsExpirationDateOnArticleLabel = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL]);
 
         if(empty($globalSettingsExpirationDateOnArticleLabel)) {
             $globalSettingsExpirationDateOnArticleLabel = new ParametrageGlobal();
@@ -320,7 +326,7 @@ class ParametrageGlobalController extends AbstractController
         $globalSettingsExpirationDateOnArticleLabel
             ->setValue((int)($data['param-add-expiration-date-article-label'] === 'true'));
 
-        $parametrageGlobalCommandAndProjectNumbers = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL);
+        $parametrageGlobalCommandAndProjectNumbers = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL]);
 
         if(empty($parametrageGlobalCommandAndProjectNumbers)) {
             $parametrageGlobalCommandAndProjectNumbers = new ParametrageGlobal();
@@ -331,7 +337,7 @@ class ParametrageGlobalController extends AbstractController
         $parametrageGlobalCommandAndProjectNumbers
             ->setValue((int)($data['param-command-project-numbers-etiquette'] === 'true'));
 
-        $parametrageGlobalPackCount = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_PACK_COUNT_IN_LABEL);
+        $parametrageGlobalPackCount = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::INCLUDE_PACK_COUNT_IN_LABEL]);
 
         if(empty($parametrageGlobalPackCount)) {
             $parametrageGlobalPackCount = new ParametrageGlobal();
@@ -341,7 +347,7 @@ class ParametrageGlobalController extends AbstractController
 
         $parametrageGlobalPackCount->setValue((int)($data['param-pack-count'] === 'true'));
 
-        $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
+        $parametrageGlobal = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::INCLUDE_BL_IN_LABEL]);
 
         if(empty($parametrageGlobal)) {
             $parametrageGlobal = new ParametrageGlobal();
@@ -350,7 +356,7 @@ class ParametrageGlobalController extends AbstractController
         }
         $parametrageGlobal->setValue((int)($data['param-bl-etiquette'] === 'true'));
 
-        $parametrageGlobal128 = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128);
+        $parametrageGlobal128 = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::BARCODE_TYPE_IS_128]);
 
         if(empty($parametrageGlobal128)) {
             $parametrageGlobal128 = new ParametrageGlobal();
@@ -359,7 +365,7 @@ class ParametrageGlobalController extends AbstractController
         }
         $parametrageGlobal128->setValue($data['param-type-etiquette']);
 
-        $parametrageGlobalCL = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CL_USED_IN_LABELS);
+        $parametrageGlobalCL = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::CL_USED_IN_LABELS]);
 
         if(empty($parametrageGlobalCL)) {
             $parametrageGlobalCL = new ParametrageGlobal();
@@ -368,7 +374,7 @@ class ParametrageGlobalController extends AbstractController
         }
         $parametrageGlobalCL->setValue($data['param-cl-etiquette']);
 
-        $textEmergencyGlobalSettings = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::EMERGENCY_TEXT_LABEL);
+        $textEmergencyGlobalSettings = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::EMERGENCY_TEXT_LABEL]);
 
         if(empty($textEmergencyGlobalSettings)) {
             $textEmergencyGlobalSettings = new ParametrageGlobal();
@@ -377,7 +383,7 @@ class ParametrageGlobalController extends AbstractController
         }
         $textEmergencyGlobalSettings->setValue($data['emergency-title-label']);
 
-        $textCustomGlobalSettings = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CUSTOM_TEXT_LABEL);
+        $textCustomGlobalSettings = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::CUSTOM_TEXT_LABEL]);
 
         if(empty($textCustomGlobalSettings)) {
             $textCustomGlobalSettings = new ParametrageGlobal();
@@ -386,7 +392,7 @@ class ParametrageGlobalController extends AbstractController
         }
         $textCustomGlobalSettings->setValue($data['custom-title-label']);
 
-        $includeEmergencyInLabelGlobalSettings = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_EMERGENCY_IN_LABEL);
+        $includeEmergencyInLabelGlobalSettings = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::INCLUDE_EMERGENCY_IN_LABEL]);
 
         if(empty($includeEmergencyInLabelGlobalSettings)) {
             $includeEmergencyInLabelGlobalSettings = new ParametrageGlobal();
@@ -395,7 +401,7 @@ class ParametrageGlobalController extends AbstractController
         }
         $includeEmergencyInLabelGlobalSettings->setValue((int)($data['param-emergency-etiquette'] === 'true'));
 
-        $includeCustomInLabelGlobalSettings = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::INCLUDE_CUSTOMS_IN_LABEL);
+        $includeCustomInLabelGlobalSettings = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::INCLUDE_CUSTOMS_IN_LABEL]);
 
         if(empty($includeCustomInLabelGlobalSettings)) {
             $includeCustomInLabelGlobalSettings = new ParametrageGlobal();
@@ -404,7 +410,7 @@ class ParametrageGlobalController extends AbstractController
         }
         $includeCustomInLabelGlobalSettings->setValue((int)($data['param-custom-etiquette'] === 'true'));
 
-        $parametrageGlobalLogo = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::LABEL_LOGO);
+        $parametrageGlobalLogo = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::LABEL_LOGO]);
 
         if(!empty($request->files->all()['logo'])) {
             $fileName = $attachmentService->saveFile($request->files->all()['logo'], AttachmentService::LABEL_LOGO);
@@ -417,7 +423,7 @@ class ParametrageGlobalController extends AbstractController
             $parametrageGlobalLogo->setValue($fileName[array_key_first($fileName)]);
         }
 
-        $customIconGlobalSettings = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::CUSTOM_ICON);
+        $customIconGlobalSettings = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::CUSTOM_ICON]);
 
         if(!empty($request->files->all()['custom-icon'])) {
             $fileName = $attachmentService->saveFile($request->files->all()['custom-icon'], AttachmentService::CUSTOM_ICON);
@@ -430,7 +436,7 @@ class ParametrageGlobalController extends AbstractController
             $customIconGlobalSettings->setValue($fileName[array_key_first($fileName)]);
         }
 
-        $emergencyIconGlobalSettings = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::EMERGENCY_ICON);
+        $emergencyIconGlobalSettings = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::EMERGENCY_ICON]);
 
         if(!empty($request->files->all()['emergency-icon'])) {
             $fileName = $attachmentService->saveFile($request->files->all()['emergency-icon'], AttachmentService::EMERGENCY_ICON);
@@ -462,7 +468,7 @@ class ParametrageGlobalController extends AbstractController
             $logo = $request->files->get("logo-delivery-note");
 
             $fileName = $attachmentService->saveFile($logo, AttachmentService::DELIVERY_NOTE_LOGO);
-            $setting = $pgr->findOneByLabel(ParametrageGlobal::DELIVERY_NOTE_LOGO);
+            $setting = $pgr->findOneBy(['label' => ParametrageGlobal::DELIVERY_NOTE_LOGO]);
             if(!$setting) {
                 $setting = new ParametrageGlobal();
                 $setting->setLabel(ParametrageGlobal::DELIVERY_NOTE_LOGO);
@@ -476,7 +482,7 @@ class ParametrageGlobalController extends AbstractController
             $logo = $request->files->get("logo-waybill");
 
             $fileName = $attachmentService->saveFile($logo, AttachmentService::WAYBILL_LOGO);
-            $setting = $pgr->findOneByLabel(ParametrageGlobal::WAYBILL_LOGO);
+            $setting = $pgr->findOneBy(['label' => ParametrageGlobal::WAYBILL_LOGO]);
             if(!$setting) {
                 $setting = new ParametrageGlobal();
                 $setting->setLabel(ParametrageGlobal::WAYBILL_LOGO);
@@ -528,7 +534,7 @@ class ParametrageGlobalController extends AbstractController
         $expirationDelay = $request->request->get('expirationDelay');
 
         $parametrageGlobalRepository = $manager->getRepository(ParametrageGlobal::class);
-        $setting = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY);
+        $setting = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::STOCK_EXPIRATION_DELAY]);
 
         if(empty($setting)) {
             $setting = new ParametrageGlobal();
@@ -663,7 +669,7 @@ class ParametrageGlobalController extends AbstractController
     }
 
     /**
-     * @Route("/ajax-mail-server", name="ajax_mailer_server",  options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @Route("/ajax-mail-server", name="ajax_mailer_server", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB}, mode=HasPermission::IN_JSON)
      */
     public function ajaxMailerServer(Request $request,
@@ -700,7 +706,7 @@ class ParametrageGlobalController extends AbstractController
                                  EntityManagerInterface $entityManager): Response {
         if($data = json_decode($request->getContent(), true)) {
             $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-            $ifExist = $parametrageGlobalRepository->findOneByLabel($data['param']);
+            $ifExist = $parametrageGlobalRepository->findOneBy(['label' => $data['param']]);
             $em = $this->getDoctrine()->getManager();
             if($ifExist) {
                 $ifExist->setValue($data['val']);
@@ -723,7 +729,8 @@ class ParametrageGlobalController extends AbstractController
      */
     public function saveTranslations(Request $request,
                                      EntityManagerInterface $entityManager,
-                                     TranslationService $translationService): Response {
+                                     TranslationService $translationService,
+                                        CacheService $cacheService): Response {
         if($translations = json_decode($request->getContent(), true)) {
             $translationRepository = $entityManager->getRepository(Translation::class);
             foreach($translations as $translation) {
@@ -738,6 +745,7 @@ class ParametrageGlobalController extends AbstractController
             }
             $entityManager->flush();
 
+            $cacheService->clear();
             $translationService->generateTranslationsFile();
             $translationService->cacheClearWarmUp();
 
@@ -747,15 +755,7 @@ class ParametrageGlobalController extends AbstractController
     }
 
     /**
-     * @Route("/statuts-receptions",
-     *     name="edit_status_receptions",
-     *     options={"expose"=true},
-     *     methods="POST",
-     *     condition="request.isXmlHttpRequest()"
-     * )
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/statuts-receptions", name="edit_status_receptions", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      */
     public function editStatusReceptions(Request $request,
                                          EntityManagerInterface $entityManager): Response {
@@ -784,7 +784,7 @@ class ParametrageGlobalController extends AbstractController
         $data = json_decode($request->getContent(), true);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
-        $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::USES_UTF8);
+        $parametrageGlobal = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::USES_UTF8]);
         $em = $this->getDoctrine()->getManager();
         if(empty($parametrageGlobal)) {
             $parametrageGlobal = new ParametrageGlobal();
@@ -800,12 +800,6 @@ class ParametrageGlobalController extends AbstractController
 
     /**
      * @Route("/appearance", name="edit_appearance", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param AttachmentService $attachmentService
-     * @param GlobalParamService $globalParamService
-     * @return Response
-     * @throws NonUniqueResultException
      */
     public function editAppearance(Request $request,
                                    EntityManagerInterface $entityManager,
@@ -819,7 +813,7 @@ class ParametrageGlobalController extends AbstractController
             $logo = $request->files->get("website-logo");
 
             $fileName = $attachmentService->saveFile($logo, AttachmentService::WEBSITE_LOGO);
-            $setting = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::WEBSITE_LOGO);
+            $setting = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::WEBSITE_LOGO]);
             if(!$setting) {
                 $setting = new ParametrageGlobal();
                 $setting->setLabel(ParametrageGlobal::WEBSITE_LOGO);
@@ -828,7 +822,7 @@ class ParametrageGlobalController extends AbstractController
 
             $setting->setValue("uploads/attachements/" . $fileName[array_key_first($fileName)]);
         } else if(!($request->files->has("website-logo")) && ($resetLogos['website'] ?? false)) {
-            $setting = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::WEBSITE_LOGO);
+            $setting = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::WEBSITE_LOGO]);
             $setting->setValue(ParametrageGlobal::DEFAULT_WEBSITE_LOGO_VALUE);
         }
 
@@ -836,7 +830,7 @@ class ParametrageGlobalController extends AbstractController
             $logo = $request->files->get("email-logo");
 
             $fileName = $attachmentService->saveFile($logo, AttachmentService::EMAIL_LOGO);
-            $setting = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::EMAIL_LOGO);
+            $setting = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::EMAIL_LOGO]);
             if(!$setting) {
                 $setting = new ParametrageGlobal();
                 $setting->setLabel(ParametrageGlobal::EMAIL_LOGO);
@@ -845,7 +839,7 @@ class ParametrageGlobalController extends AbstractController
 
             $setting->setValue("uploads/attachements/" . $fileName[array_key_first($fileName)]);
         } else if(!($request->files->has("email-logo")) && ($resetLogos['mailLogo'] ?? false)) {
-            $setting = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::EMAIL_LOGO);
+            $setting = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::EMAIL_LOGO]);
             $setting->setValue(ParametrageGlobal::DEFAULT_EMAIL_LOGO_VALUE);
         }
 
@@ -853,7 +847,7 @@ class ParametrageGlobalController extends AbstractController
             $logo = $request->files->get("mobile-logo-login");
 
             $fileName = $attachmentService->saveFile($logo, AttachmentService::MOBILE_LOGO_LOGIN);
-            $setting = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::MOBILE_LOGO_LOGIN);
+            $setting = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::MOBILE_LOGO_LOGIN]);
             if(!$setting) {
                 $setting = new ParametrageGlobal();
                 $setting->setLabel(ParametrageGlobal::MOBILE_LOGO_LOGIN);
@@ -862,7 +856,7 @@ class ParametrageGlobalController extends AbstractController
 
             $setting->setValue("uploads/attachements/" . $fileName[array_key_first($fileName)]);
         } else if(!($request->files->has("mobile-logo-login")) && ($resetLogos['nomadeAccueil'] ?? false)) {
-            $setting = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::MOBILE_LOGO_LOGIN);
+            $setting = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::MOBILE_LOGO_LOGIN]);
             $setting->setValue(ParametrageGlobal::DEFAULT_MOBILE_LOGO_LOGIN_VALUE);
         }
 
@@ -870,7 +864,7 @@ class ParametrageGlobalController extends AbstractController
             $logo = $request->files->get("mobile-logo-header");
 
             $fileName = $attachmentService->saveFile($logo, AttachmentService::MOBILE_LOGO_HEADER);
-            $setting = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::MOBILE_LOGO_HEADER);
+            $setting = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::MOBILE_LOGO_HEADER]);
             if(!$setting) {
                 $setting = new ParametrageGlobal();
                 $setting->setLabel(ParametrageGlobal::MOBILE_LOGO_HEADER);
@@ -879,12 +873,12 @@ class ParametrageGlobalController extends AbstractController
 
             $setting->setValue("uploads/attachements/" . $fileName[array_key_first($fileName)]);
         } else if(!($request->files->has("mobile-logo-header")) && ($resetLogos['nomadeHeader'] ?? false)) {
-            $setting = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::MOBILE_LOGO_HEADER);
+            $setting = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::MOBILE_LOGO_HEADER]);
             $setting->setValue(ParametrageGlobal::DEFAULT_MOBILE_LOGO_HEADER_VALUE);
         }
 
         if($request->request->has("font-family")) {
-            $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::FONT_FAMILY);
+            $parametrageGlobal = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::FONT_FAMILY]);
             if(!$parametrageGlobal) {
                 $parametrageGlobal = new ParametrageGlobal();
                 $parametrageGlobal->setLabel(ParametrageGlobal::FONT_FAMILY);
@@ -913,11 +907,6 @@ class ParametrageGlobalController extends AbstractController
 
     /**
      * @Route("/dispatch/overconsumption", name="edit_overconsumption_logo", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param AttachmentService $attachmentService
-     * @return Response
-     * @throws NonUniqueResultException
      */
     public function editOverconsumptionLogo(Request $request,
                                             EntityManagerInterface $entityManager,
@@ -929,7 +918,7 @@ class ParametrageGlobalController extends AbstractController
             $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
             $fileName = $attachmentService->saveFile($logo, AttachmentService::OVERCONSUMPTION_LOGO);
-            $setting = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::OVERCONSUMPTION_LOGO);
+            $setting = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::OVERCONSUMPTION_LOGO]);
             if(!$setting) {
                 $setting = new ParametrageGlobal();
                 $setting->setLabel(ParametrageGlobal::OVERCONSUMPTION_LOGO);
@@ -952,7 +941,7 @@ class ParametrageGlobalController extends AbstractController
     public function getEncodage(EntityManagerInterface $entityManager): Response {
 
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-        $parametrageGlobal = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::USES_UTF8);
+        $parametrageGlobal = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::USES_UTF8]);
         return new JsonResponse($parametrageGlobal ? $parametrageGlobal->getValue() : true);
     }
 
@@ -962,28 +951,19 @@ class ParametrageGlobalController extends AbstractController
     public function getIsCode128(EntityManagerInterface $entityManager) {
 
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-        $parametrageGlobal128 = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128);
+        $parametrageGlobal128 = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::BARCODE_TYPE_IS_128]);
         return new JsonResponse($parametrageGlobal128 ? $parametrageGlobal128->getValue() : true);
     }
 
     /**
-     * @Route("/edit-param-locations/{label}",
-     *     name="edit_param_location",
-     *     options={"expose"=true},
-     *     methods="GET|POST",
-     *     condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param string $label
-     * @return Response
-     * @throws NonUniqueResultException
+     * @Route("/edit-param-locations/{label}", name="edit_param_location", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function editParamLocation(Request $request,
                                       EntityManagerInterface $entityManager,
                                       string $label): Response {
         $value = json_decode($request->getContent(), true);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-        $parametrage = $parametrageGlobalRepository->findOneByLabel($label);
+        $parametrage = $parametrageGlobalRepository->findOneBy(['label' => $label]);
         $em = $this->getDoctrine()->getManager();
         if(!$parametrage) {
             $parametrage = new ParametrageGlobal();
@@ -994,83 +974,6 @@ class ParametrageGlobalController extends AbstractController
 
         $em->flush();
         return new JsonResponse(true);
-    }
-
-    private function setLocationListCluster(?string $clusterCode,
-                                            ?array $listLocationIds,
-                                            EntityManagerInterface $entityManager) {
-        $locationRepository = $entityManager->getRepository(Emplacement::class);
-        $locationClusterRepository = $entityManager->getRepository(LocationCluster::class);
-
-        $cluster = $locationClusterRepository->findOneBy(['code' => $clusterCode]);
-
-        if(!$cluster) {
-            $cluster = new LocationCluster();
-            $cluster->setCode($clusterCode);
-            $entityManager->persist($cluster);
-        }
-
-        /** @var Emplacement $locationInCluster */
-        foreach($cluster->getLocations() as $locationInCluster) {
-            $locationId = (string)$locationInCluster->getId();
-            // check if location is removed from cluster
-            if(empty($listLocationIds)
-                || !in_array($locationId, $listLocationIds)) {
-
-                $records = $cluster->getLocationClusterRecords(true);
-                /** @var LocationClusterRecord $record */
-                foreach($records as $record) {
-                    $recordLastTracking = $record->getLastTracking();
-                    $recordFirstDrop = $record->getFirstDrop();
-                    $lastTrackingIsOnLocation = (
-                        $recordLastTracking
-                        && $recordLastTracking->getEmplacement() === $locationInCluster
-                    );
-                    $firstDropIsOnLocation = (
-                        $recordFirstDrop
-                        && $recordFirstDrop->getEmplacement() === $locationInCluster
-                    );
-                    if ($lastTrackingIsOnLocation
-                        || (
-                            $firstDropIsOnLocation
-                            && ($recordFirstDrop === $recordLastTracking)
-                        )) {
-                        $entityManager->remove($record);
-                    } else if ($firstDropIsOnLocation
-                               && ($recordFirstDrop !== $recordLastTracking)) {
-                        $pack = $recordFirstDrop->getPack();
-                        if ($pack) {
-                            $trackingMovements = $pack->getTrackingMovements();
-                            $newFirstDrop = null;
-                            foreach ($trackingMovements as $trackingMovement) {
-                                if ($trackingMovement === $recordFirstDrop) {
-                                    break;
-                                }
-                                else if ($trackingMovement->isDrop()) {
-                                    $newFirstDrop = $trackingMovement;
-                                }
-                            }
-
-                            if (isset($newFirstDrop)) {
-                                $record->setFirstDrop($newFirstDrop);
-                            }
-                            else {
-                                $entityManager->remove($record);
-                            }
-                        }
-                    }
-                }
-
-                $locationInCluster->removeCluster($cluster);
-            }
-        }
-
-        if(!empty($listLocationIds)) {
-            foreach($listLocationIds as $locationId) {
-                $location = $locationRepository->find($locationId);
-                $location->addCluster($cluster);
-            }
-        }
     }
 
     /**
@@ -1124,7 +1027,7 @@ class ParametrageGlobalController extends AbstractController
             $globalSettingsRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
             $associatedTypesAndLocations = array_combine($data['types'], $data['locations']);
-            $deliveryRequestDefaultLocations = $globalSettingsRepository->findOneByLabel(ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON);
+            $deliveryRequestDefaultLocations = $globalSettingsRepository->findOneBy(['label' => ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON]);
             $deliveryRequestDefaultLocations->setValue(json_encode($associatedTypesAndLocations));
 
             $entityManager->flush();

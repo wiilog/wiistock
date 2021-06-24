@@ -4,7 +4,6 @@
 
 {% block showActions %}
     <div class="btn-group">
-        {#Bouton rajouté pour la validation#}
         {% if livraison.statut.nom == constant('App\\Entity\\Livraison::STATUT_A_TRAITER') %}
             {% if not finished %}
                 {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
@@ -19,8 +18,6 @@
                 {% endif %}
             {% endif %}
         {% endif %}
-        {#Fin bouton rajouté pour la validation#}
-
         <button type="button"
                 class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
                 data-toggle="dropdown"
@@ -28,8 +25,15 @@
                 aria-expanded="false">
             <span class="fa fa-angle-down"></span>
         </button>
-
         <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
+            {% if (livraison.preparation.pairings is not empty)
+                and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')) %}
+                <a class="dropdown-item"
+                   href="{{ path('show_data_history', {id: livraison.preparation.id, type: constant('App\\Entity\\IOT\\Sensor::PREPARATION')}) }}">
+                    <span class="wii-icon wii-icon-pairing"></span>
+                    Historique des données
+                </a>
+            {% endif %}
             {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')) %}
                 <a class="dropdown-item pointer"
                    onclick="askForDeleteDelivery()">

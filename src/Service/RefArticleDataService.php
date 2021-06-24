@@ -324,7 +324,8 @@ class RefArticleDataService {
 
 
         $refArticle->getManagers()->clear();
-        $managers = is_string($data["managers"]) ? explode(',', $data['managers']) : $data["managers"];
+
+        $managers = $data['managers'] && is_string($data["managers"]) ? explode(',', $data['managers']) : $data["managers"];
         if (!empty($managers)) {
             foreach ($managers as $manager) {
                 $refArticle->addManager($userRepository->find($manager));
@@ -351,7 +352,7 @@ class RefArticleDataService {
         $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
         $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
 
-        $ffCategory = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
+        $ffCategory = $categorieCLRepository->findOneBy(['label' => CategorieCL::REFERENCE_ARTICLE]);
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, $ffCategory);
 
         $providerCodes = Stream::from($refArticle->getArticlesFournisseur())
@@ -650,9 +651,9 @@ class RefArticleDataService {
             $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
             $alertRepository = $entityManager->getRepository(Alert::class);
 
-            if($reference->getLimitSecurity() !== null && $reference->getLimitSecurity() >= $reference->getQuantiteDisponible()) {
+            if($reference->getLimitSecurity() !== null && $reference->getLimitSecurity() >= $reference->getQuantiteStock()) {
                 $type = Alert::SECURITY;
-            } else if($reference->getLimitWarning() !== null && $reference->getLimitWarning() >= $reference->getQuantiteDisponible()) {
+            } else if($reference->getLimitWarning() !== null && $reference->getLimitWarning() >= $reference->getQuantiteStock()) {
                 $type = Alert::WARNING;
             }
 
@@ -698,7 +699,7 @@ class RefArticleDataService {
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
-        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
+        $categorieCL = $categorieCLRepository->findOneBy(['label' => CategorieCL::REFERENCE_ARTICLE]);
         $freeFields = $freeFieldRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, $categorieCL);
 
         return $this->visibleColumnService->getArrayConfig(self::REF_ARTICLE_FIELDS, $freeFields, $currentUser->getColumnVisible());

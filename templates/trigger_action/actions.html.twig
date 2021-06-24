@@ -1,0 +1,30 @@
+{% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DELETE')) %}
+{% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::EDIT')) %}
+
+{% if hasRightEdit or hasRightDelete %}
+    <div class="d-flex">
+        <div class="dropdown dropright">
+            {% include 'datatable/dotsRow.html.twig' %}
+            <div class="dropdown-menu dropdown-follow-gt pointer">
+                {% if hasRightEdit %}
+                    <div class="dropdown-item"
+                         onclick="editRow($(this), Routing.generate('trigger_action_api_edit', true), $('#modalEditTriggerAction'), $('#modalEditTriggerAction').find('.submit-button'), false, '.editor-container-edit', false, () => initEditTriggerActionForm())"
+                         data-target='#modalEditTriggerAction'
+                         data-toggle='modal'
+                         data-id='{{ triggerId }}'>
+                        <i class='fas fa-edit mr-2'></i>Modifier
+                    </div>
+                {% endif %}
+                {% if hasRightDelete %}
+                    <div class="dropdown-item"
+                         onclick="deleteRow($(this),$('#modalDeleteTriggerAction'), $('#submitDeleteTriggerAction'))"
+                         data-target='#modalDeleteTriggerAction'
+                         data-toggle='modal'
+                         data-id='{{ triggerId }}'>
+                        <i class='fas fa-trash mr-2'></i>Supprimer
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endif %}

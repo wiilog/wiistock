@@ -7,6 +7,8 @@ use App\Entity\CategorieStatut;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\IOT\Pairing;
+use App\Entity\IOT\SensorWrapper;
 use App\Entity\LigneArticlePreparation;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
@@ -18,16 +20,12 @@ use App\Exceptions\NegativeQuantityException;
 use App\Repository\ArticleRepository;
 use App\Repository\StatutRepository;
 use DateTime;
+use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Exception;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
 use Twig\Environment as Twig_Environment;
-use Twig\Error\LoaderError as Twig_Error_Loader;
-use Twig\Error\RuntimeError as Twig_Error_Runtime;
-use Twig\Error\SyntaxError as Twig_Error_Syntax;
 
 
 class PreparationsManagerService
@@ -85,12 +83,6 @@ class PreparationsManagerService
         return $this;
     }
 
-    /**
-     * On termine les mouvements de prepa
-     * @param Preparation $preparation
-     * @param DateTime $date
-     * @param Emplacement|null $emplacement
-     */
     public function closePreparationMouvement(Preparation $preparation, DateTime $date, Emplacement $emplacement = null): void
     {
         $mouvementRepository = $this->entityManager->getRepository(MouvementStock::class);
@@ -105,15 +97,6 @@ class PreparationsManagerService
         }
     }
 
-    /**
-     * @param Preparation $preparation
-     * @param $userNomade
-     * @param Emplacement $emplacement
-     * @param array $articlesToKeep
-     * @param EntityManagerInterface|null $entityManager
-     * @return Preparation|null
-     * @throws NonUniqueResultException
-     */
     public function treatPreparation(Preparation $preparation,
                                      $userNomade,
                                      Emplacement $emplacement,
@@ -183,17 +166,6 @@ class PreparationsManagerService
         return $complete;
     }
 
-    /**
-     * @param Preparation $preparation
-     * @param Demande $demande
-     * @param StatutRepository $statutRepository
-     * @param ArticleRepository $articleRepository
-     * @param array $listOfArticleSplitted
-     * @param EntityManagerInterface|null $entityManager
-     * @return Preparation
-     * @throws NonUniqueResultException
-     * @throws Exception
-     */
     private function persistPreparationFromOldOne(Preparation $preparation,
                                                   Demande $demande,
                                                   StatutRepository $statutRepository,
@@ -251,16 +223,6 @@ class PreparationsManagerService
         return $newPreparation;
     }
 
-    /**
-     * @param int $quantity
-     * @param Utilisateur $userNomade
-     * @param Livraison $livraison
-     * @param Emplacement|null $emplacementFrom
-     * @param bool $isRef
-     * @param string $article
-     * @param Preparation $preparation
-     * @param bool $isSelectedByArticle
-     */
     public function createMouvementLivraison(int $quantity,
                                              Utilisateur $userNomade,
                                              Livraison $livraison,
@@ -330,11 +292,6 @@ class PreparationsManagerService
         }
     }
 
-    /**
-     * @param array $mouvement
-     * @param Preparation $preparation
-     * @throws Exception
-     */
     public function treatMouvementQuantities($mouvement, Preparation $preparation)
     {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
@@ -415,13 +372,6 @@ class PreparationsManagerService
         $this->refMouvementsToRemove = [];
     }
 
-    /**
-     * @param Preparation $preparation
-     * @param Utilisateur $user
-     * @param EntityManagerInterface $entityManager
-     * @return array
-     * @throws NegativeQuantityException
-     */
     public function createMouvementsPrepaAndSplit(Preparation $preparation,
                                                   Utilisateur $user,
                                                   EntityManagerInterface $entityManager): array
@@ -528,11 +478,6 @@ class PreparationsManagerService
         return $articlesSplittedToKeep;
     }
 
-    /**
-     * @param array|null $params
-     * @return array
-     * @throws Exception
-     */
     public function getDataForDatatable($params = null, $filterDemande = null)
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -566,12 +511,6 @@ class PreparationsManagerService
         ];
     }
 
-    /**
-     * @param Preparation $preparation
-     * @param EntityManagerInterface|null $entityManager
-     * @throws NonUniqueResultException
-     * @throws NoResultException
-     */
     public function updateRefArticlesQuantities(Preparation $preparation,
                                                 EntityManagerInterface $entityManager = null) {
 
@@ -590,17 +529,13 @@ class PreparationsManagerService
         $entityManager->flush();
     }
 
-    /**
-     * @param Preparation $preparation
-     * @return array
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
-     */
-    private function dataRowPreparation($preparation)
+    private function dataRowPreparation(Preparation $preparation)
     {
-        $request = $preparation->getDemande();
+        $lastMessage = $preparation->getLastMessage();
+        $sensorCode = ($lastMessage && $lastMessage->getSensor()) ? $lastMessage->getSensor()->getAvailableSensorWrapper()->getName() : null;
+        $hasPairing = !$preparation->getPairings()->isEmpty();
 
+        $request = $preparation->getDemande();
         return [
             'Numéro' => $preparation->getNumero() ?? '',
             'Date' => $preparation->getDate() ? $preparation->getDate()->format('d/m/Y') : '',
@@ -608,17 +543,16 @@ class PreparationsManagerService
             'Statut' => $preparation->getStatut() ? $preparation->getStatut()->getNom() : '',
             'Type' => $request && $request->getType() ? $request->getType()->getLabel() : '',
             'Actions' => $this->templating->render('preparation/datatablePreparationRow.html.twig', [
-                "url" => $this->router->generate('preparation_show', ["id" => $preparation->getId()])
+                "url" => $this->router->generate('preparation_show', ["id" => $preparation->getId()]),
+                'titleLogo' => $preparation->getActivePairing() ? 'pairing' : null
+            ]),
+            'pairing' => $this->templating->render('pairing-icon.html.twig', [
+                'sensorCode' => $sensorCode,
+                'hasPairing' => $hasPairing,
             ]),
         ];
     }
 
-
-    /**
-     * @param Preparation $preparation
-     * @param EntityManagerInterface $entityManager
-     * @throws NonUniqueResultException
-     */
     public function resetPreparationToTreat(Preparation $preparation,
                                             EntityManagerInterface $entityManager): void {
 
@@ -657,11 +591,6 @@ class PreparationsManagerService
         return ($preparationNumber . '-' . $currentCounterStr);
     }
 
-    /**
-     * @param Preparation $preparation
-     * @param EntityManagerInterface $entityManager
-     * @return ReferenceArticle[]
-     */
     public function managePreRemovePreparation(Preparation $preparation, EntityManagerInterface $entityManager): array {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $demande = $preparation->getDemande();
@@ -730,5 +659,17 @@ class PreparationsManagerService
                 $article->getBarCode()
             ]));
         }
+    }
+
+    public function createPairing(SensorWrapper $sensorWrapper, Preparation $preparation){
+        $pairing = new Pairing();
+        $start =  new DateTime("now", new DateTimeZone("Europe/Paris"));
+        $pairing
+            ->setStart($start)
+            ->setSensorWrapper($sensorWrapper)
+            ->setPreparationOrder($preparation)
+            ->setActive(true);
+
+        return $pairing;
     }
 }

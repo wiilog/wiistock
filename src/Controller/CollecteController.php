@@ -9,7 +9,10 @@ use App\Entity\CategoryType;
 use App\Entity\FreeField;
 use App\Entity\Collecte;
 use App\Entity\Emplacement;
+use App\Entity\IOT\Pairing;
 use App\Entity\Menu;
+use App\Entity\OrdreCollecte;
+use App\Entity\ParametrageGlobal;
 use App\Entity\ReferenceArticle;
 use App\Entity\CollecteReference;
 use App\Entity\Statut;
@@ -27,19 +30,14 @@ use App\Service\UserService;
 use App\Service\FreeFieldService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
-use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
+use WiiCommon\Helper\Stream;
 
 
 /**
@@ -90,9 +88,10 @@ class CollecteController extends AbstractController
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
+        $paramGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
-
+        $restrictedResults = $paramGlobalRepository->getOneParamByLabel(ParametrageGlobal::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST);
 		$typeChampLibre = [];
 		foreach ($types as $type) {
 			$champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_COLLECTE);
@@ -108,7 +107,8 @@ class CollecteController extends AbstractController
             'statuts' => $statutRepository->findByCategorieName(Collecte::CATEGORIE),
 			'typeChampsLibres' => $typeChampLibre,
 			'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]),
-			'filterStatus' => $filter
+			'filterStatus' => $filter,
+            'restrictResults' => $restrictedResults,
         ]);
     }
 
@@ -122,11 +122,20 @@ class CollecteController extends AbstractController
     {
         $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
 
+        $pairing = $collecte->getOrdresCollecte()
+            ? Stream::from($collecte->getOrdresCollecte())
+                ->map(fn(OrdreCollecte $collectOrder) => $collectOrder->getPairings()->toArray())
+                ->flatten()
+                ->sort(fn(Pairing $p1, Pairing $p2) => $p1->getEnd() <=> $p2->getEnd())
+                ->first()
+            : null;
+
 		return $this->render('collecte/show.html.twig', [
             'refCollecte' => $collecteReferenceRepository->findByCollecte($collecte),
             'collecte' => $collecte,
             'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUT_BROUILLON),
-            'detailsConfig' => $collecteService->createHeaderDetailsConfig($collecte)
+            'detailsConfig' => $collecteService->createHeaderDetailsConfig($collecte),
+            'linkedPairingCollectOrder' => $pairing ? $pairing->getCollectOrder() : null,
 		]);
     }
 
@@ -387,6 +396,7 @@ class CollecteController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $collecteRepository = $entityManager->getRepository(Collecte::class);
+            $globalSettingsRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
             $collecte = $collecteRepository->find($data['id']);
 			$listTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
@@ -418,7 +428,8 @@ class CollecteController extends AbstractController
                 'collecte' => $collecte,
                 'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]),
 				'typeChampsLibres' => $typeChampLibre,
-                'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes
+                'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
+                'restrictedLocations' => $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST),
             ]);
 
             return new JsonResponse($json);

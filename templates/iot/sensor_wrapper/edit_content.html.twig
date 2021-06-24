@@ -1,0 +1,52 @@
+{% set sensor = sensorWrapper.sensor %}
+
+<div class="form-group row">
+    <label class="col-12">Code*</label>
+    <div class="col-12">
+        <input type="text" class="form-control" disabled value="{{ sensor ? sensor.code }}" title="Code"/>
+    </div>
+</div>
+<div class="row form-group sensor-data">
+    <div class="col-12 mb-1">
+        <span class="sensor-data-label">Type&nbsp;:&nbsp;</span>
+        <span class="sensor-data-value font-weight-bold">{{ sensor ? sensor.type.label }}</span>
+    </div>
+    <div class="col-12 mb-1">
+        <span class="sensor-data-label">Profil&nbsp;:&nbsp;</span>
+        <span class="sensor-data-value font-weight-bold">{{ sensor and sensor.profile ? sensor.profile.name }}</span>
+    </div>
+    <div class="col-12">
+        <span class="sensor-data-label">Remontée d'information toutes les&nbsp;:&nbsp;</span>
+        <span class="sensor-data-value font-weight-bold">{{ sensor ? sensor.frequency }}</span>
+    </div>
+</div>
+<div class="row form-group">
+    <label class="col-12">Nom*</label>
+    <div class="col-12">
+        <input class="data needed form-control" name="name" title="Nom" value="{{ sensorWrapper.name }}"/>
+    </div>
+</div>
+<div class="row form-group">
+    <label class="col-12">Gestionnaire</label>
+    <div class="col-12">
+        <select name="manager"
+                title="Gestionnaire"
+                class="w-100 form-control data ajax-autocomplete-user-edit">
+            {% if sensorWrapper.manager %}
+                <option value="{{ sensorWrapper.manager.id }}" selected>{{ sensorWrapper.manager.username }}</option>
+            {% endif %}
+        </select>
+    </div>
+</div>
+{% if sensor.type.champsLibres.count > 0 %}
+    <span class="toggle-collapsible expanded">Champs libres</span>
+    <div class="collapsible expanded free-fields-container mb-2">
+        {% include 'free_field/freeFieldsViewing.html.twig' with {
+            freeFields: sensorWrapper.sensor.type.champsLibres,
+            freeFieldValues: sensorWrapper.freeFields,
+            colType: 'col-md-6 col-12',
+            requiredType: 'requiredEdit',
+            actionType: 'edit'
+        } %}
+    </div>
+{% endif %}

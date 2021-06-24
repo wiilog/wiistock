@@ -18,23 +18,16 @@ use App\Service\CSVExportService;
 use App\Service\LivraisonService;
 use App\Service\LivraisonsManagerService;
 use App\Service\PreparationsManagerService;
-use App\Service\UserService;
 use DateTime;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
-use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Throwable;
-use Twig\Error\LoaderError as Twig_Error_Loader;
-use Twig\Error\RuntimeError as Twig_Error_Runtime;
-use Twig\Error\SyntaxError as Twig_Error_Syntax;
 
 
 /**
@@ -172,7 +165,13 @@ class LivraisonController extends AbstractController
         $demande = $livraison->getDemande();
 
         $utilisateurPreparation = $livraison->getPreparation() ? $livraison->getPreparation()->getUtilisateur() : null;
-        $demandeur = $demande ? $demande->getUtilisateur() : null;
+        $requester = $demande
+            ? ($demande->getUtilisateur()
+                ? $demande->getUtilisateur()->getUsername()
+                : ($demande->getSensor()
+                    ? $demande->getSensor()->getName()
+                    : "")
+            ) : "";
         $destination = $demande ? $demande->getDestination() : null;
         $dateLivraison = $livraison->getDateFin();
         $comment = $demande->getCommentaire();
@@ -186,7 +185,7 @@ class LivraisonController extends AbstractController
                 [ 'label' => 'Numéro', 'value' => $livraison->getNumero() ],
                 [ 'label' => 'Statut', 'value' => $livraison->getStatut() ? ucfirst($livraison->getStatut()->getNom()) : '' ],
                 [ 'label' => 'Opérateur', 'value' => $utilisateurPreparation ? $utilisateurPreparation->getUsername() : '' ],
-                [ 'label' => 'Demandeur', 'value' => $demandeur ? $demandeur->getUsername() : '' ],
+                [ 'label' => 'Demandeur', 'value' => $requester ],
                 [ 'label' => 'Point de livraison', 'value' => $destination ? $destination->getLabel() : '' ],
                 [ 'label' => 'Date de livraison', 'value' => $dateLivraison ? $dateLivraison->format('d/m/Y') : '' ],
                 [

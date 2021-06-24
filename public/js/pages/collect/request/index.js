@@ -19,14 +19,15 @@ let collecteTableConfig = {
         needsSearchOverride: true,
     },
     columns: [
-        {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},
-        {"data": 'Création', 'name': 'Création', 'title': 'Création'},
-        {"data": 'Validation', 'name': 'Validation', 'title': 'Validation'},
-        {"data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur'},
-        {"data": 'Numéro', 'name': 'Numéro', 'title': 'Numéro'},
-        {"data": 'Objet', 'name': 'Objet', 'title': 'Objet'},
-        {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
-        {"data": 'Type', 'name': 'Type', 'title': 'Type'},
+        {data: 'Actions', name: 'Actions', title: '', className: 'noVis', orderable: false},
+        {data: 'pairing', title: '', name: 'Actions', className: 'pairing-row', orderable: false},
+        {data: 'Création', name: 'Création', title: 'Création'},
+        {data: 'Validation', name: 'Validation', title: 'Validation'},
+        {data: 'Demandeur', name: 'Demandeur', title: 'Demandeur'},
+        {data: 'Numéro', name: 'Numéro', title: 'Numéro'},
+        {data: 'Objet', name: 'Objet', title: 'Objet'},
+        {data: 'Statut', name: 'Statut', title: 'Statut'},
+        {data: 'Type', name: 'Type', title: 'Type'},
     ]
 };
 let table = initDataTable('tableCollecte_id', collecteTableConfig);
@@ -97,19 +98,24 @@ $(function() {
         clearModal("#modalNewCollecte");
     });
 
-    $(`#modalNewCollecte select[name="type"]`).on(`change`, function() {
+    $modalNewCollecte.find(`select[name="type"]`).on(`change`, function() {
         const $locationSelector = $(`#modalNewCollecte select[name="emplacement"]`);
         const type = $(this).val();
+        const $restrictedResults = $modalNewCollecte.find(`input[name="restrictResults"]`);
 
         $locationSelector.prop(`disabled`, type === '');
         $locationSelector.val(null).trigger(`change`);
 
-        Select2Old.init($locationSelector, '', 1, {
-            route: 'get_locations_by_type',
-            param: {
-                type,
-            }
-        });
+        Select2Old.init(
+            $locationSelector,
+            '',
+            $restrictedResults.val() ? 0 : 1,
+            {
+                route: 'get_locations_by_type',
+                param: {
+                    type,
+                }
+            });
     })
 });
 
@@ -125,6 +131,8 @@ function initNewCollecteEditor(modal) {
 
     const type = $(modal).find('select[name="type"] option:selected').val();
     const $locationSelector = $(modal).find(`select[name="emplacement"]`);
+
+    $locationSelector.val(null).trigger('change');
 
     if(!type) {
         $locationSelector.prop(`disabled`, true);

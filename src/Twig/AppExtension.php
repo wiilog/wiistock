@@ -7,6 +7,7 @@ use App\Service\FieldsParamService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
+use ReflectionClass;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Twig\Markup;
 use Twig\TwigFilter;
@@ -39,6 +40,7 @@ class AppExtension extends AbstractExtension {
             new TwigFunction('isCurrentClient', [$this, 'isCurrentClientNameFunction']),
             new TwigFunction('displayMenu', [$this, 'displayMenuFunction']),
             new TwigFunction('logo', [$this, 'logo']),
+            new TwigFunction('class', [$this, 'class']),
         ];
     }
 
@@ -123,6 +125,10 @@ class AppExtension extends AbstractExtension {
         } else {
             return $value;
         }
+    }
+
+    public function class($object): string {
+        return (new ReflectionClass($object))->getName();
     }
 
 }

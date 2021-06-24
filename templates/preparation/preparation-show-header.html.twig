@@ -4,7 +4,10 @@
 
 {% block showActions %}
     <div class="btn-group">
-        {% if isPrepaEditable and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
+        {% set hasRightPairingOrder = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::PAIR_SENSOR')) %}
+        {% set hasRightFinish = hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
+
+        {% if isPrepaEditable and hasRightFinish %}
             <button type="button"
                     class="btn btn-primary btn-ripple split-button"
                     onclick="finishPrepa($(this))">
@@ -20,14 +23,20 @@
         </button>
         <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
             {% if isPrepaEditable and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')) %}
-                <a class="dropdown-item" href=""
-                   data-target='#modalDeletePreparation'
-                   data-toggle='modal'>
-                    <i class="fa fa-trash mr-2"></i>Supprimer
-                </a>
+                {% if preparation.demande and preparation.demande.sensorWrapper %}
+                    <button class="dropdown-item disabled" style="pointer-events: initial" disabled title="La livraison est associée à un capteur, il faut d'abord la dissocier de son capteur">
+                        <i class="fa fa-trash mr-2"></i>Supprimer
+                    </button>
+                {% else %}
+                    <a class="dropdown-item" href=""
+                       data-target='#modalDeletePreparation'
+                       data-toggle='modal'>
+                        <i class="fa fa-trash mr-2"></i>Supprimer
+                    </a>
+                {% endif %}
             {% endif %}
             <button onclick="printPrepaBarCodes()" class="dropdown-item pointer">
-                <i class='fas fa-print'></i> Imprimer les étiquettes
+                <i class='fas fa-print print-button mr-2'></i> Imprimer les étiquettes
             </button>
             {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_LIVR')) %}
                 {% if demande %}
@@ -41,6 +50,22 @@
                     <a href="{{ path('livraison_show', {'id': livraison.id}) }}"
                        class="dropdown-item"><i class="mr-2 fas fa-external-link-alt"></i>Aller vers l'ordre de livraison</a>
                 {% endif %}
+            {% endif %}
+            {% if hasRightPairingOrder and hasRightFinish and preparation.pairings|filter(p=>p.active)|length==0 %}
+                <a class="dropdown-item pointer"
+                   data-toggle="modal"
+                   data-target="#modalNewSensorPairing">
+                    <span class="wii-icon wii-icon-pairing mr-2"></span>
+                    Associer à un capteur
+                </a>
+            {% endif %}
+            {% if (preparation.pairings is not empty)
+                and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')) %}
+                <a class="dropdown-item"
+                   href="{{ path('show_data_history', {id: preparation.id, type: constant('App\\Entity\\IOT\\Sensor::PREPARATION')}) }}">
+                    <span class="wii-icon wii-icon-pairing"></span>
+                    Historique des données
+                </a>
             {% endif %}
         </div>
     </div>

@@ -1,0 +1,87 @@
+{% macro paneItem(icon, title, subtitle) %}
+    <div class="col">
+        <div class="p-3 association-pane-item d-flex align-items-center">
+            <span class="wii-icon wii-icon-{{ icon }} mr-2"></span>
+            <div class="right-column ml-2">
+                <span class="title">{{ title }}</span>
+                {% if subtitle ?? null %}
+                    <span class="subtitle">{{ subtitle | join('<br>') | raw }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endmacro %}
+
+{% import _self as macros %}
+
+{% set type = type is defined ? type %}
+{% set icon = icon is defined ? icon %}
+{% set title = title is defined ? title %}
+{% set subtitle = subtitle is defined ? subtitle %}
+{% set header = header is defined ? header %}
+{% set hideActions = hideActions is defined ? hideActions : false %}
+
+<div class="col-12">
+    <div class="row position-relative association-pane-item-container align-items-center {{ header ? 'first-association-pane-item' }}">
+        {% if type == 'timeline' %}
+            <div class="col timeline-container"
+                 data-timeline-data-path="{{ timelineDataPath }}">
+            </div>
+        {% elseif type == 'pairingInfo' %}
+            <div class="col-12">
+                <div class="p-3 subtitle">
+                    {% if start is not null %}
+                        <span class="pairing-date-prefix">Associé le : </span><br/>
+                        <span class="date-prefix">{{ start }}</span>
+                    {% endif %}
+
+                    {% if end is not null %}
+                        {% if start is not null %}<br/><br/>{% endif %}
+                        <span class="pairing-date-prefix">Fin le : </span><br/>
+                        <span class="date-prefix pairing-end-date-{{ pairing.id }}">{{ end }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        {% elseif items is defined %}
+            {% for item in items %}
+                {{ macros.paneItem(item.icon, item.title, item.subtitle ?? null) }}
+            {% endfor %}
+        {% else %}
+            {{ macros.paneItem(icon, title, subtitle ?? null) }}
+        {% endif %}
+
+        {% if (type == 'sensor' and pairing)
+            or (type == 'entity' and not hideActions) %}
+            <div class="col-auto">
+                {% if type == 'sensor' and pairing %}
+                    <div class="dropdown dropleft">
+                        <img src="{{ asset('svg/dotsblack.svg') }}"
+                             alt="Actions"
+                             height="20px"
+                             width="8px"
+                             data-toggle="dropdown"
+                             class="pointer m-3"/>
+                        <div class="dropdown-menu dropdown-follow-gt pointer">
+                            <div class="dropdown-item pointer"
+                                 data-toggle="modal"
+                                 data-target="#modalEditPairingEnd"
+                                 data-id="{{ pairing.id }}">
+                                <i class="fas fa-edit"></i> Modifier fin association
+                            </div>
+                            <div class="dropdown-item pointer"
+                                 onclick="unpair({{ pairing.id }})">
+                                <i class="fas fa-unlink"></i> Dissocier
+                            </div>
+                        </div>
+                    </div>
+                {% elseif type == 'entity' %}
+                    <a class="btn btn-sm btn-outline-info"
+                       href="{{ path('show_data_history', entity_info) }}" {# TODO #}
+                       title="Voir l'historique des données">
+                        <span class="wii-icon wii-icon-iot-historic"></span>
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>

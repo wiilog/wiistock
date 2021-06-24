@@ -96,22 +96,20 @@ class LivraisonsManagerService
         return $this;
     }
 
-    /**
-     * @param Utilisateur $user
-     * @param Livraison $livraison
-     * @param DateTime $dateEnd
-     * @param Emplacement|null $emplacementTo
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
-     * @throws NegativeQuantityException
-     * @throws Exception
-     */
     public function finishLivraison(Utilisateur $user,
                                     Livraison $livraison,
                                     DateTime $dateEnd,
                                     ?Emplacement $emplacementTo): void
     {
+        $pairings = $livraison->getPreparation()->getPairings();
+        $pairingEnd = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        foreach ($pairings as $pairing) {
+            if ($pairing->isActive()) {
+                $pairing->setActive(false);
+                $pairing->setEnd($pairingEnd);
+            }
+        }
+
         if (($livraison->getStatut() && $livraison->getStatut()->getNom() === Livraison::STATUT_A_TRAITER) ||
             $livraison->getUtilisateur() && ($livraison->getUtilisateur()->getId() === $user->getId())) {
 

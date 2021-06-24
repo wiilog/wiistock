@@ -15,6 +15,8 @@
                         finished: finished,
                         demande: demande,
                         preparation: preparation,
+                        titleLogo: preparation.pairings|filter(p=>p.active)|length==1 ? 'pairing' : null,
+                        titleLogoTooltip: "Cette livraison est liée à un capteur"
                     } %}
                 </div>
             </div>

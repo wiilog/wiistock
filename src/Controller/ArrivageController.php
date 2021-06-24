@@ -140,7 +140,7 @@ class ArrivageController extends AbstractController
         $fields = $arrivageDataService->getColumnVisibleConfig($entityManager, $user);
 
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
-        $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
+        $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL]);
 
         $statuses = $statutRepository->findStatusByType(CategorieStatut::ARRIVAGE);
         $defaultLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
@@ -332,7 +332,7 @@ class ArrivageController extends AbstractController
         }
 
         $entityManager->flush();
-        $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL);
+        $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL]);
 
         return new JsonResponse([
             'success' => true,

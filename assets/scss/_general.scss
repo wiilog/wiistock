@@ -203,7 +203,7 @@ a {
 
 //// WIDTH ////
 .minw-105px {
-    min-width: 105px;
+    min-width: 105px !important;
 }
 
 .maxw-250px {
@@ -417,4 +417,115 @@ label.required:after {
 
 .tooltip {
     pointer-events: none;
+}
+
+.pairing-button {
+    .wii-icon {
+        width: 20px;
+        height: 20px;
+        display: inline-block;
+        background-color: white;
+        margin: auto 0;
+    }
+}
+
+.pairings {
+    .pairing-container {
+        border-radius: 5px;
+        width: 250px;
+        margin-bottom: 20px;
+
+        .pairing-card {
+            border: 0 !important;
+        }
+
+        .sensor-details {
+            height: 80px;
+        }
+
+        .type {
+            background-color: #CBCBCB;
+            width: 100%;
+            border-top-left-radius: 5px;
+
+            &.low-temperature-bg {
+                background-color: #CDF0EF;
+            }
+
+            &.high-temperature-bg {
+                background-color: #EFB3BF;
+            }
+
+            .wii-icon {
+                background-color: black;
+                width: 30px;
+                height: 30px;
+                display: inline-block;
+                padding: 18px;
+
+                &.low-temperature-icon {
+                    background-color: #33D7D1;
+                }
+
+                &.high-temperature-icon {
+                    background-color: #D73353;
+                }
+            }
+        }
+
+        .name {
+            width: 100%;
+            background-color: #F2F3F7;
+            border-top-right-radius: 5px;
+            font-family: Myriad, sans-serif;
+            font-size: 17px;
+
+            &.low-temperature-font {
+                color: #33D7D1;
+                font-weight: 600;
+            }
+
+            &.high-temperature-font {
+                color: #D73353;
+                font-weight: 600;
+            }
+        }
+
+        .element {
+            width: 100%;
+            height: 40px;
+            background-color: #DEE3F8;
+            border-bottom-left-radius: 5px;
+            border-bottom-right-radius: 5px;
+            font-family: Myriad, sans-serif;
+            font-weight: 600;
+            font-size: 18px;
+            color: #3353D7;
+            padding: 30px;
+
+            .wii-icon {
+                background-color: #3353D7;
+                width: 25px;
+                height: 25px;
+                display: inline-block;
+            }
+        }
+    }
+}
+
+.wii-icon-iot-article, .wii-icon-iot-location, .wii-icon-iot-pack {
+    background-color: white;
+    width:15px;
+    height: 15px;
+    display:inline-block;
+}
+
+.wii-icon-pairing {
+    background-color: $blueGT;
+    width:15px;
+    height: 15px;
+    display:inline-block;
+    .dropdown-item:active & {
+        background-color: $white;
+    }
 }

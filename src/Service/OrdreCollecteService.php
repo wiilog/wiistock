@@ -7,7 +7,8 @@ use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
-use App\Entity\MailerServer;
+use App\Entity\IOT\Pairing;
+use App\Entity\IOT\SensorWrapper;
 use App\Entity\MouvementStock;
 use App\Entity\TrackingMovement;
 use App\Entity\OrdreCollecte;
@@ -24,9 +25,6 @@ use Symfony\Component\Routing\Router;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Twig\Environment as Twig_Environment;
-use Twig\Error\LoaderError as Twig_Error_Loader;
-use Twig\Error\RuntimeError as Twig_Error_Runtime;
-use Twig\Error\SyntaxError as Twig_Error_Syntax;
 
 class OrdreCollecteService
 {
@@ -84,30 +82,25 @@ class OrdreCollecteService
         return $this;
     }
 
-    /**
-     * @param OrdreCollecte $ordreCollecte
-     * @param Utilisateur $user
-     * @param DateTime $date
-     * @param array $mouvements
-     * @param bool $fromNomade
-     * @return OrdreCollecte|null
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
-     * @throws ArticleNotAvailableException
-     */
     public function finishCollecte(OrdreCollecte $ordreCollecte,
                                    Utilisateur $user,
                                    DateTime $date,
                                    array $mouvements,
                                    bool $fromNomade = false)
 	{
+
+        $pairings = $ordreCollecte->getPairings();
+        foreach ($pairings as $pairing){
+            if($pairing->isActive()){
+                $pairing->setActive(false);
+            }
+        }
+
 		$em = $this->entityManager;
 
 		$statutRepository = $em->getRepository(Statut::class);
 		$ordreCollecteReferenceRepository = $em->getRepository(OrdreCollecteReference::class);
         $emplacementRepository = $em->getRepository(Emplacement::class);
-        $mailerServerRepository = $em->getRepository(MailerServer::class);
 
         $statusActiveReference = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF);
 
@@ -263,14 +256,6 @@ class OrdreCollecteService
 		return $newCollecte ?? null;
 	}
 
-    /**
-     * @param null $params
-     * @param null $demandeCollecteIdFilter
-     * @return array
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
-     */
 	public function getDataForDatatable($params = null, $demandeCollecteIdFilter = null)
 	{
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -300,42 +285,33 @@ class OrdreCollecteService
 		];
 	}
 
-	/**
-	 * @param OrdreCollecte $collecte
-	 * @return array
-	 * @throws Twig_Error_Loader
-	 * @throws Twig_Error_Runtime
-	 * @throws Twig_Error_Syntax
-	 */
-	private function dataRowCollecte($collecte)
-	{
-		$demandeCollecte = $collecte->getDemandeCollecte();
+    private function dataRowCollecte(OrdreCollecte $collecte)
+    {
+        $demandeCollecte = $collecte->getDemandeCollecte();
 
-		$url['show'] = $this->router->generate('ordre_collecte_show', ['id' => $collecte->getId()]);
-		return [
-			'id' => $collecte->getId() ?? '',
-			'Numéro' => $collecte->getNumero() ?? '',
-			'Date' => $collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : '',
-			'Statut' => $collecte->getStatut() ? $collecte->getStatut()->getNom() : '',
-			'Opérateur' => $collecte->getUtilisateur() ? $collecte->getUtilisateur()->getUsername() : '',
-			'Type' => $demandeCollecte && $demandeCollecte->getType() ? $demandeCollecte->getType()->getLabel() : '',
-			'Actions' => $this->templating->render('ordre_collecte/datatableCollecteRow.html.twig', [
-				'url' => $url,
-			])
-		];
-	}
+        $lastMessage = $collecte->getLastMessage();
+        $sensorCode = ($lastMessage && $lastMessage->getSensor()) ? $lastMessage->getSensor()->getAvailableSensorWrapper()->getName() : null;
+        $hasPairing = !$collecte->getPairings()->isEmpty();
 
-    /**
-     * @param Utilisateur $user
-     * @param ReferenceArticle|Article $article
-     * @param DateTime $date
-     * @param Emplacement $locationFrom
-     * @param Emplacement $locationTo
-     * @param int $quantity
-     * @param bool $fromNomade
-     * @param OrdreCollecte $ordreCollecte
-     * @throws Exception
-     */
+        $url['show'] = $this->router->generate('ordre_collecte_show', ['id' => $collecte->getId()]);
+        return [
+            'id' => $collecte->getId() ?? '',
+            'Numéro' => $collecte->getNumero() ?? '',
+            'Date' => $collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : '',
+            'Statut' => $collecte->getStatut() ? $collecte->getStatut()->getNom() : '',
+            'Opérateur' => $collecte->getUtilisateur() ? $collecte->getUtilisateur()->getUsername() : '',
+            'Type' => $demandeCollecte && $demandeCollecte->getType() ? $demandeCollecte->getType()->getLabel() : '',
+            'Actions' => $this->templating->render('ordre_collecte/datatableCollecteRow.html.twig', [
+                'url' => $url,
+                'hasPairing' => $hasPairing,
+            ]),
+            'pairing' => $this->templating->render('pairing-icon.html.twig', [
+                'sensorCode' => $sensorCode,
+                'hasPairing' => $hasPairing
+            ]),
+        ];
+    }
+
     private function persistMouvementsFromStock(Utilisateur $user,
                                                 $article,
                                                 ?DateTime $date,
@@ -397,7 +373,13 @@ class OrdreCollecteService
 
     public function createHeaderDetailsConfig(OrdreCollecte $ordreCollecte): array {
         $demande = $ordreCollecte->getDemandeCollecte();
-        $requester = $demande ? $demande->getDemandeur() : null;
+        $requester = $demande
+            ? ($demande->getDemandeur()
+                ? $demande->getDemandeur()->getUsername()
+                : ($demande->getSensor()
+                    ? $demande->getSensor()->getName()
+                    : "")
+            ) : "";
         $pointCollecte = $demande ? $demande->getPointCollecte() : null;
         $dateCreation = $ordreCollecte->getDate();
         $dateCollecte = $ordreCollecte->getTreatingDate();
@@ -407,7 +389,7 @@ class OrdreCollecteService
             [ 'label' => 'Numéro', 'value' => $ordreCollecte->getNumero() ],
             [ 'label' => 'Statut', 'value' => $ordreCollecte->getStatut() ? $this->stringService->mbUcfirst($ordreCollecte->getStatut()->getNom()) : '' ],
             [ 'label' => 'Opérateur', 'value' => $ordreCollecte->getUtilisateur() ? $ordreCollecte->getUtilisateur()->getUsername() : '' ],
-            [ 'label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : '' ],
+            [ 'label' => 'Demandeur', 'value' => $requester],
             [ 'label' => 'Destination', 'value' => $demande->isStock() ? 'Mise en stock' : 'Destruction' ],
             [ 'label' => 'Point de collecte', 'value' => $pointCollecte ? $pointCollecte->getLabel() : '' ],
             [ 'label' => 'Date de création', 'value' => $dateCreation ? $dateCreation->format('d/m/Y H:i') : '' ],
@@ -515,4 +497,17 @@ class OrdreCollecteService
             $csvService->putLine($handle, $data);
         }
     }
+
+    public function createPairing(SensorWrapper $sensorWrapper, OrdreCollecte $orderCollect){
+        $pairing = new Pairing();
+        $start =  new DateTime("now", new DateTimeZone("Europe/Paris"));
+        $pairing
+            ->setStart($start)
+            ->setSensorWrapper($sensorWrapper)
+            ->setCollectOrder($orderCollect)
+            ->setActive(true);
+
+        return $pairing;
+    }
+
 }

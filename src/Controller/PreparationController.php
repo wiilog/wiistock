@@ -8,6 +8,8 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
+use App\Entity\IOT\Pairing;
+use App\Entity\IOT\SensorWrapper;
 use App\Entity\LigneArticlePreparation;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
@@ -26,11 +28,9 @@ use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -42,6 +42,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
+use WiiCommon\Helper\Stream;
 
 /**
  * @Route("/preparation")
@@ -81,7 +82,7 @@ class PreparationController extends AbstractController
 
 
     /**
-     * @Route("/finish/{idPrepa}", name="preparation_finish", methods={"POST"}, options={"expose"=true}, condition="request.isXmlHttpRequest()")
+     * @Route("/finir/{idPrepa}", name="preparation_finish", methods={"POST"}, options={"expose"=true}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function finishPrepa($idPrepa,
@@ -261,6 +262,13 @@ class PreparationController extends AbstractController
     public function show(Preparation $preparation,
                          EntityManagerInterface $entityManager): Response
     {
+        $sensorWrappers = $entityManager->getRepository(SensorWrapper::class)->findWithNoActiveAssociation();
+        $sensorWrappers = Stream::from($sensorWrappers)
+            ->filter(function(SensorWrapper $wrapper) {
+                return $wrapper->getPairings()->filter(function(Pairing $pairing) {
+                    return $pairing->isActive();
+                })->isEmpty();
+            });
         $articleRepository = $entityManager->getRepository(Article::class);
 
         $preparationStatus = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;
@@ -268,10 +276,17 @@ class PreparationController extends AbstractController
         $demande = $preparation->getDemande();
         $destination = $demande ? $demande->getDestination() : null;
         $operator = $preparation ? $preparation->getUtilisateur() : null;
-        $requester = $demande ? $demande->getUtilisateur() : null;
+        $requester = $demande
+            ? ($demande->getUtilisateur()
+                ? $demande->getUtilisateur()->getUsername()
+                : ($demande->getSensor()
+                    ? $demande->getSensor()->getName()
+                    : "")
+            ) : "";
         $comment = $preparation->getCommentaire();
 
         return $this->render('preparation/show.html.twig', [
+            "sensorWrappers" => $sensorWrappers,
             'demande' => $demande,
             'livraison' => $preparation->getLivraison(),
             'preparation' => $preparation,
@@ -282,7 +297,7 @@ class PreparationController extends AbstractController
                 ['label' => 'Statut', 'value' => $preparation->getStatut() ? ucfirst($preparation->getStatut()->getNom()) : ''],
                 ['label' => 'Point de livraison', 'value' => $destination ? $destination->getLabel() : ''],
                 ['label' => 'Opérateur', 'value' => $operator ? $operator->getUsername() : ''],
-                ['label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : ''],
+                ['label' => 'Demandeur', 'value' => $requester],
                 [
                     'label' => 'Commentaire',
                     'value' => $comment ?: '',
@@ -634,5 +649,47 @@ class PreparationController extends AbstractController
         } else {
             throw new NotFoundHttpException('Aucune étiquette à imprimer');
         }
+    }
+
+    /**
+     * @Route("/associer", name="preparation_sensor_pairing_new",options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::PAIR_SENSOR}, mode=HasPermission::IN_JSON)
+     */
+
+    function newPreparationPairingSensor(PreparationsManagerService $preparationsService,
+                                         EntityManagerInterface $entityManager,
+                                         Request $request): Response{
+        if($data = json_decode($request->getContent(), true)) {
+            if(!$data['sensor'] && !$data['sensorCode']) {
+                return $this->json([
+                    'success' => false,
+                    'msg' => 'Un capteur/code capteur est obligatoire pour valider l\'association'
+                ]);
+            }
+
+            $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->findByNameOrCode($data['sensor'], $data['sensorCode']);
+            $preparation = $entityManager->getRepository(Preparation::class)->find($data['orderID']);
+
+            $pairingPreparation = $preparationsService->createPairing($sensorWrapper, $preparation);
+            $entityManager->persist($pairingPreparation);
+
+            try {
+                $entityManager->flush();
+            } /** @noinspection PhpRedundantCatchClauseInspection */
+            catch (UniqueConstraintViolationException $e) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'Une autre association est en cours de création, veuillez réessayer.'
+                ]);
+            }
+
+            $number = $sensorWrapper->getName();
+            return $this->json([
+                'success' => true,
+                'msg' => "L'assocation avec le capteur <strong>${number}</strong> a bien été créée"
+            ]);
+        }
+
+        throw new BadRequestHttpException();
     }
 }

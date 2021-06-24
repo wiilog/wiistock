@@ -11,7 +11,10 @@
                     {% include "collecte/collecte-show-header.html.twig" with {
                         modifiable: modifiable,
                         collecte: collecte,
-                        showDetails: detailsConfig
+                        showDetails: detailsConfig,
+                        titleLogo: collecte.ordresCollecte|filter(oc=>oc.pairings|filter(p=>p.active)|length==1)|length==1 ? 'pairing' : null,
+                        titleLogoTooltip : "Cette demande de collecte est liée à un capteur",
+                        linkedPairingCollectOrder: linkedPairingCollectOrder is defined ? linkedPairingCollectOrder : null
                     } %}
                 </div>
             </div>
@@ -72,6 +75,6 @@
     <script>
         let id = {{ collecte.id }};
     </script>
-    <script src="{{ asset('js/pages/collecte-show.js') }}?v={{ web_version }}"></script>
+    <script src="{{ asset('js/pages/collect/request/show.js') }}?v={{ web_version }}"></script>
 
 {% endblock %}

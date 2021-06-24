@@ -40,3 +40,4 @@ doctrine:
                 FIELD: DoctrineExtensions\Query\Mysql\Field
                 GROUP_CONCAT: DoctrineExtensions\Query\Mysql\GroupConcat
                 REGEXP: DoctrineExtensions\Query\Mysql\Regexp
+                IFNULL: DoctrineExtensions\Query\Mysql\IfNull

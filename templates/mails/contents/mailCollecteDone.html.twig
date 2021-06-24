@@ -4,7 +4,7 @@
 
     <div>Numéro : {{ demande.numero }}</div>
     <div>Date de demande : {{ demande.date|date('d/m/Y') }}</div>
-    <div>Demandeur : {{ demande.demandeur.username }}</div>
+    <div>Demandeur : {{ demande.demandeur ? demande.demandeur.username }}</div>
     <div>Point de collecte : {{ demande.pointCollecte.label }}</div>
     {% if (demande.commentaire is not empty and demande.commentaire != '<p><br></p>') %}
         <div>Commentaire : {{ demande.commentaire|raw }}</div>

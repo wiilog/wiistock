@@ -8,7 +8,6 @@ use App\Entity\ArticleFournisseur;
 use App\Entity\FreeField;
 use App\Entity\ParametrageGlobal;
 use App\Entity\ReferenceArticle;
-use App\Entity\Utilisateur;
 use WiiCommon\Helper\Stream;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -97,9 +96,9 @@ class AlertService {
         $freeField = $entityManager->getRepository(FreeField::class)
             ->findOneByLabel(FreeField::MACHINE_PDT_FREE_FIELD);
         $freeFieldValue = $freeField ? $reference->getFreeFieldValue($freeField->getId()) : "";
-        if($reference->getLimitSecurity() >= $reference->getQuantiteDisponible()) {
+        if($reference->getLimitSecurity() >= $reference->getQuantiteStock()) {
             $type = "Seuil de sécurité";
-        } else if($reference->getLimitWarning() >= $reference->getQuantiteDisponible()) {
+        } else if($reference->getLimitWarning() >= $reference->getQuantiteStock()) {
             $type = "Seuil d'alerte";
         } else {
             return;

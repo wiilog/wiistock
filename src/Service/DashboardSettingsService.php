@@ -21,7 +21,6 @@ use App\Entity\Dashboard as Dashboard;
 use App\Entity\Dashboard\Meter as DashboardMeter;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
-use Symfony\Bundle\MakerBundle\Str;
 use Symfony\Component\Routing\RouterInterface;
 
 class DashboardSettingsService {
@@ -994,7 +993,7 @@ class DashboardSettingsService {
                 $locations = $config['locations'] ?? [];
                 $redirect = $config['redirect'] ?? false;
                 $link = !empty($locations) && $redirect
-                    ? $this->router->generate('en_cours', ['locations' => implode(',', $locations)])
+                    ? $this->router->generate('en_cours', ['locations' => implode(',', $locations), 'fromDashboard' => true ])
                     : null;
                 break;
             default:
