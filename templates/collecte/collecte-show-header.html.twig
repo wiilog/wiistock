@@ -23,10 +23,10 @@
                 <span class="fa fa-angle-down"></span>
             </button>
             <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                {% if (collectOrder is defined and collectOrder)
+                {% if (linkedPairingCollectOrder is defined and linkedPairingCollectOrder)
                     and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')) %}
                     <a class="dropdown-item"
-                       href="{{ path('show_data_history', {id: collecte.id, type: constant('App\\Entity\\IOT\\Sensor::COLLECT')}) }}">
+                       href="{{ path('show_data_history', {id: linkedPairingCollectOrder.id, type: constant('App\\Entity\\IOT\\Sensor::COLLECT')}) }}">
                         <span class="wii-icon wii-icon-pairing"></span>
                         Historique des données
                     </a>
