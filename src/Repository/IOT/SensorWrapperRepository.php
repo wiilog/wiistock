@@ -137,7 +137,7 @@ class SensorWrapperRepository extends EntityRepository
             ->where('pairing.active = 0 OR pairing.id IS NULL')
             ->andWhere('sensor_wrapper.deleted = 0');
 
-        if ($action) {
+        if (!$action) {
             $qb
                 ->leftJoin('sensor_wrapper.sensor', 'sensor')
                 ->leftJoin('sensor.type', 'type')
