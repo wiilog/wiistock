@@ -20,7 +20,7 @@ class Sensor
 
     const SENSOR_ICONS = [
         self::TEMPERATURE => 'iot-temperature',
-        self::GPS => 'pin',
+        self::GPS => 'iot-tracking',
     ];
 
     const LOCATION = 'location';
