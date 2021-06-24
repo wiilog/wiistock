@@ -2,6 +2,9 @@
 
 namespace App\Service;
 
+use Exception;
+use RecursiveIteratorIterator;
+use Symfony\Component\Finder\Iterator\RecursiveDirectoryIterator;
 use Symfony\Component\HttpKernel\KernelInterface;
 
 class CacheService {
@@ -67,6 +70,31 @@ class CacheService {
 
         if(file_exists("$cache/$namespace$key")) {
             unlink("$cache/$namespace$key");
+        }
+    }
+
+    public function clear() {
+        $cache = $this->getCacheDirectory();
+        if (is_dir($cache)) {
+            $this->recursiveRemove($cache);
+        }
+    }
+
+    private function recursiveRemove($dirname) {
+        if (is_dir($dirname)) {
+            $dir = new RecursiveDirectoryIterator($dirname, RecursiveDirectoryIterator::SKIP_DOTS);
+            foreach (new RecursiveIteratorIterator($dir, RecursiveIteratorIterator::CHILD_FIRST) as $object) {
+                if ($object->isFile()) {
+                    unlink($object);
+                } elseif($object->isDir()) {
+                    rmdir($object);
+                } else {
+                    throw new Exception('Unknown object type: '. $object->getFileName());
+                }
+            }
+            rmdir($dirname); // Now remove myfolder
+        } else {
+            throw new Exception('This is not a directory');
         }
     }
 
