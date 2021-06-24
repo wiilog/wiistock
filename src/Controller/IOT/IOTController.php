@@ -26,7 +26,7 @@ class IOTController extends AbstractFOSRestController
 {
 
     /**
-     * @Rest\Post("/iot")
+     * @Rest\Post("/api/iot")
      * @Rest\View()
      */
     public function postMessage(Request $request,
