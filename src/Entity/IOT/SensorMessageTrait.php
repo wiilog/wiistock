@@ -43,7 +43,6 @@ trait SensorMessageTrait
         // TODO add order ?
 
         $messages = $this->getSensorMessages()->matching($criteria);
-
         if ($type) {
             $messages = $messages
                 ->filter(fn(SensorMessage $message) => ($message->getSensor() && FormatHelper::type($message->getSensor()->getType()) === $type));
