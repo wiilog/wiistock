@@ -135,6 +135,7 @@ class SensorWrapperRepository extends EntityRepository
         return $this->createQueryBuilder('sensor_wrapper')
             ->leftJoin('sensor_wrapper.pairings', 'pairing')
             ->where('pairing.active = 0 OR pairing.id IS NULL')
+            ->andWhere('sensor_wrapper.deleted = 0')
             ->getQuery()
             ->getResult();
     }

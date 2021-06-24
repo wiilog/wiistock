@@ -87,8 +87,7 @@ class PairingController extends AbstractController {
                 "highTemperatureThreshold" => SensorMessage::HIGH_TEMPERATURE_THRESHOLD,
             ];
         }
-
-        return $this->json($rows);
+        return $this->json(['data' => $rows, 'empty' => intval($queryResult['total']) === 0]);
     }
 
     /**

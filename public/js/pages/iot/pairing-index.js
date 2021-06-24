@@ -46,8 +46,9 @@ function pairingList(search = '', filter = '', types = '', elements = '') {
         elements: elements
     }, true);
 
-    $.get(path, (data) => {
-        if (data) {
+    $.get(path, (response) => {
+        if (response) {
+            let data = response.data;
             $pairings.removeClass('justify-content-center')
             $pairings.empty();
             if (data.length > 0) {
@@ -87,7 +88,7 @@ function pairingList(search = '', filter = '', types = '', elements = '') {
                     class: `d-flex flex-column align-items-center`,
                     html: $(`<p/>`, {
                         class: `h4`,
-                        text: `Aucune association ne correspond à votre recherche`
+                        text: response.empty ? 'Aucune association créée' : `Aucune association ne correspond à votre recherche`
                     })
                 });
 
