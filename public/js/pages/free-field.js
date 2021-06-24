@@ -71,7 +71,7 @@ function defaultValueForTypage($select) {
     } else {
         if (typage === 'booleen') {
             inputDefaultBlock =
-                `<div class="wii-switch">
+                `<div class="wii-switch needed">
                     <input type="radio" name="valeur" value="1" content="Oui" ` + (existingValue === 1 ? "checked" : "") + `>
                     <input type="radio" name="valeur" value="0" content="Non" ` + (existingValue === 0 ? "checked" : "") + `>
                     <input type="radio" name="valeur" value="-1" content="Aucune" ` + (existingValue === "" ? "checked" : "") + `>
