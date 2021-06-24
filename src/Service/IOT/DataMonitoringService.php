@@ -181,6 +181,10 @@ class DataMonitoringService
             $items[] = [
                 "icon" => "iot-delivery",
                 "title" => $preparation->getLivraison()->getNumero(),
+                "entity_info" => [
+                    "id" => $preparation->getLivraison()->getId(),
+                    "type" => IOTService::getEntityCodeFromEntity($preparation->getLivraison()),
+                ],
             ];
         }
 
