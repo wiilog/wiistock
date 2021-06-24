@@ -131,7 +131,7 @@ class TriggerActionController extends AbstractController
                 return $this->json([
                     'success' => false,
                     'msg' => "Le capteur choisi ne peut avoir plus de "
-                        . $sensorWrapper->getSensor()->getProfile()->getMaxTriggers() . " actions associées."
+                        . $sensorWrapper->getSensor()->getProfile()->getMaxTriggers() . " action(s) associée(s)."
                 ]);
             }
 

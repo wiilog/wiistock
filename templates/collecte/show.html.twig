@@ -14,7 +14,7 @@
                         showDetails: detailsConfig,
                         titleLogo: collecte.ordresCollecte|filter(oc=>oc.pairings|filter(p=>p.active)|length==1)|length==1 ? 'pairing' : null,
                         titleLogoTooltip : "Cette demande de collecte est liée à un capteur",
-                        linkedPairingCollectOrder: linkedPairingCollectOrder
+                        linkedPairingCollectOrder: linkedPairingCollectOrder is defined ? linkedPairingCollectOrder : null
                     } %}
                 </div>
             </div>

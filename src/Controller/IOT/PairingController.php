@@ -43,7 +43,7 @@ class PairingController extends AbstractController {
      * @HasPermission({Menu::IOT, Action::DISPLAY_SENSOR})
      */
     public function index(EntityManagerInterface $entityManager): Response {
-        $sensorWrappers= $entityManager->getRepository(SensorWrapper::class)->findWithNoActiveAssociation();
+        $sensorWrappers= $entityManager->getRepository(SensorWrapper::class)->findWithNoActiveAssociation(false);
 
         return $this->render("pairing/index.html.twig", [
             'categories' => Sensor::CATEGORIES,
@@ -87,8 +87,7 @@ class PairingController extends AbstractController {
                 "highTemperatureThreshold" => SensorMessage::HIGH_TEMPERATURE_THRESHOLD,
             ];
         }
-
-        return $this->json($rows);
+        return $this->json(['data' => $rows, 'empty' => intval($queryResult['total']) === 0]);
     }
 
     /**
