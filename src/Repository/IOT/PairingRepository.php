@@ -27,7 +27,7 @@ class PairingRepository extends EntityRepository
             ->leftJoin('sensors_pairing.sensorWrapper', 'sensor_wrapper')
             ->leftJoin('sensor_wrapper.sensor', 'sensor')
             ->where('sensor = :sensor')
-            ->andWhere("sensors_pairing.end IS NULL or sensors_pairing.end > :now")
+            ->andWhere("sensors_pairing.end IS NULL OR sensors_pairing.end > :now")
             ->setParameter('sensor', $sensor)
             ->setParameter("now", new DateTime("now", new DateTimeZone('Europe/Paris')));
 
@@ -46,15 +46,19 @@ class PairingRepository extends EntityRepository
                                 'search_article.barCode LIKE :value',
                                 'search_collectOrder.numero LIKE :value',
                                 'search_location.label LIKE :value',
+                                'search_locationGroup.name LIKE :value',
                                 'search_pack.code LIKE :value',
                                 'search_preparationOrder.numero LIKE :value',
+                                'search_deliveryRequest.numero LIKE :value',
                             )
                             . ')')
                         ->leftJoin('sensors_pairing.article', 'search_article')
                         ->leftJoin('sensors_pairing.collectOrder', 'search_collectOrder')
                         ->leftJoin('sensors_pairing.location', 'search_location')
+                        ->leftJoin('sensors_pairing.locationGroup', 'search_locationGroup')
                         ->leftJoin('sensors_pairing.pack', 'search_pack')
                         ->leftJoin('sensors_pairing.preparationOrder', 'search_preparationOrder')
+                        ->leftJoin('search_preparationOrder.demande', 'search_deliveryRequest')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
@@ -66,12 +70,19 @@ class PairingRepository extends EntityRepository
                     switch ($column) {
                         case 'element':
                             $qb
-                                ->orderBy('IFNULL(order_article.barCode, IFNULL(order_collectOrder.numero, IFNULL(order_location.label, IFNULL(order_pack.code, order_preparationOrder.numero))))', $order)
+                                ->orderBy('IFNULL(order_article.barCode,
+                                    IFNULL(order_collectOrder.numero,
+                                    IFNULL(order_location.label,
+                                    IFNULL(order_pack.code,
+                                    IFNULL(order_preparationOrder.numero,
+                                    IFNULL(order_locationGroup.name, order_deliveryRequest.numero))))))', $order)
                                 ->leftJoin('sensors_pairing.article', 'order_article')
                                 ->leftJoin('sensors_pairing.collectOrder', 'order_collectOrder')
                                 ->leftJoin('sensors_pairing.location', 'order_location')
+                                ->leftJoin('sensors_pairing.locationGroup', 'order_locationGroup')
                                 ->leftJoin('sensors_pairing.pack', 'order_pack')
-                                ->leftJoin('sensors_pairing.preparationOrder', 'order_preparationOrder');
+                                ->leftJoin('sensors_pairing.preparationOrder', 'order_preparationOrder')
+                                ->leftJoin('order_preparationOrder.demande', 'order_deliveryRequest');
                             break;
                         default:
                             if (property_exists(Pairing::class, $column)) {
@@ -108,15 +119,19 @@ class PairingRepository extends EntityRepository
                         ->leftJoin('pairing.article', 'search_article')
                         ->leftJoin('pairing.collectOrder', 'search_collectOrder')
                         ->leftJoin('pairing.location', 'search_location')
+                        ->leftJoin('pairing.locationGroup', 'search_locationGroup')
                         ->leftJoin('pairing.pack', 'search_pack')
                         ->leftJoin('pairing.preparationOrder', 'search_preparationOrder')
+                        ->leftJoin('search_preparationOrder.demande', 'search_deliveryRequest')
                         ->andWhere($queryBuilder->expr()->orX(
                             "search_sensorWrapper.name LIKE :value",
                             'search_article.barCode LIKE :value',
                             'search_collectOrder.numero LIKE :value',
                             'search_location.label LIKE :value',
+                            'locationGroup.name LIKE :value',
                             'search_pack.code LIKE :value',
                             'search_preparationOrder.numero LIKE :value',
+                            'search_deliveryRequest.numero LIKE :value',
                         ))
                         ->setParameter('value', '%' . $search . '%');
                 }
@@ -153,6 +168,13 @@ class PairingRepository extends EntityRepository
                     $expr->add('element_location IS NOT NULL');
                 }
 
+                if(Stream::from($elements)->indexOf(Sensor::LOCATION_GROUP) !== false) {
+                    $queryBuilder
+                        ->leftJoin('pairing.locationGroup', 'element_locationGroup');
+
+                    $expr->add('element_locationGroup IS NOT NULL');
+                }
+
                 if(Stream::from($elements)->indexOf(Sensor::PACK) !== false) {
                     $queryBuilder
                         ->leftJoin('pairing.pack', 'element_pack');
@@ -172,6 +194,14 @@ class PairingRepository extends EntityRepository
                         ->leftJoin('pairing.preparationOrder', 'element_preparationOrder');
 
                     $expr->add('element_preparationOrder IS NOT NULL');
+                }
+
+                if(Stream::from($elements)->indexOf(Sensor::DELIVERY_REQUEST) !== false) {
+                    $queryBuilder
+                        ->leftJoin('pairing.preparationOrder', 'element_preparationOrder')
+                        ->leftJoin('element_preparationOrder.demande', 'element_deliveryRequest');
+
+                    $expr->add('element_deliveryRequest IS NOT NULL');
                 }
 
                 if(Stream::from($elements)->indexOf(Sensor::COLLECT) !== false) {

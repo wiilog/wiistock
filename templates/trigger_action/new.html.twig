@@ -15,10 +15,11 @@
                                 Capteur*
                             </label>
                             <div class="w-100">
-                                <select class="select2 ajax-autocomplete form-control data needed" name="sensorWrapper">
+                                <select class="select2 ajax-autocomplete form-control data needed" name="sensorWrapper"
+                                        onchange="onDeviceChanged($(this))">
                                     <option value=""></option>
                                     {% for sensorWrapper in sensorWrappers %}
-                                        <option value="{{ sensorWrapper.name }}">{{ sensorWrapper.name }}</option>
+                                        <option value="{{ sensorWrapper.name }}" data-value="{{ sensorWrapper.name }}">{{ sensorWrapper.name }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -30,10 +31,11 @@
                         <div class="form-group col-12 col-md-4">
                             <label>Code</label>
                             <div class="w-100">
-                                <select class="select2 ajax-autocomplete form-control data" name="sensorCode">
+                                <select class="select2 ajax-autocomplete form-control data" name="sensorCode"
+                                        onchange="onDeviceChanged($(this))">
                                     <option value=""></option>
                                     {% for sensorWrapper in sensorWrappers %}
-                                        <option value="{{ sensorWrapper.name }}">{{ sensorWrapper.sensor.code }}</option>
+                                        <option value="{{ sensorWrapper.name }}" data-value="{{ sensorWrapper.name }}">{{ sensorWrapper.sensor.code }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
