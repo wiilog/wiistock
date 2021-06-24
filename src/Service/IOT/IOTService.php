@@ -385,7 +385,7 @@ class IOTService
 
         if ($wrapper) {
             foreach ($wrapper->getPairings() as $pairing) {
-                if ($pairing->getActive()) {
+                if ($pairing->isActive()) {
                     $pairing->addSensorMessage($sensorMessage);
                     $entity = $pairing->getEntity();
                     if ($entity instanceof LocationGroup) {
