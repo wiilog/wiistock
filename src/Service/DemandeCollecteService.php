@@ -126,7 +126,7 @@ class DemandeCollecteService
                 ->first()
             : null;
 
-        $sensorCode = $pairing ? $pairing->getSensorWrapper()->getSensor()->getCode() : null;
+        $sensorCode = $pairing ? $pairing->getSensorWrapper()->getName() : null;
 
         $url = $this->router->generate('collecte_show', ['id' => $collecte->getId()]);
         return [

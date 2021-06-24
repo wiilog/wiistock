@@ -532,7 +532,7 @@ class PreparationsManagerService
     private function dataRowPreparation(Preparation $preparation)
     {
         $lastMessage = $preparation->getLastMessage();
-        $sensorCode = ($lastMessage && $lastMessage->getSensor()) ? $lastMessage->getSensor()->getCode() : null;
+        $sensorCode = ($lastMessage && $lastMessage->getSensor()) ? $lastMessage->getSensor()->getAvailableSensorWrapper()->getName() : null;
         $hasPairing = !$preparation->getPairings()->isEmpty();
 
         $request = $preparation->getDemande();

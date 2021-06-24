@@ -92,9 +92,9 @@ class EmplacementDataService {
         $locationLastMessage = $emplacement->getLastMessage();
 
         $sensorCode = $groupLastMessage
-            ? $groupLastMessage->getSensor()->getCode()
+            ? $groupLastMessage->getSensor()->getAvailableSensorWrapper()->getName()
             : ($locationLastMessage
-                ? $locationLastMessage->getSensor()->getCode()
+                ? $locationLastMessage->getSensor()->getAvailableSensorWrapper()->getName()
                 : null);
 
         $hasPairing = (

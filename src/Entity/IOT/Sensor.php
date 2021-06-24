@@ -19,8 +19,8 @@ class Sensor
     const ACTION = 'Action';
 
     const SENSOR_ICONS = [
-        self::TEMPERATURE => 'temperature',
-        self::GPS => 'tracking',
+        self::TEMPERATURE => 'iot-temperature',
+        self::GPS => 'pin',
     ];
 
     const LOCATION = 'location';
@@ -38,7 +38,6 @@ class Sensor
         'Préparation' => self::PREPARATION,
         'Livraison' => self::DELIVERY_REQUEST,
         'Ordre de collecte' => self::COLLECT,
-        "Groupe d'emplacement" => self::LOCATION_GROUP,
     ];
 
     /**

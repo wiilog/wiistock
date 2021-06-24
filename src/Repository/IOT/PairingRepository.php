@@ -178,9 +178,11 @@ class PairingRepository extends EntityRepository
 
                 if(Stream::from($elements)->indexOf(Sensor::LOCATION) !== false) {
                     $queryBuilder
-                        ->leftJoin('pairing.location', 'element_location');
+                        ->leftJoin('pairing.location', 'element_location')
+                        ->leftJoin('pairing.locationGroup', 'element_location_group');
 
                     $expr->add('element_location IS NOT NULL');
+                    $expr->add('element_location_group IS NOT NULL');
                 }
 
                 if(Stream::from($elements)->indexOf(Sensor::LOCATION_GROUP) !== false) {
