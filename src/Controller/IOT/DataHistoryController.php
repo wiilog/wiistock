@@ -48,12 +48,19 @@ class DataHistoryController extends AbstractController {
         $id = $query->get('id');
 
         $entity = $IOTService->getEntity($entityManager, $type, $id);
-
+        $end = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $end->modify('last day of this month');
+        $end->setTime(23, 59, 59);
+        $start = clone $end;
+        $start->setTime(0, 0, 0);
+        $start->modify('first day of this month');
         return $dataMonitoringService->render([
             "title" => $this->getBreadcrumb($entity),
             "entity" => $entity,
             "type" => DataMonitoringService::TIMELINE,
-            "entity_type" => $type
+            "entity_type" => $type,
+            'startFilter' => $start,
+            "endFilter" => $end
         ]);
     }
 

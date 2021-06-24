@@ -21,12 +21,12 @@
                                 <div class="input-group-prepend">
                                     <span class="input-group-text w-50px">Du</span>
                                 </div>
-                                <input type="datetime-local" name="start" value="{{ start | date('Y-m-d\\TH:i') }}"
+                                <input type="datetime-local" name="start" value="{{ (startFilter is defined ? startFilter : start) | date('Y-m-d\\TH:i') }}"
                                        class="form-control cursor-default filter-date-min filter-input w-218px"/>
                                 <div class="input-group-prepend">
                                     <span class="input-group-text w-50px">Au</span>
                                 </div>
-                                <input type="datetime-local" name="end" value="{{ end | date('Y-m-d\\TH:i') }}"
+                                <input type="datetime-local" name="end" value="{{ (endFilter is defined ? endFilter : end) | date('Y-m-d\\TH:i') }}"
                                        class="form-control cursor-default filter-date-max filter-input w-218px"/>
                             </div>
                         </div>

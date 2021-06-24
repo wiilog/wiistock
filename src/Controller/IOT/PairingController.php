@@ -103,7 +103,7 @@ class PairingController extends AbstractController {
         return $service->render([
             "title" => "IOT | Associations | Détails",
             "type" => DataMonitoringService::PAIRING,
-            "entity" => $pairing,
+            "entity" => $pairing
         ]);
     }
 

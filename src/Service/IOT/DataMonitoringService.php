@@ -84,7 +84,6 @@ class DataMonitoringService
                 ];
             }
         }
-
         return new Response($this->templating->render("IOT/data_monitoring/page.html.twig", $config));
     }
 
