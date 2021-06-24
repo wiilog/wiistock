@@ -28,9 +28,9 @@ $(function() {
             needsSearchOverride: true,
         },
         columns: [
-            {"data": 'actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},
-            {"data": 'sensorWrapper', 'name': 'Nom', 'title': 'Nom du capteur'},
-            {"data": 'template', 'name': 'Modèle', 'title': 'Modèle'},
+            {"data": 'actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false, width: '10px'},
+            {"data": 'sensorWrapper', 'name': 'Nom', 'title': 'Nom du capteur', width: '50%'},
+            {"data": 'template', 'name': 'Modèle', 'title': 'Modèle', width: '50%'},
         ]
     };
 

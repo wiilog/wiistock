@@ -24,6 +24,7 @@ use App\Entity\ParametrageGlobal;
 
 use App\Service\AlertService;
 use App\Service\AttachmentService;
+use App\Service\CacheService;
 use App\Service\GlobalParamService;
 use App\Service\SpecificService;
 use App\Service\TranslationService;
@@ -728,7 +729,8 @@ class ParametrageGlobalController extends AbstractController
      */
     public function saveTranslations(Request $request,
                                      EntityManagerInterface $entityManager,
-                                     TranslationService $translationService): Response {
+                                     TranslationService $translationService,
+                                        CacheService $cacheService): Response {
         if($translations = json_decode($request->getContent(), true)) {
             $translationRepository = $entityManager->getRepository(Translation::class);
             foreach($translations as $translation) {
@@ -743,6 +745,7 @@ class ParametrageGlobalController extends AbstractController
             }
             $entityManager->flush();
 
+            $cacheService->clear();
             $translationService->generateTranslationsFile();
             $translationService->cacheClearWarmUp();
 

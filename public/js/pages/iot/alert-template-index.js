@@ -21,9 +21,9 @@ function initPageDataTable() {
             needsSearchOverride: true,
         },
         columns: [
-            {data: 'actions', name: 'Actions', title: '', className: 'noVis', orderable: false},
-            {data: 'name', name: 'type', title: 'Nom du modèle'},
-            {data: 'type', name: 'type', title: 'Type d\'alerte'},
+            {data: 'actions', name: 'Actions', title: '', className: 'noVis', orderable: false, width: '10px'},
+            {data: 'name', name: 'type', title: 'Nom du modèle', width: '50%'},
+            {data: 'type', name: 'type', title: 'Type d\'alerte', width: '50%'},
         ]
     };
     return initDataTable('tableAlertTemplate', alertTemplateTableConfig);
