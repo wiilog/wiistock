@@ -10,7 +10,7 @@
                 <select name="{{ 'article' ~ loop.index0 }}" class="form-control data needed" onchange="onArticleSelectChange($(this))">
                     <option value=""></option>
                     {% for art in ref.articles %}
-                        {% if art.statut.nom != "consommé" %}
+                        {% if art.statut.code == constant('App\\Entity\\Article::STATUT_ACTIF') %}
                             <option value="{{ art.id }}" data-quantity="{{ art.quantite }}">{{ art.barCode }}</option>
                         {% endif %}
                     {% endfor %}
