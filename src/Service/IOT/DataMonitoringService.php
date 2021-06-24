@@ -181,6 +181,10 @@ class DataMonitoringService
             $items[] = [
                 "icon" => "iot-delivery",
                 "title" => $preparation->getLivraison()->getNumero(),
+                "entity_info" => [
+                    "id" => $preparation->getLivraison()->getId(),
+                    "type" => IOTService::getEntityCodeFromEntity($preparation->getLivraison()),
+                ],
             ];
         }
 
@@ -334,17 +338,17 @@ class DataMonitoringService
                                        PairedEntity $entity,
                                        RouterInterface $routerInterface)
     {
-        $subtitlePrefix = [
-            'start' => 'Associé le : ',
-            'end' => $date > new DateTime() ? "Fin le : " : "Dissocié le : ",
-        ];
-
         $dateStr = $dataRow['date'] ?? null;
         $type = $dataRow['type'] ?? null;
         $pairingId = $dataRow['pairingId'] ?? null;
         $date = $dateStr
             ? DateTime::createFromFormat('Y-m-d H:i:s', $dateStr)
             : null;
+
+        $subtitlePrefix = [
+            'start' => 'Associé le : ',
+            'end' => $date > new DateTime() ? "Fin le : " : "Dissocié le : ",
+        ];
 
         if ($date) {
             $row = [
