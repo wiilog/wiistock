@@ -31,12 +31,11 @@ class Sensor
     const DELIVERY_REQUEST = 'delivery-request';
     const COLLECT = 'collect';
 
-    const CATEGORIES = [
+    const PAIRING_CATEGORIES = [
         'Emplacement' => self::LOCATION,
         'Colis' => self::PACK,
         'Article' => self::ARTICLE,
         'Préparation' => self::PREPARATION,
-        'Livraison' => self::DELIVERY_REQUEST,
         'Ordre de collecte' => self::COLLECT,
     ];
 
