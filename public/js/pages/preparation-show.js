@@ -106,12 +106,12 @@ function submitSplitting($submit) {
             $.post(path, JSON.stringify(params))
                 .then((data) => {
                     const $modal = $submit.closest('.modal');
+                    $submit.removeClass('loading');
+                    $submit.popLoader();
                     if (data.success) {
                         $modal.find('.close').click();
                         tableArticle.ajax.reload();
                     } else if (data.msg) {
-                        $submit.removeClass('loading');
-                        $submit.popLoader();
                         $modal.find('.error-msg').html(data.msg);
                         showBSAlert(data.msg, 'danger');
                     }
