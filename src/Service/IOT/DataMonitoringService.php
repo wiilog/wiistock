@@ -138,7 +138,7 @@ class DataMonitoringService
             "header" => $header,
             "hideActions" => $header,
             "entity_info" => [
-                "id" => $pack>getId(),
+                "id" => $pack->getId(),
                 "type" => IOTService::getEntityCodeFromEntity($pack),
             ],
         ];
