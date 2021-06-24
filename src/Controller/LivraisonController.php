@@ -14,6 +14,7 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\NegativeQuantityException;
+use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\LivraisonService;
 use App\Service\LivraisonsManagerService;
@@ -165,13 +166,6 @@ class LivraisonController extends AbstractController
         $demande = $livraison->getDemande();
 
         $utilisateurPreparation = $livraison->getPreparation() ? $livraison->getPreparation()->getUtilisateur() : null;
-        $requester = $demande
-            ? ($demande->getUtilisateur()
-                ? $demande->getUtilisateur()->getUsername()
-                : ($demande->getSensor()
-                    ? $demande->getSensor()->getName()
-                    : "")
-            ) : "";
         $destination = $demande ? $demande->getDestination() : null;
         $dateLivraison = $livraison->getDateFin();
         $comment = $demande->getCommentaire();
@@ -185,7 +179,7 @@ class LivraisonController extends AbstractController
                 [ 'label' => 'Numéro', 'value' => $livraison->getNumero() ],
                 [ 'label' => 'Statut', 'value' => $livraison->getStatut() ? ucfirst($livraison->getStatut()->getNom()) : '' ],
                 [ 'label' => 'Opérateur', 'value' => $utilisateurPreparation ? $utilisateurPreparation->getUsername() : '' ],
-                [ 'label' => 'Demandeur', 'value' => $requester ],
+                [ 'label' => 'Demandeur', 'value' => FormatHelper::deliveryRequester($demande) ],
                 [ 'label' => 'Point de livraison', 'value' => $destination ? $destination->getLabel() : '' ],
                 [ 'label' => 'Date de livraison', 'value' => $dateLivraison ? $dateLivraison->format('d/m/Y') : '' ],
                 [

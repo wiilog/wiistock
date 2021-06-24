@@ -15,6 +15,7 @@ use App\Entity\OrdreCollecte;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -133,7 +134,7 @@ class DemandeCollecteService
             'id' => $collecte->getId() ?? '',
             'Création' => $collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : '',
             'Validation' => $collecte->getValidationDate() ? $collecte->getValidationDate()->format('d/m/Y') : '',
-            'Demandeur' => $collecte->getSensor() ? $collecte->getSensor()->getName() : ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : ''),
+            'Demandeur' => FormatHelper::collectRequester($collecte),
             'Objet' => $collecte->getObjet() ?? '',
             'Numéro' => $collecte->getNumero() ?? '',
             'Statut' => $collecte->getStatut()->getNom() ?? '',
@@ -157,7 +158,6 @@ class DemandeCollecteService
 
 
     public function createHeaderDetailsConfig(Collecte $collecte): array {
-        $requester = $collecte->getSensor() ? $collecte->getSensor()->getName() : $collecte->getDemandeur();
         $status = $collecte->getStatut();
         $date = $collecte->getDate();
         $validationDate = $collecte->getValidationDate();
@@ -176,7 +176,7 @@ class DemandeCollecteService
         return array_merge(
             [
                 [ 'label' => 'Statut', 'value' => $status ? $this->stringService->mbUcfirst($status->getNom()) : '' ],
-                ['label' => 'Demandeur', 'value' => is_string($requester) ? $requester : ($requester ? $requester->getUsername() : '')],
+                ['label' => 'Demandeur', 'value' => FormatHelper::collectRequester($collecte)],
                 [ 'label' => 'Date de la demande', 'value' => $date ? $date->format('d/m/Y') : '' ],
                 [ 'label' => 'Date de validation', 'value' => $validationDate ? $validationDate->format('d/m/Y H:i') : '' ],
                 [ 'label' => 'Destination', 'value' => $collecte->isStock() ? 'Mise en stock' : 'Destruction' ],

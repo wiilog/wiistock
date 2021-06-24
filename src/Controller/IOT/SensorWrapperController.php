@@ -232,8 +232,8 @@ class SensorWrapperController extends AbstractController
                                      EntityManagerInterface $entityManager): Response {
         $sensorId = $request->query->get('sensor');
         $sensorRepository = $entityManager->getRepository(SensorWrapper::class);
-        $sensor = $sensorRepository->find($sensorId);
-        $data = $pairingService->getDataForDatatable($sensor->getSensor(), $request->request);
+        $sensorWrapper = $sensorRepository->find($sensorId);
+        $data = $pairingService->getDataForDatatable($sensorWrapper->getSensor(), $request->request);
         return $this->json($data);
     }
 

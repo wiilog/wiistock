@@ -23,8 +23,10 @@
         </button>
         <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
             {% if isPrepaEditable and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')) %}
-                {% if preparation.demande and preparation.demande.sensorWrapper %}
-                    <button class="dropdown-item disabled" style="pointer-events: initial" disabled title="La livraison est associée à un capteur, il faut d'abord la dissocier de son capteur">
+                {% if preparation.activePairing %}
+                    <button class="dropdown-item disabled"
+                            style="pointer-events: initial"
+                            disabled title="La livraison est associée à un capteur, il faut d'abord la dissocier de son capteur">
                         <i class="fa fa-trash mr-2"></i>Supprimer
                     </button>
                 {% else %}

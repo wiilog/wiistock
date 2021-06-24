@@ -200,7 +200,7 @@ class IOTService
             ->setDestination($requestTemplate->getDestination())
             ->setType($requestTemplate->getRequestType())
             ->setCreationDate($date)
-            ->setFromSensor($sensorWrapper)
+            ->setTriggeringSensorWrapper($sensorWrapper)
             ->setNumber($handlingNumber)
             ->setStatus($requestTemplate->getRequestStatus())
             ->setComment($requestTemplate->getComment())
@@ -225,7 +225,7 @@ class IOTService
             ->setStatut($statut)
             ->setDate($date)
             ->setCommentaire($requestTemplate->getComment())
-            ->setFromSensor($wrapper)
+            ->setTriggeringSensorWrapper($wrapper)
             ->setType($requestTemplate->getRequestType())
             ->setDestination($requestTemplate->getDestination())
             ->setNumero($numero)
@@ -253,7 +253,7 @@ class IOTService
 
         $request = new Collecte();
         $request
-            ->setFromSensor($wrapper)
+            ->setTriggeringSensorWrapper($wrapper)
             ->setNumero($numero)
             ->setDate($date)
             ->setFreeFields($requestTemplate->getFreeFields())

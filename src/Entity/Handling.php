@@ -115,7 +115,7 @@ class Handling extends FreeFieldEntity
     /**
      * @ORM\ManyToOne(targetEntity=SensorWrapper::class)
      */
-    private ?SensorWrapper $sensorWrapper = null;
+    private ?SensorWrapper $triggeringSensorWrapper = null;
 
     public function __construct()
     {
@@ -129,12 +129,12 @@ class Handling extends FreeFieldEntity
         return $this->id;
     }
 
-    public function getSensor() : ?SensorWrapper {
-        return $this->sensorWrapper;
+    public function getTriggeringSensorWrapper(): ?SensorWrapper {
+        return $this->triggeringSensorWrapper;
     }
 
-    public function setFromSensor(?SensorWrapper $sensorWrapper) {
-        $this->sensorWrapper = $sensorWrapper;
+    public function setTriggeringSensorWrapper(?SensorWrapper $triggeringSensorWrapper): self {
+        $this->triggeringSensorWrapper = $triggeringSensorWrapper;
         return $this;
     }
 

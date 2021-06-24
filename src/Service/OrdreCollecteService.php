@@ -17,6 +17,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
+use App\Helper\FormatHelper;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use DateTime;
@@ -373,13 +374,7 @@ class OrdreCollecteService
 
     public function createHeaderDetailsConfig(OrdreCollecte $ordreCollecte): array {
         $demande = $ordreCollecte->getDemandeCollecte();
-        $requester = $demande
-            ? ($demande->getDemandeur()
-                ? $demande->getDemandeur()->getUsername()
-                : ($demande->getSensor()
-                    ? $demande->getSensor()->getName()
-                    : "")
-            ) : "";
+        $requester = FormatHelper::collectRequester($demande);
         $pointCollecte = $demande ? $demande->getPointCollecte() : null;
         $dateCreation = $ordreCollecte->getDate();
         $dateCollecte = $ordreCollecte->getTreatingDate();

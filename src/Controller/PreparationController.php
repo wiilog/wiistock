@@ -18,6 +18,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Exceptions\NegativeQuantityException;
+use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\LivraisonsManagerService;
 use App\Service\PDFGeneratorService;
@@ -276,13 +277,6 @@ class PreparationController extends AbstractController
         $demande = $preparation->getDemande();
         $destination = $demande ? $demande->getDestination() : null;
         $operator = $preparation ? $preparation->getUtilisateur() : null;
-        $requester = $demande
-            ? ($demande->getUtilisateur()
-                ? $demande->getUtilisateur()->getUsername()
-                : ($demande->getSensor()
-                    ? $demande->getSensor()->getName()
-                    : "")
-            ) : "";
         $comment = $preparation->getCommentaire();
 
         return $this->render('preparation/show.html.twig', [
@@ -297,7 +291,7 @@ class PreparationController extends AbstractController
                 ['label' => 'Statut', 'value' => $preparation->getStatut() ? ucfirst($preparation->getStatut()->getNom()) : ''],
                 ['label' => 'Point de livraison', 'value' => $destination ? $destination->getLabel() : ''],
                 ['label' => 'Opérateur', 'value' => $operator ? $operator->getUsername() : ''],
-                ['label' => 'Demandeur', 'value' => $requester],
+                ['label' => 'Demandeur', 'value' => FormatHelper::deliveryRequester($demande)],
                 [
                     'label' => 'Commentaire',
                     'value' => $comment ?: '',
