@@ -72,11 +72,11 @@ class TriggerActionController extends AbstractController
 
             if($data['sensorWrapper']){
                 $name = $data['sensorWrapper'];
-                $sensorWrapper = $sensorWrapperRepository->findOneBy(["name" => $name]);
+                $sensorWrapper = $sensorWrapperRepository->findOneBy(["name" => $name, 'deleted' => false]);
             } else if($data['sensor']){
                 $code = $data['sensor'];
                 $sensor = $sensorRepository->findOneBy(["code" => $code]);
-                $sensorWrapper = $sensorWrapperRepository->findOneBy(["sensor" => $sensor]);
+                $sensorWrapper = $sensorWrapperRepository->findOneBy(["sensor" => $sensor, 'deleted' => false]);
             } else {
                 $sensorWrapper = null;
             }
@@ -134,7 +134,6 @@ class TriggerActionController extends AbstractController
                         . $sensorWrapper->getSensor()->getProfile()->getMaxTriggers() . " action(s) associée(s)."
                 ]);
             }
-
             return $this->json([
                 'success' => true,
                 'msg' => "L'actionneur a bien été créé",
