@@ -143,7 +143,7 @@ class PairingRepository extends EntityRepository
                             'search_article.barCode LIKE :value',
                             'search_collectOrder.numero LIKE :value',
                             'search_location.label LIKE :value',
-                            'locationGroup.name LIKE :value',
+                            'search_locationGroup.name LIKE :value',
                             'search_pack.code LIKE :value',
                             'search_preparationOrder.numero LIKE :value',
                             'search_deliveryRequest.numero LIKE :value',
