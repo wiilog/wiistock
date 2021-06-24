@@ -31,13 +31,15 @@ use Symfony\Component\Routing\Annotation\Route;
 /**
  * @Route("/parametrage/modele-demande")
  */
-class RequestTemplateController extends AbstractController {
+class RequestTemplateController extends AbstractController
+{
 
     /**
      * @Route("/", name="request_template_index")
      * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE})
      */
-    public function index(EntityManagerInterface $manager): Response {
+    public function index(EntityManagerInterface $manager): Response
+    {
         $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
 
@@ -53,7 +55,7 @@ class RequestTemplateController extends AbstractController {
             },
             'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY),
             "fields_param" => $fieldsParam,
-            "handling_free_fields_types" => array_map(function(Type $type) use ($freeFieldsRepository) {
+            "handling_free_fields_types" => array_map(function (Type $type) use ($freeFieldsRepository) {
                 $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_HANDLING);
                 return [
                     "typeLabel" => $type->getLabel(),
@@ -61,7 +63,7 @@ class RequestTemplateController extends AbstractController {
                     "freeFields" => $freeFields,
                 ];
             }, $handlingTypes),
-            "delivery_free_fields_types" => array_map(function(Type $type) use ($freeFieldsRepository) {
+            "delivery_free_fields_types" => array_map(function (Type $type) use ($freeFieldsRepository) {
                 $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
                 return [
                     "typeLabel" => $type->getLabel(),
@@ -69,7 +71,7 @@ class RequestTemplateController extends AbstractController {
                     "freeFields" => $freeFields,
                 ];
             }, $deliveryTypes),
-            "collect_free_fields_types" => array_map(function(Type $type) use ($freeFieldsRepository) {
+            "collect_free_fields_types" => array_map(function (Type $type) use ($freeFieldsRepository) {
                 $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_COLLECTE);
                 return [
                     "typeLabel" => $type->getLabel(),
@@ -84,7 +86,8 @@ class RequestTemplateController extends AbstractController {
      * @Route("/api", name="request_template_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
      */
-    public function api(Request $request, EntityManagerInterface $manager): Response {
+    public function api(Request $request, EntityManagerInterface $manager): Response
+    {
         $requestTemplateRepository = $manager->getRepository(RequestTemplate::class);
 
         $queryResult = $requestTemplateRepository->findByParamsAndFilters($request->request);
@@ -113,7 +116,8 @@ class RequestTemplateController extends AbstractController {
      * @Route("/creer", name="request_template_new", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
      */
-    public function new(Request $request, EntityManagerInterface $manager, RequestTemplateService $service): Response {
+    public function new(Request $request, EntityManagerInterface $manager, RequestTemplateService $service): Response
+    {
         if (!($data = json_decode($request->getContent(), true))) {
             $data = $request->request->all();
         }
@@ -149,7 +153,8 @@ class RequestTemplateController extends AbstractController {
      * @Route("/api-modifier", name="request_template_edit_api", options={"expose"=true}, methods="GET|POST")
      * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
      */
-    public function editApi(Request $request, EntityManagerInterface $manager): Response {
+    public function editApi(Request $request, EntityManagerInterface $manager): Response
+    {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $requestTemplateRepository = $manager->getRepository(RequestTemplate::class);
             $requestTemplate = $requestTemplateRepository->find($data['id']);
@@ -171,7 +176,8 @@ class RequestTemplateController extends AbstractController {
      * @Route("/modifier", name="request_template_edit", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
      */
-    public function edit(Request $request, EntityManagerInterface $manager, RequestTemplateService $service): Response {
+    public function edit(Request $request, EntityManagerInterface $manager, RequestTemplateService $service): Response
+    {
         if (!($data = json_decode($request->getContent(), true))) {
             $data = $request->request->all();
         }
@@ -196,7 +202,8 @@ class RequestTemplateController extends AbstractController {
      * @Route("/api-supprimer", name="request_template_delete_api", options={"expose"=true}, methods="GET|POST")
      * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
      */
-    public function deleteApi(Request $request, EntityManagerInterface $manager): Response {
+    public function deleteApi(Request $request, EntityManagerInterface $manager): Response
+    {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $requestTemplateRepository = $manager->getRepository(RequestTemplate::class);
             $requestTemplate = $requestTemplateRepository->find($data["id"]);
@@ -213,7 +220,8 @@ class RequestTemplateController extends AbstractController {
      * @Route("/supprimer", name="request_template_delete", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
      */
-    public function delete(Request $request, EntityManagerInterface $manager): Response {
+    public function delete(Request $request, EntityManagerInterface $manager): Response
+    {
         $data = json_decode($request->getContent(), true);
 
         $requestTemplateRepository = $manager->getRepository(RequestTemplate::class);
@@ -241,7 +249,8 @@ class RequestTemplateController extends AbstractController {
      * @Route("/voir/{requestTemplate}", name="request_template_show")
      * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE})
      */
-    public function show(RequestTemplateService $service, RequestTemplate $requestTemplate): Response {
+    public function show(RequestTemplateService $service, RequestTemplate $requestTemplate): Response
+    {
         if ($requestTemplate instanceof HandlingRequestTemplate) {
             return $this->render("securite/access_denied.html.twig");
         }
@@ -249,7 +258,8 @@ class RequestTemplateController extends AbstractController {
         return $this->render("request_template/show.html.twig", [
             "request_template" => $requestTemplate,
             "new_line" => new RequestTemplateLine(),
-            "details" => $service->createHeaderDetailsConfig($requestTemplate)
+            "details" => $service->createHeaderDetailsConfig($requestTemplate),
+            "quantityText" => $requestTemplate instanceof DeliveryRequestTemplate ? "Quantité à livrer" : "Quantité à prélever"
         ]);
     }
 
@@ -257,7 +267,8 @@ class RequestTemplateController extends AbstractController {
      * @Route("/ligne/api/{requestTemplate}", name="request_template_article_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
      */
-    public function articleApi(Request $request, EntityManagerInterface $manager, RequestTemplate $requestTemplate): Response {
+    public function articleApi(Request $request, EntityManagerInterface $manager, RequestTemplate $requestTemplate): Response
+    {
         $requestTemplateLineRepository = $manager->getRepository(RequestTemplateLine::class);
 
         $lines = $requestTemplateLineRepository->findByParams($requestTemplate, $request->request);
@@ -287,7 +298,8 @@ class RequestTemplateController extends AbstractController {
      * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
      */
     public function newLine(Request $request, EntityManagerInterface $manager,
-                            RequestTemplateService $service, RequestTemplate $requestTemplate): Response {
+                            RequestTemplateService $service, RequestTemplate $requestTemplate): Response
+    {
         if (!($data = json_decode($request->getContent(), true))) {
             $data = $request->request->all();
         }
@@ -310,13 +322,15 @@ class RequestTemplateController extends AbstractController {
      * @Route("/ligne/api-modifier", name="request_template_line_edit_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
      */
-    public function editLineApi(Request $request, EntityManagerInterface $manager): Response {
+    public function editLineApi(Request $request, EntityManagerInterface $manager): Response
+    {
         if ($data = json_decode($request->getContent(), true)) {
             $requestTemplateLineRepository = $manager->getRepository(RequestTemplateLine::class);
             $line = $requestTemplateLineRepository->find($data["id"]);
 
             return $this->json($this->renderView("request_template/forms/line.html.twig", [
                 "line" => $line,
+                "quantityText" => $line->getDeliveryRequestTemplate() ? "Quantité à livrer" : "Quantité à prélever"
             ]));
         }
 
@@ -327,7 +341,8 @@ class RequestTemplateController extends AbstractController {
      * @Route("/ligne/edit", name="request_template_line_edit", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
      */
-    public function editLine(Request $request, EntityManagerInterface $manager, RequestTemplateService $service): Response {
+    public function editLine(Request $request, EntityManagerInterface $manager, RequestTemplateService $service): Response
+    {
         if (!($data = json_decode($request->getContent(), true))) {
             $data = $request->request->all();
         }
@@ -352,7 +367,8 @@ class RequestTemplateController extends AbstractController {
      * @Route("/line/supprimer/{line}", name="request_template_line_remove", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
      */
-    public function deleteLine(EntityManagerInterface $manager, RequestTemplateLine $line): Response {
+    public function deleteLine(EntityManagerInterface $manager, RequestTemplateLine $line): Response
+    {
         $manager->remove($line);
         $manager->flush();
 

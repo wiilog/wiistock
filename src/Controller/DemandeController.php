@@ -164,9 +164,15 @@ class DemandeController extends AbstractController
             $demandeRepository = $entityManager->getRepository(Demande::class);
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
+            $demande = $demandeRepository->find($data['demandeId']);
+            if(isset($data['type'])) {
+                $type = $typeRepository->find(intval($data['type']));
+            } else {
+                $type = $demande->getType();
+            }
+
             // vérification des champs Libres obligatoires
             $requiredEdit = true;
-            $type = $typeRepository->find(intval($data['type']));
             $CLRequired = $champLibreRepository->getByTypeAndRequiredEdit($type);
             foreach ($CLRequired as $CL) {
                 if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
@@ -177,7 +183,6 @@ class DemandeController extends AbstractController
             if ($requiredEdit) {
                 $utilisateur = $utilisateurRepository->find(intval($data['demandeur']));
                 $emplacement = $emplacementRepository->find(intval($data['destination']));
-                $demande = $demandeRepository->find($data['demandeId']);
                 $demande
                     ->setUtilisateur($utilisateur)
                     ->setDestination($emplacement)
