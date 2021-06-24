@@ -53,6 +53,7 @@ function ajaxGetCollecteArticle(select) {
     let path = Routing.generate('get_collecte_article_by_refArticle', true);
     let params = JSON.stringify(data);
     $.post(path, params).then((data) => {
+        $selection.html(data.selection);
         if (data.modif) {
             $editNewArticle.html(data.modif);
             registerNumberInputProtection($editNewArticle.find('input[type="number"]'));
