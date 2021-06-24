@@ -35,8 +35,9 @@ class TriggerActionController extends AbstractController
      */
     public function index(EntityManagerInterface $entityManager): Response
     {
-        $sensorWrappers= $entityManager->getRepository(SensorWrapper::class)->findBy([],["name"=>"ASC"]);
-
+        $sensorWrappers= $entityManager->getRepository(SensorWrapper::class)->findBy([
+            'deleted' => false
+        ],["name"=>"ASC"]);
         return $this->render('trigger_action/index.html.twig', [
             "sensorWrappers" => $sensorWrappers,
             "templateTypes" => TriggerAction::TEMPLATE_TYPES,
