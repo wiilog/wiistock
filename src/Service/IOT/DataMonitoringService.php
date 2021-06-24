@@ -336,7 +336,7 @@ class DataMonitoringService
     {
         $subtitlePrefix = [
             'start' => 'Associé le : ',
-            'end' => 'Dissocié le : '
+            'end' => $date > new DateTime() ? "Fin le : " : "Dissocié le : ",
         ];
 
         $dateStr = $dataRow['date'] ?? null;
