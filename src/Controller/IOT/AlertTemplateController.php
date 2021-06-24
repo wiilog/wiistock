@@ -114,9 +114,10 @@ class AlertTemplateController extends AbstractController
 
             $hasFile = $request->files->has('image');
             $fileName = [];
+            $originalName = '';
             if($request->files->has('image')) {
                 $file = $request->files->get('image');
-                $name = $file->getClientOriginalName();
+                $originalName = $file->getClientOriginalName();
                 $fileName = $attachmentService->saveFile($file);
             }
 
@@ -124,7 +125,7 @@ class AlertTemplateController extends AbstractController
                 'receivers' => PostHelper::string($post, 'receivers'),
                 'subject' => PostHelper::string($post, 'subject'),
                 'content' => PostHelper::string($post, 'content'),
-                'image' => $hasFile ? $fileName[$name] : ''
+                'image' => $hasFile ? $fileName[$originalName] : ''
             ];
         } else if($type === AlertTemplate::SMS) {
             $config = [
