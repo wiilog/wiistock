@@ -45,7 +45,10 @@ class PairingService
 
         return [
             'actions' => $this->twigEnvironment->render('IOT/sensors_pairing/actions.html.twig', [
-                'pairingId' => $pairing->getId()
+                "entity_info" => [
+                    "id" => $pairing->getEntity()->getId(),
+                    "type" => IOTService::getEntityCodeFromEntity($pairing->getEntity()),
+                ],
             ]),
             'id' => $pairing->getId(),
             'element' => (string) $element,

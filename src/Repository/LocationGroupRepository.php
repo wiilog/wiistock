@@ -2,12 +2,11 @@
 
 namespace App\Repository;
 
+use App\Entity\Emplacement;
 use App\Entity\LocationGroup;
 use App\Helper\QueryCounter;
-use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use WiiCommon\Helper\StringHelper;
-use function Doctrine\ORM\QueryBuilder;
 
 /**
  * @method LocationGroup|null find($id, $lockMode = null, $lockVersion = null)
@@ -77,13 +76,11 @@ class LocationGroupRepository extends EntityRepository
 
     /**
      * @param LocationGroup $locationGroup
-     * @param ['ignoredLocation' => Emplacement|null] $options
      * @return string
      */
-    public function createSensorPairingDataQueryUnion(LocationGroup $locationGroup, array $options = []): string {
-        $ignoredLocation = $options['ignoredLocation'] ?? null;
-        $createQueryBuilder = function () use ($ignoredLocation) {
-            $queryBuilder = $this->createQueryBuilder('locationGroup')
+    public function createSensorPairingDataQueryUnion(LocationGroup $locationGroup): string {
+        $createQueryBuilder = function () {
+            return $this->createQueryBuilder('locationGroup')
                 ->select('pairing.id AS pairingId')
                 ->addSelect('sensorWrapper.name AS name')
                 ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
@@ -91,12 +88,6 @@ class LocationGroupRepository extends EntityRepository
                 ->join('locationGroup.pairings', 'pairing')
                 ->join('pairing.sensorWrapper', 'sensorWrapper')
                 ->where('locationGroup = :locationGroup');
-
-            if (isset($ignoredLocation)) {
-                $queryBuilder
-                    ->andWhere('(pairing.location IS NULL OR pairing.location != :ignoredLocation)');
-            }
-            return $queryBuilder;
         };
 
         $startQueryBuilder = $createQueryBuilder();
@@ -127,12 +118,61 @@ class LocationGroupRepository extends EntityRepository
         $endSQL = $endQueryBuilder->getQuery()->getSQL();
         $endSQL = StringHelper::multiplePregReplace($sqlAliases, $endSQL, 1);
 
-        if (isset($ignoredLocation)) {
-            // second ? in SQL
-            $sqlAliases = ['/\?/' => $ignoredLocation->getId()];
-            $startSQL = StringHelper::multiplePregReplace($sqlAliases, $startSQL, 1);
-            $endSQL = StringHelper::multiplePregReplace($sqlAliases, $endSQL, 1);
-        }
+        return "
+            ($startSQL)
+            UNION
+            ($endSQL)
+        ";
+    }
+
+    /**
+     * @param LocationGroup $locationGroup
+     * @return string
+     */
+    public function createLocationSensorPairingDataQueryUnion(Emplacement $location): string {
+        $entityManager = $this->getEntityManager();
+        $createQueryBuilder = function () use ($entityManager) {
+            return $entityManager->createQueryBuilder()
+                ->from(Emplacement::class, 'location')
+                ->select('pairing.id AS pairingId')
+                ->addSelect('sensorWrapper.name AS name')
+                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
+                ->addSelect('locationGroup.name AS entity')
+                ->join('location.sensorMessages', 'sensorMessage')
+                ->join('sensorMessage.pairings', 'pairing')
+                ->join('pairing.locationGroup', 'locationGroup')
+                ->join('pairing.sensorWrapper', 'sensorWrapper')
+                ->where('location = :location')
+                ->andWhere('pairing.location IS NULL');
+        };
+
+        $startQueryBuilder = $createQueryBuilder();
+        $startQueryBuilder
+            ->addSelect("pairing.start AS date")
+            ->addSelect("'start' AS type")
+            ->andWhere('pairing.start IS NOT NULL');
+
+        $endQueryBuilder = $createQueryBuilder();
+        $endQueryBuilder
+            ->addSelect("pairing.end AS date")
+            ->addSelect("'end' AS type")
+            ->andWhere('pairing.end IS NOT NULL');
+
+        $sqlAliases = [
+            '/AS \w+_0/' => 'AS pairingId',
+            '/AS \w+_1/' => 'AS name',
+            '/AS \w+_2/' => 'AS active',
+            '/AS \w+_3/' => 'AS entity',
+            '/AS \w+_4/' => 'AS date',
+            '/AS \w+_5/' => 'AS type',
+            '/\?/' => $location->getId(),
+        ];
+
+        $startSQL = $startQueryBuilder->getQuery()->getSQL();
+        $startSQL = StringHelper::multiplePregReplace($sqlAliases, $startSQL, 1);
+
+        $endSQL = $endQueryBuilder->getQuery()->getSQL();
+        $endSQL = StringHelper::multiplePregReplace($sqlAliases, $endSQL, 1);
 
         return "
             ($startSQL)

@@ -278,7 +278,7 @@ class EmplacementRepository extends EntityRepository
         ";
 
         if ($locationGroup) {
-            $locationGroupSQL = $locationGroupRepository->createSensorPairingDataQueryUnion($locationGroup, ['ignoredLocation' => $location]);
+            $locationGroupSQL = $locationGroupRepository->createLocationSensorPairingDataQueryUnion($location);
             $res .= "
                 UNION
                 $locationGroupSQL

@@ -96,7 +96,7 @@ class DataMonitoringService
         $config["end"] = $pairing->getEnd();
         $config["left_pane"][] = [
             "type" => "sensor",
-            "icon" => "wifi",
+            "icon" => Sensor::SENSOR_ICONS[$pairing->getSensorWrapper()->getSensor()->getType()->getLabel()],
             "title" => $pairing->getSensorWrapper()->getName(),
             "pairing" => $pairing,
             "header" => true
@@ -182,7 +182,7 @@ class DataMonitoringService
                 "title" => $preparation->getLivraison()->getNumero(),
                 "entity_info" => [
                     "id" => $preparation->getLivraison()->getId(),
-                    "type" => IOTService::getEntityCodeFromEntity($preparation->getLivraison()),
+                    "type" => IOTService::getEntityCodeFromEntity($preparation->getDemande()),
                 ],
             ];
         }
