@@ -97,13 +97,7 @@ class EmplacementDataService {
                 ? $locationLastMessage->getSensor()->getAvailableSensorWrapper()->getName()
                 : null);
 
-        $hasPairing = (
-            !$emplacement->getPairings()->isEmpty()
-            || (
-                $emplacement->getLocationGroup()
-                && $emplacement->getLocationGroup()->getPairings()->isEmpty()
-            )
-        );
+        $hasPairing = !$emplacement->getPairings()->isEmpty() || !$emplacement->getSensorMessages()->isEmpty();
 
         return [
             'id' => $emplacement->getId(),
