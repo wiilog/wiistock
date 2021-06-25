@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Emplacement;
+use App\Entity\LocationGroup;
 use Doctrine\ORM\EntityRepository;
 use WiiCommon\Helper\StringHelper;
 
@@ -227,11 +228,16 @@ class EmplacementRepository extends EntityRepository
     }
 
     private function createSensorPairingDataQueryUnion(Emplacement $location): string {
+        $entityManager = $this->getEntityManager();
+        $locationGroupRepository = $entityManager->getRepository(LocationGroup::class);
+        $locationGroup = $location->getLocationGroup();
+
         $createQueryBuilder = function () {
             return $this->createQueryBuilder('location')
                 ->select('pairing.id AS pairingId')
                 ->addSelect('sensorWrapper.name AS name')
                 ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
+                ->addSelect('location.label AS entity')
                 ->join('location.pairings', 'pairing')
                 ->join('pairing.sensorWrapper', 'sensorWrapper')
                 ->where('location = :location');
@@ -253,8 +259,9 @@ class EmplacementRepository extends EntityRepository
             '/AS \w+_0/' => 'AS pairingId',
             '/AS \w+_1/' => 'AS name',
             '/AS \w+_2/' => 'AS active',
-            '/AS \w+_3/' => 'AS date',
-            '/AS \w+_4/' => 'AS type',
+            '/AS \w+_3/' => 'AS entity',
+            '/AS \w+_4/' => 'AS date',
+            '/AS \w+_5/' => 'AS type',
             '/\?/' => $location->getId(),
         ];
 
@@ -264,11 +271,21 @@ class EmplacementRepository extends EntityRepository
         $endSQL = $endQueryBuilder->getQuery()->getSQL();
         $endSQL = StringHelper::multiplePregReplace($sqlAliases, $endSQL);
 
-        return "
+        $res = "
             ($startSQL)
             UNION
             ($endSQL)
         ";
+
+        if ($locationGroup) {
+            $locationGroupSQL = $locationGroupRepository->createSensorPairingDataQueryUnion($locationGroup);
+            $res .= "
+                UNION
+                $locationGroupSQL
+            ";
+        }
+
+        return $res;
     }
 
     public function getSensorPairingData(Emplacement $location, int $start, int $count): array {

@@ -742,9 +742,16 @@ class Emplacement implements PairedEntity
         return $this->locationGroup;
     }
 
-    public function setLocationGroup(?LocationGroup $locationGroup): self
-    {
+    public function setLocationGroup(?LocationGroup $locationGroup): self {
+        if($this->locationGroup && $this->locationGroup !== $locationGroup) {
+            $this->locationGroup->removeLocation($this);
+        }
+
         $this->locationGroup = $locationGroup;
+
+        if($locationGroup) {
+            $locationGroup->addLocation($this);
+        }
 
         return $this;
     }

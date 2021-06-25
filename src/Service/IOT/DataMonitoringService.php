@@ -329,7 +329,10 @@ class DataMonitoringService
                 ->filterMap(fn(array $dataRow) => $this->getTimelineDataRow($dataRow, $entity, $router))
                 ->toArray(),
             'isEnd' => $pairingDataCount <= ($start + $count),
-            'isGrouped' => $entity instanceof Demande
+            'isGrouped' => (
+                ($entity instanceof Demande)
+                || ($entity instanceof Emplacement)
+            )
         ];
     }
 
@@ -364,6 +367,9 @@ class DataMonitoringService
                 $row['group'] = ($type === 'startOrder' || ($type === 'end' && !empty($dataRow['deliveryNumber'])))
                     ? $dataRow['deliveryNumber']
                     : $dataRow['preparationNumber'];
+            }
+            else if ($entity instanceof Emplacement) {
+                $row['group'] = $dataRow['entity'];
             }
 
             return $row;

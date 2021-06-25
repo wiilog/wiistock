@@ -75,12 +75,13 @@ class LocationGroupRepository extends EntityRepository
             ->getResult();
     }
 
-    private function createSensorPairingDataQueryUnion(LocationGroup $locationGroup): string {
+    public function createSensorPairingDataQueryUnion(LocationGroup $locationGroup): string {
         $createQueryBuilder = function () {
             return $this->createQueryBuilder('locationGroup')
                 ->select('pairing.id AS pairingId')
                 ->addSelect('sensorWrapper.name AS name')
                 ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
+                ->addSelect('locationGroup.name AS entity')
                 ->join('locationGroup.pairings', 'pairing')
                 ->join('pairing.sensorWrapper', 'sensorWrapper')
                 ->where('locationGroup = :locationGroup');
@@ -102,8 +103,9 @@ class LocationGroupRepository extends EntityRepository
             '/AS \w+_0/' => 'AS pairingId',
             '/AS \w+_1/' => 'AS name',
             '/AS \w+_2/' => 'AS active',
-            '/AS \w+_3/' => 'AS date',
-            '/AS \w+_4/' => 'AS type',
+            '/AS \w+_3/' => 'AS entity',
+            '/AS \w+_4/' => 'AS date',
+            '/AS \w+_5/' => 'AS type',
             '/\?/' => $locationGroup->getId()
         ];
 

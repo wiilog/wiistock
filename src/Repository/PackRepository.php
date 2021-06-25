@@ -502,6 +502,4 @@ class PackRepository extends EntityRepository
         $res = $unionQuery->fetchAllAssociative();
         return $res[0]['count'] ?? 0;
     }
-
-
 }
