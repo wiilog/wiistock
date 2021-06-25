@@ -75,6 +75,8 @@ function initMap(element) {
         let globalBounds = Leaflet.latLngBounds();
 
         const responseValues = Object.values(response);
+        // hide the map if there are no sensors
+        $element.toggle(responseValues.length > 0);
         if(responseValues.length > 0) {
             responseValues.forEach(((date) => {
                 Object.values(date).forEach((coordinates) => {
@@ -83,9 +85,6 @@ function initMap(element) {
             }));
 
             map.fitBounds(globalBounds);
-
-            // hide the map if there are no sensors
-            $element.toggle(sensors.length > 0);
 
             sensors.forEach((sensor) => {
                 const dates = Object.keys(response[sensor]);
