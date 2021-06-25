@@ -182,7 +182,7 @@ class DataMonitoringService
                 "title" => $preparation->getLivraison()->getNumero(),
                 "entity_info" => [
                     "id" => $preparation->getLivraison()->getId(),
-                    "type" => IOTService::getEntityCodeFromEntity($preparation->getLivraison()),
+                    "type" => IOTService::getEntityCodeFromEntity($preparation->getDemande()),
                 ],
             ];
         }
