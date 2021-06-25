@@ -312,7 +312,7 @@ class CollecteRepository extends EntityRepository
                 ->join('collectRequest.ordreCollecte', 'collectOrder')
                 ->join('collectOrder.pairings', 'pairing')
                 ->join('pairing.sensorWrapper', 'sensorWrapper')
-                ->where('collectOrder = :collectOrder');
+                ->where('collectRequest = :collectRequest');
         };
 
         $startQueryBuilder = $createQueryBuilder();

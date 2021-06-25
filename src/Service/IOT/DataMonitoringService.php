@@ -203,7 +203,22 @@ class DataMonitoringService
     {
         $config["left_pane"][] = [
             "type" => "entity",
-            "icon" => "iot-collect",
+            "icon" => "iot-collect-order",
+            "title" => $collect->getNumero(),
+            "header" => $header,
+            "hideActions" => $header,
+            "entity_info" => [
+                "id" => $collect->getId(),
+                "type" => IOTService::getEntityCodeFromEntity($collect),
+            ],
+        ];
+    }
+
+    private function fillCollectRequestConfig(array &$config, Collecte $collect, bool $header)
+    {
+        $config["left_pane"][] = [
+            "type" => "entity",
+            "icon" => "iot-collect-order",
             "title" => $collect->getNumero(),
             "header" => $header,
             "hideActions" => $header,
@@ -269,6 +284,8 @@ class DataMonitoringService
             $this->fillDeliveryRequestConfig($config, $entity, $isHistoric);
         } else if ($entity instanceof OrdreCollecte) {
             $this->fillCollectOrderConfig($config, $entity, $isHistoric);
+        } else if ($entity instanceof Collecte) {
+            $this->fillCollectRequestConfig($config, $entity, $isHistoric);
         } else if ($entity instanceof Article) {
             $this->fillArticleConfig($config, $entity, $isHistoric);
         } else {

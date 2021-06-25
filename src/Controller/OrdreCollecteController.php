@@ -89,18 +89,9 @@ class OrdreCollecteController extends AbstractController
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_COLL})
      */
     public function show(OrdreCollecte $ordreCollecte,
-                         OrdreCollecteService $ordreCollecteService,
-                         EntityManagerInterface $entityManager): Response
+                         OrdreCollecteService $ordreCollecteService): Response
     {
-        $sensorWrappers= $entityManager->getRepository(SensorWrapper::class)->findWithNoActiveAssociation();
-        $sensorWrappers = Stream::from($sensorWrappers)
-            ->filter(function(SensorWrapper $wrapper) {
-                return $wrapper->getPairings()->filter(function(Pairing $pairing) {
-                    return $pairing->isActive();
-                })->isEmpty();
-            });
         return $this->render('ordre_collecte/show.html.twig', [
-            "sensorWrappers" => $sensorWrappers,
             'collecte' => $ordreCollecte,
             'finished' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_TRAITE,
             'detailsConfig' => $ordreCollecteService->createHeaderDetailsConfig($ordreCollecte)
