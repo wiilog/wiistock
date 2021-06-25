@@ -4,6 +4,8 @@ namespace App\Entity\IOT;
 
 use App\Repository\IOT\SensorMessageRepository;
 use DateTimeInterface;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -52,6 +54,15 @@ class SensorMessage
      * @ORM\OneToOne(targetEntity="App\Entity\IOT\Sensor", mappedBy="lastMessage")
      */
     private ?Sensor $linkedSensorLastMessage = null;
+
+    /**
+     * @ORM\ManyToMany(targetEntity=Pairing::class, mappedBy="sensorMessages")
+     */
+    private Collection $pairings;
+
+    public function __construct() {
+        $this->pairings = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -139,5 +150,9 @@ class SensorMessage
             $this->linkedSensorLastMessage->setLastMessage($this);
         }
         return $this;
+    }
+
+    public function getPairings(): Collection {
+        return $this->pairings;
     }
 }

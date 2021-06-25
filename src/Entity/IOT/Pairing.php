@@ -11,8 +11,8 @@ use App\Entity\OrdreCollecte;
 use App\Entity\Article;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use ReflectionClass;
 
 /**
  * @ORM\Entity(repositoryClass=PairingRepository::class)
@@ -78,6 +78,11 @@ class Pairing
      * @ORM\ManyToOne(targetEntity=SensorWrapper::class, inversedBy="pairings")
      */
     private ?SensorWrapper $sensorWrapper = null;
+
+    /**
+     * @ORM\ManyToMany(targetEntity=SensorMessage::class, inversedBy="pairings")
+     */
+    private Collection $sensorMessages;
 
     public function __construct()
     {
