@@ -178,7 +178,7 @@ class DataMonitoringService
         $items = [];
         if ($preparation->getLivraison()) {
             $items[] = [
-                "icon" => "iot-delivery",
+                "icon" => "iot-delivery-request",
                 "title" => $preparation->getLivraison()->getNumero(),
             ];
         }
@@ -204,7 +204,7 @@ class DataMonitoringService
     {
         $config["left_pane"][] = [
             "type" => "entity",
-            "icon" => "iot-delivery",
+            "icon" => "iot-delivery-request",
             "title" => $deliveryRequest->getNumero(),
             "header" => $header,
             "hideActions" => $header,
