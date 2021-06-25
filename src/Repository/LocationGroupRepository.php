@@ -117,7 +117,7 @@ class LocationGroupRepository extends EntityRepository
         $startSQL = StringHelper::multiplePregReplace($sqlAliases, $startSQL);
 
         $endSQL = $endQueryBuilder->getQuery()->getSQL();
-        $endSQL = StringHelper::multiplePregReplace($sqlAliases, $endSQL, 1);
+        $endSQL = StringHelper::multiplePregReplace($sqlAliases, $endSQL);
 
         return "
             ($startSQL)
@@ -170,10 +170,10 @@ class LocationGroupRepository extends EntityRepository
         ];
 
         $startSQL = $startQueryBuilder->getQuery()->getSQL();
-        $startSQL = StringHelper::multiplePregReplace($sqlAliases, $startSQL, 1);
+        $startSQL = StringHelper::multiplePregReplace($sqlAliases, $startSQL);
 
         $endSQL = $endQueryBuilder->getQuery()->getSQL();
-        $endSQL = StringHelper::multiplePregReplace($sqlAliases, $endSQL, 1);
+        $endSQL = StringHelper::multiplePregReplace($sqlAliases, $endSQL);
 
         return "
             ($startSQL)
@@ -226,10 +226,10 @@ class LocationGroupRepository extends EntityRepository
         ];
 
         $startSQL = $startQueryBuilder->getQuery()->getSQL();
-        $startSQL = StringHelper::multiplePregReplace($sqlAliases, $startSQL, 1);
+        $startSQL = StringHelper::multiplePregReplace($sqlAliases, $startSQL);
 
         $endSQL = $endQueryBuilder->getQuery()->getSQL();
-        $endSQL = StringHelper::multiplePregReplace($sqlAliases, $endSQL, 1);
+        $endSQL = StringHelper::multiplePregReplace($sqlAliases, $endSQL);
 
         return "
             ($startSQL)

@@ -2,7 +2,10 @@
 
 namespace App\Repository;
 
+use App\Entity\Article;
 use App\Entity\FiltreSup;
+use App\Entity\LocationGroup;
+use App\Entity\Pack;
 use App\Entity\Preparation;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
@@ -14,6 +17,7 @@ use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
 use Generator;
+use WiiCommon\Helper\StringHelper;
 
 /**
  * @method Preparation|null find($id, $lockMode = null, $lockVersion = null)
@@ -363,6 +367,62 @@ class PreparationRepository extends EntityRepository
         else {
             return null;
         }
+    }
+
+    /**
+     * @param LocationGroup $locationGroup
+     * @return string
+     */
+    public function createArticleSensorPairingDataQueryUnion(Article $article): string {
+        $entityManager = $this->getEntityManager();
+        $createQueryBuilder = function () use ($entityManager) {
+            return $entityManager->createQueryBuilder()
+                ->from(Pack::class, 'article')
+                ->select('pairing.id AS pairingId')
+                ->addSelect('sensorWrapper.name AS name')
+                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
+                ->addSelect('preparation.numero AS entity')
+                ->join('article.sensorMessages', 'sensorMessage')
+                ->join('sensorMessage.pairings', 'pairing')
+                ->join('pairing.preparation', 'preparation')
+                ->join('pairing.sensorWrapper', 'sensorWrapper')
+                ->where('article = :article')
+                ->andWhere('pairing.article IS NULL');
+        };
+
+        $startQueryBuilder = $createQueryBuilder();
+        $startQueryBuilder
+            ->addSelect("pairing.start AS date")
+            ->addSelect("'start' AS type")
+            ->andWhere('pairing.start IS NOT NULL');
+
+        $endQueryBuilder = $createQueryBuilder();
+        $endQueryBuilder
+            ->addSelect("pairing.end AS date")
+            ->addSelect("'end' AS type")
+            ->andWhere('pairing.end IS NOT NULL');
+
+        $sqlAliases = [
+            '/AS \w+_0/' => 'AS pairingId',
+            '/AS \w+_1/' => 'AS name',
+            '/AS \w+_2/' => 'AS active',
+            '/AS \w+_3/' => 'AS entity',
+            '/AS \w+_4/' => 'AS date',
+            '/AS \w+_5/' => 'AS type',
+            '/\?/' => $article->getId(),
+        ];
+
+        $startSQL = $startQueryBuilder->getQuery()->getSQL();
+        $startSQL = StringHelper::multiplePregReplace($sqlAliases, $startSQL);
+
+        $endSQL = $endQueryBuilder->getQuery()->getSQL();
+        $endSQL = StringHelper::multiplePregReplace($sqlAliases, $endSQL);
+
+        return "
+            ($startSQL)
+            UNION
+            ($endSQL)
+        ";
     }
 
 }
