@@ -167,9 +167,7 @@ class PairingController extends AbstractController {
                     'msg' => 'Un capteur/code capteur est obligatoire pour valider l\'association'
                 ]);
             }
-
-            $end = new DateTime($data['date-pairing']);
-            $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->findByNameOrCode($data['sensor'], $data['sensorCode']);
+            $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->findByNameOrCode($data['sensorWrapper'], $data['sensor']);
 
             if(isset($data['article'])) {
                 $article = $entityManager->getRepository(Article::class)->find($data['article']);
@@ -184,7 +182,7 @@ class PairingController extends AbstractController {
                 }
             }
 
-            $pairingLocation = $pairingService->createPairing($end, $sensorWrapper, $article ?? null, $location ?? null, $locationGroup ?? null, $pack ?? null);
+            $pairingLocation = $pairingService->createPairing($data['date-pairing'], $sensorWrapper, $article ?? null, $location ?? null, $locationGroup ?? null, $pack ?? null);
             $entityManager->persist($pairingLocation);
 
             try {

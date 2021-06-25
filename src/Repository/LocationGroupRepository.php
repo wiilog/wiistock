@@ -110,11 +110,11 @@ class LocationGroupRepository extends EntityRepository
             '/AS \w+_3/' => 'AS entity',
             '/AS \w+_4/' => 'AS date',
             '/AS \w+_5/' => 'AS type',
-            '/\?/' => $locationGroup->getId(), // first ? in SQL
+            '/\?/' => $locationGroup->getId()
         ];
 
         $startSQL = $startQueryBuilder->getQuery()->getSQL();
-        $startSQL = StringHelper::multiplePregReplace($sqlAliases, $startSQL, 1);
+        $startSQL = StringHelper::multiplePregReplace($sqlAliases, $startSQL);
 
         $endSQL = $endQueryBuilder->getQuery()->getSQL();
         $endSQL = StringHelper::multiplePregReplace($sqlAliases, $endSQL, 1);

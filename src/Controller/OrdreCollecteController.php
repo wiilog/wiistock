@@ -460,14 +460,14 @@ class OrdreCollecteController extends AbstractController
                                             Request $request): Response
     {
         if($data = json_decode($request->getContent(), true)) {
-            if(!$data['sensor'] && !$data['sensorCode']) {
+            if(!$data['sensorWrapper'] && !$data['sensor']) {
                 return $this->json([
                     'success' => false,
                     'msg' => 'Un capteur/code capteur est obligatoire pour valider l\'association'
                 ]);
             }
 
-            $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->findByNameOrCode($data['sensor'], $data['sensorCode']);
+            $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->findByNameOrCode($data['sensorWrapper'], $data['sensor']);
             $collectOrder = $entityManager->getRepository(OrdreCollecte::class)->find($data['orderID']);
 
             $pairingOrderCollect = $collecteService->createPairing($sensorWrapper, $collectOrder);

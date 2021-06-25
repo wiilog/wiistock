@@ -15,14 +15,8 @@
                                 Capteur*
                             </label>
                             <div class="w-100">
-                                <select class="select2 ajax-autocomplete form-control data needed" name="sensorWrapper"
-                                        onchange="onDeviceChanged($(this), true)">
-                                    <option value=""></option>
-                                    {% for sensorWrapper in sensorWrappers %}
-                                        {% if sensorWrapper.sensor.type.label != constant('App\\Entity\\IOT\\Sensor::GPS') %}
-                                            <option value="{{ sensorWrapper.name }}" data-value="{{ sensorWrapper.name }}">{{ sensorWrapper.name }}</option>
-                                        {% endif %}
-                                    {% endfor %}
+                                <select class="form-control data needed" name="sensorWrapper" data-s2="triggerSensorWithoutPairing"
+                                        onchange="onDeviceChanged($(this))" data-placeholder="selectionner un nom de capteur">
                                 </select>
                             </div>
 
@@ -33,14 +27,8 @@
                         <div class="form-group col-12 col-md-5">
                             <label>Code</label>
                             <div class="w-100">
-                                <select class="select2 ajax-autocomplete form-control data" name="sensorCode"
-                                        onchange="onDeviceChanged($(this), true)">
-                                    <option value=""></option>
-                                    {% for sensorWrapper in sensorWrappers %}
-                                        {% if sensorWrapper.sensor.type.label != constant('App\\Entity\\IOT\\Sensor::GPS') %}
-                                            <option value="{{ sensorWrapper.name }}" data-value="{{ sensorWrapper.name }}">{{ sensorWrapper.sensor.code }}</option>
-                                        {% endif %}
-                                    {% endfor %}
+                                <select class="form-control data" name="sensorCode" data-s2="triggerSensorCodeWithoutPairing"
+                                        onchange="onDeviceChanged($(this))" data-placeholder="selectionner un code de capteur">
                                 </select>
                             </div>
                         </div>

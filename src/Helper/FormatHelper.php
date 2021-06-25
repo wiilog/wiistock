@@ -55,7 +55,7 @@ class FormatHelper {
     }
 
     public static function collectRequester(Collecte $collectRequest, $else = ""): string {
-        $triggeringSensorWrapper = $collectRequest->getSensor();
+        $triggeringSensorWrapper = $collectRequest->getTriggeringSensorWrapper();
         $triggeringSensorWrapperName = $triggeringSensorWrapper ? $triggeringSensorWrapper->getName() : null;
         $requester = $collectRequest->getDemandeur();
         $requesterUsername = $requester ? $requester->getUsername() : null;
