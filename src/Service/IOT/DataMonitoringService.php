@@ -332,6 +332,7 @@ class DataMonitoringService
             'isGrouped' => (
                 ($entity instanceof Demande)
                 || ($entity instanceof Emplacement)
+                || ($entity instanceof Pack)
             )
         ];
     }
@@ -368,7 +369,8 @@ class DataMonitoringService
                     ? $dataRow['deliveryNumber']
                     : $dataRow['preparationNumber'];
             }
-            else if ($entity instanceof Emplacement) {
+            else if ($entity instanceof Emplacement
+                    || $entity instanceof Pack) {
                 $row['group'] = $dataRow['entity'];
             }
 

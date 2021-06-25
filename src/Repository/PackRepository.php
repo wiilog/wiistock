@@ -2,6 +2,8 @@
 
 namespace App\Repository;
 
+use App\Entity\Emplacement;
+use App\Entity\LocationGroup;
 use App\Entity\Pack;
 use App\Helper\FormatHelper;
 use WiiCommon\Helper\Stream;
@@ -435,6 +437,7 @@ class PackRepository extends EntityRepository
                 ->select('pairing.id AS pairingId')
                 ->addSelect('sensorWrapper.name AS name')
                 ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
+                ->addSelect('pack.code AS entity')
                 ->join('pack.pairings', 'pairing')
                 ->join('pairing.sensorWrapper', 'sensorWrapper')
                 ->where('pack = :pack');
@@ -456,8 +459,9 @@ class PackRepository extends EntityRepository
             '/AS \w+_0/' => 'AS pairingId',
             '/AS \w+_1/' => 'AS name',
             '/AS \w+_2/' => 'AS active',
-            '/AS \w+_3/' => 'AS date',
-            '/AS \w+_4/' => 'AS type',
+            '/AS \w+_3/' => 'AS entity',
+            '/AS \w+_4/' => 'AS date',
+            '/AS \w+_5/' => 'AS type',
             '/\?/' => $pack->getId(),
         ];
 
@@ -467,10 +471,21 @@ class PackRepository extends EntityRepository
         $endSQL = $endQueryBuilder->getQuery()->getSQL();
         $endSQL = StringHelper::multiplePregReplace($sqlAliases, $endSQL);
 
+        $entityManager = $this->getEntityManager();
+        $locationGroupRepository = $entityManager->getRepository(LocationGroup::class);
+        $locationGroupSQL = $locationGroupRepository->createPackSensorPairingDataQueryUnion($pack);
+
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $locationSQL = $locationRepository->createPackSensorPairingDataQueryUnion($pack);
+
         return "
             ($startSQL)
             UNION
             ($endSQL)
+            UNION
+            $locationGroupSQL
+            UNION
+            $locationSQL
         ";
     }
 
