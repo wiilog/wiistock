@@ -5,6 +5,7 @@ namespace App\Controller\IOT;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Article;
+use App\Entity\Collecte;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\IOT\PairedEntity;
@@ -133,6 +134,7 @@ class DataHistoryController extends AbstractController {
         $suffix = ' | Historique des données';
         $title = 'IOT | Associations';
         $path = null;
+        dump(get_class($entity));
         if($entity instanceof Emplacement) {
             $title = 'Référentiel | Emplacements';
             $path = 'emplacement_index';
@@ -148,9 +150,9 @@ class DataHistoryController extends AbstractController {
         } else if($entity instanceof Preparation || $entity instanceof Demande) {
             $title = 'Demande | Livraison';
             $path = 'demande_index';
-        } else if($entity instanceof OrdreCollecte) {
-            $title = 'Ordre | Collecte';
-            $path = 'ordre_collecte_index';
+        } else if($entity instanceof OrdreCollecte || $entity instanceof Collecte) {
+            $title = 'Demande | Collecte';
+            $path = 'collecte_index';
         }
 
         return [
