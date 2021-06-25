@@ -71,7 +71,7 @@ class AlertService
                 }
 
                 $data = "data:image/$type;base64,$imageContent";
-                $content = '<img src="' . $data . '"><br>' . $content;
+                $content = '<img height="50px" width="50px" src="' . $data . '"><br>' . $content;
             }
             return $this->mailerService->sendMail($config["subject"], $content, explode(",", $config["receivers"]));
         }
