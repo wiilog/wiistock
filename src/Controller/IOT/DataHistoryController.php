@@ -134,7 +134,6 @@ class DataHistoryController extends AbstractController {
         $suffix = ' | Historique des données';
         $title = 'IOT | Associations';
         $path = null;
-        dump(get_class($entity));
         if($entity instanceof Emplacement) {
             $title = 'Référentiel | Emplacements';
             $path = 'emplacement_index';
