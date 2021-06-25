@@ -221,7 +221,7 @@ class PairingRepository extends EntityRepository
                     $expr->add('element_deliveryRequest IS NOT NULL');
                 }
 
-                if(Stream::from($elements)->indexOf(Sensor::COLLECT) !== false) {
+                if(Stream::from($elements)->indexOf(Sensor::COLLECT_REQUEST) !== false) {
                     $queryBuilder
                         ->leftJoin('pairing.collectOrder', 'element_collectOrder');
 

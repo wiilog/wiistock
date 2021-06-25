@@ -312,6 +312,8 @@ class DataMonitoringService
             'isGrouped' => (
                 ($entity instanceof Demande)
                 || ($entity instanceof Emplacement)
+                || ($entity instanceof Article)
+                || ($entity instanceof Collecte)
                 || ($entity instanceof Pack)
             )
         ];
@@ -329,6 +331,9 @@ class DataMonitoringService
             : null;
         if ($entity instanceof Preparation) {
             $entity = $entity->getDemande();
+        }
+        else if ($entity instanceof OrdreCollecte) {
+            $entity = $entity->getDemandeCollecte();
         }
         return $entity;
     }
@@ -367,6 +372,8 @@ class DataMonitoringService
             } else if ($entity instanceof Emplacement
                 || $entity instanceof Pack) {
                 $row['group'] = $dataRow['entity'];
+            } else if ($entity instanceof Collecte) {
+                $row['group'] = $dataRow['orderNumber'];
             }
 
             return $row;
