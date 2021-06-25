@@ -29,7 +29,7 @@
             {% if (livraison.preparation.pairings is not empty)
                 and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')) %}
                 <a class="dropdown-item"
-                   href="{{ path('show_data_history', {id: livraison.preparation.id, type: constant('App\\Entity\\IOT\\Sensor::PREPARATION')}) }}">
+                   href="{{ path('show_data_history', {id: livraison.preparation.demande.id, type: constant('App\\Entity\\IOT\\Sensor::DELIVERY_REQUEST')}) }}">
                     <span class="wii-icon wii-icon-pairing"></span>
                     Historique des données
                 </a>

@@ -573,13 +573,4 @@ class IOTService
         ];
         return $association[$code] ?? null;
     }
-
-    public function getEntity(EntityManagerInterface $entityManager,
-                              string $type,
-                              int $id): ?PairedEntity {
-        $className = $this->getEntityClassFromCode($type);
-        return $className
-            ? $entityManager->find($className, $id)
-            : null;
-    }
 }
