@@ -309,6 +309,7 @@ class EmplacementRepository extends EntityRepository
         $res = $unionQuery->fetchAllAssociative();
         return $res[0]['count'] ?? 0;
     }
+
     /**
      * @param LocationGroup $locationGroup
      * @return string
@@ -353,10 +354,10 @@ class EmplacementRepository extends EntityRepository
         ];
 
         $startSQL = $startQueryBuilder->getQuery()->getSQL();
-        $startSQL = StringHelper::multiplePregReplace($sqlAliases, $startSQL, 1);
+        $startSQL = StringHelper::multiplePregReplace($sqlAliases, $startSQL);
 
         $endSQL = $endQueryBuilder->getQuery()->getSQL();
-        $endSQL = StringHelper::multiplePregReplace($sqlAliases, $endSQL, 1);
+        $endSQL = StringHelper::multiplePregReplace($sqlAliases, $endSQL);
 
         return "
             ($startSQL)
