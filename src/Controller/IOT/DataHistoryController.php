@@ -146,7 +146,7 @@ class DataHistoryController extends AbstractController {
         } else if($entity instanceof Pack) {
             $title = 'Traçabilité | Colis';
             $path = 'pack_index';
-        } else if($entity instanceof Preparation) {
+        } else if($entity instanceof Preparation || $entity instanceof Demande) {
             $title = 'Demande | Livraison';
             $path = 'demande_index';
         } else if($entity instanceof OrdreCollecte) {
