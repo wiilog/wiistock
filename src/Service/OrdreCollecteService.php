@@ -91,9 +91,11 @@ class OrdreCollecteService
 	{
 
         $pairings = $ordreCollecte->getPairings();
-        foreach ($pairings as $pairing){
-            if($pairing->isActive()){
+        $pairingEnd = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        foreach ($pairings as $pairing) {
+            if ($pairing->isActive()) {
                 $pairing->setActive(false);
+                $pairing->setEnd($pairingEnd);
             }
         }
 
