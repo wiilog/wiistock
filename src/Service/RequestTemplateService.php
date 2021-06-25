@@ -81,7 +81,7 @@ class RequestTemplateService {
             $template->setRequestType($typeRepository->find($data["handlingType"]))
                 ->setSubject($data["subject"])
                 ->setRequestStatus($statusRepository->find($data["status"]))
-                ->setDelay($data["delay"])
+                ->setDelay((int) $data["delay"])
                 ->setEmergency($data["emergency"] ?? null)
                 ->setSource($data["source"] ?? null)
                 ->setDestination($data["destination"] ?? null)
