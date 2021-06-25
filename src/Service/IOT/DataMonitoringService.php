@@ -198,8 +198,6 @@ class DataMonitoringService
                 "type" => IOTService::getEntityCodeFromEntity($preparation),
             ],
         ];
-
-        dump($config);
     }
 
     private function fillDeliveryRequestConfig(array &$config, Demande $deliveryRequest, bool $header)
