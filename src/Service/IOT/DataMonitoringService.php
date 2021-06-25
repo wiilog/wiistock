@@ -180,28 +180,26 @@ class DataMonitoringService
             $items[] = [
                 "icon" => "iot-delivery",
                 "title" => $preparation->getLivraison()->getNumero(),
-                "entity_info" => [
-                    "id" => $preparation->getLivraison()->getId(),
-                    "type" => IOTService::getEntityCodeFromEntity($preparation->getDemande()),
-                ],
             ];
         }
 
         $items[] = [
             "icon" => "iot-preparation",
             "title" => $preparation->getNumero(),
-            "entity_info" => [
-                "id" => $preparation->getId(),
-                "type" => IOTService::getEntityCodeFromEntity($preparation),
-            ],
         ];
 
         $config["left_pane"][] = [
             "type" => "entity",
             "items" => $items,
             "header" => $header,
-            "hideActions" => $header
+            "hideActions" => $header,
+            "entity_info" => [
+                "id" => $preparation->getId(),
+                "type" => IOTService::getEntityCodeFromEntity($preparation),
+            ],
         ];
+
+        dump($config);
     }
 
     private function fillDeliveryRequestConfig(array &$config, Demande $deliveryRequest, bool $header)

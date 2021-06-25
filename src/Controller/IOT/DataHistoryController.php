@@ -55,7 +55,7 @@ class DataHistoryController extends AbstractController {
         $start->setTime(0, 0, 0);
         $start->modify('first day of this month');
         return $dataMonitoringService->render([
-            "title" => $this->getBreadcrumb($entity),
+            "breadcrumb" => $this->getBreadcrumb($entity),
             "entity" => $entity,
             "type" => DataMonitoringService::TIMELINE,
             "entity_type" => $type,
@@ -130,23 +130,34 @@ class DataHistoryController extends AbstractController {
     }
 
     public function getBreadcrumb($entity) {
+
         $suffix = ' | Historique des données';
-        $breadcrumb = 'IOT | Associations';
+        $title = 'IOT | Associations';
+        $path = null;
         if($entity instanceof Emplacement) {
-            $breadcrumb = 'Référentiel | Emplacements';
+            $title = 'Référentiel | Emplacements';
+            $path = 'emplacement_index';
         } else if($entity instanceof LocationGroup) {
-            $breadcrumb = "Référentiel | Groupe d'emplacement";
+            $title = "Référentiel | Groupe d'emplacement";
+            $path = 'emplacement_index';
         } else if($entity instanceof Article) {
-            $breadcrumb = 'Stock | Articles';
+            $title = 'Stock | Articles';
+            $path = 'article_index';
         } else if($entity instanceof Pack) {
-            $breadcrumb = 'Traçabilité | Colis';
+            $title = 'Traçabilité | Colis';
+            $path = 'pack_index';
         } else if($entity instanceof Preparation) {
-            $breadcrumb = 'Ordre | Préparation';
+            $title = 'Ordre | Préparation';
+            $path = 'preparation_index';
         } else if($entity instanceof OrdreCollecte) {
-            $breadcrumb = 'Ordre | Collecte';
+            $title = 'Ordre | Collecte';
+            $path = 'ordre_collecte_index';
         }
 
-        return $breadcrumb . $suffix;
+        return [
+            'title' => $title . $suffix,
+            'path' => $path
+        ];
     }
 
     /**
