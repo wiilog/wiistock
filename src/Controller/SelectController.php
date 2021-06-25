@@ -10,6 +10,7 @@ use App\Entity\Client;
 use App\Entity\DepositTicket;
 use App\Entity\Emplacement;
 use App\Entity\Group;
+use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\Location;
@@ -25,6 +26,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use WiiCommon\Helper\Stream;
 
 class SelectController extends AbstractController {
 
@@ -178,6 +180,14 @@ class SelectController extends AbstractController {
      */
     public function sensorsWithoutPairings(Request $request, EntityManagerInterface $entityManager){
         $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->getWithNoAssociationForSelect($request->query->get("term"),'name');
+        $sensorWrapper = Stream::from($sensorWrapper)
+            ->filter(function(SensorWrapper $wrapper) {
+                return $wrapper->getPairings()->filter(function(Pairing $pairing) {
+                    return $pairing->isActive();
+                })->isEmpty();
+            })
+            ->map(fn(SensorWrapper $wrapper) => ['id' => $wrapper->getId(), 'text' => $wrapper->getName(), 'name' => $wrapper->getName(), 'code' => $wrapper->getSensor()->getCode()])
+            ->toArray();
         return $this->json([
             'results' => $sensorWrapper
         ]);
@@ -187,7 +197,14 @@ class SelectController extends AbstractController {
      */
     public function sensorsWithoutPairingsCode(Request $request, EntityManagerInterface $entityManager){
         $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->getWithNoAssociationForSelect($request->query->get("term"), 'code');
-
+        $sensorWrapper = Stream::from($sensorWrapper)
+            ->filter(function(SensorWrapper $wrapper) {
+                return $wrapper->getPairings()->filter(function(Pairing $pairing) {
+                    return $pairing->isActive();
+                })->isEmpty();
+            })
+            ->map(fn(SensorWrapper $wrapper) => ['id' => $wrapper->getId(), 'text' => $wrapper->getSensor()->getCode(), 'name' => $wrapper->getName(), 'code' => $wrapper->getSensor()->getCode()])
+            ->toArray();
         return $this->json([
             'results' => $sensorWrapper
         ]);
@@ -197,7 +214,9 @@ class SelectController extends AbstractController {
      */
     public function triggerSensorsCodeWithoutPairings(Request $request, EntityManagerInterface $entityManager){
         $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->getWithNoAssociationForSelect($request->query->get("term"), 'code',true);
-
+        $sensorWrapper = Stream::from($sensorWrapper)
+            ->map(fn(SensorWrapper $wrapper) => ['id' => $wrapper->getId(), 'text' => $wrapper->getSensor()->getCode(), 'name' => $wrapper->getName(), 'code' => $wrapper->getSensor()->getCode()])
+            ->toArray();
         return $this->json([
             'results' => $sensorWrapper
         ]);
@@ -208,7 +227,9 @@ class SelectController extends AbstractController {
      */
     public function triggerSensorWithoutPairings(Request $request, EntityManagerInterface $entityManager){
         $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->getWithNoAssociationForSelect($request->query->get("term"), 'name', true);
-
+        $sensorWrapper = Stream::from($sensorWrapper)
+            ->map(fn(SensorWrapper $wrapper) => ['id' => $wrapper->getId(), 'text' => $wrapper->getName(), 'name' => $wrapper->getName(), 'code' => $wrapper->getSensor()->getCode()])
+            ->toArray();
         return $this->json([
             'results' => $sensorWrapper
         ]);
