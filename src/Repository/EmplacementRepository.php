@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Emplacement;
 use App\Entity\LocationGroup;
+use App\Entity\Pack;
 use Doctrine\ORM\EntityRepository;
 use WiiCommon\Helper\StringHelper;
 
@@ -228,10 +229,6 @@ class EmplacementRepository extends EntityRepository
     }
 
     private function createSensorPairingDataQueryUnion(Emplacement $location): string {
-        $entityManager = $this->getEntityManager();
-        $locationGroupRepository = $entityManager->getRepository(LocationGroup::class);
-        $locationGroup = $location->getLocationGroup();
-
         $createQueryBuilder = function () {
             return $this->createQueryBuilder('location')
                 ->select('pairing.id AS pairingId')
@@ -271,21 +268,17 @@ class EmplacementRepository extends EntityRepository
         $endSQL = $endQueryBuilder->getQuery()->getSQL();
         $endSQL = StringHelper::multiplePregReplace($sqlAliases, $endSQL);
 
-        $res = "
+        $entityManager = $this->getEntityManager();
+        $locationGroupRepository = $entityManager->getRepository(LocationGroup::class);
+        $locationGroupSQL = $locationGroupRepository->createLocationSensorPairingDataQueryUnion($location);
+
+        return "
             ($startSQL)
             UNION
             ($endSQL)
+            UNION
+            $locationGroupSQL
         ";
-
-        if ($locationGroup) {
-            $locationGroupSQL = $locationGroupRepository->createLocationSensorPairingDataQueryUnion($location);
-            $res .= "
-                UNION
-                $locationGroupSQL
-            ";
-        }
-
-        return $res;
     }
 
     public function getSensorPairingData(Emplacement $location, int $start, int $count): array {
@@ -315,5 +308,60 @@ class EmplacementRepository extends EntityRepository
         ");
         $res = $unionQuery->fetchAllAssociative();
         return $res[0]['count'] ?? 0;
+    }
+    /**
+     * @param LocationGroup $locationGroup
+     * @return string
+     */
+    public function createPackSensorPairingDataQueryUnion(Pack $pack): string {
+        $entityManager = $this->getEntityManager();
+        $createQueryBuilder = function () use ($entityManager) {
+            return $entityManager->createQueryBuilder()
+                ->from(Pack::class, 'pack')
+                ->select('pairing.id AS pairingId')
+                ->addSelect('sensorWrapper.name AS name')
+                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
+                ->addSelect('location.label AS entity')
+                ->join('pack.sensorMessages', 'sensorMessage')
+                ->join('sensorMessage.pairings', 'pairing')
+                ->join('pairing.location', 'location')
+                ->join('pairing.sensorWrapper', 'sensorWrapper')
+                ->where('pack = :pack')
+                ->andWhere('pairing.pack IS NULL');
+        };
+
+        $startQueryBuilder = $createQueryBuilder();
+        $startQueryBuilder
+            ->addSelect("pairing.start AS date")
+            ->addSelect("'start' AS type")
+            ->andWhere('pairing.start IS NOT NULL');
+
+        $endQueryBuilder = $createQueryBuilder();
+        $endQueryBuilder
+            ->addSelect("pairing.end AS date")
+            ->addSelect("'end' AS type")
+            ->andWhere('pairing.end IS NOT NULL');
+
+        $sqlAliases = [
+            '/AS \w+_0/' => 'AS pairingId',
+            '/AS \w+_1/' => 'AS name',
+            '/AS \w+_2/' => 'AS active',
+            '/AS \w+_3/' => 'AS entity',
+            '/AS \w+_4/' => 'AS date',
+            '/AS \w+_5/' => 'AS type',
+            '/\?/' => $pack->getId(),
+        ];
+
+        $startSQL = $startQueryBuilder->getQuery()->getSQL();
+        $startSQL = StringHelper::multiplePregReplace($sqlAliases, $startSQL, 1);
+
+        $endSQL = $endQueryBuilder->getQuery()->getSQL();
+        $endSQL = StringHelper::multiplePregReplace($sqlAliases, $endSQL, 1);
+
+        return "
+            ($startSQL)
+            UNION
+            ($endSQL)
+        ";
     }
 }

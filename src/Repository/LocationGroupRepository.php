@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Emplacement;
 use App\Entity\LocationGroup;
+use App\Entity\Pack;
 use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
 use WiiCommon\Helper\StringHelper;
@@ -166,6 +167,62 @@ class LocationGroupRepository extends EntityRepository
             '/AS \w+_4/' => 'AS date',
             '/AS \w+_5/' => 'AS type',
             '/\?/' => $location->getId(),
+        ];
+
+        $startSQL = $startQueryBuilder->getQuery()->getSQL();
+        $startSQL = StringHelper::multiplePregReplace($sqlAliases, $startSQL, 1);
+
+        $endSQL = $endQueryBuilder->getQuery()->getSQL();
+        $endSQL = StringHelper::multiplePregReplace($sqlAliases, $endSQL, 1);
+
+        return "
+            ($startSQL)
+            UNION
+            ($endSQL)
+        ";
+    }
+
+    /**
+     * @param LocationGroup $locationGroup
+     * @return string
+     */
+    public function createPackSensorPairingDataQueryUnion(Pack $pack): string {
+        $entityManager = $this->getEntityManager();
+        $createQueryBuilder = function () use ($entityManager) {
+            return $entityManager->createQueryBuilder()
+                ->from(Pack::class, 'pack')
+                ->select('pairing.id AS pairingId')
+                ->addSelect('sensorWrapper.name AS name')
+                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
+                ->addSelect('locationGroup.name AS entity')
+                ->join('pack.sensorMessages', 'sensorMessage')
+                ->join('sensorMessage.pairings', 'pairing')
+                ->join('pairing.locationGroup', 'locationGroup')
+                ->join('pairing.sensorWrapper', 'sensorWrapper')
+                ->where('pack = :pack')
+                ->andWhere('pairing.pack IS NULL');
+        };
+
+        $startQueryBuilder = $createQueryBuilder();
+        $startQueryBuilder
+            ->addSelect("pairing.start AS date")
+            ->addSelect("'start' AS type")
+            ->andWhere('pairing.start IS NOT NULL');
+
+        $endQueryBuilder = $createQueryBuilder();
+        $endQueryBuilder
+            ->addSelect("pairing.end AS date")
+            ->addSelect("'end' AS type")
+            ->andWhere('pairing.end IS NOT NULL');
+
+        $sqlAliases = [
+            '/AS \w+_0/' => 'AS pairingId',
+            '/AS \w+_1/' => 'AS name',
+            '/AS \w+_2/' => 'AS active',
+            '/AS \w+_3/' => 'AS entity',
+            '/AS \w+_4/' => 'AS date',
+            '/AS \w+_5/' => 'AS type',
+            '/\?/' => $pack->getId(),
         ];
 
         $startSQL = $startQueryBuilder->getQuery()->getSQL();
