@@ -40,14 +40,13 @@ class DataHistoryController extends AbstractController {
      */
     public function show(Request $request,
                          EntityManagerInterface $entityManager,
-                         IOTService $IOTService,
                          DataMonitoringService $dataMonitoringService): Response {
         $query = $request->query;
 
         $type = $query->get('type');
         $id = $query->get('id');
 
-        $entity = $IOTService->getEntity($entityManager, $type, $id);
+        $entity = $dataMonitoringService->getEntity($entityManager, $type, $id);
         $end = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         $end->modify('last day of this month');
         $end->setTime(23, 59, 59);
@@ -69,7 +68,7 @@ class DataHistoryController extends AbstractController {
      */
     public function getChartDataHistory(Request $request,
                                         EntityManagerInterface $entityManager,
-                                        IOTService $IOTService,
+                                        DataMonitoringService $dataMonitoringService,
                                         PairingService $pairingService): JsonResponse
     {
         $filters = $request->query->all();
@@ -77,7 +76,7 @@ class DataHistoryController extends AbstractController {
         $type = $query->get('type');
         $id = $query->get('id');
 
-        $entity = $IOTService->getEntity($entityManager, $type, $id);
+        $entity = $dataMonitoringService->getEntity($entityManager, $type, $id);
 
         $associatedMessages = $entity->getSensorMessagesBetween(
             $filters["start"],
@@ -95,7 +94,7 @@ class DataHistoryController extends AbstractController {
      */
     public function getMapDataHistory(Request $request,
                                       EntityManagerInterface $entityManager,
-                                      IOTService $IOTService): JsonResponse
+                                      DataMonitoringService $dataMonitoringService): JsonResponse
     {
         $filters = $request->query->all();
         $query = $request->query;
@@ -103,7 +102,7 @@ class DataHistoryController extends AbstractController {
         $type = $query->get('type');
         $id = $query->get('id');
 
-        $entity = $IOTService->getEntity($entityManager, $type, $id);
+        $entity = $dataMonitoringService->getEntity($entityManager, $type, $id);
 
         $associatedMessages = $entity->getSensorMessagesBetween(
             $filters["start"],
@@ -146,7 +145,7 @@ class DataHistoryController extends AbstractController {
         } else if($entity instanceof Pack) {
             $title = 'Traçabilité | Colis';
             $path = 'pack_index';
-        } else if($entity instanceof Preparation) {
+        } else if($entity instanceof Preparation || $entity instanceof Demande) {
             $title = 'Demande | Livraison';
             $path = 'demande_index';
         } else if($entity instanceof OrdreCollecte) {

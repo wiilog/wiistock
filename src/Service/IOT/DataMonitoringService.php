@@ -178,7 +178,7 @@ class DataMonitoringService
         $items = [];
         if ($preparation->getLivraison()) {
             $items[] = [
-                "icon" => "iot-delivery",
+                "icon" => "iot-delivery-request",
                 "title" => $preparation->getLivraison()->getNumero(),
             ];
         }
@@ -204,7 +204,7 @@ class DataMonitoringService
     {
         $config["left_pane"][] = [
             "type" => "entity",
-            "icon" => "iot-delivery",
+            "icon" => "iot-delivery-request",
             "title" => $deliveryRequest->getNumero(),
             "header" => $header,
             "hideActions" => $header,
@@ -307,7 +307,7 @@ class DataMonitoringService
 
         if ($className) {
             $repository = $entityManager->getRepository($className);
-            $entity = $this->IOTService->getEntity($entityManager, $type, $id);
+            $entity = $this->getEntity($entityManager, $type, $id);
             if (method_exists($repository, 'getSensorPairingData')
                 && method_exists($repository, 'countSensorPairingData')
                 && $entity) {
@@ -331,6 +331,21 @@ class DataMonitoringService
                 || ($entity instanceof Pack)
             )
         ];
+    }
+
+
+
+    public function getEntity(EntityManagerInterface $entityManager,
+                              string $type,
+                              int $id): ?PairedEntity {
+        $className = $this->IOTService->getEntityClassFromCode($type);
+        $entity = $className
+            ? $entityManager->find($className, $id)
+            : null;
+        if ($entity instanceof Preparation) {
+            $entity = $entity->getDemande();
+        }
+        return $entity;
     }
 
     public function getTimelineDataRow(array $dataRow,
