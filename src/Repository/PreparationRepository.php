@@ -384,7 +384,7 @@ class PreparationRepository extends EntityRepository
                 ->addSelect('preparation.numero AS entity')
                 ->join('article.sensorMessages', 'sensorMessage')
                 ->join('sensorMessage.pairings', 'pairing')
-                ->join('pairing.preparation', 'preparation')
+                ->join('pairing.preparationOrder', 'preparation')
                 ->join('pairing.sensorWrapper', 'sensorWrapper')
                 ->where('article = :article')
                 ->andWhere('pairing.article IS NULL');

@@ -84,6 +84,9 @@ function initMap(element) {
 
             map.fitBounds(globalBounds);
 
+            // hide the map if there are no sensors
+            $element.toggle(sensors.length > 0);
+
             sensors.forEach((sensor) => {
                 const dates = Object.keys(response[sensor]);
                 let polyline = [];
@@ -135,6 +138,10 @@ function initLineChart(element) {
         let sensorDates = Object.keys(response).filter((key) => key !== 'colors');
         const sensors = Object.keys(response['colors']);
         let datasets = {};
+
+        // hide the chart if there are no sensors
+        $element.toggle(sensors.length > 0);
+
         sensorDates.forEach((date) => {
             data.labels.push(date);
             sensors.forEach((sensor) => {
