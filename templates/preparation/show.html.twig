@@ -14,7 +14,7 @@
                         demande: demande,
                         livraison: livraison,
                         showDetails: headerConfig,
-                        titleLogo: preparation.pairings|filter(p=>p.active)|length==1 ? 'pairing' : null,
+                        titleLogo: preparation.pairings|length>=1 ? 'pairing' : null,
                         titleLogoTooltip: "Cette préparation est liée à un capteur"
                     } %}
                 </div>

@@ -88,7 +88,7 @@ class LivraisonService
             'Opérateur' => $livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : '',
             'Type' => $demande && $demande->getType() ? $demande->getType()->getLabel() : '',
             'Actions' => $this->templating->render('livraison/datatableLivraisonRow.html.twig', ['url' => $url,
-                'titleLogo' => $livraison->getPreparation()->getActivePairing() ? 'pairing' : null
+                'titleLogo' => !$livraison->getPreparation()->getPairings()->isEmpty() ? 'pairing' : null
             ]),
             'pairing' => $this->templating->render('pairing-icon.html.twig', [
                 'sensorCode' => $sensorCode,
