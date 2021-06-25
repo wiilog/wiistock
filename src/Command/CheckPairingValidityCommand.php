@@ -28,7 +28,6 @@ class CheckPairingValidityCommand extends Command {
         $pairings = $this->entityManager->getRepository(Pairing::class)->findExpiredActive();
         foreach($pairings as $pairing) {
             $pairing->setActive(false);
-            $pairing->setEntity(null);
         }
 
         return 0;
