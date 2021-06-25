@@ -119,13 +119,7 @@ table.wii-table {
     background-color: #D9E2FF !important;
 }
 
-.pairing-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    i {
-        height: 20px;
-        width: 20px;
-    }
+.pairing-row i {
+    height: 20px;
+    width: 20px;
 }
