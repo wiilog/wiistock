@@ -19,6 +19,7 @@ use App\Entity\Article;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Helper\FormatHelper;
 use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
 use App\Service\GlobalParamService;
@@ -687,7 +688,7 @@ class DemandeController extends AbstractController
         $requestCreationDate = $demande->getDate();
 
         return [
-            $demande->getUtilisateur()->getUsername(),
+            FormatHelper::deliveryRequester($demande),
             $demande->getStatut()->getNom(),
             $demande->getDestination()->getLabel(),
             strip_tags($demande->getCommentaire()),

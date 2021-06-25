@@ -6,6 +6,7 @@ use App\Entity\Interfaces\Serializable;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\Traits\CommentTrait;
 use App\Entity\Traits\RequestTrait;
+use App\Helper\FormatHelper;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -365,7 +366,7 @@ class Collecte extends FreeFieldEntity implements Serializable {
             'statut' => $this->getStatut() ? $this->getStatut()->getNom() : '',
             'subject' => $this->getObjet(),
             'destination' => $this->isStock() ? "Mise en stock" : "Destruction",
-            'requester' => $this->getDemandeur() ? $this->getDemandeur()->getUsername() : '',
+            'requester' => FormatHelper::collectRequester($this),
             'gatheringPoint' => $this->getPointCollecte() ? $this->getPointCollecte()->getLabel() : '',
             'comment' => $this->getCommentaire() ? strip_tags($this->getCommentaire()) : '',
             'freeFields' => $freeFieldData

@@ -110,7 +110,7 @@ class LivraisonService
                 $livraison->getDate() ? $livraison->getDate()->format('d/m/Y H:i') : '',
                 $livraison->getDateFin() ? $livraison->getDateFin()->format('d/m/Y H:i') : '',
                 $demande->getValidationDate() ? FormatHelper::date($demande->getValidationDate()) : '',
-                $demande->getUtilisateur() ? FormatHelper::user($demande->getUtilisateur()) : '',
+                FormatHelper::deliveryRequester($demande),
                 $livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : '',
                 $demande ? ($demande->getType() ? $demande->getType()->getLabel() : '') : '',
                 $demande->getCommentaire() ? strip_tags($demande->getCommentaire()) : ''
