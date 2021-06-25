@@ -234,7 +234,7 @@ function initTimeline($timelineContainer, showMore = false) {
                                 html: [
                                     ...(!hideTitle && title
                                         ? [
-                                            titleHref
+                                            (active && titleHref)
                                                 ? `<a href="${titleHref}" class="timeline-cell-title">${title}</a>`
                                                 : `<span class="timeline-cell-title">${title}</span>`,
                                             `<br/>`,
