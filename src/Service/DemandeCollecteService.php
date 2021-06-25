@@ -145,8 +145,7 @@ class DemandeCollecteService
                     ->getOrdresCollecte()
                     ->filter(fn(OrdreCollecte $ordreCollecte) => !$ordreCollecte
                         ->getPairings()
-                        ->filter(fn(Pairing $pairing) => $pairing->isActive()
-                        )->isEmpty()
+                        ->isEmpty()
                     )->isEmpty() ? 'pairing' : null
             ]),
             'pairing' => $this->templating->render('pairing-icon.html.twig', [
