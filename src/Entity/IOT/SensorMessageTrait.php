@@ -40,7 +40,7 @@ trait SensorMessageTrait
             $criteria->andWhere(Criteria::expr()->lte("date", $end));
         }
 
-        // TODO add order ?
+        $criteria->orderBy(['date' => Criteria::ASC]);
 
         $messages = $this->getSensorMessages()->matching($criteria);
         if ($type) {
