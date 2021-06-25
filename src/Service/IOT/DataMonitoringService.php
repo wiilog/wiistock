@@ -203,7 +203,22 @@ class DataMonitoringService
     {
         $config["left_pane"][] = [
             "type" => "entity",
-            "icon" => "iot-collect",
+            "icon" => "iot-collect-order",
+            "title" => $collect->getNumero(),
+            "header" => $header,
+            "hideActions" => $header,
+            "entity_info" => [
+                "id" => $collect->getId(),
+                "type" => IOTService::getEntityCodeFromEntity($collect),
+            ],
+        ];
+    }
+
+    private function fillCollectRequestConfig(array &$config, Collecte $collect, bool $header)
+    {
+        $config["left_pane"][] = [
+            "type" => "entity",
+            "icon" => "iot-collect-order",
             "title" => $collect->getNumero(),
             "header" => $header,
             "hideActions" => $header,
@@ -269,6 +284,8 @@ class DataMonitoringService
             $this->fillDeliveryRequestConfig($config, $entity, $isHistoric);
         } else if ($entity instanceof OrdreCollecte) {
             $this->fillCollectOrderConfig($config, $entity, $isHistoric);
+        } else if ($entity instanceof Collecte) {
+            $this->fillCollectRequestConfig($config, $entity, $isHistoric);
         } else if ($entity instanceof Article) {
             $this->fillArticleConfig($config, $entity, $isHistoric);
         } else {
@@ -312,6 +329,8 @@ class DataMonitoringService
             'isGrouped' => (
                 ($entity instanceof Demande)
                 || ($entity instanceof Emplacement)
+                || ($entity instanceof Article)
+                || ($entity instanceof Collecte)
                 || ($entity instanceof Pack)
             )
         ];
@@ -329,6 +348,9 @@ class DataMonitoringService
             : null;
         if ($entity instanceof Preparation) {
             $entity = $entity->getDemande();
+        }
+        else if ($entity instanceof OrdreCollecte) {
+            $entity = $entity->getDemandeCollecte();
         }
         return $entity;
     }
@@ -367,6 +389,8 @@ class DataMonitoringService
             } else if ($entity instanceof Emplacement
                 || $entity instanceof Pack) {
                 $row['group'] = $dataRow['entity'];
+            } else if ($entity instanceof Collecte) {
+                $row['group'] = $dataRow['orderNumber'];
             }
 
             return $row;

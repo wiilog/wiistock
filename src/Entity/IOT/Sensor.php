@@ -29,14 +29,15 @@ class Sensor
     const ARTICLE = 'article';
     const PREPARATION = 'preparation';
     const DELIVERY_REQUEST = 'delivery-request';
-    const COLLECT = 'collect';
+    const COLLECT_REQUEST = 'collect-request';
+    const COLLECT_ORDER = 'collect-order';
 
     const PAIRING_CATEGORIES = [
         'Emplacement' => self::LOCATION,
         'Colis' => self::PACK,
         'Article' => self::ARTICLE,
         'Préparation' => self::PREPARATION,
-        'Ordre de collecte' => self::COLLECT,
+        'Ordre de collecte' => self::COLLECT_REQUEST,
     ];
 
     /**

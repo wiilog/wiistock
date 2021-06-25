@@ -439,6 +439,10 @@ class IOTService
         $request->addSensorMessage($sensorMessage);
     }
 
+    private function treatAddMessageCollectRequest(Collecte $request, SensorMessage $sensorMessage) {
+        $request->addSensorMessage($sensorMessage);
+    }
+
     private function treatAddMessageOrdrePrepa(Preparation $preparation, SensorMessage $sensorMessage) {
         $preparation->addSensorMessage($sensorMessage);
         $this->treatAddMessageDeliveryRequest($preparation->getDemande(), $sensorMessage);
@@ -449,6 +453,7 @@ class IOTService
 
     private function treatAddMessageOrdreCollecte(OrdreCollecte $ordreCollecte, SensorMessage $sensorMessage) {
         $ordreCollecte->addSensorMessage($sensorMessage);
+        $this->treatAddMessageCollectRequest($ordreCollecte->getDemandeCollecte(), $sensorMessage);
         foreach ($ordreCollecte->getArticles() as $article) {
             $this->treatAddMessageArticle($article, $sensorMessage);
         }
@@ -554,7 +559,9 @@ class IOTService
         } else if($pairedEntity instanceof Preparation) {
             $code = Sensor::PREPARATION;
         } else if($pairedEntity instanceof OrdreCollecte) {
-            $code = Sensor::COLLECT;
+            $code = Sensor::COLLECT_ORDER;
+        } else if($pairedEntity instanceof Collecte) {
+            $code = Sensor::COLLECT_REQUEST;
         } else if($pairedEntity instanceof Demande) {
             $code = Sensor::DELIVERY_REQUEST;
         }
@@ -568,7 +575,8 @@ class IOTService
             Sensor::ARTICLE => Article::class,
             Sensor::PACK => Pack::class,
             Sensor::DELIVERY_REQUEST => Demande::class,
-            Sensor::COLLECT => OrdreCollecte::class,
+            Sensor::COLLECT_ORDER => OrdreCollecte::class,
+            Sensor::COLLECT_REQUEST => Collecte::class,
             Sensor::PREPARATION => Preparation::class
         ];
         return $association[$code] ?? null;
