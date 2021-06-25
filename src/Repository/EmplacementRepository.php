@@ -73,7 +73,7 @@ class EmplacementRepository extends EntityRepository
     {
         $qb = $this->createQueryBuilder('location');
 
-        $qb->select('COUNT(location.label')
+        $qb->select('COUNT(location.label)')
             ->where('location.label = :label');
 
 		if ($emplacementId) {
