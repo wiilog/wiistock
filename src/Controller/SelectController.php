@@ -3,24 +3,16 @@
 namespace App\Controller;
 
 use App\Entity\Article;
-use App\Entity\Box;
-use App\Entity\BoxType;
 use App\Entity\CategoryType;
-use App\Entity\Client;
-use App\Entity\DepositTicket;
 use App\Entity\Emplacement;
-use App\Entity\Group;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
-use App\Entity\Location;
 use App\Entity\LocationGroup;
 use App\Entity\Pack;
-use App\Entity\Quality;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
-use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;

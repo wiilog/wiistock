@@ -210,7 +210,7 @@ class EmplacementRepository extends EntityRepository
             ->select("CONCAT('location:', location.id) AS id")
             ->addSelect('location.label AS text')
             ->leftJoin('location.pairings', 'pairings')
-            ->where('pairings.location is null')
+            ->where('pairings.location is null OR pairings.active = 0')
             ->andWhere("location.label LIKE :term")
             ->setParameter("term", "%$term%")
             ->getQuery()
