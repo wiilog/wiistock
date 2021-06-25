@@ -654,14 +654,14 @@ class PreparationController extends AbstractController
                                          EntityManagerInterface $entityManager,
                                          Request $request): Response{
         if($data = json_decode($request->getContent(), true)) {
-            if(!$data['sensor'] && !$data['sensorCode']) {
+            if(!$data['sensorWrapper'] && !$data['sensor']) {
                 return $this->json([
                     'success' => false,
                     'msg' => 'Un capteur/code capteur est obligatoire pour valider l\'association'
                 ]);
             }
 
-            $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->findByNameOrCode($data['sensor'], $data['sensorCode']);
+            $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->findByNameOrCode($data['sensorWrapper'], $data['sensor']);
             $preparation = $entityManager->getRepository(Preparation::class)->find($data['orderID']);
 
             $pairingPreparation = $preparationsService->createPairing($sensorWrapper, $preparation);

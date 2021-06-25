@@ -111,19 +111,19 @@ class SensorWrapperRepository extends EntityRepository
         ];
     }
 
-    public function findByNameOrCode($name, $code)
+    public function findByNameOrCode($sensorWrapper, $sensor)
     {
         $qb = $this->createQueryBuilder('sensor_wrapper');
 
-        if ($name) {
+        if ($sensorWrapper) {
             $qb
-                ->andWhere('sensor_wrapper.name = :name')
-                ->setParameter('name', $name);
-        } else if ($code) {
+                ->andWhere('sensor_wrapper.id = :sensorWrapper')
+                ->setParameter('sensorWrapper', $sensorWrapper);
+        } else if ($sensor) {
             $qb
                 ->join('sensor_wrapper.sensor', 'sensor')
-                ->andWhere('sensor.code = :code')
-                ->setParameter('code', $code);
+                ->andWhere('sensor.id = :sensor')
+                ->setParameter('sensor', $sensor);
         }
 
         return $qb
