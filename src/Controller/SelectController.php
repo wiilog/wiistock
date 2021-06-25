@@ -173,4 +173,45 @@ class SelectController extends AbstractController {
         ]);
     }
 
+    /**
+     * @Route("/select/capteurs-sans-association", name="ajax_select_sensors_without_pairing", options={"expose"=true}, methods="GET|POST")
+     */
+    public function sensorsWithoutPairings(Request $request, EntityManagerInterface $entityManager){
+        $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->getWithNoAssociationForSelect($request->query->get("term"),'name');
+        return $this->json([
+            'results' => $sensorWrapper
+        ]);
+    }
+    /**
+     * @Route("/select/code-capteurs-sans-association", name="ajax_select_sensors_code_without_pairing", options={"expose"=true}, methods="GET|POST")
+     */
+    public function sensorsWithoutPairingsCode(Request $request, EntityManagerInterface $entityManager){
+        $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->getWithNoAssociationForSelect($request->query->get("term"), 'code');
+
+        return $this->json([
+            'results' => $sensorWrapper
+        ]);
+    }
+    /**
+     * @Route("/select/actionneur-code-capteurs-sans-association", name="ajax_select_trigger_sensors_code_without_pairing", options={"expose"=true}, methods="GET|POST")
+     */
+    public function triggerSensorsCodeWithoutPairings(Request $request, EntityManagerInterface $entityManager){
+        $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->getWithNoAssociationForSelect($request->query->get("term"), 'code',true);
+
+        return $this->json([
+            'results' => $sensorWrapper
+        ]);
+    }
+
+    /**
+     * @Route("/select/actionneur-capteurs-sans-association", name="ajax_select_trigger_sensors_without_pairing", options={"expose"=true}, methods="GET|POST")
+     */
+    public function triggerSensorWithoutPairings(Request $request, EntityManagerInterface $entityManager){
+        $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->getWithNoAssociationForSelect($request->query->get("term"), 'name', true);
+
+        return $this->json([
+            'results' => $sensorWrapper
+        ]);
+    }
+
 }

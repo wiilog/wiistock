@@ -77,12 +77,15 @@ class PairingService
         return $data;
     }
 
-    public function createPairing(DateTime $end, SensorWrapper $sensorWrapper,  $article,  $location, $locationGroup, $pack){
+    public function createPairing($end, SensorWrapper $sensorWrapper,  $article,  $location, $locationGroup, $pack){
         $pairing = new Pairing();
+        if (!empty($end)){
+            $endPairing = new DateTime($end);
+            $pairing->setEnd($endPairing);
+        }
         $start =  new DateTime("now", new DateTimeZone("Europe/Paris"));
         $pairing
             ->setStart($start)
-            ->setEnd($end)
             ->setSensorWrapper($sensorWrapper)
             ->setArticle($article)
             ->setLocationGroup($locationGroup)

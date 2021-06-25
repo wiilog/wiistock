@@ -14,6 +14,10 @@ const ROUTES = {
     packWithoutPairing: `ajax_select_packs_without_pairing`,
     articleWithoutPairing: `ajax_select_articles_without_pairing`,
     locationWithoutPairing: `ajax_select_locations_without_pairing`,
+    sensorWithoutPairing: `ajax_select_sensors_without_pairing`,
+    sensorCodeWithoutPairing: `ajax_select_sensors_code_without_pairing`,
+    triggerSensorWithoutPairing: `ajax_select_trigger_sensors_without_pairing`,
+    triggerSensorCodeWithoutPairing: `ajax_select_trigger_sensors_code_without_pairing`,
 }
 
 const INSTANT_SELECT_TYPES = {
@@ -21,6 +25,10 @@ const INSTANT_SELECT_TYPES = {
     deliveryType: true,
     collectType: true,
     status: true,
+    sensorWithoutPairing: true,
+    sensorCodeWithoutPairing: true,
+    triggerSensorWithoutPairing: true,
+    triggerSensorCodeWithoutPairing: true,
 }
 
 export default class Select2 {

@@ -5,10 +5,6 @@ const $sensorInput = $modalNewTriggerAction.find('[name=sensorCode]');
 const $sensorDetailsContainer = $modalNewTriggerAction.find('.sensor-details-container');
 
 $(function() {
-    $('.select2').select2();
-
-    Select2Old.init($modalNewTriggerAction.find('[name=sensorWrapper]'));
-
     let pathTriggerAction = Routing.generate('trigger_action_api', true);
     let purchaseTriggerActionConfig = {
         processing: true,
