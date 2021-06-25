@@ -122,6 +122,15 @@ class PairingRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
+    public function findExpiredActive() {
+        return $this->createQueryBuilder("pairing")
+            ->andWhere("pairing.active = 1")
+            ->andWhere("pairing.end < :now")
+            ->setParameter("now", new DateTime())
+            ->getQuery()
+            ->getResult();
+    }
+
     public function findByParamsAndFilters(InputBag $filters) {
         $queryBuilder = $this->createQueryBuilder("pairing");
 

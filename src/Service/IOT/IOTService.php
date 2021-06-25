@@ -15,6 +15,7 @@ use App\Entity\IOT\CollectRequestTemplate;
 use App\Entity\IOT\DeliveryRequestTemplate;
 use App\Entity\IOT\HandlingRequestTemplate;
 use App\Entity\IOT\PairedEntity;
+use App\Entity\IOT\Pairing;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;
@@ -386,6 +387,12 @@ class IOTService
         if ($wrapper) {
             foreach ($wrapper->getPairings() as $pairing) {
                 if ($pairing->isActive()) {
+                    if($pairing->getEnd() < new DateTime()) {
+                        $pairing->setActive(false);
+                        $pairing->setEntity(null);
+                        continue;
+                    }
+
                     $pairing->addSensorMessage($sensorMessage);
                     $entity = $pairing->getEntity();
                     if ($entity instanceof LocationGroup) {
@@ -573,4 +580,5 @@ class IOTService
         ];
         return $association[$code] ?? null;
     }
+
 }
