@@ -169,6 +169,13 @@ class PairingController extends AbstractController {
             }
             $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->findByNameOrCode($data['sensor'], $data['sensorCode']);
 
+            if($sensorWrapper->getPairings()->filter(fn(Pairing $p) => $p->isActive())->count()) {
+                return $this->json([
+                    'success' => false,
+                    'msg' => 'Ce capteur est déjà associé'
+                ]);
+            }
+
             if(isset($data['article'])) {
                 $article = $entityManager->getRepository(Article::class)->find($data['article']);
             } else if(isset($data['pack'])) {
