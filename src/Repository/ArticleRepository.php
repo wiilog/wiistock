@@ -1002,7 +1002,7 @@ class ArticleRepository extends EntityRepository {
         return $this->createQueryBuilder("article")
             ->select("article.id AS id, article.barCode AS text")
             ->leftJoin("article.pairings", "pairings")
-            ->where("pairings.article is null")
+            ->where("pairings.article is null OR pairings.active = 0")
             ->andWhere("article.barCode LIKE :term")
             ->setParameter("term", "%$term%")
             ->setMaxResults(100)

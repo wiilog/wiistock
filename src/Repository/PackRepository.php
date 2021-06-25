@@ -423,7 +423,7 @@ class PackRepository extends EntityRepository
         return $this->createQueryBuilder("pack")
             ->select("pack.id AS id, pack.code AS text")
             ->leftJoin("pack.pairings", "pairings")
-            ->where("pairings.pack IS NULL")
+            ->where("pairings.pack IS NULL OR pairings.active = 0")
             ->andWhere("pack.code LIKE :term")
             ->setParameter("term", "%$term%")
             ->setMaxResults(100)

@@ -68,7 +68,7 @@ class LocationGroupRepository extends EntityRepository
             ->select("CONCAT('locationGroup:', location_group.id) AS id")
             ->addSelect('location_group.name AS text')
             ->leftJoin('location_group.pairings', 'pairings')
-            ->where('pairings.locationGroup IS NULL')
+            ->where('pairings.locationGroup IS NULL OR pairings.active = 0')
             ->andWhere("location_group.name LIKE :term")
             ->setParameter("term", "%$term%")
             ->getQuery()
