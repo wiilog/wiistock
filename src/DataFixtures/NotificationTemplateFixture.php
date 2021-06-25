@@ -31,10 +31,10 @@ class NotificationTemplateFixture extends Fixture implements FixtureGroupInterfa
 
         $notificationTemplateRepository = $manager->getRepository(NotificationTemplate::class);
         $existing = Stream::from($notificationTemplateRepository->findAll())
-            ->map(fn(NotificationTemplate $template) => $template->getType())
-            ->toArray();
+            ->map(fn(NotificationTemplate $template) => $template->getType());
 
-        $toCreate = Stream::diff($existing, array_keys(NotificationTemplate::READABLE_TYPES));
+        $keys = Stream::keys(NotificationTemplate::READABLE_TYPES);
+        $toCreate = Stream::diff($existing, $keys);
 
         foreach ($toCreate as $type) {
             $template = (new NotificationTemplate())
