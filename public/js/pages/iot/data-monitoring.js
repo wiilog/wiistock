@@ -76,7 +76,7 @@ function initMap(element) {
 
         const responseValues = Object.values(response);
         // hide the map if there are no sensors
-        $element.toggle(responseValues.length > 0);
+        $element.closest('.wii-page-card').toggle(responseValues.length > 0);
         if(responseValues.length > 0) {
             responseValues.forEach(((date) => {
                 Object.values(date).forEach((coordinates) => {
@@ -139,7 +139,7 @@ function initLineChart(element) {
         let datasets = {};
 
         // hide the chart if there are no sensors
-        $element.toggle(sensors.length > 0);
+        $element.closest('.wii-page-card').toggle(sensors.length > 0);
 
         sensorDates.forEach((date) => {
             data.labels.push(date);
