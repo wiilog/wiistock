@@ -467,7 +467,7 @@ class OrdreCollecteController extends AbstractController
                 ]);
             }
 
-            $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->findByNameOrCode($data['sensorWrapper'], $data['sensor']);
+            $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->findOneBy(["id" => $data['sensorWrapper'], 'deleted' => false]);
             $collectOrder = $entityManager->getRepository(OrdreCollecte::class)->find($data['orderID']);
 
             $pairingOrderCollect = $collecteService->createPairing($sensorWrapper, $collectOrder);
