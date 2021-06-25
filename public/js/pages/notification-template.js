@@ -126,7 +126,12 @@ const CURSOR_BEGIN_PLACEHOLDER = `<i data-from></i>`;
 const CURSOR_END_PLACEHOLDER = `<i data-to></i>`;
 
 function onEditModalLoad($modal, editor) {
-    $modal.find(`.notification-example`).html(editor.root.innerHTML);
+    $modal.find(`.phone-example .notification`).html(editor.root.innerHTML);
+
+    editor.on(`text-change`, function() {
+        $modal.find(`.phone-example .notification`).html(editor.root.innerHTML);
+    });
+
     // pour la coloration des variables mais ça marche pas c'est pas prioritaire donc en pause pour l'instant
     //
     // editor.on(`text-change`, function() {
@@ -207,3 +212,4 @@ function initTelInput($input) {
     });
     return $input.data('iti', iti);
 }
+

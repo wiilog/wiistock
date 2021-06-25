@@ -538,3 +538,22 @@ label.required:after {
 .variables-list .highlighted-variable, .editor-container .highlighted-variable {
     color: #00a3ff;
 }
+
+.phone-example {
+    background: url("../img/phone.svg") no-repeat;
+    background-size: 350px 350px;
+    width: 350px;
+    height: 350px;
+
+    .notification {
+        position: absolute;
+        top: 195px;
+        left: 46px;
+        width: 285px;
+        height: 60px;
+        overflow: hidden;
+        font-size: 10px;
+        line-height: 12px;
+        color: black;
+    }
+}
