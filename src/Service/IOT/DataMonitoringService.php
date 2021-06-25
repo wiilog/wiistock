@@ -9,6 +9,7 @@ use App\Entity\Emplacement;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
+use App\Entity\Livraison;
 use App\Entity\LocationGroup;
 use App\Entity\OrdreCollecte;
 use App\Entity\Pack;
@@ -25,25 +26,6 @@ use WiiCommon\Helper\Stream;
 
 class DataMonitoringService
 {
-
-    public const ASSOCIATED_CLASSES = [
-        Sensor::TEMPERATURE => [
-            Pack::class,
-            Article::class,
-            Emplacement::class,
-            LocationGroup::class,
-            Demande::class,
-            Collecte::class
-        ],
-        Sensor::GPS => [
-            Pack::class,
-            Article::class,
-            Emplacement::class,
-            LocationGroup::class,
-            Demande::class,
-            Collecte::class
-        ]
-    ];
 
     public const PAIRING = 1;
     public const TIMELINE = 2;
@@ -68,29 +50,23 @@ class DataMonitoringService
         } else if ($config["type"] === self::TIMELINE) {
             $date = new DateTime('-1 month');
             $entity = $config['entity'];
-
             $this->fillEntityConfig($entity, $config, true);
             $config['start'] = $date;
             $config['end'] = new DateTime('now');
-            if (in_array(get_class($entity), self::ASSOCIATED_CLASSES[Sensor::TEMPERATURE])) {
-                $config["center_pane"][] = [
-                    "type" => "chart",
-                    "fetch_url" => $this->router->generate("chart_data_history", [
-                        "type" => $config['entity_type'],
-                        "id" => $entity->getId()
-                    ], UrlGeneratorInterface::ABSOLUTE_URL)
-                ];
-            }
-
-            if (in_array(get_class($entity), self::ASSOCIATED_CLASSES[Sensor::GPS])) {
-                $config["center_pane"][] = [
-                    "type" => "map",
-                    "fetch_url" => $this->router->generate("map_data_history", [
-                        "type" => $config['entity_type'],
-                        "id" => $entity->getId()
-                    ], UrlGeneratorInterface::ABSOLUTE_URL)
-                ];
-            }
+            $config["center_pane"][] = [
+                "type" => "chart",
+                "fetch_url" => $this->router->generate("chart_data_history", [
+                    "type" => $config['entity_type'],
+                    "id" => $entity->getId()
+                ], UrlGeneratorInterface::ABSOLUTE_URL)
+            ];
+            $config["center_pane"][] = [
+                "type" => "map",
+                "fetch_url" => $this->router->generate("map_data_history", [
+                    "type" => $config['entity_type'],
+                    "id" => $entity->getId()
+                ], UrlGeneratorInterface::ABSOLUTE_URL)
+            ];
         }
         return new Response($this->templating->render("IOT/data_monitoring/page.html.twig", $config));
     }
@@ -342,10 +318,10 @@ class DataMonitoringService
     }
 
 
-
     public function getEntity(EntityManagerInterface $entityManager,
                               string $type,
-                              int $id): ?PairedEntity {
+                              int $id): ?PairedEntity
+    {
         $className = $this->IOTService->getEntityClassFromCode($type);
         $entity = $className
             ? $entityManager->find($className, $id)
@@ -387,9 +363,8 @@ class DataMonitoringService
                 $row['group'] = ($type === 'startOrder' || ($type === 'end' && !empty($dataRow['deliveryNumber'])))
                     ? $dataRow['deliveryNumber']
                     : $dataRow['preparationNumber'];
-            }
-            else if ($entity instanceof Emplacement
-                    || $entity instanceof Pack) {
+            } else if ($entity instanceof Emplacement
+                || $entity instanceof Pack) {
                 $row['group'] = $dataRow['entity'];
             }
 
