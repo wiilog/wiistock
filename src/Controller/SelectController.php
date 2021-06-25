@@ -187,7 +187,7 @@ class SelectController extends AbstractController {
                 })->isEmpty();
             })
             ->map(fn(SensorWrapper $wrapper) => ['id' => $wrapper->getId(), 'text' => $wrapper->getName(), 'name' => $wrapper->getName(), 'code' => $wrapper->getSensor()->getCode()])
-            ->toArray();
+            ->values();
         return $this->json([
             'results' => $sensorWrapper
         ]);
@@ -204,7 +204,7 @@ class SelectController extends AbstractController {
                 })->isEmpty();
             })
             ->map(fn(SensorWrapper $wrapper) => ['id' => $wrapper->getId(), 'text' => $wrapper->getSensor()->getCode(), 'name' => $wrapper->getName(), 'code' => $wrapper->getSensor()->getCode()])
-            ->toArray();
+            ->values();
         return $this->json([
             'results' => $sensorWrapper
         ]);
@@ -216,7 +216,7 @@ class SelectController extends AbstractController {
         $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->getWithNoAssociationForSelect($request->query->get("term"), 'code',true);
         $sensorWrapper = Stream::from($sensorWrapper)
             ->map(fn(SensorWrapper $wrapper) => ['id' => $wrapper->getId(), 'text' => $wrapper->getSensor()->getCode(), 'name' => $wrapper->getName(), 'code' => $wrapper->getSensor()->getCode()])
-            ->toArray();
+            ->values();
         return $this->json([
             'results' => $sensorWrapper
         ]);
@@ -229,7 +229,7 @@ class SelectController extends AbstractController {
         $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->getWithNoAssociationForSelect($request->query->get("term"), 'name', true);
         $sensorWrapper = Stream::from($sensorWrapper)
             ->map(fn(SensorWrapper $wrapper) => ['id' => $wrapper->getId(), 'text' => $wrapper->getName(), 'name' => $wrapper->getName(), 'code' => $wrapper->getSensor()->getCode()])
-            ->toArray();
+            ->values();
         return $this->json([
             'results' => $sensorWrapper
         ]);
