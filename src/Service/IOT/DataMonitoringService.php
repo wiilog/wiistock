@@ -31,6 +31,7 @@ class DataMonitoringService
             Pack::class,
             Article::class,
             Emplacement::class,
+            LocationGroup::class,
             Demande::class,
             Collecte::class
         ],
@@ -38,6 +39,7 @@ class DataMonitoringService
             Pack::class,
             Article::class,
             Emplacement::class,
+            LocationGroup::class,
             Demande::class,
             Collecte::class
         ]
