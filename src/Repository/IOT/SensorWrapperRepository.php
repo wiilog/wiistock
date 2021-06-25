@@ -150,25 +150,27 @@ class SensorWrapperRepository extends EntityRepository
     public function getWithNoAssociationForSelect($term, $field, $onlyTrigger = false) {
         $queryBuilder = $this->createQueryBuilder('sensor_wrapper');
         $queryBuilder
+            ->select('sensor_wrapper')
             ->leftJoin('sensor_wrapper.sensor', 'sensor');
         if($field == 'name'){
             $queryBuilder
-                ->select('sensor_wrapper.id as id', 'sensor_wrapper.name as text')
                 ->where('sensor_wrapper.name LIKE :term');
         }else{
             $queryBuilder
-                ->select('sensor_wrapper.id as id', 'sensor.code as text')
                 ->where('sensor.code LIKE :term');
         }
         if($onlyTrigger){
-         $queryBuilder
-            ->leftJoin('sensor.type', 'type')
-            ->andWhere('type.label = \''.Sensor::GPS."'");
+             $queryBuilder
+                ->leftJoin('sensor.type', 'type')
+                ->andWhere('type.label != \''.Sensor::GPS."'");
+        } else {
+            $queryBuilder
+                ->leftJoin('sensor.type', 'type')
+                ->andWhere('type.label <> :actionType')
+                ->setParameter('actionType', Sensor::ACTION);
         }
         return $queryBuilder
-                    ->addSelect('sensor_wrapper.name as name', 'sensor.code as code')
-                    ->leftJoin('sensor_wrapper.pairings', 'pairing')
-                    ->andWhere('pairing.active = 0 OR pairing.id IS NULL')
+                    ->andWhere('sensor_wrapper.deleted = 0')
                     ->setParameter('term', "%$term%")
                     ->groupBy('sensor_wrapper.id')
                     ->getQuery()
