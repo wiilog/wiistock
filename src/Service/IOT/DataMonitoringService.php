@@ -3,6 +3,7 @@
 namespace App\Service\IOT;
 
 use App\Entity\Article;
+use App\Entity\Collecte;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\IOT\PairedEntity;
@@ -29,11 +30,16 @@ class DataMonitoringService
         Sensor::TEMPERATURE => [
             Pack::class,
             Article::class,
-            Emplacement::class
+            Emplacement::class,
+            Demande::class,
+            Collecte::class
         ],
         Sensor::GPS => [
             Pack::class,
             Article::class,
+            Emplacement::class,
+            Demande::class,
+            Collecte::class
         ]
     ];
 

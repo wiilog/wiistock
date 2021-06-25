@@ -449,7 +449,7 @@ class ArticleDataService
 
         $lastMessage = $article->getLastMessage();
         $sensorCode = ($lastMessage && $lastMessage->getSensor()) ? $lastMessage->getSensor()->getAvailableSensorWrapper()->getName() : null;
-        $hasPairing = !$article->getPairings()->isEmpty(); // TODO check pairing of preparations ?
+        $hasPairing = !$article->getSensorMessages()->isEmpty() || !$article->getPairings()->isEmpty();
 
         $row = [
             "id" => $article->getId() ?? "Non défini",

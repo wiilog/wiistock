@@ -77,7 +77,6 @@ class DataHistoryController extends AbstractController {
         $id = $query->get('id');
 
         $entity = $dataMonitoringService->getEntity($entityManager, $type, $id);
-
         $associatedMessages = $entity->getSensorMessagesBetween(
             $filters["start"],
             $filters["end"],
