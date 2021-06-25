@@ -41,6 +41,7 @@ class FiltreSup
     const FIELD_RECEIVERS = 'receivers';
     const FIELD_OPERATORS = 'operators';
     const FIELD_REQUESTERS = 'requesters';
+    const FIELD_BUYERS = 'buyers';
     const FIELD_ALERT = 'alert';
 	const FIELD_DISPATCH_NUMBER = 'dispatchNumber';
 
