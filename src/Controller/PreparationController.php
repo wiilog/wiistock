@@ -661,7 +661,7 @@ class PreparationController extends AbstractController
                 ]);
             }
 
-            $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->findByNameOrCode($data['sensorWrapper'], $data['sensor']);
+            $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->findOneBy(["id" => $data['sensorWrapper'], 'deleted' => false]);
             $preparation = $entityManager->getRepository(Preparation::class)->find($data['orderID']);
 
             $pairingPreparation = $preparationsService->createPairing($sensorWrapper, $preparation);

@@ -56,14 +56,14 @@ class DataMonitoringService
             $config["center_pane"][] = [
                 "type" => "chart",
                 "fetch_url" => $this->router->generate("chart_data_history", [
-                    "type" => $config['entity_type'],
+                    "type" => IOTService::getEntityCodeFromEntity($entity),
                     "id" => $entity->getId()
                 ], UrlGeneratorInterface::ABSOLUTE_URL)
             ];
             $config["center_pane"][] = [
                 "type" => "map",
                 "fetch_url" => $this->router->generate("map_data_history", [
-                    "type" => $config['entity_type'],
+                    "type" => IOTService::getEntityCodeFromEntity($entity),
                     "id" => $entity->getId()
                 ], UrlGeneratorInterface::ABSOLUTE_URL)
             ];
@@ -322,6 +322,7 @@ class DataMonitoringService
                               string $type,
                               int $id): ?PairedEntity
     {
+
         $className = $this->IOTService->getEntityClassFromCode($type);
         $entity = $className
             ? $entityManager->find($className, $id)
