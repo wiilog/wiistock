@@ -126,14 +126,10 @@ class DemandeLivraisonService
         $idDemande = $demande->getId();
         $url = $this->router->generate('demande_show', ['id' => $idDemande]);
 
-        $pairing = $demande->getPreparations()
-            ? Stream::from($demande->getPreparations())
-                ->map(fn(Preparation $preparation) => $preparation->getPairings()->toArray())
-                ->flatten()
-                ->sort(fn(Pairing $p1, Pairing $p2) => $p1->getEnd() <=> $p2->getEnd())
-                ->first()
-            : null;
-
+        $prepas = Stream::from($demande->getPreparations())
+                ->filter(fn(Preparation $preparation) => $preparation->getPairings()->count() > 0)
+                ->first();
+        $pairing = $prepas ? $prepas->getPairings()->first() : null;
         $sensorCode = $pairing ? $pairing->getSensorWrapper()->getName() : null;
         $emergency = !Stream::from($demande->getLigneArticle())
             ->filter(function(LigneArticle $ligne) {
