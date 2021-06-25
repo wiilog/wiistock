@@ -358,7 +358,8 @@ function overrideSearchSpecifEmplacement($input) {
                     .addClass('pointer');
                 managePrintButtonTooltip(false, $printButton);
             }
-            tableEmplacement.search(this.value).draw();
+
+            $(`#locationsTable`).DataTable().search(this.value).draw();
         } else if (e.key === 'Backspace' && $input.val() === '') {
             $printButton
                 .addClass('user-select-none')

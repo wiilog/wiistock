@@ -2,7 +2,9 @@
 
 namespace App\Repository;
 
+use App\Entity\IOT\AlertTemplate;
 use App\Entity\NotificationTemplate;
+use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
 
 /**
@@ -13,4 +15,46 @@ use Doctrine\ORM\EntityRepository;
  */
 class NotificationTemplateRepository extends EntityRepository
 {
+
+    public function findByParams($params) {
+        $qb = $this->createQueryBuilder("notification_template");
+        $total = QueryCounter::count($qb, "notification_template");
+
+        if (!empty($params)) {
+            if (!empty($params->get('search'))) {
+                $search = $params->get('search')['value'];
+                if (!empty($search)) {
+                    $exprBuilder = $qb->expr();
+                    $qb->andWhere($exprBuilder->orX(
+                        'notification_template.name LIKE :value',
+                        'notification_template.type LIKE :value',
+                    ))->setParameter('value', '%' . $search . '%');
+                }
+            }
+
+            if (!empty($params->get('order'))) {
+                $order = $params->get('order')[0]['dir'];
+                if (!empty($order)) {
+                    $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
+                    if (property_exists(NotificationTemplate::class, $column)) {
+                        $qb->orderBy('notification_template.' . $column, $order);
+                    }
+                }
+            }
+        }
+
+        $countFiltered = QueryCounter::count($qb, "notification_template");
+
+        if ($params) {
+            if (!empty($params->get("start"))) $qb->setFirstResult($params->get("start"));
+            if (!empty($params->get("length"))) $qb->setMaxResults($params->get("length"));
+        }
+
+        return [
+            "data" => $qb->getQuery()->getResult(),
+            "count" => $countFiltered,
+            "total" => $total
+        ];
+    }
+
 }

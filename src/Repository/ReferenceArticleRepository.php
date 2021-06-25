@@ -48,6 +48,14 @@ class ReferenceArticleRepository extends EntityRepository {
         "dateLastInventory"
     ];
 
+    public function getForSelect(?string $term) {
+        return $this->createQueryBuilder("reference")
+            ->select("reference.id AS id, reference.reference AS text, reference.libelle AS label")
+            ->where("reference.reference LIKE :term")
+            ->setParameter("term", "%$term%")
+            ->getQuery()
+            ->getArrayResult();
+    }
 
     public function getIdAndLibelle() {
         $entityManager = $this->getEntityManager();
@@ -626,33 +634,6 @@ class ReferenceArticleRepository extends EntityRepository {
         )->setParameter('typeId', $typeId);
 
         return $query->getSingleScalarResult();
-    }
-
-    public function setTypeIdNull($typeId)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "UPDATE App\Entity\ReferenceArticle ra
-            SET ra.type = null
-            WHERE ra.type = :typeId"
-        )->setParameter('typeId', $typeId);
-
-        return $query->execute();
-    }
-
-    public function getIdAndLabelByFournisseur($fournisseurId)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT DISTINCT(ra.id) as id, ra.libelle, IDENTITY(af.fournisseur) as fournisseur
-            FROM App\Entity\ArticleFournisseur af
-            JOIN af.referenceArticle ra
-            WHERE af.fournisseur = :fournisseurId
-            "
-        )->setParameter('fournisseurId', $fournisseurId);
-
-        return $query->execute();
     }
 
     public function countAll(): int {

@@ -21,7 +21,6 @@ use App\Entity\Dashboard as Dashboard;
 use App\Entity\Dashboard\Meter as DashboardMeter;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
-use Symfony\Bundle\MakerBundle\Str;
 use Symfony\Component\Routing\RouterInterface;
 
 class DashboardSettingsService {

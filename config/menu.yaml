@@ -180,6 +180,25 @@ parameters:
                         menu: App\Entity\Menu::REFERENTIEL
                         action: App\Entity\Action::DISPLAY_TRAN
 
+        -   label: 'IOT'
+            icon: 'iot'
+            sub:
+                -   label: 'Capteurs'
+                    path: 'sensor_wrapper_index'
+                    rights:
+                        menu: App\Entity\Menu::IOT
+                        action: App\Entity\Action::DISPLAY_SENSOR
+                -   label: 'Actionneurs'
+                    path: 'trigger_action_index'
+                    rights:
+                        menu: App\Entity\Menu::IOT
+                        action: App\Entity\Action::DISPLAY_TRIGGER
+                -   label: 'Associations'
+                    path: 'pairing_index'
+                    rights:
+                        menu: App\Entity\Menu::IOT
+                        action: App\Entity\Action::DISPLAY_PAIRING
+
         -   label: 'Paramétrage'
             icon: 'parametre'
             sub:
@@ -236,8 +255,13 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::PARAM
                         action: App\Entity\Action::DISPLAY_CF
+                -   label: 'Modèles de demandes'
+                    path: 'request_template_index'
+                    rights:
+                        menu: App\Entity\Menu::PARAM
+                        action: App\Entity\Action::DISPLAY_REQUEST_TEMPLATE
                 -   label: 'Modèles de notifications'
-                    #path: 'notifications_template'
+                    path: 'notification_template_index'
                     rights:
                         menu: App\Entity\Menu::PARAM
                         action: App\Entity\Action::DISPLAY_NOTIFICATIONS

@@ -18,6 +18,7 @@ class Menu
 	const ORDRE = 'ordre';
 	const STOCK = 'stock';
 	const REFERENTIEL = 'référentiel';
+	const IOT = 'iot';
 	const PARAM = 'paramétrage';
 	const NOMADE = 'nomade';
 

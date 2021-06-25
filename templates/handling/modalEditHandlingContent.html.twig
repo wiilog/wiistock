@@ -44,7 +44,9 @@
     <div class="form-group needed col-md-6 col-12">
         <label for="requester">Demandeur</label>
         <select class="demandeur form-control data needed input" name="requester" disabled>
-            <option value="{{ handling.requester.id }}">{{ handling.requester.username }}</option>
+            {% if handling.requester %}
+                <option value="{{ handling.requester.id }}">{{ handling.requester.username }}</option>
+            {% endif %}
         </select>
     </div>
 

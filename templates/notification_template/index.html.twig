@@ -1,0 +1,50 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Paramétrage | Modèles d'alertes{% endblock %}
+
+{% block page_content %}
+    <div class="m-4 wii-page-card">
+        <ul class="nav nav-pills notification-tabs">
+            <li class="nav-item">
+                <a href="#notifications" class="nav-link active">Notifications push</a>
+            </li>
+            <li class="nav-item">
+                <a href="#alertes" class="nav-link">Alertes</a>
+            </li>
+        </ul>
+
+        <hr>
+
+        {% if hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::EDIT')) %}
+            <div class="row wii-page-card-header">
+                <div class="col-auto ml-auto">
+                    <div class="btn btn-primary btn-ripple"
+                         data-toggle="modal"
+                         data-target="#modalNewAlertTemplate">
+                        <i class="fa fa-plus"></i>
+                        Nouveau modèle d'alerte
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="row">
+            <div class="col-12 notificationsTableContainer">
+                <table id="notificationsTable" class="table w-100"></table>
+            </div>
+            <div class="col-12 alertsTableContainer">
+                <table id="alertsTable" class="table w-100"></table>
+            </div>
+        </div>
+    </div>
+
+    {% include 'notification_template/edit.html.twig' %}
+    {% include 'alert_template/new.html.twig' %}
+    {% include 'alert_template/edit.html.twig' %}
+    {% include 'alert_template/delete.html.twig' %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/pages/notification-template.js') }}?v={{ web_version }}"></script>
+{% endblock %}

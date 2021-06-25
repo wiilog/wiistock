@@ -1,0 +1,9 @@
+{% set hidden_submit = true %}
+
+{% extends 'filters/filters.html.twig' %}
+
+{% block filters %}
+    {% include 'filters/filter_item/filterSensorTypesAndCategories.html.twig' %}
+    {% include('filters/filter_item/filterSensors.html.twig') %}
+    {% include('filters/filter_item/filterButton.html.twig') %}
+{% endblock %}

@@ -31,28 +31,19 @@ function InitModal($modal, $submit, path, options = {}) {
         $('[data-toggle="popover"]').popover("hide");
     });
 
-    $submit
-        .click(function () {
-            if ($submit.hasClass(LOADING_CLASS)) {
-                showBSAlert('L\'opération est en cours de traitement', 'warning');
-            } else {
-                SubmitAction(
-                    $modal,
-                    $submit,
-                    path,
-                    options
-                )
-                    .then((data) => {
-                        if (data
-                            && data.success
-                            && options
-                            && options.success) {
-                            options.success(data);
-                        }
-                    })
-                    .catch(() => {});
-            }
-        });
+    $submit.click(function () {
+        if ($submit.hasClass(LOADING_CLASS)) {
+            showBSAlert('L\'opération est en cours de traitement', 'warning');
+        } else {
+            SubmitAction($modal, $submit, path, options)
+                .then((data) => {
+                    if (data && data.success && options && options.success) {
+                        options.success(data);
+                    }
+                })
+                .catch(() => {});
+        }
+    });
 }
 
 /**
@@ -306,6 +297,7 @@ function processInputsForm($modal, data, isAttachmentForm) {
         errorMessages.push('La date de début doit être antérieure à la date de fin.');
         $isInvalidElements.push($firstDate, $lastDate);
     }
+    const dataPhonesInvalid = {};
 
     $inputs.each(function () {
         const $input = $(this);
@@ -411,8 +403,11 @@ function processInputsForm($modal, data, isAttachmentForm) {
             else {
                 saveData($input, data, name, val, isAttachmentForm);
             }
-        }
-        else {
+        } else if ($input.hasClass('phone-number') && !dataPhonesInvalid && !$input.data('iti').isValidNumber()) {
+            if (!dataPhonesInvalid[name]) {
+                dataPhonesInvalid[name] = true;
+            }
+        } else {
             if ($editorContainer.length > 0) {
                 const maxLength = parseInt($input.attr('max'));
                 if (maxLength) {
@@ -434,6 +429,21 @@ function processInputsForm($modal, data, isAttachmentForm) {
             }
         }
     });
+
+    const dataArrayPhonesInvalid = Object.keys(dataPhonesInvalid).reduce(
+        (acc, currentName) => {
+            if (dataPhonesInvalid[currentName] === true) {
+                acc.push(currentName);
+            }
+            return acc;
+        },
+        []
+    );
+
+    if (dataArrayPhonesInvalid.length > 0) {
+        errorMessages.push('Un ou plusieurs numéros de téléphones fournis sont invalides.');
+        $isInvalidElements.push(...dataArrayPhonesInvalid.map((name) => $(`.data-array.phone-number[name="${name}"]`)));
+    }
 
     if (missingInputNames.length > 0) {
         errorMessages.push(missingInputNames.length === 1
@@ -526,6 +536,22 @@ function processFilesForm($modal, data) {
         });
     }
 
+    const $dataFiles = $modal.find('.data-file');
+    if ($dataFiles.length > 0) {
+        $dataFiles.each(function (index, field) {
+            const $field = $(field);
+            const files = $field[0].files;
+            const fieldName = $field.attr('name');
+            if(!$field.is('[multiple]')) {
+                data[fieldName] = files[0];
+            } else {
+                for(let fileIndex = 0; fileIndex < files.length; fileIndex++) {
+                    data[`${fieldName}[${fileIndex}]`] = files[fileIndex];
+                }
+            }
+        });
+    }
+
     const isInvalidRequired = required && droppedFiles.length === 0 && $savedFiles.length === 0;
 
     return {
@@ -547,6 +573,7 @@ function processDataArrayForm($modal, data) {
 
     const dataArray = {};
     const dataArrayNeedPositive = {};
+    const dataPhonesInvalid = {};
     const $isInvalidElements = [];
 
     const errorMessages = [];
@@ -555,7 +582,12 @@ function processDataArrayForm($modal, data) {
         const $input = $(this);
         const type = $input.attr('type')
         const name = $input.attr('name');
-        const val = type === 'number' ? Number($input.val()) : $input.val();
+        let val = type === 'number'
+            ? Number($input.val())
+            : ($input.hasClass('phone-number')
+                ? $input.data('iti').getNumber()
+                : $input.val()
+            );
         if ($input.data('id')) {
             if (val) {
                 if (!dataArray[name]) {
@@ -575,6 +607,10 @@ function processDataArrayForm($modal, data) {
                 dataArrayNeedPositive[name] = 0;
             }
             dataArrayNeedPositive[name] += val;
+        } else if ($input.hasClass('phone-number') && !$input.data('iti').isValidNumber()) {
+            if (!dataPhonesInvalid[name]) {
+                dataPhonesInvalid[name] = true;
+            }
         }
 
     });
@@ -589,15 +625,27 @@ function processDataArrayForm($modal, data) {
         []
     );
 
+    const dataArrayPhonesInvalid = Object.keys(dataPhonesInvalid).reduce(
+        (acc, currentName) => {
+            if (dataPhonesInvalid[currentName] === true) {
+                acc.push(currentName);
+            }
+            return acc;
+        },
+        []
+    );
     if (dataArrayNeedPositiveNames.length > 0) {
         errorMessages.push(...dataArrayNeedPositiveNames.map((name) => `Veuillez renseigner au moins un ${name}.`));
         $isInvalidElements.push(...dataArrayNeedPositiveNames.map((name) => $(`.data-array.needed-positiv[name="${name}"]`)));
+    }
+    if (dataArrayPhonesInvalid.length > 0) {
+        errorMessages.push('Un ou plusieurs numéros de téléphones fournis sont invalides.');
+        $isInvalidElements.push(...dataArrayPhonesInvalid.map((name) => $(`.data-array.phone-number[name="${name}"]`)));
     }
 
     for(const currentName in dataArray) {
         data[currentName] = !noStringify ? JSON.stringify(dataArray[currentName]) : dataArray[currentName];
     }
-
     return {
         success: $isInvalidElements.length === 0,
         errorMessages,

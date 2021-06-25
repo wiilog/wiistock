@@ -21,8 +21,10 @@ class CategorieCL
     const DEMANDE_COLLECTE = 'demande collecte';
     const DEMANDE_HANDLING = 'services';
 
+
     const ARRIVAGE = 'arrivage';
     const MVT_TRACA = 'mouvement traca';
+    const SENSOR = 'capteur';
     const AUCUNE = 'aucune';
 
     /**

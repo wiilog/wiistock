@@ -1,0 +1,36 @@
+<div class="modal fade" id="modalNewAlertTemplate" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nouveau modèle d'alerte</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-input container-fluid">
+                <div class="form-group">
+                    <label>Nom du modèle*</label>
+                    <input type="text" class="form-control data needed required" name="name"/>
+                </div>
+
+                <div class="form-group">
+                    <label>Type d'alerte*</label>
+                    <select name="type" class="form-control data needed w-100" onchange="onTemplateTypeChange($(this))" data-s2>
+                        {% for index, type in templateTypes %}
+                            <option value="{{ index }}">{{ type }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="row template-container">
+                </div>
+            </div>
+            <div class="error-msg"></div>
+            <input type="hidden" name="isAttachmentForm" value="1"/>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <div class="btn btn-primary submit-button">Enregistrer</div>
+            </div>
+        </div>
+    </div>
+</div>

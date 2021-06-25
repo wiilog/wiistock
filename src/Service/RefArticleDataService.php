@@ -351,7 +351,7 @@ class RefArticleDataService {
         $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
         $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
 
-        $ffCategory = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
+        $ffCategory = $categorieCLRepository->findOneBy(['label' => CategorieCL::REFERENCE_ARTICLE]);
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, $ffCategory);
 
         $providerCodes = Stream::from($refArticle->getArticlesFournisseur())
@@ -698,7 +698,7 @@ class RefArticleDataService {
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
-        $categorieCL = $categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
+        $categorieCL = $categorieCLRepository->findOneBy(['label' => CategorieCL::REFERENCE_ARTICLE]);
         $freeFields = $freeFieldRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, $categorieCL);
 
         return $this->visibleColumnService->getArrayConfig(self::REF_ARTICLE_FIELDS, $freeFields, $currentUser->getColumnVisible());

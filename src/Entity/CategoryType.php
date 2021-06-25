@@ -25,19 +25,8 @@ class CategoryType
     const DELIVERY_ORDER = 'ordre livraison';
     const PREPARATION_ORDER = 'ordre preparation';
     const TRANSFER_ORDER = 'ordre transfert';
-
-    const NOTIFICATIONS_TYPES = [
-        self::DEMANDE_LIVRAISON,
-        self::DEMANDE_COLLECTE,
-        self::TRANSFER_REQUEST,
-        self::DEMANDE_DISPATCH,
-        self::DEMANDE_HANDLING,
-    ];
-
-    const NOTIFICATIONS_EMERGENCIES = [
-        self::DEMANDE_DISPATCH,
-        self::DEMANDE_HANDLING,
-    ];
+    const SENSOR = 'capteur';
+    const REQUEST_TEMPLATE = 'modèle demande';
 
     /**
      * @ORM\Id()

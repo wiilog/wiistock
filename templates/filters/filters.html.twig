@@ -14,7 +14,7 @@
                     {{ hidden_submit }}
                     tabindex="0"
                     onclick="saveFilters(
-                        {{ page }},
+                        {{ page ?? '""' }},
                         {{ tableSelector is defined ? ("'" ~ tableSelector ~ "'") : 'undefined' }},
                         {{ callback is defined ? callback }}
                     )">

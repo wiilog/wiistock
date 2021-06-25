@@ -2,17 +2,23 @@
 
 namespace App\Entity;
 
+use App\Entity\IOT\PairedEntity;
+use App\Entity\IOT\SensorMessageTrait;
 use App\Helper\FormatHelper;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 
+use App\Entity\IOT\Pairing;
+
 /**
  * @ORM\Entity(repositoryClass="App\Repository\PackRepository")
  */
-class Pack
+class Pack implements PairedEntity
 {
+
+    use SensorMessageTrait;
 
     public const PACK_IS_GROUP = 'PACK_IS_GROUP';
 
@@ -128,6 +134,11 @@ class Pack
      */
     private ?Collection $childTrackingMovements;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="pack")
+     */
+    private Collection $pairings;
+
     public function __construct() {
         $this->litiges = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
@@ -136,6 +147,8 @@ class Pack
         $this->children = new ArrayCollection();
         $this->childTrackingMovements = new ArrayCollection();
         $this->quantity = 1;
+        $this->pairings = new ArrayCollection();
+        $this->sensorMessages = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -354,9 +367,9 @@ class Pack
     }
 
     /**
-     * @return ArrayCollection
+     * @return LocationClusterRecord[]|Collection
      */
-    public function getLocationClusterRecords(): ArrayCollection {
+    public function getLocationClusterRecords(): Collection {
         return $this->locationClusterRecords;
     }
 
@@ -568,4 +581,49 @@ class Pack
         ];
     }
 
+    /**
+     * @return Collection|Pairing[]
+     */
+    public function getPairings(): Collection
+    {
+        return $this->pairings;
+    }
+
+    public function getActivePairing(): ?Pairing {
+        $criteria = Criteria::create();
+        return $this->pairings
+            ->matching(
+                $criteria
+                    ->andWhere(Criteria::expr()->eq('active', true))
+                    ->setMaxResults(1)
+            )
+            ->first() ?: null;
+    }
+
+    public function addPairing(Pairing $pairing): self
+    {
+        if (!$this->pairings->contains($pairing)) {
+            $this->pairings[] = $pairing;
+            $pairing->setPack($this);
+        }
+
+        return $this;
+    }
+
+    public function removePairing(Pairing $pairing): self
+    {
+        if ($this->pairings->removeElement($pairing)) {
+            // set the owning side to null (unless already changed)
+            if ($pairing->getPack() === $this) {
+                $pairing->setPack(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function __toString()
+    {
+        return $this->getCode();
+    }
 }
