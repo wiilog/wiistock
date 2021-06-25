@@ -167,7 +167,7 @@ class PairingController extends AbstractController {
                     'msg' => 'Un capteur/code capteur est obligatoire pour valider l\'association'
                 ]);
             }
-            $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->findByNameOrCode($data['sensorWrapper'], $data['sensor']);
+            $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->findByNameOrCode($data['sensor'], $data['sensorCode']);
 
             if(isset($data['article'])) {
                 $article = $entityManager->getRepository(Article::class)->find($data['article']);

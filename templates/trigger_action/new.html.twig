@@ -16,7 +16,7 @@
                             </label>
                             <div class="w-100">
                                 <select class="form-control data needed" name="sensorWrapper" data-s2="triggerSensorWithoutPairing"
-                                        onchange="onDeviceChanged($(this))" data-placeholder="selectionner un nom de capteur">
+                                        onchange="onDeviceChanged($(this), true)" data-placeholder="selectionner un nom de capteur">
                                 </select>
                             </div>
 
@@ -28,7 +28,7 @@
                             <label>Code</label>
                             <div class="w-100">
                                 <select class="form-control data" name="sensorCode" data-s2="triggerSensorCodeWithoutPairing"
-                                        onchange="onDeviceChanged($(this))" data-placeholder="selectionner un code de capteur">
+                                        onchange="onDeviceChanged($(this), true)" data-placeholder="selectionner un code de capteur">
                                 </select>
                             </div>
                         </div>
