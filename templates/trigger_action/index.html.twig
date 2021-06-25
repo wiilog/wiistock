@@ -5,6 +5,7 @@
 {% block page_content %}
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">
+            {% if hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::CREATE')) %}
             <div class="col-auto ml-auto">
                 <div class="btn-group">
                     <button type="button"
@@ -19,6 +20,7 @@
                     </button>
                 </div>
             </div>
+            {% endif %}
         </div>
 
         <div class="row">
