@@ -390,7 +390,6 @@ class IOTService
                 if ($pairing->isActive()) {
                     if($pairing->getEnd() < new DateTime()) {
                         $pairing->setActive(false);
-                        $pairing->setEntity(null);
                         continue;
                     }
 

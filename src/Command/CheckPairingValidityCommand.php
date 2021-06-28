@@ -25,10 +25,13 @@ class CheckPairingValidityCommand extends Command {
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int {
-        $pairings = $this->entityManager->getRepository(Pairing::class)->findExpiredActive();
+        $pairingRepository = $this->entityManager->getRepository(Pairing::class);
+        $pairings = $pairingRepository->findExpiredActive();
         foreach($pairings as $pairing) {
             $pairing->setActive(false);
         }
+
+        $this->entityManager->flush();
 
         return 0;
     }
