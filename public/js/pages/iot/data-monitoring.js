@@ -229,7 +229,7 @@ function initTimeline($timelineContainer, showMore = false) {
                             isGrouped
                                 ? $(!groupAsLink ? '<div/>' : '<a/>', {
                                     class: `timeline-cell timeline-cell-left ${lastClass}`,
-                                    ...(group
+                                    ...(!hideTitle && group
                                         ? { text: group }
                                         : {}),
                                     ...(groupAsLink
