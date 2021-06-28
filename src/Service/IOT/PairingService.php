@@ -21,10 +21,10 @@ class PairingService
     /** @Required */
     public Twig_Environment $twigEnvironment;
 
-    public function getDataForDatatable(Sensor $sensor, $params = null)
+    public function getDataForDatatable(SensorWrapper $wrapper, $params = null)
     {
         $pairingRepository = $this->entityManager->getRepository(Pairing::class);
-        $queryResult = $pairingRepository->findByParams($params, $sensor);
+        $queryResult = $pairingRepository->findByParams($params, $wrapper);
 
         $pairings = $queryResult['data'];
 
