@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Article;
+use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\OrdreCollecte;
 use App\Entity\Pack;
@@ -329,6 +330,8 @@ class OrdreCollecteRepository extends EntityRepository
                 ->addSelect('sensorWrapper.name AS name')
                 ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
                 ->addSelect('collectOrder.numero AS entity')
+                ->addSelect("'" . Sensor::COLLECT_ORDER . "' AS entityType")
+                ->addSelect("collectOrder.id AS entityType")
                 ->join('article.sensorMessages', 'sensorMessage')
                 ->join('sensorMessage.pairings', 'pairing')
                 ->join('pairing.collectOrder', 'collectOrder')
@@ -354,8 +357,10 @@ class OrdreCollecteRepository extends EntityRepository
             '/AS \w+_1/' => 'AS name',
             '/AS \w+_2/' => 'AS active',
             '/AS \w+_3/' => 'AS entity',
-            '/AS \w+_4/' => 'AS date',
-            '/AS \w+_5/' => 'AS type',
+            '/AS \w+_4/' => 'AS entityType',
+            '/AS \w+_5/' => 'AS entityId',
+            '/AS \w+_6/' => 'AS date',
+            '/AS \w+_7/' => 'AS type',
             '/\?/' => $article->getId(),
         ];
 

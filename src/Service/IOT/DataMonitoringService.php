@@ -393,6 +393,15 @@ class DataMonitoringService
                 $row['group'] = $dataRow['orderNumber'];
             }
 
+            if (isset($dataRow['entityType'])
+                && isset($dataRow['entityId'])
+                && $dataRow['entityType'] !== IOTService::getEntityCodeFromEntity($entity)) {
+                $row['groupHref'] = $this->router->generate('show_data_history', [
+                    'id' => $dataRow['entityId'],
+                    'type' => $dataRow['entityType']
+                ]);
+            }
+
             return $row;
         } else {
             return null;

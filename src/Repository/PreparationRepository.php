@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Article;
 use App\Entity\FiltreSup;
+use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\Pack;
 use App\Entity\Preparation;
@@ -382,6 +383,8 @@ class PreparationRepository extends EntityRepository
                 ->addSelect('sensorWrapper.name AS name')
                 ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
                 ->addSelect('preparation.numero AS entity')
+                ->addSelect("'" . Sensor::PREPARATION . "' AS entityType")
+                ->addSelect('preparation.id AS entityId')
                 ->join('article.sensorMessages', 'sensorMessage')
                 ->join('sensorMessage.pairings', 'pairing')
                 ->join('pairing.preparationOrder', 'preparation')
@@ -407,8 +410,10 @@ class PreparationRepository extends EntityRepository
             '/AS \w+_1/' => 'AS name',
             '/AS \w+_2/' => 'AS active',
             '/AS \w+_3/' => 'AS entity',
-            '/AS \w+_4/' => 'AS date',
-            '/AS \w+_5/' => 'AS type',
+            '/AS \w+_4/' => 'AS entityType',
+            '/AS \w+_5/' => 'AS entityId',
+            '/AS \w+_6/' => 'AS date',
+            '/AS \w+_7/' => 'AS type',
             '/\?/' => $article->getId(),
         ];
 
