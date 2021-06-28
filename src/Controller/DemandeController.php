@@ -37,6 +37,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Throwable;
+use App\Helper\FormatHelper;
 
 
 /**
@@ -691,7 +692,7 @@ class DemandeController extends AbstractController
         return [
             FormatHelper::deliveryRequester($demande),
             $demande->getStatut()->getNom(),
-            $demande->getDestination()->getLabel(),
+            FormatHelper::location($demande->getDestination()),
             strip_tags($demande->getCommentaire()),
             isset($requestCreationDate) ? $requestCreationDate->format('d/m/Y H:i:s') : '',
             isset($firstDatePrepa) ? $firstDatePrepa->format('d/m/Y H:i:s') : '',
