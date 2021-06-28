@@ -315,4 +315,61 @@ class OrdreCollecteRepository extends EntityRepository
             return null;
         }
     }
+
+    /**
+     * @param LocationGroup $locationGroup
+     * @return string
+     */
+    public function createArticleSensorPairingDataQueryUnion(Article $article): string {
+        $entityManager = $this->getEntityManager();
+        $createQueryBuilder = function () use ($entityManager) {
+            return $entityManager->createQueryBuilder()
+                ->from(Article::class, 'article')
+                ->select('pairing.id AS pairingId')
+                ->addSelect('sensorWrapper.name AS name')
+                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
+                ->addSelect('collectOrder.numero AS entity')
+                ->join('article.sensorMessages', 'sensorMessage')
+                ->join('sensorMessage.pairings', 'pairing')
+                ->join('pairing.collectOrder', 'collectOrder')
+                ->join('pairing.sensorWrapper', 'sensorWrapper')
+                ->where('article = :article')
+                ->andWhere('pairing.article IS NULL');
+        };
+
+        $startQueryBuilder = $createQueryBuilder();
+        $startQueryBuilder
+            ->addSelect("pairing.start AS date")
+            ->addSelect("'start' AS type")
+            ->andWhere('pairing.start IS NOT NULL');
+
+        $endQueryBuilder = $createQueryBuilder();
+        $endQueryBuilder
+            ->addSelect("pairing.end AS date")
+            ->addSelect("'end' AS type")
+            ->andWhere('pairing.end IS NOT NULL');
+
+        $sqlAliases = [
+            '/AS \w+_0/' => 'AS pairingId',
+            '/AS \w+_1/' => 'AS name',
+            '/AS \w+_2/' => 'AS active',
+            '/AS \w+_3/' => 'AS entity',
+            '/AS \w+_4/' => 'AS date',
+            '/AS \w+_5/' => 'AS type',
+            '/\?/' => $article->getId(),
+        ];
+
+        $startSQL = $startQueryBuilder->getQuery()->getSQL();
+        $startSQL = StringHelper::multiplePregReplace($sqlAliases, $startSQL);
+
+        $endSQL = $endQueryBuilder->getQuery()->getSQL();
+        $endSQL = StringHelper::multiplePregReplace($sqlAliases, $endSQL);
+
+        return "
+            ($startSQL)
+            UNION
+            ($endSQL)
+        ";
+    }
+
 }

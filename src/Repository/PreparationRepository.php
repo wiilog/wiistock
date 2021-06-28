@@ -377,7 +377,7 @@ class PreparationRepository extends EntityRepository
         $entityManager = $this->getEntityManager();
         $createQueryBuilder = function () use ($entityManager) {
             return $entityManager->createQueryBuilder()
-                ->from(Pack::class, 'article')
+                ->from(Article::class, 'article')
                 ->select('pairing.id AS pairingId')
                 ->addSelect('sensorWrapper.name AS name')
                 ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
