@@ -91,9 +91,9 @@ class EmplacementDataService {
         $groupLastMessage = $linkedGroup ? $linkedGroup->getLastMessage() : null;
         $locationLastMessage = $emplacement->getLastMessage();
 
-        $sensorCode = $groupLastMessage
+        $sensorCode = $groupLastMessage && $groupLastMessage->getSensor()->getAvailableSensorWrapper()
             ? $groupLastMessage->getSensor()->getAvailableSensorWrapper()->getName()
-            : ($locationLastMessage
+            : ($locationLastMessage && $locationLastMessage->getSensor()->getAvailableSensorWrapper()
                 ? $locationLastMessage->getSensor()->getAvailableSensorWrapper()->getName()
                 : null);
 
