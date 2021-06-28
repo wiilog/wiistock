@@ -86,7 +86,10 @@ class IOTService
     public function onMessageReceived(array $frame, EntityManagerInterface $entityManager) {
         if (isset(self::PROFILE_TO_TYPE[$frame['profile']])) {
             $message = $this->parseAndCreateMessage($frame, $entityManager);
-            $this->linkWithSubEntities($message, $entityManager->getRepository(Pack::class));
+            $this->linkWithSubEntities($message,
+                $entityManager->getRepository(Pack::class),
+                $entityManager->getRepository(Article::class),
+            );
             $entityManager->flush();
             $this->treatTriggers($message, $entityManager);
             $entityManager->flush();
@@ -380,19 +383,18 @@ class IOTService
         return $received;
     }
 
-    public function linkWithSubEntities(SensorMessage $sensorMessage, PackRepository $packRepository) {
+    public function linkWithSubEntities(SensorMessage $sensorMessage, PackRepository $packRepository, ArticleRepository $articleRepository) {
         $sensor = $sensorMessage->getSensor();
         $wrapper = $sensor->getAvailableSensorWrapper();
-
         if ($wrapper) {
             foreach ($wrapper->getPairings() as $pairing) {
                 if ($pairing->isActive()) {
                     $pairing->addSensorMessage($sensorMessage);
                     $entity = $pairing->getEntity();
                     if ($entity instanceof LocationGroup) {
-                        $this->treatAddMessageLocationGroup($entity, $sensorMessage, $packRepository);
+                        $this->treatAddMessageLocationGroup($entity, $sensorMessage, $articleRepository, $packRepository);
                     } else if ($entity instanceof Emplacement) {
-                        $this->treatAddMessageLocation($entity, $sensorMessage, $packRepository);
+                        $this->treatAddMessageLocation($entity, $sensorMessage, $articleRepository, $packRepository);
                     } else if ($entity instanceof Pack) {
                         $this->treatAddMessagePack($entity, $sensorMessage);
                     } else if ($entity instanceof Article) {
@@ -407,10 +409,13 @@ class IOTService
         }
     }
 
-    private function treatAddMessageLocationGroup(LocationGroup $locationGroup, SensorMessage $sensorMessage, PackRepository $packRepository) {
+    private function treatAddMessageLocationGroup(LocationGroup $locationGroup,
+                                                  SensorMessage $sensorMessage,
+                                                  ArticleRepository $articleRepository,
+                                                  PackRepository $packRepository) {
         $locationGroup->addSensorMessage($sensorMessage);
         foreach ($locationGroup->getLocations() as $location) {
-            $this->treatAddMessageLocation($location, $sensorMessage, $packRepository);
+            $this->treatAddMessageLocation($location, $sensorMessage, $articleRepository, $packRepository);
         }
     }
 
