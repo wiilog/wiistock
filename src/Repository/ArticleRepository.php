@@ -1017,7 +1017,7 @@ class ArticleRepository extends EntityRepository {
             return $this->createQueryBuilder('article')
                 ->select('pairing.id AS pairingId')
                 ->addSelect('sensorWrapper.name AS name')
-                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
+                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND (pairing.end IS NULL OR pairing.end > NOW()) THEN 1 ELSE 0 END) AS active')
                 ->addSelect('article.barCode AS entity')
                 ->addSelect("'" . Sensor::ARTICLE . "' AS entityType")
                 ->addSelect('article.id AS entityId')

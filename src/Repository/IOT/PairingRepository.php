@@ -27,7 +27,7 @@ class PairingRepository extends EntityRepository
             ->leftJoin('sensors_pairing.sensorWrapper', 'sensor_wrapper')
             ->leftJoin('sensor_wrapper.sensor', 'sensor')
             ->where('sensor = :sensor')
-            ->andWhere("sensors_pairing.end IS NULL OR sensors_pairing.end > :now")
+            ->andWhere("(sensors_pairing.end IS NULL OR sensors_pairing.end > :now)")
             ->setParameter('sensor', $sensor)
             ->setParameter("now", new DateTime("now", new DateTimeZone('Europe/Paris')));
 
