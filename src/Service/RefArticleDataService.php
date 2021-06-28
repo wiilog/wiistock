@@ -176,9 +176,10 @@ class RefArticleDataService {
         $data = $this->getDataEditForRefArticle($refArticle);
         $articlesFournisseur = $articleFournisseurRepository->findByRefArticle($refArticle->getId());
         $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
+        $editAttachments = $this->userService->hasRightFunction(Menu::STOCK, Action::EDIT);
 
         $categories = $preloadCategories
-            ? $inventoryCategoryRepository->findAll()
+            ? $inventoryCategoryRepository->findBy([], ['label' => 'ASC'])
             : [];
 
         $freeFieldsGroupedByTypes = [];
@@ -223,6 +224,7 @@ class RefArticleDataService {
                         'managerUsername' => $managerUsername
                     ];
                 }),
+            'editAttachments' => $editAttachments,
             'showAttachments' => $showAttachments
         ]);
     }
@@ -407,6 +409,7 @@ class RefArticleDataService {
                 ->unique()
                 ->join(", "),
             "actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
+                "attachmentsLength" => $refArticle->getAttachments()->count(),
                 "reference_id" => $refArticle->getId(),
                 "active" => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF : 0,
             ]),

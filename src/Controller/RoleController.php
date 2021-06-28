@@ -38,41 +38,38 @@ class RoleController extends AbstractController {
     }
 
     /**
-     * @Route("/api", name="role_api", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api", name="role_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::DISPLAY_ROLE}, mode=HasPermission::IN_JSON)
      */
-    public function api(EntityManagerInterface $entityManager, Request $request): Response {
-        if ($request->isXmlHttpRequest()) {
-            $roleRepository = $entityManager->getRepository(Role::class);
+    public function api(EntityManagerInterface $entityManager): Response {
 
-            $roles = $roleRepository->findAllExceptNoAccess();
-            $rows = [];
-            foreach ($roles as $role) {
-                $url['edit'] = $this->generateUrl('role_api_edit', ['id' => $role->getId()]);
+        $roleRepository = $entityManager->getRepository(Role::class);
 
-                $rows[] = [
-                    'id' => $role->getId() ? $role->getId() : "Non défini",
-                    'Nom' => $role->getLabel() ? $role->getLabel() : "Non défini",
-                    'Actif' => $role->getActive() ? 'oui' : 'non',
-                    'Actions' => $this->renderView('role/datatableRoleRow.html.twig', [
-                        'url' => $url,
-                        'roleId' => $role->getId(),
-                    ]),
-                ];
-            }
-            $data['data'] = $rows;
-            return $this->json($data);
+        $roles = $roleRepository->findAllExceptNoAccess();
+        $rows = [];
+        foreach ($roles as $role) {
+            $url['edit'] = $this->generateUrl('role_api_edit', ['id' => $role->getId()]);
+
+            $rows[] = [
+                'id' => $role->getId() ? $role->getId() : "Non défini",
+                'Nom' => $role->getLabel() ? $role->getLabel() : "Non défini",
+                'Actif' => $role->getActive() ? 'oui' : 'non',
+                'Actions' => $this->renderView('role/datatableRoleRow.html.twig', [
+                    'url' => $url,
+                    'roleId' => $role->getId(),
+                ]),
+            ];
         }
-
-        throw new BadRequestHttpException();
+        $data['data'] = $rows;
+        return $this->json($data);
     }
 
     /**
-     * @Route("/creer", name="role_new", options={"expose"=true}, methods="GET|POST")
+     * @Route("/creer", name="role_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request, RoleService $roleService, EntityManagerInterface $entityManager): Response {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $roleRepository = $entityManager->getRepository(Role::class);
             $parametreRepository = $entityManager->getRepository(Parametre::class);
 
@@ -126,16 +123,13 @@ class RoleController extends AbstractController {
     }
 
     /**
-     * @Route("/api-modifier", name="role_api_edit", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api-modifier", name="role_api_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function apiEdit(Request $request,
                             RoleService $roleService,
                             EntityManagerInterface $entityManager): Response {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        if ($data = json_decode($request->getContent(), true)) {
             $roleRepository = $entityManager->getRepository(Role::class);
             $role = $roleRepository->find($data['id']);
 
@@ -159,13 +153,13 @@ class RoleController extends AbstractController {
     }
 
     /**
-     * @Route("/modifier", name="role_edit",  options={"expose"=true}, methods="GET|POST")
+     * @Route("/modifier", name="role_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function edit(Request $request,
                          RoleService $roleService,
                          EntityManagerInterface $entityManager): Response {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $roleRepository = $entityManager->getRepository(Role::class);
             $parametreRoleRepository = $entityManager->getRepository(ParametreRole::class);
             $parametreRepository = $entityManager->getRepository(Parametre::class);
@@ -211,12 +205,12 @@ class RoleController extends AbstractController {
     }
 
     /**
-     * @Route("/verification", name="role_check_delete", options={"expose"=true}, methods="GET|POST")
+     * @Route("/verification", name="role_check_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function checkRoleCanBeDeleted(Request $request,
                                           EntityManagerInterface $entityManager): Response {
-        if ($request->isXmlHttpRequest() && $roleId = json_decode($request->getContent(), true)) {
+        if ($roleId = json_decode($request->getContent(), true)) {
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
             $nbUsers = $utilisateurRepository->countByRoleId($roleId);
@@ -235,13 +229,13 @@ class RoleController extends AbstractController {
     }
 
     /**
-     * @Route("/supprimer", name="role_delete",  options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/supprimer", name="role_delete",  options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request,
                            RoleService $roleService,
                            EntityManagerInterface $entityManager): Response {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $roleRepository = $entityManager->getRepository(Role::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $resp = false;

@@ -3,6 +3,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\FieldsParam;
 use App\Entity\Menu;
@@ -41,80 +42,54 @@ class FieldsParamController extends AbstractController
 
     /**
      * @Route("/", name="fields_param_index")
-     * @param UserService $userService
-     * @param EntityManagerInterface $entityManager
-     * @return RedirectResponse|Response
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_CF})
      */
-    public function index(UserService $userService,
-                          EntityManagerInterface $entityManager)
+    public function index()
     {
-        if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_CF)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         return $this->render('fields_param/index.html.twig');
     }
 
     /**
-     * @Route("/api/{entityCode}", name="fields_param_api", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param UserService $userService
-     * @param EntityManagerInterface $entityManager
-     * @param string $entityCode
-     * @return Response
+     * @Route("/api/{entityCode}", name="fields_param_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_CF}, mode=HasPermission::IN_JSON)
      */
-    public function api(Request $request,
-                        UserService $userService,
-                        EntityManagerInterface $entityManager,
+    public function api(EntityManagerInterface $entityManager,
                         string $entityCode): Response
     {
-        if ($request->isXmlHttpRequest()) {
-            if (!$userService->hasRightFunction(Menu::PARAM, Action::DISPLAY_CF)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $arrayFields = $fieldsParamRepository->findByEntityForEntity($entityCode);
+        $rows = [];
 
-            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-            $arrayFields = $fieldsParamRepository->findByEntityForEntity($entityCode);
-            $rows = [];
+        foreach ($arrayFields as $field) {
+            $url['edit'] = $this->generateUrl('fields_api_edit', ['id' => $field->getId()]);
 
-            foreach ($arrayFields as $field) {
-                $url['edit'] = $this->generateUrl('fields_api_edit', ['id' => $field->getId()]);
-
-                $rows[] =
-                    [
-                        'fieldCode' => $field->getFieldLabel(),
-						'displayedFormsCreate' => $field->isDisplayedFormsCreate() ? 'oui' : 'non',
-						'displayedFormsEdit' => $field->isDisplayedFormsEdit() ? 'oui' : 'non',
-						'displayedFilters' => (in_array($field->getFieldCode(), $this->filteredFields) && $field->isDisplayedFilters()) ? 'oui' : 'non',
-						'mustCreate' => $field->getMustToCreate() ? 'oui' : 'non',
-						'mustEdit' => $field->getMustToModify() ? 'oui' : 'non',
-						'Actions' => $this->renderView('fields_param/datatableFieldsRow.html.twig', [
-                            'url' => $url,
-                            'fieldId' => $field->getId(),
-                        ]),
-                    ];
-            }
-            $data['data'] = $rows;
-            return new JsonResponse($data);
+            $rows[] =
+                [
+                    'fieldCode' => $field->getFieldLabel(),
+                    'displayedFormsCreate' => $field->isDisplayedFormsCreate() ? 'oui' : 'non',
+                    'displayedFormsEdit' => $field->isDisplayedFormsEdit() ? 'oui' : 'non',
+                    'displayedFilters' => (in_array($field->getFieldCode(), $this->filteredFields) && $field->isDisplayedFilters()) ? 'oui' : 'non',
+                    'mustCreate' => $field->getMustToCreate() ? 'oui' : 'non',
+                    'mustEdit' => $field->getMustToModify() ? 'oui' : 'non',
+                    'Actions' => $this->renderView('fields_param/datatableFieldsRow.html.twig', [
+                        'url' => $url,
+                        'fieldId' => $field->getId(),
+                    ]),
+                ];
         }
-        throw new BadRequestHttpException();
+        $data['data'] = $rows;
+        return new JsonResponse($data);
     }
 
     /**
-     * @Route("/api-modifier", name="fields_api_edit", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param UserService $userService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/api-modifier", name="fields_api_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function apiEdit(Request $request,
                             UserService $userService,
                             EntityManagerInterface $entityManager): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        if ($data = json_decode($request->getContent(), true)) {
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
             $field = $fieldsParamRepository->find($data['id']);
 
@@ -129,20 +104,12 @@ class FieldsParamController extends AbstractController
     }
 
     /**
-     * @Route("/modifier", name="fields_edit",  options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param UserService $userService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/modifier", name="fields_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function edit(Request $request,
-                         UserService $userService,
                          EntityManagerInterface $entityManager): Response {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
+        if ($data = json_decode($request->getContent(), true)) {
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
             $field = $fieldsParamRepository->find($data['field']);
 

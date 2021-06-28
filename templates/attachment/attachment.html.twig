@@ -1,26 +1,32 @@
 {% set required = required is defined and required %}
+{% set editAttachments = editAttachments is not defined or editAttachments %}
+
 <input type="hidden" name="isAttachmentForm" value="1"/>
 <input type="hidden" name="isFileNeeded" value="{{ required ? 1 : 0 }}"/>
 
 <label for="dropfile">Pièces jointes{{ required ? '*' }}</label>
-<div class="dropFrame justify-content-md-center"
-     data-arrivage-id="{{ arrivage is defined ? arrivage.id : '' }}"
-     data-litige-id="{{ litige is defined ? litige.id : '' }}"
-     ondragenter="dragEnterDiv(event, $(this))"
-     ondragover="dragOverDiv(event, $(this))"
-     ondragleave="dragLeaveDiv(event, $(this))"
-     ondrop="saveDroppedFiles(event, $(this))">
-    {% set text = text is not defined ? 'Faites glisser vos pièces jointes' : text %}
-    <p>{{ text }} <br> ou <span onclick="openFileExplorer($(this))" class="click-here"><i class="fa fa-folder-open" ></i> cliquez ici</span>
-        <input type="file" name="files[]" {{ (unique is not defined) or (not unique) ? 'multiple' }} class="d-none fileInput" onchange="saveInputFiles($(this))">
-    </p>
-</div>
+{% if editAttachments %}
+    <div class="dropFrame justify-content-md-center"
+         data-arrivage-id="{{ arrivage is defined ? arrivage.id : '' }}"
+         data-litige-id="{{ litige is defined ? litige.id : '' }}"
+         ondragenter="dragEnterDiv(event, $(this))"
+         ondragover="dragOverDiv(event, $(this))"
+         ondragleave="dragLeaveDiv(event, $(this))"
+         ondrop="saveDroppedFiles(event, $(this))">
+        {% set text = text is not defined ? 'Faites glisser vos pièces jointes' : text %}
+        <p>{{ text }} <br> ou <span onclick="openFileExplorer($(this))" class="click-here"><i class="fa fa-folder-open"></i> cliquez ici</span>
+            <input type="file" name="files[]" {{ (unique is not defined) or (not unique) ? 'multiple' }} class="d-none fileInput"
+                   onchange="saveInputFiles($(this))">
+        </p>
+    </div>
+{% endif %}
 <div class="file-bag"></div>
 
 {% if isNew != true %}
     {% for attachment in attachments %}
         {% include 'attachment/attachmentLine.html.twig' with {
-            attachment: attachment
+            attachment: attachment,
+            canRemove: editAttachments
         } %}
     {% endfor %}
 {% endif %}

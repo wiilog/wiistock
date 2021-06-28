@@ -47,15 +47,11 @@ class EmplacementController extends AbstractController {
     public GlobalParamService $globalParamService;
 
     /**
-     * @Route("/api", name="emplacement_api", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api", name="emplacement_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::REFERENTIEL, Action::DISPLAY_EMPL}, mode=HasPermission::IN_JSON)
      */
     public function api(Request $request, EmplacementDataService $emplacementDataService): Response {
-        if ($request->isXmlHttpRequest()) {
-            return $this->json($emplacementDataService->getEmplacementDataByParams($request->request));
-        }
-
-        throw new BadRequestHttpException();
+        return $this->json($emplacementDataService->getEmplacementDataByParams($request->request));
     }
 
     /**
@@ -84,11 +80,11 @@ class EmplacementController extends AbstractController {
     }
 
     /**
-     * @Route("/creer", name="emplacement_new", options={"expose"=true}, methods="GET|POST")
+     * @Route("/creer", name="emplacement_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::REFERENTIEL, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request, EntityManagerInterface $entityManager): Response {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $naturesRepository = $entityManager->getRepository(Nature::class);
             $typeRepository = $entityManager->getRepository(Type::class);
 
@@ -130,11 +126,11 @@ class EmplacementController extends AbstractController {
     }
 
     /**
-     * @Route("/api-modifier", name="emplacement_api_edit", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api-modifier", name="emplacement_api_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::REFERENTIEL, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function apiEdit(Request $request, EntityManagerInterface $entityManager): Response {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $natureRepository = $entityManager->getRepository(Nature::class);
             $typeRepository = $entityManager->getRepository(Type::class);
@@ -156,11 +152,11 @@ class EmplacementController extends AbstractController {
     }
 
     /**
-     * @Route("/edit", name="emplacement_edit", options={"expose"=true}, methods="GET|POST")
+     * @Route("/edit", name="emplacement_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::REFERENTIEL, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function edit(Request $request, EntityManagerInterface $entityManager): Response {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $naturesRepository = $entityManager->getRepository(Nature::class);
             $typeRepository = $entityManager->getRepository(Type::class);
@@ -203,11 +199,11 @@ class EmplacementController extends AbstractController {
     }
 
     /**
-     * @Route("/verification", name="emplacement_check_delete", options={"expose"=true}, methods="GET|POST")
+     * @Route("/verification", name="emplacement_check_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::REFERENTIEL, Action::DISPLAY_EMPL}, mode=HasPermission::IN_JSON)
      */
     public function checkEmplacementCanBeDeleted(Request $request): Response {
-        if ($request->isXmlHttpRequest() && $emplacementId = json_decode($request->getContent(), true)) {
+        if ($emplacementId = json_decode($request->getContent(), true)) {
             $isUsedBy = $this->isEmplacementUsed($emplacementId);
             if (empty($isUsedBy)) {
                 $delete = true;
@@ -266,11 +262,11 @@ class EmplacementController extends AbstractController {
     }
 
     /**
-     * @Route("/supprimer", name="emplacement_delete", options={"expose"=true}, methods="GET|POST")
+     * @Route("/supprimer", name="emplacement_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::REFERENTIEL, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request, EntityManagerInterface $entityManager): Response {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $response = [];
 
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
@@ -297,18 +293,15 @@ class EmplacementController extends AbstractController {
     }
 
     /**
-     * @Route("/autocomplete", name="get_emplacement", options={"expose"=true})
+     * @Route("/autocomplete", name="get_emplacement", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      */
     public function getRefArticles(Request $request, EntityManagerInterface $entityManager) {
-        if ($request->isXmlHttpRequest()) {
 
-            $search = $request->query->get('term');
+        $search = $request->query->get('term');
 
-            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-            $emplacement = $emplacementRepository->getIdAndLabelActiveBySearch($search);
-            return new JsonResponse(['results' => $emplacement]);
-        }
-        throw new BadRequestHttpException();
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $emplacement = $emplacementRepository->getIdAndLabelActiveBySearch($search);
+        return new JsonResponse(['results' => $emplacement]);
     }
 
     /**
@@ -402,21 +395,18 @@ class EmplacementController extends AbstractController {
     }
 
     /**
-     * @Route("/autocomplete-locations-by-type", name="get_locations_by_type", options={"expose"=true}, methods={"GET"})
+     * @Route("/autocomplete-locations-by-type", name="get_locations_by_type", options={"expose"=true}, methods={"GET"}, condition="request.isXmlHttpRequest()")
      */
     public function getLocationsByType(Request $request, EntityManagerInterface $entityManager) {
-        if ($request->isXmlHttpRequest()) {
 
-            $search = $request->query->get('term');
-            $type = $request->query->get('type');
+        $search = $request->query->get('term');
+        $type = $request->query->get('type');
 
-            $locationRepository = $entityManager->getRepository(Emplacement::class);
-            $locations = $locationRepository->getLocationsByType($type, $search);
-            return $this->json([
-                'results' => $locations
-            ]);
-        }
-        throw new BadRequestHttpException();
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $locations = $locationRepository->getLocationsByType($type, $search);
+        return $this->json([
+            'results' => $locations
+        ]);
     }
 
 }

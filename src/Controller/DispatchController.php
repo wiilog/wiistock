@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\CategorieCL;
 use App\Entity\Dispatch;
 use App\Entity\Action;
@@ -65,30 +66,17 @@ class DispatchController extends AbstractController {
 
     private const EXTRA_OPEN_PACK_MODAL = "EXTRA_OPEN_PACK_MODAL";
 
-    /**
-     * @var UserService
-     */
-    private $userService;
+    /** @Required */
+    public UserService $userService;
 
-    private $attachmentService;
-
-    public function __construct(UserService $userService,
-                                AttachmentService $attachmentService) {
-        $this->userService = $userService;
-        $this->attachmentService = $attachmentService;
-    }
+    /** @Required  */
+    public AttachmentService $attachmentService;
 
     /**
      * @Route("/", name="dispatch_index")
-     * @param EntityManagerInterface $entityManager
-     * @param DispatchService $service
-     * @return RedirectResponse|Response
+     * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE})
      */
     public function index(EntityManagerInterface $entityManager, DispatchService $service) {
-        if(!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
@@ -115,40 +103,23 @@ class DispatchController extends AbstractController {
     }
 
     /**
-     * @Route("/api-columns", name="dispatch_api_columns", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param DispatchService $service
-     * @return Response
+     * @Route("/api-columns", name="dispatch_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE}, mode=HasPermission::IN_JSON)
      */
     public function apiColumns(Request $request, EntityManagerInterface $entityManager, DispatchService $service): Response {
-        if($request->isXmlHttpRequest()) {
-            if(!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
 
             $columns = $service->getVisibleColumnsConfig($entityManager, $currentUser);
 
             return $this->json(array_values($columns));
-        }
-
-        throw new BadRequestHttpException();
     }
 
     /**
      * @Route("/colonne-visible", name="save_column_visible_for_dispatch", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE}, mode=HasPermission::IN_JSON)
      */
     public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response {
-        if(!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $data = json_decode($request->getContent(), true);
         $fields = array_keys($data);
         $fields[] = "actions";
@@ -166,61 +137,31 @@ class DispatchController extends AbstractController {
     }
 
     /**
-     * @Route("/autocomplete", name="get_dispatch_numbers", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/autocomplete", name="get_dispatch_numbers", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function getDispatchAutoComplete(Request $request,
                                             EntityManagerInterface $entityManager): Response {
-        if($request->isXmlHttpRequest()) {
-            $search = $request->query->get('term');
+        $search = $request->query->get('term');
 
-            $dispatchRepository = $entityManager->getRepository(Dispatch::class);
-            $results = $dispatchRepository->getDispatchNumbers($search);
+        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+        $results = $dispatchRepository->getDispatchNumbers($search);
 
-            return $this->json(['results' => $results]);
-        }
-
-        throw new BadRequestHttpException();
+        return $this->json(['results' => $results]);
     }
 
     /**
-     * @Route("/api", name="dispatch_api", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param DispatchService $dispatchService
-     * @return Response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
+     * @Route("/api", name="dispatch_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE}, mode=HasPermission::IN_JSON)
      */
     public function api(Request $request,
                         DispatchService $dispatchService): Response {
-        if($request->isXmlHttpRequest()) {
-            if(!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        $data = $dispatchService->getDataForDatatable($request->request);
 
-            $data = $dispatchService->getDataForDatatable($request->request);
-
-            return new JsonResponse($data);
-        } else {
-            throw new BadRequestHttpException();
-        }
+        return new JsonResponse($data);
     }
 
     /**
-     * @Route("/creer", name="dispatch_new", options={"expose"=true}, methods={"POST"})
-     * @param Request $request
-     * @param FreeFieldService $freeFieldService
-     * @param DispatchService $dispatchService
-     * @param AttachmentService $attachmentService
-     * @param EntityManagerInterface $entityManager
-     * @param TranslatorInterface $translator
-     * @param UniqueNumberService $uniqueNumberService
-     * @param RedirectService $redirectService
-     * @return Response
-     * @throws Exception
+     * @Route("/creer", name="dispatch_new", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
      */
     public function new(Request $request,
                         FreeFieldService $freeFieldService,
@@ -230,213 +171,200 @@ class DispatchController extends AbstractController {
                         TranslatorInterface $translator,
                         UniqueNumberService $uniqueNumberService,
                         RedirectService $redirectService): Response {
-        if ($request->isXmlHttpRequest()) {
-            if(!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE) ||
-                !$this->userService->hasRightFunction(Menu::DEM, Action::CREATE_ACHE)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        if(!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE) ||
+            !$this->userService->hasRightFunction(Menu::DEM, Action::CREATE_ACHE)) {
+            return $this->redirectToRoute('access_denied');
+        }
 
-            $post = $request->request;
-            $statutRepository = $entityManager->getRepository(Statut::class);
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-            $transporterRepository = $entityManager->getRepository(Transporteur::class);
-            $packRepository = $entityManager->getRepository(Pack::class);
+        $post = $request->request;
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $transporterRepository = $entityManager->getRepository(Transporteur::class);
+        $packRepository = $entityManager->getRepository(Pack::class);
 
-            $printDeliveryNote = $request->query->get('printDeliveryNote');
+        $printDeliveryNote = $request->query->get('printDeliveryNote');
 
-            $dispatch = new Dispatch();
-            $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $dispatch = new Dispatch();
+        $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
 
-            $fileBag = $request->files->count() > 0 ? $request->files : null;
+        $fileBag = $request->files->count() > 0 ? $request->files : null;
 
-            $type = $typeRepository->find($post->get('type'));
+        $type = $typeRepository->find($post->get('type'));
 
-            $locationTake = $post->get('prise')
-                ? ($emplacementRepository->find($post->get('prise')) ?: $type->getPickLocation())
-                : $type->getPickLocation();
-            $locationDrop = $post->get('depose')
-                ? ($emplacementRepository->find($post->get('depose')) ?: $type->getDropLocation())
-                : $type->getDropLocation();
+        $locationTake = $post->get('prise')
+            ? ($emplacementRepository->find($post->get('prise')) ?: $type->getPickLocation())
+            : $type->getPickLocation();
+        $locationDrop = $post->get('depose')
+            ? ($emplacementRepository->find($post->get('depose')) ?: $type->getDropLocation())
+            : $type->getDropLocation();
 
-            $comment = $post->get('commentaire');
-            $startDateRaw = $post->get('startDate');
-            $endDateRaw = $post->get('endDate');
-            $carrier = $post->get('carrier');
-            $carrierTrackingNumber = $post->get('carrierTrackingNumber');
-            $commandNumber = $post->get('commandNumber');
-            $receivers = $post->get('receivers');
-            $emergency = $post->get('emergency');
-            $projectNumber = $post->get('projectNumber');
-            $businessUnit = $post->get('businessUnit');
-            $packs = $post->get('packs');
+        $comment = $post->get('commentaire');
+        $startDateRaw = $post->get('startDate');
+        $endDateRaw = $post->get('endDate');
+        $carrier = $post->get('carrier');
+        $carrierTrackingNumber = $post->get('carrierTrackingNumber');
+        $commandNumber = $post->get('commandNumber');
+        $receivers = $post->get('receivers');
+        $emergency = $post->get('emergency');
+        $projectNumber = $post->get('projectNumber');
+        $businessUnit = $post->get('businessUnit');
+        $packs = $post->get('packs');
 
-            if(!$locationTake || !$locationDrop) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => (
-                        'Il n\'y a aucun emplacement de prise ou de dépose paramétré pour ce type.' .
-                        'Veuillez en paramétrer ou rendre les champs visibles à la création et/ou modification.'
-                    )
-                ]);
-            }
+        if(!$locationTake || !$locationDrop) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => (
+                    'Il n\'y a aucun emplacement de prise ou de dépose paramétré pour ce type.' .
+                    'Veuillez en paramétrer ou rendre les champs visibles à la création et/ou modification.'
+                )
+            ]);
+        }
 
-            $startDate = !empty($startDateRaw) ? $dispatchService->createDateFromStr($startDateRaw) : null;
-            $endDate = !empty($endDateRaw) ? $dispatchService->createDateFromStr($endDateRaw) : null;
+        $startDate = !empty($startDateRaw) ? $dispatchService->createDateFromStr($startDateRaw) : null;
+        $endDate = !empty($endDateRaw) ? $dispatchService->createDateFromStr($endDateRaw) : null;
 
-            if($startDate && $endDate && $startDate > $endDate) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => 'La date de fin d\'échéance est inférieure à la date de début.'
-                ]);
-            }
+        if($startDate && $endDate && $startDate > $endDate) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => 'La date de fin d\'échéance est inférieure à la date de début.'
+            ]);
+        }
 
-            $dispatchNumber = $uniqueNumberService->createUniqueNumber($entityManager, Dispatch::PREFIX_NUMBER, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
-            $dispatch
-                ->setCreationDate($date)
-                ->setStatut($statutRepository->find($post->get('status')))
-                ->setType($type)
-                ->setRequester($utilisateurRepository->find($post->get('requester')))
-                ->setLocationFrom($locationTake)
-                ->setLocationTo($locationDrop)
-                ->setBusinessUnit($businessUnit)
-                ->setNumber($dispatchNumber);
+        $dispatchNumber = $uniqueNumberService->createUniqueNumber($entityManager, Dispatch::PREFIX_NUMBER, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
+        $dispatch
+            ->setCreationDate($date)
+            ->setStatut($statutRepository->find($post->get('status')))
+            ->setType($type)
+            ->setRequester($utilisateurRepository->find($post->get('requester')))
+            ->setLocationFrom($locationTake)
+            ->setLocationTo($locationDrop)
+            ->setBusinessUnit($businessUnit)
+            ->setNumber($dispatchNumber);
 
-            if(!empty($comment)) {
-                $dispatch->setCommentaire($comment);
-            }
+        if(!empty($comment)) {
+            $dispatch->setCommentaire($comment);
+        }
 
-            if(!empty($startDate)) {
-                $dispatch->setStartDate($startDate);
-            }
+        if(!empty($startDate)) {
+            $dispatch->setStartDate($startDate);
+        }
 
-            if(!empty($endDate)) {
-                $dispatch->setEndDate($endDate);
-            }
+        if(!empty($endDate)) {
+            $dispatch->setEndDate($endDate);
+        }
 
-            if(!empty($carrier)) {
-                $dispatch->setCarrier($transporterRepository->find($carrier) ?? null);
-            }
+        if(!empty($carrier)) {
+            $dispatch->setCarrier($transporterRepository->find($carrier) ?? null);
+        }
 
-            if(!empty($carrierTrackingNumber)) {
-                $dispatch->setCarrierTrackingNumber($carrierTrackingNumber);
-            }
+        if(!empty($carrierTrackingNumber)) {
+            $dispatch->setCarrierTrackingNumber($carrierTrackingNumber);
+        }
 
-            if(!empty($commandNumber)) {
-                $dispatch->setCommandNumber($commandNumber);
-            }
+        if(!empty($commandNumber)) {
+            $dispatch->setCommandNumber($commandNumber);
+        }
 
-            if(!empty($receivers)) {
-                $receiverIds = explode("," , $receivers);
+        if(!empty($receivers)) {
+            $receiverIds = explode("," , $receivers);
 
-                foreach ($receiverIds as $receiverId) {
-                    if (!empty($receiverId)) {
-                        $receiver = $receiverId ? $utilisateurRepository->find($receiverId) : null;
-                        if ($receiver) {
-                            $dispatch->addReceiver($receiver);
-                        }
+            foreach ($receiverIds as $receiverId) {
+                if (!empty($receiverId)) {
+                    $receiver = $receiverId ? $utilisateurRepository->find($receiverId) : null;
+                    if ($receiver) {
+                        $dispatch->addReceiver($receiver);
                     }
                 }
             }
+        }
 
-            if(!empty($emergency)) {
-                $dispatch->setEmergency($post->get('emergency'));
+        if(!empty($emergency)) {
+            $dispatch->setEmergency($post->get('emergency'));
+        }
+
+        if(!empty($projectNumber)) {
+            $dispatch->setProjectNumber($projectNumber);
+        }
+
+        $freeFieldService->manageFreeFields($dispatch, $post->all(), $entityManager);
+
+        if(isset($fileBag)) {
+            $fileNames = [];
+            foreach($fileBag->all() as $file) {
+                $fileNames = array_merge(
+                    $fileNames,
+                    $attachmentService->saveFile($file)
+                );
             }
-
-            if(!empty($projectNumber)) {
-                $dispatch->setProjectNumber($projectNumber);
+            $attachments = $attachmentService->createAttachements($fileNames);
+            foreach($attachments as $attachment) {
+                $entityManager->persist($attachment);
+                $dispatch->addAttachment($attachment);
             }
+        }
 
-            $freeFieldService->manageFreeFields($dispatch, $post->all(), $entityManager);
-
-            if(isset($fileBag)) {
-                $fileNames = [];
-                foreach($fileBag->all() as $file) {
-                    $fileNames = array_merge(
-                        $fileNames,
-                        $attachmentService->saveFile($file)
-                    );
-                }
-                $attachments = $attachmentService->createAttachements($fileNames);
-                foreach($attachments as $attachment) {
-                    $entityManager->persist($attachment);
-                    $dispatch->addAttachment($attachment);
-                }
+        if($packs) {
+            $packs = json_decode($packs, true);
+            foreach($packs as $pack) {
+                $comment = $pack['packComment'];
+                $packId = $pack['packId'];
+                $packQuantity = (int)$pack['packQuantity'];
+                $pack = $packRepository->find($packId);
+                $pack
+                    ->setComment($comment);
+                $packDispatch = new DispatchPack();
+                $packDispatch
+                    ->setPack($pack)
+                    ->setTreated(false)
+                    ->setQuantity($packQuantity)
+                    ->setDispatch($dispatch);
+                $entityManager->persist($packDispatch);
             }
+        }
 
-            if($packs) {
-                $packs = json_decode($packs, true);
-                foreach($packs as $pack) {
-                    $comment = $pack['packComment'];
-                    $packId = $pack['packId'];
-                    $packQuantity = (int)$pack['packQuantity'];
-                    $pack = $packRepository->find($packId);
-                    $pack
-                        ->setComment($comment);
-                    $packDispatch = new DispatchPack();
-                    $packDispatch
-                        ->setPack($pack)
-                        ->setTreated(false)
-                        ->setQuantity($packQuantity)
-                        ->setDispatch($dispatch);
-                    $entityManager->persist($packDispatch);
-                }
-            }
+        $entityManager->persist($dispatch);
 
+        try {
             $entityManager->persist($dispatch);
-
-            try {
-                $entityManager->persist($dispatch);
-                $entityManager->flush();
-            } /** @noinspection PhpRedundantCatchClauseInspection */
-            catch(UniqueConstraintViolationException $e) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => $translator->trans('acheminement.Une autre demande d\'acheminement est en cours de création, veuillez réessayer') . '.'
-                ]);
-            }
-
-            if(!empty($receiver)) {
-                $dispatchService->sendEmailsAccordingToStatus($dispatch, false);
-            }
-
-            $showArguments = [
-                "id" => $dispatch->getId(),
-            ];
-
-            if($printDeliveryNote) {
-                $showArguments['print-delivery-note'] = "1";
-            }
-
+            $entityManager->flush();
+        } /** @noinspection PhpRedundantCatchClauseInspection */
+        catch(UniqueConstraintViolationException $e) {
             return new JsonResponse([
-                'success' => true,
-                'redirect' => $redirectService->generateUrl("dispatch_show", $showArguments, self::EXTRA_OPEN_PACK_MODAL),
-                'msg' => $translator->trans('acheminement.L\'acheminement a bien été créé') . '.'
+                'success' => false,
+                'msg' => $translator->trans('acheminement.Une autre demande d\'acheminement est en cours de création, veuillez réessayer') . '.'
             ]);
         }
-        throw new BadRequestHttpException();
+
+        if(!empty($receiver)) {
+            $dispatchService->sendEmailsAccordingToStatus($dispatch, false);
+        }
+
+        $showArguments = [
+            "id" => $dispatch->getId(),
+        ];
+
+        if($printDeliveryNote) {
+            $showArguments['print-delivery-note'] = "1";
+        }
+
+        return new JsonResponse([
+            'success' => true,
+            'redirect' => $redirectService->generateUrl("dispatch_show", $showArguments, self::EXTRA_OPEN_PACK_MODAL),
+            'msg' => $translator->trans('acheminement.L\'acheminement a bien été créé') . '.'
+        ]);
     }
 
     /**
      * @Route("/voir/{id}/{printBL}", name="dispatch_show", options={"expose"=true}, methods="GET|POST", defaults={"printBL"=0,"fromCreation"=0})
-     * @param Dispatch $dispatch
-     * @param EntityManagerInterface $entityManager
-     * @param DispatchService $dispatchService
-     * @param RedirectService $redirectService
-     * @param bool $printBL
-     * @return RedirectResponse|Response
-     * @throws NonUniqueResultException
+     * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE})
      */
     public function show(Dispatch $dispatch,
                          EntityManagerInterface $entityManager,
                          DispatchService $dispatchService,
                          RedirectService $redirectService,
                          bool $printBL) {
-        if(!$this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $extra = $redirectService->load();
 
         $paramRepository = $entityManager->getRepository(ParametrageGlobal::class);
@@ -466,14 +394,7 @@ class DispatchController extends AbstractController {
 
     /**
      * @Route("/{dispatch}/etat", name="print_dispatch_state_sheet", options={"expose"=true}, methods="GET|POST")
-     * @param Dispatch $dispatch
-     * @param PDFGeneratorService $PDFGenerator
-     * @param TranslatorInterface $translator
-     * @return PdfResponse
-     * @throws LoaderError
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
+     * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE})
      */
     public function printDispatchStateSheet(Dispatch $dispatch,
                                             PDFGeneratorService $PDFGenerator,
@@ -517,12 +438,6 @@ class DispatchController extends AbstractController {
 
     /**
      * @Route("/modifier", name="dispatch_edit", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param DispatchService $dispatchService
-     * @param FreeFieldService $freeFieldService
-     * @param EntityManagerInterface $entityManager
-     * @param TranslatorInterface $translator
-     * @return Response
      */
     public function edit(Request $request,
                          DispatchService $dispatchService,
@@ -644,14 +559,11 @@ class DispatchController extends AbstractController {
     }
 
     /**
-     * @Route("/api-modifier", name="dispatch_edit_api", options={"expose"=true}, methods="GET|POST")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/api-modifier", name="dispatch_edit_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function editApi(Request $request,
                             EntityManagerInterface $entityManager): Response {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if($data = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $dispatchRepository = $entityManager->getRepository(Dispatch::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
@@ -694,16 +606,12 @@ class DispatchController extends AbstractController {
     }
 
     /**
-     * @Route("/supprimer", name="dispatch_delete", options={"expose"=true},methods={"GET","POST"})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param TranslatorInterface $translator
-     * @return Response
+     * @Route("/supprimer", name="dispatch_delete", options={"expose"=true},methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
      */
     public function delete(Request $request,
                            EntityManagerInterface $entityManager,
                            TranslatorInterface $translator): Response {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if($data = json_decode($request->getContent(), true)) {
             $dispatchRepository = $entityManager->getRepository(Dispatch::class);
             $attachmentRepository = $entityManager->getRepository(Attachment::class);
 
@@ -758,8 +666,6 @@ class DispatchController extends AbstractController {
 
     /**
      * @Route("/packs/api/{dispatch}", name="dispatch_pack_api", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     * @param Dispatch $dispatch
-     * @return Response
      */
     public function apiPack(Dispatch $dispatch): Response {
         return new JsonResponse([
@@ -788,12 +694,6 @@ class DispatchController extends AbstractController {
 
     /**
      * @Route("/{dispatch}/packs/new", name="dispatch_new_pack", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param TranslatorInterface $translator
-     * @param PackService $packService
-     * @param Dispatch $dispatch
-     * @return Response
      */
     public function newPack(Request $request,
                             EntityManagerInterface $entityManager,
@@ -916,16 +816,12 @@ class DispatchController extends AbstractController {
     }
 
     /**
-     * @Route("/packs/delete", name="dispatch_delete_pack", options={"expose"=true},methods={"GET","POST"})
-     * @param Request $request
-     * @param TranslatorInterface $translator
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/packs/delete", name="dispatch_delete_pack", options={"expose"=true},methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
      */
     public function deletePack(Request $request,
                                TranslatorInterface $translator,
                                EntityManagerInterface $entityManager): Response {
-        if($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if($data = json_decode($request->getContent(), true)) {
             $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
 
             $pack = $dispatchPackRepository->find($data['pack']);
@@ -1634,14 +1530,11 @@ class DispatchController extends AbstractController {
 
     /**
      * @Route("/bon-de-surconsommation/{dispatch}", name="print_overconsumption_bill", options={"expose"=true}, methods="GET")
+     * @HasPermission({Menu::DEM, Action::GENERATE_OVERCONSUMPTION_BILL})
      */
     public function printOverconsumptionBill(Dispatch $dispatch,
                                              PDFGeneratorService $pdfService,
                                              EntityManagerInterface $entityManager): Response {
-        if(!$this->userService->hasRightFunction(Menu::DEM, Action::GENERATE_OVERCONSUMPTION_BILL)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $appLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::LABEL_LOGO);
         $overconsumptionLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::OVERCONSUMPTION_LOGO);
