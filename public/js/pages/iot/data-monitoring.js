@@ -212,20 +212,16 @@ function initTimeline($timelineContainer, showMore = false) {
                 }
 
                 const timeline = data || [];
-                let lastGroup;
                 let lastTitle;
                 const $timeline = timeline.map(({title, titleHref, active, group, groupHref, datePrefix, date}, index) => {
-                    const displayGroup = lastGroup !== group;
-                    lastGroup = group;
-
                     const hideTitle = lastTitle === title;
                     lastTitle = title;
 
                     const lastClass = (isEnd && (timeline.length - 1) === index) ? 'last-timeline-cell' : '';
                     const activeClass = active ? 'timeline-cell-active' : '';
-                    const withoutTitleClass = !displayGroup && hideTitle ? 'timeline-cell-without-title' : '';
+                    const withoutTitleClass = hideTitle ? 'timeline-cell-without-title' : '';
                     const largeTimelineCellClass = !isGrouped ? 'timeline-cell-large' : '';
-                    const groupAsLink = (displayGroup && group && groupHref);
+                    const groupAsLink = (group && groupHref);
 
                     return $('<div/>', {
                         class: 'timeline-row',
@@ -233,7 +229,7 @@ function initTimeline($timelineContainer, showMore = false) {
                             isGrouped
                                 ? $(!groupAsLink ? '<div/>' : '<a/>', {
                                     class: `timeline-cell timeline-cell-left ${lastClass}`,
-                                    ...(displayGroup && group
+                                    ...(!hideTitle && group
                                         ? { text: group }
                                         : {}),
                                     ...(groupAsLink
