@@ -102,9 +102,11 @@ class LivraisonsManagerService
                                     ?Emplacement $emplacementTo): void
     {
         $pairings = $livraison->getPreparation()->getPairings();
+        $pairingEnd = new DateTime('now', new DateTimeZone('Europe/Paris'));
         foreach ($pairings as $pairing) {
             if ($pairing->isActive()) {
                 $pairing->setActive(false);
+                $pairing->setEnd($pairingEnd);
             }
         }
 

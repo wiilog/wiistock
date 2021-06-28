@@ -138,7 +138,7 @@ class Emplacement implements PairedEntity
     private Collection $allowedCollectTypes;
 
     /**
-     * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="location")
+     * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="location", cascade={"remove"})
      */
     private Collection $pairings;
 

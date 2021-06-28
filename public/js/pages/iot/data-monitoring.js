@@ -43,17 +43,17 @@ function unpair(pairing) {
 }
 
 function getFiltersValue() {
-    return JSON.stringify({
+    return {
         start: $(`input[name="start"]`).val(),
         end: $(`input[name="end"]`).val(),
-    });
+    };
 }
 
 let previousMap = null;
 function initMap(element) {
     const $element = $(element);
 
-    $.post($element.data(`fetch-url`), getFiltersValue(), function (response) {
+    $.get($element.data(`fetch-url`), getFiltersValue(), function (response) {
         if(previousMap) {
             previousMap.off();
             previousMap.remove();
@@ -127,7 +127,7 @@ function initMap(element) {
 function initLineChart(element) {
     const $element = $(element);
 
-    $.post($element.data(`fetch-url`), getFiltersValue(), function (response) {
+    $.get($element.data(`fetch-url`), getFiltersValue(), function (response) {
         let data = {
             datasets: [],
             labels: []
@@ -204,20 +204,18 @@ function initTimeline($timelineContainer, showMore = false) {
                 }
 
                 const timeline = data || [];
-                let lastGroupTitle;
+                let lastGroup;
                 let lastTitle;
                 const $timeline = timeline.map(({title, titleHref, active, group, datePrefix, date}, index) => {
-                    const groupTitle = group ? group.title : null;
-                    const groupColor = group ? group.color : null;
-                    const displayGroup = lastGroupTitle !== groupTitle;
-                    lastGroupTitle = groupTitle;
+                    const displayGroup = lastGroup !== group;
+                    lastGroup = group;
 
                     const hideTitle = lastTitle === title;
                     lastTitle = title;
 
                     const lastClass = (isEnd && (timeline.length - 1) === index) ? 'last-timeline-cell' : '';
                     const activeClass = active ? 'timeline-cell-active' : '';
-                    const withoutTitleClass = hideTitle ? 'timeline-cell-without-title' : '';
+                    const withoutTitleClass = !displayGroup && hideTitle ? 'timeline-cell-without-title' : '';
                     const largeTimelineCellClass = !isGrouped ? 'timeline-cell-large' : '';
 
                     return $('<div/>', {
@@ -226,25 +224,28 @@ function initTimeline($timelineContainer, showMore = false) {
                             isGrouped
                                 ? $('<div/>', {
                                     class: `timeline-cell timeline-cell-left ${lastClass}`,
-                                    ...(displayGroup
-                                        ? {
-                                            style: groupColor ? `color: ${groupColor};` : null,
-                                            text: groupTitle ? groupTitle : null
-                                        }
+                                    ...(displayGroup && group
+                                        ? { text: group }
                                         : {})
                                 })
                                 : undefined,
                             $('<div/>', {
                                 class: `timeline-cell timeline-cell-right ${lastClass} ${activeClass} ${withoutTitleClass} ${largeTimelineCellClass}`,
                                 html: [
-                                    ...(!hideTitle
+                                    ...(!hideTitle && title
                                         ? [
-                                            `<a href="${titleHref}" class="timeline-cell-title">${title}</a>`,
+                                            titleHref
+                                                ? `<a href="${titleHref}" class="timeline-cell-title">${title}</a>`
+                                                : `<span class="timeline-cell-title">${title}</span>`,
                                             `<br/>`,
                                         ]
                                         : []),
-                                    `<span class="pairing-date-prefix">${datePrefix}</span>`,
-                                    `<br/>`,
+                                    ...(datePrefix
+                                        ? [
+                                            `<span class="pairing-date-prefix">${datePrefix}</span>`,
+                                            `<br/>`
+                                        ]
+                                        : []),
                                     `<span class="pairing-date">${date}</span>`
                                 ]
                             })

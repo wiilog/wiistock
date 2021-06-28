@@ -65,6 +65,7 @@ class TriggerActionController extends AbstractController
             $sensorRepository= $entityManager->getRepository(Sensor::class);
             $requestTemplateRepository= $entityManager->getRepository(RequestTemplate::class);
             $alertTemplateRepository= $entityManager->getRepository(AlertTemplate::class);
+            $triggerActionRepository = $entityManager->getRepository(TriggerAction::class);
 
             $triggerAction = new TriggerAction();
 
@@ -79,7 +80,6 @@ class TriggerActionController extends AbstractController
                 $sensorWrapper = null;
             }
             if ($sensorWrapper && $sensorWrapper->getSensor()->getProfile()->getMaxTriggers() > $sensorWrapper->getTriggerActions()->count()) {
-                $triggerAction->setSensorWrapper($sensorWrapper);
 
                 if ($data['templateType'] === TriggerAction::REQUEST) {
                     $name = $data['templates'];
@@ -91,8 +91,23 @@ class TriggerActionController extends AbstractController
                     $triggerAction->setAlertTemplate($alertTemplate);
                 }
 
-                if (isset($data['functionZone'])) {
-                    $json = ['zone' => $data['functionZone']];
+                if(isset($data['zone'])){
+                    $json = ['zone' => $data['zone']];
+                    if(isset($data['buttonIndex'])){
+                        $valid = $sensorWrapper->getTriggerActions()->filter(
+                            function(TriggerAction $trigger) use ($data) {
+                                $buttonIndex = $trigger->getConfig()['buttonIndex'] ?? null;
+                                return intval($buttonIndex) === intval($data['buttonIndex']);
+                            }
+                        )->isEmpty();
+                        if (!$valid) {
+                            return $this->json([
+                                'success' => false,
+                                'msg' => "Il existe déjà un actionneur pour ce capteur et ce numéro de bouton."
+                            ]);
+                        }
+                        $json['buttonIndex'] = $data['buttonIndex'];
+                    }
                     $triggerAction->setConfig($json);
                 }
 
@@ -100,7 +115,7 @@ class TriggerActionController extends AbstractController
                     $json = ['limit' => $data['borneTemperature'], 'temperature' => $data['sensorTemperatureLimit']];
                     $triggerAction->setConfig($json);
                 }
-
+                $triggerAction->setSensorWrapper($sensorWrapper);
                 $entityManager->persist($triggerAction);
                 try {
                     $entityManager->flush();
@@ -163,10 +178,13 @@ class TriggerActionController extends AbstractController
 
             $triggerAction = $triggerActionRepository->find($data['id']);
 
+            $sensor = $triggerAction->getSensorWrapper()->getSensor();
+
             $json = $this->renderView('trigger_action/edit_content_modal.html.twig', [
                 'triggerAction' => $triggerAction,
                 'templateTypes' => TriggerAction::TEMPLATE_TYPES,
                 "templateTemperatures" => TriggerAction::TEMPLATE_TEMPERATURE,
+                'profile' => $sensor ? $sensor->getProfile()->getName() : ""
             ]);
 
             return new JsonResponse($json);
@@ -198,8 +216,23 @@ class TriggerActionController extends AbstractController
                 $triggerAction->setRequestTemplate($requestTemplate);
             }
 
-            if(isset($data['functionZone'])){
-                $json = ['description' => $data['functionZone']];
+            if(isset($data['zone'])){
+                $json = ['zone' => $data['zone']];
+                if(isset($data['buttonIndex'])){
+                    $valid = $triggerAction->getSensorWrapper()->getTriggerActions()->filter(
+                        function(TriggerAction $trigger) use ($data, $triggerAction) {
+                            $buttonIndex = $trigger->getConfig()['buttonIndex'] ?? null;
+                            return $trigger->getId() !== $triggerAction->getId() && intval($buttonIndex) === intval($data['buttonIndex']);
+                        }
+                    )->isEmpty();
+                    if (!$valid) {
+                        return $this->json([
+                            'success' => false,
+                            'msg' => "Il existe déjà un actionneur pour ce capteur et ce numéro de bouton."
+                        ]);
+                    }
+                    $json['buttonIndex'] = $data['buttonIndex'];
+                }
                 $triggerAction->setConfig($json);
             }
 
@@ -255,6 +288,7 @@ class TriggerActionController extends AbstractController
 
         $query = $request->query;
         $type = "";
+        $sensor = null;
         if ($query->has('name')){
             $name = $query->get('name');
             $sensorWrapper = $sensorWrapperRepository->findOneBy(["name" => $name]);
@@ -273,7 +307,9 @@ class TriggerActionController extends AbstractController
                 "msg" => "Ce capteur n'existe pas",
             ]);
         } else if((isset($sensorWrapper) || isset($sensor)) && $typeLabel === Sensor::ACTION){
-            $html = $this->renderView('trigger_action/modalButton.html.twig');
+            $html = $this->renderView('trigger_action/modalButton.html.twig', [
+                'profile' => $sensor ? $sensor->getProfile()->getName() : ""
+            ]);
         } else if((isset($sensorWrapper) || isset($sensor)) && $typeLabel === Sensor::TEMPERATURE){
             $html = $this->renderView('trigger_action/modalTemperature.html.twig',[
                 "templateTemperatures" => TriggerAction::TEMPLATE_TEMPERATURE,

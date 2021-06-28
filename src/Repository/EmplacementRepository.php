@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Emplacement;
 use Doctrine\ORM\EntityRepository;
+use WiiCommon\Helper\StringHelper;
 
 /**
  * @method Emplacement|null find($id, $lockMode = null, $lockVersion = null)
@@ -223,5 +224,79 @@ class EmplacementRepository extends EntityRepository
         return $qb
             ->getQuery()
             ->getResult();
+    }
+
+    private function createSensorPairingDataQueryUnion(Emplacement $location): string {
+        $createQueryBuilder = function () {
+            return $this->createQueryBuilder('location')
+                ->select('pairing.id AS pairingId')
+                ->addSelect('sensorWrapper.name AS name')
+                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
+                ->join('location.pairings', 'pairing')
+                ->join('pairing.sensorWrapper', 'sensorWrapper')
+                ->where('location = :location');
+        };
+
+        $startQueryBuilder = $createQueryBuilder();
+        $startQueryBuilder
+            ->addSelect("pairing.start AS date")
+            ->addSelect("'start' AS type")
+            ->andWhere('pairing.start IS NOT NULL');
+
+        $endQueryBuilder = $createQueryBuilder();
+        $endQueryBuilder
+            ->addSelect("pairing.end AS date")
+            ->addSelect("'end' AS type")
+            ->andWhere('pairing.end IS NOT NULL');
+
+        $sqlAliases = [
+            '/AS \w+_0/' => 'AS pairingId',
+            '/AS \w+_1/' => 'AS name',
+            '/AS \w+_2/' => 'AS active',
+            '/AS \w+_3/' => 'AS date',
+            '/AS \w+_4/' => 'AS type',
+            '/?/' => $location->getId(),
+        ];
+
+        $startSQL = $startQueryBuilder->getQuery()->getSQL();
+        $startSQL = StringHelper::multiplePregReplace($sqlAliases, $startSQL);
+
+        $endSQL = $endQueryBuilder->getQuery()->getSQL();
+        $endSQL = StringHelper::multiplePregReplace($sqlAliases, $endSQL);
+
+        return "
+            ($startSQL)
+            UNION
+            ($endSQL)
+        ";
+    }
+
+    public function getSensorPairingData(Emplacement $location, int $start, int $count): array {
+        $unionSQL = $this->createSensorPairingDataQueryUnion($location);
+
+        $entityManager = $this->getEntityManager();
+        $connection = $entityManager->getConnection();
+        /** @noinspection SqlResolve */
+        return $connection
+            ->executeQuery("
+                SELECT *
+                FROM ($unionSQL) AS pairing
+                ORDER BY `date` DESC
+                LIMIT $count OFFSET $start
+            ")
+            ->fetchAllAssociative();
+    }
+
+    public function countSensorPairingData(Emplacement $location): int {
+        $unionSQL = $this->createSensorPairingDataQueryUnion($location);
+
+        $entityManager = $this->getEntityManager();
+        $connection = $entityManager->getConnection();
+        $unionQuery = $connection->executeQuery("
+            SELECT COUNT(*) AS count
+            FROM ($unionSQL) AS pairing
+        ");
+        $res = $unionQuery->fetchAllAssociative();
+        return $res[0]['count'] ?? 0;
     }
 }

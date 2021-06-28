@@ -47,7 +47,7 @@ class LocationGroup implements PairedEntity
     private Collection $locations;
 
     /**
-     * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="locationGroup")
+     * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="locationGroup", cascade={"remove"})
      */
     private Collection $pairings;
 

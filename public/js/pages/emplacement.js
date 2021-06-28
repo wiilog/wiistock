@@ -1,4 +1,7 @@
 $('.select2').select2();
+let modalDeleteEmplacement = $('#modalDeleteEmplacement');
+let submitDeleteEmplacement = $('#submitDeleteEmplacement');
+let urlDeleteEmplacement = Routing.generate('emplacement_delete', true);
 
 const locationsTableConfig = {
     processing: true,
@@ -102,9 +105,6 @@ function switchLocations() {
         let urlNewEmplacement = Routing.generate('emplacement_new', true);
         InitModal($modalNewEmplacement, $submitNewEmplacement, urlNewEmplacement, {tables: [locationsTable]});
 
-        let modalDeleteEmplacement = $('#modalDeleteEmplacement');
-        let submitDeleteEmplacement = $('#submitDeleteEmplacement');
-        let urlDeleteEmplacement = Routing.generate('emplacement_delete', true);
         InitModal(modalDeleteEmplacement, submitDeleteEmplacement, urlDeleteEmplacement, {tables: [locationsTable]});
 
         let $modalModifyEmplacement = $('#modalEditEmplacement');
@@ -158,7 +158,6 @@ function checkAndDeleteRowEmplacement(icon) {
     let modalBody = modalDeleteEmplacement.find('.modal-body');
     let id = icon.data('id');
     let param = JSON.stringify(id);
-
     $.post(Routing.generate('emplacement_check_delete'), param, function (resp) {
         modalBody.html(resp.html);
         submitDeleteEmplacement.attr('value', id);

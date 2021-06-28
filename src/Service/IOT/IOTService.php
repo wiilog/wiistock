@@ -14,6 +14,7 @@ use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\CollectRequestTemplate;
 use App\Entity\IOT\DeliveryRequestTemplate;
 use App\Entity\IOT\HandlingRequestTemplate;
+use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;
@@ -45,23 +46,31 @@ class IOTService
     const INEO_SENS_ACS_TEMP = 'ineo-sens-acs';
     const INEO_SENS_ACS_BTN = 'acs-switch-bouton';
     const INEO_SENS_GPS = 'trk-tracer-gps-new';
+    const SYMES_ACTION_SINGLE = 'symes-action-single';
+    const SYMES_ACTION_MULTI = 'symes-action-multi';
 
     const PROFILE_TO_MAX_TRIGGERS = [
         self::INEO_SENS_ACS_TEMP => 1,
         self::INEO_SENS_GPS => 1,
         self::INEO_SENS_ACS_BTN => 1,
+        self::SYMES_ACTION_MULTI => 4,
+        self::SYMES_ACTION_SINGLE => 1,
     ];
 
     const PROFILE_TO_TYPE = [
         self::INEO_SENS_ACS_TEMP => Sensor::TEMPERATURE,
         self::INEO_SENS_GPS => Sensor::GPS,
         self::INEO_SENS_ACS_BTN => Sensor::ACTION,
+        self::SYMES_ACTION_MULTI => Sensor::ACTION,
+        self::SYMES_ACTION_SINGLE => Sensor::ACTION,
     ];
 
     const PROFILE_TO_FREQUENCY = [
         self::INEO_SENS_ACS_TEMP => 'x minutes',
         self::INEO_SENS_GPS => 'x minutes',
         self::INEO_SENS_ACS_BTN => 'à l\'action',
+        self::SYMES_ACTION_SINGLE => 'à l\'action',
+        self::SYMES_ACTION_MULTI => 'à l\'action',
     ];
 
     /** @Required */
@@ -128,6 +137,12 @@ class IOTService
 
     private function treatActionTrigger(SensorWrapper $wrapper, TriggerAction $triggerAction, SensorMessage $sensorMessage, EntityManagerInterface $entityManager) {
         $needsTrigger = $sensorMessage->getEvent() === self::ACS_EVENT;
+        if ($sensorMessage->getSensor()->getProfile()->getName() === IOTService::SYMES_ACTION_MULTI) {
+            $button = intval(substr($sensorMessage->getContent(), 7, 1)); //EVENT (2)
+            $config = $triggerAction->getConfig();
+            $wanted = intval($config['buttonIndex']);
+            $needsTrigger = ($button === $wanted);
+        }
         if ($needsTrigger) {
             if ($triggerAction->getRequestTemplate()) {
                 $this->treatRequestTemplateTriggerType($triggerAction->getRequestTemplate(), $entityManager, $wrapper);
@@ -420,8 +435,13 @@ class IOTService
         $article->addSensorMessage($sensorMessage);
     }
 
+    private function treatAddMessageDeliveryRequest(Demande $request, SensorMessage $sensorMessage) {
+        $request->addSensorMessage($sensorMessage);
+    }
+
     private function treatAddMessageOrdrePrepa(Preparation $preparation, SensorMessage $sensorMessage) {
         $preparation->addSensorMessage($sensorMessage);
+        $this->treatAddMessageDeliveryRequest($preparation->getDemande(), $sensorMessage);
         foreach ($preparation->getArticles() as $article) {
             $this->treatAddMessageArticle($article, $sensorMessage);
         }
@@ -438,6 +458,13 @@ class IOTService
         switch ($config['profile']) {
             case IOTService::INEO_SENS_ACS_BTN:
                 return $this->extractEventTypeFromMessage($config);
+            case IOTService::SYMES_ACTION_MULTI:
+            case IOTService::SYMES_ACTION_SINGLE:
+                if (isset($config['payload_cleartext'])) {
+                    $event = hexdec(substr($config['payload_cleartext'], 0, 2)) >> 5;
+                    return $event === 0 ? self::ACS_PRESENCE : (self::ACS_EVENT . " (" . $event . ")");
+                }
+                break;
             case IOTService::INEO_SENS_ACS_TEMP:
                 if (isset($config['payload'])) {
                     $frame = $config['payload'][0]['data'];
@@ -477,6 +504,13 @@ class IOTService
                     }
                 }
                 break;
+            case IOTService::SYMES_ACTION_SINGLE:
+            case IOTService::SYMES_ACTION_MULTI:
+                if (isset($config['payload_cleartext'])) {
+                    $event = hexdec(substr($config['payload_cleartext'], 0 , 2)) >> 5;
+                    return $event === 0 ? self::ACS_PRESENCE : self::ACS_EVENT;
+                }
+                break;
         }
         return 'Évenement non trouvé';
     }
@@ -496,7 +530,56 @@ class IOTService
                     return $frame['NEW_BATT'] ?? -1;
                 }
                 break;
+            case IOTService::SYMES_ACTION_MULTI:
+            case IOTService::SYMES_ACTION_SINGLE:
+                $level = hexdec(substr($config['payload_cleartext'], 22, 2));
+                $minVoltage = 2400;
+                $maxVoltage = 3700;
+                $incertitudeLevel = 10;
+                $currentVoltage = $level * $incertitudeLevel + $minVoltage;
+                return (($currentVoltage - $minVoltage) / ($maxVoltage - $minVoltage)) * 100;
         }
-        return 'Évenement non trouvé';
+        return -1;
+    }
+
+    public function getEntityCodeFromEntity(?PairedEntity $pairedEntity): ?string {
+        if($pairedEntity instanceof Emplacement) {
+            $code = Sensor::LOCATION;
+        } else if($pairedEntity instanceof LocationGroup) {
+            $code = Sensor::LOCATION_GROUP;
+        } else if($pairedEntity instanceof Article) {
+            $code = Sensor::ARTICLE;
+        } else if($pairedEntity instanceof Pack) {
+            $code = Sensor::PACK;
+        } else if($pairedEntity instanceof Preparation) {
+            $code = Sensor::PREPARATION;
+        } else if($pairedEntity instanceof OrdreCollecte) {
+            $code = Sensor::COLLECT;
+        } else if($pairedEntity instanceof Demande) {
+            $code = Sensor::DELIVERY_REQUEST;
+        }
+        return $code ?? null;
+    }
+
+    public function getEntityClassFromCode(?string $code): ?string {
+        $association = [
+            Sensor::LOCATION => Emplacement::class,
+            Sensor::LOCATION_GROUP => LocationGroup::class,
+            Sensor::ARTICLE => Article::class,
+            Sensor::PACK => Pack::class,
+            Sensor::DELIVERY_REQUEST => Demande::class,
+            Sensor::COLLECT => OrdreCollecte::class,
+            Sensor::PREPARATION => Preparation::class
+        ];
+        return $association[$code] ?? null;
+    }
+
+    public function getEntity(EntityManagerInterface $entityManager,
+                              string $type,
+                              int $id): ?PairedEntity {
+        $className = $this->getEntityClassFromCode($type);
+        return $className
+            ? $entityManager->find($className, $id)
+            : null;
     }
 }

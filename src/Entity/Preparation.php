@@ -84,7 +84,7 @@ class Preparation implements PairedEntity
     private $endLocation;
 
     /**
-     * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="preparationOrder")
+     * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="preparationOrder", cascade={"remove"})
      */
     private Collection $pairings;
 
