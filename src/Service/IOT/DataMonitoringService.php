@@ -203,7 +203,7 @@ class DataMonitoringService
     {
         $config["left_pane"][] = [
             "type" => "entity",
-            "icon" => "iot-collect-order",
+            "icon" => "iot-collect-request",
             "title" => $collect->getNumero(),
             "header" => $header,
             "hideActions" => $header,
@@ -218,7 +218,7 @@ class DataMonitoringService
     {
         $config["left_pane"][] = [
             "type" => "entity",
-            "icon" => "iot-collect-order",
+            "icon" => "iot-collect-request",
             "title" => $collect->getNumero(),
             "header" => $header,
             "hideActions" => $header,
