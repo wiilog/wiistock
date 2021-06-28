@@ -12,7 +12,7 @@ $(document).ready(() => {
         });
     }
 
-    const $editEndButton = $(`button[data-target="#modalEditPairingEnd"]`);
+    const $editEndButton = $(`[data-target="#modalEditPairingEnd"]`);
     if ($editEndButton.exists()) {
         $editEndButton.click(function () {
             modalEditPairingEnd.find(`input[name="id"]`).val($(this).data(`id`));
@@ -75,6 +75,8 @@ function initMap(element) {
         let globalBounds = Leaflet.latLngBounds();
 
         const responseValues = Object.values(response);
+        // hide the map if there are no sensors
+        $element.closest('.wii-page-card').toggle(true);
         if(responseValues.length > 0) {
             responseValues.forEach(((date) => {
                 Object.values(date).forEach((coordinates) => {
@@ -120,6 +122,8 @@ function initMap(element) {
                     }, 200 * index);
                 });
             });
+        } else {
+            $element.closest('.wii-page-card').toggle(false);
         }
     });
 }
@@ -135,6 +139,9 @@ function initLineChart(element) {
         let sensorDates = Object.keys(response).filter((key) => key !== 'colors');
         const sensors = Object.keys(response['colors']);
         let datasets = {};
+
+        // hide the chart if there are no sensors
+        $element.closest('.wii-page-card').toggle(true);
         sensorDates.forEach((date) => {
             data.labels.push(date);
             sensors.forEach((sensor) => {
@@ -172,6 +179,7 @@ function initLineChart(element) {
                 }
             }
         });
+        $element.closest('.wii-page-card').toggle(sensors.length > 0);
     });
 }
 
@@ -204,28 +212,28 @@ function initTimeline($timelineContainer, showMore = false) {
                 }
 
                 const timeline = data || [];
-                let lastGroup;
                 let lastTitle;
-                const $timeline = timeline.map(({title, titleHref, active, group, datePrefix, date}, index) => {
-                    const displayGroup = lastGroup !== group;
-                    lastGroup = group;
-
+                const $timeline = timeline.map(({title, titleHref, active, group, groupHref, datePrefix, date}, index) => {
                     const hideTitle = lastTitle === title;
                     lastTitle = title;
 
                     const lastClass = (isEnd && (timeline.length - 1) === index) ? 'last-timeline-cell' : '';
                     const activeClass = active ? 'timeline-cell-active' : '';
-                    const withoutTitleClass = !displayGroup && hideTitle ? 'timeline-cell-without-title' : '';
+                    const withoutTitleClass = hideTitle ? 'timeline-cell-without-title' : '';
                     const largeTimelineCellClass = !isGrouped ? 'timeline-cell-large' : '';
+                    const groupAsLink = (group && groupHref);
 
                     return $('<div/>', {
                         class: 'timeline-row',
                         html: [
                             isGrouped
-                                ? $('<div/>', {
+                                ? $(!groupAsLink ? '<div/>' : '<a/>', {
                                     class: `timeline-cell timeline-cell-left ${lastClass}`,
-                                    ...(displayGroup && group
+                                    ...(!hideTitle && group
                                         ? { text: group }
+                                        : {}),
+                                    ...(groupAsLink
+                                        ? { href: groupHref }
                                         : {})
                                 })
                                 : undefined,
@@ -234,7 +242,7 @@ function initTimeline($timelineContainer, showMore = false) {
                                 html: [
                                     ...(!hideTitle && title
                                         ? [
-                                            titleHref
+                                            (active && titleHref)
                                                 ? `<a href="${titleHref}" class="timeline-cell-title">${title}</a>`
                                                 : `<span class="timeline-cell-title">${title}</span>`,
                                             `<br/>`,

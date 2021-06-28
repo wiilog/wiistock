@@ -37,7 +37,6 @@ class FiltreSupController extends AbstractController
         if ($data = json_decode($request->getContent(), true)) {
             $page = $data['page'];
             $user = $this->getUser();
-
             $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
             $filterLabels = [
                 'dateMin' => FiltreSup::FIELD_DATE_MIN,
@@ -99,6 +98,7 @@ class FiltreSupController extends AbstractController
                 'disputeNumber' => FiltreSup::FIELD_LITIGE_DISPUTE_NUMBER,
                 'receivers' => FiltreSup::FIELD_RECEIVERS,
                 'requesters' => FiltreSup::FIELD_REQUESTERS,
+                'buyers' => FiltreSup::FIELD_BUYERS,
                 'operators' => FiltreSup::FIELD_OPERATORS,
                 'dispatchNumber' => FiltreSup::FIELD_DISPATCH_NUMBER,
                 'emergencyMultiple' => FiltreSup::FIELD_EMERGENCY_MULTIPLE

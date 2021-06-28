@@ -401,11 +401,11 @@ class PurchaseRequestController extends AbstractController
             }
 
             if(isset($data['orderDate']) && $data['expectedDate']){
-                $orderDate = DateTime::createFromFormat('d/m/Y H:i', $data['orderDate'], new DateTimeZone("Europe/Paris"));
+                $orderDate = DateTime::createFromFormat('d/m/Y H:i', $data['orderDate'], new DateTimeZone("Europe/Paris")) ?: null;
             }
 
             if(isset($data['expectedDate']) && $data['expectedDate']){
-                $expectedDate = DateTime::createFromFormat('d/m/Y', $data['expectedDate'], new DateTimeZone("Europe/Paris"));
+                $expectedDate = DateTime::createFromFormat('d/m/Y', $data['expectedDate'], new DateTimeZone("Europe/Paris")) ?: null;
             }
 
             $purchaseRequestLine

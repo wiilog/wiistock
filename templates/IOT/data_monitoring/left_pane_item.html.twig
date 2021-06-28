@@ -15,7 +15,6 @@
 {% import _self as macros %}
 
 {% set type = type is defined ? type %}
-{% set pairing = pairing is defined ? pairing %}
 {% set icon = icon is defined ? icon %}
 {% set title = title is defined ? title %}
 {% set subtitle = subtitle is defined ? subtitle %}
@@ -25,8 +24,7 @@
 <div class="col-12">
     <div class="row position-relative association-pane-item-container align-items-center {{ header ? 'first-association-pane-item' }}">
         {% if type == 'timeline' %}
-            <div class="col timeline-container"
-                 data-timeline-data-path="{{ timelineDataPath }}">
+            <div class="col timeline-container" data-timeline-data-path="{{ timelineDataPath }}">
             </div>
         {% elseif type == 'pairingInfo' %}
             <div class="col-12">
@@ -39,7 +37,7 @@
                     {% if end is not null %}
                         {% if start is not null %}<br/><br/>{% endif %}
                         <span class="pairing-date-prefix">Fin le : </span><br/>
-                        <span class="date-prefix">{{ end }}</span>
+                        <span class="date-prefix pairing-end-date-{{ pairing.id }}">{{ end }}</span>
                     {% endif %}
                 </div>
             </div>
@@ -77,7 +75,7 @@
                     </div>
                 {% elseif type == 'entity' %}
                     <a class="btn btn-sm btn-outline-info"
-                       href="" {# TODO #}
+                       href="{{ path('show_data_history', entity_info) }}"
                        title="Voir l'historique des données">
                         <span class="wii-icon wii-icon-iot-historic"></span>
                     </a>

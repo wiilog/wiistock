@@ -54,6 +54,14 @@
                     </a>
                 {% endif %}
             {% endif %}
+            {% if (demande.preparations|filter(p=>p.pairings|length > 0)|length >= 1)
+                and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')) %}
+                <a class="dropdown-item"
+                   href="{{ path('show_data_history', {id: demande.id, type: constant('App\\Entity\\IOT\\Sensor::DELIVERY_REQUEST')}) }}">
+                    <span class="wii-icon wii-icon-pairing"></span>
+                    Historique des données
+                </a>
+            {% endif %}
             {% if modifiable and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
                 <a onclick="
                         editRow($(this),

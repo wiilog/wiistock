@@ -35,8 +35,9 @@ class TriggerActionController extends AbstractController
      */
     public function index(EntityManagerInterface $entityManager): Response
     {
-        $sensorWrappers= $entityManager->getRepository(SensorWrapper::class)->findBy([],["name"=>"ASC"]);
-
+        $sensorWrappers= $entityManager->getRepository(SensorWrapper::class)->findBy([
+            'deleted' => false
+        ],["name"=>"ASC"]);
         return $this->render('trigger_action/index.html.twig', [
             "sensorWrappers" => $sensorWrappers,
             "templateTypes" => TriggerAction::TEMPLATE_TYPES,
@@ -71,11 +72,7 @@ class TriggerActionController extends AbstractController
 
             if($data['sensorWrapper']){
                 $name = $data['sensorWrapper'];
-                $sensorWrapper = $sensorWrapperRepository->findOneBy(["name" => $name]);
-            } else if($data['sensor']){
-                $code = $data['sensor'];
-                $sensor = $sensorRepository->findOneBy(["code" => $code]);
-                $sensorWrapper = $sensorWrapperRepository->findOneBy(["sensor" => $sensor]);
+                $sensorWrapper = $sensorWrapperRepository->findOneBy(["id" => $name, 'deleted' => false]);
             } else {
                 $sensorWrapper = null;
             }
@@ -130,10 +127,9 @@ class TriggerActionController extends AbstractController
                 return $this->json([
                     'success' => false,
                     'msg' => "Le capteur choisi ne peut avoir plus de "
-                        . $sensorWrapper->getSensor()->getProfile()->getMaxTriggers() . " actions associées."
+                        . $sensorWrapper->getSensor()->getProfile()->getMaxTriggers() . " action(s) associée(s)."
                 ]);
             }
-
             return $this->json([
                 'success' => true,
                 'msg' => "L'actionneur a bien été créé",
@@ -291,7 +287,7 @@ class TriggerActionController extends AbstractController
         $sensor = null;
         if ($query->has('name')){
             $name = $query->get('name');
-            $sensorWrapper = $sensorWrapperRepository->findOneBy(["name" => $name]);
+            $sensorWrapper = $sensorWrapperRepository->find($name);
             $sensor = $sensorWrapper->getSensor();
         } else if ($query->has('code')){
             $code = $query->get('code');

@@ -46,10 +46,10 @@ class LocationGroupService {
             }
         }
 
-        $sensorCode = $groupLastMessage
-            ? $groupLastMessage->getSensor()->getCode()
-            : ($locationLastMessage
-                ? $locationLastMessage->getSensor()->getCode()
+        $sensorCode = $groupLastMessage && $groupLastMessage->getSensor()->getAvailableSensorWrapper()
+            ? $groupLastMessage->getSensor()->getAvailableSensorWrapper()->getName()
+            : ($locationLastMessage && $locationLastMessage->getSensor()->getAvailableSensorWrapper()
+                ? $locationLastMessage->getSensor()->getAvailableSensorWrapper()->getName()
                 : null);
 
         $hasPairing = !$group->getPairings()->isEmpty();

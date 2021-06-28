@@ -13,7 +13,7 @@
                         demande: demande,
                         modifiable: modifiable,
                         showDetails: showDetails,
-                        titleLogo: demande.livraisons|filter(pr=>pr.pairings|length==1) ? 'pairing' : null,
+                        titleLogo: demande.preparations|filter(p=>p.pairings|length > 0)|length >= 1 ? 'pairing' : null,
                         titleLogoTooltip: "Cette livraison est liée à un capteur"
                     } %}
                 </div>

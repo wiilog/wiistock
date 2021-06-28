@@ -8,6 +8,7 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
+use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\LigneArticlePreparation;
 use App\Entity\Menu;
@@ -17,6 +18,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Exceptions\NegativeQuantityException;
+use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\LivraisonsManagerService;
 use App\Service\PDFGeneratorService;
@@ -41,6 +43,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
+use WiiCommon\Helper\Stream;
 
 /**
  * @Route("/preparation")
@@ -261,6 +264,12 @@ class PreparationController extends AbstractController
                          EntityManagerInterface $entityManager): Response
     {
         $sensorWrappers = $entityManager->getRepository(SensorWrapper::class)->findWithNoActiveAssociation();
+        $sensorWrappers = Stream::from($sensorWrappers)
+            ->filter(function(SensorWrapper $wrapper) {
+                return $wrapper->getPairings()->filter(function(Pairing $pairing) {
+                    return $pairing->isActive();
+                })->isEmpty();
+            });
         $articleRepository = $entityManager->getRepository(Article::class);
 
         $preparationStatus = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;
@@ -268,7 +277,6 @@ class PreparationController extends AbstractController
         $demande = $preparation->getDemande();
         $destination = $demande ? $demande->getDestination() : null;
         $operator = $preparation ? $preparation->getUtilisateur() : null;
-        $requester = $demande ? $demande->getUtilisateur() : null;
         $comment = $preparation->getCommentaire();
 
         return $this->render('preparation/show.html.twig', [
@@ -283,7 +291,7 @@ class PreparationController extends AbstractController
                 ['label' => 'Statut', 'value' => $preparation->getStatut() ? ucfirst($preparation->getStatut()->getNom()) : ''],
                 ['label' => 'Point de livraison', 'value' => $destination ? $destination->getLabel() : ''],
                 ['label' => 'Opérateur', 'value' => $operator ? $operator->getUsername() : ''],
-                ['label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : ''],
+                ['label' => 'Demandeur', 'value' => FormatHelper::deliveryRequester($demande)],
                 [
                     'label' => 'Commentaire',
                     'value' => $comment ?: '',
@@ -646,14 +654,14 @@ class PreparationController extends AbstractController
                                          EntityManagerInterface $entityManager,
                                          Request $request): Response{
         if($data = json_decode($request->getContent(), true)) {
-            if(!$data['sensor'] && !$data['sensorCode']) {
+            if(!$data['sensorWrapper'] && !$data['sensor']) {
                 return $this->json([
                     'success' => false,
                     'msg' => 'Un capteur/code capteur est obligatoire pour valider l\'association'
                 ]);
             }
 
-            $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->findByNameOrCode($data['sensor'], $data['sensorCode']);
+            $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->findOneBy(["id" => $data['sensorWrapper'], 'deleted' => false]);
             $preparation = $entityManager->getRepository(Preparation::class)->find($data['orderID']);
 
             $pairingPreparation = $preparationsService->createPairing($sensorWrapper, $preparation);

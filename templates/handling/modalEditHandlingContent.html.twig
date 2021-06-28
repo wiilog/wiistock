@@ -46,6 +46,8 @@
         <select class="demandeur form-control data needed input" name="requester" disabled>
             {% if handling.requester %}
                 <option value="{{ handling.requester.id }}">{{ handling.requester.username }}</option>
+            {% elseif handling.triggeringSensorWrapper %}
+                <option value="">{{ handling.triggeringSensorWrapper.name }}</option>
             {% endif %}
         </select>
     </div>

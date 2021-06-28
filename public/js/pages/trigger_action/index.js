@@ -5,10 +5,6 @@ const $sensorInput = $modalNewTriggerAction.find('[name=sensorCode]');
 const $sensorDetailsContainer = $modalNewTriggerAction.find('.sensor-details-container');
 
 $(function() {
-    $('.select2').select2();
-
-    Select2Old.init($modalNewTriggerAction.find('[name=sensorWrapper]'));
-
     let pathTriggerAction = Routing.generate('trigger_action_api', true);
     let purchaseTriggerActionConfig = {
         processing: true,
@@ -28,9 +24,9 @@ $(function() {
             needsSearchOverride: true,
         },
         columns: [
-            {"data": 'actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},
-            {"data": 'sensorWrapper', 'name': 'Nom', 'title': 'Nom du capteur'},
-            {"data": 'template', 'name': 'Modèle', 'title': 'Modèle'},
+            {"data": 'actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false, width: '10px'},
+            {"data": 'sensorWrapper', 'name': 'Nom', 'title': 'Nom du capteur', width: '50%'},
+            {"data": 'template', 'name': 'Modèle', 'title': 'Modèle', width: '50%'},
         ]
     };
 
@@ -56,21 +52,18 @@ function deleteRowLine(button, $submit) {
     $submit.attr('value', id);
 }
 
-function submitSensor() {
-    if(!$sensorSelect.val() && !$sensorInput.val()){
-        showBSAlert("Veuillez renseigner un code ou un nom de capteur", "warning");
-    } else {
+function submitSensor(val = null) {
+    if(val) {
         const route = Routing.generate("get_sensor_by_name", {name: $sensorSelect.val() || $sensorInput.val()} );
-        //$.post(Routing.generate("get_sensor_by_name"), {name: $sensorSelect.val()});
 
         $.get(route).then((html) => {
-           const $sensorType = $modalNewTriggerAction.find('.sensor-type');
-           $sensorType.empty();
-           $sensorDetailsContainer.removeClass('d-none');
+            const $sensorType = $modalNewTriggerAction.find('.sensor-type');
+            $sensorType.empty();
+            $sensorDetailsContainer.removeClass('d-none');
             const templatesSelect = $modalNewTriggerAction.find("select[name=templates]");
             templatesSelect.val(null).trigger('change');
             templatesSelect.attr('disabled', true);
-           $sensorType.append(html);
+            $sensorType.append(html);
         });
     }
 }

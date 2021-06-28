@@ -41,3 +41,4 @@ doctrine:
                 GROUP_CONCAT: DoctrineExtensions\Query\Mysql\GroupConcat
                 REGEXP: DoctrineExtensions\Query\Mysql\Regexp
                 IFNULL: DoctrineExtensions\Query\Mysql\IfNull
+                NOW: DoctrineExtensions\Query\Mysql\Now

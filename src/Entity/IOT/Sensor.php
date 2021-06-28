@@ -19,8 +19,8 @@ class Sensor
     const ACTION = 'Action';
 
     const SENSOR_ICONS = [
-        self::TEMPERATURE => 'temperature',
-        self::GPS => 'tracking',
+        self::TEMPERATURE => 'iot-temperature',
+        self::GPS => 'iot-tracking',
     ];
 
     const LOCATION = 'location';
@@ -29,16 +29,15 @@ class Sensor
     const ARTICLE = 'article';
     const PREPARATION = 'preparation';
     const DELIVERY_REQUEST = 'delivery-request';
-    const COLLECT = 'collect';
+    const COLLECT_REQUEST = 'collect-request';
+    const COLLECT_ORDER = 'collect-order';
 
-    const CATEGORIES = [
+    const PAIRING_CATEGORIES = [
         'Emplacement' => self::LOCATION,
         'Colis' => self::PACK,
         'Article' => self::ARTICLE,
         'Préparation' => self::PREPARATION,
-        'Livraison' => self::DELIVERY_REQUEST,
-        'Ordre de collecte' => self::COLLECT,
-        "Groupe d'emplacement" => self::LOCATION_GROUP,
+        'Ordre de collecte' => self::COLLECT_REQUEST,
     ];
 
     /**

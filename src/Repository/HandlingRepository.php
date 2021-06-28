@@ -123,6 +123,7 @@ class HandlingRepository extends EntityRepository
         $queryBuilder = $this->createQueryBuilder('handling')
             ->select('handling.id AS id')
             ->addSelect('handling.number AS number')
+            ->addSelect('triggeringSensorWrapper.name AS sensorName')
             ->addSelect('handling.creationDate AS creationDate')
             ->addSelect('join_requester.username AS requester')
             ->addSelect('join_type.label AS type')
@@ -140,6 +141,7 @@ class HandlingRepository extends EntityRepository
             ->addSelect('handling.carriedOutOperationCount AS carriedOutOperationCount')
 
             ->leftJoin('handling.requester', 'join_requester')
+            ->leftJoin('handling.triggeringSensorWrapper', 'triggeringSensorWrapper')
             ->leftJoin('handling.type', 'join_type')
             ->leftJoin('handling.status', 'join_status')
             ->leftJoin('handling.treatedByHandling', 'join_treatedByHandling')

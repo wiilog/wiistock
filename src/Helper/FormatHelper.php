@@ -2,8 +2,11 @@
 
 namespace App\Helper;
 
+use App\Entity\Collecte;
+use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
+use App\Entity\Handling;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;
 use App\Entity\Nature;
@@ -29,6 +32,36 @@ class FormatHelper {
 
     public static function type(?Type $type, $else = "") {
         return $type ? $type->getLabel() : $else;
+    }
+
+    public static function handlingRequester(Handling $handling, $else = ""): string {
+        $triggeringSensorWrapper = $handling->getTriggeringSensorWrapper();
+        $triggeringSensorWrapperName = $triggeringSensorWrapper ? $triggeringSensorWrapper->getName() : null;
+        $requester = $handling->getRequester();
+        $requesterUsername = $requester ? $requester->getUsername() : null;
+        return $triggeringSensorWrapperName
+            ?: $requesterUsername
+            ?: $else;
+    }
+
+    public static function deliveryRequester(Demande $demande, $else = ""): string {
+        $triggeringSensorWrapper = $demande->getTriggeringSensorWrapper();
+        $triggeringSensorWrapperName = $triggeringSensorWrapper ? $triggeringSensorWrapper->getName() : null;
+        $requester = $demande->getUtilisateur();
+        $requesterUsername = $requester ? $requester->getUsername() : null;
+        return $triggeringSensorWrapperName
+            ?: $requesterUsername
+            ?: $else;
+    }
+
+    public static function collectRequester(Collecte $collectRequest, $else = ""): string {
+        $triggeringSensorWrapper = $collectRequest->getTriggeringSensorWrapper();
+        $triggeringSensorWrapperName = $triggeringSensorWrapper ? $triggeringSensorWrapper->getName() : null;
+        $requester = $collectRequest->getDemandeur();
+        $requesterUsername = $requester ? $requester->getUsername() : null;
+        return $triggeringSensorWrapperName
+            ?: $requesterUsername
+            ?: $else;
     }
 
     public static function status(?Statut $status, $else = "") {

@@ -3,18 +3,13 @@
 namespace App\Service;
 
 use App\Entity\FiltreSup;
-use App\Entity\IOT\Pairing;
 use App\Entity\Livraison;
 
 use App\Helper\FormatHelper;
-use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\EntityManagerInterface;
 
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
-use Twig\Error\LoaderError as Twig_Error_Loader;
-use Twig\Error\RuntimeError as Twig_Error_Runtime;
-use Twig\Error\SyntaxError as Twig_Error_Syntax;
 use Twig\Environment as Twig_Environment;
 
 class LivraisonService
@@ -29,36 +24,20 @@ class LivraisonService
      */
     private $router;
 
-	/**
-	 * @var UserService
-	 */
-    private $userService;
-
     private $security;
 
     private $entityManager;
 
-    public function __construct(UserService $userService,
-                                RouterInterface $router,
+    public function __construct(RouterInterface $router,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
                                 Security $security) {
         $this->templating = $templating;
         $this->entityManager = $entityManager;
         $this->router = $router;
-        $this->userService = $userService;
         $this->security = $security;
     }
 
-    /**
-     * @param array|null $params
-     * @param int|null $filterDemandId
-     * @return array
-     * @throws NonUniqueResultException
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
-     */
     public function getDataForDatatable($params = null, $filterDemandId = null)
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -90,30 +69,32 @@ class LivraisonService
 		];
     }
 
-    /**
-     * @param Livraison $livraison
-     * @return array
-     * @throws Twig_Error_Loader
-     * @throws Twig_Error_Runtime
-     * @throws Twig_Error_Syntax
-     */
-    public function dataRowLivraison($livraison)
+    public function dataRowLivraison(Livraison $livraison)
     {
 		$url['show'] = $this->router->generate('livraison_show', ['id' => $livraison->getId()]);
+
+		$preparation = $livraison->getPreparation() ?? null;
+		$lastMessage = $preparation ? $livraison->getPreparation()->getLastMessage() : null;
+        $sensorCode = ($lastMessage && $lastMessage->getSensor() && $lastMessage->getSensor()->getAvailableSensorWrapper()) ? $lastMessage->getSensor()->getAvailableSensorWrapper()->getName() : null;
+        $hasPairing = $preparation && !$preparation->getPairings()->isEmpty();
 
 		$demande = $livraison->getDemande();
 
         return [
-			'id' => $livraison->getId() ?? '',
-			'Numéro' => $livraison->getNumero() ?? '',
-			'Date' => $livraison->getDate() ? $livraison->getDate()->format('d/m/Y') : '',
-			'Statut' => $livraison->getStatut() ? $livraison->getStatut()->getNom() : '',
-			'Opérateur' => $livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : '',
-			'Type' => $demande && $demande->getType() ? $demande->getType()->getLabel() : '',
-			'Actions' => $this->templating->render('livraison/datatableLivraisonRow.html.twig', ['url' => $url,
-            'titleLogo' => $livraison->getPreparation()->getActivePairing() ? 'pairing' : null
-            ])
-		];
+            'id' => $livraison->getId() ?? '',
+            'Numéro' => $livraison->getNumero() ?? '',
+            'Date' => $livraison->getDate() ? $livraison->getDate()->format('d/m/Y') : '',
+            'Statut' => $livraison->getStatut() ? $livraison->getStatut()->getNom() : '',
+            'Opérateur' => $livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : '',
+            'Type' => $demande && $demande->getType() ? $demande->getType()->getLabel() : '',
+            'Actions' => $this->templating->render('livraison/datatableLivraisonRow.html.twig', ['url' => $url,
+                'titleLogo' => !$livraison->getPreparation()->getPairings()->isEmpty() ? 'pairing' : null
+            ]),
+            'pairing' => $this->templating->render('pairing-icon.html.twig', [
+                'sensorCode' => $sensorCode,
+                'hasPairing' => $hasPairing,
+            ]),
+        ];
     }
 
     public function putLivraisonLine($handle,
@@ -129,7 +110,7 @@ class LivraisonService
                 $livraison->getDate() ? $livraison->getDate()->format('d/m/Y H:i') : '',
                 $livraison->getDateFin() ? $livraison->getDateFin()->format('d/m/Y H:i') : '',
                 $demande->getValidationDate() ? FormatHelper::date($demande->getValidationDate()) : '',
-                $demande->getUtilisateur() ? FormatHelper::user($demande->getUtilisateur()) : '',
+                FormatHelper::deliveryRequester($demande),
                 $livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : '',
                 $demande ? ($demande->getType() ? $demande->getType()->getLabel() : '') : '',
                 $demande->getCommentaire() ? strip_tags($demande->getCommentaire()) : ''

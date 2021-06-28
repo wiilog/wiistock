@@ -23,11 +23,19 @@
         </button>
         <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
             {% if isPrepaEditable and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')) %}
-                <a class="dropdown-item" href=""
-                   data-target='#modalDeletePreparation'
-                   data-toggle='modal'>
-                    <i class="fa fa-trash mr-2"></i>Supprimer
-                </a>
+                {% if preparation.activePairing %}
+                    <button class="dropdown-item disabled"
+                            style="pointer-events: initial"
+                            disabled title="La livraison est associée à un capteur, il faut d'abord la dissocier de son capteur">
+                        <i class="fa fa-trash mr-2"></i>Supprimer
+                    </button>
+                {% else %}
+                    <a class="dropdown-item" href=""
+                       data-target='#modalDeletePreparation'
+                       data-toggle='modal'>
+                        <i class="fa fa-trash mr-2"></i>Supprimer
+                    </a>
+                {% endif %}
             {% endif %}
             <button onclick="printPrepaBarCodes()" class="dropdown-item pointer">
                 <i class='fas fa-print print-button mr-2'></i> Imprimer les étiquettes
@@ -51,6 +59,14 @@
                    data-target="#modalNewSensorPairing">
                     <span class="wii-icon wii-icon-pairing mr-2"></span>
                     Associer à un capteur
+                </a>
+            {% endif %}
+            {% if (preparation.pairings is not empty)
+                and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')) %}
+                <a class="dropdown-item"
+                   href="{{ path('show_data_history', {id: preparation.demande.id, type: constant('App\\Entity\\IOT\\Sensor::DELIVERY_REQUEST')}) }}">
+                    <span class="wii-icon wii-icon-pairing"></span>
+                    Historique des données
                 </a>
             {% endif %}
         </div>

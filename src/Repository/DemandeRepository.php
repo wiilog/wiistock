@@ -382,7 +382,7 @@ class DemandeRepository extends EntityRepository
             return $this->createQueryBuilder('deliveryRequest')
                 ->select('pairing.id AS pairingId')
                 ->addSelect('sensorWrapper.name AS name')
-                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
+                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND (pairing.end IS NULL OR pairing.end > NOW()) THEN 1 ELSE 0 END) AS active')
                 ->addSelect('preparation.numero AS preparationNumber')
                 ->addSelect('deliveryOrder.numero AS deliveryNumber')
                 ->join('deliveryRequest.preparations', 'preparation')

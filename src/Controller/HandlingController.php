@@ -525,7 +525,7 @@ class HandlingController extends AbstractController
                     $row = [];
                     $row[] = $handling['number'] ?? '';
                     $row[] = FormatHelper::datetime($handling['creationDate']);
-                    $row[] = $handling['requester'] ?? '';
+                    $row[] = $handling['sensorName'] ?? ($handling['requester'] ?? '');
                     $row[] = $handling['type'] ?? '';
                     $row[] = $handling['subject'] ?? '';
                     $row[] = $handling['loadingZone'] ?? '';

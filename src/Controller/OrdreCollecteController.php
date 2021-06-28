@@ -9,6 +9,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\CollecteReference;
+use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\Menu;
 use App\Entity\OrdreCollecte;
@@ -42,6 +43,7 @@ use Throwable;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
+use WiiCommon\Helper\Stream;
 
 
 /**
@@ -87,13 +89,9 @@ class OrdreCollecteController extends AbstractController
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_COLL})
      */
     public function show(OrdreCollecte $ordreCollecte,
-                         OrdreCollecteService $ordreCollecteService,
-                         EntityManagerInterface $entityManager): Response
+                         OrdreCollecteService $ordreCollecteService): Response
     {
-        $sensorWrappers= $entityManager->getRepository(SensorWrapper::class)->findWithNoActiveAssociation();
-
         return $this->render('ordre_collecte/show.html.twig', [
-            "sensorWrappers" => $sensorWrappers,
             'collecte' => $ordreCollecte,
             'finished' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_TRAITE,
             'detailsConfig' => $ordreCollecteService->createHeaderDetailsConfig($ordreCollecte)
@@ -453,14 +451,14 @@ class OrdreCollecteController extends AbstractController
                                             Request $request): Response
     {
         if($data = json_decode($request->getContent(), true)) {
-            if(!$data['sensor'] && !$data['sensorCode']) {
+            if(!$data['sensorWrapper'] && !$data['sensor']) {
                 return $this->json([
                     'success' => false,
                     'msg' => 'Un capteur/code capteur est obligatoire pour valider l\'association'
                 ]);
             }
 
-            $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->findByNameOrCode($data['sensor'], $data['sensorCode']);
+            $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->findOneBy(["id" => $data['sensorWrapper'], 'deleted' => false]);
             $collectOrder = $entityManager->getRepository(OrdreCollecte::class)->find($data['orderID']);
 
             $pairingOrderCollect = $collecteService->createPairing($sensorWrapper, $collectOrder);

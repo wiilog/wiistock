@@ -44,12 +44,13 @@ let tableConfig = {
         needsRowClickAction: true
     },
     columns: [
-        {"data": 'Actions', 'title': '', 'name': 'Actions', className: 'noVis', orderable: false},
-        {"data": 'Numéro', 'title': 'Numéro', 'name': 'Numéro'},
-        {"data": 'Statut', 'title': 'Statut', 'name': 'Statut'},
-        {"data": 'Date', 'title': 'Date de création', 'name': 'Date'},
-        {"data": 'Opérateur', 'title': 'Opérateur', 'name': 'Opérateur'},
-        {"data": 'Type', 'title': 'Type', 'name': 'Type'},
+        {data: 'Actions', title: '', name: 'Actions', className: 'noVis', orderable: false},
+        {data: 'pairing', title: '', name: 'Actions', className: 'pairing-row', orderable: false},
+        {data: 'Numéro', title: 'Numéro', name: 'Numéro'},
+        {data: 'Statut', title: 'Statut', name: 'Statut'},
+        {data: 'Date', title: 'Date de création', name: 'Date'},
+        {data: 'Opérateur', title: 'Opérateur', name: 'Opérateur'},
+        {data: 'Type', title: 'Type', name: 'Type'},
     ],
 };
 let table = initDataTable('table_id', tableConfig);

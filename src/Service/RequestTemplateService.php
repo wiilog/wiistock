@@ -81,7 +81,7 @@ class RequestTemplateService {
             $template->setRequestType($typeRepository->find($data["handlingType"]))
                 ->setSubject($data["subject"])
                 ->setRequestStatus($statusRepository->find($data["status"]))
-                ->setDelay($data["delay"])
+                ->setDelay((int) $data["delay"])
                 ->setEmergency($data["emergency"] ?? null)
                 ->setSource($data["source"] ?? null)
                 ->setDestination($data["destination"] ?? null)
@@ -129,6 +129,15 @@ class RequestTemplateService {
         } else {
             throw new RuntimeException("Unsupported type");
         }
+
+        $header[] = [
+            "label" => "Commentaire",
+            "value" => $requestTemplate->getComment(),
+            "isRaw" => true,
+            "colClass" => "col-sm-6 col-12",
+            "isScrollable" => true,
+            "isNeededNotEmpty" => true
+        ];
 
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->manager,

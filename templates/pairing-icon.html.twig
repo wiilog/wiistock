@@ -1,7 +1,8 @@
 {% if hasPairing is defined and hasPairing %}
-    {% set sensorCode = '<strong>' ~ sensorCode ~ '</strong>' %}
+    {% set sensorCode = sensorCode is defined and sensorCode ? sensorCode : 'Capteur supprimé' %}
     {% set showTitle = sensorCode is defined and sensorCode %}
+    {% set sensorCode = '<strong>' ~ sensorCode ~ '</strong>' %}
     {% set title = showTitle ? ('Dernier capteur ayant remonté un message : ' ~ sensorCode) %}
-    <i class="wii-icon wii-icon-pairing {{ title ? 'hast-tooltip' }}"
-       title="{{ title }}"></i>
+
+    <i class="wii-icon wii-icon-pairing {{ title ? 'has-tooltip' }}" title="{{ title }}"></i>
 {% endif %}

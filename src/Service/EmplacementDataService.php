@@ -91,19 +91,13 @@ class EmplacementDataService {
         $groupLastMessage = $linkedGroup ? $linkedGroup->getLastMessage() : null;
         $locationLastMessage = $emplacement->getLastMessage();
 
-        $sensorCode = $groupLastMessage
-            ? $groupLastMessage->getSensor()->getCode()
-            : ($locationLastMessage
-                ? $locationLastMessage->getSensor()->getCode()
+        $sensorCode = $groupLastMessage && $groupLastMessage->getSensor()->getAvailableSensorWrapper()
+            ? $groupLastMessage->getSensor()->getAvailableSensorWrapper()->getName()
+            : ($locationLastMessage && $locationLastMessage->getSensor()->getAvailableSensorWrapper()
+                ? $locationLastMessage->getSensor()->getAvailableSensorWrapper()->getName()
                 : null);
 
-        $hasPairing = (
-            !$emplacement->getPairings()->isEmpty()
-            || (
-                $emplacement->getLocationGroup()
-                && $emplacement->getLocationGroup()->getPairings()->isEmpty()
-            )
-        );
+        $hasPairing = !$emplacement->getPairings()->isEmpty() || !$emplacement->getSensorMessages()->isEmpty();
 
         return [
             'id' => $emplacement->getId(),

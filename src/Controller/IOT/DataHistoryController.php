@@ -5,6 +5,7 @@ namespace App\Controller\IOT;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Article;
+use App\Entity\Collecte;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\IOT\PairedEntity;
@@ -18,6 +19,7 @@ use App\Entity\Preparation;
 use App\Service\IOT\DataMonitoringService;
 use App\Service\IOT\IOTService;
 use App\Service\IOT\PairingService;
+use App\Service\TranslationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -27,6 +29,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use WiiCommon\Helper\Stream;
 
 /**
@@ -40,20 +43,27 @@ class DataHistoryController extends AbstractController {
      */
     public function show(Request $request,
                          EntityManagerInterface $entityManager,
-                         IOTService $IOTService,
-                         DataMonitoringService $dataMonitoringService): Response {
+                         DataMonitoringService $dataMonitoringService,
+    TranslatorInterface $trans): Response {
         $query = $request->query;
 
         $type = $query->get('type');
         $id = $query->get('id');
 
-        $entity = $IOTService->getEntity($entityManager, $type, $id);
-
+        $entity = $dataMonitoringService->getEntity($entityManager, $type, $id);
+        $end = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $end->modify('last day of this month');
+        $end->setTime(23, 59, 59);
+        $start = clone $end;
+        $start->setTime(0, 0, 0);
+        $start->modify('first day of this month');
         return $dataMonitoringService->render([
-            "title" => $this->getBreadcrumb($entity),
+            "breadcrumb" => $this->getBreadcrumb($trans, $entity),
             "entity" => $entity,
             "type" => DataMonitoringService::TIMELINE,
-            "entity_type" => $type
+            "entity_type" => $type,
+            'startFilter' => $start,
+            "endFilter" => $end
         ]);
     }
 
@@ -62,16 +72,14 @@ class DataHistoryController extends AbstractController {
      */
     public function getChartDataHistory(Request $request,
                                         EntityManagerInterface $entityManager,
-                                        IOTService $IOTService,
+                                        DataMonitoringService $dataMonitoringService,
                                         PairingService $pairingService): JsonResponse
     {
         $filters = $request->query->all();
         $query = $request->query;
         $type = $query->get('type');
         $id = $query->get('id');
-
-        $entity = $IOTService->getEntity($entityManager, $type, $id);
-
+        $entity = $dataMonitoringService->getEntity($entityManager, $type, $id);
         $associatedMessages = $entity->getSensorMessagesBetween(
             $filters["start"],
             $filters["end"],
@@ -88,7 +96,7 @@ class DataHistoryController extends AbstractController {
      */
     public function getMapDataHistory(Request $request,
                                       EntityManagerInterface $entityManager,
-                                      IOTService $IOTService): JsonResponse
+                                      DataMonitoringService $dataMonitoringService): JsonResponse
     {
         $filters = $request->query->all();
         $query = $request->query;
@@ -96,8 +104,7 @@ class DataHistoryController extends AbstractController {
         $type = $query->get('type');
         $id = $query->get('id');
 
-        $entity = $IOTService->getEntity($entityManager, $type, $id);
-
+        $entity = $dataMonitoringService->getEntity($entityManager, $type, $id);
         $associatedMessages = $entity->getSensorMessagesBetween(
             $filters["start"],
             $filters["end"],
@@ -109,7 +116,7 @@ class DataHistoryController extends AbstractController {
             $date = $message->getDate();
             $sensor = $message->getSensor();
 
-            $dateStr = $date->format('Y-m-d H:i:s');
+            $dateStr = $date->format('d/m/Y H:i:s');
             $sensorCode = $sensor->getCode();
             if (!isset($data[$sensorCode])) {
                 $data[$sensorCode] = [];
@@ -122,24 +129,35 @@ class DataHistoryController extends AbstractController {
         return new JsonResponse($data);
     }
 
-    public function getBreadcrumb($entity) {
+    public function getBreadcrumb(TranslatorInterface $trans, $entity) {
+
         $suffix = ' | Historique des données';
-        $breadcrumb = 'IOT | Associations';
+        $title = $trans->trans("IoT.IoT") . ' | Associations';
+        $path = null;
         if($entity instanceof Emplacement) {
-            $breadcrumb = 'Référentiel | Emplacements';
+            $title = 'Référentiel | Emplacements';
+            $path = 'emplacement_index';
         } else if($entity instanceof LocationGroup) {
-            $breadcrumb = "Référentiel | Groupe d'emplacement";
+            $title = "Référentiel | Groupe d'emplacement";
+            $path = 'emplacement_index';
         } else if($entity instanceof Article) {
-            $breadcrumb = 'Stock | Articles';
+            $title = 'Stock | Articles';
+            $path = 'article_index';
         } else if($entity instanceof Pack) {
-            $breadcrumb = 'Traçabilité | Colis';
-        } else if($entity instanceof Preparation) {
-            $breadcrumb = 'Ordre | Préparation';
-        } else if($entity instanceof OrdreCollecte) {
-            $breadcrumb = 'Ordre | Collecte';
+            $title = 'Traçabilité | Colis';
+            $path = 'pack_index';
+        } else if($entity instanceof Preparation || $entity instanceof Demande) {
+            $title = 'Demande | Livraison';
+            $path = 'demande_index';
+        } else if($entity instanceof OrdreCollecte || $entity instanceof Collecte) {
+            $title = 'Demande | Collecte';
+            $path = 'collecte_index';
         }
 
-        return $breadcrumb . $suffix;
+        return [
+            'title' => $title . $suffix,
+            'path' => $path
+        ];
     }
 
     /**
@@ -157,58 +175,5 @@ class DataHistoryController extends AbstractController {
 
         $data = $dataMonitoringService->getTimelineData($entityManager, $router, $type, $id, $startTimeline, $sizeTimelinePage);
         return $this->json($data);
-
-        // TODO remove
-        return $this->json([
-            "data" => [
-                [
-                    "title" => "Température 1",
-                    "subtitle" => "Associé le : 23/03/2021 17:03",
-                    "group" => [
-                        "title" => "P-202108795875-2",
-
-                    ],
-                    "date" => "2021-03-23 17:03",
-                    "active" => true
-                ],
-                [
-                    "title" => "GPS3",
-                    "subtitle" => "Dissocié le : 23/03/2021 16:03",
-                    "group" => [
-                        "title" => "P-202108795875-2",
-                    ],
-                    "date" => "2021-03-23 16:03",
-                    "active" => false
-                ],
-                [
-                    "title" => "GPS3",
-                    "subtitle" => "Associé le : 23/03/2021 15:03",
-                    "group" => [
-                        "title" => "P-202108795875-2",
-                    ],
-                    "date" => "2021-03-23 15:03",
-                    "active" => false
-                ],
-                [
-                    "title" => "GPS3",
-                    "subtitle" => "Dissocié le : 23/03/2021 12:03",
-                    "group" => [
-                        "title" => "L-20210879165-01"
-                    ],
-                    "date" => "2021-03-23 12:03",
-                    "active" => false
-                ],
-                [
-                    "title" => "GPS3",
-                    "subtitle" => "Associé le : 23/03/2021 11:03",
-                    "group" => [
-                        "title" => "P-202106565265-01",
-                    ],
-                    "date" => "2021-03-23 11:03",
-                    "active" => false
-                ]
-            ],
-            "isEnd" => false
-        ]);
     }
 }

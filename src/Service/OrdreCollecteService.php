@@ -17,6 +17,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
+use App\Helper\FormatHelper;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use DateTime;
@@ -90,9 +91,11 @@ class OrdreCollecteService
 	{
 
         $pairings = $ordreCollecte->getPairings();
-        foreach ($pairings as $pairing){
-            if($pairing->isActive()){
+        $pairingEnd = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        foreach ($pairings as $pairing) {
+            if ($pairing->isActive()) {
                 $pairing->setActive(false);
+                $pairing->setEnd($pairingEnd);
             }
         }
 
@@ -290,7 +293,7 @@ class OrdreCollecteService
         $demandeCollecte = $collecte->getDemandeCollecte();
 
         $lastMessage = $collecte->getLastMessage();
-        $sensorCode = ($lastMessage && $lastMessage->getSensor()) ? $lastMessage->getSensor()->getCode() : null;
+        $sensorCode = ($lastMessage && $lastMessage->getSensor() && $lastMessage->getSensor()->getAvailableSensorWrapper()) ? $lastMessage->getSensor()->getAvailableSensorWrapper()->getName() : null;
         $hasPairing = !$collecte->getPairings()->isEmpty();
 
         $url['show'] = $this->router->generate('ordre_collecte_show', ['id' => $collecte->getId()]);
@@ -373,7 +376,7 @@ class OrdreCollecteService
 
     public function createHeaderDetailsConfig(OrdreCollecte $ordreCollecte): array {
         $demande = $ordreCollecte->getDemandeCollecte();
-        $requester = $demande ? $demande->getDemandeur() : null;
+        $requester = FormatHelper::collectRequester($demande);
         $pointCollecte = $demande ? $demande->getPointCollecte() : null;
         $dateCreation = $ordreCollecte->getDate();
         $dateCollecte = $ordreCollecte->getTreatingDate();
@@ -383,7 +386,7 @@ class OrdreCollecteService
             [ 'label' => 'Numéro', 'value' => $ordreCollecte->getNumero() ],
             [ 'label' => 'Statut', 'value' => $ordreCollecte->getStatut() ? $this->stringService->mbUcfirst($ordreCollecte->getStatut()->getNom()) : '' ],
             [ 'label' => 'Opérateur', 'value' => $ordreCollecte->getUtilisateur() ? $ordreCollecte->getUtilisateur()->getUsername() : '' ],
-            [ 'label' => 'Demandeur', 'value' => $requester ? $requester->getUsername() : '' ],
+            [ 'label' => 'Demandeur', 'value' => $requester],
             [ 'label' => 'Destination', 'value' => $demande->isStock() ? 'Mise en stock' : 'Destruction' ],
             [ 'label' => 'Point de collecte', 'value' => $pointCollecte ? $pointCollecte->getLabel() : '' ],
             [ 'label' => 'Date de création', 'value' => $dateCreation ? $dateCreation->format('d/m/Y H:i') : '' ],

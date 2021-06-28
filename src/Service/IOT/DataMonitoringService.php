@@ -3,11 +3,13 @@
 namespace App\Service\IOT;
 
 use App\Entity\Article;
+use App\Entity\Collecte;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
+use App\Entity\Livraison;
 use App\Entity\LocationGroup;
 use App\Entity\OrdreCollecte;
 use App\Entity\Pack;
@@ -25,18 +27,6 @@ use WiiCommon\Helper\Stream;
 class DataMonitoringService
 {
 
-    public const ASSOCIATED_CLASSES = [
-        Sensor::TEMPERATURE => [
-            Pack::class,
-            Article::class,
-            Emplacement::class
-        ],
-        Sensor::GPS => [
-            Pack::class,
-            Article::class,
-        ]
-    ];
-
     public const PAIRING = 1;
     public const TIMELINE = 2;
 
@@ -51,41 +41,34 @@ class DataMonitoringService
 
     public function render($config): Response
     {
-        if($config["type"] === self::PAIRING) {
+        if ($config["type"] === self::PAIRING) {
             /** @var Pairing $pairing */
             $pairing = $config["entity"];
             $entity = $pairing->getEntity();
             $this->fillPairingConfig($config, $pairing);
             $this->fillEntityConfig($entity, $config, false);
-        } else if($config["type"] === self::TIMELINE) {
+        } else if ($config["type"] === self::TIMELINE) {
             $date = new DateTime('-1 month');
             $entity = $config['entity'];
-
             $this->fillEntityConfig($entity, $config, true);
             $config['start'] = $date;
             $config['end'] = new DateTime('now');
-            if (in_array(get_class($entity), self::ASSOCIATED_CLASSES[Sensor::TEMPERATURE])) {
-                $config["center_pane"][] = [
-                    "type" => "chart",
-                    "fetch_url" => $this->router->generate("chart_data_history", [
-                        "type" => $config['entity_type'],
-                        "id" => $entity->getId()
-                    ], UrlGeneratorInterface::ABSOLUTE_URL)
-                ];
-            }
-
-            if (in_array(get_class($entity), self::ASSOCIATED_CLASSES[Sensor::GPS])) {
-                $config["center_pane"][] = [
-                    "type" => "map",
-                    "fetch_url" => $this->router->generate("map_data_history", [
-                        "type" => $config['entity_type'],
-                        "id" => $entity->getId()
-                    ], UrlGeneratorInterface::ABSOLUTE_URL)
-                ];
-            }
+            $config["center_pane"][] = [
+                "type" => "chart",
+                "fetch_url" => $this->router->generate("chart_data_history", [
+                    "type" => IOTService::getEntityCodeFromEntity($entity),
+                    "id" => $entity->getId()
+                ], UrlGeneratorInterface::ABSOLUTE_URL)
+            ];
+            $config["center_pane"][] = [
+                "type" => "map",
+                "fetch_url" => $this->router->generate("map_data_history", [
+                    "type" => IOTService::getEntityCodeFromEntity($entity),
+                    "id" => $entity->getId()
+                ], UrlGeneratorInterface::ABSOLUTE_URL)
+            ];
         }
-
-        return new Response($this->templating->render("iot/data_monitoring/page.html.twig", $config));
+        return new Response($this->templating->render("IOT/data_monitoring/page.html.twig", $config));
     }
 
     public function fillPairingConfig(array &$config, Pairing $pairing)
@@ -97,7 +80,7 @@ class DataMonitoringService
         $config["end"] = $pairing->getEnd();
         $config["left_pane"][] = [
             "type" => "sensor",
-            "icon" => "wifi",
+            "icon" => Sensor::SENSOR_ICONS[$pairing->getSensorWrapper()->getSensor()->getType()->getLabel()],
             "title" => $pairing->getSensorWrapper()->getName(),
             "pairing" => $pairing,
             "header" => true
@@ -105,6 +88,7 @@ class DataMonitoringService
 
         $config["left_pane"][] = [
             "type" => "pairingInfo",
+            "pairing" => $pairing,
             "start" => $start,
             "end" => $end
         ];
@@ -135,7 +119,11 @@ class DataMonitoringService
             "title" => $pack->getCode(),
             "pack" => $pack,
             "header" => $header,
-            "hideActions" => $header
+            "hideActions" => $header,
+            "entity_info" => [
+                "id" => $pack->getId(),
+                "type" => IOTService::getEntityCodeFromEntity($pack),
+            ],
         ];
     }
 
@@ -146,7 +134,11 @@ class DataMonitoringService
             "icon" => "iot-location",
             "title" => $location->getLabel(),
             "header" => $header,
-            "hideActions" => $header
+            "hideActions" => $header,
+            "entity_info" => [
+                "id" => $location->getId(),
+                "type" => IOTService::getEntityCodeFromEntity($location),
+            ],
         ];
     }
 
@@ -157,16 +149,20 @@ class DataMonitoringService
             "icon" => "iot-location",
             "title" => $location->getName(),
             "header" => $header,
-            "hideActions" => $header
+            "hideActions" => $header,
+            "entity_info" => [
+                "id" => $location->getId(),
+                "type" => IOTService::getEntityCodeFromEntity($location),
+            ],
         ];
     }
 
     private function fillPreparationConfig(array &$config, Preparation $preparation, bool $header)
     {
         $items = [];
-        if($preparation->getLivraison()) {
+        if ($preparation->getLivraison()) {
             $items[] = [
-                "icon" => "iot-delivery",
+                "icon" => "iot-delivery-request",
                 "title" => $preparation->getLivraison()->getNumero(),
             ];
         }
@@ -180,7 +176,11 @@ class DataMonitoringService
             "type" => "entity",
             "items" => $items,
             "header" => $header,
-            "hideActions" => $header
+            "hideActions" => $header,
+            "entity_info" => [
+                "id" => $preparation->getId(),
+                "type" => IOTService::getEntityCodeFromEntity($preparation),
+            ],
         ];
     }
 
@@ -188,10 +188,14 @@ class DataMonitoringService
     {
         $config["left_pane"][] = [
             "type" => "entity",
-            "icon" => "iot-delivery",
+            "icon" => "iot-delivery-request",
             "title" => $deliveryRequest->getNumero(),
             "header" => $header,
-            "hideActions" => $header
+            "hideActions" => $header,
+            "entity_info" => [
+                "id" => $deliveryRequest->getId(),
+                "type" => IOTService::getEntityCodeFromEntity($deliveryRequest),
+            ],
         ];
     }
 
@@ -199,10 +203,29 @@ class DataMonitoringService
     {
         $config["left_pane"][] = [
             "type" => "entity",
-            "icon" => "iot-collect",
+            "icon" => "iot-collect-request",
             "title" => $collect->getNumero(),
             "header" => $header,
-            "hideActions" => $header
+            "hideActions" => $header,
+            "entity_info" => [
+                "id" => $collect->getId(),
+                "type" => IOTService::getEntityCodeFromEntity($collect),
+            ],
+        ];
+    }
+
+    private function fillCollectRequestConfig(array &$config, Collecte $collect, bool $header)
+    {
+        $config["left_pane"][] = [
+            "type" => "entity",
+            "icon" => "iot-collect-request",
+            "title" => $collect->getNumero(),
+            "header" => $header,
+            "hideActions" => $header,
+            "entity_info" => [
+                "id" => $collect->getId(),
+                "type" => IOTService::getEntityCodeFromEntity($collect),
+            ],
         ];
     }
 
@@ -211,9 +234,13 @@ class DataMonitoringService
         $config["left_pane"][] = [
             "type" => "entity",
             "icon" => "iot-article",
-            "title" => $article->getLabel(),
+            "title" => $article->__toString(),
             "header" => $header,
-            "hideActions" => $header
+            "hideActions" => $header,
+            "entity_info" => [
+                "id" => $article->getId(),
+                "type" => IOTService::getEntityCodeFromEntity($article),
+            ],
         ];
     }
 
@@ -243,7 +270,8 @@ class DataMonitoringService
         ];
     }
 
-    public function fillEntityConfig(?PairedEntity $entity, array &$config, bool $isHistoric) {
+    public function fillEntityConfig(?PairedEntity $entity, array &$config, bool $isHistoric)
+    {
         if ($entity instanceof Pack) {
             $this->fillPackConfig($config, $entity, $isHistoric);
         } else if ($entity instanceof Emplacement) {
@@ -256,6 +284,8 @@ class DataMonitoringService
             $this->fillDeliveryRequestConfig($config, $entity, $isHistoric);
         } else if ($entity instanceof OrdreCollecte) {
             $this->fillCollectOrderConfig($config, $entity, $isHistoric);
+        } else if ($entity instanceof Collecte) {
+            $this->fillCollectRequestConfig($config, $entity, $isHistoric);
         } else if ($entity instanceof Article) {
             $this->fillArticleConfig($config, $entity, $isHistoric);
         } else {
@@ -272,12 +302,13 @@ class DataMonitoringService
                                     string $type,
                                     string $id,
                                     int $start,
-                                    int $count): ?array {
+                                    int $count): ?array
+    {
         $className = $this->IOTService->getEntityClassFromCode($type);
 
         if ($className) {
             $repository = $entityManager->getRepository($className);
-            $entity = $this->IOTService->getEntity($entityManager, $type, $id);
+            $entity = $this->getEntity($entityManager, $type, $id);
             if (method_exists($repository, 'getSensorPairingData')
                 && method_exists($repository, 'countSensorPairingData')
                 && $entity) {
@@ -292,27 +323,53 @@ class DataMonitoringService
 
         return [
             'data' => Stream::from($pairingData)
-                ->filterMap(fn (array $dataRow) => $this->getTimelineDataRow($dataRow, $entity, $router))
+                ->filterMap(fn(array $dataRow) => $this->getTimelineDataRow($dataRow, $entity, $router))
                 ->toArray(),
             'isEnd' => $pairingDataCount <= ($start + $count),
-            'isGrouped' => $entity instanceof Demande
+            'isGrouped' => (
+                ($entity instanceof Demande)
+                || ($entity instanceof Emplacement)
+                || ($entity instanceof Article)
+                || ($entity instanceof Collecte)
+                || ($entity instanceof Pack)
+            )
         ];
+    }
+
+
+    public function getEntity(EntityManagerInterface $entityManager,
+                              string $type,
+                              int $id): ?PairedEntity
+    {
+
+        $className = $this->IOTService->getEntityClassFromCode($type);
+        $entity = $className
+            ? $entityManager->find($className, $id)
+            : null;
+        if ($entity instanceof Preparation) {
+            $entity = $entity->getDemande();
+        }
+        else if ($entity instanceof OrdreCollecte) {
+            $entity = $entity->getDemandeCollecte();
+        }
+        return $entity;
     }
 
     public function getTimelineDataRow(array $dataRow,
                                        PairedEntity $entity,
-                                       RouterInterface $routerInterface) {
-        $subtitlePrefix = [
-            'start' => 'Associé le : ',
-            'end' => 'Dissocié le : '
-        ];
-
+                                       RouterInterface $routerInterface)
+    {
         $dateStr = $dataRow['date'] ?? null;
         $type = $dataRow['type'] ?? null;
         $pairingId = $dataRow['pairingId'] ?? null;
         $date = $dateStr
             ? DateTime::createFromFormat('Y-m-d H:i:s', $dateStr)
             : null;
+
+        $subtitlePrefix = [
+            'start' => 'Associé le : ',
+            'end' => ($date > new DateTime()) ? "Fin le : " : "Dissocié le : ",
+        ];
 
         if ($date) {
             $row = [
@@ -329,11 +386,24 @@ class DataMonitoringService
                 $row['group'] = ($type === 'startOrder' || ($type === 'end' && !empty($dataRow['deliveryNumber'])))
                     ? $dataRow['deliveryNumber']
                     : $dataRow['preparationNumber'];
+            } else if ($entity instanceof Emplacement
+                || $entity instanceof Pack) {
+                $row['group'] = $dataRow['entity'];
+            } else if ($entity instanceof Collecte) {
+                $row['group'] = $dataRow['orderNumber'];
+            }
+
+            if (isset($dataRow['entityType'])
+                && isset($dataRow['entityId'])
+                && $dataRow['entityType'] !== IOTService::getEntityCodeFromEntity($entity)) {
+                $row['groupHref'] = $this->router->generate('show_data_history', [
+                    'id' => $dataRow['entityId'],
+                    'type' => $dataRow['entityType']
+                ]);
             }
 
             return $row;
-        }
-        else {
+        } else {
             return null;
         }
     }

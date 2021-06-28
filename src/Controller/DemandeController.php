@@ -36,6 +36,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Throwable;
+use App\Helper\FormatHelper;
 
 
 /**
@@ -164,9 +165,15 @@ class DemandeController extends AbstractController
             $demandeRepository = $entityManager->getRepository(Demande::class);
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
+            $demande = $demandeRepository->find($data['demandeId']);
+            if(isset($data['type'])) {
+                $type = $typeRepository->find(intval($data['type']));
+            } else {
+                $type = $demande->getType();
+            }
+
             // vérification des champs Libres obligatoires
             $requiredEdit = true;
-            $type = $typeRepository->find(intval($data['type']));
             $CLRequired = $champLibreRepository->getByTypeAndRequiredEdit($type);
             foreach ($CLRequired as $CL) {
                 if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
@@ -177,7 +184,6 @@ class DemandeController extends AbstractController
             if ($requiredEdit) {
                 $utilisateur = $utilisateurRepository->find(intval($data['demandeur']));
                 $emplacement = $emplacementRepository->find(intval($data['destination']));
-                $demande = $demandeRepository->find($data['demandeId']);
                 $demande
                     ->setUtilisateur($utilisateur)
                     ->setDestination($emplacement)
@@ -367,6 +373,7 @@ class DemandeController extends AbstractController
                 "Emplacement" => ($ligneArticle->getReference()->getEmplacement() ? $ligneArticle->getReference()->getEmplacement()->getLabel() : ' '),
                 "Quantité à prélever" => $ligneArticle->getQuantite() ?? '',
                 "barcode" => $ligneArticle->getReference() ? $ligneArticle->getReference()->getBarCode() : '',
+                "error" => $ligneArticle->getReference()->getQuantiteDisponible() < $ligneArticle->getQuantite(),
                 "Actions" => $this->renderView(
                     'demande/datatableLigneArticleRow.html.twig',
                     [
@@ -682,9 +689,9 @@ class DemandeController extends AbstractController
         $requestCreationDate = $demande->getDate();
 
         return [
-            $demande->getUtilisateur()->getUsername(),
+            FormatHelper::deliveryRequester($demande),
             $demande->getStatut()->getNom(),
-            $demande->getDestination()->getLabel(),
+            FormatHelper::location($demande->getDestination()),
             strip_tags($demande->getCommentaire()),
             isset($requestCreationDate) ? $requestCreationDate->format('d/m/Y H:i:s') : '',
             isset($firstDatePrepa) ? $firstDatePrepa->format('d/m/Y H:i:s') : '',

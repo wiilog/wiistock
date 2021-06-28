@@ -111,19 +111,19 @@ class SensorWrapperRepository extends EntityRepository
         ];
     }
 
-    public function findByNameOrCode($name, $code)
+    public function findByNameOrCode($sensorWrapper, $sensor)
     {
         $qb = $this->createQueryBuilder('sensor_wrapper');
 
-        if ($name) {
+        if ($sensorWrapper) {
             $qb
-                ->andWhere('sensor_wrapper.name = :name')
-                ->setParameter('name', $name);
-        } else if ($code) {
+                ->andWhere('sensor_wrapper.id = :sensorWrapper')
+                ->setParameter('sensorWrapper', $sensorWrapper);
+        } else if ($sensor) {
             $qb
                 ->join('sensor_wrapper.sensor', 'sensor')
-                ->andWhere('sensor.code = :code')
-                ->setParameter('code', $code);
+                ->andWhere('sensor.id = :sensor')
+                ->setParameter('sensor', $sensor);
         }
 
         return $qb
@@ -131,20 +131,58 @@ class SensorWrapperRepository extends EntityRepository
             ->getOneOrNullResult();
     }
 
-    public function findWithNoActiveAssociation() {
-        return $this->createQueryBuilder('sensor_wrapper')
+    public function findWithNoActiveAssociation($action = true) {
+        $qb = $this->createQueryBuilder('sensor_wrapper')
             ->leftJoin('sensor_wrapper.pairings', 'pairing')
-            ->where('pairing.active = 0 OR pairing.id IS NULL')
+            ->where('sensor_wrapper.deleted = 0');
+
+        if (!$action) {
+            $qb
+                ->leftJoin('sensor_wrapper.sensor', 'sensor')
+                ->leftJoin('sensor.type', 'type')
+                ->andWhere('type.label <> :actionType')
+                ->setParameter('actionType', Sensor::ACTION);
+        }
+        return $qb
             ->getQuery()
             ->getResult();
     }
+    public function getWithNoAssociationForSelect($term, $field, $onlyTrigger = false) {
+        $queryBuilder = $this->createQueryBuilder('sensor_wrapper');
+        $queryBuilder
+            ->select('sensor_wrapper')
+            ->leftJoin('sensor_wrapper.sensor', 'sensor');
+        if($field == 'name'){
+            $queryBuilder
+                ->where('sensor_wrapper.name LIKE :term');
+        }else{
+            $queryBuilder
+                ->where('sensor.code LIKE :term');
+        }
+        if($onlyTrigger){
+             $queryBuilder
+                ->leftJoin('sensor.type', 'type')
+                ->andWhere('type.label != \''.Sensor::GPS."'");
+        } else {
+            $queryBuilder
+                ->leftJoin('sensor.type', 'type')
+                ->andWhere('type.label <> :actionType')
+                ->setParameter('actionType', Sensor::ACTION);
+        }
+        return $queryBuilder
+                    ->andWhere('sensor_wrapper.deleted = 0')
+                    ->setParameter('term', "%$term%")
+                    ->groupBy('sensor_wrapper.id')
+                    ->getQuery()
+                    ->getResult();
+    }
 
     public function getForSelect(?string $term) {
-        $qb = $this->createQueryBuilder("sensor_wrapper");
-
-        return $qb->select("sensor_wrapper.id AS id")
+        return $this->createQueryBuilder("sensor_wrapper")
+            ->select("sensor_wrapper.id AS id")
             ->addSelect("sensor_wrapper.name AS text")
             ->where("sensor_wrapper.name LIKE :term")
+            ->andWhere("sensor_wrapper.deleted = 0")
             ->setParameter("term", "%$term%")
             ->getQuery()
             ->getResult();

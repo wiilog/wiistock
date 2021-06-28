@@ -95,12 +95,13 @@ function initPageDatatable() {
             needsRowClickAction: true,
         },
         columns: [
-            {"data": 'Actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},
-            {"data": 'Date', 'name': 'Date', 'title': 'Date'},
-            {"data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur'},
-            {"data": 'Numéro', 'name': 'Numéro', 'title': 'Numéro'},
-            {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
-            {"data": 'Type', 'name': 'Type', 'title': 'Type'},
+            {data: 'Actions', name: 'Actions', title: '', className: 'noVis', orderable: false},
+            {data: 'pairing', name: '', title: '', className: 'pairing-row', orderable: false},
+            {data: 'Date', name: 'Date', title: 'Date'},
+            {data: 'Demandeur', name: 'Demandeur', title: 'Demandeur'},
+            {data: 'Numéro', name: 'Numéro', title: 'Numéro'},
+            {data: 'Statut', name: 'Statut', title: 'Statut'},
+            {data: 'Type', name: 'Type', title: 'Type'},
         ],
         columnDefs: [
             {
@@ -108,6 +109,7 @@ function initPageDatatable() {
                 targets: 1
             }
         ],
+
     };
 
     const tableDemande = initDataTable('table_demande', tableDemandeConfig);

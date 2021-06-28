@@ -1,14 +1,17 @@
 {% extends 'layout.html.twig' %}
 
+{% set title = breadcrumb['title'] %}
+{% set path = breadcrumb['path'] is defined and breadcrumb['path'] ? breadcrumb['path'] : '' %}
+
 {% block title %}{{ title }}{% endblock %}
-{% block titleLink title_link is defined ? path(title_link) %}
+{% block titleLink path is defined and path ? path(path) %}
 
 {% block page_content %}
     <div class="row mt-4">
         <div class="col-md-4 col-12">
             <div class="wii-page-card p-0">
                 {% for item in left_pane %}
-                    {% include 'iot/data_monitoring/left_pane_item.html.twig' with item|merge({firstItem: loop.first}) %}
+                    {% include 'IOT/data_monitoring/left_pane_item.html.twig' with item|merge({firstItem: loop.first}) %}
                 {% endfor %}
             </div>
         </div>
@@ -21,12 +24,12 @@
                                 <div class="input-group-prepend">
                                     <span class="input-group-text w-50px">Du</span>
                                 </div>
-                                <input type="datetime-local" name="start" value="{{ start | date('Y-m-d\\TH:i') }}"
+                                <input type="datetime-local" name="start" value="{{ (startFilter is defined ? startFilter : start) | date('Y-m-d\\TH:i') }}"
                                        class="form-control cursor-default filter-date-min filter-input w-218px"/>
                                 <div class="input-group-prepend">
                                     <span class="input-group-text w-50px">Au</span>
                                 </div>
-                                <input type="datetime-local" name="end" value="{{ end | date('Y-m-d\\TH:i') }}"
+                                <input type="datetime-local" name="end" value="{{ (endFilter is defined ? endFilter : end) | date('Y-m-d\\TH:i') }}"
                                        class="form-control cursor-default filter-date-max filter-input w-218px"/>
                             </div>
                         </div>
@@ -39,12 +42,12 @@
                 </div>
             </div>
             {% for item in center_pane ?? [] %}
-                {% include 'iot/data_monitoring/content.html.twig' with item %}
+                {% include 'IOT/data_monitoring/content.html.twig' with item %}
             {% endfor %}
         </div>
     </div>
 
-    {% include 'iot/data_monitoring/edit_pairing_end.html.twig' %}
+    {% include 'IOT/data_monitoring/edit_pairing_end.html.twig' %}
 {% endblock %}
 
 {% block javascripts %}

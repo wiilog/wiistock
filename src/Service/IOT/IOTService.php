@@ -30,6 +30,7 @@ use App\Entity\Preparation;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Helper\FormatHelper;
+use App\Repository\ArticleRepository;
 use App\Repository\PackRepository;
 use App\Repository\StatutRepository;
 use App\Service\DemandeLivraisonService;
@@ -85,7 +86,10 @@ class IOTService
     public function onMessageReceived(array $frame, EntityManagerInterface $entityManager) {
         if (isset(self::PROFILE_TO_TYPE[$frame['profile']])) {
             $message = $this->parseAndCreateMessage($frame, $entityManager);
-            $this->linkWithSubEntities($message, $entityManager->getRepository(Pack::class));
+            $this->linkWithSubEntities($message,
+                $entityManager->getRepository(Pack::class),
+                $entityManager->getRepository(Article::class),
+            );
             $entityManager->flush();
             $this->treatTriggers($message, $entityManager);
             $entityManager->flush();
@@ -200,7 +204,7 @@ class IOTService
             ->setDestination($requestTemplate->getDestination())
             ->setType($requestTemplate->getRequestType())
             ->setCreationDate($date)
-            ->setFromSensor($sensorWrapper)
+            ->setTriggeringSensorWrapper($sensorWrapper)
             ->setNumber($handlingNumber)
             ->setStatus($requestTemplate->getRequestStatus())
             ->setComment($requestTemplate->getComment())
@@ -225,7 +229,7 @@ class IOTService
             ->setStatut($statut)
             ->setDate($date)
             ->setCommentaire($requestTemplate->getComment())
-            ->setFromSensor($wrapper)
+            ->setTriggeringSensorWrapper($wrapper)
             ->setType($requestTemplate->getRequestType())
             ->setDestination($requestTemplate->getDestination())
             ->setNumero($numero)
@@ -253,7 +257,7 @@ class IOTService
 
         $request = new Collecte();
         $request
-            ->setFromSensor($wrapper)
+            ->setTriggeringSensorWrapper($wrapper)
             ->setNumero($numero)
             ->setDate($date)
             ->setFreeFields($requestTemplate->getFreeFields())
@@ -379,19 +383,18 @@ class IOTService
         return $received;
     }
 
-    public function linkWithSubEntities(SensorMessage $sensorMessage, PackRepository $packRepository) {
+    public function linkWithSubEntities(SensorMessage $sensorMessage, PackRepository $packRepository, ArticleRepository $articleRepository) {
         $sensor = $sensorMessage->getSensor();
         $wrapper = $sensor->getAvailableSensorWrapper();
-
         if ($wrapper) {
             foreach ($wrapper->getPairings() as $pairing) {
-                if ($pairing->getActive()) {
+                if ($pairing->isActive()) {
                     $pairing->addSensorMessage($sensorMessage);
                     $entity = $pairing->getEntity();
                     if ($entity instanceof LocationGroup) {
-                        $this->treatAddMessageLocationGroup($entity, $sensorMessage, $packRepository);
+                        $this->treatAddMessageLocationGroup($entity, $sensorMessage, $articleRepository, $packRepository);
                     } else if ($entity instanceof Emplacement) {
-                        $this->treatAddMessageLocation($entity, $sensorMessage, $packRepository);
+                        $this->treatAddMessageLocation($entity, $sensorMessage, $articleRepository, $packRepository);
                     } else if ($entity instanceof Pack) {
                         $this->treatAddMessagePack($entity, $sensorMessage);
                     } else if ($entity instanceof Article) {
@@ -406,14 +409,20 @@ class IOTService
         }
     }
 
-    private function treatAddMessageLocationGroup(LocationGroup $locationGroup, SensorMessage $sensorMessage, PackRepository $packRepository) {
+    private function treatAddMessageLocationGroup(LocationGroup $locationGroup,
+                                                  SensorMessage $sensorMessage,
+                                                  ArticleRepository $articleRepository,
+                                                  PackRepository $packRepository) {
         $locationGroup->addSensorMessage($sensorMessage);
         foreach ($locationGroup->getLocations() as $location) {
-            $this->treatAddMessageLocation($location, $sensorMessage, $packRepository);
+            $this->treatAddMessageLocation($location, $sensorMessage, $articleRepository, $packRepository);
         }
     }
 
-    private function treatAddMessageLocation(Emplacement $location, SensorMessage $sensorMessage, PackRepository $packRepository) {
+    private function treatAddMessageLocation(Emplacement $location,
+                                             SensorMessage $sensorMessage,
+                                             ArticleRepository $articleRepository,
+                                             PackRepository $packRepository) {
         $location->addSensorMessage($sensorMessage);
         $packs = $packRepository->getCurrentPackOnLocations(
             [$location->getId()],
@@ -422,6 +431,13 @@ class IOTService
                 'field' => 'colis'
             ]
         );
+
+        $articles = $articleRepository->findArticlesOnLocation($location);
+
+        foreach ($articles as $article) {
+            $this->treatAddMessageArticle($article, $sensorMessage);
+        }
+
         foreach ($packs as $pack) {
             $this->treatAddMessagePack($pack, $sensorMessage);
         }
@@ -439,6 +455,10 @@ class IOTService
         $request->addSensorMessage($sensorMessage);
     }
 
+    private function treatAddMessageCollectRequest(Collecte $request, SensorMessage $sensorMessage) {
+        $request->addSensorMessage($sensorMessage);
+    }
+
     private function treatAddMessageOrdrePrepa(Preparation $preparation, SensorMessage $sensorMessage) {
         $preparation->addSensorMessage($sensorMessage);
         $this->treatAddMessageDeliveryRequest($preparation->getDemande(), $sensorMessage);
@@ -449,6 +469,7 @@ class IOTService
 
     private function treatAddMessageOrdreCollecte(OrdreCollecte $ordreCollecte, SensorMessage $sensorMessage) {
         $ordreCollecte->addSensorMessage($sensorMessage);
+        $this->treatAddMessageCollectRequest($ordreCollecte->getDemandeCollecte(), $sensorMessage);
         foreach ($ordreCollecte->getArticles() as $article) {
             $this->treatAddMessageArticle($article, $sensorMessage);
         }
@@ -542,7 +563,7 @@ class IOTService
         return -1;
     }
 
-    public function getEntityCodeFromEntity(?PairedEntity $pairedEntity): ?string {
+    public static function getEntityCodeFromEntity(?PairedEntity $pairedEntity): ?string {
         if($pairedEntity instanceof Emplacement) {
             $code = Sensor::LOCATION;
         } else if($pairedEntity instanceof LocationGroup) {
@@ -554,7 +575,9 @@ class IOTService
         } else if($pairedEntity instanceof Preparation) {
             $code = Sensor::PREPARATION;
         } else if($pairedEntity instanceof OrdreCollecte) {
-            $code = Sensor::COLLECT;
+            $code = Sensor::COLLECT_ORDER;
+        } else if($pairedEntity instanceof Collecte) {
+            $code = Sensor::COLLECT_REQUEST;
         } else if($pairedEntity instanceof Demande) {
             $code = Sensor::DELIVERY_REQUEST;
         }
@@ -568,18 +591,10 @@ class IOTService
             Sensor::ARTICLE => Article::class,
             Sensor::PACK => Pack::class,
             Sensor::DELIVERY_REQUEST => Demande::class,
-            Sensor::COLLECT => OrdreCollecte::class,
+            Sensor::COLLECT_ORDER => OrdreCollecte::class,
+            Sensor::COLLECT_REQUEST => Collecte::class,
             Sensor::PREPARATION => Preparation::class
         ];
         return $association[$code] ?? null;
-    }
-
-    public function getEntity(EntityManagerInterface $entityManager,
-                              string $type,
-                              int $id): ?PairedEntity {
-        $className = $this->getEntityClassFromCode($type);
-        return $className
-            ? $entityManager->find($className, $id)
-            : null;
     }
 }

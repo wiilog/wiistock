@@ -113,12 +113,12 @@ class HandlingService
 //        $treatmentDelayInterval = $treatmentDelay ? $this->dateService->secondsToDateInterval($treatmentDelay) : null;
 //        $treatmentDelayStr = $treatmentDelayInterval ? $this->dateService->intervalToStr($treatmentDelayInterval) : '';
         return [
-            'id' => $handling->getId() ? $handling->getId() : 'Non défini',
-            'number' => $handling->getNumber() ? $handling->getNumber() : '',
+            'id' => $handling->getId() ?: 'Non défini',
+            'number' => $handling->getNumber() ?: '',
             'creationDate' => FormatHelper::datetime($handling->getCreationDate()),
             'type' => $handling->getType() ? $handling->getType()->getLabel() : '',
-            'requester' => $handling->getSensor() ? $handling->getSensor()->getName() : ($handling->getRequester() ? $handling->getRequester()->getUserName() : null),
-            'subject' => $handling->getSubject() ? $handling->getSubject() : '',
+            'requester' => FormatHelper::handlingRequester($handling),
+            'subject' => $handling->getSubject() ?: '',
             "receivers" => FormatHelper::users($handling->getReceivers()->toArray()),
             'desiredDate' => $includeDesiredTime
                 ? FormatHelper::datetime($handling->getDesiredDate())

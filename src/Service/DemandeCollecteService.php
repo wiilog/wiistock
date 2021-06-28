@@ -15,6 +15,7 @@ use App\Entity\OrdreCollecte;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -24,6 +25,7 @@ use Twig\Environment as Twig_Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
+use WiiCommon\Helper\Stream;
 
 class DemandeCollecteService
 {
@@ -47,18 +49,14 @@ class DemandeCollecteService
     private $freeFieldService;
     private $articleFournisseurService;
     private $articleDataService;
-    private $mouvementStockService;
-    private $userService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
-                                UserService $userService,
                                 StringService $stringService,
                                 FreeFieldService $champLibreService,
                                 ArticleFournisseurService $articleFournisseurService,
                                 ArticleDataService $articleDataService,
                                 EntityManagerInterface $entityManager,
-                                MouvementStockService $mouvementStockService,
                                 Twig_Environment $templating)
     {
         $this->templating = $templating;
@@ -69,8 +67,6 @@ class DemandeCollecteService
         $this->articleDataService = $articleDataService;
         $this->router = $router;
         $this->user = $tokenStorage->getToken()->getUser();
-        $this->mouvementStockService = $mouvementStockService;
-        $this->userService = $userService;
     }
 
     /**
@@ -120,38 +116,47 @@ class DemandeCollecteService
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function dataRowCollecte($collecte)
+    public function dataRowCollecte(Collecte $collecte)
     {
+        /** @var Pairing $pairing */
+        $pairing = $collecte->getOrdresCollecte()
+            ? Stream::from($collecte->getOrdresCollecte())
+                ->map(fn(OrdreCollecte $collectOrder) => $collectOrder->getPairings()->toArray())
+                ->flatten()
+                ->sort(fn(Pairing $p1, Pairing $p2) => $p1->getEnd() <=> $p2->getEnd())
+                ->first()
+            : null;
+
+        $sensorCode = $pairing ? $pairing->getSensorWrapper()->getName() : null;
+
         $url = $this->router->generate('collecte_show', ['id' => $collecte->getId()]);
-        $row =
-            [
-                'id' => $collecte->getId() ?? '',
-                'Création' => $collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : '',
-                'Validation' => $collecte->getValidationDate() ? $collecte->getValidationDate()->format('d/m/Y') : '',
-                'Demandeur' => $collecte->getSensor() ? $collecte->getSensor()->getName() : ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : ''),
-				'Objet' => $collecte->getObjet() ?? '',
-				'Numéro' => $collecte->getNumero() ?? '',
-                'Statut' => $collecte->getStatut()->getNom() ?? '',
-                'Type' => $collecte->getType() ? $collecte->getType()->getLabel() : '',
-                'Actions' => $this->templating->render('collecte/datatableCollecteRow.html.twig', [
-                    'url' => $url,
-                    'titleLogo' => !$collecte
-                                    ->getOrdreCollecte()
-                                    ->filter(fn(OrdreCollecte $ordreCollecte) =>
-                                        !$ordreCollecte
-                                            ->getPairings()
-                                            ->filter(fn(Pairing $pairing) =>
-                                                $pairing->isActive()
-                                            )->isEmpty()
-                                    )->isEmpty() ? 'pairing' : null
-                ]),
-            ];
-        return $row;
+        return [
+            'id' => $collecte->getId() ?? '',
+            'Création' => $collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : '',
+            'Validation' => $collecte->getValidationDate() ? $collecte->getValidationDate()->format('d/m/Y') : '',
+            'Demandeur' => FormatHelper::collectRequester($collecte),
+            'Objet' => $collecte->getObjet() ?? '',
+            'Numéro' => $collecte->getNumero() ?? '',
+            'Statut' => $collecte->getStatut()->getNom() ?? '',
+            'Type' => $collecte->getType() ? $collecte->getType()->getLabel() : '',
+            'Actions' => $this->templating->render('collecte/datatableCollecteRow.html.twig', [
+                'url' => $url,
+                'titleLogo' => !$collecte
+                    ->getOrdresCollecte()
+                    ->filter(fn(OrdreCollecte $ordreCollecte) => !$ordreCollecte
+                        ->getPairings()
+                        ->isEmpty()
+                    )->isEmpty() ? 'pairing' : null
+            ]),
+            'pairing' => $this->templating->render('pairing-icon.html.twig', [
+                'sensorCode' => $sensorCode,
+                'hasPairing' => (bool)$pairing,
+            ]),
+        ];
     }
 
 
     public function createHeaderDetailsConfig(Collecte $collecte): array {
-        $requester = $collecte->getSensor() ? $collecte->getSensor()->getName() : $collecte->getDemandeur();
         $status = $collecte->getStatut();
         $date = $collecte->getDate();
         $validationDate = $collecte->getValidationDate();
@@ -170,7 +175,7 @@ class DemandeCollecteService
         return array_merge(
             [
                 [ 'label' => 'Statut', 'value' => $status ? $this->stringService->mbUcfirst($status->getNom()) : '' ],
-                ['label' => 'Demandeur', 'value' => is_string($requester) ? $requester : ($requester ? $requester->getUsername() : '')],
+                ['label' => 'Demandeur', 'value' => FormatHelper::collectRequester($collecte)],
                 [ 'label' => 'Date de la demande', 'value' => $date ? $date->format('d/m/Y') : '' ],
                 [ 'label' => 'Date de validation', 'value' => $validationDate ? $validationDate->format('d/m/Y H:i') : '' ],
                 [ 'label' => 'Destination', 'value' => $collecte->isStock() ? 'Mise en stock' : 'Destruction' ],

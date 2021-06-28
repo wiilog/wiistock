@@ -13,10 +13,8 @@
                     <div class="form-group col-md-4 col-12">
                         <label>Nom capteur*</label>
                         <div class="w-100">
-                            <select class="form-control data input" name="sensor" data-s2 data-placeholder="Sélectionner un capteur...">
-                                {% for sensorWrapper in sensorWrappers %}
-                                    <option value="{{ sensorWrapper.name }}">{{ sensorWrapper.name }}</option>
-                                {% endfor %}
+                            <select class="form-control data input" name="sensorWrapper" data-s2="sensorWithoutPairing" data-placeholder="Sélectionner un capteur..."
+                                    onchange="onDeviceChanged($(this))">
                             </select>
                         </div>
                     </div>
@@ -26,22 +24,20 @@
                     <div class="form-group col-md-4 col-12">
                         <label>Code capteur*</label>
                         <div class="w-100">
-                            <select class="form-control data" name="sensorCode" data-s2 data-placeholder="Sélectionner un code capteur...">
-                                {% for sensorWrapper in sensorWrappers %}
-                                    <option value="{{ sensorWrapper.sensor.code }}">{{ sensorWrapper.sensor.code }}</option>
-                                {% endfor %}
+                            <select class="form-control data" name="sensor" data-s2="sensorCodeWithoutPairing" data-placeholder="Sélectionner un code capteur..."
+                                    onchange="onDeviceChanged($(this))">
                             </select>
                         </div>
                     </div>
-                    <label class="col-12" for="date-pairing">Date de fin d'association</label>
-                    <div class="col-12">
-                        <input type="date" class="form-control data w-100" name="date-pairing" id="datePairing">
+                    <div class="col-md-4 col-12">
+                    <label for="date-pairing">Date de fin d'association</label>
+                        <input type="datetime-local" class="form-control data w-100" name="date-pairing" id="datePairing">
                     </div>
                     <label class="col-12 mt-2">Element*</label>
                     <div class="col-12 d-flex">
                         <div class="d-flex justify-content-center mr-2">
                             <button type="button"
-                                    class="btn btn-primary button-location data"
+                                    class="btn btn-primary button-location data d-flex align-items-center"
                                     onclick="visible($('.location'))">
                                 <span class="wii-icon wii-icon-iot-location mr-2"></span>
                                 Emplacement
@@ -49,7 +45,7 @@
                         </div>
                         <div class="d-flex justify-content-center mr-2">
                             <button type="button"
-                                    class="btn btn-primary button-pack data"
+                                    class="btn btn-primary button-pack data d-flex align-items-center"
                                     onclick="visible($('.pack'))">
                                 <span class="wii-icon wii-icon-iot-pack mr-2"></span>
                                 Colis
@@ -57,7 +53,7 @@
                         </div>
                         <div class="d-flex justify-content-center mr-2">
                             <button type="button"
-                                    class="btn btn-primary button-article data"
+                                    class="btn btn-primary button-article data d-flex align-items-center"
                                     onclick="visible($('.article'))">
                                 <span class="wii-icon wii-icon-iot-article mr-2"></span>
                                 Article
