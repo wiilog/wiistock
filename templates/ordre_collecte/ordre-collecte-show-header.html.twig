@@ -46,7 +46,7 @@
                         Historique des données
                     </a>
                 {% endif %}
-                {% if hasRightDeleteOrdre %}
+                {% if hasRightDeleteOrdre and collecte.activePairing %}
                     <a href="" onclick="deleteRow($(this), $('#modalDeleteOrdreCollecte'), $('#submitDeleteOrdreCollecte'))"
                        data-id='{{ collecte.id }}' data-target='#modalDeleteOrdreCollecte' data-toggle='modal'
                        class="dropdown-item">
