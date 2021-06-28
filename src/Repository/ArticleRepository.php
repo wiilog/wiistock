@@ -96,6 +96,11 @@ class ArticleRepository extends EntityRepository {
         return $query->getResult();
     }
 
+    /**
+     * @param $demandes
+     * @param false $needAssoc
+     * @return Article[]
+     */
     public function findByDemandes($demandes, $needAssoc = false)
     {
         $queryBuilder = $this->createQueryBuilder('article')
