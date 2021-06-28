@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Emplacement;
+use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\Pack;
 use App\Helper\QueryCounter;
@@ -139,6 +140,8 @@ class LocationGroupRepository extends EntityRepository
                 ->addSelect('sensorWrapper.name AS name')
                 ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
                 ->addSelect('locationGroup.name AS entity')
+                ->addSelect("'" . Sensor::LOCATION_GROUP . "' AS entityType")
+                ->addSelect('locationGroup.id AS entityId')
                 ->join('location.sensorMessages', 'sensorMessage')
                 ->join('sensorMessage.pairings', 'pairing')
                 ->join('pairing.locationGroup', 'locationGroup')
@@ -164,8 +167,10 @@ class LocationGroupRepository extends EntityRepository
             '/AS \w+_1/' => 'AS name',
             '/AS \w+_2/' => 'AS active',
             '/AS \w+_3/' => 'AS entity',
-            '/AS \w+_4/' => 'AS date',
-            '/AS \w+_5/' => 'AS type',
+            '/AS \w+_4/' => 'AS entityId',
+            '/AS \w+_5/' => 'AS entityType',
+            '/AS \w+_6/' => 'AS date',
+            '/AS \w+_7/' => 'AS type',
             '/\?/' => $location->getId(),
         ];
 
@@ -195,6 +200,8 @@ class LocationGroupRepository extends EntityRepository
                 ->addSelect('sensorWrapper.name AS name')
                 ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
                 ->addSelect('locationGroup.name AS entity')
+                ->addSelect("'" . Sensor::LOCATION_GROUP . "' AS entityType")
+                ->addSelect("locationGroup.id AS entityId")
                 ->join('pack.sensorMessages', 'sensorMessage')
                 ->join('sensorMessage.pairings', 'pairing')
                 ->join('pairing.locationGroup', 'locationGroup')
@@ -220,8 +227,10 @@ class LocationGroupRepository extends EntityRepository
             '/AS \w+_1/' => 'AS name',
             '/AS \w+_2/' => 'AS active',
             '/AS \w+_3/' => 'AS entity',
-            '/AS \w+_4/' => 'AS date',
-            '/AS \w+_5/' => 'AS type',
+            '/AS \w+_4/' => 'AS entityType',
+            '/AS \w+_5/' => 'AS entityId',
+            '/AS \w+_6/' => 'AS date',
+            '/AS \w+_7/' => 'AS type',
             '/\?/' => $pack->getId(),
         ];
 

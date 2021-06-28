@@ -7,6 +7,7 @@ use App\Entity\Collecte;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FreeField;
+use App\Entity\IOT\Sensor;
 use App\Entity\OrdreCollecte;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
@@ -1018,6 +1019,8 @@ class ArticleRepository extends EntityRepository {
                 ->addSelect('sensorWrapper.name AS name')
                 ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
                 ->addSelect('article.barCode AS entity')
+                ->addSelect("'" . Sensor::ARTICLE . "' AS entityType")
+                ->addSelect('article.id AS entityId')
                 ->join('article.pairings', 'pairing')
                 ->join('pairing.sensorWrapper', 'sensorWrapper')
                 ->where('article = :article');
@@ -1040,8 +1043,10 @@ class ArticleRepository extends EntityRepository {
             '/AS \w+_1/' => 'AS name',
             '/AS \w+_2/' => 'AS active',
             '/AS \w+_3/' => 'AS entity',
-            '/AS \w+_4/' => 'AS date',
-            '/AS \w+_5/' => 'AS type',
+            '/AS \w+_4/' => 'AS entityType',
+            '/AS \w+_5/' => 'AS entityId',
+            '/AS \w+_6/' => 'AS date',
+            '/AS \w+_7/' => 'AS type',
             '/\?/' => $article->getId()
         ];
 
@@ -1057,6 +1062,9 @@ class ArticleRepository extends EntityRepository {
 
         $collectOrderRepository = $entityManager->getRepository(OrdreCollecte::class);
         $collectArticleSQL = $collectOrderRepository->createArticleSensorPairingDataQueryUnion($article);
+
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $locationSQL = $locationRepository->createArticleSensorPairingDataQueryUnion($article);
 
         return "
             ($startSQL)
