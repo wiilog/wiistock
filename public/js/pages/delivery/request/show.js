@@ -184,9 +184,13 @@ function initPageDatatable() {
             {"data": 'Libellé', 'title': 'Libellé'},
             {"data": 'Emplacement', 'title': 'Emplacement'},
             {"data": 'Quantité à prélever', 'title': 'Quantité à prélever'},
+            {"data": 'error', 'title': 'Erreur', visible: false},
         ],
         rowConfig: {
             needsRowClickAction: true,
+            needsColor: true,
+            color: 'danger',
+            dataToCheck: 'error'
         }
     };
     return initDataTable('table-lignes', tableArticleConfig);

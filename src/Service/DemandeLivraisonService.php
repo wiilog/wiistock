@@ -131,12 +131,6 @@ class DemandeLivraisonService
                 ->first();
         $pairing = $prepas ? $prepas->getPairings()->first() : null;
         $sensorCode = $pairing ? $pairing->getSensorWrapper()->getName() : null;
-        $emergency = !Stream::from($demande->getLigneArticle())
-            ->filter(function(LigneArticle $ligne) {
-                $reference = $ligne->getReference();
-                return $reference->getQuantiteDisponible() < $ligne->getQuantite();
-            })
-            ->isEmpty();
         return [
             'Date' => $demande->getDate() ? $demande->getDate()->format('d/m/Y') : '',
             'Demandeur' => FormatHelper::deliveryRequester($demande),
@@ -149,7 +143,6 @@ class DemandeLivraisonService
                     'url' => $url,
                 ]
             ),
-            "emergency" => $emergency,
             'pairing' => $this->templating->render('pairing-icon.html.twig', [
                 'sensorCode' => $sensorCode,
                 'hasPairing' => (bool)$pairing,

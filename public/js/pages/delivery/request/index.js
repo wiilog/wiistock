@@ -93,9 +93,6 @@ function initPageDatatable() {
         },
         rowConfig: {
             needsRowClickAction: true,
-            needsColor: true,
-            color: 'danger',
-            dataToCheck: 'emergency'
         },
         columns: [
             {data: 'Actions', name: 'Actions', title: '', className: 'noVis', orderable: false},
@@ -105,7 +102,6 @@ function initPageDatatable() {
             {data: 'Numéro', name: 'Numéro', title: 'Numéro'},
             {data: 'Statut', name: 'Statut', title: 'Statut'},
             {data: 'Type', name: 'Type', title: 'Type'},
-            {data: 'emergency', name: 'emergency', title: 'urgence', visible: false},
         ],
         columnDefs: [
             {
