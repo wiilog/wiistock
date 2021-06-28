@@ -810,6 +810,9 @@ class ParametrageGlobalController extends AbstractController
             $logo = $request->files->get("website-logo");
             $fileName = $attachmentService->saveFile($logo, $logo->getClientOriginalName());
             $setting = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::WEBSITE_LOGO]);
+            if($parametrageGlobalRepository->getUnusedLogo($setting, $entityManager)){
+                unlink($setting->getValue());
+            }
             if(!$setting) {
                 $setting = new ParametrageGlobal();
                 $setting->setLabel(ParametrageGlobal::WEBSITE_LOGO);
@@ -827,6 +830,9 @@ class ParametrageGlobalController extends AbstractController
 
             $fileName = $attachmentService->saveFile($logo, $logo->getClientOriginalName());
             $setting = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::EMAIL_LOGO]);
+            if($parametrageGlobalRepository->getUnusedLogo($setting, $entityManager)){
+                unlink($setting->getValue());
+            }
             if(!$setting) {
                 $setting = new ParametrageGlobal();
                 $setting->setLabel(ParametrageGlobal::EMAIL_LOGO);
@@ -844,6 +850,9 @@ class ParametrageGlobalController extends AbstractController
 
             $fileName = $attachmentService->saveFile($logo, $logo->getClientOriginalName());
             $setting = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::MOBILE_LOGO_LOGIN]);
+            if($parametrageGlobalRepository->getUnusedLogo($setting, $entityManager)){
+                unlink($setting->getValue());
+            }
             if(!$setting) {
                 $setting = new ParametrageGlobal();
                 $setting->setLabel(ParametrageGlobal::MOBILE_LOGO_LOGIN);
@@ -861,6 +870,9 @@ class ParametrageGlobalController extends AbstractController
 
             $fileName = $attachmentService->saveFile($logo, $logo->getClientOriginalName());
             $setting = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::MOBILE_LOGO_HEADER]);
+            if($parametrageGlobalRepository->getUnusedLogo($setting, $entityManager)){
+                unlink($setting->getValue());
+            }
             if(!$setting) {
                 $setting = new ParametrageGlobal();
                 $setting->setLabel(ParametrageGlobal::MOBILE_LOGO_HEADER);
