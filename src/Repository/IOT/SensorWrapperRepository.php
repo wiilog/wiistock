@@ -178,11 +178,11 @@ class SensorWrapperRepository extends EntityRepository
     }
 
     public function getForSelect(?string $term) {
-        $qb = $this->createQueryBuilder("sensor_wrapper");
-
-        return $qb->select("sensor_wrapper.id AS id")
+        return $this->createQueryBuilder("sensor_wrapper")
+            ->select("sensor_wrapper.id AS id")
             ->addSelect("sensor_wrapper.name AS text")
             ->where("sensor_wrapper.name LIKE :term")
+            ->andWhere("sensor_wrapper.deleted = 0")
             ->setParameter("term", "%$term%")
             ->getQuery()
             ->getResult();

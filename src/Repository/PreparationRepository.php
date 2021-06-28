@@ -381,7 +381,7 @@ class PreparationRepository extends EntityRepository
                 ->from(Article::class, 'article')
                 ->select('pairing.id AS pairingId')
                 ->addSelect('sensorWrapper.name AS name')
-                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
+                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND (pairing.end IS NULL OR pairing.end > NOW()) THEN 1 ELSE 0 END) AS active')
                 ->addSelect('preparation.numero AS entity')
                 ->addSelect("'" . Sensor::PREPARATION . "' AS entityType")
                 ->addSelect('preparation.id AS entityId')

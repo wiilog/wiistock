@@ -368,7 +368,7 @@ class DataMonitoringService
 
         $subtitlePrefix = [
             'start' => 'Associé le : ',
-            'end' => $date > new DateTime() ? "Fin le : " : "Dissocié le : ",
+            'end' => ($date > new DateTime()) ? "Fin le : " : "Dissocié le : ",
         ];
 
         if ($date) {

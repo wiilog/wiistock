@@ -437,7 +437,7 @@ class PackRepository extends EntityRepository
             return $this->createQueryBuilder('pack')
                 ->select('pairing.id AS pairingId')
                 ->addSelect('sensorWrapper.name AS name')
-                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
+                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND (pairing.end IS NULL OR pairing.end > NOW()) THEN 1 ELSE 0 END) AS active')
                 ->addSelect('pack.code AS entity')
                 ->addSelect("'" . Sensor::PACK . "' AS entityType")
                 ->addSelect('pack.id AS entityId')

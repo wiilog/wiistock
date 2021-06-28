@@ -1017,7 +1017,7 @@ class ArticleRepository extends EntityRepository {
             return $this->createQueryBuilder('article')
                 ->select('pairing.id AS pairingId')
                 ->addSelect('sensorWrapper.name AS name')
-                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
+                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND (pairing.end IS NULL OR pairing.end > NOW()) THEN 1 ELSE 0 END) AS active')
                 ->addSelect('article.barCode AS entity')
                 ->addSelect("'" . Sensor::ARTICLE . "' AS entityType")
                 ->addSelect('article.id AS entityId')
@@ -1074,6 +1074,8 @@ class ArticleRepository extends EntityRepository {
             $preparationArticleSQL
             UNION
             $collectArticleSQL
+            UNION
+            $locationSQL
         ";
     }
 
@@ -1104,5 +1106,16 @@ class ArticleRepository extends EntityRepository {
         ");
         $res = $unionQuery->fetchAllAssociative();
         return $res[0]['count'] ?? 0;
+    }
+
+    public function findArticlesOnLocation(Emplacement $location): array {
+        return $this->createQueryBuilder('article')
+            ->join('article.statut', 'status')
+            ->where('status.code IN (:availableStatuses)')
+            ->andWhere('article.emplacement = :location')
+            ->setParameter('availableStatuses', [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE])
+            ->setParameter('location', $location)
+            ->getQuery()
+            ->getResult();
     }
 }
