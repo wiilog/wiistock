@@ -26,14 +26,15 @@
 
     <div class="form-group col-md-6 col-12">
         <label>Date attendue</label>
-        <div>
-            H +
-            <input class="form-control data needed d-inline-block w-75"
+        <div class="d-flex align-items-center">
+            <span style="white-space: nowrap">H +</span>
+            <input class="form-control data needed mx-2"
+                   style="flex: 1 1 auto"
                    type="number"
                    value="{{ request_template.delay ?? '' }}"
                    name="delay"
                    min="0">
-            à la création
+            <span style="white-space: nowrap">à la création</span>
         </div>
     </div>
     {% set field_code = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
