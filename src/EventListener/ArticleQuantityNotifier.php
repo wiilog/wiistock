@@ -7,8 +7,7 @@ use App\Entity\Article;
 use App\Entity\ParametrageGlobal;
 use App\Service\AlertService;
 use App\Service\RefArticleDataService;
-use DateTime;
-use DateTimeZone;
+use WiiCommon\Utils\DateTime;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMException;
@@ -124,7 +123,7 @@ class ArticleQuantityNotifier {
                                 Article $article)
     {
         if ($article->getExpiryDate()) {
-            $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
+            $now = new DateTime("now");
             $expires = clone $now;
             $expires->modify("{$this->expiryDelay}day");
 

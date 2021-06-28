@@ -22,7 +22,7 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
-use DateTime;
+use WiiCommon\Utils\DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
@@ -292,7 +292,7 @@ class DemandeLivraisonService
             }
         }
         $utilisateur = $data['demandeur'] instanceof Utilisateur ? $data['demandeur'] : $utilisateurRepository->find($data['demandeur']);
-        $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now');
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
         $destination = $emplacementRepository->find($data['destination']);
 
@@ -331,7 +331,7 @@ class DemandeLivraisonService
      */
     public function generateNumeroForNewDL(EntityManagerInterface $entityManager)
     {
-        $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now');
         $demandeRepository = $entityManager->getRepository(Demande::class);
         $prefixeNomDemandeRepository = $entityManager->getRepository(PrefixeNomDemande::class);
 
@@ -463,7 +463,7 @@ class DemandeLivraisonService
 
         // Creation d'une nouvelle preparation basée sur une selection de demandes
         $preparation = new Preparation();
-        $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now');
 
         $preparationNumber = $this->preparationsManager->generateNumber($date, $entityManager);
 

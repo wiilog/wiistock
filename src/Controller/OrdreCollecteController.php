@@ -26,8 +26,7 @@ use App\Service\PDFGeneratorService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
 
-use DateTime;
-use DateTimeZone;
+use WiiCommon\Utils\DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -118,7 +117,7 @@ class OrdreCollecteController extends AbstractController
         $rows = $request->request->get('rows');
         if (!empty($rows) && ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER)) {
 
-            $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+            $date = new DateTime('now');
 
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
@@ -217,7 +216,7 @@ class OrdreCollecteController extends AbstractController
         $statut = $statutRepository
             ->findOneByCategorieNameAndStatutCode(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_A_TRAITER);
         $ordreCollecte = new OrdreCollecte();
-        $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now');
         $ordreCollecte
             ->setDate($date)
             ->setNumero('C-' . $date->format('YmdHis'))

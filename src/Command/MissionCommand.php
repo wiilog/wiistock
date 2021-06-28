@@ -14,6 +14,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use WiiCommon\Utils\DateTime;
 
 class MissionCommand extends Command
 {
@@ -50,17 +51,17 @@ class MissionCommand extends Command
         $inventoryFrequencyRepository = $this->entityManager->getRepository(InventoryFrequency::class);
         $inventoryMissionRepository = $this->entityManager->getRepository(InventoryMission::class);
 
-        $now = new \DateTime('now');
+        $now = new DateTime('now');
         $frequencies = $inventoryFrequencyRepository->findUsedByCat();
 
-        $monday = new \DateTime('now');
+        $monday = new DateTime('now');
         $monday->modify('next monday');
         $mission = $inventoryMissionRepository->findFirstByStartDate($monday->format('Y/m/d'));
 
         if (!$mission) {
         	$mission = new InventoryMission();
 
-        	$sunday = new \DateTime('now');
+        	$sunday = new DateTime('now');
         	$sunday->modify('next monday + 6 days');
 
         	$mission

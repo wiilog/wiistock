@@ -8,8 +8,7 @@ use App\Entity\PurchaseRequest;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
-use DateTime;
-use DateTimeZone;
+use WiiCommon\Utils\DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -134,7 +133,7 @@ class PurchaseRequestService
                                           ?string $comment = null,
                                           ?DateTime $validationDate = null,
                                           ?Utilisateur $buyer = null): PurchaseRequest {
-        $now =  new DateTime("now", new DateTimeZone("Europe/Paris"));
+        $now =  new DateTime("now");
         $purchase = new PurchaseRequest();
         $purchaseRequestNumber = $this->uniqueNumberService->createUniqueNumber($entityManager, PurchaseRequest::NUMBER_PREFIX, PurchaseRequest::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
         $purchase

@@ -3,7 +3,7 @@
 
 namespace App\Entity;
 
-use DateTime;
+use WiiCommon\Utils\DateTime;
 use Doctrine\ORM\Mapping as ORM;
 
 /**

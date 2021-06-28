@@ -18,8 +18,7 @@ use App\Entity\Utilisateur;
 use App\Repository\FreeFieldRepository;
 use App\Repository\FieldsParamRepository;
 use App\Repository\StatutRepository;
-use DateTime;
-use DateTimeZone;
+use WiiCommon\Utils\DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -348,7 +347,7 @@ class DispatchService {
         $date = null;
         foreach (['Y-m-d', 'd/m/Y'] as $format) {
             $date = (!empty($dateStr) && empty($date))
-                ? DateTime::createFromFormat($format, $dateStr, new DateTimeZone("Europe/Paris"))
+                ? DateTime::createFromFormat($format, $dateStr)
                 : $date;
         }
         return $date ?: null;
@@ -440,7 +439,7 @@ class DispatchService {
         $dispatchPacks = $dispatch->getDispatchPacks();
         $takingLocation = $dispatch->getLocationFrom();
         $dropLocation = $dispatch->getLocationTo();
-        $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now');
 
         $dispatch
             ->setStatut($treatedStatus)

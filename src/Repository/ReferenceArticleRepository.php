@@ -14,7 +14,7 @@ use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use WiiCommon\Helper\Stream;
 use App\Service\VisibleColumnService;
-use DateTime;
+use WiiCommon\Utils\DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;

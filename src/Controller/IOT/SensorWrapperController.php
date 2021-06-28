@@ -7,6 +7,7 @@ use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
+use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\Menu;
@@ -18,6 +19,7 @@ use App\Service\FreeFieldService;
 use App\Service\IOT\PairingService;
 use App\Service\IOT\AlertTemplateService;
 use App\Service\IOT\SensorWrapperService;
+use WiiCommon\Utils\DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -79,7 +81,12 @@ class SensorWrapperController extends AbstractController
             $name = $sensorWrapper->getName();
 
             $sensorWrapper->setDeleted(true);
-
+            $activePairings = $sensorWrapper->getPairings()->filter(fn(Pairing $pairing) => $pairing->isActive());
+            foreach ($activePairings as $pairing) {
+                $pairing
+                    ->setActive(false)
+                    ->setEnd(new DateTime('now'));
+            }
             $entityManager->flush();
 
             return $this->json([

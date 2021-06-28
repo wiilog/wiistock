@@ -6,6 +6,7 @@ use App\Entity\Article;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
+use WiiCommon\Utils\DateTime;
 
 class PatchRefArticles extends Fixture implements FixtureGroupInterface
 {
@@ -15,7 +16,7 @@ class PatchRefArticles extends Fixture implements FixtureGroupInterface
         $articleRepository = $manager->getRepository(Article::class);
 
 		// patch spécifique pour dédoublonner les références des articles
-        $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now');
         $formattedDate = $date->format('ym');
 		$doublons = $articleRepository->findDoublons();
 		$counter = 0;

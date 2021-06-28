@@ -15,7 +15,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use WiiCommon\Helper\Stream;
-use DateTime;
+use WiiCommon\Utils\DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;

@@ -16,7 +16,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Symfony\Component\Security\Core\Security;
-use DateTime;
+use WiiCommon\Utils\DateTime;
 
 class InventoryService
 {
@@ -80,7 +80,7 @@ class InventoryService
 			$mvt = new MouvementStock();
 			$mvt
 				->setUser($user)
-				->setDate(new \DateTime('now'))
+				->setDate(new DateTime('now'))
 				->setComment($comment)
 				->setQuantity(abs($diff));
 

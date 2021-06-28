@@ -55,7 +55,7 @@ class IndicateurReferenceComand extends Command
         	round($nbrFiabiliteReferenceOfLastMonth);
 		}
 
-        $dateDebut = new \DateTime($firstDayOfLastMonth);
+        $dateDebut = new DateTime($firstDayOfLastMonth);
         $fiabilityReference = new FiabilityByReference();
         $fiabilityReference
             ->setDate($dateDebut)

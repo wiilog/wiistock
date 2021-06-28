@@ -20,7 +20,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use DateTime;
+use WiiCommon\Utils\DateTime;
 
 /**
  * @Route("/urgences")
@@ -256,7 +256,7 @@ class UrgencesController extends AbstractController
                 "Numero d'arrivage",
                 'Date de creation',
             ];
-            $nowStr = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+            $nowStr = new DateTime('now');
 
             return $CSVExportService->streamResponse(
                 function ($output) use ($urgenceIterator, $CSVExportService) {

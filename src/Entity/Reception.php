@@ -4,7 +4,7 @@ namespace App\Entity;
 
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CommentTrait;
-use DateTime;
+use WiiCommon\Utils\DateTime;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;

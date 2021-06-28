@@ -29,6 +29,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\RouterInterface;
 use WiiCommon\Helper\Stream;
+use WiiCommon\Utils\DateTime;
 
 /**
  * @Route("/iot/historique")
@@ -48,7 +49,7 @@ class DataHistoryController extends AbstractController {
         $id = $query->get('id');
 
         $entity = $dataMonitoringService->getEntity($entityManager, $type, $id);
-        $end = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $end = new DateTime('now');
         $end->modify('last day of this month');
         $end->setTime(23, 59, 59);
         $start = clone $end;

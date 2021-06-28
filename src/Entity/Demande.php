@@ -8,7 +8,7 @@ use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\Traits\CommentTrait;
 use App\Entity\Traits\RequestTrait;
-use DateTime;
+use WiiCommon\Utils\DateTime;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;

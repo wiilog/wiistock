@@ -14,8 +14,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Exceptions\NegativeQuantityException;
-use DateTime;
-use DateTimeZone;
+use WiiCommon\Utils\DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
@@ -102,7 +101,7 @@ class LivraisonsManagerService
                                     ?Emplacement $emplacementTo): void
     {
         $pairings = $livraison->getPreparation()->getPairings();
-        $pairingEnd = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $pairingEnd = new DateTime('now');
         foreach ($pairings as $pairing) {
             if ($pairing->isActive()) {
                 $pairing->setActive(false);
@@ -224,7 +223,7 @@ class LivraisonsManagerService
 
         $statutRepository = $entityManager->getRepository(Statut::class);
 
-        $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $now = new DateTime('now');
         $statutTransit = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT);
         $preparation = $livraison->getpreparation();
         $livraisonStatus = $livraison->getStatut();

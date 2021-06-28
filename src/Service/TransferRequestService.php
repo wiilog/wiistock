@@ -10,8 +10,7 @@ use App\Entity\TransferRequest;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
-use DateTime;
-use DateTimeZone;
+use WiiCommon\Utils\DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\Routing\RouterInterface;
@@ -119,7 +118,7 @@ class TransferRequestService {
                                           ?Utilisateur $requester,
                                           ?string $comment = null): TransferRequest {
         $type = $entityManager->getRepository(Type::class)->findOneByCategoryLabel(CategoryType::TRANSFER_REQUEST);
-        $now =  new DateTime("now", new DateTimeZone("Europe/Paris"));
+        $now =  new DateTime("now");
         $transferRequestNumber = $this->uniqueNumberService->createUniqueNumber($entityManager, TransferRequest::NUMBER_PREFIX, TransferRequest::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 
         $transfer = new TransferRequest();

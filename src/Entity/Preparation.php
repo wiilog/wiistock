@@ -4,7 +4,7 @@ namespace App\Entity;
 
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\SensorMessageTrait;
-use DateTime;
+use WiiCommon\Utils\DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;

@@ -16,7 +16,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
-use DateTime;
+use WiiCommon\Utils\DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\Routing\RouterInterface;
@@ -213,7 +213,7 @@ class DemandeCollecteService
 
         $article = new Article();
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_INACTIF);
-        $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now');
         $ref = $date->format('YmdHis');
 
         $index = $articleFournisseurRepository->countByRefArticle($referenceArticle);

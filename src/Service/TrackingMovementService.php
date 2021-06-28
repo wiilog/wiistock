@@ -23,7 +23,7 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use WiiCommon\Helper\Stream;
 use App\Repository\TrackingMovementRepository;
-use DateTime;
+use WiiCommon\Utils\DateTime;
 use Exception;
 use Symfony\Component\Security\Core\Security;
 use Doctrine\ORM\EntityManagerInterface;

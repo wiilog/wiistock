@@ -27,8 +27,7 @@ use App\Repository\PurchaseRequestLineRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
 use WiiCommon\Helper\Stream;
 use App\Repository\FiltreRefRepository;
-use DateTime;
-use DateTimeZone;
+use WiiCommon\Utils\DateTime;
 use RuntimeException;
 use Twig\Environment as Twig_Environment;
 use Exception;
@@ -485,7 +484,7 @@ class RefArticleDataService {
     public function generateBarCode($counter = null) {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
 
-        $now = new \DateTime('now');
+        $now = new DateTime('now');
         $dateCode = $now->format('ym');
 
         if(!isset($counter)) {
@@ -648,7 +647,7 @@ class RefArticleDataService {
                 $entityManager->remove($alert);
             }
         } else {
-            $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
+            $now = new DateTime("now");
             $alertRepository = $entityManager->getRepository(Alert::class);
 
             if($reference->getLimitSecurity() !== null && $reference->getLimitSecurity() >= $reference->getQuantiteStock()) {
