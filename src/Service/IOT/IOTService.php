@@ -30,6 +30,7 @@ use App\Entity\Preparation;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Helper\FormatHelper;
+use App\Repository\ArticleRepository;
 use App\Repository\PackRepository;
 use App\Repository\StatutRepository;
 use App\Service\DemandeLivraisonService;
@@ -413,7 +414,10 @@ class IOTService
         }
     }
 
-    private function treatAddMessageLocation(Emplacement $location, SensorMessage $sensorMessage, PackRepository $packRepository) {
+    private function treatAddMessageLocation(Emplacement $location,
+                                             SensorMessage $sensorMessage,
+                                             ArticleRepository $articleRepository,
+                                             PackRepository $packRepository) {
         $location->addSensorMessage($sensorMessage);
         $packs = $packRepository->getCurrentPackOnLocations(
             [$location->getId()],
@@ -422,6 +426,13 @@ class IOTService
                 'field' => 'colis'
             ]
         );
+
+        $articles = $articleRepository->findArticlesOnLocation($location);
+
+        foreach ($articles as $article) {
+            $this->treatAddMessageArticle($article, $sensorMessage);
+        }
+
         foreach ($packs as $pack) {
             $this->treatAddMessagePack($pack, $sensorMessage);
         }
