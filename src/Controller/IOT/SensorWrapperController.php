@@ -7,6 +7,7 @@ use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
+use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\Menu;
@@ -18,6 +19,8 @@ use App\Service\FreeFieldService;
 use App\Service\IOT\PairingService;
 use App\Service\IOT\AlertTemplateService;
 use App\Service\IOT\SensorWrapperService;
+use DateTime;
+use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -79,7 +82,10 @@ class SensorWrapperController extends AbstractController
             $name = $sensorWrapper->getName();
 
             $sensorWrapper->setDeleted(true);
-
+            foreach ($sensorWrapper->getPairings()->filter(fn(Pairing $pairing) => $pairing->isActive()) as $pairing) {
+                $pairing->setEnd(new DateTime('now', new DateTimeZone('Europe/Paris')));
+                $pairing->setActive(false);
+            }
             $entityManager->flush();
 
             return $this->json([
