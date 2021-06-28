@@ -324,7 +324,8 @@ class RefArticleDataService {
 
         $refArticle->getManagers()->clear();
         if (!empty($data["managers"])) {
-            foreach (explode(",", $data["managers"]) as $manager) {
+            $managers = is_string($data["managers"]) ? explode(',', $data['managers']) : $data["managers"];
+            foreach ($managers as $manager) {
                 $refArticle->addManager($userRepository->find($manager));
             }
         }
@@ -653,9 +654,9 @@ class RefArticleDataService {
             $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
             $alertRepository = $entityManager->getRepository(Alert::class);
 
-            if($reference->getLimitSecurity() !== null && $reference->getLimitSecurity() >= $reference->getQuantiteDisponible()) {
+            if($reference->getLimitSecurity() !== null && $reference->getLimitSecurity() >= $reference->getQuantiteStock()) {
                 $type = Alert::SECURITY;
-            } else if($reference->getLimitWarning() !== null && $reference->getLimitWarning() >= $reference->getQuantiteDisponible()) {
+            } else if($reference->getLimitWarning() !== null && $reference->getLimitWarning() >= $reference->getQuantiteStock()) {
                 $type = Alert::WARNING;
             }
 
