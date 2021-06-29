@@ -223,7 +223,7 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $litigeHistorics;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\ReceptionTraca", mappedBy="user")
+     * @ORM\OneToMany(targetEntity="App\Entity\ReceiptAssociation", mappedBy="user")
      */
     private $receptionsTraca;
 
@@ -1329,14 +1329,14 @@ class Utilisateur implements UserInterface, EquatableInterface
     }
 
     /**
-     * @return Collection|ReceptionTraca[]
+     * @return Collection|ReceiptAssociation[]
      */
     public function getReceptionsTraca(): Collection
     {
         return $this->receptionsTraca;
     }
 
-    public function addReceptionsTraca(ReceptionTraca $receptionsTraca): self
+    public function addReceptionsTraca(ReceiptAssociation $receptionsTraca): self
     {
         if (!$this->receptionsTraca->contains($receptionsTraca)) {
             $this->receptionsTraca[] = $receptionsTraca;
@@ -1346,7 +1346,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         return $this;
     }
 
-    public function removeReceptionsTraca(ReceptionTraca $receptionsTraca): self
+    public function removeReceptionsTraca(ReceiptAssociation $receptionsTraca): self
     {
         if ($this->receptionsTraca->contains($receptionsTraca)) {
             $this->receptionsTraca->removeElement($receptionsTraca);

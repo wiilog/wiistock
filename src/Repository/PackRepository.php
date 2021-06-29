@@ -517,4 +517,15 @@ class PackRepository extends EntityRepository
         $res = $unionQuery->fetchAllAssociative();
         return $res[0]['count'] ?? 0;
     }
+
+    public function getForSelect(?string $term) {
+        $qb = $this->createQueryBuilder("pack");
+
+        return $qb->select("pack.id AS id")
+            ->addSelect("pack.code AS text")
+            ->where("pack.code LIKE :term")
+            ->setParameter("term", "%$term%")
+            ->getQuery()
+            ->getResult();
+    }
 }

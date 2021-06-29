@@ -163,7 +163,7 @@ function switchMvtCreationType($input) {
 }
 
 /**
- * Used in mouvement_traca/index.html.twig
+ * Used in mouvement_association/index.html.twig
  */
 function clearURL() {
     window.history.pushState({}, document.title, `${window.location.pathname}`);

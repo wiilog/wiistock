@@ -27,7 +27,6 @@ class FiltreSup
 	const FIELD_EMERGENCY = 'emergency';
 	const FIELD_EMERGENCY_MULTIPLE = 'emergencyMultiple';
 	const FIELD_ANOMALY = 'anomaly';
-	const FIELD_ARRIVAGE_STRING = 'arrivage_string';
 	const FIELD_RECEPTION_STRING = 'reception_string';
 	const FIELD_COMMANDE = 'commande';
 	const FIELD_LITIGE_ORIGIN = 'litigeOrigin';
@@ -66,7 +65,7 @@ class FiltreSup
 	const PAGE_INV_MISSIONS = 'inv_missions';
 	const PAGE_INV_SHOW_MISSION = 'inv_mission_show';
 	const PAGE_LITIGE = 'litige';
-	const PAGE_RCPT_TRACA = 'reception_traca';
+    const PAGE_RECEIPT_ASSOCIATION = 'receipt_association';
 	const PAGE_ARTICLE = 'article';
     const PAGE_URGENCES = 'urgences';
     const PAGE_ALERTE = 'alerte';

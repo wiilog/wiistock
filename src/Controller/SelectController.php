@@ -110,6 +110,17 @@ class SelectController extends AbstractController {
     }
 
     /**
+     * @Route("/select/colis", name="ajax_select_packs", options={"expose": true})
+     */
+    public function packs(Request $request, EntityManagerInterface $manager): Response {
+        $results = $manager->getRepository(Pack::class)->getForSelect($request->query->get("colis"));
+        return $this->json([
+            "results" => $results,
+        ]);
+    }
+
+
+    /**
      * @Route("/select/capteurs-bruts", name="ajax_select_sensors", options={"expose": true})
      */
     public function sensors(Request $request, EntityManagerInterface $manager): Response {

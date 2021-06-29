@@ -102,6 +102,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
             'réception' => [
                 'réceptions' => 'réceptions',
                 'réception' => 'réception',
+                'Réception' => 'Réception',
                 'de réception' => 'de réception',
                 'n° de réception' => 'n° de réception',
                 'cette réception' => 'cette réception',

@@ -8,6 +8,7 @@ const ROUTES = {
     collectType: `ajax_select_collect_type`,
     status: `ajax_select_status`,
     location: `ajax_select_locations`,
+    pack: `ajax_select_packs`,
     sensor: `ajax_select_sensors`,
     sensorWrapper: `ajax_select_sensor_wrappers`,
     reference: `ajax_select_references`,
