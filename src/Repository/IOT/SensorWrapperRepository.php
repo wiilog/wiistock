@@ -177,13 +177,23 @@ class SensorWrapperRepository extends EntityRepository
                     ->getResult();
     }
 
-    public function getForSelect(?string $term) {
-        return $this->createQueryBuilder("sensor_wrapper")
+    public function getForSelect(?string $term, $forPairing = false) {
+        $qb = $this->createQueryBuilder("sensor_wrapper")
             ->select("sensor_wrapper.id AS id")
             ->addSelect("sensor_wrapper.name AS text")
             ->where("sensor_wrapper.name LIKE :term")
             ->andWhere("sensor_wrapper.deleted = 0")
-            ->setParameter("term", "%$term%")
+            ->setParameter("term", "%$term%");
+
+        if ($forPairing) {
+            $qb
+                ->leftJoin('sensor_wrapper.sensor', 'sensor')
+                ->leftJoin('sensor.type', 'type')
+                ->andWhere('type.label <> :actionType')
+                ->setParameter('actionType', Sensor::ACTION);
+        }
+
+        return $qb
             ->getQuery()
             ->getResult();
     }
