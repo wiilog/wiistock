@@ -63,6 +63,9 @@ class DemandeLivraisonService
     private $userService;
     private $appURL;
 
+    /** @Required */
+    public NotificationService $notificationService;
+
     public function __construct(FreeFieldService $freeFieldService,
                                 TokenStorageInterface $tokenStorage,
                                 StringService $stringService,
@@ -470,6 +473,10 @@ class DemandeLivraisonService
         $demande->addPreparation($preparation);
         $statutD = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
         $demande->setStatut($statutD);
+
+        if ($demande->getType()->isNotificationsEnabled()) {
+            $this->notificationService->toTreat($preparation);
+        }
 
         // modification du statut articles => en transit
         $articles = $demande->getArticles();

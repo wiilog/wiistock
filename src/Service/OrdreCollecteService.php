@@ -59,6 +59,9 @@ class OrdreCollecteService
 	private $mouvementStockService;
 	private $stringService;
 
+	/** @Required */
+	public NotificationService $notificationService;
+
     public function __construct(RouterInterface $router,
                                 TokenStorageInterface $tokenStorage,
                                 MailerService $mailerService,
@@ -425,6 +428,10 @@ class OrdreCollecteService
                 ->setStatut($statutATraiter);
 
             $entityManager->persist($newCollecte);
+
+            if ($newCollecte->getDemandeCollecte()->getType()->isNotificationsEnabled()) {
+                $this->notificationService->toTreat($newCollecte);
+            }
 
             foreach ($articlesToRemove as $mouvement) {
                 if ($mouvement['isRef'] == 1) {

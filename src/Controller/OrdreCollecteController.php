@@ -21,6 +21,7 @@ use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
+use App\Service\NotificationService;
 use App\Service\OrdreCollecteService;
 use App\Service\PDFGeneratorService;
 use App\Service\RefArticleDataService;
@@ -201,7 +202,7 @@ class OrdreCollecteController extends AbstractController
      * @Route("/creer/{id}", name="ordre_collecte_new", options={"expose"=true}, methods={"GET","POST"} )
      * @HasPermission({Menu::ORDRE, Action::CREATE})
      */
-    public function new(Collecte $demandeCollecte, EntityManagerInterface $entityManager): Response
+    public function new(Collecte $demandeCollecte, EntityManagerInterface $entityManager, NotificationService $notificationService): Response
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         // on crée l'ordre de collecte
@@ -225,6 +226,10 @@ class OrdreCollecteController extends AbstractController
                 ->setReferenceArticle($collecteReference->getReferenceArticle());
             $entityManager->persist($ordreCollecteReference);
             $ordreCollecte->addOrdreCollecteReference($ordreCollecteReference);
+        }
+
+        if ($ordreCollecte->getDemandeCollecte()->getType()->isNotificationsEnabled()) {
+            $notificationService->toTreat($ordreCollecte);
         }
 
         $entityManager->persist($ordreCollecte);

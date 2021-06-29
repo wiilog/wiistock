@@ -35,6 +35,8 @@ class LivraisonsManagerService
     public const MOUVEMENT_DOES_NOT_EXIST_EXCEPTION = 'mouvement-does-not-exist';
     public const LIVRAISON_ALREADY_BEGAN = 'livraison-already-began';
 
+    /** @Required */
+    public NotificationService $notificationService;
 
     private $entityManager;
     private $mailerService;
@@ -86,6 +88,12 @@ class LivraisonsManagerService
             ->setDate($dateEnd)
             ->setNumero($livraisonNumber)
             ->setStatut($statut);
+
+        $entityManager->persist($livraison);
+
+        if($livraison->getDemande()->getType()->isNotificationsEnabled()) {
+            $this->notificationService->toTreat($livraison);
+        }
 
         return $livraison;
     }
@@ -173,8 +181,7 @@ class LivraisonsManagerService
                         && $newQuantiteStock >= $newQuantiteReservee) {
                         $refArticle->setQuantiteStock($newQuantiteStock);
                         $refArticle->setQuantiteReservee($newQuantiteReservee);
-                    }
-                    else {
+                    } else {
                         throw new NegativeQuantityException($refArticle);
                     }
                 }
@@ -213,7 +220,8 @@ class LivraisonsManagerService
     public function resetStockMovementsOnDelete(Livraison $livraison,
                                                 Emplacement $destination,
                                                 Utilisateur $user,
-                                                EntityManagerInterface $entityManager) {
+                                                EntityManagerInterface $entityManager)
+    {
 
         $movements = $livraison->getMouvements()->toArray();
         /** @var MouvementStock $movement */
@@ -242,9 +250,9 @@ class LivraisonsManagerService
                     $now,
                     $entityManager,
                     (
-                        ($livraisonStatusName === Livraison::STATUT_A_TRAITER)
-                            ? MouvementStock::TYPE_TRANSFER
-                            : MouvementStock::TYPE_ENTREE
+                    ($livraisonStatusName === Livraison::STATUT_A_TRAITER)
+                        ? MouvementStock::TYPE_TRANSFER
+                        : MouvementStock::TYPE_ENTREE
                     )
                 );
                 $article
@@ -279,9 +287,9 @@ class LivraisonsManagerService
                         $now,
                         $entityManager,
                         (
-                            ($livraisonStatusName === Livraison::STATUT_A_TRAITER)
-                                ? MouvementStock::TYPE_TRANSFER
-                                : MouvementStock::TYPE_ENTREE
+                        ($livraisonStatusName === Livraison::STATUT_A_TRAITER)
+                            ? MouvementStock::TYPE_TRANSFER
+                            : MouvementStock::TYPE_ENTREE
                         )
                     );
                 }
@@ -306,7 +314,8 @@ class LivraisonsManagerService
                                                           int $quantity,
                                                           DateTime $date,
                                                           EntityManagerInterface $entityManager,
-                                                          string $movementType) {
+                                                          string $movementType)
+    {
         $mouvementStock = $this->mouvementStockService->createMouvementStock(
             $user,
             $from,
@@ -324,7 +333,8 @@ class LivraisonsManagerService
         $entityManager->persist($mouvementStock);
     }
 
-    public function generateNumber(DateTime $date, EntityManagerInterface $entityManager): string {
+    public function generateNumber(DateTime $date, EntityManagerInterface $entityManager): string
+    {
         $livraisonRepository = $entityManager->getRepository(Livraison::class);
 
         $livraisonNumber = ('L-' . $date->format('YmdHis'));

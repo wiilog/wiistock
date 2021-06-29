@@ -34,6 +34,7 @@ use App\Repository\ArticleRepository;
 use App\Repository\PackRepository;
 use App\Repository\StatutRepository;
 use App\Service\DemandeLivraisonService;
+use App\Service\NotificationService;
 use App\Service\UniqueNumberService;
 use DateTime;
 use DateTimeZone;
@@ -82,6 +83,9 @@ class IOTService
 
     /** @Required */
     public AlertService $alertService;
+
+    /** @Required */
+    public NotificationService $notificationService;
 
     public function onMessageReceived(array $frame, EntityManagerInterface $entityManager) {
         if (isset(self::PROFILE_TO_TYPE[$frame['profile']])) {
@@ -309,6 +313,10 @@ class IOTService
         }
 
         $entityManager->persist($ordreCollecte);
+
+        if ($ordreCollecte->getDemandeCollecte()->getType()->isNotificationsEnabled()) {
+            $this->notificationService->toTreat($ordreCollecte);
+        }
 
         // on modifie statut + date validation de la demande
         $demandeCollecte

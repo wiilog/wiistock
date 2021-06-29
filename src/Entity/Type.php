@@ -766,7 +766,7 @@ class Type
         return $this;
     }
 
-    public function getNotificationsEnabled(): ?bool
+    public function isNotificationsEnabled(): ?bool
     {
         return $this->notificationsEnabled;
     }

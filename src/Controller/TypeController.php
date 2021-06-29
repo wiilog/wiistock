@@ -64,7 +64,7 @@ class TypeController extends AbstractController
         foreach ($types as $type) {
             $url['edit'] = $this->generateUrl('types_api_edit', ['id' => $type->getId()]);
 
-            if($type->getNotificationsEnabled()) {
+            if($type->isNotificationsEnabled()) {
                 if(!empty($type->getNotificationsEmergencies())) {
                     $notifications = "Activées si urgence";
                 } else {

@@ -1757,8 +1757,7 @@ class ReceptionController extends AbstractController {
                             $articlesNotPicked = $preparationsManagerService->createMouvementsPrepaAndSplit($preparation, $currentUser, $entityManager);
 
                             $dateEnd = new DateTime('now', new \DateTimeZone('Europe/Paris'));
-                            $delivery = $livraisonsManagerService->createLivraison($dateEnd, $preparation);
-                            $entityManager->persist($delivery);
+                            $delivery = $livraisonsManagerService->createLivraison($dateEnd, $preparation, $entityManager);
                             $locationEndPreparation = $demande->getDestination();
 
                             $preparationsManagerService->treatPreparation($preparation, $this->getUser(), $locationEndPreparation, $articlesNotPicked);

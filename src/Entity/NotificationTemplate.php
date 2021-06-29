@@ -32,6 +32,15 @@ class NotificationTemplate
     public const DISPATCH = "dispatch";
     public const HANDLING = "service";
 
+    public const TYPE_BY_CLASS = [
+        Preparation::class => NotificationTemplate::PREPARATION,
+        Livraison::class => NotificationTemplate::DELIVERY,
+        OrdreCollecte::class => NotificationTemplate::COLLECT,
+        TransferOrder::class => NotificationTemplate::TRANSFER,
+        Dispatch::class => NotificationTemplate::DISPATCH,
+        Handling::class => NotificationTemplate::HANDLING,
+    ];
+
     public const READABLE_TYPES = [
         self::PREPARATION => "Ordre de préparation",
         self::DELIVERY => "Ordre de livraison",
@@ -42,8 +51,8 @@ class NotificationTemplate
     ];
 
     public const DICTIONARIES = [
-        self::PREPARATION => VariableService::DELIVERY_DICTIONARY,
         self::DELIVERY => VariableService::DELIVERY_DICTIONARY,
+        self::PREPARATION => VariableService::PREPARATION_DICTIONARY,
         self::COLLECT => VariableService::COLLECT_DICTIONARY,
         self::TRANSFER => VariableService::TRANSFER_DICTIONARY,
         self::DISPATCH => VariableService::DISPATCH_DICTIONARY,

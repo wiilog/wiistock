@@ -17,12 +17,12 @@ class NotificationTemplateFixture extends Fixture implements FixtureGroupInterfa
 {
 
     private const CONTENTS = [
-        NotificationTemplate::PREPARATION => "Un ordre de préparation @numordrepreparation à traiter<br>Type : @typelivraison",
-        NotificationTemplate::DELIVERY => "Un ordre de livraison @numordrelivraison à traiter<br>Type : @typelivraison",
-        NotificationTemplate::COLLECT => "Un ordre de collecte @numordrecollecte à traiter<br>Type : @typecollecte",
-        NotificationTemplate::TRANSFER => "Un ordre de transfer @numordretransfert à traiter<br>Type : @typetransfert",
-        NotificationTemplate::DISPATCH=> "Une demande d'acheminement @numacheminement à traiter<br>Type : @typeacheminement",
-        NotificationTemplate::HANDLING => "Demande de service @numservice à traiter<br>Type : @typeservice",
+        NotificationTemplate::PREPARATION => "Un ordre de préparation @numordrepreparation à traiter\nType : @typelivraison",
+        NotificationTemplate::DELIVERY => "Un ordre de livraison @numordrelivraison à traiter\nType : @typelivraison",
+        NotificationTemplate::COLLECT => "Un ordre de collecte @numordrecollecte à traiter\nType : @typecollecte",
+        NotificationTemplate::TRANSFER => "Un ordre de transfer @numordretransfert à traiter\nType : @typetransfert",
+        NotificationTemplate::DISPATCH=> "Une demande d'acheminement @numacheminement à traiter\nType : @typeacheminement",
+        NotificationTemplate::HANDLING => "Demande de service @numservice à traiter\nType : @typeservice",
     ];
 
     public function load(ObjectManager $manager)

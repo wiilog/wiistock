@@ -118,10 +118,18 @@ class ApiController extends AbstractFOSRestController
             $loggedUser->setApiKey($apiKey);
             $entityManager->flush();
 
+            $rights = $this->getMenuRights($loggedUser, $userService);
+            $channels = Stream::from($rights)
+                ->filter(fn($val, $key) => $val && in_array($key, ["stock", "tracking", "group", "ungroup", "demande"]))
+                ->takeKeys()
+                ->map(fn($right) => $_SERVER["APP_INSTANCE"] . "-" . $right)
+                ->toArray();
+
             $data['success'] = true;
             $data['data'] = [
                 'apiKey' => $apiKey,
-                'rights' => $this->getMenuRights($loggedUser, $userService),
+                'notificationChannels' => $channels,
+                'rights' => $rights,
                 'username' => $loggedUser->getUsername(),
                 'userId' => $loggedUser->getId()
             ];
@@ -538,7 +546,6 @@ class ApiController extends AbstractFOSRestController
                         $mouvementsNomade = $preparationArray['mouvements'];
                         $totalQuantitiesWithRef = [];
                         $livraison = $livraisonsManager->createLivraison($dateEnd, $preparation, $entityManager);
-                        $entityManager->persist($livraison);
 
                         foreach ($mouvementsNomade as $mouvementNomade) {
                             if (!$mouvementNomade['is_ref'] && $mouvementNomade['selected_by_article']) {
@@ -2146,6 +2153,7 @@ class ApiController extends AbstractFOSRestController
     {
         return [
             'demoMode' => $userService->hasRightFunction(Menu::NOMADE, Action::DEMO_MODE, $user),
+            'notifications' => $userService->hasRightFunction(Menu::NOMADE, Action::DISPLAY_NOTIFICATIONS, $user),
             'stock' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_STOCK, $user),
             'tracking' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_TRACA, $user),
             'group' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_GROUP, $user),

@@ -35,6 +35,9 @@ class TransferOrderService {
     private $mouvementStockService;
     private $uniqueNumberService;
 
+    /** @Required */
+    public NotificationService $notificationService;
+
     public function __construct(TokenStorageInterface $tokenStorage,
                                 UniqueNumberService $uniqueNumberService,
                                 RouterInterface $router,
@@ -240,13 +243,6 @@ class TransferOrderService {
         ];
     }
 
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @param Statut|null $status
-     * @param TransferRequest|null $request
-     * @return TransferOrder
-     * @throws Exception
-     */
     public function createTransferOrder(EntityManagerInterface $entityManager,
                                         ?Statut $status,
                                         ?TransferRequest $request): TransferOrder {
@@ -260,6 +256,10 @@ class TransferOrderService {
             ->setNumber($transferOrderNumber)
             ->setStatus($status)
             ->setCreationDate($now);
+
+        if ($request->getType()->isNotificationsEnabled()) {
+            $this->notificationService->toTreat($transfer);
+        }
 
         return $transfer;
     }

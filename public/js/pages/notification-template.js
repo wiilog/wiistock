@@ -30,7 +30,7 @@ const alertTableConfig = {
         needsSearchOverride: true,
     },
     columns: [
-        {data: 'actions', name: 'Actions', title: '', className: 'noVis', orderable: false},
+        {data: 'actions', name: 'Actions', title: '', className: 'noVis', orderable: false, width: '10px'},
         {data: 'name', name: 'type', title: 'Nom du modèle'},
         {data: 'type', name: 'type', title: 'Type d\'alerte'},
     ]
@@ -49,6 +49,18 @@ let alertsTable;
 $(document).ready(() => {
     switchPageBasedOnHash();
     $(window).on("hashchange", switchPageBasedOnHash);
+
+    const $modal = $(`#modalEditNotification`);
+
+    $modal.arrive(`textarea[name=content]`, function() {
+        const $content = $(this);
+        const $example = $modal.find(`.phone-example .notification`);
+
+        $example.html($content.val().replace(/\n/g, `<br>`))
+        $content.keyup(function() {
+            $example.html($content.val().replace(/\n/g, `<br>`));
+        })
+    });
 })
 
 
@@ -122,34 +134,6 @@ function switchAlerts() {
     $(`#alertsTable_filter`).parent().show();
 }
 
-const CURSOR_BEGIN_PLACEHOLDER = `<i data-from></i>`;
-const CURSOR_END_PLACEHOLDER = `<i data-to></i>`;
-
-function onEditModalLoad($modal, editor) {
-    $modal.find(`.phone-example .notification`).html(editor.root.innerHTML);
-
-    editor.on(`text-change`, function() {
-        $modal.find(`.phone-example .notification`).html(editor.root.innerHTML);
-    });
-
-    // pour la coloration des variables mais ça marche pas c'est pas prioritaire donc en pause pour l'instant
-    //
-    // editor.on(`text-change`, function() {
-    //     let content = editor.root.innerHTML;
-    //     const selec = JSON.parse(JSON.stringify(editor.getSelection()));
-    //
-    //     const $content = $(`<div>`, {
-    //         html: $.parseHTML(content.replace(/(@[a-z0-9]+)/gi, `<span class="highlighted-variable">$1</span>`))
-    //     });
-    //
-    //     $content.find(`.highlighted-variable`).each(function() {
-    //         $(this).unwrap(`.highlighted-variable`);
-    //     });
-    //
-    //     editor.root.innerHTML = $content.html();
-    //     editor.setSelection(selec);
-    // })
-}
 
 function deleteAlertTemplate($button) {
     const alertTemplateId = $button.data('id');
@@ -166,7 +150,7 @@ function onTemplateTypeChange($select) {
     const type = $select.val();
     const $modal = $select.closest('.modal');
 
-    const path = Routing.generate('alert_template_toggle_template', {type: type});
+    const path = Routing.generate('toggle_template', {type: type});
     $.get(path).then((data) => {
         const $templateContainer = $modal.find('.template-container');
         $templateContainer.empty();

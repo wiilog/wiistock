@@ -4,14 +4,34 @@
 namespace App\Service;
 
 
+use App\Entity\Dispatch;
+use App\Entity\Handling;
+use App\Entity\Livraison;
+use App\Entity\OrdreCollecte;
+use App\Entity\Preparation;
+use App\Entity\TransferOrder;
+use App\Helper\FormatHelper;
+use RuntimeException;
+use Symfony\Polyfill\Intl\Icu\Exception\NotImplementedException;
+
 class VariableService
 {
+
+    public const DICTIONNARIES = [
+        Livraison::class => self::DELIVERY_DICTIONARY,
+        Preparation::class => self::PREPARATION_DICTIONARY,
+        OrdreCollecte::class => self::COLLECT_DICTIONARY,
+        TransferOrder::class => self::TRANSFER_DICTIONARY,
+        Dispatch::class => self::DISPATCH_DICTIONARY,
+        Handling::class => self::HANDLING_DICTIONARY,
+    ];
 
     public const SENSOR_NAME = "nomcapteur";
     public const SENSOR_CODE = "codecapteur";
     public const ALERT_DATE = "datealerte";
     public const DATA = "data";
 
+    public const DELIVERY_ORDER_NUMBER = "numordrelivraison";
     public const PREPARATION_ORDER_NUMBER = "numordrepreparation";
     public const COLLECT_ORDER_NUMBER = "numordrecollecte";
     public const TRANSFER_ORDER_NUMBER = "numordretransfert";
@@ -20,7 +40,7 @@ class VariableService
 
     public const DELIVERY_TYPE = "typelivraison";
     public const DISPATCH_TYPE = "typeacheminement";
-    public const HANDLING_TYPE = "numservice";
+    public const HANDLING_TYPE = "typeservice";
 
     public const STATUS = "statut";
     public const SUBJECT = "objet";
@@ -48,6 +68,14 @@ class VariableService
     ];
 
     public const DELIVERY_DICTIONARY = [
+        self::DELIVERY_ORDER_NUMBER => "Numéro de l'ordre",
+        self::DELIVERY_TYPE => "Type de la livraison",
+        self::DESTINATION => "Destination de la livraison",
+        self::REQUESTER => "Utilisateur ayant créé la livraison",
+        self::VALIDATION_DATE => "Date de validation de la demande de livraison",
+    ];
+
+    public const PREPARATION_DICTIONARY = [
         self::PREPARATION_ORDER_NUMBER => "Numéro de l'ordre",
         self::DELIVERY_TYPE => "Type de la livraison",
         self::DESTINATION => "Destination de la livraison",
@@ -99,11 +127,84 @@ class VariableService
         self::OPERATIONS_COUNT => "Nombre d'opérations à réaliser",
     ];
 
-    public function replaceVariables(string $message, array $values): string {
+    public function replaceVariables(string $message, $valuesOrEntity): string {
+        if(!is_array($valuesOrEntity)) {
+            $values = $this->asValues($valuesOrEntity);
+        } else {
+            $values = $valuesOrEntity;
+        }
+
         foreach($values as $variable => $value) {
             $message = str_replace("@$variable", $value, $message);
         }
+
         return $message;
+    }
+
+    public function asValues($entity): array {
+        if ($entity instanceof Livraison) {
+            return [
+                self::DELIVERY_ORDER_NUMBER => $entity->getNumero(),
+                self::DELIVERY_TYPE => FormatHelper::type($entity->getDemande()->getType()),
+                self::DESTINATION => FormatHelper::location($entity->getDestination()),
+                self::REQUESTER => FormatHelper::user($entity->getDemande()->getUtilisateur()),
+                self::VALIDATION_DATE => FormatHelper::datetime($entity->getDate()),
+            ];
+        } else if ($entity instanceof OrdreCollecte) {
+            return [
+                self::COLLECT_ORDER_NUMBER => $entity->getNumero(),
+                self::COLLECT_TYPE => FormatHelper::type($entity->getDemandeCollecte()->getType()),
+                self::DESTINATION => $entity->getDemandeCollecte()->isStock() ? "Mise en stock" : "Destruction",
+                self::REQUESTER => FormatHelper::user($entity->getDemandeCollecte()->getDemandeur()),
+                self::COLLECT_POINT => FormatHelper::location($entity->getDemandeCollecte()->getPointCollecte()),
+                self::SUBJECT => $entity->getDemandeCollecte()->getObjet(),
+                self::VALIDATION_DATE => FormatHelper::datetime($entity->getDate()),
+            ];
+        } else if ($entity instanceof Dispatch) {
+            return [
+                self::DISPATCH_NUMBER => $entity->getNumber(),
+                self::DISPATCH_TYPE => FormatHelper::type($entity->getType()),
+                self::STATUS => FormatHelper::status($entity->getStatut()),
+                self::TAKE_LOCATION => FormatHelper::location($entity->getLocationFrom()),
+                self::DEPOSIT_LOCATION => FormatHelper::location($entity->getLocationTo()),
+                self::REQUESTER => FormatHelper::user($entity->getRequester()),
+                self::VALIDATION_DATE => FormatHelper::datetime($entity->getValidationDate()),
+                self::DUE_DATE => FormatHelper::datetime($entity->getEndDate()),
+                self::ORDER_NUMBER => $entity->getCommandNumber(),
+                self::PACK_COUNT => $entity->getDispatchPacks()->count(),
+            ];
+        } else if ($entity instanceof Preparation) {
+            return [
+                self::PREPARATION_ORDER_NUMBER => $entity->getNumero(),
+                self::DELIVERY_TYPE => FormatHelper::type($entity->getDemande()->getType()),
+                self::DESTINATION => FormatHelper::location($entity->getDemande()->getDestination()),
+                self::REQUESTER => FormatHelper::user($entity->getDemande()->getUtilisateur()),
+                self::VALIDATION_DATE => FormatHelper::datetime($entity->getDate()),
+            ];
+        } else if ($entity instanceof Handling) {
+            return [
+                self::HANDLING_NUMBER => $entity->getNumber(),
+                self::HANDLING_TYPE => FormatHelper::type($entity->getType()),
+                self::STATUS => FormatHelper::status($entity->getStatus()),
+                self::LOADING => $entity->getSource(),
+                self::UNLOADING => $entity->getDestination(),
+                self::REQUESTER => FormatHelper::user($entity->getRequester()),
+                self::VALIDATION_DATE => FormatHelper::datetime($entity->getValidationDate()),
+                self::EXPECTED_DATE => FormatHelper::datetime($entity->getDesiredDate()),
+                self::SUBJECT => $entity->getSubject(),
+                self::OPERATIONS_COUNT => $entity->getCarriedOutOperationCount(),
+            ];
+        } else if ($entity instanceof TransferOrder) {
+            return [
+                self::TRANSFER_ORDER_NUMBER => $entity->getNumber(),
+                self::ORIGIN => FormatHelper::location($entity->getRequest()->getOrigin()),
+                self::DESTINATION => FormatHelper::location($entity->getRequest()->getDestination()),
+                self::REQUESTER => FormatHelper::user($entity->getRequest()->getRequester()),
+                self::VALIDATION_DATE => FormatHelper::datetime($entity->getRequest()->getValidationDate()),
+            ];
+        } else {
+            throw new RuntimeException("Unsupported entity " . get_class($entity));
+        }
     }
 
 }

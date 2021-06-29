@@ -161,13 +161,11 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
             setMaxQuantityEdit($('#referenceEdit'));
         }
 
-        let quill = null
         if (editorToInit) {
-            quill = initEditor(editor);
+            initEditor(editor);
         }
 
-
-        afterLoadingEditModal(modal, quill);
+        afterLoadingEditModal(modal);
     }, 'json');
 
 }

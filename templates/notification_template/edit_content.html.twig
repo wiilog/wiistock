@@ -7,12 +7,7 @@
 
         <div class="form-group">
             <label>Notification</label>
-            <input class="comment form-control data"
-                   name="content" type="hidden"
-                   value="{{ notification_template.content }}">
-            <div class="editor-container">
-                {{ notification_template.content |raw }}
-            </div>
+            <textarea class="form-control data" name="content" rows="4">{{ notification_template.content }}</textarea>
         </div>
 
         {% include 'variables_dictionary.html.twig' %}

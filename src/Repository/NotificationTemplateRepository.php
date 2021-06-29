@@ -2,8 +2,14 @@
 
 namespace App\Repository;
 
+use App\Entity\Dispatch;
+use App\Entity\Handling;
 use App\Entity\IOT\AlertTemplate;
+use App\Entity\Livraison;
 use App\Entity\NotificationTemplate;
+use App\Entity\OrdreCollecte;
+use App\Entity\Preparation;
+use App\Entity\TransferOrder;
 use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
 
@@ -15,6 +21,20 @@ use Doctrine\ORM\EntityRepository;
  */
 class NotificationTemplateRepository extends EntityRepository
 {
+
+    public function findByType($entityOrType): NotificationTemplate {
+        if(!is_string($entityOrType)) {
+            $type = NotificationTemplate::TYPE_BY_CLASS[get_class($entityOrType)];
+        } else {
+            $type = $entityOrType;
+        }
+
+        return $this->createQueryBuilder("notification_template")
+            ->where("notification_template.type = :type")
+            ->setParameter("type", $type)
+            ->getQuery()
+            ->getSingleResult();
+    }
 
     public function findByParams($params) {
         $qb = $this->createQueryBuilder("notification_template");

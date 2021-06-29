@@ -59,6 +59,9 @@ class PreparationsManagerService
     private $security;
     private $CSVExportService;
 
+    /** @Required */
+    public NotificationService $notificationService;
+
     public function __construct(Security $security,
                                 CSVExportService $CSVExportService,
                                 RouterInterface $router,
@@ -183,6 +186,10 @@ class PreparationsManagerService
             ->setNumero($number)
             ->setDate($date)
             ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::PREPARATION, Preparation::STATUT_A_TRAITER));
+
+        if ($preparation->getDemande()->getType()->isNotificationsEnabled()) {
+            $this->notificationService->toTreat($preparation);
+        }
 
         $demande->addPreparation($newPreparation);
         foreach ($listOfArticleSplitted as $articleId) {

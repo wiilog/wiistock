@@ -23,6 +23,7 @@ use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
+use App\Service\NotificationService;
 use WiiCommon\Helper\Stream;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
@@ -853,7 +854,8 @@ class DispatchController extends AbstractController {
                                             EntityManagerInterface $entityManager,
                                             TranslatorInterface $translator,
                                             Dispatch $dispatch,
-                                            DispatchService $dispatchService): Response {
+                                            DispatchService $dispatchService,
+                                            NotificationService $notificationService): Response {
         $status = $dispatch->getStatut();
 
         if(!$status || $status->isDraft()) {
@@ -863,13 +865,17 @@ class DispatchController extends AbstractController {
             $statusId = $data['status'];
             $untreatedStatus = $statusRepository->find($statusId);
 
-            if($untreatedStatus
-                && $untreatedStatus->isNotTreated()
-                && ($untreatedStatus->getType() === $dispatch->getType())) {
-
+            if($untreatedStatus && $untreatedStatus->isNotTreated() && ($untreatedStatus->getType() === $dispatch->getType())) {
                 $dispatch
                     ->setStatut($untreatedStatus)
                     ->setValidationDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
+
+                dump($dispatch->getType()->isNotificationsEnabled() ||
+                    in_array($dispatch->getEmergency(), $dispatch->getType()->getNotificationsEmergencies()));
+                if($dispatch->getType()->isNotificationsEnabled() ||
+                    in_array($dispatch->getEmergency(), $dispatch->getType()->getNotificationsEmergencies())) {
+                    $notificationService->toTreat($dispatch);
+                }
 
                 $entityManager->flush();
                 $dispatchService->sendEmailsAccordingToStatus($dispatch, true);
