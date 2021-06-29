@@ -117,7 +117,8 @@ class DataHistoryController extends AbstractController {
             $sensor = $message->getSensor();
 
             $dateStr = $date->format('d/m/Y H:i:s');
-            $sensorCode = $sensor->getCode();
+            $wrapper = $sensor->getAvailableSensorWrapper();
+            $sensorCode = ($wrapper ? $wrapper->getName() . ' : ' : '') . $sensor->getCode();
             if (!isset($data[$sensorCode])) {
                 $data[$sensorCode] = [];
             }
