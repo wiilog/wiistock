@@ -1,9 +1,8 @@
+let noMapData = true;
+let noChartData = true;
+const $errorContainer = $('.no-monitoring-data');
 $(document).ready(() => {
-    $(`[data-map]`).each((i, elem) => initMap(elem));
-    $(`[data-chart]`).each((i, elem) => initLineChart(elem));
-
-    $(document).arrive(`[data-map]`, elem => initMap(elem));
-    $(document).arrive(`[data-chart]`, elem => initLineChart(elem));
+    initData();
 
     const $timelineContainer = $('.timeline-container');
     if ($timelineContainer.exists()) {
@@ -29,9 +28,55 @@ $(document).ready(() => {
     }
 });
 
+function initMapCall(callback) {
+    const $maps = $(`[data-map]`);
+    if ($maps.length > 0) {
+        $maps.each((i, elem) => initMap(elem, callback));
+    } else {
+        callback();
+    }
+}
+
+function initChartCall(callback) {
+    const $charts = $(`[data-chart]`);
+    if ($charts.length > 0) {
+        $charts.each((i, elem) => initLineChart(elem, callback));
+    } else {
+        callback();
+    }
+}
+
+function noMonitoringData() {
+    $errorContainer.empty();
+    const $emptyResult = $(`<div/>`, {
+        class: `d-flex flex-column align-items-center`,
+        html: $(`<p/>`, {
+            class: `h4`,
+            text: 'Aucune données'
+        })
+    });
+
+    const $icon = $(`<i/>`, {
+        class: `fas fa-frown fa-4x`
+    });
+
+    $emptyResult.append($icon);
+    $errorContainer.removeClass('d-none');
+    $errorContainer.append($emptyResult).hide().fadeIn(600);
+}
+
+function initData() {
+   initMapCall(() => {
+       initChartCall(() => {
+           if (noChartData && noMapData) {
+               noMonitoringData();
+           }
+       });
+   });
+}
+
 function filter() {
-    $(`[data-map]`).each((i, elem) => initMap(elem));
-    $(`[data-chart]`).each((i, elem) => initLineChart(elem));
+    initData();
 }
 
 function unpair(pairing) {
@@ -50,8 +95,9 @@ function getFiltersValue() {
 }
 
 let previousMap = null;
-function initMap(element) {
+function initMap(element, callback) {
     const $element = $(element);
+    $errorContainer.addClass('d-none');
 
     $.get($element.data(`fetch-url`), getFiltersValue(), function (response) {
         if(previousMap) {
@@ -77,6 +123,7 @@ function initMap(element) {
         const responseValues = Object.values(response);
         // hide the map if there are no sensors
         $element.closest('.wii-page-card').toggle(true);
+        noMapData = false;
         if(responseValues.length > 0) {
             responseValues.forEach(((date) => {
                 Object.values(date).forEach((coordinates) => {
@@ -123,6 +170,8 @@ function initMap(element) {
                 });
             });
         } else {
+            noMapData = true;
+            callback();
             $element.closest('.wii-page-card').toggle(false);
         }
     });
@@ -130,6 +179,7 @@ function initMap(element) {
 
 function initLineChart(element) {
     const $element = $(element);
+    $errorContainer.addClass('d-none');
 
     $.get($element.data(`fetch-url`), getFiltersValue(), function (response) {
         let data = {
@@ -142,6 +192,7 @@ function initLineChart(element) {
 
         // hide the chart if there are no sensors
         $element.closest('.wii-page-card').toggle(true);
+        noChartData = false;
         sensorDates.forEach((date) => {
             data.labels.push(date);
             sensors.forEach((sensor) => {
@@ -180,6 +231,10 @@ function initLineChart(element) {
             }
         });
         $element.closest('.wii-page-card').toggle(sensors.length > 0);
+        if (sensors.length === 0) {
+            noChartData = true;
+            callback();
+        }
     });
 }
 
