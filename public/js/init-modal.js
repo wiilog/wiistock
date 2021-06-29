@@ -348,7 +348,7 @@ function processInputsForm($modal, data, isAttachmentForm) {
         }
         else if ($input.hasClass('is-barcode')
             && !isBarcodeValid($input)) {
-            errorMessages.push(`Le champ ${label} doit contenir au maximum 21 caractères (lettres ou chiffres uniquement).`);
+            errorMessages.push(`Le champ ${label} doit contenir au maximum 21 caractères, lettres ou chiffres uniquement, pas d’accent.`);
             $isInvalidElements.push($input, $input.parent());
         }
         // validation valeur des inputs de type password
