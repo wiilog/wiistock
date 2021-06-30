@@ -369,12 +369,6 @@ class RefArticleDataService {
             ->unique()
             ->toArray();
 
-        if(!$refArticle->getAttachments()->isEmpty()) {
-            $attachmentsCounter = $refArticle->getAttachments()->count();
-            $sAttachments = $attachmentsCounter > 1 ? 's' : '';
-            $attachments = "<i class=\"fas fa-paperclip\" title=\"{$attachmentsCounter} pièce{$sAttachments} jointe{$sAttachments}\"></i>";
-        }
-
         $row = [
             "id" => $refArticle->getId(),
             "attachments" => $attachments ?? "",
