@@ -259,6 +259,7 @@ class RequestTemplateController extends AbstractController
             "request_template" => $requestTemplate,
             "new_line" => new RequestTemplateLine(),
             "details" => $service->createHeaderDetailsConfig($requestTemplate),
+            "type" => $requestTemplate instanceof DeliveryRequestTemplate ? "livraison" : "collecte",
             "quantityText" => $requestTemplate instanceof DeliveryRequestTemplate ? "Quantité à livrer" : "Quantité à collecter"
         ]);
     }
