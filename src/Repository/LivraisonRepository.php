@@ -8,6 +8,7 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use DateTime;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -66,6 +67,7 @@ class LivraisonRepository extends EntityRepository
             ->where('status.nom = :statusLabel')
             ->andWhere('(delivery_order.utilisateur IS NULL OR delivery_order.utilisateur = :user)')
             ->andWhere('join_type.id IN (:typeIds)')
+            ->orderBy('delivery_order.date', Criteria::ASC)
             ->setParameters([
                 'statusLabel' => Livraison::STATUT_A_TRAITER,
                 'user' => $user,
