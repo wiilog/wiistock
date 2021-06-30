@@ -95,7 +95,7 @@ function initPageDatatable() {
             needsRowClickAction: true,
         },
         columns: [
-            {data: 'Actions', name: 'Actions', title: '', className: 'noVis', orderable: false},
+            {data: 'Actions', name: 'Actions', title: '', className: 'noVis', orderable: false, width: '10px'},
             {data: 'pairing', name: '', title: '', className: 'pairing-row', orderable: false},
             {data: 'Date', name: 'Date', title: 'Date'},
             {data: 'Demandeur', name: 'Demandeur', title: 'Demandeur'},
