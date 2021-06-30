@@ -10,6 +10,7 @@ use App\Entity\Pack;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use DateTime;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -64,7 +65,8 @@ class OrdreCollecteRepository extends EntityRepository
             ->setParameters([
                 'statutLabel' => OrdreCollecte::STATUT_A_TRAITER,
                 'user' => $user,
-            ]);
+            ])
+            ->orderBy('oc.date', Criteria::ASC);
 		return $queryBuilder->getQuery()->execute();
 	}
 
