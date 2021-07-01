@@ -5,7 +5,7 @@ namespace App\Repository;
 use App\Entity\Litige;
 use App\Entity\LitigeHistoric;
 use App\Helper\QueryCounter;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Exception;

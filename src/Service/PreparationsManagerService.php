@@ -19,7 +19,7 @@ use App\Entity\Utilisateur;
 use App\Exceptions\NegativeQuantityException;
 use App\Repository\ArticleRepository;
 use App\Repository\StatutRepository;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\Routing\RouterInterface;

@@ -19,7 +19,7 @@ use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 use Exception;
 use Symfony\Component\Routing\Router;
 use Symfony\Component\Routing\RouterInterface;

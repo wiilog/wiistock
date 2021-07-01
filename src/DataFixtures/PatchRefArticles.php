@@ -6,7 +6,7 @@ use App\Entity\Article;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 
 class PatchRefArticles extends Fixture implements FixtureGroupInterface
 {

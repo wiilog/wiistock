@@ -8,7 +8,7 @@ use App\Entity\LocationGroup;
 use App\Entity\OrdreCollecte;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;

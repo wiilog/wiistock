@@ -3,7 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\WorkFreeDay;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 use Doctrine\ORM\EntityRepository;
 
 /**

@@ -28,7 +28,7 @@ use App\Service\UserService;
 use App\Service\FreeFieldService;
 use App\Annotation\HasPermission;
 
-use WiiCommon\Utils\DateTime;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\Request;

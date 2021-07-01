@@ -20,7 +20,7 @@ use App\Entity\TransferRequest;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
 use Twig\Environment;

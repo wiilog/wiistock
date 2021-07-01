@@ -6,7 +6,7 @@ use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorWrapper;
 use App\Helper\QueryCounter;
 use App\Entity\IOT\Sensor;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;

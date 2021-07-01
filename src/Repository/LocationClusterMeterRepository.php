@@ -5,7 +5,7 @@ namespace App\Repository;
 
 
 use App\Entity\LocationCluster;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 use Doctrine\ORM\EntityRepository;
 
 class LocationClusterMeterRepository extends EntityRepository {

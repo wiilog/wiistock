@@ -19,7 +19,7 @@ use App\Service\AttachmentService;
 use App\Service\PurchaseRequestService;
 use App\Service\ReceptionService;
 use App\Service\RefArticleDataService;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 use App\Service\CSVExportService;
 use App\Service\UserService;
 

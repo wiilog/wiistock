@@ -34,7 +34,7 @@ use App\Entity\Wiilock;
 use App\Helper\FormatHelper;
 use App\Helper\QueryCounter;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;

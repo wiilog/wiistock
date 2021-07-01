@@ -18,7 +18,7 @@ use App\Helper\PostHelper;
 use App\Service\FreeFieldService;
 use App\Service\IOT\PairingService;
 use App\Service\IOT\SensorWrapperService;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 

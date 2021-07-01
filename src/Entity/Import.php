@@ -2,7 +2,7 @@
 
 namespace App\Entity;
 
-use WiiCommon\Utils\DateTime as WiiDateTime;
+use DateTime as WiiDateTime;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;

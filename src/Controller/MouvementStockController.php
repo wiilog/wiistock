@@ -29,7 +29,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 
 /**
  * @Route("/mouvement-stock")

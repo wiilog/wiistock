@@ -27,7 +27,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 
 /**
  * @Route("/iot/historique")
@@ -41,7 +41,7 @@ class DataHistoryController extends AbstractController {
     public function show(Request $request,
                          EntityManagerInterface $entityManager,
                          DataMonitoringService $dataMonitoringService,
-    TranslatorInterface $trans): Response {
+                         TranslatorInterface $trans): Response {
         $query = $request->query;
 
         $type = $query->get('type');

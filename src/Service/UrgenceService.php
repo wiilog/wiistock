@@ -11,7 +11,7 @@ use App\Entity\ParametrageGlobal;
 use App\Entity\Transporteur;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 use Symfony\Component\Security\Core\Security;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;

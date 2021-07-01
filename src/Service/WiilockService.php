@@ -4,7 +4,7 @@
 namespace App\Service;
 
 use App\Entity\Wiilock;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
 

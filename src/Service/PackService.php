@@ -11,7 +11,7 @@ use App\Entity\Nature;
 use App\Helper\FormatHelper;
 use App\Repository\NatureRepository;
 use App\Repository\PackRepository;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
 use Twig\Environment as Twig_Environment;

@@ -7,7 +7,7 @@ use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\IOT\SensorMessage;
 use App\Helper\FormatHelper;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
 

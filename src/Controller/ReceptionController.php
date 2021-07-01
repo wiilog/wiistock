@@ -55,7 +55,7 @@ use App\Service\UniqueNumberService;
 use App\Service\UserService;
 
 use App\Service\FreeFieldService;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;

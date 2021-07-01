@@ -9,7 +9,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Selectable;
 use Doctrine\ORM\Mapping as ORM;
-use WiiCommon\Utils\DateTime as WiiDateTime;
+use DateTime as WiiDateTime;
 
 use App\Entity\IOT\Pairing;
 

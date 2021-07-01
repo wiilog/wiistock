@@ -6,7 +6,7 @@ use App\Entity\AverageRequestTime;
 use App\Entity\Demande;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;

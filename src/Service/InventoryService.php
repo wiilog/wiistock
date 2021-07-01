@@ -16,7 +16,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Symfony\Component\Security\Core\Security;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 
 class InventoryService
 {

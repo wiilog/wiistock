@@ -14,7 +14,7 @@ use App\Entity\Pack;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 use DateTimeInterface;
 use WiiCommon\Helper\Stream;
 

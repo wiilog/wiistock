@@ -18,7 +18,7 @@ use App\Entity\Utilisateur;
 use App\Repository\FreeFieldRepository;
 use App\Repository\FieldsParamRepository;
 use App\Repository\StatutRepository;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;

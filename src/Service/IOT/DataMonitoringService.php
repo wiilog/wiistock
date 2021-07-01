@@ -14,7 +14,7 @@ use App\Entity\OrdreCollecte;
 use App\Entity\Pack;
 use App\Entity\Preparation;
 use App\Helper\FormatHelper;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\Response;
@@ -323,7 +323,8 @@ class DataMonitoringService
         return [
             'data' => Stream::from($pairingData)
                 ->filterMap(fn(array $dataRow) => $this->getTimelineDataRow($dataRow, $entity, $router))
-                ->toArray(),
+                ->reverse()
+                ->values(),
             'isEnd' => $pairingDataCount <= ($start + $count),
             'isGrouped' => (
                 ($entity instanceof Demande)

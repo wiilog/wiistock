@@ -20,7 +20,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use App\Service\UserService;
 use Twig\Environment as Twig_Environment;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 
 class SecuriteController extends AbstractController {
 

@@ -6,7 +6,7 @@ use App\Entity\Alert;
 use App\Entity\Article;
 use App\Entity\ReferenceArticle;
 use App\Helper\QueryCounter;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\EntityRepository;
 use function Doctrine\ORM\QueryBuilder;

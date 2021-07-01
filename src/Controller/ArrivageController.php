@@ -42,7 +42,7 @@ use App\Service\UrgenceService;
 use App\Service\UserService;
 use App\Service\MailerService;
 use App\Service\FreeFieldService;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;

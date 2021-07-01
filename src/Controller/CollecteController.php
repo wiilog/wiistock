@@ -18,7 +18,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\Article;
 use App\Helper\FormatHelper;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
 use App\Service\DemandeCollecteService;

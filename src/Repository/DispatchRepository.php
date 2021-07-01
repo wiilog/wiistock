@@ -10,7 +10,7 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use WiiCommon\Helper\Stream;
 use App\Service\VisibleColumnService;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;

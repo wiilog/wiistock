@@ -6,7 +6,7 @@ use App\Entity\Article;
 use App\Entity\InventoryMission;
 use App\Entity\ReferenceArticle;
 use App\Helper\QueryCounter;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 use DateTimeInterface;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;

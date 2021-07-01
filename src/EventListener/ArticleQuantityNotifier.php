@@ -7,7 +7,7 @@ use App\Entity\Article;
 use App\Entity\ParametrageGlobal;
 use App\Service\AlertService;
 use App\Service\RefArticleDataService;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMException;

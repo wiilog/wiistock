@@ -4,7 +4,7 @@ namespace App\Service;
 
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterMeter;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 
 class LocationClusterService {

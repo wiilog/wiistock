@@ -27,7 +27,7 @@ use App\Repository\PurchaseRequestLineRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
 use WiiCommon\Helper\Stream;
 use App\Repository\FiltreRefRepository;
-use WiiCommon\Utils\DateTime;
+use DateTime;
 use RuntimeException;
 use Twig\Environment as Twig_Environment;
 use Exception;
