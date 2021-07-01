@@ -7,26 +7,15 @@ use App\Entity\Action;
 use App\Entity\Emplacement;
 use App\Entity\LocationGroup;
 use App\Entity\Menu;
-use App\Entity\Nature;
-
-use App\Entity\Pack;
-use App\Helper\FormatHelper;
-use App\Service\CSVExportService;
-use App\Service\GroupService;
 use App\Service\LocationGroupService;
-use App\Service\TrackingMovementService;
 
 use Doctrine\ORM\EntityManagerInterface;
-use InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use WiiCommon\Utils\DateTime;
-use Symfony\Contracts\Translation\TranslatorInterface;
-use Throwable;
 
 /**
  * @Route("/emplacements/groupes")

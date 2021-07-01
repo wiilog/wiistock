@@ -12,7 +12,6 @@ use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Service\CSVExportService;
 use App\Service\EnCoursService;
-use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;

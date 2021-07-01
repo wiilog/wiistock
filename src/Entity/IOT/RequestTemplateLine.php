@@ -2,7 +2,6 @@
 
 namespace App\Entity\IOT;
 
-use App\Entity\Emplacement;
 use App\Entity\ReferenceArticle;
 use App\Repository\IOT\RequestTemplateLineRepository;
 use Doctrine\ORM\Mapping as ORM;

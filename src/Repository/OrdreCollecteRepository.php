@@ -6,7 +6,6 @@ use App\Entity\Article;
 use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\OrdreCollecte;
-use App\Entity\Pack;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use WiiCommon\Utils\DateTime;

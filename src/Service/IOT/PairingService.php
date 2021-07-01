@@ -4,7 +4,6 @@
 namespace App\Service\IOT;
 
 use App\Entity\IOT\Pairing;
-use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\IOT\SensorMessage;
 use App\Helper\FormatHelper;

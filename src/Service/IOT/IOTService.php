@@ -15,7 +15,6 @@ use App\Entity\IOT\CollectRequestTemplate;
 use App\Entity\IOT\DeliveryRequestTemplate;
 use App\Entity\IOT\HandlingRequestTemplate;
 use App\Entity\IOT\PairedEntity;
-use App\Entity\IOT\Pairing;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;

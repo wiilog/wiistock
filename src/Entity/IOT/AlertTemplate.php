@@ -3,7 +3,6 @@
 namespace App\Entity\IOT;
 
 use App\Repository\IOT\AlertTemplateRepository;
-use App\Entity\Type;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
