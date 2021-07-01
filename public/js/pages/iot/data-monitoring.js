@@ -272,7 +272,7 @@ function initTimeline($timelineContainer, showMore = false) {
                     const hideTitle = lastTitle === title;
                     lastTitle = title;
 
-                    const lastClass = (isEnd && (timeline.length - 1) === index) ? 'last-timeline-cell' : '';
+                    const lastClass = (isEnd && index === 0) ? 'last-timeline-cell' : '';
                     const activeClass = active ? 'timeline-cell-active' : '';
                     const withoutTitleClass = hideTitle ? 'timeline-cell-without-title' : '';
                     const largeTimelineCellClass = !isGrouped ? 'timeline-cell-large' : '';
@@ -315,7 +315,7 @@ function initTimeline($timelineContainer, showMore = false) {
                         ]
                     })
                 });
-                $timelineContainer.append($timeline);
+                $timelineContainer.prepend($timeline);
 
                 if (firstLoading) {
                     $timelineContainer
@@ -323,10 +323,10 @@ function initTimeline($timelineContainer, showMore = false) {
                         .removeClass('py-5');
                 }
 
-                if (!isEnd) {
-                    $timelineContainer.append(
+                if (!isEnd && timeline.length > 0) {
+                    $timelineContainer.prepend(
                         $('<div/>', {
-                            class: 'timeline-row timeline-show-more-button-container justify-content-center pt-4',
+                            class: 'timeline-row timeline-show-more-button-container justify-content-center pb-4',
                             html: $('<button/>', {
                                 class: 'btn btn-outline-info timeline-show-more-button',
                                 text: 'Voir plus',
