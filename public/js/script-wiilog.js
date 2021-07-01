@@ -120,7 +120,7 @@ function showRow(button, path, modal) {
  * @param {Document} button
  * @param {string} path le chemin pris pour envoyer les données.
  * @param {Document} modal la modalde modification
- * @param {Document} submit le bouton de validation du form pour le edit
+ * @param {Document|string} submit le bouton de validation du form pour le edit
  *
  * @param editorToInit
  * @param editor
