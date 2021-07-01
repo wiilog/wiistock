@@ -50,17 +50,17 @@ function noMonitoringData() {
     $errorContainer.empty();
     const $emptyResult = $(`<div/>`, {
         class: `d-flex flex-column align-items-center`,
-        html: $(`<p/>`, {
-            class: `h4`,
-            text: 'Aucune donnée'
-        })
+        html: [
+            $(`<p/>`, {
+                class: `h4`,
+                text: 'Aucune donnée'
+            }),
+            $(`<i/>`, {
+                class: `fas fa-frown fa-4x`
+            })
+        ]
     });
 
-    const $icon = $(`<i/>`, {
-        class: `fas fa-frown fa-4x`
-    });
-
-    $emptyResult.append($icon);
     $errorContainer.removeClass('d-none');
     $errorContainer.append($emptyResult).hide().fadeIn(600);
 }
