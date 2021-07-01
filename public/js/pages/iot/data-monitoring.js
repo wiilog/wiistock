@@ -177,7 +177,7 @@ function initMap(element, callback) {
     });
 }
 
-function initLineChart(element) {
+function initLineChart(element, callback) {
     const $element = $(element);
     $errorContainer.addClass('d-none');
 
