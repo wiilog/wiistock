@@ -10,6 +10,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Selectable;
 use Doctrine\ORM\Mapping as ORM;
+use WiiCommon\Utils\DateTime as WiiDateTime;
 
 use App\Entity\IOT\Pairing;
 
@@ -782,7 +783,7 @@ class Article extends FreeFieldEntity implements PairedEntity
     public function isExpired(): ?bool
     {
         if($this->getExpiryDate()) {
-            $now = new DateTime("now");
+            $now = new WiiDateTime("now");
 
             return $now >= $this->getExpiryDate();
         } else {
