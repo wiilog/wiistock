@@ -2,11 +2,8 @@
 
 namespace App\Repository\IOT;
 
-use App\Entity\FiltreSup;
 use App\Entity\IOT\TriggerAction;
-use App\Entity\PurchaseRequest;
 use App\Helper\QueryCounter;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\EntityRepository;
 
 /**

@@ -9,7 +9,6 @@ use App\Entity\Emplacement;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
-use App\Entity\Livraison;
 use App\Entity\LocationGroup;
 use App\Entity\OrdreCollecte;
 use App\Entity\Pack;

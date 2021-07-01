@@ -6,11 +6,9 @@ namespace App\Command;
 
 use App\Entity\CategorieStatut;
 use App\Entity\Import;
-use App\Entity\IOT\AlertTemplate;
 use App\Entity\Statut;
 use App\Exceptions\ImportException;
 use App\Service\ImportService;
-use App\Service\IOT\AlertService;
 use WiiCommon\Utils\DateTime;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;

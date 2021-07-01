@@ -9,9 +9,7 @@ use App\Entity\CategoryType;
 use App\Entity\FreeField;
 use App\Entity\Collecte;
 use App\Entity\Emplacement;
-use App\Entity\IOT\Pairing;
 use App\Entity\Menu;
-use App\Entity\OrdreCollecte;
 use App\Entity\ParametrageGlobal;
 use App\Entity\ReferenceArticle;
 use App\Entity\CollecteReference;
@@ -37,7 +35,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use WiiCommon\Helper\Stream;
 
 
 /**

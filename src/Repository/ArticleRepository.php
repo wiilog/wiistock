@@ -3,7 +3,6 @@
 namespace App\Repository;
 
 use App\Entity\Article;
-use App\Entity\Collecte;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FreeField;

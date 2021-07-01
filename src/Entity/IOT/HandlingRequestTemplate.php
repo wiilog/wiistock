@@ -5,8 +5,6 @@ namespace App\Entity\IOT;
 use App\Entity\Statut;
 use App\Entity\Traits\AttachmentTrait;
 use App\Repository\IOT\HandlingRequestTemplateRepository;
-use App\Entity\Type;
-use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 

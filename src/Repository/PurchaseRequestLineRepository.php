@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\PurchaseRequest;
 use App\Entity\PurchaseRequestLine;
-use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use WiiCommon\Utils\DateTime;
 use Doctrine\ORM\EntityRepository;

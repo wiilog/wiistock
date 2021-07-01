@@ -17,7 +17,6 @@ use App\Helper\PostHelper;
 
 use App\Service\FreeFieldService;
 use App\Service\IOT\PairingService;
-use App\Service\IOT\AlertTemplateService;
 use App\Service\IOT\SensorWrapperService;
 use WiiCommon\Utils\DateTime;
 use Doctrine\ORM\EntityManagerInterface;

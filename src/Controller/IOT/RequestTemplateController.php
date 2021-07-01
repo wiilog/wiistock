@@ -6,7 +6,6 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
-use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\IOT\CollectRequestTemplate;
