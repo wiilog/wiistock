@@ -52,7 +52,7 @@ function noMonitoringData() {
         class: `d-flex flex-column align-items-center`,
         html: $(`<p/>`, {
             class: `h4`,
-            text: 'Aucune données'
+            text: 'Aucune donnée'
         })
     });
 
