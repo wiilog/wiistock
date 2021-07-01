@@ -42,7 +42,6 @@ class RefArticleDataService {
 
     private const REF_ARTICLE_FIELDS = [
         ["name" => "actions", "class" => "noVis", "alwaysVisible" => true, "orderable" => false],
-        ['name' => 'attachments', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
         ["title" => "Libellé", "name" => "label", "type" => "text", "searchable" => true],
         ["title" => "Référence", "name" => "reference", "type" => "text", "searchable" => true],
         ["title" => "Code barre", "name" => "barCode", "type" => "text", "searchable" => true],
@@ -371,7 +370,6 @@ class RefArticleDataService {
 
         $row = [
             "id" => $refArticle->getId(),
-            "attachments" => $attachments ?? "",
             "label" => $refArticle->getLibelle() ?? "Non défini",
             "reference" => $refArticle->getReference() ?? "Non défini",
             "quantityType" => $refArticle->getTypeQuantite() ?? "Non défini",
