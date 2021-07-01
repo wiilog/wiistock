@@ -135,9 +135,8 @@ function switchGroups() {
         InitModal($modalNewEmplacement, $submitNewEmplacement, urlNewEmplacement, {tables: [groupsTable]});
 
         const modalDeleteEmplacement = $('#modalDeleteLocationGroup');
-        const submitDeleteEmplacement = $('#submitDeleteLocationGroup');
         const urlDeleteEmplacement = Routing.generate('location_group_delete', true);
-        InitModal(modalDeleteEmplacement, submitDeleteEmplacement, urlDeleteEmplacement, {tables: [groupsTable]});
+        InitModal(modalDeleteEmplacement, '#submitDeleteLocationGroup', urlDeleteEmplacement, {tables: [groupsTable]});
 
         const $modalModifyEmplacement = $('#modalEditLocationGroup');
         const $submitModifyEmplacement = $('#submitEditLocationGroup');
