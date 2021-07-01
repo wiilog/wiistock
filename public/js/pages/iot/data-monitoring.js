@@ -39,6 +39,7 @@ function initMapCall(callback) {
 
 function initChartCall(callback) {
     const $charts = $(`[data-chart]`);
+    console.log($charts);
     if ($charts.length > 0) {
         $charts.each((i, elem) => initLineChart(elem, callback));
     } else {
@@ -169,6 +170,8 @@ function initMap(element, callback) {
                     }, 200 * index);
                 });
             });
+
+            callback();
         } else {
             noMapData = true;
             callback();
