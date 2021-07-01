@@ -76,7 +76,6 @@ class TriggerActionController extends AbstractController
                 $sensorWrapper = null;
             }
             if ($sensorWrapper && $sensorWrapper->getSensor()->getProfile()->getMaxTriggers() > $sensorWrapper->getTriggerActions()->count()) {
-
                 if ($data['templateType'] === TriggerAction::REQUEST) {
                     $name = $data['templates'];
                     $requestTemplate = $requestTemplateRepository->findOneBy(["id" => $name]);

@@ -120,6 +120,7 @@ class PairingController extends AbstractController {
 
         return $this->json([
             "success" =>  true,
+            "id" => $pairing->getId(),
             "selector" => ".pairing-end-date-{$pairing->getId()}",
             "date" => FormatHelper::datetime($pairing->getEnd()),
         ]);
@@ -146,6 +147,7 @@ class PairingController extends AbstractController {
 
             return $this->json([
                 "success" => true,
+                "id" => $pairing->getId(),
                 "selector" => ".pairing-end-date-{$pairing->getId()}",
                 "date" => FormatHelper::datetime($pairing->getEnd()),
             ]);
