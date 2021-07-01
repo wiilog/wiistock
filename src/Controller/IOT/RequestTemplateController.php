@@ -253,12 +253,13 @@ class RequestTemplateController extends AbstractController
     {
         if ($requestTemplate instanceof HandlingRequestTemplate) {
             return $this->render("securite/access_denied.html.twig");
-        }dump($requestTemplate, $requestTemplate instanceof DeliveryRequestTemplate);
+        }
 
         return $this->render("request_template/show.html.twig", [
             "request_template" => $requestTemplate,
             "new_line" => new RequestTemplateLine(),
             "details" => $service->createHeaderDetailsConfig($requestTemplate),
+            "type" => $requestTemplate instanceof DeliveryRequestTemplate ? "livraison" : "collecte",
             "quantityText" => $requestTemplate instanceof DeliveryRequestTemplate ? "Quantité à livrer" : "Quantité à collecter"
         ]);
     }

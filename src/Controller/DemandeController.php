@@ -19,7 +19,6 @@ use App\Entity\Article;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Helper\FormatHelper;
 use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
 use App\Service\GlobalParamService;
@@ -37,6 +36,10 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Throwable;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
+use App\Helper\FormatHelper;
 
 
 /**
@@ -373,6 +376,7 @@ class DemandeController extends AbstractController
                 "Emplacement" => ($ligneArticle->getReference()->getEmplacement() ? $ligneArticle->getReference()->getEmplacement()->getLabel() : ' '),
                 "Quantité à prélever" => $ligneArticle->getQuantite() ?? '',
                 "barcode" => $ligneArticle->getReference() ? $ligneArticle->getReference()->getBarCode() : '',
+                "error" => $ligneArticle->getReference()->getQuantiteDisponible() < $ligneArticle->getQuantite(),
                 "Actions" => $this->renderView(
                     'demande/datatableLigneArticleRow.html.twig',
                     [
@@ -394,6 +398,7 @@ class DemandeController extends AbstractController
                 "Emplacement" => ($article->getEmplacement() ? $article->getEmplacement()->getLabel() : ' '),
                 "Quantité à prélever" => ($article->getQuantiteAPrelever() ? $article->getQuantiteAPrelever() : ''),
                 "barcode" => $article->getBarCode() ?? '',
+                "error" => $article->getQuantite() < $article->getQuantiteAPrelever(),
                 "Actions" => $this->renderView(
                     'demande/datatableLigneArticleRow.html.twig',
                     [
@@ -690,7 +695,7 @@ class DemandeController extends AbstractController
         return [
             FormatHelper::deliveryRequester($demande),
             $demande->getStatut()->getNom(),
-            $demande->getDestination()->getLabel(),
+            FormatHelper::location($demande->getDestination()),
             strip_tags($demande->getCommentaire()),
             isset($requestCreationDate) ? $requestCreationDate->format('d/m/Y H:i:s') : '',
             isset($firstDatePrepa) ? $firstDatePrepa->format('d/m/Y H:i:s') : '',

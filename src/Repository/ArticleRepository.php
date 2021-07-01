@@ -3,9 +3,11 @@
 namespace App\Repository;
 
 use App\Entity\Article;
+use App\Entity\Collecte;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FreeField;
+use App\Entity\IOT\Sensor;
 use App\Entity\OrdreCollecte;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
@@ -93,6 +95,11 @@ class ArticleRepository extends EntityRepository {
         return $query->getResult();
     }
 
+    /**
+     * @param $demandes
+     * @param false $needAssoc
+     * @return Article[]
+     */
     public function findByDemandes($demandes, $needAssoc = false)
     {
         $queryBuilder = $this->createQueryBuilder('article')
@@ -1001,7 +1008,7 @@ class ArticleRepository extends EntityRepository {
         return $this->createQueryBuilder("article")
             ->select("article.id AS id, article.barCode AS text")
             ->leftJoin("article.pairings", "pairings")
-            ->where("pairings.article is null")
+            ->where("pairings.article is null OR pairings.active = 0")
             ->andWhere("article.barCode LIKE :term")
             ->setParameter("term", "%$term%")
             ->setMaxResults(100)
@@ -1014,8 +1021,10 @@ class ArticleRepository extends EntityRepository {
             return $this->createQueryBuilder('article')
                 ->select('pairing.id AS pairingId')
                 ->addSelect('sensorWrapper.name AS name')
-                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
+                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND (pairing.end IS NULL OR pairing.end > NOW()) THEN 1 ELSE 0 END) AS active')
                 ->addSelect('article.barCode AS entity')
+                ->addSelect("'" . Sensor::ARTICLE . "' AS entityType")
+                ->addSelect('article.id AS entityId')
                 ->join('article.pairings', 'pairing')
                 ->join('pairing.sensorWrapper', 'sensorWrapper')
                 ->where('article = :article');
@@ -1038,8 +1047,10 @@ class ArticleRepository extends EntityRepository {
             '/AS \w+_1/' => 'AS name',
             '/AS \w+_2/' => 'AS active',
             '/AS \w+_3/' => 'AS entity',
-            '/AS \w+_4/' => 'AS date',
-            '/AS \w+_5/' => 'AS type',
+            '/AS \w+_4/' => 'AS entityType',
+            '/AS \w+_5/' => 'AS entityId',
+            '/AS \w+_6/' => 'AS date',
+            '/AS \w+_7/' => 'AS type',
             '/\?/' => $article->getId()
         ];
 
@@ -1056,6 +1067,9 @@ class ArticleRepository extends EntityRepository {
         $collectOrderRepository = $entityManager->getRepository(OrdreCollecte::class);
         $collectArticleSQL = $collectOrderRepository->createArticleSensorPairingDataQueryUnion($article);
 
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $locationSQL = $locationRepository->createArticleSensorPairingDataQueryUnion($article);
+
         return "
             ($startSQL)
             UNION
@@ -1064,6 +1078,8 @@ class ArticleRepository extends EntityRepository {
             $preparationArticleSQL
             UNION
             $collectArticleSQL
+            UNION
+            $locationSQL
         ";
     }
 
@@ -1094,5 +1110,16 @@ class ArticleRepository extends EntityRepository {
         ");
         $res = $unionQuery->fetchAllAssociative();
         return $res[0]['count'] ?? 0;
+    }
+
+    public function findArticlesOnLocation(Emplacement $location): array {
+        return $this->createQueryBuilder('article')
+            ->join('article.statut', 'status')
+            ->where('status.code IN (:availableStatuses)')
+            ->andWhere('article.emplacement = :location')
+            ->setParameter('availableStatuses', [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE])
+            ->setParameter('location', $location)
+            ->getQuery()
+            ->getResult();
     }
 }

@@ -2,7 +2,9 @@
 
 namespace App\Repository;
 
+use App\Entity\Article;
 use App\Entity\Emplacement;
+use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\Pack;
 use Doctrine\ORM\EntityRepository;
@@ -73,7 +75,7 @@ class EmplacementRepository extends EntityRepository
     {
         $qb = $this->createQueryBuilder('location');
 
-        $qb->select('COUNT(location.label')
+        $qb->select('COUNT(location.label)')
             ->where('location.label = :label');
 
 		if ($emplacementId) {
@@ -210,7 +212,7 @@ class EmplacementRepository extends EntityRepository
             ->select("CONCAT('location:', location.id) AS id")
             ->addSelect('location.label AS text')
             ->leftJoin('location.pairings', 'pairings')
-            ->where('pairings.location is null')
+            ->where('pairings.location is null OR pairings.active = 0')
             ->andWhere("location.label LIKE :term")
             ->setParameter("term", "%$term%")
             ->getQuery()
@@ -233,8 +235,10 @@ class EmplacementRepository extends EntityRepository
             return $this->createQueryBuilder('location')
                 ->select('pairing.id AS pairingId')
                 ->addSelect('sensorWrapper.name AS name')
-                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
+                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND (pairing.end IS NULL OR pairing.end > NOW()) THEN 1 ELSE 0 END) AS active')
                 ->addSelect('location.label AS entity')
+                ->addSelect("'" . Sensor::LOCATION . "' AS entityType")
+                ->addSelect('location.id AS entityId')
                 ->join('location.pairings', 'pairing')
                 ->join('pairing.sensorWrapper', 'sensorWrapper')
                 ->where('location = :location');
@@ -257,8 +261,10 @@ class EmplacementRepository extends EntityRepository
             '/AS \w+_1/' => 'AS name',
             '/AS \w+_2/' => 'AS active',
             '/AS \w+_3/' => 'AS entity',
-            '/AS \w+_4/' => 'AS date',
-            '/AS \w+_5/' => 'AS type',
+            '/AS \w+_4/' => 'AS entityType',
+            '/AS \w+_5/' => 'AS entityId',
+            '/AS \w+_6/' => 'AS date',
+            '/AS \w+_7/' => 'AS type',
             '/\?/' => $location->getId(),
         ];
 
@@ -321,8 +327,10 @@ class EmplacementRepository extends EntityRepository
                 ->from(Pack::class, 'pack')
                 ->select('pairing.id AS pairingId')
                 ->addSelect('sensorWrapper.name AS name')
-                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
+                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND (pairing.end IS NULL OR pairing.end > NOW()) THEN 1 ELSE 0 END) AS active')
                 ->addSelect('location.label AS entity')
+                ->addSelect("'" . Sensor::LOCATION . "' AS entityType")
+                ->addSelect('location.id AS entityId')
                 ->join('pack.sensorMessages', 'sensorMessage')
                 ->join('sensorMessage.pairings', 'pairing')
                 ->join('pairing.location', 'location')
@@ -348,9 +356,71 @@ class EmplacementRepository extends EntityRepository
             '/AS \w+_1/' => 'AS name',
             '/AS \w+_2/' => 'AS active',
             '/AS \w+_3/' => 'AS entity',
-            '/AS \w+_4/' => 'AS date',
-            '/AS \w+_5/' => 'AS type',
+            '/AS \w+_4/' => 'AS entityType',
+            '/AS \w+_5/' => 'AS entityId',
+            '/AS \w+_6/' => 'AS date',
+            '/AS \w+_7/' => 'AS type',
             '/\?/' => $pack->getId(),
+        ];
+
+        $startSQL = $startQueryBuilder->getQuery()->getSQL();
+        $startSQL = StringHelper::multiplePregReplace($sqlAliases, $startSQL);
+
+        $endSQL = $endQueryBuilder->getQuery()->getSQL();
+        $endSQL = StringHelper::multiplePregReplace($sqlAliases, $endSQL);
+
+        return "
+            ($startSQL)
+            UNION
+            ($endSQL)
+        ";
+    }
+
+    /**
+     * @param LocationGroup $locationGroup
+     * @return string
+     */
+    public function createArticleSensorPairingDataQueryUnion(Article $article): string {
+        $entityManager = $this->getEntityManager();
+        $createQueryBuilder = function () use ($entityManager) {
+            return $entityManager->createQueryBuilder()
+                ->from(Article::class, 'article')
+                ->select('pairing.id AS pairingId')
+                ->addSelect('sensorWrapper.name AS name')
+                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND (pairing.end IS NULL OR pairing.end > NOW()) THEN 1 ELSE 0 END) AS active')
+                ->addSelect('location.label AS entity')
+                ->addSelect("'" . Sensor::LOCATION . "' AS entityType")
+                ->addSelect('location.id AS entityId')
+                ->join('article.sensorMessages', 'sensorMessage')
+                ->join('sensorMessage.pairings', 'pairing')
+                ->join('pairing.location', 'location')
+                ->join('pairing.sensorWrapper', 'sensorWrapper')
+                ->where('article = :article')
+                ->andWhere('pairing.article IS NULL');
+        };
+
+        $startQueryBuilder = $createQueryBuilder();
+        $startQueryBuilder
+            ->addSelect("pairing.start AS date")
+            ->addSelect("'start' AS type")
+            ->andWhere('pairing.start IS NOT NULL');
+
+        $endQueryBuilder = $createQueryBuilder();
+        $endQueryBuilder
+            ->addSelect("pairing.end AS date")
+            ->addSelect("'end' AS type")
+            ->andWhere('pairing.end IS NOT NULL');
+
+        $sqlAliases = [
+            '/AS \w+_0/' => 'AS pairingId',
+            '/AS \w+_1/' => 'AS name',
+            '/AS \w+_2/' => 'AS active',
+            '/AS \w+_3/' => 'AS entity',
+            '/AS \w+_4/' => 'AS entityType',
+            '/AS \w+_5/' => 'AS entityId',
+            '/AS \w+_6/' => 'AS date',
+            '/AS \w+_7/' => 'AS type',
+            '/\?/' => $article->getId(),
         ];
 
         $startSQL = $startQueryBuilder->getQuery()->getSQL();

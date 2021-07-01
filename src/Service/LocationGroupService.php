@@ -46,9 +46,9 @@ class LocationGroupService {
             }
         }
 
-        $sensorCode = $groupLastMessage
+        $sensorCode = $groupLastMessage && $groupLastMessage->getSensor()->getAvailableSensorWrapper()
             ? $groupLastMessage->getSensor()->getAvailableSensorWrapper()->getName()
-            : ($locationLastMessage
+            : ($locationLastMessage && $locationLastMessage->getSensor()->getAvailableSensorWrapper()
                 ? $locationLastMessage->getSensor()->getAvailableSensorWrapper()->getName()
                 : null);
 

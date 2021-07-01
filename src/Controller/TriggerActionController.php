@@ -72,11 +72,7 @@ class TriggerActionController extends AbstractController
 
             if($data['sensorWrapper']){
                 $name = $data['sensorWrapper'];
-                $sensorWrapper = $sensorWrapperRepository->findOneBy(["name" => $name, 'deleted' => false]);
-            } else if($data['sensorCode']){
-                $code = $data['sensor'];
-                $sensor = $sensorRepository->findOneBy(["code" => $code]);
-                $sensorWrapper = $sensorWrapperRepository->findOneBy(["sensor" => $sensor, 'deleted' => false]);
+                $sensorWrapper = $sensorWrapperRepository->findOneBy(["id" => $name, 'deleted' => false]);
             } else {
                 $sensorWrapper = null;
             }

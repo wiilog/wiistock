@@ -122,20 +122,20 @@ class CollecteController extends AbstractController
     {
         $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
 
-        $pairing = $collecte->getOrdresCollecte()
-            ? Stream::from($collecte->getOrdresCollecte())
-                ->map(fn(OrdreCollecte $collectOrder) => $collectOrder->getPairings()->toArray())
-                ->flatten()
-                ->sort(fn(Pairing $p1, Pairing $p2) => $p1->getEnd() <=> $p2->getEnd())
-                ->first()
-            : null;
+        $hasPairings = false;
+        foreach ($collecte->getOrdresCollecte() as $collectOrder) {
+            $hasPairings = !$collectOrder->getPairings()->isEmpty();
+            if ($hasPairings) {
+                break;
+            }
+        }
 
 		return $this->render('collecte/show.html.twig', [
             'refCollecte' => $collecteReferenceRepository->findByCollecte($collecte),
             'collecte' => $collecte,
             'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUT_BROUILLON),
             'detailsConfig' => $collecteService->createHeaderDetailsConfig($collecte),
-            'linkedPairingCollectOrder' => $pairing ? $pairing->getCollectOrder() : null,
+            'hasPairings' => $hasPairings,
 		]);
     }
 

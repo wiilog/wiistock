@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Emplacement;
+use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\Pack;
 use App\Helper\FormatHelper;
@@ -423,7 +424,7 @@ class PackRepository extends EntityRepository
         return $this->createQueryBuilder("pack")
             ->select("pack.id AS id, pack.code AS text")
             ->leftJoin("pack.pairings", "pairings")
-            ->where("pairings.pack IS NULL")
+            ->where("pairings.pack IS NULL OR pairings.active = 0")
             ->andWhere("pack.code LIKE :term")
             ->setParameter("term", "%$term%")
             ->setMaxResults(100)
@@ -436,8 +437,10 @@ class PackRepository extends EntityRepository
             return $this->createQueryBuilder('pack')
                 ->select('pairing.id AS pairingId')
                 ->addSelect('sensorWrapper.name AS name')
-                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
+                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND (pairing.end IS NULL OR pairing.end > NOW()) THEN 1 ELSE 0 END) AS active')
                 ->addSelect('pack.code AS entity')
+                ->addSelect("'" . Sensor::PACK . "' AS entityType")
+                ->addSelect('pack.id AS entityId')
                 ->join('pack.pairings', 'pairing')
                 ->join('pairing.sensorWrapper', 'sensorWrapper')
                 ->where('pack = :pack');
@@ -460,8 +463,10 @@ class PackRepository extends EntityRepository
             '/AS \w+_1/' => 'AS name',
             '/AS \w+_2/' => 'AS active',
             '/AS \w+_3/' => 'AS entity',
-            '/AS \w+_4/' => 'AS date',
-            '/AS \w+_5/' => 'AS type',
+            '/AS \w+_4/' => 'AS entityType',
+            '/AS \w+_5/' => 'AS entityId',
+            '/AS \w+_6/' => 'AS date',
+            '/AS \w+_7/' => 'AS type',
             '/\?/' => $pack->getId(),
         ];
 

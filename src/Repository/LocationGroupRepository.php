@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Emplacement;
+use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\Pack;
 use App\Helper\QueryCounter;
@@ -68,7 +69,7 @@ class LocationGroupRepository extends EntityRepository
             ->select("CONCAT('locationGroup:', location_group.id) AS id")
             ->addSelect('location_group.name AS text')
             ->leftJoin('location_group.pairings', 'pairings')
-            ->where('pairings.locationGroup IS NULL')
+            ->where('pairings.locationGroup IS NULL OR pairings.active = 0')
             ->andWhere("location_group.name LIKE :term")
             ->setParameter("term", "%$term%")
             ->getQuery()
@@ -84,7 +85,7 @@ class LocationGroupRepository extends EntityRepository
             return $this->createQueryBuilder('locationGroup')
                 ->select('pairing.id AS pairingId')
                 ->addSelect('sensorWrapper.name AS name')
-                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
+                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND (pairing.end IS NULL OR pairing.end > NOW()) THEN 1 ELSE 0 END) AS active')
                 ->addSelect('locationGroup.name AS entity')
                 ->join('locationGroup.pairings', 'pairing')
                 ->join('pairing.sensorWrapper', 'sensorWrapper')
@@ -137,8 +138,10 @@ class LocationGroupRepository extends EntityRepository
                 ->from(Emplacement::class, 'location')
                 ->select('pairing.id AS pairingId')
                 ->addSelect('sensorWrapper.name AS name')
-                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
+                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND (pairing.end IS NULL OR pairing.end > NOW()) THEN 1 ELSE 0 END) AS active')
                 ->addSelect('locationGroup.name AS entity')
+                ->addSelect("'" . Sensor::LOCATION_GROUP . "' AS entityType")
+                ->addSelect('locationGroup.id AS entityId')
                 ->join('location.sensorMessages', 'sensorMessage')
                 ->join('sensorMessage.pairings', 'pairing')
                 ->join('pairing.locationGroup', 'locationGroup')
@@ -164,8 +167,10 @@ class LocationGroupRepository extends EntityRepository
             '/AS \w+_1/' => 'AS name',
             '/AS \w+_2/' => 'AS active',
             '/AS \w+_3/' => 'AS entity',
-            '/AS \w+_4/' => 'AS date',
-            '/AS \w+_5/' => 'AS type',
+            '/AS \w+_4/' => 'AS entityId',
+            '/AS \w+_5/' => 'AS entityType',
+            '/AS \w+_6/' => 'AS date',
+            '/AS \w+_7/' => 'AS type',
             '/\?/' => $location->getId(),
         ];
 
@@ -193,8 +198,10 @@ class LocationGroupRepository extends EntityRepository
                 ->from(Pack::class, 'pack')
                 ->select('pairing.id AS pairingId')
                 ->addSelect('sensorWrapper.name AS name')
-                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
+                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND (pairing.end IS NULL OR pairing.end > NOW()) THEN 1 ELSE 0 END) AS active')
                 ->addSelect('locationGroup.name AS entity')
+                ->addSelect("'" . Sensor::LOCATION_GROUP . "' AS entityType")
+                ->addSelect("locationGroup.id AS entityId")
                 ->join('pack.sensorMessages', 'sensorMessage')
                 ->join('sensorMessage.pairings', 'pairing')
                 ->join('pairing.locationGroup', 'locationGroup')
@@ -220,8 +227,10 @@ class LocationGroupRepository extends EntityRepository
             '/AS \w+_1/' => 'AS name',
             '/AS \w+_2/' => 'AS active',
             '/AS \w+_3/' => 'AS entity',
-            '/AS \w+_4/' => 'AS date',
-            '/AS \w+_5/' => 'AS type',
+            '/AS \w+_4/' => 'AS entityType',
+            '/AS \w+_5/' => 'AS entityId',
+            '/AS \w+_6/' => 'AS date',
+            '/AS \w+_7/' => 'AS type',
             '/\?/' => $pack->getId(),
         ];
 

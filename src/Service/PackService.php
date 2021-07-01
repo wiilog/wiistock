@@ -86,7 +86,7 @@ class PackService
 
         $lastMessage = $pack->getLastMessage();
         $hasPairing = !$pack->getPairings()->isEmpty() || $lastMessage;
-        $sensorCode = ($lastMessage && $lastMessage->getSensor()) ? $lastMessage->getSensor()->getAvailableSensorWrapper()->getName() : null;
+        $sensorCode = ($lastMessage && $lastMessage->getSensor() && $lastMessage->getSensor()->getAvailableSensorWrapper()) ? $lastMessage->getSensor()->getAvailableSensorWrapper()->getName() : null;
 
         /** @var TrackingMovement $lastPackMovement */
         $lastPackMovement = $pack->getLastTracking();

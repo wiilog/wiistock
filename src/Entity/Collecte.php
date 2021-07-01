@@ -3,6 +3,9 @@
 namespace App\Entity;
 
 use App\Entity\Interfaces\Serializable;
+use App\Entity\IOT\PairedEntity;
+use App\Entity\IOT\Pairing;
+use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\Traits\CommentTrait;
 use App\Entity\Traits\RequestTrait;
@@ -11,11 +14,12 @@ use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use WiiCommon\Helper\Stream;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\CollecteRepository")
  */
-class Collecte extends FreeFieldEntity implements Serializable {
+class Collecte extends FreeFieldEntity implements Serializable, PairedEntity {
 
     const CATEGORIE = 'collecte';
 
@@ -26,6 +30,7 @@ class Collecte extends FreeFieldEntity implements Serializable {
 
     use CommentTrait;
     use RequestTrait;
+    use SensorMessageTrait;
 
     /**
      * @ORM\Id()
@@ -349,6 +354,24 @@ class Collecte extends FreeFieldEntity implements Serializable {
             || ($demandeStatus->getNom() === Collecte::STATUT_A_TRAITER)
             || ($demandeStatus->getNom() === Collecte::STATUT_INCOMPLETE)
         );
+    }
+
+    public function getPairings(): Collection {
+        $pairingsArray = Stream::from($this->getOrdresCollecte()->toArray())
+            ->flatMap(fn(OrdreCollecte $collectOrder) => $collectOrder->getPairings()->toArray())
+            ->toArray();
+        return new ArrayCollection($pairingsArray);
+    }
+
+    public function getActivePairing(): ?Pairing {
+        $activePairing = null;
+        foreach ($this->getOrdresCollecte() as $collectOrder) {
+            $activePairing = $collectOrder->getActivePairing();
+            if (isset($activePairing)) {
+                break;
+            }
+        }
+        return $activePairing;
     }
 
     public function serialize(): array {

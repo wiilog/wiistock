@@ -3,7 +3,6 @@ function onDeviceChanged($select, needsSubmit = false) {
     const $sensorCode = $modal.find('select[name=sensor]');
     const $sensor = $modal.find('select[name=sensorWrapper]');
     const [val] = $select.select2("data");
-
     if ($sensorCode.val() !== $sensor.val()) {
         if ($select.attr('name') === "sensor") {
             if (val) {

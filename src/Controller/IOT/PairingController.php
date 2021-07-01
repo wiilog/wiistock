@@ -29,6 +29,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
 use WiiCommon\Helper\Stream;
 
@@ -98,11 +99,11 @@ class PairingController extends AbstractController {
      * @Route("/voir/{pairing}", name="pairing_show", options={"expose"=true})
      * @HasPermission({Menu::IOT, Action::DISPLAY_PAIRING})
      */
-    public function show(DataMonitoringService $service, Pairing $pairing): Response {
+    public function show(DataMonitoringService $service, TranslatorInterface $trans, Pairing $pairing): Response {
         return $service->render([
             "breadcrumb" => [
-                'title' => "IOT | Associations | Détails",
-                'path' => 'pairing_index'
+                'title' => $trans->trans("IoT.IoT") . " | Associations | Détails",
+                'path' => "pairing_index",
             ],
             "type" => DataMonitoringService::PAIRING,
             "entity" => $pairing
@@ -163,13 +164,13 @@ class PairingController extends AbstractController {
                         Request $request): Response
     {
         if($data = json_decode($request->getContent(), true)) {
-            if(!$data['sensor'] && !$data['sensorCode']) {
+            if(!$data['sensorWrapper'] && !$data['sensor']) {
                 return $this->json([
                     'success' => false,
                     'msg' => 'Un capteur/code capteur est obligatoire pour valider l\'association'
                 ]);
             }
-            $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->findByNameOrCode($data['sensor'], $data['sensorCode']);
+            $sensorWrapper = $entityManager->getRepository(SensorWrapper::class)->findOneBy(["id" => $data['sensorWrapper'], 'deleted' => false]);
 
             if($sensorWrapper->getPairings()->filter(fn(Pairing $p) => $p->isActive())->count()) {
                 return $this->json([
@@ -231,7 +232,8 @@ class PairingController extends AbstractController {
             $sensor = $message->getSensor();
 
             $dateStr = $date->format('d/m/Y H:i:s');
-            $sensorCode = $sensor->getCode();
+            $wrapper = $sensor->getAvailableSensorWrapper();
+            $sensorCode = ($wrapper ? $wrapper->getName() . ' : ' : '') . $sensor->getCode();
             if (!isset($data[$sensorCode])) {
                 $data[$sensorCode] = [];
             }
@@ -259,14 +261,15 @@ class PairingController extends AbstractController {
         foreach ($associatedMessages as $message) {
             $date = $message->getDate();
             $sensor = $message->getSensor();
+            $wrapper = $sensor->getAvailableSensorWrapper();
+            $sensorCode = ($wrapper ? $wrapper->getName() . ' : ' : '') . $sensor->getCode();
 
-            if(!isset($data['colors'][$sensor->getCode()])) {
+            if(!isset($data['colors'][$sensorCode])) {
                 srand($sensor->getId());
-                $data['colors'][$sensor->getCode()] = sprintf('#%06X', mt_rand(0, 0xFFFFFF));
+                $data['colors'][$sensorCode] = sprintf('#%06X', mt_rand(0, 0xFFFFFF));
             }
 
             $dateStr = $date->format('d/m/Y H:i:s');
-            $sensorCode = $sensor->getCode();
             if (!isset($data[$dateStr])) {
                 $data[$dateStr] = [];
             }

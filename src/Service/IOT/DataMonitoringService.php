@@ -56,14 +56,14 @@ class DataMonitoringService
             $config["center_pane"][] = [
                 "type" => "chart",
                 "fetch_url" => $this->router->generate("chart_data_history", [
-                    "type" => $config['entity_type'],
+                    "type" => IOTService::getEntityCodeFromEntity($entity),
                     "id" => $entity->getId()
                 ], UrlGeneratorInterface::ABSOLUTE_URL)
             ];
             $config["center_pane"][] = [
                 "type" => "map",
                 "fetch_url" => $this->router->generate("map_data_history", [
-                    "type" => $config['entity_type'],
+                    "type" => IOTService::getEntityCodeFromEntity($entity),
                     "id" => $entity->getId()
                 ], UrlGeneratorInterface::ABSOLUTE_URL)
             ];
@@ -203,7 +203,22 @@ class DataMonitoringService
     {
         $config["left_pane"][] = [
             "type" => "entity",
-            "icon" => "iot-collect",
+            "icon" => "iot-collect-request",
+            "title" => $collect->getNumero(),
+            "header" => $header,
+            "hideActions" => $header,
+            "entity_info" => [
+                "id" => $collect->getId(),
+                "type" => IOTService::getEntityCodeFromEntity($collect),
+            ],
+        ];
+    }
+
+    private function fillCollectRequestConfig(array &$config, Collecte $collect, bool $header)
+    {
+        $config["left_pane"][] = [
+            "type" => "entity",
+            "icon" => "iot-collect-request",
             "title" => $collect->getNumero(),
             "header" => $header,
             "hideActions" => $header,
@@ -269,6 +284,8 @@ class DataMonitoringService
             $this->fillDeliveryRequestConfig($config, $entity, $isHistoric);
         } else if ($entity instanceof OrdreCollecte) {
             $this->fillCollectOrderConfig($config, $entity, $isHistoric);
+        } else if ($entity instanceof Collecte) {
+            $this->fillCollectRequestConfig($config, $entity, $isHistoric);
         } else if ($entity instanceof Article) {
             $this->fillArticleConfig($config, $entity, $isHistoric);
         } else {
@@ -312,6 +329,8 @@ class DataMonitoringService
             'isGrouped' => (
                 ($entity instanceof Demande)
                 || ($entity instanceof Emplacement)
+                || ($entity instanceof Article)
+                || ($entity instanceof Collecte)
                 || ($entity instanceof Pack)
             )
         ];
@@ -322,12 +341,16 @@ class DataMonitoringService
                               string $type,
                               int $id): ?PairedEntity
     {
+
         $className = $this->IOTService->getEntityClassFromCode($type);
         $entity = $className
             ? $entityManager->find($className, $id)
             : null;
         if ($entity instanceof Preparation) {
             $entity = $entity->getDemande();
+        }
+        else if ($entity instanceof OrdreCollecte) {
+            $entity = $entity->getDemandeCollecte();
         }
         return $entity;
     }
@@ -345,7 +368,7 @@ class DataMonitoringService
 
         $subtitlePrefix = [
             'start' => 'Associé le : ',
-            'end' => $date > new DateTime() ? "Fin le : " : "Dissocié le : ",
+            'end' => ($date > new DateTime()) ? "Fin le : " : "Dissocié le : ",
         ];
 
         if ($date) {
@@ -366,6 +389,17 @@ class DataMonitoringService
             } else if ($entity instanceof Emplacement
                 || $entity instanceof Pack) {
                 $row['group'] = $dataRow['entity'];
+            } else if ($entity instanceof Collecte) {
+                $row['group'] = $dataRow['orderNumber'];
+            }
+
+            if (isset($dataRow['entityType'])
+                && isset($dataRow['entityId'])
+                && $dataRow['entityType'] !== IOTService::getEntityCodeFromEntity($entity)) {
+                $row['groupHref'] = $this->router->generate('show_data_history', [
+                    'id' => $dataRow['entityId'],
+                    'type' => $dataRow['entityType']
+                ]);
             }
 
             return $row;

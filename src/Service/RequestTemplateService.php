@@ -130,6 +130,15 @@ class RequestTemplateService {
             throw new RuntimeException("Unsupported type");
         }
 
+        $header[] = [
+            "label" => "Commentaire",
+            "value" => $requestTemplate->getComment(),
+            "isRaw" => true,
+            "colClass" => "col-sm-6 col-12",
+            "isScrollable" => true,
+            "isNeededNotEmpty" => true
+        ];
+
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->manager,
             $requestTemplate,

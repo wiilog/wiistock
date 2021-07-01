@@ -1,4 +1,5 @@
 {% if hasPairing is defined and hasPairing %}
+    {% set sensorCode = sensorCode is defined and sensorCode ? sensorCode : 'Capteur supprimé' %}
     {% set showTitle = sensorCode is defined and sensorCode %}
     {% set sensorCode = '<strong>' ~ sensorCode ~ '</strong>' %}
     {% set title = showTitle ? ('Dernier capteur ayant remonté un message : ' ~ sensorCode) %}

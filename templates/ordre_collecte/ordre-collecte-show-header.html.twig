@@ -38,15 +38,15 @@
                         <i class='fas fa-print print-button mr-2'></i> Imprimer les étiquettes
                     </button>
                 {% endif %}
-                {% if (collecte.pairings|filter(p=>p.active)|length>=1)
+                {% if (collecte.pairings|length>=1)
                     and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')) %}
                     <a class="dropdown-item"
-                       href="{{ path('show_data_history', {id: collecte.id, type: constant('App\\Entity\\IOT\\Sensor::COLLECT')}) }}">
+                       href="{{ path('show_data_history', {id: collecte.id, type: constant('App\\Entity\\IOT\\Sensor::COLLECT_ORDER')}) }}">
                         <span class="wii-icon wii-icon-pairing"></span>
                         Historique des données
                     </a>
                 {% endif %}
-                {% if hasRightDeleteOrdre %}
+                {% if hasRightDeleteOrdre and collecte.activePairing %}
                     <a href="" onclick="deleteRow($(this), $('#modalDeleteOrdreCollecte'), $('#submitDeleteOrdreCollecte'))"
                        data-id='{{ collecte.id }}' data-target='#modalDeleteOrdreCollecte' data-toggle='modal'
                        class="dropdown-item">

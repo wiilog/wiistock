@@ -20,10 +20,10 @@ class PairingService
     /** @Required */
     public Twig_Environment $twigEnvironment;
 
-    public function getDataForDatatable(Sensor $sensor, $params = null)
+    public function getDataForDatatable(SensorWrapper $wrapper, $params = null)
     {
         $pairingRepository = $this->entityManager->getRepository(Pairing::class);
-        $queryResult = $pairingRepository->findByParams($params, $sensor);
+        $queryResult = $pairingRepository->findByParams($params, $wrapper);
 
         $pairings = $queryResult['data'];
 
@@ -63,13 +63,14 @@ class PairingService
             $date = $message->getDate();
             $sensor = $message->getSensor();
 
-            if(!isset($data['colors'][$sensor->getCode()])) {
+            $wrapper = $sensor->getAvailableSensorWrapper();
+            $sensorCode = ($wrapper ? $wrapper->getName() . ' : ' : '') . $sensor->getCode();
+            if(!isset($data['colors'][$sensorCode])) {
                 srand($sensor->getId());
-                $data['colors'][$sensor->getCode()] = sprintf('#%06X', mt_rand(0, 0xFFFFFF));
+                $data['colors'][$sensorCode] = sprintf('#%06X', mt_rand(0, 0xFFFFFF));
             }
 
             $dateStr = $date->format('d/m/Y H:i:s');
-            $sensorCode = $sensor->getCode();
             if (!isset($data[$dateStr])) {
                 $data[$dateStr] = [];
             }

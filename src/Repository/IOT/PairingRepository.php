@@ -3,6 +3,7 @@
 namespace App\Repository\IOT;
 
 use App\Entity\IOT\Pairing;
+use App\Entity\IOT\SensorWrapper;
 use App\Helper\QueryCounter;
 use App\Entity\IOT\Sensor;
 use WiiCommon\Utils\DateTime;
@@ -19,15 +20,14 @@ use WiiCommon\Helper\Stream;
  */
 class PairingRepository extends EntityRepository
 {
-    public function findByParams($params, Sensor $sensor)
+    public function findByParams($params, SensorWrapper $wrapper)
     {
 
         $qb = $this->createQueryBuilder("sensors_pairing")
             ->leftJoin('sensors_pairing.sensorWrapper', 'sensor_wrapper')
-            ->leftJoin('sensor_wrapper.sensor', 'sensor')
-            ->where('sensor = :sensor')
-            ->andWhere("sensors_pairing.end IS NULL OR sensors_pairing.end > :now")
-            ->setParameter('sensor', $sensor)
+            ->where('sensor_wrapper = :sensor_wrapper')
+            ->andWhere("(sensors_pairing.end IS NULL OR sensors_pairing.end > :now)")
+            ->setParameter('sensor_wrapper', $wrapper)
             ->setParameter("now", new DateTime("now"));
 
         $total = QueryCounter::count($qb, "sensors_pairing");
@@ -229,7 +229,7 @@ class PairingRepository extends EntityRepository
                     $expr->add('element_deliveryRequest IS NOT NULL');
                 }
 
-                if(Stream::from($elements)->indexOf(Sensor::COLLECT) !== false) {
+                if(Stream::from($elements)->indexOf(Sensor::COLLECT_REQUEST) !== false) {
                     $queryBuilder
                         ->leftJoin('pairing.collectOrder', 'element_collectOrder');
 

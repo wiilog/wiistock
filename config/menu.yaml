@@ -183,6 +183,7 @@ parameters:
         -   label: 'IoT.IoT'
             isTranslation: true
             icon: 'iot'
+            title: 'IoT'
             sub:
                 -   label: 'Capteurs'
                     path: 'sensor_wrapper_index'

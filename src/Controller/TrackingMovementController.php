@@ -50,6 +50,11 @@ class TrackingMovementController extends AbstractController
      */
     private $attachmentService;
 
+    /**
+     * @Required
+     */
+    public UserService $userService;
+
     public function __construct(AttachmentService $attachmentService)
     {
         $this->attachmentService = $attachmentService;

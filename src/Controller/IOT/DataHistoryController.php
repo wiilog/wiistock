@@ -19,6 +19,7 @@ use App\Entity\Preparation;
 use App\Service\IOT\DataMonitoringService;
 use App\Service\IOT\IOTService;
 use App\Service\IOT\PairingService;
+use App\Service\TranslationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -28,6 +29,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Utils\DateTime;
 
@@ -42,7 +44,8 @@ class DataHistoryController extends AbstractController {
      */
     public function show(Request $request,
                          EntityManagerInterface $entityManager,
-                         DataMonitoringService $dataMonitoringService): Response {
+                         DataMonitoringService $dataMonitoringService,
+    TranslatorInterface $trans): Response {
         $query = $request->query;
 
         $type = $query->get('type');
@@ -56,7 +59,7 @@ class DataHistoryController extends AbstractController {
         $start->setTime(0, 0, 0);
         $start->modify('first day of this month');
         return $dataMonitoringService->render([
-            "breadcrumb" => $this->getBreadcrumb($entity),
+            "breadcrumb" => $this->getBreadcrumb($trans, $entity),
             "entity" => $entity,
             "type" => DataMonitoringService::TIMELINE,
             "entity_type" => $type,
@@ -77,7 +80,6 @@ class DataHistoryController extends AbstractController {
         $query = $request->query;
         $type = $query->get('type');
         $id = $query->get('id');
-
         $entity = $dataMonitoringService->getEntity($entityManager, $type, $id);
         $associatedMessages = $entity->getSensorMessagesBetween(
             $filters["start"],
@@ -104,7 +106,6 @@ class DataHistoryController extends AbstractController {
         $id = $query->get('id');
 
         $entity = $dataMonitoringService->getEntity($entityManager, $type, $id);
-
         $associatedMessages = $entity->getSensorMessagesBetween(
             $filters["start"],
             $filters["end"],
@@ -117,7 +118,8 @@ class DataHistoryController extends AbstractController {
             $sensor = $message->getSensor();
 
             $dateStr = $date->format('d/m/Y H:i:s');
-            $sensorCode = $sensor->getCode();
+            $wrapper = $sensor->getAvailableSensorWrapper();
+            $sensorCode = ($wrapper ? $wrapper->getName() . ' : ' : '') . $sensor->getCode();
             if (!isset($data[$sensorCode])) {
                 $data[$sensorCode] = [];
             }
@@ -129,10 +131,10 @@ class DataHistoryController extends AbstractController {
         return new JsonResponse($data);
     }
 
-    public function getBreadcrumb($entity) {
+    public function getBreadcrumb(TranslatorInterface $trans, $entity) {
 
         $suffix = ' | Historique des données';
-        $title = 'IOT | Associations';
+        $title = $trans->trans("IoT.IoT") . ' | Associations';
         $path = null;
         if($entity instanceof Emplacement) {
             $title = 'Référentiel | Emplacements';
