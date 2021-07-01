@@ -19,8 +19,7 @@ use App\Service\CSVExportService;
 use App\Service\LivraisonService;
 use App\Service\LivraisonsManagerService;
 use App\Service\PreparationsManagerService;
-use DateTime;
-use DateTimeZone;
+use WiiCommon\Utils\DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -71,7 +70,7 @@ class LivraisonController extends AbstractController
     {
         if ($livraison->getStatut()->getnom() === Livraison::STATUT_A_TRAITER) {
             try {
-                $dateEnd = new DateTime('now', new DateTimeZone('Europe/Paris'));
+                $dateEnd = new DateTime('now');
                 /** @var Utilisateur $user */
                 $user = $this->getUser();
                 $livraisonsManager->finishLivraison(

@@ -2,8 +2,7 @@
 
 namespace App\Service;
 
-use DateTime;
-use DateTimeZone;
+use WiiCommon\Utils\DateTime;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
@@ -40,7 +39,7 @@ class RedirectService {
 
     public function generateUrl(string $route, array $params, $extra = null) {
         $this->session->set("__extra_params_$route", [
-            "time" => new DateTime("now", new DateTimeZone("Europe/Paris")),
+            "time" => new DateTime("now"),
             "content" => $extra,
         ]);
 

@@ -18,9 +18,8 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Helper\FormatHelper;
-use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
-use DateTime;
+use WiiCommon\Utils\DateTime;
 use Exception;
 use Symfony\Component\Routing\Router;
 use Symfony\Component\Routing\RouterInterface;
@@ -91,11 +90,12 @@ class OrdreCollecteService
 	{
 
         $pairings = $ordreCollecte->getPairings();
-        $pairingEnd = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $pairingEnd = new DateTime('now');
         foreach ($pairings as $pairing) {
             if ($pairing->isActive()) {
-                $pairing->setActive(false);
-                $pairing->setEnd($pairingEnd);
+                $pairing
+                    ->setActive(false)
+                    ->setEnd($pairingEnd);
             }
         }
 
@@ -407,7 +407,7 @@ class OrdreCollecteService
                                                 EntityManagerInterface $entityManager) {
         $demandeCollecte = $ordreCollecte->getDemandeCollecte();
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $dateNow = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $dateNow = new DateTime('now');
 
         // cas de collecte partielle
         if (!empty($articlesToRemove)) {
@@ -497,7 +497,7 @@ class OrdreCollecteService
 
     public function createPairing(SensorWrapper $sensorWrapper, OrdreCollecte $orderCollect){
         $pairing = new Pairing();
-        $start =  new DateTime("now", new DateTimeZone("Europe/Paris"));
+        $start =  new DateTime("now");
         $pairing
             ->setStart($start)
             ->setSensorWrapper($sensorWrapper)

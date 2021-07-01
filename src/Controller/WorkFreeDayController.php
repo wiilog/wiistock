@@ -4,7 +4,7 @@
 namespace App\Controller;
 
 use App\Entity\WorkFreeDay;
-use DateTime;
+use WiiCommon\Utils\DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

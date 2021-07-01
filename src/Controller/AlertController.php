@@ -12,7 +12,7 @@ use App\Service\AlertService;
 use App\Service\CSVExportService;
 use App\Service\RefArticleDataService;
 use App\Service\SpecificService;
-use DateTime;
+use WiiCommon\Utils\DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;

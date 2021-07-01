@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use WiiCommon\Utils\DateTime as WiiDateTime;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -207,7 +208,7 @@ class Import
     private $mouvements;
 
     public function __construct() {
-        $this->createdAt = new DateTime();
+        $this->createdAt = new WiiDateTime();
         $this->mouvements = new ArrayCollection();
         $this->forced = false;
         $this->flash = false;

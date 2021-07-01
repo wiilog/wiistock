@@ -20,8 +20,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use App\Service\UserService;
 use Twig\Environment as Twig_Environment;
-use DateTime;
-use DateTimeZone;
+use WiiCommon\Utils\DateTime;
 
 class SecuriteController extends AbstractController {
 
@@ -88,7 +87,7 @@ class SecuriteController extends AbstractController {
                           string $info = '') {
         $loggedUser = $this->getUser();
         if($loggedUser && $loggedUser instanceof Utilisateur) {
-            $loggedUser->setLastLogin(new DateTime('now', new DateTimeZone('Europe/Paris')));
+            $loggedUser->setLastLogin(new DateTime('now'));
             $entityManager->flush();
             return $this->redirectToRoute('accueil');
         }
@@ -186,7 +185,7 @@ class SecuriteController extends AbstractController {
                 sprintf('Le compte est inactif')
             );
         }
-        $user->setLastLogin(new \Datetime('', new \DateTimeZone('Europe/Paris')));
+        $user->setLastLogin(new Datetime(''));
 
         // remplit champ columnVisiblesForArticle si vide
         if(empty($user->getColumnsVisibleForArticle())) {

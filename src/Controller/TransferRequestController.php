@@ -16,11 +16,10 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use WiiCommon\Helper\Stream;
 use App\Service\TransferRequestService;
-use DateTime;
+use WiiCommon\Utils\DateTime;
 use App\Service\CSVExportService;
 use App\Service\UserService;
 
-use DateTimeZone;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -398,7 +397,7 @@ class TransferRequestController extends AbstractController {
         $dateTimeMax = DateTime::createFromFormat("Y-m-d H:i:s", $dateMax . " 23:59:59");
 
         if(isset($dateTimeMin, $dateTimeMax)) {
-            $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
+            $now = new DateTime("now");
 
             $transferRequestRepository = $entityManager->getRepository(TransferRequest::class);
             $articleRepository = $entityManager->getRepository(Article::class);

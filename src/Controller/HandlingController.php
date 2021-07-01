@@ -29,8 +29,7 @@ use App\Service\UniqueNumberService;
 use App\Service\UserService;
 use App\Service\HandlingService;
 
-use DateTime;
-use DateTimeZone;
+use WiiCommon\Utils\DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -145,7 +144,7 @@ class HandlingController extends AbstractController
         $post = $request->request;
 
         $handling = new Handling();
-        $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now');
 
         $status = $statutRepository->find($post->get('status'));
         $type = $typeRepository->find($post->get('type'));
@@ -299,7 +298,7 @@ class HandlingController extends AbstractController
 
         $handling = $handlingRepository->find($post->get('id'));
 
-        $date = (new DateTime('now', new DateTimeZone('Europe/Paris')));
+        $date = (new DateTime('now'));
         $desiredDateStr = $post->get('desired-date');
         $desiredDate = $desiredDateStr ? FormatHelper::parseDatetime($desiredDateStr) : null;
 

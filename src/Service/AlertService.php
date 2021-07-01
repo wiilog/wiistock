@@ -9,7 +9,7 @@ use App\Entity\FreeField;
 use App\Entity\ParametrageGlobal;
 use App\Entity\ReferenceArticle;
 use WiiCommon\Helper\Stream;
-use DateTime;
+use WiiCommon\Utils\DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
@@ -34,7 +34,7 @@ class AlertService {
      * @throws Exception
      */
     public function generateAlerts(EntityManagerInterface $manager) {
-        $now = new DateTime("now", new \DateTimeZone("Europe/Paris"));
+        $now = new DateTime("now");
         $parametrage = $manager->getRepository(ParametrageGlobal::class);
 
         $expiry = $parametrage->getOneParamByLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY);

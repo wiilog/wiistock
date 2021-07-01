@@ -17,12 +17,11 @@ use App\Entity\Pack;
 
 use App\Service\IOT\IOTService;
 use App\Service\IOT\PairingService;
-use DateTimeZone;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Helper\FormatHelper;
 use App\Service\IOT\DataMonitoringService;
-use DateTime;
+use WiiCommon\Utils\DateTime;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -116,7 +115,7 @@ class PairingController extends AbstractController {
      * @HasPermission({Menu::IOT, Action::DISPLAY_PAIRING})
      */
     public function unpair(EntityManagerInterface $manager, Pairing $pairing): Response {
-        $pairing->setEnd(new DateTime('now', new DateTimeZone('Europe/Paris')));
+        $pairing->setEnd(new DateTime('now'));
         $pairing->setActive(false);
         $manager->flush();
 
@@ -135,8 +134,8 @@ class PairingController extends AbstractController {
         if($data = json_decode($request->getContent(), true)) {
             $pairing = $manager->find(Pairing::class, $data["id"]);
 
-            $end = new DateTime($data["end"], new DateTimeZone("Europe/Paris"));
-            if($end < new DateTime("now", new DateTimeZone("Europe/Paris"))) {
+            $end = new DateTime($data["end"]);
+            if($end < new DateTime("now")) {
                 return $this->json([
                     "success" => false,
                     "msg" => "La date de fin doit être supérieure à la date actuelle",

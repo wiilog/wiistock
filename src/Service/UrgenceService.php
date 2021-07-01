@@ -11,8 +11,7 @@ use App\Entity\ParametrageGlobal;
 use App\Entity\Transporteur;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
-use DateTime;
-use DateTimeZone;
+use WiiCommon\Utils\DateTime;
 use Symfony\Component\Security\Core\Security;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
@@ -77,8 +76,8 @@ class UrgenceService
     }
 
     public function updateUrgence(Urgence $urgence, $data): Urgence {
-        $dateStart = DateTime::createFromFormat('d/m/Y H:i', $data['dateStart'], new DateTimeZone("Europe/Paris"));
-        $dateEnd = DateTime::createFromFormat('d/m/Y H:i', $data['dateEnd'], new DateTimeZone("Europe/Paris"));
+        $dateStart = DateTime::createFromFormat('d/m/Y H:i', $data['dateStart']);
+        $dateEnd = DateTime::createFromFormat('d/m/Y H:i', $data['dateEnd']);
 
         $utilisateurRepository = $this->entityManager->getRepository(Utilisateur::class);
         $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);

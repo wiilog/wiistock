@@ -20,7 +20,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\Article;
 use App\Helper\FormatHelper;
-use DateTime;
+use WiiCommon\Utils\DateTime;
 use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
 use App\Service\DemandeCollecteService;
@@ -217,7 +217,7 @@ class CollecteController extends AbstractController
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
-            $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+            $date = new DateTime('now');
 
             $status = $statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_BROUILLON);
             $numero = 'C-' . $date->format('YmdHis');
@@ -598,7 +598,7 @@ class CollecteController extends AbstractController
                 ],
                 $freeFieldsConfig['freeFieldsHeader']
             );
-            $today = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+            $today = new DateTime('now');
             $fileName = "export_demande_collecte" . $today->format('d_m_Y') . ".csv";
             return $CSVExportService->createBinaryResponseFromData(
                 $fileName,

@@ -15,8 +15,7 @@ use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use WiiCommon\Helper\Stream;
-use DateTime;
-use DateTimeZone;
+use WiiCommon\Utils\DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
@@ -250,7 +249,7 @@ class TransferOrderService {
     public function createTransferOrder(EntityManagerInterface $entityManager,
                                         ?Statut $status,
                                         ?TransferRequest $request): TransferOrder {
-        $now =  new DateTime("now", new DateTimeZone("Europe/Paris"));
+        $now =  new DateTime("now");
 
         $transferOrderNumber = $this->uniqueNumberService->createUniqueNumber($entityManager, TransferOrder::NUMBER_PREFIX, TransferOrder::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 

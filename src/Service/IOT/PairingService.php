@@ -8,8 +8,7 @@ use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\IOT\SensorMessage;
 use App\Helper\FormatHelper;
-use DateTime;
-use DateTimeZone;
+use WiiCommon\Utils\DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
 
@@ -87,7 +86,7 @@ class PairingService
             $endPairing = new DateTime($end);
             $pairing->setEnd($endPairing);
         }
-        $start =  new DateTime("now", new DateTimeZone("Europe/Paris"));
+        $start =  new DateTime("now");
         $pairing
             ->setStart($start)
             ->setSensorWrapper($sensorWrapper)

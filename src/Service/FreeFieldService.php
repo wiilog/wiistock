@@ -5,8 +5,7 @@ namespace App\Service;
 use App\Entity\CategorieCL;
 use App\Entity\FreeField;
 use App\Entity\FreeFieldEntity;
-use DateTime;
-use DateTimeZone;
+use WiiCommon\Utils\DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Throwable;
 
@@ -17,7 +16,7 @@ class FreeFieldService {
             && !empty($valeurChampLibre['valeur'])) {
             try {
                 $valeurChampLibre['valeur'] = str_replace('T', ' ', $valeurChampLibre['valeur']);
-                $champLibreDateTime = new DateTime($valeurChampLibre['valeur'], new DateTimeZone('Europe/Paris'));
+                $champLibreDateTime = new DateTime($valeurChampLibre['valeur']);
                 $hourFormat = ($valeurChampLibre['typage'] === FreeField::TYPE_DATETIME) ? ' H:i' : '';
                 $formattedValue = $champLibreDateTime->format("d/m/Y$hourFormat");
             } catch(Throwable $ignored) {

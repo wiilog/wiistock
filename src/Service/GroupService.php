@@ -8,8 +8,7 @@ use App\Entity\Pack;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Repository\PackRepository;
-use DateTime;
-use DateTimeZone;
+use WiiCommon\Utils\DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
 use Twig\Environment as Twig_Environment;
@@ -89,7 +88,7 @@ class GroupService {
                 $pack,
                 $destination,
                 $user ?? $this->security->getUser(),
-                $date ?? new DateTime("now", new DateTimeZone("Europe/Paris")),
+                $date ?? new DateTime("now"),
                 false,
                 null,
                 TrackingMovement::TYPE_UNGROUP,
@@ -100,7 +99,7 @@ class GroupService {
                 $pack,
                 $destination,
                 $user ?? $this->security->getUser(),
-                $date ?? new DateTime("now", new DateTimeZone("Europe/Paris")),
+                $date ?? new DateTime("now"),
                 false,
                 null,
                 TrackingMovement::TYPE_DEPOSE

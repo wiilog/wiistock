@@ -19,8 +19,7 @@ use App\Service\FreeFieldService;
 use App\Service\IOT\PairingService;
 use App\Service\IOT\AlertTemplateService;
 use App\Service\IOT\SensorWrapperService;
-use DateTime;
-use DateTimeZone;
+use WiiCommon\Utils\DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -82,9 +81,11 @@ class SensorWrapperController extends AbstractController
             $name = $sensorWrapper->getName();
 
             $sensorWrapper->setDeleted(true);
-            foreach ($sensorWrapper->getPairings()->filter(fn(Pairing $pairing) => $pairing->isActive()) as $pairing) {
-                $pairing->setEnd(new DateTime('now', new DateTimeZone('Europe/Paris')));
-                $pairing->setActive(false);
+            $activePairings = $sensorWrapper->getPairings()->filter(fn(Pairing $pairing) => $pairing->isActive());
+            foreach ($activePairings as $pairing) {
+                $pairing
+                    ->setActive(false)
+                    ->setEnd(new DateTime('now'));
             }
             $entityManager->flush();
 
