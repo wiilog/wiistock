@@ -4,9 +4,11 @@ $(function() {
 
 function initTableSensor(){
     const tableSensorMessages = {
+        processing: true,
+        serverSide: true,
         ajax: {
-            "url": Routing.generate('sensor_messages_api', {sensor: id}, true),
-            "type": "GET"
+            url: Routing.generate('sensor_messages_api', {sensor: id}, true),
+            type: "POST",
         },
         order: [['date', 'desc']],
         rowConfig: {
