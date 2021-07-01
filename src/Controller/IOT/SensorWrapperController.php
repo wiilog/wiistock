@@ -86,6 +86,9 @@ class SensorWrapperController extends AbstractController
                     ->setActive(false)
                     ->setEnd(new DateTime('now'));
             }
+            foreach ($sensorWrapper->getTriggerActions() as $action) {
+                $entityManager->remove($action);
+            }
             $entityManager->flush();
 
             return $this->json([
