@@ -60,7 +60,7 @@ function initPageDatatable() {
             {data: `reference`, title: `Référence`},
             {data: `label`, title: `Libellé`},
             {data: `location`, title: `Emplacement`},
-            {data: `quantity`, title: `Quantité à prélever`},
+            {data: `quantity`, title: $(`#request-quantity-text`).val()},
         ],
         rowConfig: {
             needsRowClickAction: true,

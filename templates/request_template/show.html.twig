@@ -62,6 +62,7 @@
 
     <input type="hidden" id="request-template-id" value="{{ request_template.id }}"/>
     <input type="hidden" id="request-template-warning" value="{{ request_template.triggerActions | length > 0 }}"/>
+    <input type="hidden" id="request-quantity-text" value="{{ quantityText }}"/>
 
     {% include 'request_template/edit.html.twig' %}
     {% include 'request_template/modals/add_line.html.twig' with {'line': new_line} %}
