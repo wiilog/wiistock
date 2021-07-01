@@ -31,9 +31,8 @@ let urlModifyRequestTemplate = Routing.generate('request_template_edit', true);
 InitModal($modalModifyRequestTemplate, $submitModifyRequestTemplate, urlModifyRequestTemplate, {tables: [table]});
 
 let modalDeleteRequestTemplate = $('#modalDeleteRequestTemplate');
-let submitDeleteRequestTemplate = $('#submitDeleteRequestTemplate');
 let urlDeleteRequestTemplate = Routing.generate('request_template_delete', true);
-InitModal(modalDeleteRequestTemplate, submitDeleteRequestTemplate, urlDeleteRequestTemplate, {tables: [table]});
+InitModal(modalDeleteRequestTemplate, `#submitDeleteRequestTemplate`, urlDeleteRequestTemplate, {tables: [table]});
 
 $(document).ready(() => {
     initEditor('.handling-editor-container');

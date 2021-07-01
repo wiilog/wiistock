@@ -8,7 +8,7 @@ let droppedFiles = [];
  * Init form validation modal.
  *
  * @param {jQuery} $modal jQuery element of the modal
- * @param {jQuery} $submit jQuery element of the submit button
+ * @param {jQuery}|string submit jQuery element of the submit button
  * @param {string} path url to call on submit
  * @param {{confirmMessage: function|undefined, tables: undefined|Array<jQuery>, keepModal: undefined|boolean, keepForm: undefined|boolean, success: undefined|function, clearOnClose: undefined|boolean, validator: undefined|function}} options Object containing some option.
  *   - tables is an array of datatable
@@ -19,7 +19,7 @@ let droppedFiles = [];
  *   - validator function which calculate custom form validation
  *   - confirmMessage Function which return promise throwing when form can be submited
  */
-function InitModal($modal, $submit, path, options = {}) {
+function InitModal($modal, submit, path, options = {}) {
     if(options.clearOnClose) {
         $modal.on('hidden.bs.modal', function () {
             clearModal($modal);
@@ -31,11 +31,13 @@ function InitModal($modal, $submit, path, options = {}) {
         $('[data-toggle="popover"]').popover("hide");
     });
 
-    $submit.click(function () {
-        if ($submit.hasClass(LOADING_CLASS)) {
+    const onclick = function () {
+        const $button = $(this);
+
+        if ($button.hasClass(LOADING_CLASS)) {
             showBSAlert('L\'opération est en cours de traitement', 'warning');
         } else {
-            SubmitAction($modal, $submit, path, options)
+            SubmitAction($modal, $button, path, options)
                 .then((data) => {
                     if (data && data.success && options && options.success) {
                         options.success(data);
@@ -43,7 +45,14 @@ function InitModal($modal, $submit, path, options = {}) {
                 })
                 .catch(() => {});
         }
-    });
+    };
+
+    //if it's a string, find the button in the modal
+    if(typeof submit === 'string') {
+        $modal.on(`click`, submit, onclick);
+    } else {
+        submit.on(`click`, onclick);
+    }
 }
 
 /**

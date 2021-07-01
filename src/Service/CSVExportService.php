@@ -93,6 +93,14 @@ class CSVExportService {
         fputcsv($handle, $encodedRow, ';');
     }
 
+    /**
+     * Streams exports to the user line by line
+     *
+     * @param callable $generator Function that generates a CSV line
+     * @param string $name Name of the file
+     * @param array|null $headers CSV headers
+     * @return StreamedResponse
+     */
     public function streamResponse(callable $generator, string $name, ?array $headers = null): StreamedResponse {
         $response = new StreamedResponse(function () use ($generator, $headers) {
             $output = fopen("php://output", "wb");

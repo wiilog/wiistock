@@ -73,6 +73,7 @@ function onTemplateTypeChange($select) {
     const $modal = $select.closest('.modal');
     const templatesSelect = $modal.find("select[name=templates]");
 
+    templatesSelect.val(null).trigger(`change`);
     templatesSelect.attr('disabled', type === "");
     Select2Old.init(templatesSelect, "Sélectionner un modèle ...", 0, {
         route: "get_templates",

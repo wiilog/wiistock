@@ -141,8 +141,15 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
     modal.find(submit).attr('value', id);
 
     $.post(path, JSON.stringify(json), function (resp) {
-        const $modalBody = modal.find('.modal-body');
+        let $modalBody;
+        if(modal.find('.to-replace').exists()) {
+            $modalBody = modal.find('.to-replace');
+        } else {
+            $modalBody = modal.find('.modal-body');
+        }
+
         $modalBody.html(resp);
+
         modal.find('.select2').select2();
         Select2Old.initFree(modal.find('.select2-free'));
         Select2Old.provider(modal.find('.ajax-autocomplete-fournisseur-edit'));

@@ -216,16 +216,16 @@ class RequestTemplateController extends AbstractController
     }
 
     /**
-     * @Route("/supprimer", name="request_template_delete", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     * @Route("/supprimer", name="request_template_delete", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request, EntityManagerInterface $manager): Response
     {
         $data = json_decode($request->getContent(), true);
-
         $requestTemplateRepository = $manager->getRepository(RequestTemplate::class);
 
         $requestTemplate = $requestTemplateRepository->find($data["id"]);
+        dump($data, $requestTemplate);
         if ($requestTemplate && $requestTemplate->getTriggerActions()->count() > 0) {
             return $this->json([
                 "success" => false,
