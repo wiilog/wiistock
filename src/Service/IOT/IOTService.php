@@ -390,7 +390,7 @@ class IOTService
         if ($wrapper) {
             foreach ($wrapper->getPairings() as $pairing) {
                 if ($pairing->isActive()) {
-                    if($pairing->getEnd() < new DateTime()) {
+                    if($pairing->getEnd() && $pairing->getEnd() < new DateTime()) {
                         $pairing->setActive(false);
                         continue;
                     }
