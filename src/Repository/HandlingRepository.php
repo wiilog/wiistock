@@ -67,7 +67,6 @@ class HandlingRepository extends EntityRepository
         $queryBuilder
             ->select('handling.id AS id')
             ->addSelect('handling.desiredDate AS desiredDate')
-            ->addSelect('handling_requester.username AS requester')
             ->addSelect('handling.comment AS comment')
             ->addSelect('(CASE WHEN triggeringSensorWrapper.id IS NOT NULL THEN triggeringSensorWrapper.name ELSE handling_requester.username END) as requester')
             ->addSelect('handling.source AS source')
