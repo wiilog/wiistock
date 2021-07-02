@@ -90,7 +90,7 @@
                 .timeline-cell {
                     &.timeline-cell-right{
                         &:after {
-                            bottom: 0;
+                            display: none;
                         }
                     }
                 }
@@ -111,7 +111,7 @@
                     text-align: left;
                     position: relative;
 
-                    &:not(.timeline-cell-without-title):before {
+                    &:before {
                         content: "";
                         width: 10px;
                         height: 10px;

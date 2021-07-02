@@ -280,14 +280,9 @@ function initTimeline($timelineContainer, showMore = false) {
                 }
 
                 const timeline = data || [];
-                let lastTitle;
                 const $timeline = timeline.map(({title, titleHref, active, group, groupHref, datePrefix, date}, index) => {
-                    const hideTitle = lastTitle === title;
-                    lastTitle = title;
-
                     const lastClass = (isEnd && index === 0) ? 'last-timeline-cell' : '';
                     const activeClass = active ? 'timeline-cell-active' : '';
-                    const withoutTitleClass = hideTitle ? 'timeline-cell-without-title' : '';
                     const largeTimelineCellClass = !isGrouped ? 'timeline-cell-large' : '';
                     const groupAsLink = (group && groupHref);
 
@@ -297,7 +292,7 @@ function initTimeline($timelineContainer, showMore = false) {
                             isGrouped
                                 ? $(!groupAsLink ? '<div/>' : '<a/>', {
                                     class: `timeline-cell timeline-cell-left ${lastClass}`,
-                                    ...(!hideTitle && group
+                                    ...(group
                                         ? { text: group }
                                         : {}),
                                     ...(groupAsLink
@@ -306,9 +301,9 @@ function initTimeline($timelineContainer, showMore = false) {
                                 })
                                 : undefined,
                             $('<div/>', {
-                                class: `timeline-cell timeline-cell-right ${lastClass} ${activeClass} ${withoutTitleClass} ${largeTimelineCellClass}`,
+                                class: `timeline-cell timeline-cell-right ${lastClass} ${activeClass} ${largeTimelineCellClass}`,
                                 html: [
-                                    ...(!hideTitle && title
+                                    ...(title
                                         ? [
                                             (active && titleHref)
                                                 ? `<a href="${titleHref}" class="timeline-cell-title">${title}</a>`
@@ -322,7 +317,10 @@ function initTimeline($timelineContainer, showMore = false) {
                                             `<br/>`
                                         ]
                                         : []),
-                                    `<span class="pairing-date">${date}</span>`
+                                    ...(date
+                                        ? [`<span class="pairing-date">${date}</span>`]
+                                        : []),
+
                                 ]
                             })
                         ]
