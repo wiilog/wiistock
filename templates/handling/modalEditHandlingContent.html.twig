@@ -55,7 +55,7 @@
     {% set removeHourInDatetime = removeHourInDatetime is defined and removeHourInDatetime %}
     {% set desiredDateFormat = removeHourInDatetime ? 'Y-m-d' : 'Y-m-d\\TH:i' %}
     <div class="form-group col-md-6 col-12">
-        <label for="desired-date">Date attendue</label>
+        <label for="desired-date">Date attendue*</label>
         <input class="form-control data needed"
                type="{{ removeHourInDatetime ? 'date' : 'datetime-local' }}"
                value="{{ handling.desiredDate | date(desiredDateFormat) }}"
