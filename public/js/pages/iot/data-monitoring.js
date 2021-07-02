@@ -22,7 +22,6 @@ $(document).ready(() => {
         const urlEditPairingEnd = Routing.generate('pairing_edit_end', {});
         InitModal(modalEditPairingEnd, submitEditPairingEnd, urlEditPairingEnd, {
             success: response => {
-                console.log(response)
                 if(!$(response.selector).exists()) {
                     console.log("ok")
                     $(`.pairing-dates-content`).append(`
