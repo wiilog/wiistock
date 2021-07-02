@@ -368,43 +368,39 @@ class DataMonitoringService
 
         $subtitlePrefix = [
             'start' => 'Associé le : ',
-            'end' => ($date > new DateTime()) ? "Fin le : " : "Dissocié le : ",
+            'end' => ($date && $date > new DateTime()) ? "Fin le : " : "Dissocié le : ",
         ];
 
-        if ($date) {
-            $row = [
-                'titleHref' => $pairingId
-                    ? $routerInterface->generate('pairing_show', ['pairing' => $pairingId])
-                    : null,
-                'title' => $dataRow['name'] ?? null,
-                'datePrefix' => $subtitlePrefix[$type] ?? null,
-                'date' => $date->format('d/m/Y à H:i'),
-                'active' => ($dataRow['active'] ?? '0') === '1'
-            ];
+        $row = [
+            'titleHref' => $pairingId
+                ? $routerInterface->generate('pairing_show', ['pairing' => $pairingId])
+                : null,
+            'title' => $dataRow['name'] ?? null,
+            'datePrefix' => $subtitlePrefix[$type] ?? null,
+            'date' => $date ? $date->format('d/m/Y à H:i') : null,
+            'active' => ($dataRow['active'] ?? '0') === '1'
+        ];
 
-            if ($entity instanceof Demande) {
-                $row['group'] = ($type === 'startOrder' || ($type === 'end' && !empty($dataRow['deliveryNumber'])))
-                    ? $dataRow['deliveryNumber']
-                    : $dataRow['preparationNumber'];
-            } else if ($entity instanceof Emplacement
-                || $entity instanceof Pack) {
-                $row['group'] = $dataRow['entity'];
-            } else if ($entity instanceof Collecte) {
-                $row['group'] = $dataRow['orderNumber'];
-            }
-
-            if (isset($dataRow['entityType'])
-                && isset($dataRow['entityId'])
-                && $dataRow['entityType'] !== IOTService::getEntityCodeFromEntity($entity)) {
-                $row['groupHref'] = $this->router->generate('show_data_history', [
-                    'id' => $dataRow['entityId'],
-                    'type' => $dataRow['entityType']
-                ]);
-            }
-
-            return $row;
-        } else {
-            return null;
+        if ($entity instanceof Demande) {
+            $row['group'] = ($type === 'startOrder' || ($type === 'end' && !empty($dataRow['deliveryNumber'])))
+                ? $dataRow['deliveryNumber']
+                : $dataRow['preparationNumber'];
+        } else if ($entity instanceof Emplacement
+            || $entity instanceof Pack) {
+            $row['group'] = $dataRow['entity'];
+        } else if ($entity instanceof Collecte) {
+            $row['group'] = $dataRow['orderNumber'];
         }
+
+        if (isset($dataRow['entityType'])
+            && isset($dataRow['entityId'])
+            && $dataRow['entityType'] !== IOTService::getEntityCodeFromEntity($entity)) {
+            $row['groupHref'] = $this->router->generate('show_data_history', [
+                'id' => $dataRow['entityId'],
+                'type' => $dataRow['entityType']
+            ]);
+        }
+
+        return $row;
     }
 }
