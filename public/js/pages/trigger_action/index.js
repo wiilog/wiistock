@@ -68,12 +68,18 @@ function submitSensor(val = null) {
     }
 }
 
-function onTemplateTypeChange($select) {
+function onTemplateTypeChange($select, onEdit = false) {
     const type = $select.val();
     const $modal = $select.closest('.modal');
     const templatesSelect = $modal.find("select[name=templates]");
-
-    templatesSelect.val(null).trigger(`change`);
+    if (!onEdit) {
+        templatesSelect.val(null).trigger(`change`);
+        if (templatesSelect.hasClass("select2-hidden-accessible")) {
+            templatesSelect
+                .find('option')
+                .remove();
+        }
+    }
     templatesSelect.attr('disabled', type === "");
     Select2Old.init(templatesSelect, "Sélectionner un modèle ...", 0, {
         route: "get_templates",
@@ -89,6 +95,6 @@ function clearNewModal(clearReferenceInput = false){
 }
 
 function initEditTriggerActionForm(){
-    onTemplateTypeChange($modalEditTriggerAction.find('[name=templateType]'));
+    onTemplateTypeChange($modalEditTriggerAction.find('[name=templateType]'), true);
 }
 

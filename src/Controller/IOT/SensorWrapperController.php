@@ -70,8 +70,7 @@ class SensorWrapperController extends AbstractController
      * @Route("/supprimer", name="sensor_wrapper_delete", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::IOT, Action::DELETE})
      */
-    public function delete(Request $request,
-                           EntityManagerInterface $entityManager): Response {
+    public function delete(Request $request, EntityManagerInterface $entityManager): Response {
 
         if($data = json_decode($request->getContent(), true)) {
             $sensorWrapperRepository = $entityManager->getRepository(SensorWrapper::class);

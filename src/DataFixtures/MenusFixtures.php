@@ -12,16 +12,16 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 class MenusFixtures extends Fixture implements FixtureGroupInterface {
 
     const MENUS = [
-        Menu::DASHBOARDS,
-        Menu::TRACA,
-        Menu::QUALI,
-        Menu::DEM,
-        Menu::ORDRE,
-        Menu::STOCK,
-        Menu::REFERENTIEL,
-        Menu::IOT,
-        Menu::PARAM,
-        Menu::NOMADE
+        Menu::DASHBOARDS => null,
+        Menu::TRACA => null,
+        Menu::QUALI => null,
+        Menu::DEM => null,
+        Menu::ORDRE => null,
+        Menu::STOCK => null,
+        Menu::REFERENTIEL => null,
+        Menu::IOT => "IoT.IoT",
+        Menu::PARAM => null,
+        Menu::NOMADE => null,
     ];
 
     private $encoder;
@@ -34,7 +34,7 @@ class MenusFixtures extends Fixture implements FixtureGroupInterface {
         $output = new ConsoleOutput();
         $menuRepository = $manager->getRepository(Menu::class);
 
-        foreach(self::MENUS as $label) {
+        foreach(self::MENUS as $label => $translation) {
             $menu = $menuRepository->findOneBy(["label" => $label]);
 
             if(empty($menu)) {
@@ -45,6 +45,7 @@ class MenusFixtures extends Fixture implements FixtureGroupInterface {
 
             // force case update
             $menu->setLabel($label);
+            $menu->setTranslation($translation);
 
             $this->addReference("menu-$label", $menu);
         }

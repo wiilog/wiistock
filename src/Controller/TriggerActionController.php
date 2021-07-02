@@ -265,7 +265,6 @@ class TriggerActionController extends AbstractController
         } else {
             $templates = $requestTemplateRepository->getTemplateForSelect();
         }
-
         return $this->json([
             "results" => $templates
         ]);
