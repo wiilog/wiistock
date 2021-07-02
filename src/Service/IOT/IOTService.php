@@ -377,11 +377,11 @@ class IOTService
             if ($newBattery < 10 && $wrapper && $wrapper->getManager()) {
                 $this->mailerService->sendMail(
                     'FOLLOW GT // Batterie capteur faible',
-                    $this->templating->render('mails/contents/mailLowBattery.html.twig', [
+                    $this->templating->render('mails/contents/iot/mailLowBattery.html.twig', [
                         'sensorCode' => $device->getCode(),
                         'sensorName' => $wrapper->getName(),
                     ]),
-                    $wrapper->getManager()->getEmail()
+                    $wrapper->getManager()
                 );
             }
         }
