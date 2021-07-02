@@ -34,10 +34,12 @@ use App\Repository\ArticleRepository;
 use App\Repository\PackRepository;
 use App\Repository\StatutRepository;
 use App\Service\DemandeLivraisonService;
+use App\Service\MailerService;
 use App\Service\UniqueNumberService;
 use DateTimeZone;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Twig\Environment as Twig_Environment;
 
 class IOTService
 {
@@ -82,6 +84,12 @@ class IOTService
 
     /** @Required */
     public AlertService $alertService;
+
+    /** @Required */
+    public MailerService $mailerService;
+
+    /** @Required */
+    public Twig_Environment $templating;
 
     public function onMessageReceived(array $frame, EntityManagerInterface $entityManager) {
         if (isset(self::PROFILE_TO_TYPE[$frame['profile']])) {
@@ -363,8 +371,19 @@ class IOTService
         }
 
         $newBattery = $this->extractBatteryLevelFromMessage($message);
+        $wrapper = $device->getAvailableSensorWrapper();
         if ($newBattery > -1) {
             $device->setBattery($newBattery);
+            if ($newBattery < 10 && $wrapper && $wrapper->getManager()) {
+                $this->mailerService->sendMail(
+                    'FOLLOW GT // Batterie capteur faible',
+                    $this->templating->render('mails/contents/mailLowBattery.html.twig', [
+                        'sensorCode' => $device->getCode(),
+                        'sensorName' => $wrapper->getName(),
+                    ]),
+                    $wrapper->getManager()->getEmail()
+                );
+            }
         }
         $entityManager->flush();
 
