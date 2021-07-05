@@ -124,7 +124,6 @@ class ApiController extends AbstractFOSRestController
                 ->takeKeys()
                 ->map(fn($right) => $_SERVER["APP_INSTANCE"] . "-" . $right)
                 ->toArray();
-
             $data['success'] = true;
             $data['data'] = [
                 'apiKey' => $apiKey,

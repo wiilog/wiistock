@@ -870,8 +870,6 @@ class DispatchController extends AbstractController {
                     ->setStatut($untreatedStatus)
                     ->setValidationDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
 
-                dump($dispatch->getType()->isNotificationsEnabled() ||
-                    in_array($dispatch->getEmergency(), $dispatch->getType()->getNotificationsEmergencies()));
                 if($dispatch->getType()->isNotificationsEnabled() ||
                     in_array($dispatch->getEmergency(), $dispatch->getType()->getNotificationsEmergencies())) {
                     $notificationService->toTreat($dispatch);

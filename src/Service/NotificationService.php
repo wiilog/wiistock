@@ -12,7 +12,9 @@ use App\Entity\Preparation;
 use App\Entity\TransferOrder;
 use Doctrine\ORM\EntityManagerInterface;
 use Kreait\Firebase\Messaging;
+use Kreait\Firebase\Messaging\AndroidConfig;
 use Kreait\Firebase\Messaging\CloudMessage;
+use Kreait\Firebase\Messaging\MessageData;
 use Kreait\Firebase\Messaging\Notification;
 
 class NotificationService
@@ -26,6 +28,8 @@ class NotificationService
         Dispatch::class => "tracking",
         Handling::class => "demande",
     ];
+
+    private const FCM_PLUGIN_ACTIVITY = 'FCM_PLUGIN_ACTIVITY';
 
     /** @Required */
     public EntityManagerInterface $manager;
@@ -52,12 +56,11 @@ class NotificationService
 
     public function send(string $channel, string $title, string $content, ?array $data = null)
     {
-        $message = CloudMessage::withTarget("topic", $_SERVER["APP_INSTANCE"] . "-" . $channel)
-            ->withNotification(Notification::create($title, $content));
-
-        if($data) {
-            $message->withData($data);
-        }
+        $message = CloudMessage::fromArray([
+            'topic' => $_SERVER["APP_INSTANCE"] . "-" . $channel,
+            'notification' => Notification::create($title, $content),
+            'data' => MessageData::fromArray($data)
+        ]);
 
         $this->messaging->send($message);
     }
