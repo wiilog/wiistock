@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use App\Entity\Emplacement;
 use App\Entity\LocationGroup;
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment;

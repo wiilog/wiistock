@@ -20,7 +20,9 @@
                      onclick="editRow($(this), Routing.generate('sensor_wrapper_edit_api', true), $('#modalEditSensorWrapper'), $('#modalEditSensorWrapper').find('.submit-button'))">
                     <i class='fas fa-edit mr-2'></i>Modifier
                 </div>
-                <div class="dropdown-item"
+            {% endif %}
+            {% if hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DELETE')) %}
+            <div class="dropdown-item"
                      data-id="{{ sensor_wrapper.id }}"
                      onclick="deleteSensorWrapper($(this))">
                     <i class="fas fa-trash mr-2"></i>Supprimer

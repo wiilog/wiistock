@@ -34,7 +34,7 @@ class AlertService {
      * @throws Exception
      */
     public function generateAlerts(EntityManagerInterface $manager) {
-        $now = new DateTime("now", new \DateTimeZone("Europe/Paris"));
+        $now = new DateTime("now");
         $parametrage = $manager->getRepository(ParametrageGlobal::class);
 
         $expiry = $parametrage->getOneParamByLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY);

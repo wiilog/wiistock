@@ -6,7 +6,6 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
-use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\IOT\CollectRequestTemplate;
@@ -217,16 +216,16 @@ class RequestTemplateController extends AbstractController
     }
 
     /**
-     * @Route("/supprimer", name="request_template_delete", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     * @Route("/supprimer", name="request_template_delete", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request, EntityManagerInterface $manager): Response
     {
         $data = json_decode($request->getContent(), true);
-
         $requestTemplateRepository = $manager->getRepository(RequestTemplate::class);
 
         $requestTemplate = $requestTemplateRepository->find($data["id"]);
+        dump($data, $requestTemplate);
         if ($requestTemplate && $requestTemplate->getTriggerActions()->count() > 0) {
             return $this->json([
                 "success" => false,
@@ -259,6 +258,7 @@ class RequestTemplateController extends AbstractController
             "request_template" => $requestTemplate,
             "new_line" => new RequestTemplateLine(),
             "details" => $service->createHeaderDetailsConfig($requestTemplate),
+            "type" => $requestTemplate instanceof DeliveryRequestTemplate ? "livraison" : "collecte",
             "quantityText" => $requestTemplate instanceof DeliveryRequestTemplate ? "Quantité à livrer" : "Quantité à collecter"
         ]);
     }

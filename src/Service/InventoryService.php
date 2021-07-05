@@ -80,7 +80,7 @@ class InventoryService
 			$mvt = new MouvementStock();
 			$mvt
 				->setUser($user)
-				->setDate(new \DateTime('now'))
+				->setDate(new DateTime('now'))
 				->setComment($comment)
 				->setQuantity(abs($diff));
 

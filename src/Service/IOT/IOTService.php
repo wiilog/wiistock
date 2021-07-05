@@ -34,11 +34,13 @@ use App\Repository\ArticleRepository;
 use App\Repository\PackRepository;
 use App\Repository\StatutRepository;
 use App\Service\DemandeLivraisonService;
+use App\Service\MailerService;
 use App\Service\NotificationService;
 use App\Service\UniqueNumberService;
-use DateTime;
 use DateTimeZone;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Twig\Environment as Twig_Environment;
 
 class IOTService
 {
@@ -87,6 +89,12 @@ class IOTService
     /** @Required */
     public NotificationService $notificationService;
 
+    /** @Required */
+    public MailerService $mailerService;
+
+    /** @Required */
+    public Twig_Environment $templating;
+
     public function onMessageReceived(array $frame, EntityManagerInterface $entityManager) {
         if (isset(self::PROFILE_TO_TYPE[$frame['profile']])) {
             $message = $this->parseAndCreateMessage($frame, $entityManager);
@@ -133,7 +141,7 @@ class IOTService
         $needsTrigger = $temperatureTresholdType === 'lower' ?
             $temperatureTreshold >= $messageTemperature
             : $temperatureTreshold <= $messageTemperature;
-        $triggerAction->setLastTrigger(new \DateTime('now', new \DateTimeZone('Europe/Paris')));
+        $triggerAction->setLastTrigger(new DateTime('now'));
         if ($needsTrigger) {
             if ($triggerAction->getRequestTemplate()) {
                 $this->treatRequestTemplateTriggerType($triggerAction->getRequestTemplate(), $entityManager, $wrapper);
@@ -194,7 +202,7 @@ class IOTService
                                                 SensorWrapper $sensorWrapper,
                                                 HandlingRequestTemplate $requestTemplate): Handling {
         $handling = new Handling();
-        $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now');
         $handlingNumber = $this->uniqueNumberService->createUniqueNumber($entityManager, Handling::PREFIX_NUMBER, Handling::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 
         $desiredDate = clone $date;
@@ -226,7 +234,7 @@ class IOTService
                                                 DeliveryRequestTemplate $requestTemplate): Demande {
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
         $numero = $this->demandeLivraisonService->generateNumeroForNewDL($entityManager);
-        $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now');
 
         $request = new Demande();
         $request
@@ -255,7 +263,7 @@ class IOTService
                                                 EntityManagerInterface $entityManager,
                                                 SensorWrapper $wrapper,
                                                 CollectRequestTemplate $requestTemplate): Collecte {
-        $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now');
         $numero = 'C-' . $date->format('YmdHis');
         $status = $statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_BROUILLON);
 
@@ -293,7 +301,7 @@ class IOTService
         $statut = $statutRepository
             ->findOneByCategorieNameAndStatutCode(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_A_TRAITER);
         $ordreCollecte = new OrdreCollecte();
-        $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now');
         $ordreCollecte
             ->setDate($date)
             ->setNumero('C-' . $date->format('YmdHis'))
@@ -371,13 +379,25 @@ class IOTService
         }
 
         $newBattery = $this->extractBatteryLevelFromMessage($message);
+        $wrapper = $device->getAvailableSensorWrapper();
         if ($newBattery > -1) {
             $device->setBattery($newBattery);
+            if ($newBattery < 10 && $wrapper && $wrapper->getManager()) {
+                $this->mailerService->sendMail(
+                    'FOLLOW GT // Batterie capteur faible',
+                    $this->templating->render('mails/contents/iot/mailLowBattery.html.twig', [
+                        'sensorCode' => $device->getCode(),
+                        'sensorName' => $wrapper->getName(),
+                    ]),
+                    $wrapper->getManager()
+                );
+            }
         }
         $entityManager->flush();
 
-        $messageDate = new \DateTime($message['timestamp'], new \DateTimeZone("UTC"));
-        $messageDate->setTimezone(new \DateTimeZone('Europe/Paris'));
+        $messageDate = new DateTime($message['timestamp'], new DateTimeZone("UTC"));
+        $messageDate->setTimezone(new DateTimeZone('Europe/Paris'));
+
         $received = new SensorMessage();
         $received
             ->setPayload($message)
@@ -397,6 +417,11 @@ class IOTService
         if ($wrapper) {
             foreach ($wrapper->getPairings() as $pairing) {
                 if ($pairing->isActive()) {
+                    if($pairing->getEnd() && $pairing->getEnd() < new DateTime()) {
+                        $pairing->setActive(false);
+                        continue;
+                    }
+
                     $pairing->addSensorMessage($sensorMessage);
                     $entity = $pairing->getEntity();
                     if ($entity instanceof LocationGroup) {
@@ -605,4 +630,5 @@ class IOTService
         ];
         return $association[$code] ?? null;
     }
+
 }

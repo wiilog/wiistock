@@ -256,7 +256,7 @@ class UrgencesController extends AbstractController
                 "Numero d'arrivage",
                 'Date de creation',
             ];
-            $nowStr = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+            $nowStr = new DateTime('now');
 
             return $CSVExportService->streamResponse(
                 function ($output) use ($urgenceIterator, $CSVExportService) {

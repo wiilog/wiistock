@@ -3,11 +3,7 @@
 
 namespace App\Service;
 
-use App\Entity\FiltreSup;
 use App\Entity\IOT\TriggerAction;
-use App\Entity\PurchaseRequest;
-use App\Entity\Statut;
-use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
 

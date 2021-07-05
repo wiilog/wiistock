@@ -20,7 +20,6 @@ use App\Exceptions\NegativeQuantityException;
 use App\Repository\ArticleRepository;
 use App\Repository\StatutRepository;
 use DateTime;
-use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\Routing\RouterInterface;
@@ -180,7 +179,7 @@ class PreparationsManagerService
         }
 
         $newPreparation = new Preparation();
-        $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now');
         $number = $this->generateNumber($date, $entityManager);
         $newPreparation
             ->setNumero($number)
@@ -670,7 +669,7 @@ class PreparationsManagerService
 
     public function createPairing(SensorWrapper $sensorWrapper, Preparation $preparation){
         $pairing = new Pairing();
-        $start =  new DateTime("now", new DateTimeZone("Europe/Paris"));
+        $start =  new DateTime("now");
         $pairing
             ->setStart($start)
             ->setSensorWrapper($sensorWrapper)

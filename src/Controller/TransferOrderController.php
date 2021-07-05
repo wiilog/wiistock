@@ -19,7 +19,6 @@ use DateTime;
 use App\Service\CSVExportService;
 use App\Service\UserService;
 
-use DateTimeZone;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -292,7 +291,7 @@ class TransferOrderController extends AbstractController {
         $dateTimeMax = DateTime::createFromFormat("Y-m-d H:i:s", $dateMax . " 23:59:59");
 
         if(isset($dateTimeMin, $dateTimeMax)) {
-            $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
+            $now = new DateTime("now");
 
             $transferRepository = $entityManager->getRepository(TransferOrder::class);
             $articleRepository = $entityManager->getRepository(Article::class);

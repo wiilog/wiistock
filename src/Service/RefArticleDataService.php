@@ -28,7 +28,6 @@ use App\Repository\ReceptionReferenceArticleRepository;
 use WiiCommon\Helper\Stream;
 use App\Repository\FiltreRefRepository;
 use DateTime;
-use DateTimeZone;
 use RuntimeException;
 use Twig\Environment as Twig_Environment;
 use Exception;
@@ -324,9 +323,8 @@ class RefArticleDataService {
 
 
         $refArticle->getManagers()->clear();
-
-        $managers = $data['managers'] && is_string($data["managers"]) ? explode(',', $data['managers']) : $data["managers"];
-        if (!empty($managers)) {
+        if (!empty($data["managers"])) {
+            $managers = is_string($data["managers"]) ? explode(',', $data['managers']) : $data["managers"];
             foreach ($managers as $manager) {
                 $refArticle->addManager($userRepository->find($manager));
             }
@@ -371,7 +369,6 @@ class RefArticleDataService {
 
         $row = [
             "id" => $refArticle->getId(),
-            "attachments" => $attachments ?? "",
             "label" => $refArticle->getLibelle() ?? "Non défini",
             "reference" => $refArticle->getReference() ?? "Non défini",
             "quantityType" => $refArticle->getTypeQuantite() ?? "Non défini",
@@ -485,7 +482,7 @@ class RefArticleDataService {
     public function generateBarCode($counter = null) {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
 
-        $now = new \DateTime('now');
+        $now = new DateTime('now');
         $dateCode = $now->format('ym');
 
         if(!isset($counter)) {
@@ -648,7 +645,7 @@ class RefArticleDataService {
                 $entityManager->remove($alert);
             }
         } else {
-            $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
+            $now = new DateTime("now");
             $alertRepository = $entityManager->getRepository(Alert::class);
 
             if($reference->getLimitSecurity() !== null && $reference->getLimitSecurity() >= $reference->getQuantiteStock()) {

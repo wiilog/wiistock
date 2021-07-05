@@ -35,6 +35,11 @@ class Menu
     private $label;
 
     /**
+     * @ORM\Column(type="string", nullable=true)
+     */
+    private ?string $translation = null;
+
+    /**
      * @ORM\OneToMany(targetEntity="Action", mappedBy="menu")
      */
     private $actions;
@@ -59,6 +64,15 @@ class Menu
     {
         $this->label = $label;
 
+        return $this;
+    }
+
+    public function getTranslation(): ?string {
+        return $this->translation;
+    }
+
+    public function setTranslation(?string $translation): Menu {
+        $this->translation = $translation;
         return $this;
     }
 

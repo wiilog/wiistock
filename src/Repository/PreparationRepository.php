@@ -6,7 +6,6 @@ use App\Entity\Article;
 use App\Entity\FiltreSup;
 use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
-use App\Entity\Pack;
 use App\Entity\Preparation;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
@@ -61,14 +60,15 @@ class PreparationRepository extends EntityRepository
             ->select('p.id')
             ->addSelect('p.numero as number')
             ->addSelect('dest.label as destination')
-            ->addSelect('user.username as requester')
+            ->addSelect('(CASE WHEN triggeringSensorWrapper.id IS NOT NULL THEN triggeringSensorWrapper.name ELSE user.username END) as requester')
             ->addSelect('t.label as type')
             ->addSelect('d.commentaire as comment')
             ->join('p.statut', 's')
             ->join('p.demande', 'd')
             ->join('d.destination', 'dest')
             ->join('d.type', 't')
-            ->join('d.utilisateur', 'user')
+            ->leftJoin('d.utilisateur', 'user')
+            ->leftJoin('d.triggeringSensorWrapper', 'triggeringSensorWrapper')
             ->andWhere('(s.nom = :toTreatStatusLabel OR (s.nom = :inProgressStatusLabel AND p.utilisateur = :user))')
             ->andWhere('t.id IN (:type)')
             ->setParameters([

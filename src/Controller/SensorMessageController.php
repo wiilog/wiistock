@@ -34,7 +34,7 @@ class SensorMessageController extends AbstractController
     }
 
     /**
-     * @Route("/messages/api/{sensor}", name="sensor_messages_api", options={"expose"=true}, methods={"GET"}, condition="request.isXmlHttpRequest()")
+     * @Route("/messages/api/{sensor}", name="sensor_messages_api", options={"expose"=true})
      * @HasPermission({Menu::IOT, Action::DISPLAY_SENSOR}, mode=HasPermission::IN_JSON)
      */
     public function api(Sensor $sensor,

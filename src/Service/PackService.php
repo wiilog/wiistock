@@ -12,7 +12,6 @@ use App\Helper\FormatHelper;
 use App\Repository\NatureRepository;
 use App\Repository\PackRepository;
 use DateTime;
-use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
 use Twig\Environment as Twig_Environment;
@@ -228,7 +227,7 @@ class PackService
             ? $this->arrivageDataService->getLocationForTracking($entityManager, $arrivage)
             : null;
 
-        $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $now = new DateTime('now');
         $createdPacks = [];
         foreach ($colisByNatures as $natureId => $number) {
             $nature = $natureRepository->find($natureId);

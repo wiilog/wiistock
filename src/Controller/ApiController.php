@@ -62,7 +62,6 @@ use App\Service\UserService;
 use App\Service\FreeFieldService;
 
 use DateTimeInterface;
-use DateTimeZone;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -234,7 +233,7 @@ class ApiController extends AbstractFOSRestController
 
                         $dateArray = explode('_', $mvt['date']);
 
-                        $date = DateTime::createFromFormat(DateTimeInterface::ATOM, $dateArray[0], new DateTimeZone('Europe/Paris'));
+                        $date = DateTime::createFromFormat(DateTimeInterface::ATOM, $dateArray[0]);
 
                         // set mouvement de stock
                         if ($mvt['fromStock'] ?? false) {
@@ -782,7 +781,7 @@ class ApiController extends AbstractFOSRestController
                 && $newStatus) {
                 if ($newStatus->isTreated()) {
                     $handling
-                        ->setValidationDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
+                        ->setValidationDate(new DateTime('now'));
                 }
                 $handling->setTreatedByHandling($nomadUser);
             }
@@ -917,7 +916,7 @@ class ApiController extends AbstractFOSRestController
                     'code' => $movement['ref_article'],
                     'location' => $movement['ref_emplacement'],
                     'nature_id' => $movement['nature_id'],
-                    'date' => new DateTime($date ?? 'now', new DateTimeZone('Europe/Paris')),
+                    'date' => new DateTime($date ?? 'now'),
                     'type' => $movement['type']
                 ];
             })
@@ -1068,7 +1067,7 @@ class ApiController extends AbstractFOSRestController
                     $ordreCollecteService
                 ) {
                     $ordreCollecteService->setEntityManager($entityManager);
-                    $date = DateTime::createFromFormat(DateTimeInterface::ATOM, $collecteArray['date_end'], new DateTimeZone('Europe/Paris'));
+                    $date = DateTime::createFromFormat(DateTimeInterface::ATOM, $collecteArray['date_end']);
 
                     $newCollecte = $ordreCollecteService->finishCollecte($collecte, $nomadUser, $date, $collecteArray['mouvements'], true);
                     $entityManager->flush();
@@ -2163,7 +2162,7 @@ class ApiController extends AbstractFOSRestController
     }
 
     private function expectedDateColor(?DateTime $date, array $colors): ?string {
-        $nowStr = (new DateTime('now', new DateTimeZone('Europe/Paris')))->format('Y-m-d');
+        $nowStr = (new DateTime('now'))->format('Y-m-d');
         $dateStr = !empty($date) ? $date->format('Y-m-d') : null;
         $color = null;
         if ($dateStr) {

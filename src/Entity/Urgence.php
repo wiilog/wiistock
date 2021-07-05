@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use DateTime as WiiDateTime;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -76,7 +77,7 @@ class Urgence {
 
     public function __construct()
     {
-        $this->createdAt = (new DateTime('NOW'));
+        $this->createdAt = (new WiiDateTime('now'));
     }
 
     public function getId(): ?int

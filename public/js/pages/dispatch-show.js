@@ -148,6 +148,7 @@ function togglePackDetails(emptyDetails = false) {
     const packCode = $modal.find('[name="pack"]').val();
     $modal.find('.pack-details').addClass('d-none');
     $modal.find('.spinner-border').removeClass('d-none');
+    $modal.find('.error-msg').empty();
 
     const $natureField = $modal.find('[name="nature"]');
     $natureField.val(null).trigger('change');

@@ -28,7 +28,7 @@
             </div>
         {% elseif type == 'pairingInfo' %}
             <div class="col-12">
-                <div class="p-3 subtitle">
+                <div class="p-3 subtitle pairing-dates-content">
                     {% if start is not null %}
                         <span class="pairing-date-prefix">Associé le : </span><br/>
                         <span class="date-prefix">{{ start }}</span>
@@ -53,26 +53,28 @@
             or (type == 'entity' and not hideActions) %}
             <div class="col-auto">
                 {% if type == 'sensor' and pairing %}
-                    <div class="dropdown dropleft">
-                        <img src="{{ asset('svg/dotsblack.svg') }}"
-                             alt="Actions"
-                             height="20px"
-                             width="8px"
-                             data-toggle="dropdown"
-                             class="pointer m-3"/>
-                        <div class="dropdown-menu dropdown-follow-gt pointer">
-                            <div class="dropdown-item pointer"
-                                 data-toggle="modal"
-                                 data-target="#modalEditPairingEnd"
-                                 data-id="{{ pairing.id }}">
-                                <i class="fas fa-edit"></i> Modifier fin association
-                            </div>
-                            <div class="dropdown-item pointer"
-                                 onclick="unpair({{ pairing.id }})">
-                                <i class="fas fa-unlink"></i> Dissocier
+                    {% if hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::EDIT')) %}
+                        <div class="dropdown dropleft">
+                            <img src="{{ asset('svg/dotsblack.svg') }}"
+                                 alt="Actions"
+                                 height="20px"
+                                 width="8px"
+                                 data-toggle="dropdown"
+                                 class="pointer m-3"/>
+                            <div class="dropdown-menu dropdown-follow-gt pointer">
+                                <div class="dropdown-item pointer"
+                                     data-toggle="modal"
+                                     data-target="#modalEditPairingEnd"
+                                     data-id="{{ pairing.id }}">
+                                    <i class="fas fa-edit"></i> Modifier fin association
+                                </div>
+                                <div class="dropdown-item pointer"
+                                     onclick="unpair({{ pairing.id }})">
+                                    <i class="fas fa-unlink"></i> Dissocier
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    {% endif %}
                 {% elseif type == 'entity' %}
                     <a class="btn btn-sm btn-outline-info"
                        href="{{ path('show_data_history', entity_info) }}"

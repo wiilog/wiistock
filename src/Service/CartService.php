@@ -199,7 +199,7 @@ class CartService {
         if ($collect) {
             $request = $collectRepository->find(intval($collect));
         } else {
-            $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+            $date = new DateTime('now');
             $request = new Collecte();
             $request
                 ->setDemandeur($utilisateur)
@@ -308,7 +308,7 @@ class CartService {
                 ->setNumero($demandeLivraisonService->generateNumeroForNewDL($entityManager))
                 ->setUtilisateur($utilisateur)
                 ->setFilled(false)
-                ->setDate(new \DateTime('now', new \DateTimeZone('Europe/Paris')))
+                ->setDate(new DateTime('now'))
                 ->setStatut($draft);
             $entityManager->persist($request);
             $entityManager->flush();
@@ -366,7 +366,7 @@ class CartService {
                 ->setRequester($utilisateur)
                 ->setFilled(false)
                 ->setType($type)
-                ->setCreationDate(new \DateTime('now', new \DateTimeZone('Europe/Paris')))
+                ->setCreationDate(new DateTime('now'))
                 ->setStatus($draft);
             $entityManager->persist($request);
             $entityManager->flush();

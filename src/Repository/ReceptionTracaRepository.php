@@ -29,8 +29,8 @@ class ReceptionTracaRepository extends EntityRepository
      * @throws \Exception
      */
     public function countByDays($firstDay, $lastDay) {
-        $from = new \DateTime(str_replace("/", "-", $firstDay) ." 00:00:00");
-        $to   = new \DateTime(str_replace("/", "-", $lastDay) ." 23:59:59");
+        $from = new DateTime(str_replace("/", "-", $firstDay) ." 00:00:00");
+        $to   = new DateTime(str_replace("/", "-", $lastDay) ." 23:59:59");
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT COUNT(r.id) as count, r.dateCreation as date

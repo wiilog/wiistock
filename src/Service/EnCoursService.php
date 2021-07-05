@@ -11,7 +11,6 @@ use App\Helper\FormatHelper;
 use DateInterval;
 use DatePeriod;
 use DateTime;
-use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 
@@ -253,7 +252,7 @@ class EnCoursService
     public function getTrackingMovementAge(array $workedDays, DateTime $movementDate, array $workFreeDays): DateInterval
     {
         if (count($workedDays) > 0) {
-            $now = new DateTime("now", new DateTimeZone('Europe/Paris'));
+            $now = new DateTime("now");
             if ($now->getTimezone()->getName() !== $movementDate->getTimezone()->getName()) {
                 $currentHours = $now->format('H');
                 $currentMinutes = $now->format('i');

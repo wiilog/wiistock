@@ -9,9 +9,7 @@ use App\Entity\CategoryType;
 use App\Entity\FreeField;
 use App\Entity\Collecte;
 use App\Entity\Emplacement;
-use App\Entity\IOT\Pairing;
 use App\Entity\Menu;
-use App\Entity\OrdreCollecte;
 use App\Entity\ParametrageGlobal;
 use App\Entity\ReferenceArticle;
 use App\Entity\CollecteReference;
@@ -37,7 +35,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use WiiCommon\Helper\Stream;
 
 
 /**
@@ -217,7 +214,7 @@ class CollecteController extends AbstractController
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
-            $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+            $date = new DateTime('now');
 
             $status = $statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_BROUILLON);
             $numero = 'C-' . $date->format('YmdHis');
@@ -598,7 +595,7 @@ class CollecteController extends AbstractController
                 ],
                 $freeFieldsConfig['freeFieldsHeader']
             );
-            $today = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+            $today = new DateTime('now');
             $fileName = "export_demande_collecte" . $today->format('d_m_Y') . ".csv";
             return $CSVExportService->createBinaryResponseFromData(
                 $fileName,

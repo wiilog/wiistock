@@ -2,14 +2,10 @@
 
 namespace App\Repository\IOT;
 
-use App\Entity\Arrivage;
-use App\Entity\FreeField;
 use App\Entity\IOT\CollectRequestTemplate;
 use App\Entity\IOT\DeliveryRequestTemplate;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\RequestTemplateLine;
-use App\Helper\QueryCounter;
-use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\ParameterBag;
 

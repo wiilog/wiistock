@@ -213,7 +213,7 @@ class DemandeCollecteService
 
         $article = new Article();
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_INACTIF);
-        $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now');
         $ref = $date->format('YmdHis');
 
         $index = $articleFournisseurRepository->countByRefArticle($referenceArticle);
