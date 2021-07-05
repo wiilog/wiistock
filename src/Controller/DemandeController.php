@@ -395,6 +395,7 @@ class DemandeController extends AbstractController
                 "Emplacement" => ($article->getEmplacement() ? $article->getEmplacement()->getLabel() : ' '),
                 "Quantité à prélever" => ($article->getQuantiteAPrelever() ? $article->getQuantiteAPrelever() : ''),
                 "barcode" => $article->getBarCode() ?? '',
+                "error" => $article->getQuantite() < $article->getQuantiteAPrelever(),
                 "Actions" => $this->renderView(
                     'demande/datatableLigneArticleRow.html.twig',
                     [

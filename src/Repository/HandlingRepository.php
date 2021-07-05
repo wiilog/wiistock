@@ -67,8 +67,8 @@ class HandlingRepository extends EntityRepository
         $queryBuilder
             ->select('handling.id AS id')
             ->addSelect('handling.desiredDate AS desiredDate')
-            ->addSelect('handling_requester.username AS requester')
             ->addSelect('handling.comment AS comment')
+            ->addSelect('(CASE WHEN triggeringSensorWrapper.id IS NOT NULL THEN triggeringSensorWrapper.name ELSE handling_requester.username END) as requester')
             ->addSelect('handling.source AS source')
             ->addSelect('handling.destination AS destination')
             ->addSelect('handling.subject AS subject')
@@ -80,6 +80,7 @@ class HandlingRepository extends EntityRepository
             ->addSelect('handling.freeFields AS freeFields')
             ->addSelect('status.id AS statusId')
             ->leftJoin('handling.requester', 'handling_requester')
+            ->leftJoin('handling.triggeringSensorWrapper', 'triggeringSensorWrapper')
             ->leftJoin('handling.status', 'status')
             ->leftJoin('handling.type', 'handling_type')
             ->andWhere('status.needsMobileSync = true')

@@ -149,6 +149,15 @@ class LocationGroup implements PairedEntity
         return $this->pairings;
     }
 
+    /**
+     * @return Collection|Pairing[]
+     */
+    public function getActivePairings(): Collection
+    {
+        $criteria = Criteria::create();
+        return $this->pairings->matching($criteria->andWhere(Criteria::expr()->eq('active', true)));
+    }
+
     public function addPairing(Pairing $pairing): self
     {
         if (!$this->pairings->contains($pairing)) {

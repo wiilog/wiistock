@@ -7,7 +7,6 @@ use App\Entity\Article;
 use App\Entity\ReferenceArticle;
 use App\Helper\QueryCounter;
 use DateTime;
-use DateTimeZone;
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\EntityRepository;
 use function Doctrine\ORM\QueryBuilder;
@@ -183,7 +182,7 @@ class AlertRepository extends EntityRepository {
     }
 
     public function findNoLongerExpired() {
-        $since = new DateTime("now", new DateTimeZone("Europe/Paris"));
+        $since = new DateTime("now");
 
         $qb = $this->createQueryBuilder("a");
 

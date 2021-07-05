@@ -3,7 +3,6 @@
 namespace App\Repository;
 
 use App\Entity\Article;
-use App\Entity\Collecte;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FreeField;
@@ -17,7 +16,6 @@ use App\Helper\QueryCounter;
 use WiiCommon\Helper\Stream;
 use App\Service\VisibleColumnService;
 use DateTime;
-use DateTimeZone;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 
@@ -46,7 +44,7 @@ class ArticleRepository extends EntityRepository {
     ];
 
     public function findExpiredToGenerate($delay = 0) {
-        $since = new DateTime("now", new DateTimeZone("Europe/Paris"));
+        $since = new DateTime("now");
         $since->modify("+{$delay}day");
 
         return $this->createQueryBuilder("a")
@@ -96,6 +94,11 @@ class ArticleRepository extends EntityRepository {
         return $query->getResult();
     }
 
+    /**
+     * @param $demandes
+     * @param false $needAssoc
+     * @return Article[]
+     */
     public function findByDemandes($demandes, $needAssoc = false)
     {
         $queryBuilder = $this->createQueryBuilder('article')

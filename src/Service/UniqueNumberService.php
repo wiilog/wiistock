@@ -4,7 +4,6 @@ namespace App\Service;
 
 use App\Entity\Reception;
 use DateTime;
-use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\Entity;
 use Exception;
@@ -40,7 +39,7 @@ class UniqueNumberService
                                        string $entity,
                                        string $format): string {
 
-        $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now');
         $entityRepository = $entityManager->getRepository($entity);
 
         if (!method_exists($entityRepository, 'getLastNumberByDate')) {

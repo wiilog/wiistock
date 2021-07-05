@@ -1,0 +1,9 @@
+{% extends 'mails/template.html.twig' %}
+
+{% block content %}
+    <p>Bonjour,</p>
+    <p>Votre capteur {{ sensorName }} code {{ sensorCode }} n'a pas envoyé de données depuis plus de 48h.</p>
+    <br>
+    <p>Vérifiez sa pile ou contactez le support Wiilog pour analyse du problème.</p>
+    <br>
+{% endblock %}

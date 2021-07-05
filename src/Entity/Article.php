@@ -4,13 +4,12 @@ namespace App\Entity;
 
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\SensorMessageTrait;
-use DateTime;
-use DateTimeZone;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Selectable;
 use Doctrine\ORM\Mapping as ORM;
+use DateTime as WiiDateTime;
 
 use App\Entity\IOT\Pairing;
 
@@ -783,7 +782,7 @@ class Article extends FreeFieldEntity implements PairedEntity
     public function isExpired(): ?bool
     {
         if($this->getExpiryDate()) {
-            $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
+            $now = new WiiDateTime("now");
 
             return $now >= $this->getExpiryDate();
         } else {

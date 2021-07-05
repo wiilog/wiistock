@@ -6,10 +6,10 @@ use App\Entity\Article;
 use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\OrdreCollecte;
-use App\Entity\Pack;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use DateTime;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -58,13 +58,14 @@ class OrdreCollecteRepository extends EntityRepository
 	 */
 	public function getMobileCollecte(Utilisateur $user)
 	{
-        $queryBuilder = $this->createOrdreCollecteQueryBuilder()
-            ->andWhere('s.nom = :statutLabel')
-            ->andWhere('oc.utilisateur IS NULL OR oc.utilisateur = :user')
+        $queryBuilder = $this->createCollectOrderQueryBuilder()
+            ->andWhere('orderStatus.nom = :statutLabel')
+            ->andWhere('collectOrder.utilisateur IS NULL OR collectOrder.utilisateur = :user')
             ->setParameters([
                 'statutLabel' => OrdreCollecte::STATUT_A_TRAITER,
                 'user' => $user,
-            ]);
+            ])
+            ->orderBy('collectOrder.date', Criteria::ASC);
 		return $queryBuilder->getQuery()->execute();
 	}
 
@@ -74,27 +75,28 @@ class OrdreCollecteRepository extends EntityRepository
 	 */
 	public function getById($ordreCollecteId)
 	{
-		$queryBuilder = $this->createOrdreCollecteQueryBuilder()
-            ->andWhere('oc.id = :id')
+		$queryBuilder = $this->createCollectOrderQueryBuilder()
+            ->andWhere('collectOrder.id = :id')
             ->setParameter('id', $ordreCollecteId);
 		$result = $queryBuilder->getQuery()->execute();
 		return !empty($result) ? $result[0] : null;
 	}
 
-	private function createOrdreCollecteQueryBuilder(): QueryBuilder  {
-	    return $this->createQueryBuilder('oc')
-            ->select('oc.id')
-            ->addSelect('oc.numero as number')
-            ->addSelect('pc.label as location_from')
-            ->addSelect('dc.stockOrDestruct as forStock')
-            ->addSelect('demandeur.username as requester')
-            ->addSelect('typeDemandeCollecte.label as type')
-            ->addSelect('dc.commentaire as comment')
-            ->leftJoin('oc.demandeCollecte', 'dc')
-            ->leftJoin('dc.demandeur', 'demandeur')
-            ->leftJoin('dc.pointCollecte', 'pc')
-            ->leftJoin('oc.statut', 's')
-            ->leftJoin('dc.type', 'typeDemandeCollecte');
+	private function createCollectOrderQueryBuilder(): QueryBuilder  {
+	    return $this->createQueryBuilder('collectOrder')
+            ->select('collectOrder.id')
+            ->addSelect('collectOrder.numero as number')
+            ->addSelect('collectLocation.label as location_from')
+            ->addSelect('collectRequest.stockOrDestruct as forStock')
+            ->addSelect('(CASE WHEN triggeringSensorWrapper.id IS NOT NULL THEN triggeringSensorWrapper.name ELSE join_requester.username END) as requester')
+            ->addSelect('collectType.label as type')
+            ->addSelect('collectRequest.commentaire as comment')
+            ->leftJoin('collectOrder.demandeCollecte', 'collectRequest')
+            ->leftJoin('collectRequest.demandeur', 'join_requester')
+            ->leftJoin('collectRequest.pointCollecte', 'collectLocation')
+            ->leftJoin('collectOrder.statut', 'orderStatus')
+            ->leftJoin('collectRequest.triggeringSensorWrapper', 'triggeringSensorWrapper')
+            ->leftJoin('collectRequest.type', 'collectType');
 	}
 
     /**

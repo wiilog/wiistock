@@ -43,7 +43,6 @@ use App\Service\UserService;
 use App\Service\MailerService;
 use App\Service\FreeFieldService;
 use DateTime;
-use DateTimeZone;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
@@ -211,7 +210,7 @@ class ArrivageController extends AbstractController
         $typeRepository = $entityManager->getRepository(Type::class);
         $sendMail = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL);
 
-        $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now');
         $counter = $arrivageRepository->countByDate($date) + 1;
         $suffix = $counter < 10 ? ("0" . $counter) : $counter;
         $numeroArrivage = $date->format('ymdHis') . '-' . $suffix;
@@ -450,7 +449,7 @@ class ArrivageController extends AbstractController
         if (isset($location)) {
             /** @var Utilisateur $user */
             $user = $this->getUser();
-            $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+            $now = new DateTime('now');
             foreach ($arrival->getPacks() as $pack) {
                 $trackingMovementService->persistTrackingForArrivalPack(
                     $entityManager,
@@ -806,7 +805,7 @@ class ArrivageController extends AbstractController
         $packRepository = $entityManager->getRepository(Pack::class);
         $usersRepository = $entityManager->getRepository(Utilisateur::class);
 
-        $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $now = new DateTime('now');
 
         $disputeNumber = $uniqueNumberService->createUniqueNumber($entityManager, Litige::DISPUTE_ARRIVAL_PREFIX, Litige::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 

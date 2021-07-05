@@ -36,7 +36,6 @@ use App\Service\UserService;
 use App\Service\DispatchService;
 
 use DateTime;
-use DateTimeZone;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
@@ -186,7 +185,7 @@ class DispatchController extends AbstractController {
         $printDeliveryNote = $request->query->get('printDeliveryNote');
 
         $dispatch = new Dispatch();
-        $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now');
 
         $fileBag = $request->files->count() > 0 ? $request->files : null;
 
@@ -869,7 +868,7 @@ class DispatchController extends AbstractController {
 
                 $dispatch
                     ->setStatut($untreatedStatus)
-                    ->setValidationDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
+                    ->setValidationDate(new DateTime('now'));
 
                 $entityManager->flush();
                 $dispatchService->sendEmailsAccordingToStatus($dispatch, true);
@@ -1205,7 +1204,7 @@ class DispatchController extends AbstractController {
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $logo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DELIVERY_NOTE_LOGO);
 
-        $nowDate = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $nowDate = new DateTime('now');
 
         $documentTitle = "BL - {$dispatch->getNumber()} - Emerson - {$nowDate->format('dmYHis')}";
         $fileName = $pdf->generatePDFDeliveryNote($documentTitle, $logo, $dispatch);
@@ -1318,7 +1317,7 @@ class DispatchController extends AbstractController {
         $userSavedData = $loggedUser->getSavedDispatchWaybillData();
         $dispatchSavedData = $dispatch->getWaybillData();
 
-        $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $now = new DateTime('now');
 
         $isEmerson = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_EMERSON);
 
@@ -1430,7 +1429,7 @@ class DispatchController extends AbstractController {
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $logo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::WAYBILL_LOGO);
 
-        $nowDate = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $nowDate = new DateTime('now');
 
         $title = "LDV - {$dispatch->getNumber()} - Emerson - {$nowDate->format('dmYHis')}";
         $fileName = $pdf->generatePDFWaybill($title, $logo, $dispatch);
@@ -1508,7 +1507,7 @@ class DispatchController extends AbstractController {
                 $dispatch
                     ->setStatut($untreatedStatus);
                 if (!$dispatch->getValidationDate()) {
-                    $dispatch->setValidationDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
+                    $dispatch->setValidationDate(new DateTime('now'));
                 }
 
                 $entityManager->flush();

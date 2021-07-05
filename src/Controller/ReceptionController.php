@@ -56,7 +56,6 @@ use App\Service\UserService;
 
 use App\Service\FreeFieldService;
 use DateTime;
-use DateTimeZone;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
@@ -220,11 +219,11 @@ class ReceptionController extends AbstractController {
                 ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
                 ->setDateAttendue(
                     !empty($data['dateAttendue'])
-                        ? new DateTime(str_replace('/', '-', $data['dateAttendue']), new DateTimeZone("Europe/Paris"))
+                        ? new DateTime(str_replace('/', '-', $data['dateAttendue']))
                         : null)
                 ->setDateCommande(
                     !empty($data['dateCommande'])
-                        ? new DateTime(str_replace('/', '-', $data['dateCommande']), new DateTimeZone("Europe/Paris"))
+                        ? new DateTime(str_replace('/', '-', $data['dateCommande']))
                         : null)
                 ->setCommentaire(isset($data['commentaire']) ? $data['commentaire'] : null);
 
@@ -564,7 +563,7 @@ class ReceptionController extends AbstractController {
                 );
 
                 $stockMovement->setReceptionOrder($reception);
-                $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+                $date = new DateTime('now');
                 $this->mouvementStockService->finishMouvementStock($stockMovement, $date, $reception->getLocation());
                 $entityManager->persist($stockMovement);
             }
@@ -737,7 +736,7 @@ class ReceptionController extends AbstractController {
                 /** @var Utilisateur $currentUser */
                 $currentUser = $this->getUser();
                 $receptionLocation = $reception->getLocation();
-                $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+                $now = new DateTime('now');
 
                 if($diffReceivedQuantity != 0) {
                     $newRefQuantity = $referenceArticle->getQuantiteStock() + $diffReceivedQuantity;
@@ -1127,7 +1126,7 @@ class ReceptionController extends AbstractController {
 
         $litige = new Litige();
 
-        $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $now = new DateTime('now');
 
         $disputeNumber = $uniqueNumberService->createUniqueNumber($entityManager, Litige::DISPUTE_RECEPTION_PREFIX, Litige::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 
@@ -1360,7 +1359,7 @@ class ReceptionController extends AbstractController {
         $statutRepository = $entityManager->getRepository(Statut::class);
 
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, Reception::STATUT_RECEPTION_TOTALE);
-        $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $now = new DateTime('now');
 
         $reception
             ->setStatut($statut)
@@ -1687,7 +1686,7 @@ class ReceptionController extends AbstractController {
                                    PreparationsManagerService $preparationsManagerService,
                                    LivraisonsManagerService $livraisonsManagerService): Response {
 
-        $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $now = new DateTime('now');
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
 
@@ -1756,7 +1755,7 @@ class ReceptionController extends AbstractController {
                             $currentUser = $this->getUser();
                             $articlesNotPicked = $preparationsManagerService->createMouvementsPrepaAndSplit($preparation, $currentUser, $entityManager);
 
-                            $dateEnd = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+                            $dateEnd = new DateTime('now');
                             $delivery = $livraisonsManagerService->createLivraison($dateEnd, $preparation);
                             $entityManager->persist($delivery);
                             $locationEndPreparation = $demande->getDestination();

@@ -110,7 +110,7 @@ class PreparationController extends AbstractController
             ]);
         }
 
-        $dateEnd = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $dateEnd = new DateTime('now');
         $livraison = $livraisonsManager->createLivraison($dateEnd, $preparation);
         $entityManager->persist($livraison);
         $preparationsManager->treatPreparation($preparation, $this->getUser(), $locationEndPrepa, $articlesNotPicked);
@@ -566,7 +566,7 @@ class PreparationController extends AbstractController
                 'quantité à collecter',
                 'code-barre'
             ];
-            $nowStr = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+            $nowStr = new DateTime('now');
 
             return $CSVExportService->streamResponse(
                 function ($output) use ($preparationIterator, $CSVExportService, $preparationsManager) {

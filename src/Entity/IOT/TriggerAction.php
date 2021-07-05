@@ -3,11 +3,8 @@
 namespace App\Entity\IOT;
 
 use App\Repository\IOT\TriggerActionRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
-use phpDocumentor\Reflection\Types\Boolean;
 
 /**
  * @ORM\Entity(repositoryClass=TriggerActionRepository::class)

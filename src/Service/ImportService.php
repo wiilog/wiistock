@@ -24,7 +24,6 @@ use App\Entity\Utilisateur;
 use App\Exceptions\ImportException;
 use WiiCommon\Helper\Stream;
 use Closure;
-use DateTimeZone;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManager;
 use DateTime;
@@ -1193,7 +1192,7 @@ class ImportService
         $article->setArticleFournisseur($articleFournisseur);
         if ($isNewEntity) {
             $refReferenceArticle = $refArticle->getReference();
-            $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+            $date = new DateTime('now');
             $formattedDate = $date->format('YmdHis');
             $article->setReference($refReferenceArticle . $formattedDate . $rowIndex);
         }

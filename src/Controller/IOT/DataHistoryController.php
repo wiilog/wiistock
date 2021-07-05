@@ -8,7 +8,6 @@ use App\Entity\Article;
 use App\Entity\Collecte;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
-use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\Menu;
@@ -17,20 +16,18 @@ use App\Entity\OrdreCollecte;
 use App\Entity\Pack;
 use App\Entity\Preparation;
 use App\Service\IOT\DataMonitoringService;
-use App\Service\IOT\IOTService;
 use App\Service\IOT\PairingService;
-use App\Service\TranslationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use WiiCommon\Helper\Stream;
+use DateTime;
 
 /**
  * @Route("/iot/historique")
@@ -44,14 +41,14 @@ class DataHistoryController extends AbstractController {
     public function show(Request $request,
                          EntityManagerInterface $entityManager,
                          DataMonitoringService $dataMonitoringService,
-    TranslatorInterface $trans): Response {
+                         TranslatorInterface $trans): Response {
         $query = $request->query;
 
         $type = $query->get('type');
         $id = $query->get('id');
 
         $entity = $dataMonitoringService->getEntity($entityManager, $type, $id);
-        $end = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $end = new DateTime('now');
         $end->modify('last day of this month');
         $end->setTime(23, 59, 59);
         $start = clone $end;
@@ -117,7 +114,8 @@ class DataHistoryController extends AbstractController {
             $sensor = $message->getSensor();
 
             $dateStr = $date->format('d/m/Y H:i:s');
-            $sensorCode = $sensor->getCode();
+            $wrapper = $sensor->getAvailableSensorWrapper();
+            $sensorCode = ($wrapper ? $wrapper->getName() . ' : ' : '') . $sensor->getCode();
             if (!isset($data[$sensorCode])) {
                 $data[$sensorCode] = [];
             }

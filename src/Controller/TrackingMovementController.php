@@ -27,11 +27,9 @@ use App\Service\TrackingMovementService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 
-use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -180,7 +178,7 @@ class TrackingMovementController extends AbstractController
             ]);
         }
 
-        $date = new DateTime($post->get('datetime') ?: 'now', new DateTimeZone('Europe/Paris'));
+        $date = new DateTime($post->get('datetime') ?: 'now');
         $fromNomade = false;
         $fileBag = $request->files->count() > 0 ? $request->files : null;
 

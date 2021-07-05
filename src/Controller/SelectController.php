@@ -132,6 +132,18 @@ class SelectController extends AbstractController {
     }
 
     /**
+     * @Route("/select/capteurs/sans-action", name="ajax_select_sensor_wrappers_for_pairings", options={"expose"=true})
+     */
+    public function getSensorWrappersForPairings(Request $request, EntityManagerInterface $entityManager): Response {
+        $results = $entityManager->getRepository(SensorWrapper::class)
+            ->getForSelect($request->query->get("term"), true);
+
+        return $this->json([
+            "results" => $results
+        ]);
+    }
+
+    /**
      * @Route("/select/colis-sans-association", name="ajax_select_packs_without_pairing", options={"expose"=true})
      */
     public function packsWithoutPairing(Request $request, EntityManagerInterface $entityManager): Response {

@@ -1,6 +1,6 @@
 {% extends 'utils/show-header.html.twig' %}
 
-{% block showTitle ('Modèle de demande de livraison ' ~ request_template.name) %}
+{% block showTitle ('Modèle de demande de ' ~ type ~ ' ' ~ request_template.name) %}
 
 {% block showActions %}
     <div class="btn-group">

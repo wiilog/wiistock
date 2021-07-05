@@ -70,6 +70,18 @@
     }
 
     .timeline-container {
+
+
+        .timeline-show-more-button-container + .timeline-row  {
+            .timeline-cell {
+                &.timeline-cell-right{
+                    &:after {
+                        top: -20px;
+                    }
+                }
+            }
+        }
+
         .timeline-row {
             display: flex;
             flex-wrap: nowrap;
@@ -78,7 +90,7 @@
                 .timeline-cell {
                     &.timeline-cell-right{
                         &:after {
-                            height: 80%;
+                            display: none;
                         }
                     }
                 }
@@ -99,7 +111,7 @@
                     text-align: left;
                     position: relative;
 
-                    &:not(.timeline-cell-without-title):before {
+                    &:before {
                         content: "";
                         width: 10px;
                         height: 10px;
@@ -111,14 +123,18 @@
                         z-index: 10;
                     }
 
-                    &:not(.last-timeline-cell):after {
+                    &:after {
                         content: "";
                         position: absolute;
                         width: 2px;
                         background-color: #DADADA;
                         top: 20px;
                         left: 0;
-                        height: 105%;
+                        bottom: -20px;
+                    }
+
+                    &.last-timeline-cell:after {
+                        //top: 20px;
                     }
 
                     &.timeline-cell-active {

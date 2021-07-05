@@ -11,8 +11,6 @@ use App\Entity\FreeField;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
-use App\Entity\IOT\Pairing;
-use App\Entity\LigneArticle;
 use App\Entity\LigneArticlePreparation;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\Preparation;
@@ -285,7 +283,7 @@ class DemandeLivraisonService
             }
         }
         $utilisateur = $data['demandeur'] instanceof Utilisateur ? $data['demandeur'] : $utilisateurRepository->find($data['demandeur']);
-        $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now');
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
         $destination = $emplacementRepository->find($data['destination']);
 
@@ -324,7 +322,7 @@ class DemandeLivraisonService
      */
     public function generateNumeroForNewDL(EntityManagerInterface $entityManager)
     {
-        $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now');
         $demandeRepository = $entityManager->getRepository(Demande::class);
         $prefixeNomDemandeRepository = $entityManager->getRepository(PrefixeNomDemande::class);
 
@@ -389,45 +387,54 @@ class DemandeLivraisonService
         else {
             $demande = $demandeRepository->find($demandeArray['demande']);
         }
-
-        $response = [];
-        $response['success'] = true;
-        $response['msg'] = '';
-        // pour réf gérées par articles
-        $articles = $demande->getArticles();
-        foreach ($articles as $article) {
-            $statutArticle = $article->getStatut();
-            if (isset($statutArticle)
-                && $statutArticle->getNom() !== Article::STATUT_ACTIF) {
-                $response['success'] = false;
-                $response['nomadMessage'] = 'Erreur de quantité sur l\'article : ' . $article->getBarCode();
-                $response['msg'] = "Un article de votre demande n'est plus disponible. Assurez vous que chacun des articles soit en statut disponible pour valider votre demande.";
-            } else {
-                $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
-                $totalQuantity = $refArticle->getQuantiteDisponible();
-                $treshHold = ($article->getQuantite() > $totalQuantity)
-                    ? $totalQuantity
-                    : $article->getQuantite();
-                if ($article->getQuantiteAPrelever() > $treshHold) {
+        if ($demande->getStatut() && $demande->getStatut()->getNom() === Demande::STATUT_BROUILLON) {
+            $response = [];
+            $response['success'] = true;
+            $response['msg'] = '';
+            // pour réf gérées par articles
+            $articles = $demande->getArticles();
+            foreach ($articles as $article) {
+                $statutArticle = $article->getStatut();
+                if (isset($statutArticle)
+                    && $statutArticle->getNom() !== Article::STATUT_ACTIF) {
                     $response['success'] = false;
                     $response['nomadMessage'] = 'Erreur de quantité sur l\'article : ' . $article->getBarCode();
-                    $response['msg'] = "La quantité demandée d'un des articles excède la quantité disponible (" . $treshHold . ").";
+                    $response['msg'] = "Un article de votre demande n'est plus disponible. Assurez vous que chacun des articles soit en statut disponible pour valider votre demande.";
+                } else {
+                    $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
+                    $totalQuantity = $refArticle->getQuantiteDisponible();
+                    $treshHold = ($article->getQuantite() > $totalQuantity)
+                        ? $totalQuantity
+                        : $article->getQuantite();
+                    if ($article->getQuantiteAPrelever() > $treshHold) {
+                        $response['success'] = false;
+                        $response['nomadMessage'] = 'Erreur de quantité sur l\'article : ' . $article->getBarCode();
+                        $response['msg'] = "La quantité demandée d'un des articles excède la quantité disponible (" . $treshHold . ").";
+                    }
                 }
             }
-        }
 
-        // pour réf gérées par référence
-        foreach ($demande->getLigneArticle() as $ligne) {
-            $articleRef = $ligne->getReference();
-            if ($ligne->getQuantite() > $articleRef->getQuantiteDisponible()) {
-                $response['success'] = false;
-                $response['nomadMessage'] = 'Erreur de quantité sur l\'article : ' . $articleRef->getBarCode();
-                $response['msg'] = "La quantité demandée d'un des articles excède la quantité disponible (" . $articleRef->getQuantiteDisponible() . ").";
+            // pour réf gérées par référence
+            foreach ($demande->getLigneArticle() as $ligne) {
+                $articleRef = $ligne->getReference();
+                if ($ligne->getQuantite() > $articleRef->getQuantiteDisponible()) {
+                    $response['success'] = false;
+                    $response['nomadMessage'] = 'Erreur de quantité sur l\'article : ' . $articleRef->getBarCode();
+                    $response['msg'] = "La quantité demandée d'un des articles excède la quantité disponible (" . $articleRef->getQuantiteDisponible() . ").";
+                }
             }
-        }
-        if ($response['success']) {
-            $entityManager->persist($demande);
-            $response = $this->validateDLAfterCheck($entityManager, $demande, $fromNomade);
+            if ($response['success']) {
+                $entityManager->persist($demande);
+                $response = $this->validateDLAfterCheck($entityManager, $demande, $fromNomade);
+            }
+        } else {
+            $response['entete'] = $this->templating->render('demande/demande-show-header.html.twig', [
+                'demande' => $demande,
+                'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
+                'showDetails' => $this->createHeaderDetailsConfig($demande)
+            ]);
+            $response['msg'] = 'Votre demande de livraison a bien été validée';
+            $response['demande'] = $demande;
         }
         return $response;
     }
@@ -456,7 +463,7 @@ class DemandeLivraisonService
 
         // Creation d'une nouvelle preparation basée sur une selection de demandes
         $preparation = new Preparation();
-        $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now');
 
         $preparationNumber = $this->preparationsManager->generateNumber($date, $entityManager);
 

@@ -15,14 +15,10 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Exceptions\NegativeQuantityException;
 use DateTime;
-use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
 use Twig\Environment as Twig_Environment;
-use Twig\Error\LoaderError as Twig_Error_Loader;
-use Twig\Error\RuntimeError as Twig_Error_Runtime;
-use Twig\Error\SyntaxError as Twig_Error_Syntax;
 
 
 /**
@@ -102,7 +98,7 @@ class LivraisonsManagerService
                                     ?Emplacement $emplacementTo): void
     {
         $pairings = $livraison->getPreparation()->getPairings();
-        $pairingEnd = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $pairingEnd = new DateTime('now');
         foreach ($pairings as $pairing) {
             if ($pairing->isActive()) {
                 $pairing->setActive(false);
@@ -224,7 +220,7 @@ class LivraisonsManagerService
 
         $statutRepository = $entityManager->getRepository(Statut::class);
 
-        $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $now = new DateTime('now');
         $statutTransit = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT);
         $preparation = $livraison->getpreparation();
         $livraisonStatus = $livraison->getStatut();

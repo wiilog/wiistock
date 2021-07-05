@@ -2,12 +2,8 @@
 
 namespace App\Repository;
 
-use App\Entity\Article;
 use App\Entity\AverageRequestTime;
 use App\Entity\Collecte;
-use App\Entity\LocationGroup;
-use App\Entity\OrdreCollecte;
-use App\Entity\Pack;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
