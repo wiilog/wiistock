@@ -2,15 +2,12 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\CategoryType;
-use App\Entity\Dashboard;
 use App\Entity\NotificationTemplate;
-use App\Service\SpecificService;
+use App\Service\NotificationService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use WiiCommon\Helper\Stream;
 
 class NotificationTemplateFixture extends Fixture implements FixtureGroupInterface
@@ -33,7 +30,7 @@ class NotificationTemplateFixture extends Fixture implements FixtureGroupInterfa
         $existing = Stream::from($notificationTemplateRepository->findAll())
             ->map(fn(NotificationTemplate $template) => $template->getType());
 
-        $keys = Stream::keys(NotificationTemplate::READABLE_TYPES);
+        $keys = Stream::keys(NotificationService::READABLE_TYPES);
         $toCreate = Stream::diff($existing, $keys);
 
         foreach ($toCreate as $type) {
@@ -42,7 +39,7 @@ class NotificationTemplateFixture extends Fixture implements FixtureGroupInterfa
                 ->setContent(self::CONTENTS[$type]);
 
             $manager->persist($template);
-            $output->writeln("Created notification template \"" . NotificationTemplate::READABLE_TYPES[$type] . "\"");
+            $output->writeln("Created notification template \"" . NotificationService::READABLE_TYPES[$type] . "\"");
         }
 
         $manager->flush();

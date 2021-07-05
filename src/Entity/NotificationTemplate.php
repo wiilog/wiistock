@@ -12,7 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
 class NotificationTemplate
 {
 
-    const NOTIFICATIONS_TYPES = [
+    public const NOTIFICATIONS_TYPES = [
         CategoryType::DEMANDE_LIVRAISON,
         CategoryType::DEMANDE_COLLECTE,
         CategoryType::TRANSFER_REQUEST,
@@ -20,7 +20,7 @@ class NotificationTemplate
         CategoryType::DEMANDE_HANDLING,
     ];
 
-    const NOTIFICATIONS_EMERGENCIES = [
+    public const NOTIFICATIONS_EMERGENCIES = [
         CategoryType::DEMANDE_DISPATCH,
         CategoryType::DEMANDE_HANDLING,
     ];
@@ -32,49 +32,23 @@ class NotificationTemplate
     public const DISPATCH = "dispatch";
     public const HANDLING = "service";
 
-    public const TYPE_BY_CLASS = [
-        Preparation::class => NotificationTemplate::PREPARATION,
-        Livraison::class => NotificationTemplate::DELIVERY,
-        OrdreCollecte::class => NotificationTemplate::COLLECT,
-        TransferOrder::class => NotificationTemplate::TRANSFER,
-        Dispatch::class => NotificationTemplate::DISPATCH,
-        Handling::class => NotificationTemplate::HANDLING,
-    ];
-
-    public const READABLE_TYPES = [
-        self::PREPARATION => "Ordre de préparation",
-        self::DELIVERY => "Ordre de livraison",
-        self::COLLECT => "Ordre de collecte",
-        self::TRANSFER => "Ordre de transfert",
-        self::DISPATCH => "Demande d'acheminement",
-        self::HANDLING => "Demande de service",
-    ];
-
-    public const DICTIONARIES = [
-        self::DELIVERY => VariableService::DELIVERY_DICTIONARY,
-        self::PREPARATION => VariableService::PREPARATION_DICTIONARY,
-        self::COLLECT => VariableService::COLLECT_DICTIONARY,
-        self::TRANSFER => VariableService::TRANSFER_DICTIONARY,
-        self::DISPATCH => VariableService::DISPATCH_DICTIONARY,
-        self::HANDLING => VariableService::HANDLING_DICTIONARY,
-    ];
 
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
-    private ?int $id;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="string")
      */
-    private ?string $type;
+    private ?string $type = null;
 
     /**
      * @ORM\Column(type="text")
      */
-    private ?string $content;
+    private ?string $content = null;
 
     public function getId(): ?int
     {

@@ -22,13 +22,7 @@ use Doctrine\ORM\EntityRepository;
 class NotificationTemplateRepository extends EntityRepository
 {
 
-    public function findByType($entityOrType): NotificationTemplate {
-        if(!is_string($entityOrType)) {
-            $type = NotificationTemplate::TYPE_BY_CLASS[get_class($entityOrType)];
-        } else {
-            $type = $entityOrType;
-        }
-
+    public function findByType(string $type): NotificationTemplate {
         return $this->createQueryBuilder("notification_template")
             ->where("notification_template.type = :type")
             ->setParameter("type", $type)

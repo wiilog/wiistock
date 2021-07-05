@@ -29,6 +29,33 @@ class NotificationService
         Handling::class => "demande",
     ];
 
+    public const TYPE_BY_CLASS = [
+        Preparation::class => NotificationTemplate::PREPARATION,
+        Livraison::class => NotificationTemplate::DELIVERY,
+        OrdreCollecte::class => NotificationTemplate::COLLECT,
+        TransferOrder::class => NotificationTemplate::TRANSFER,
+        Dispatch::class => NotificationTemplate::DISPATCH,
+        Handling::class => NotificationTemplate::HANDLING,
+    ];
+
+    public const READABLE_TYPES = [
+        NotificationTemplate::PREPARATION => "Ordre de préparation",
+        NotificationTemplate::DELIVERY => "Ordre de livraison",
+        NotificationTemplate::COLLECT => "Ordre de collecte",
+        NotificationTemplate::TRANSFER => "Ordre de transfert",
+        NotificationTemplate::DISPATCH => "Demande d'acheminement",
+        NotificationTemplate::HANDLING => "Demande de service",
+    ];
+
+    public const DICTIONARIES = [
+        NotificationTemplate::DELIVERY => VariableService::DELIVERY_DICTIONARY,
+        NotificationTemplate::PREPARATION => VariableService::PREPARATION_DICTIONARY,
+        NotificationTemplate::COLLECT => VariableService::COLLECT_DICTIONARY,
+        NotificationTemplate::TRANSFER => VariableService::TRANSFER_DICTIONARY,
+        NotificationTemplate::DISPATCH => VariableService::DISPATCH_DICTIONARY,
+        NotificationTemplate::HANDLING => VariableService::HANDLING_DICTIONARY,
+    ];
+
     private const FCM_PLUGIN_ACTIVITY = 'FCM_PLUGIN_ACTIVITY';
 
     /** @Required */
@@ -42,14 +69,16 @@ class NotificationService
 
     public function toTreat($entity)
     {
-        $channel = self::CHANNELS[get_class($entity)];
-        $title = NotificationTemplate::READABLE_TYPES[NotificationTemplate::TYPE_BY_CLASS[get_class($entity)]];
+        $type = NotificationService::GetTypeFromEntity($entity);
+        $channel = NotificationService::GetChannelFromEntity($entity);
+        $title = NotificationService::READABLE_TYPES[$type] ?? '';
 
         $notificationTemplateRepository = $this->manager->getRepository(NotificationTemplate::class);
-        $template = $notificationTemplateRepository->findByType($entity);
+
+        $template = $notificationTemplateRepository->findByType($type);
 
         $this->send($channel, $title, $this->variableService->replaceVariables($template->getContent(), $entity), [
-            "type" => NotificationTemplate::TYPE_BY_CLASS[get_class($entity)],
+            "type" => $type,
             "id" => $entity->getId()
         ]);
     }
@@ -63,6 +92,25 @@ class NotificationService
         ]);
 
         $this->messaging->send($message);
+    }
+
+    public static function GetTypeFromEntity($entity): ?string {
+        return self::GetValueFromEntityKey(self::TYPE_BY_CLASS, $entity);
+    }
+
+    public static function GetChannelFromEntity($entity): ?string {
+        return self::GetValueFromEntityKey(self::CHANNELS, $entity);
+    }
+
+    private static function GetValueFromEntityKey(array $array, $entity) {
+        $res = null;
+        foreach($array as $class => $value) {
+            if (is_a($entity, $class)) {
+                $res = $value;
+                break;
+            }
+        }
+        return $res;
     }
 
 }

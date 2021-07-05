@@ -9,8 +9,7 @@ use App\Entity\Menu;
 use App\Entity\NotificationTemplate;
 use App\Helper\PostHelper;
 
-use App\Service\AttachmentService;
-use App\Service\IOT\AlertTemplateService;
+use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -52,7 +51,7 @@ class NotificationTemplateController extends AbstractController
         /** @var NotificationTemplate $notificationTemplate */
         foreach ($notificationTemplates as $notificationTemplate) {
             $rows[] = [
-                "type" => NotificationTemplate::READABLE_TYPES[$notificationTemplate->getType()],
+                "type" => NotificationService::READABLE_TYPES[$notificationTemplate->getType()] ?? '',
                 "content" => $this->renderView("notification_template/list_content.html.twig", [
                     "id" => $notificationTemplate->getId(),
                     "content" => $notificationTemplate->getContent(),
@@ -78,7 +77,7 @@ class NotificationTemplateController extends AbstractController
 
             return $this->json($this->renderView("notification_template/edit_content.html.twig", [
                 "notification_template" => $notificationTemplate,
-                "dictionary" => NotificationTemplate::DICTIONARIES[$notificationTemplate->getType()],
+                "dictionary" => NotificationService::DICTIONARIES[$notificationTemplate->getType()],
             ]));
         }
 
