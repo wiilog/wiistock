@@ -45,19 +45,42 @@ let SubmitDeleteType = $("#submitDeleteType");
 let urlDeleteType = Routing.generate('types_delete', true)
 InitModal(ModalDeleteType, SubmitDeleteType, urlDeleteType, {tables: [tableTypes]});
 
-$(document).on(`click`, `.enable-notifications-emergencies`, function () {
-    const $container = $(this).closest(`.modal`).find(`.notifications-emergencies-select`);
+function onNotificationsChange($checkbox) {
+    const $modal = $checkbox.closest(`.modal`);
+    const checked = $checkbox.is(':checked');
 
-    $container.toggleClass(`d-none`)
-    $container.find(`select`)
-        .val(null).trigger(`change`);
-})
+    if (checked) {
+        $modal
+            .find('[name="emergenciesNotificationEnabled"]')
+            .prop('checked', false)
+            .trigger('change');
+    }
+}
 
-function onNotificationChange($modal){
-    const $emergency = $modal.closest(`.modal`).find(`.notifications-emergencies`);
-    $emergency.toggleClass(`d-none`)
-    $emergency.find(`select`)
-        .val(null).trigger(`change`);
+function onNotificationsEmergenciesChange($checkbox) {
+    const $modal = $checkbox.closest(`.modal`);
+    const $container = $modal.find(`.notifications-emergencies-select`);
+    const $select = $modal.find(`[name="notificationsEmergencies"]`);
+    const isChecked = $checkbox.is(':checked');
+
+    if (isChecked) {
+        $modal
+            .find('[name="notificationsEnabled"]')
+            .prop('checked', false)
+    }
+
+    if (isChecked) {
+        $container.removeClass(`d-none`);
+        $select.addClass(`needed`);
+    }
+    else {
+        $container.addClass(`d-none`);
+        $select.removeClass(`needed`);
+    }
+
+    $select
+        .val(null)
+        .trigger(`change`);
 }
 
 function typeSelectChange($typeSelect, $modal) {

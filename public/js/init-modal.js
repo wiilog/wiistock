@@ -323,14 +323,19 @@ function processInputsForm($modal, data, isAttachmentForm) {
             : $input.val();
         val = (val && typeof val.trim === 'function') ? val.trim() : val;
 
+        const customLabel = $input.data('custom-label');
+        console.log($input, customLabel)
         // Fix bug when we write <label>Label<select>...</select></label
         // the label variable had text options
-        const dirtyLabel = $formGroupLabel
-            .clone()    //clone the element
-            .children() //select all the children
-            .remove()   //remove all the children
-            .end()      //again go back to selected element
-            .text();
+        const dirtyLabel = (
+            customLabel
+            || $formGroupLabel
+                .clone()    //clone the element
+                .children() //select all the children
+                .remove()   //remove all the children
+                .end()      //again go back to selected element
+                .text()
+        );
 
         // on enlève l'éventuelle * du nom du label
         const label = (dirtyLabel || '')
