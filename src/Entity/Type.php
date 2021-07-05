@@ -783,6 +783,13 @@ class Type
         return $this->notificationsEmergencies;
     }
 
+    public function isNotificationsEmergency(string $emergency): bool {
+        return (
+            !empty($this->notificationsEmergencies)
+            && in_array($emergency, $this->notificationsEmergencies)
+        );
+    }
+
     public function setNotificationsEmergencies(?array $notificationsEmergencies): self
     {
         $this->notificationsEmergencies = $notificationsEmergencies;

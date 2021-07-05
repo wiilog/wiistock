@@ -222,8 +222,9 @@ class HandlingController extends AbstractController
         $viewHoursOnExpectedDate = !$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME);
         $handlingService->sendEmailsAccordingToStatus($entityManager, $handling, $viewHoursOnExpectedDate, !$status->isTreated());
 
-        if ($handling->getStatus()->getState() == Statut::NOT_TREATED && ($handling->getType()->isNotificationsEnabled() ||
-                in_array($handling->getEmergency(), $handling->getType()->getNotificationsEmergencies()))) {
+        if (($handling->getStatus()->getState() == Statut::NOT_TREATED)
+            && $handling->getType()
+            && ($handling->getType()->isNotificationsEnabled() || $handling->getType()->isNotificationsEmergency($handling->getEmergency()))) {
             $notificationService->toTreat($handling);
         }
 
@@ -338,8 +339,9 @@ class HandlingController extends AbstractController
             if($newStatus) {
                 $handling->setStatus($newStatus);
 
-                if ($newStatus->getState() == Statut::NOT_TREATED && ($handling->getType()->isNotificationsEnabled() ||
-                    in_array($handling->getEmergency(), $handling->getType()->getNotificationsEmergencies()))) {
+                if (($newStatus->getState() == Statut::NOT_TREATED)
+                    && $handling->getType()
+                    && ($handling->getType()->isNotificationsEnabled() || $handling->getType()->isNotificationsEmergency($handling->getEmergency()))) {
                     $notificationService->toTreat($handling);
                 }
             }
