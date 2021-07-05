@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\ParametrageGlobal;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 
 /**
@@ -27,15 +28,17 @@ class ParametrageGlobalRepository extends EntityRepository
         return $result ? $result['value'] : null;
     }
 
-    public function getUnusedLogo(ParametrageGlobal  $logo , EntityManagerInterface $entityManager){
+    public function getUnusedLogo(ParametrageGlobal $logo, EntityManagerInterface $entityManager){
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-        return($logo->getValue() != ParametrageGlobal::DEFAULT_WEBSITE_LOGO_VALUE &&
+        return (
+            $logo->getValue() != ParametrageGlobal::DEFAULT_WEBSITE_LOGO_VALUE &&
             $logo->getValue() != ParametrageGlobal::DEFAULT_EMAIL_LOGO_VALUE &&
             $logo->getValue() != ParametrageGlobal::DEFAULT_MOBILE_LOGO_HEADER_VALUE &&
             $logo->getValue() != ParametrageGlobal::DEFAULT_MOBILE_LOGO_LOGIN_VALUE &&
             $logo->getValue() != $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::WEBSITE_LOGO) &&
             $logo->getValue() != $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::EMAIL_LOGO) &&
             $logo->getValue() != $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MOBILE_LOGO_HEADER) &&
-            $logo->getValue() != $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MOBILE_LOGO_LOGIN));
+            $logo->getValue() != $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MOBILE_LOGO_LOGIN)
+        );
     }
 }
