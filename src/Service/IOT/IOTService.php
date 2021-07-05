@@ -515,7 +515,8 @@ class IOTService
             case IOTService::SYMES_ACTION_MULTI:
             case IOTService::SYMES_ACTION_SINGLE:
                 if (isset($config['payload_cleartext'])) {
-                    $event = hexdec(substr($config['payload_cleartext'], 0, 2)) >> 5;
+                    $value = hexdec(substr($config['payload_cleartext'], 0, 2));
+                    $event =  $value & ~($value >> 3 << 3);
                     return $event === 0 ? self::ACS_PRESENCE : (self::ACS_EVENT . " (" . $event . ")");
                 }
                 break;
@@ -561,7 +562,8 @@ class IOTService
             case IOTService::SYMES_ACTION_SINGLE:
             case IOTService::SYMES_ACTION_MULTI:
                 if (isset($config['payload_cleartext'])) {
-                    $event = hexdec(substr($config['payload_cleartext'], 0 , 2)) >> 5;
+                    $value = hexdec(substr($config['payload_cleartext'], 0, 2));
+                    $event =  $value & ~($value >> 3 << 3);
                     return $event === 0 ? self::ACS_PRESENCE : self::ACS_EVENT;
                 }
                 break;
@@ -586,7 +588,8 @@ class IOTService
                 break;
             case IOTService::SYMES_ACTION_MULTI:
             case IOTService::SYMES_ACTION_SINGLE:
-                $level = hexdec(substr($config['payload_cleartext'], 22, 2));
+                $tensionBites = substr($config['payload_cleartext'], 20, 2);
+                $level = hexdec($tensionBites) >> 1;
                 $minVoltage = 2400;
                 $maxVoltage = 3700;
                 $incertitudeLevel = 10;
