@@ -230,6 +230,21 @@ class AlertTemplateController extends AbstractController
                 'receivers' => PostHelper::string($post, 'receivers'),
                 'content' => PostHelper::string($post, 'content'),
             ];
+        } else if ($alertTemplate->getType() === AlertTemplate::PUSH) {
+
+            $hasFile = $request->files->has('image');
+            $fileName = [];
+            $originalName = '';
+            if($request->files->has('image')) {
+                $file = $request->files->get('image');
+                $originalName = $file->getClientOriginalName();
+                $fileName = $attachmentService->saveFile($file);
+            }
+
+            $config = [
+                'content' => PostHelper::string($post, 'content'),
+                'image' => $hasFile ? $fileName[$originalName] : ''
+            ];
         }
 
         $alertTemplate->setConfig($config);

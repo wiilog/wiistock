@@ -13,6 +13,7 @@ use App\Service\NotificationService;
 use App\Service\VariableService;
 use Google\Cloud\Storage\Notification;
 use Ovh\Api;
+use Symfony\Component\Asset\Packages;
 use Symfony\Component\HttpKernel\KernelInterface;
 use function GuzzleHttp\json_decode;
 
@@ -82,9 +83,11 @@ class AlertService
         } else if ($template->getType() == AlertTemplate::PUSH) {
             $src = null;
             if (isset($config['image']) && !empty($config['image'])) {
-                $src = $this->kernel->getProjectDir() . '/public/uploads/attachements/' . $config['image'];
+                $src = $_SERVER['APP_URL'] . '/uploads/attachements/' . $config['image'];
             }
-            $this->notificationService->send('notifications', 'Alerte', $content, null, $src);
+            $this->notificationService->send('notifications', 'Alerte', $content, [
+                'image' => $src
+            ], $src);
             return true;
         }
     }

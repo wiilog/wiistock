@@ -85,7 +85,6 @@ class NotificationService
 
     public function send(string $channel, string $title, string $content, ?array $data = null, ?string $imageURI = null)
     {
-        dump($_SERVER['APP_INSTANCE']);
         $message = CloudMessage::fromArray([
             'topic' => $_SERVER["APP_INSTANCE"] . "-" . $channel,
             'notification' => Notification::create($title, $content, $imageURI),
@@ -96,7 +95,6 @@ class NotificationService
                 ]
             ]
         ]);
-        dump($message);
         $this->messaging->send($message);
     }
 
