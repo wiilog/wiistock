@@ -2151,7 +2151,7 @@ class ApiController extends AbstractFOSRestController
     {
         return [
             'demoMode' => $userService->hasRightFunction(Menu::NOMADE, Action::DEMO_MODE, $user),
-            'notifications' => $userService->hasRightFunction(Menu::NOMADE, Action::DISPLAY_NOTIFICATIONS, $user),
+            'notifications' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_NOTIFICATIONS, $user),
             'stock' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_STOCK, $user),
             'tracking' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_TRACA, $user),
             'group' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_GROUP, $user),
