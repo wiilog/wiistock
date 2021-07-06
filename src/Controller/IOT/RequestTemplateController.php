@@ -236,6 +236,7 @@ class RequestTemplateController extends AbstractController
                     $manager->remove($line);
                 }
             }
+            $manager->flush();
             $manager->remove($requestTemplate);
             $manager->flush();
 
