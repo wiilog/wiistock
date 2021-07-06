@@ -231,6 +231,11 @@ class RequestTemplateController extends AbstractController
                 "msg" => "Vous ne pouvez pas supprimer ce modèle de demande car il est utilisé par un actionneur",
             ]);
         } else if ($requestTemplate) {
+            if ($requestTemplate instanceof CollectRequestTemplate or $requestTemplate instanceof DeliveryRequestTemplate) {
+                foreach ($requestTemplate->getLines() as $line) {
+                    $manager->remove($line);
+                }
+            }
             $manager->remove($requestTemplate);
             $manager->flush();
 
