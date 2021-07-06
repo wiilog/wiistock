@@ -373,7 +373,8 @@ class DemandeController extends AbstractController
                 "Emplacement" => ($ligneArticle->getReference()->getEmplacement() ? $ligneArticle->getReference()->getEmplacement()->getLabel() : ' '),
                 "Quantité à prélever" => $ligneArticle->getQuantite() ?? '',
                 "barcode" => $ligneArticle->getReference() ? $ligneArticle->getReference()->getBarCode() : '',
-                "error" => $ligneArticle->getReference()->getQuantiteDisponible() < $ligneArticle->getQuantite(),
+                "error" => $ligneArticle->getReference()->getQuantiteDisponible() < $ligneArticle->getQuantite()
+                    && $demande->getStatut()->getCode() === Demande::STATUT_BROUILLON,
                 "Actions" => $this->renderView(
                     'demande/datatableLigneArticleRow.html.twig',
                     [

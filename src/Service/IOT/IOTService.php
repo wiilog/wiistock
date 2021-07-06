@@ -149,7 +149,7 @@ class IOTService
 
     private function treatActionTrigger(SensorWrapper $wrapper, TriggerAction $triggerAction, SensorMessage $sensorMessage, EntityManagerInterface $entityManager) {
         $needsTrigger = $sensorMessage->getEvent() === self::ACS_EVENT;
-        if ($sensorMessage->getSensor()->getProfile()->getName() === IOTService::SYMES_ACTION_MULTI) {
+        if ($needsTrigger && $sensorMessage->getSensor()->getProfile()->getName() === IOTService::SYMES_ACTION_MULTI) {
             $button = intval(substr($sensorMessage->getContent(), 7, 1)); //EVENT (2)
             $config = $triggerAction->getConfig();
             $wanted = intval($config['buttonIndex']);
