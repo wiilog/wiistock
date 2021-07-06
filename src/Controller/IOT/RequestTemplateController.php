@@ -225,7 +225,6 @@ class RequestTemplateController extends AbstractController
         $requestTemplateRepository = $manager->getRepository(RequestTemplate::class);
 
         $requestTemplate = $requestTemplateRepository->find($data["id"]);
-        dump($data, $requestTemplate);
         if ($requestTemplate && $requestTemplate->getTriggerActions()->count() > 0) {
             return $this->json([
                 "success" => false,
