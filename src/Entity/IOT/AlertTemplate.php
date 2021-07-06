@@ -15,10 +15,12 @@ class AlertTemplate
 
     public const SMS = "sms";
     public const MAIL = "mail";
+    public const PUSH = "push";
 
     public const TEMPLATE_TYPES = [
         self::SMS => 'SMS',
-        self::MAIL => 'Mail'
+        self::MAIL => 'Mail',
+        self::PUSH => 'Notifications Push',
     ];
 
     /**

@@ -9,7 +9,9 @@ use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;
 use App\Helper\FormatHelper;
 use App\Service\MailerService;
+use App\Service\NotificationService;
 use App\Service\VariableService;
+use Google\Cloud\Storage\Notification;
 use Ovh\Api;
 use Symfony\Component\HttpKernel\KernelInterface;
 use function GuzzleHttp\json_decode;
@@ -22,6 +24,9 @@ class AlertService
 
     /** @Required */
     public MailerService $mailerService;
+
+    /** @Required  */
+    public NotificationService $notificationService;
 
     /** @Required */
     public KernelInterface $kernel;
@@ -74,6 +79,13 @@ class AlertService
                 $content = '<img height="50px" width="50px" src="' . $data . '"><br>' . $content;
             }
             return $this->mailerService->sendMail($config["subject"], $content, explode(",", $config["receivers"]));
+        } else if ($template->getType() == AlertTemplate::PUSH) {
+            $src = null;
+            if (isset($config['image']) && !empty($config['image'])) {
+                $src = $this->kernel->getProjectDir() . '/public/uploads/attachements/' . $config['image'];
+            }
+            $this->notificationService->send('notifications', 'Alerte', $content, null, $src);
+            return true;
         }
     }
 }

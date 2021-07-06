@@ -17,6 +17,10 @@
         {% include('alert_template/templates/mail.html.twig') with {
             config: alert_template.config
         } %}
+    {% elseif alert_template.type == constant('App\\Entity\\IOT\\AlertTemplate::PUSH') %}
+        {% include('alert_template/templates/push.html.twig') with {
+            config: alert_template.config
+        } %}
     {% elseif alert_template.type == constant('App\\Entity\\IOT\\AlertTemplate::SMS') %}
         {% include('alert_template/templates/sms.html.twig') with {
             config: alert_template.config,

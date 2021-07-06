@@ -178,7 +178,6 @@ function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, hea
     if (data.nextModal) {
         $modal.find('.modal-body').html(data.nextModal);
     }
-
     if (tables) {
         tables.forEach((table) => {
             table.ajax.reload(null, false);
@@ -324,7 +323,6 @@ function processInputsForm($modal, data, isAttachmentForm) {
         val = (val && typeof val.trim === 'function') ? val.trim() : val;
 
         const customLabel = $input.data('custom-label');
-        console.log($input, customLabel)
         // Fix bug when we write <label>Label<select>...</select></label
         // the label variable had text options
         const dirtyLabel = (

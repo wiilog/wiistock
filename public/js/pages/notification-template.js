@@ -150,7 +150,7 @@ function onTemplateTypeChange($select) {
     const type = $select.val();
     const $modal = $select.closest('.modal');
 
-    const path = Routing.generate('toggle_template', {type: type});
+    const path = Routing.generate('alert_template_toggle_template', {type: type});
     $.get(path).then((data) => {
         const $templateContainer = $modal.find('.template-container');
         $templateContainer.empty();
@@ -159,7 +159,7 @@ function onTemplateTypeChange($select) {
         $modal.find('.error-msg').empty();
         $modal.find('.is-invalid').removeClass('is-invalid');
 
-        if(type === 'mail') {
+        if(type === 'mail' || type === 'push') {
             updateImagePreview('#preview-mail-image', '#upload-mail-image');
             initEditor('.editor-container');
         } else if(type === 'sms') {

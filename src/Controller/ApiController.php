@@ -119,7 +119,7 @@ class ApiController extends AbstractFOSRestController
 
             $rights = $this->getMenuRights($loggedUser, $userService);
             $channels = Stream::from($rights)
-                ->filter(fn($val, $key) => $val && in_array($key, ["stock", "tracking", "group", "ungroup", "demande"]))
+                ->filter(fn($val, $key) => $val && in_array($key, ["stock", "tracking", "group", "ungroup", "demande", "notifications"]))
                 ->takeKeys()
                 ->map(fn($right) => $_SERVER["APP_INSTANCE"] . "-" . $right)
                 ->toArray();

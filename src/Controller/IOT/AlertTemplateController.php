@@ -122,6 +122,21 @@ class AlertTemplateController extends AbstractController
                 'receivers' => PostHelper::string($post, 'receivers'),
                 'content' => PostHelper::string($post, 'content'),
             ];
+        } else if ($type === AlertTemplate::PUSH) {
+
+            $hasFile = $request->files->has('image');
+            $fileName = [];
+            $originalName = '';
+            if($request->files->has('image')) {
+                $file = $request->files->get('image');
+                $originalName = $file->getClientOriginalName();
+                $fileName = $attachmentService->saveFile($file);
+            }
+
+            $config = [
+                'content' => PostHelper::string($post, 'content'),
+                'image' => $hasFile ? $fileName[$originalName] : ''
+            ];
         }
 
         $alertTemplate->setConfig($config);
@@ -241,6 +256,8 @@ class AlertTemplateController extends AbstractController
             $html = $this->renderView('alert_template/templates/sms.html.twig');
         } else if ($type === AlertTemplate::MAIL) {
             $html = $this->renderView('alert_template/templates/mail.html.twig');
+        } else if ($type === AlertTemplate::PUSH) {
+            $html = $this->renderView('alert_template/templates/push.html.twig');
         }
 
         return $this->json($html);

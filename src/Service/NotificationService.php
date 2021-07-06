@@ -83,19 +83,20 @@ class NotificationService
         ]);
     }
 
-    private function send(string $channel, string $title, string $content, ?array $data = null)
+    public function send(string $channel, string $title, string $content, ?array $data = null, ?string $imageURI = null)
     {
+        dump($_SERVER['APP_INSTANCE']);
         $message = CloudMessage::fromArray([
             'topic' => $_SERVER["APP_INSTANCE"] . "-" . $channel,
-            'notification' => Notification::create($title, $content),
-            'data' => MessageData::fromArray($data),
+            'notification' => Notification::create($title, $content, $imageURI),
+            'data' => MessageData::fromArray($data ?? []),
             'android' => [
                 "notification" => [
                     "click_action" => self::FCM_PLUGIN_ACTIVITY
                 ]
             ]
         ]);
-
+        dump($message);
         $this->messaging->send($message);
     }
 
