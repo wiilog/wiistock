@@ -23,7 +23,7 @@ class NotificationService
     public const CHANNELS = [
         Livraison::class => "stock",
         Preparation::class => "stock",
-        Collecte::class => "stock",
+        OrdreCollecte::class => "stock",
         TransferOrder::class => "stock",
         Dispatch::class => "tracking",
         Handling::class => "demande",
@@ -77,14 +77,22 @@ class NotificationService
 
         $template = $notificationTemplateRepository->findByType($type);
 
-        $this->send($channel, $title, $this->variableService->replaceVariables($template->getContent(), $entity), [
-            "type" => $type,
-            "id" => $entity->getId()
-        ]);
+        $this->send(
+            $channel,
+            $title,
+            $this->variableService->replaceVariables($template->getContent(), $entity),
+            [
+                "type" => $type,
+                "id" => $entity->getId()
+            ]
+        );
     }
 
-    public function send(string $channel, string $title, string $content, ?array $data = null, ?string $imageURI = null)
-    {
+    public function send(string $channel,
+                         string $title,
+                         string $content,
+                         ?array $data = null,
+                         ?string $imageURI = null) {
         $message = CloudMessage::fromArray([
             'topic' => $_SERVER["APP_INSTANCE"] . "-" . $channel,
             'notification' => Notification::create($title, $content, $imageURI),
