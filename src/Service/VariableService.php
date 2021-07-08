@@ -41,7 +41,6 @@ class VariableService
     public const DELIVERY_TYPE = "typelivraison";
     public const DISPATCH_TYPE = "typeacheminement";
     public const HANDLING_TYPE = "typeservice";
-    public const TRANSFER_TYPE = "typetransfert";
 
     public const STATUS = "statut";
     public const SUBJECT = "objet";
@@ -51,6 +50,7 @@ class VariableService
     public const DESTINATION = "destination";
     public const REQUESTER = "demandeur";
     public const VALIDATION_DATE = "datevalidation";
+    public const CREATION_DATE = "creationdate";
     public const TAKE_LOCATION = "empprise";
     public const DEPOSIT_LOCATION = "empdepose";
     public const DUE_DATE = "dateecheance";
@@ -122,7 +122,7 @@ class VariableService
         self::LOADING => "Endroit de chargement",
         self::UNLOADING => "Endroit de déchargement",
         self::REQUESTER => "Utilisateur ayant créé la demande de service",
-        self::VALIDATION_DATE => "Date de validation de la demande de service",
+        self::CREATION_DATE => "Date de création de la demande de service",
         self::EXPECTED_DATE => "Date attendue de la demande de service",
         self::SUBJECT => "Objet de la demande de service",
         self::OPERATIONS_COUNT => "Nombre d'opérations à réaliser",
@@ -147,7 +147,7 @@ class VariableService
             return [
                 self::DELIVERY_ORDER_NUMBER => $entity->getNumero(),
                 self::DELIVERY_TYPE => FormatHelper::type($entity->getDemande()->getType()),
-                self::DESTINATION => FormatHelper::location($entity->getDestination()),
+                self::DESTINATION => FormatHelper::location($entity->getPreparation()->getDemande()->getDestination()),
                 self::REQUESTER => FormatHelper::user($entity->getDemande()->getUtilisateur()),
                 self::VALIDATION_DATE => FormatHelper::datetime($entity->getDate()),
             ];
@@ -170,7 +170,7 @@ class VariableService
                 self::DEPOSIT_LOCATION => FormatHelper::location($entity->getLocationTo()),
                 self::REQUESTER => FormatHelper::user($entity->getRequester()),
                 self::VALIDATION_DATE => FormatHelper::datetime($entity->getValidationDate()),
-                self::DUE_DATE => FormatHelper::datetime($entity->getEndDate()),
+                self::DUE_DATE => FormatHelper::date($entity->getStartDate()) . ' au ' . FormatHelper::date($entity->getEndDate()),
                 self::ORDER_NUMBER => $entity->getCommandNumber(),
                 self::PACK_COUNT => $entity->getDispatchPacks()->count(),
             ];
@@ -198,7 +198,6 @@ class VariableService
         } else if ($entity instanceof TransferOrder) {
             return [
                 self::TRANSFER_ORDER_NUMBER => $entity->getNumber(),
-                self::TRANSFER_TYPE => FormatHelper::type($entity->getRequest()->getType()),
                 self::ORIGIN => FormatHelper::location($entity->getRequest()->getOrigin()),
                 self::DESTINATION => FormatHelper::location($entity->getRequest()->getDestination()),
                 self::REQUESTER => FormatHelper::user($entity->getRequest()->getRequester()),

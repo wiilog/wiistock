@@ -17,7 +17,7 @@ class NotificationTemplateFixture extends Fixture implements FixtureGroupInterfa
         NotificationTemplate::PREPARATION => "Un ordre de préparation @numordrepreparation à traiter\nType : @typelivraison",
         NotificationTemplate::DELIVERY => "Un ordre de livraison @numordrelivraison à traiter\nType : @typelivraison",
         NotificationTemplate::COLLECT => "Un ordre de collecte @numordrecollecte à traiter\nType : @typecollecte",
-        NotificationTemplate::TRANSFER => "Un ordre de transfer @numordretransfert à traiter\nType : @typetransfert",
+        NotificationTemplate::TRANSFER => "Un ordre de transfer @numordretransfert à traiter",
         NotificationTemplate::DISPATCH=> "Une demande d'acheminement @numacheminement à traiter\nType : @typeacheminement",
         NotificationTemplate::HANDLING => "Demande de service @numservice à traiter\nType : @typeservice",
     ];

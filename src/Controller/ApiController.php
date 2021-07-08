@@ -123,6 +123,25 @@ class ApiController extends AbstractFOSRestController
                 ->takeKeys()
                 ->map(fn($right) => $_SERVER["APP_INSTANCE"] . "-" . $right)
                 ->toArray();
+
+            if (in_array($_SERVER["APP_INSTANCE"] . "-stock" , $channels)) {
+                Stream::from($loggedUser->getDeliveryTypes())
+                    ->each(function(Type $deliveryType) use ($channels) {
+                        $channels[] = $_SERVER["APP_INSTANCE"] . "-stock-delivery-" . $deliveryType->getId();
+                    });
+            }
+            if (in_array($_SERVER["APP_INSTANCE"] . "-tracking" , $channels)) {
+                Stream::from($loggedUser->getDispatchTypes())
+                    ->each(function(Type $dispatchType) use ($channels) {
+                        $channels[] = $_SERVER["APP_INSTANCE"] . "-stock-dispatch-" . $dispatchType->getId();
+                    });
+            }
+            if (in_array($_SERVER["APP_INSTANCE"] . "-demande" , $channels)) {
+                Stream::from($loggedUser->getHandlingTypes())
+                    ->each(function(Type $handlingType) use ($channels) {
+                        $channels[] = $_SERVER["APP_INSTANCE"] . "-stock-handling-" . $handlingType->getId();
+                    });
+            }
             $data['success'] = true;
             $data['data'] = [
                 'apiKey' => $apiKey,

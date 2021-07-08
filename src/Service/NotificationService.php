@@ -72,6 +72,12 @@ class NotificationService
         $type = NotificationService::GetTypeFromEntity($entity);
         $channel = NotificationService::GetChannelFromEntity($entity);
         $title = NotificationService::READABLE_TYPES[$type] ?? '';
+        $emergency = $this->compareEmergencies($entity);
+        $imageURI = null;
+        if ($emergency) {
+            $title .= ' [URGENT] ' . $entity->getEmergency();
+            $imageURI = $_SERVER['APP_URL'] . '/img/notification_alert.png';
+        }
 
         $notificationTemplateRepository = $this->manager->getRepository(NotificationTemplate::class);
 
@@ -84,7 +90,8 @@ class NotificationService
             [
                 "type" => $type,
                 "id" => $entity->getId()
-            ]
+            ],
+            $imageURI
         );
     }
 
@@ -110,8 +117,30 @@ class NotificationService
         return self::GetValueFromEntityKey(self::TYPE_BY_CLASS, $entity);
     }
 
+    private function compareEmergencies($entity): bool {
+        if ($entity instanceof Handling or $entity instanceof Dispatch) {
+            return $entity->getType()->isNotificationsEmergency($entity->getEmergency());
+        } else {
+            return false;
+        }
+    }
+
     public static function GetChannelFromEntity($entity): ?string {
-        return self::GetValueFromEntityKey(self::CHANNELS, $entity);
+        $res = null;
+        if ($entity instanceof Preparation) {
+            $res = "stock-delivery-" . $entity->getDemande()->getType()->getId();
+        } else if ($entity instanceof Livraison) {
+            $res = "stock-delivery-" . $entity->getPreparation()->getDemande()->getType()->getId();
+        } else if ($entity instanceof Dispatch) {
+            $res = "stock-dispatch-" . $entity->getType()->getId();
+        } else if ($entity instanceof Handling) {
+            $res = "stock-handling-" . $entity->getType()->getId();
+        } else if ($entity instanceof OrdreCollecte) {
+            $res = "stock";
+        } else if ($entity instanceof TransferOrder) {
+            $res = "tracking";
+        }
+        return $res;
     }
 
     private static function GetValueFromEntityKey(array $array, $entity) {
