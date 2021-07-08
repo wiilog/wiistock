@@ -133,9 +133,9 @@ class NotificationService
         } else if ($entity instanceof Livraison) {
             $res = "stock-delivery-" . $entity->getPreparation()->getDemande()->getType()->getId();
         } else if ($entity instanceof Dispatch) {
-            $res = "stock-dispatch-" . $entity->getType()->getId();
+            $res = "tracking-dispatch-" . $entity->getType()->getId();
         } else if ($entity instanceof Handling) {
-            $res = "stock-handling-" . $entity->getType()->getId();
+            $res = "demande-handling-" . $entity->getType()->getId();
         } else if ($entity instanceof OrdreCollecte) {
             $res = "stock";
         } else if ($entity instanceof TransferOrder) {
