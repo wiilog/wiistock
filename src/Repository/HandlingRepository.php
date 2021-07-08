@@ -351,6 +351,7 @@ class HandlingRepository extends EntityRepository
             ->where('handling.number LIKE :value')
             ->orderBy('handling.creationDate', 'DESC')
             ->addOrderBy('handling.number', 'DESC')
+            ->addOrderBy('handling.id', 'DESC')
             ->setParameter('value', Handling::PREFIX_NUMBER . '-' . $date . '%')
             ->getQuery()
             ->execute();
