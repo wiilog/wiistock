@@ -225,13 +225,18 @@ class RequestTemplateController extends AbstractController
         $requestTemplateRepository = $manager->getRepository(RequestTemplate::class);
 
         $requestTemplate = $requestTemplateRepository->find($data["id"]);
-        dump($data, $requestTemplate);
         if ($requestTemplate && $requestTemplate->getTriggerActions()->count() > 0) {
             return $this->json([
                 "success" => false,
                 "msg" => "Vous ne pouvez pas supprimer ce modèle de demande car il est utilisé par un actionneur",
             ]);
         } else if ($requestTemplate) {
+            if ($requestTemplate instanceof CollectRequestTemplate or $requestTemplate instanceof DeliveryRequestTemplate) {
+                foreach ($requestTemplate->getLines() as $line) {
+                    $manager->remove($line);
+                }
+            }
+            $manager->flush();
             $manager->remove($requestTemplate);
             $manager->flush();
 
