@@ -41,6 +41,7 @@ class VariableService
     public const DELIVERY_TYPE = "typelivraison";
     public const DISPATCH_TYPE = "typeacheminement";
     public const HANDLING_TYPE = "typeservice";
+    public const TRANSFER_TYPE = "typetransfert";
 
     public const STATUS = "statut";
     public const SUBJECT = "objet";
@@ -197,6 +198,7 @@ class VariableService
         } else if ($entity instanceof TransferOrder) {
             return [
                 self::TRANSFER_ORDER_NUMBER => $entity->getNumber(),
+                self::TRANSFER_TYPE => FormatHelper::type($entity->getRequest()->getType()),
                 self::ORIGIN => FormatHelper::location($entity->getRequest()->getOrigin()),
                 self::DESTINATION => FormatHelper::location($entity->getRequest()->getDestination()),
                 self::REQUESTER => FormatHelper::user($entity->getRequest()->getRequester()),
