@@ -94,7 +94,6 @@ class NotificationTemplateController extends AbstractController
 
         $notificationTemplate = PostHelper::entity($entityManager, $post, "id", NotificationTemplate::class);
         $notificationTemplate->setContent(PostHelper::string($post, "content"));
-        dump(PostHelper::string($post, "content"));
 
         if (substr_count($notificationTemplate->getContent(), "<p>") > 5) {
             return $this->json([
