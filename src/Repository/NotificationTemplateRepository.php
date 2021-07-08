@@ -45,16 +45,6 @@ class NotificationTemplateRepository extends EntityRepository
                     ))->setParameter('value', '%' . $search . '%');
                 }
             }
-
-            if (!empty($params->get('order'))) {
-                $order = $params->get('order')[0]['dir'];
-                if (!empty($order)) {
-                    $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
-                    if (property_exists(NotificationTemplate::class, $column)) {
-                        $qb->orderBy('notification_template.' . $column, $order);
-                    }
-                }
-            }
         }
 
         $countFiltered = QueryCounter::count($qb, "notification_template");

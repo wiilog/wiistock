@@ -1,7 +1,6 @@
 const notificationTableConfig = {
     processing: true,
     serverSide: true,
-    order: [['type', 'asc']],
     ajax: {
         url: Routing.generate("notification_template_api", true),
         type: "POST",
