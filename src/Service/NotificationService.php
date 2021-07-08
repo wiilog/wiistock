@@ -89,7 +89,8 @@ class NotificationService
             $this->variableService->replaceVariables($template->getContent(), $entity),
             [
                 "type" => $type,
-                "id" => $entity->getId()
+                "id" => $entity->getId(),
+                'image' => $imageURI
             ],
             $imageURI
         );
