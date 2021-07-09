@@ -119,7 +119,6 @@ class NotificationService
                 ], 'validate_only' => false
             ]
         ]);
-        dump($response);
     }
 
     public static function GetTypeFromEntity($entity): ?string {
