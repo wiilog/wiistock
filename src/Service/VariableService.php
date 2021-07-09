@@ -190,7 +190,7 @@ class VariableService
                 self::LOADING => $entity->getSource(),
                 self::UNLOADING => $entity->getDestination(),
                 self::REQUESTER => FormatHelper::user($entity->getRequester()),
-                self::VALIDATION_DATE => FormatHelper::datetime($entity->getValidationDate()),
+                self::CREATION_DATE => FormatHelper::datetime($entity->getCreationDate()),
                 self::EXPECTED_DATE => FormatHelper::datetime($entity->getDesiredDate()),
                 self::SUBJECT => $entity->getSubject(),
                 self::OPERATIONS_COUNT => $entity->getCarriedOutOperationCount(),
