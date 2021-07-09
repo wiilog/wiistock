@@ -50,7 +50,7 @@ class VariableService
     public const DESTINATION = "destination";
     public const REQUESTER = "demandeur";
     public const VALIDATION_DATE = "datevalidation";
-    public const CREATION_DATE = "creationdate";
+    public const CREATION_DATE = "datecreation";
     public const TAKE_LOCATION = "empprise";
     public const DEPOSIT_LOCATION = "empdepose";
     public const DUE_DATE = "dateecheance";
