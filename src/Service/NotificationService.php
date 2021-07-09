@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use App\Entity\Collecte;
 use App\Entity\Dispatch;
 use App\Entity\Handling;
 use App\Entity\Livraison;
@@ -11,11 +10,8 @@ use App\Entity\OrdreCollecte;
 use App\Entity\Preparation;
 use App\Entity\TransferOrder;
 use Doctrine\ORM\EntityManagerInterface;
-use Kreait\Firebase\Messaging;
-use Kreait\Firebase\Messaging\AndroidConfig;
-use Kreait\Firebase\Messaging\CloudMessage;
-use Kreait\Firebase\Messaging\MessageData;
-use Kreait\Firebase\Messaging\Notification;
+use Google_Client;
+use Symfony\Component\HttpKernel\KernelInterface;
 
 class NotificationService
 {
@@ -65,7 +61,7 @@ class NotificationService
     public VariableService $variableService;
 
     /** @Required */
-    public Messaging $messaging;
+    public KernelInterface $kernel;
 
     public function toTreat($entity)
     {
@@ -89,7 +85,7 @@ class NotificationService
             $this->variableService->replaceVariables($template->getContent(), $entity),
             [
                 "type" => $type,
-                "id" => $entity->getId(),
+                "id" => strval($entity->getId()),
                 'image' => $imageURI
             ],
             $imageURI
@@ -101,17 +97,28 @@ class NotificationService
                          string $content,
                          ?array $data = null,
                          ?string $imageURI = null) {
-        $message = CloudMessage::fromArray([
-            'topic' => $_SERVER["APP_INSTANCE"] . "-" . $channel,
-            'notification' => Notification::create($title, $content, $imageURI),
-            'data' => MessageData::fromArray($data ?? []),
-            'android' => [
-                "notification" => [
-                    "click_action" => self::FCM_PLUGIN_ACTIVITY
-                ]
+        $client = $this->configureClient();
+        $httpClient = $client->authorize();
+        $response = $httpClient->request(
+            'POST',
+            'https://fcm.googleapis.com/v1/projects/follow-gt/messages:send', [
+            'json' => [
+                'message' => [
+                    'topic' => $_SERVER["APP_INSTANCE"] . "-" . $channel,
+                    'notification' => [
+                        'title' => $title,
+                        'body' => $content,
+                        'image' => $imageURI
+                    ],
+                    'data' => $data ?? [],
+                    'android' => [
+                        "notification" => [
+                            "click_action" => self::FCM_PLUGIN_ACTIVITY
+                        ]
+                    ]
+                ], 'validate_only' => false
             ]
         ]);
-        $this->messaging->send($message);
     }
 
     public static function GetTypeFromEntity($entity): ?string {
@@ -155,4 +162,13 @@ class NotificationService
         return $res;
     }
 
+    private function configureClient(): Google_Client {
+        $client = new Google_Client();
+        $client->setAuthConfig($this->kernel->getProjectDir() . '/config/fcm-config.json');
+        $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
+        $client->fetchAccessTokenWithAssertion();
+        $accessToken = $client->getAccessToken();
+        $client->setAccessToken($accessToken);
+        return $client;
+    }
 }

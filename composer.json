@@ -15,8 +15,8 @@
         "doctrine/doctrine-fixtures-bundle": "^3.4",
         "friendsofsymfony/jsrouting-bundle": "^2.7",
         "friendsofsymfony/rest-bundle": "^3.0",
+        "google/apiclient": "^2.10",
         "knplabs/knp-snappy-bundle": "^1.8",
-        "kreait/firebase-bundle": "^2.4",
         "nelmio/cors-bundle": "^2.1",
         "nikitospush/barcode-bundle": "^3.0",
         "ovh/ovh": "^3.0",
@@ -98,7 +98,7 @@
     },
     "extra": {
         "symfony": {
-            "allow-contrib": false,
+            "allow-contrib": "true",
             "require": "^5.2"
         }
     },
