@@ -19,5 +19,4 @@ return [
     FOS\JsRoutingBundle\FOSJsRoutingBundle::class => ['all' => true],
     FOS\RestBundle\FOSRestBundle::class => ['all' => true],
     SGK\BarcodeBundle\SGKBarcodeBundle::class => ['all' => true],
-    Kreait\Firebase\Symfony\Bundle\FirebaseBundle::class => ['all' => true],
 ];

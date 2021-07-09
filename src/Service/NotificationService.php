@@ -11,11 +11,6 @@ use App\Entity\OrdreCollecte;
 use App\Entity\Preparation;
 use App\Entity\TransferOrder;
 use Doctrine\ORM\EntityManagerInterface;
-use Kreait\Firebase\Messaging;
-use Kreait\Firebase\Messaging\AndroidConfig;
-use Kreait\Firebase\Messaging\CloudMessage;
-use Kreait\Firebase\Messaging\MessageData;
-use Kreait\Firebase\Messaging\Notification;
 
 class NotificationService
 {
@@ -63,9 +58,6 @@ class NotificationService
 
     /** @Required */
     public VariableService $variableService;
-
-    /** @Required */
-    public Messaging $messaging;
 
     public function toTreat($entity)
     {

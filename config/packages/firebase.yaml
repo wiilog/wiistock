@@ -1,4 +1,0 @@
-kreait_firebase:
-    projects:
-        followgt:
-            credentials: '%kernel.project_dir%/config/fcm-config.json'
