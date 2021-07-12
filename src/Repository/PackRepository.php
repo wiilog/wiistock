@@ -303,6 +303,7 @@ class PackRepository extends EntityRepository
         $queryBuilder
             ->select($isCount ? $queryBuilderExpr->count($field) : $field)
             ->leftJoin('colis.nature', 'nature')
+            ->leftJoin('colis.arrivage', 'pack_arrival')
             ->join('colis.lastDrop', 'lastDrop')
             ->join('lastDrop.emplacement', 'emplacement')
             ->where('colis.groupIteration IS NULL');
