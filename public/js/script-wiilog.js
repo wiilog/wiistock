@@ -28,7 +28,7 @@ const PAGE_DISPATCHES = 'acheminement';
 const PAGE_STATUS = 'status';
 const PAGE_EMPLACEMENT = 'emplacement';
 const PAGE_URGENCES = 'urgences';
-
+const PAGE_NOTIFICATIONS = 'notifications';
 const STATUT_ACTIF = 'disponible';
 const STATUT_INACTIF = 'consommé';
 const STATUT_EN_TRANSIT = 'en transit';
@@ -60,7 +60,35 @@ $(function () {
     // Override Symfony Form content
     $('.form-error-icon').text('Erreur');
     $('.removeRequired, .form-group, label').removeClass('required');
+
+    registerNotificationChannel();
 });
+
+function registerNotificationChannel() {
+    FCM.getToken({vapidKey: "BAtT1Leq2TOoLNyai0HAk5Fv3Tcqk0ps0wEGBwbT8TmHbXNCRU_jOLyvEm4_mc7-nb7XubnEZs-7VkB-ix8FX9A"}).then((token) => {
+        $.post(Routing.generate('register_topic', {token}), function() {
+            FCM.onMessage((payload) => {
+                const $notificationModal = $('.notification-modal');
+                const $countFigure = $(`.header-icon.notifications`).find('.icon-figure');
+                $notificationModal.find('.notification-image').attr('src', payload.data.image);
+                $notificationModal.find('.notification-title').text(payload.data.title);
+                $notificationModal.find('.notification-content').text(payload.data.content);
+                $notificationModal.removeClass('d-none');
+                let figure = Number.parseInt($countFigure.text());
+                figure += 1;
+                $countFigure.text(figure);
+            });
+        })
+    });
+}
+
+function clickNotification(event, element) {
+    if (event.target != element) {
+        event.stopPropagation();
+        return;
+    }
+    window.location.href = Routing.generate('notifications_index', true);
+}
 
 function openQueryModal(query = null, event) {
     if (event) {

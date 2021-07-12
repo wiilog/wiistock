@@ -146,7 +146,7 @@ class IOTService
             if ($triggerAction->getRequestTemplate()) {
                 $this->treatRequestTemplateTriggerType($triggerAction->getRequestTemplate(), $entityManager, $wrapper);
             } else if ($triggerAction->getAlertTemplate()) {
-                $this->treatAlertTemplateTriggerType($triggerAction->getAlertTemplate(), $sensorMessage);
+                $this->treatAlertTemplateTriggerType($triggerAction->getAlertTemplate(), $sensorMessage, $entityManager);
             }
         }
     }
@@ -163,7 +163,7 @@ class IOTService
             if ($triggerAction->getRequestTemplate()) {
                 $this->treatRequestTemplateTriggerType($triggerAction->getRequestTemplate(), $entityManager, $wrapper);
             } else if ($triggerAction->getAlertTemplate()) {
-                $this->treatAlertTemplateTriggerType($triggerAction->getAlertTemplate(), $sensorMessage);
+                $this->treatAlertTemplateTriggerType($triggerAction->getAlertTemplate(), $sensorMessage, $entityManager);
             }
         }
     }
@@ -334,8 +334,8 @@ class IOTService
             ->setValidationDate($date);
     }
 
-    private function treatAlertTemplateTriggerType(AlertTemplate $template, SensorMessage $message) {
-        $this->alertService->trigger($template, $message);
+    private function treatAlertTemplateTriggerType(AlertTemplate $template, SensorMessage $message, EntityManagerInterface $entityManager) {
+        $this->alertService->trigger($template, $message, $entityManager);
     }
 
     private function parseAndCreateMessage(array $message, EntityManagerInterface $entityManager): SensorMessage

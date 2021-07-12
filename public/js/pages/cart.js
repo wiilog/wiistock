@@ -45,7 +45,7 @@ $(document).ready(() => {
         });
 
         $.post(route, response => {
-            $(`.cart-total`).text(response.count)[response.count ? `addClass` : `removeClass`](`d-none`);
+            $(`.icon-figure`).text(response.count)[response.count ? `addClass` : `removeClass`](`d-none`);
             table.ajax.reload();
             showBSAlert(response.msg, `success`);
         });

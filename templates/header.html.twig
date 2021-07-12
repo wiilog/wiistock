@@ -74,8 +74,15 @@
                         and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_PURCHASE_REQUESTS'))
                         ) %}
                     <div class="col-auto">
-                        <a class="cart" href="{{ path('cart') }}">
-                            <div class="cart-total small {{ not app.user.cart or not app.user.cart.references | length ? 'd-none' }}">
+                        <a class="header-icon notifications white" href="{{ path('notifications_index') }}">
+                            <div class="icon-figure notification-figure small {{ not app.user.unreadNotifications or app.user.unreadNotifications.count == 0  ? 'd-none' }}">
+                                {{ app.user.unreadNotifications.count }}
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-auto">
+                        <a class="header-icon cart" href="{{ path('cart') }}">
+                            <div class="icon-figure small {{ not app.user.cart or not app.user.cart.references | length ? 'd-none' }}">
                                 {{ app.user.cart.references | length }}
                             </div>
                         </a>

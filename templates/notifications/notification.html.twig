@@ -1,0 +1,14 @@
+<div class="notification-modal p-4 pointer d-none" onclick="clickNotification($event, $(this))">
+    <div class="row">
+        <div class="col-3">
+            <img class="notification-image" src="https" width="50px" height="50px">
+        </div>
+        <div class="col-8">
+            <div class="row notification-title"></div>
+            <div class="row notification-content"></div>
+        </div>
+        <div class="col-1">
+            <span onclick="$('.notification-modal').addClass('d-none');">X</span>
+        </div>
+    </div>
+</div>

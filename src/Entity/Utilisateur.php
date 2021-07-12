@@ -341,6 +341,11 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private Collection $sensorWrappers;
 
+    /**
+     * @ORM\ManyToMany(targetEntity=Notification::class, mappedBy="users")
+     */
+    private $unreadNotifications;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -389,6 +394,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->purchaseRequestBuyers = new ArrayCollection();
         $this->purchaseRequestRequesters = new ArrayCollection();
         $this->sensorWrappers = new ArrayCollection();
+        $this->unreadNotifications = new ArrayCollection();
     }
 
     public function getId()
@@ -1832,6 +1838,40 @@ class Utilisateur implements UserInterface, EquatableInterface
             if ($sensorWrapper->getManager() === $this) {
                 $sensorWrapper->setManager(null);
             }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Notification[]
+     */
+    public function getUnreadNotifications(): Collection
+    {
+        return $this->unreadNotifications;
+    }
+
+    public function clearNotifications()
+    {
+        foreach ($this->getUnreadNotifications() as $notification) {
+            $this->removeUnreadNotification($notification);
+        }
+    }
+
+    public function addUnreadNotification(Notification $unreadNotification): self
+    {
+        if (!$this->unreadNotifications->contains($unreadNotification)) {
+            $this->unreadNotifications[] = $unreadNotification;
+            $unreadNotification->addUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUnreadNotification(Notification $unreadNotification): self
+    {
+        if ($this->unreadNotifications->removeElement($unreadNotification)) {
+            $unreadNotification->removeUser($this);
         }
 
         return $this;

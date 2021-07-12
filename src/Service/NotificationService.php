@@ -2,9 +2,12 @@
 
 namespace App\Service;
 
+use App\Entity\Alert;
 use App\Entity\Dispatch;
+use App\Entity\FiltreSup;
 use App\Entity\Handling;
 use App\Entity\Livraison;
+use App\Entity\Notification;
 use App\Entity\NotificationTemplate;
 use App\Entity\OrdreCollecte;
 use App\Entity\Preparation;
@@ -12,6 +15,8 @@ use App\Entity\TransferOrder;
 use Doctrine\ORM\EntityManagerInterface;
 use Google_Client;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Twig\Environment as Twig_Environment;
 
 class NotificationService
 {
@@ -63,6 +68,12 @@ class NotificationService
     /** @Required */
     public KernelInterface $kernel;
 
+    /** @Required */
+    public Twig_Environment $templating;
+
+    /** @Required */
+    public HttpClientInterface $client;
+
     public function toTreat($entity)
     {
         $type = NotificationService::GetTypeFromEntity($entity);
@@ -92,32 +103,86 @@ class NotificationService
         );
     }
 
+    public function getNotificationDataByParams($params, $user) {
+        $filtreSupRepository = $this->manager->getRepository(FiltreSup::class);
+        $notificationsRepository = $this->manager->getRepository(Notification::class);
+
+        $filtresAlerte = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_NOTIFICATIONS, $user);
+
+        $results = $notificationsRepository->getByParams($params, $filtresAlerte);
+        $notifications = $results['data'];
+
+        $rows = [];
+        foreach($notifications as $notification) {
+            $rows[] = $this->dataRowNotification($notification);
+        }
+
+        return [
+            'data' => $rows,
+            'recordsFiltered' => $results['count'],
+            'recordsTotal' => $results['total'],
+        ];
+    }
+
+    private function dataRowNotification(Notification $notification) {
+        return [
+            'content' => $this->templating->render('notifications/datatableNotificationRow.html.twig', [
+                'source' => $notification->getSource(),
+                'triggered' => $notification->getTriggered(),
+                'content' => $notification->getContent(),
+            ])
+        ];
+    }
+
+    public function subscribeClientToTopic(string $token, string $topic = 'notifications-web') {
+        $key = $_SERVER['FCM_KEY'];
+        $topic = $_SERVER["APP_INSTANCE"] . "-" . $topic;
+        $response = $this->client->request(
+            'POST',
+            'https://iid.googleapis.com/iid/v1:batchAdd',
+            [
+                'headers' => [
+                    'Authorization' => "key=$key",
+
+                ],
+                "body" => json_encode([
+                    'to' => "/topics/$topic",
+                    'registration_tokens' => [$token]
+                ])
+            ]
+        );
+    }
+
     public function send(string $channel,
                          string $title,
                          string $content,
                          ?array $data = null,
-                         ?string $imageURI = null) {
+                         ?string $imageURI = null,
+                         bool $onlyData = false) {
         $client = $this->configureClient();
         $httpClient = $client->authorize();
+        $json = [
+            'message' => [
+                'topic' => $_SERVER["APP_INSTANCE"] . "-" . $channel,
+                'android' => [
+                    "notification" => [
+                        "click_action" => self::FCM_PLUGIN_ACTIVITY
+                    ]
+                ],
+                'data' => $data ?? [],
+            ], 'validate_only' => false
+        ];
+        if (!$onlyData) {
+            $json['notification'] = [
+                'title' => $title,
+                'body' => $content,
+                'image' => $imageURI
+            ];
+        }
         $response = $httpClient->request(
             'POST',
             'https://fcm.googleapis.com/v1/projects/follow-gt/messages:send', [
-            'json' => [
-                'message' => [
-                    'topic' => $_SERVER["APP_INSTANCE"] . "-" . $channel,
-                    'notification' => [
-                        'title' => $title,
-                        'body' => $content,
-                        'image' => $imageURI
-                    ],
-                    'data' => $data ?? [],
-                    'android' => [
-                        "notification" => [
-                            "click_action" => self::FCM_PLUGIN_ACTIVITY
-                        ]
-                    ]
-                ], 'validate_only' => false
-            ]
+            'json' => $json
         ]);
     }
 

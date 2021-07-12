@@ -1,0 +1,30 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block page_filter %}
+    {% include 'filters/filtersNotifications.html.twig' with {
+        page: 'PAGE_NOTIFICATIONS',
+        tableSelector: '#tableNotifications'
+    } %}
+{% endblock %}
+
+{% block page_content %}
+    <div class="m-4 wii-page-card">
+        <div class="row wii-page-card-header">
+            <div class="col-auto ml-auto">
+
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <table id="tableNotifications" class="table w-100">
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/pages/notifications.js') }}?v={{ web_version }}"></script>
+{% endblock %}
