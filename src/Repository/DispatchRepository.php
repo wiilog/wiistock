@@ -288,6 +288,7 @@ class DispatchRepository extends EntityRepository
         $queryBuilder = $this->createQueryBuilder('dispatch')
             ->select('dispatch.id')
             ->addSelect('dispatch.number AS number')
+            ->addSelect('dispatch.commandNumber AS commandNumber')
             ->addSelect('dispatch.creationDate AS creationDate')
             ->addSelect('dispatch.validationDate AS validationDate')
             ->addSelect('dispatch.treatmentDate AS treatmentDate')
