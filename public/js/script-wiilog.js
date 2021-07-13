@@ -70,10 +70,15 @@ function registerNotificationChannel() {
             FCM.onMessage((payload) => {
                 const $notificationModal = $('.notification-modal');
                 const $countFigure = $(`.header-icon.notifications`).find('.icon-figure');
-                $notificationModal.find('.notification-image').attr('src', payload.data.image);
+                if (payload.data.image) {
+                    $notificationModal.find('.notification-image').attr('src', payload.data.image);
+                    $notificationModal.find('.notification-image').removeClass('d-none');
+                } else {
+                    $notificationModal.find('.notification-image').addClass('d-none');
+                }
                 $notificationModal.find('.notification-title').text(payload.data.title);
                 $notificationModal.find('.notification-content').text(payload.data.content);
-                $notificationModal.removeClass('d-none');
+                $notificationModal.fadeIn(200);
                 let figure = Number.parseInt($countFigure.text());
                 figure += 1;
                 $countFigure.text(figure);
@@ -82,8 +87,8 @@ function registerNotificationChannel() {
     });
 }
 
-function clickNotification(event, element) {
-    if (event.target != element) {
+function clickNotification(event) {
+    if ($(event.target).prop("tagName") === $('.notification-modal').find('.close').find('span').prop("tagName")) {
         event.stopPropagation();
         return;
     }

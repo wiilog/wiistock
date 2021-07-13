@@ -21,7 +21,7 @@ class AlertTemplate
     public const TEMPLATE_TYPES = [
         self::SMS => 'SMS',
         self::MAIL => 'Mail',
-        self::PUSH => 'Notifications Push',
+        self::PUSH => 'Notifications Push/Web',
     ];
 
     /**

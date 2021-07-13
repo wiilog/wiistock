@@ -1,0 +1,16 @@
+- name: fcm-config
+  secret:
+    secretName: fcm-config
+- mountPath: /project/config/fcm-config.json
+  subPath: fcm-config.json
+  name: fcm-config
+
+
+
+- mountPath: /project/config/fcm-config.json
+          subPath: fcm-config.json
+          name: fcm-config
+
+- name: fcm-config
+        secret:
+          secretName: fcm-config

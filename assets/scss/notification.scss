@@ -1,12 +1,12 @@
 .notification-modal {
-    width: 500px;
-    height: 100px;
-
-    position:absolute;
-    top:20px;
-    right:100px;
-
-    background: lightgrey;
-    z-index: 10000000000;
-    border-radius: 30px;
+    .modal-dialog {
+        position:absolute;
+        top:20px;
+        right:100px;
+        z-index: 100000000;
+        width: 500px !important;
+        .modal-content {
+            background: white;
+        }
+    }
 }
