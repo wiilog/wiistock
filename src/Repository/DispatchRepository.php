@@ -76,6 +76,13 @@ class DispatchRepository extends EntityRepository
                     $qb->andWhere("dispatch.id = :filter_dispatchnumber_value")
                         ->setParameter("filter_dispatchnumber_value", $value);
                     break;
+                case FiltreSup::FIELD_COMMAND_LIST:
+                    $value = array_map(function($value) {
+                        return explode(":", $value)[0];
+                    }, explode(',', $filter['value']));
+                    $qb->andWhere("dispatch.commandNumber IN (:filter_commandNumber_value)")
+                        ->setParameter("filter_commandNumber_value", $value);
+                    break;
                 case FiltreSup::FIELD_EMERGENCY_MULTIPLE:
                     $value = array_map(function($value) {
                         return explode(":", $value)[0];

@@ -34,6 +34,7 @@ class FieldsParamController extends AbstractController
         // Acheminements
         FieldsParam::FIELD_CODE_EMERGENCY,
         FieldsParam::FIELD_CODE_RECEIVER_DISPATCH,
+        FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH,
 
         // Services
         FieldsParam::FIELD_CODE_RECEIVERS_HANDLING

@@ -12,6 +12,7 @@ $(function() {
     Select2Old.user(filtersContainer.find('.ajax-autocomplete-user[name=receivers]'), 'Destinataires');
     Select2Old.user(filtersContainer.find('.ajax-autocomplete-user[name=requesters]'), 'Demandeurs');
     Select2Old.init(filtersContainer.find('.filter-select2[name="multipleTypes"]'), 'Types');
+    Select2Old.initFree(filtersContainer.find('.filter-select2[name="commandList"]'), $('#translateCommandNumber').val());
     initDateTimePicker();
 
     // filtres enregistrés en base pour chaque utilisateur
