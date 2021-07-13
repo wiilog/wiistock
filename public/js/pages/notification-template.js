@@ -1,3 +1,34 @@
+const replacements = {
+    '@numordrelivraison': 'L-123456789',
+    '@numordrepreparation': 'P-123456789',
+    '@numordrecollecte': 'C-123456789',
+    '@numordretransfert': 'T-123456789',
+    '@numacheminement': 'A-123456789',
+    '@numservice': 'S-123456789',
+    '@typelivraison': 'Type-L',
+    '@typeacheminement': 'Type-A',
+    '@typeservice': 'Type-S',
+    '@statut': 'Statut-1',
+    '@objet': 'Objet-1',
+    '@typecollecte': 'Type-C',
+    '@pointdecollecte': 'EMPLACEMENT-C',
+    '@origine': 'EMPLACEMENT-O',
+    '@destination': 'EMPLACEMENT-D',
+    '@demandeur': 'Demandeur-1',
+    '@datevalidation': '05/01/2021 14:01:02',
+    '@datecreation': '05/01/2021 14:01:02',
+    '@empprise': 'EMPLACEMENT-P',
+    '@empdepose': 'EMPLACEMENT-D',
+    '@dateecheance': '05/01/2021 au 06/01/2021',
+    '@numcommande': '123456789',
+    '@nbcolis': '5',
+    '@chargement': 'Chargement 1',
+    '@dechargement': 'Déchargement 1',
+    '@dateattendue': '05/01/2021 14:01:02',
+    '@nboperations': '50',
+}
+
+
 const notificationTableConfig = {
     processing: true,
     serverSide: true,
@@ -54,13 +85,19 @@ $(document).ready(() => {
     $modal.arrive(`textarea[name=content]`, function() {
         const $content = $(this);
         const $example = $modal.find(`.phone-example .notification`);
-
-        $example.html($content.val().replace(/\n/g, `<br>`))
+        replaceProperExamples($content, $example);
         $content.keyup(function() {
-            $example.html($content.val().replace(/\n/g, `<br>`));
-        })
+            replaceProperExamples($content, $example);
+        });
     });
 })
+
+function replaceProperExamples($content, $example) {
+    let content = $content.val();
+    content = content.replace(/\n/g, ` <br>`);
+    content = content.split(' ').map((word) => replacements[word] || word).join(' ');
+    $example.html(content)
+}
 
 
 function switchPageBasedOnHash() {
