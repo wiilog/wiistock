@@ -125,11 +125,17 @@ class NotificationService
     }
 
     private function dataRowNotification(Notification $notification) {
+        $config = $notification->getTemplate()->getConfig();
+        $src = null;
+        if (isset($config['image']) && !empty($config['image'])) {
+            $src = $_SERVER['APP_URL'] . '/uploads/attachements/' . $config['image'];
+        }
         return [
             'content' => $this->templating->render('notifications/datatableNotificationRow.html.twig', [
                 'source' => $notification->getSource(),
                 'triggered' => $notification->getTriggered(),
                 'content' => $notification->getContent(),
+                'image' => $src
             ])
         ];
     }

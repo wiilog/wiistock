@@ -93,7 +93,7 @@ class Notification {
     }
 
     /**
-     * @return NotificationTemplate
+     * @return AlertTemplate
      */
     public function getTemplate()
     {

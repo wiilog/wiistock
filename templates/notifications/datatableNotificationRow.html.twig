@@ -1,7 +1,19 @@
 <div class="row allow-expand">
     <div class="col-4">Source : <span class="bold">{{ source }}</span></div>
-    <div class="col-4">Date et heure <span class="bold">{{ triggered | date('d/m/Y H:i:s') }}</span></div>
+    <div class="col-4">Date et heure : <span class="bold">{{ triggered | date('d/m/Y H:i:s') }}</span></div>
 </div>
-<div class="mt-4 allow-expand no-ellipsis">
-    <div class="bg-lightGrey bold p-2" style="white-space: break-spaces">{{ content }}</div>
+<div class="row allow-expand">
+    <div class="col-11">
+        <div class="mt-2 allow-expand no-ellipsis">
+            <div class="bg-lightGrey bold p-2" style="white-space: break-spaces">{{ content }}</div>
+        </div>
+    </div>
+    <div class="col-1 text-center">
+        {% if image %}
+        <div class="d-flex align-items-center h-100">
+            <img src="{{ image }}" alt="" width="50px" height="50px"
+                 style="margin: auto">
+        </div>
+        {% endif %}
+    </div>
 </div>
