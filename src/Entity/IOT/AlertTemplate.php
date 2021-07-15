@@ -5,6 +5,7 @@ namespace App\Entity\IOT;
 use App\Repository\IOT\AlertTemplateRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use App\Entity\Notification;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -20,7 +21,7 @@ class AlertTemplate
     public const TEMPLATE_TYPES = [
         self::SMS => 'SMS',
         self::MAIL => 'Mail',
-        self::PUSH => 'Notifications Push',
+        self::PUSH => 'Notifications Push/Web',
     ];
 
     /**
@@ -49,6 +50,11 @@ class AlertTemplate
      * @ORM\OneToMany(targetEntity=TriggerAction::class, mappedBy="alertTemplate")
      */
     private Collection $triggerActions;
+
+    /**
+     * @ORM\OneToMany(targetEntity=Notification::class, mappedBy="template")
+     */
+    private Collection $notifications;
 
     public function __construct()
     {

@@ -45,6 +45,10 @@ table.wii-table {
             max-width: initial;
         }
 
+        &.no-ellipsis {
+            text-overflow: initial;
+        }
+
         img {
             max-height: 10vh;
         }
