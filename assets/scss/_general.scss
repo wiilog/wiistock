@@ -557,3 +557,8 @@ label.required:after {
         color: black;
     }
 }
+
+.thick-line {
+    border-width: 2px;
+    border-color: $lightGrey;
+}

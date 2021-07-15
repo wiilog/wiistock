@@ -10,6 +10,7 @@ use App\Entity\Menu;
 use App\Entity\Type;
 use App\Service\AlertService;
 use App\Service\CSVExportService;
+use App\Service\NotificationService;
 use App\Service\RefArticleDataService;
 use App\Service\SpecificService;
 use DateTime;
@@ -54,6 +55,38 @@ class AlertController extends AbstractController
                 "expiration" => "Péremption",
             ]
         ]);
+    }
+
+    /**
+     * @Route("/notifications/liste", name="notifications_index", methods="GET|POST", options={"expose"=true})
+     */
+    public function indexNotifications(EntityManagerInterface $entityManager): Response
+    {
+        $user = $this->getUser();
+        $user->clearNotifications();
+        $entityManager->flush();
+        return $this->render('notifications/index.html.twig');
+    }
+
+    /**
+     * @Route("/notifications/api", name="notifications_api", methods="GET|POST", options={"expose"=true})
+     */
+    public function apiNotifications(Request $request, NotificationService $notificationService, EntityManagerInterface $entityManager): Response
+    {
+        $user = $this->getUser();
+        $user->clearNotifications();
+        $entityManager->flush();
+        $data = $notificationService->getNotificationDataByParams($request->request, $this->getUser());
+        return new JsonResponse($data);
+    }
+
+    /**
+     * @Route("/notifications/abonnement/{token}", name="register_topic", methods="POST", options={"expose"=true})
+     */
+    public function subscribeToToken(string $token, NotificationService $notificationService): Response
+    {
+        $notificationService->subscribeClientToTopic($token);
+        return new JsonResponse();
     }
 
     /**

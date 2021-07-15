@@ -199,11 +199,16 @@
     height: 7vh;
 }
 
-.cart {
+.header-icon {
     @extend .btn;
     @include icon-button;
 
-    background-image: url("../../public/svg/cart.svg");
+    &.cart {
+        background-image: url("../../public/svg/cart.svg");
+    }
+    &.notifications {
+        background-image: url("../../public/svg/notif-web.svg");
+    }
     background-repeat: no-repeat;
     background-size: 30px 30px;
     background-position: center;
@@ -216,8 +221,11 @@
     align-items: flex-end;
     justify-content: flex-end;
 
-    .cart-total {
+    .icon-figure {
         border-radius: 6px;
+        &.notification-figure {
+            background: red;
+        }
         background: rgb(46, 194, 171);
         color: white;
         text-align: center;
