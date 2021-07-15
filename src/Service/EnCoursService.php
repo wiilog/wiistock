@@ -13,6 +13,7 @@ use DatePeriod;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use Twig\Environment;
 
 
 class EnCoursService
@@ -21,6 +22,7 @@ class EnCoursService
      * @var EntityManagerInterface $entityManager
      */
     private EntityManagerInterface $entityManager;
+    private Environment $templating;
 
     private const AFTERNOON_FIRST_HOUR_INDEX = 4;
     private const AFTERNOON_LAST_HOUR_INDEX = 6;
@@ -35,9 +37,10 @@ class EnCoursService
      * EnCoursService constructor.
      * @param EntityManagerInterface $entityManager
      */
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(EntityManagerInterface $entityManager, Environment $templating)
     {
         $this->entityManager = $entityManager;
+        $this->templating = $templating;
     }
 
     /**
@@ -179,7 +182,7 @@ class EnCoursService
                     [
                         'natures' => $natures,
                         'isCount' => false,
-                        'field' => 'colis.code, lastDrop.datetime, emplacement.dateMaxTime, emplacement.label',
+                        'field' => 'colis.code, lastDrop.datetime, emplacement.dateMaxTime, emplacement.label, pack_arrival.id AS arrivalId',
                         'limit' => $maxQueryResultLength,
                         'start' => $dropsCounter,
                         'order' => 'asc',
@@ -202,7 +205,10 @@ class EnCoursService
                             'delay' => $timeInformation['ageTimespan'],
                             'date' => $dateMvt->format('d/m/Y H:i:s'),
                             'late' => $isLate,
-                            'emp' => $oldestDrop['label']
+                            'emp' => $oldestDrop['label'],
+                            'linkedArrival' => $this->templating->render('en_cours/datatableOnGoingRow.html.twig', [
+                                'arrivalId' => $oldestDrop['arrivalId'],
+                            ]),
                         ];
                     }
 
@@ -219,7 +225,7 @@ class EnCoursService
                 [
                     'natures' => $natures,
                     'isCount' => false,
-                    'field' => 'colis.code, lastDrop.datetime, emplacement.dateMaxTime, emplacement.label'
+                    'field' => 'colis.code, lastDrop.datetime, emplacement.dateMaxTime, emplacement.label, pack_arrival.id AS arrivalId'
                 ]
             );
             $oldestDrops = $oldestDrops[0];
@@ -234,7 +240,10 @@ class EnCoursService
                     'delay' => $timeInformation['ageTimespan'],
                     'date' => $dateMvt->format('d/m/Y H:i:s'),
                     'late' => $isLate,
-                    'emp' => $oldestDrop['label']
+                    'emp' => $oldestDrop['label'],
+                    'linkedArrival' => $this->templating->render('en_cours/datatableOnGoingRow.html.twig', [
+                        'arrivalId' => $oldestDrop['arrivalId'],
+                    ]),
                 ];
             }
         }
