@@ -101,7 +101,7 @@ class FiltreSupController extends AbstractController
                 'buyers' => FiltreSup::FIELD_BUYERS,
                 'operators' => FiltreSup::FIELD_OPERATORS,
                 'dispatchNumber' => FiltreSup::FIELD_DISPATCH_NUMBER,
-                'emergencyMultiple' => FiltreSup::FIELD_EMERGENCY_MULTIPLE
+                'emergencyMultiple' => FiltreSup::FIELD_EMERGENCY_MULTIPLE,
             ];
 
             foreach ($filterLabelsSelect2 as $filterLabel => $filterName) {

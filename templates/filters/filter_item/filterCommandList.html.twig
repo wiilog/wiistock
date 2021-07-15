@@ -1,9 +1,14 @@
 <div class="col-auto m-1 select-filter pr-0">
     <div class="select2-overflow">
         <div class="input-group w-100 cursor-default">
-            <select class="form-control select2-free data filter-select2" name="commandList" id="commandList"
+            <select class="form-control select2-free data filter-select2"
+                    name="commandList"
+                    id="commandList"
                     multiple="multiple" {{ disabled }}>
             </select>
         </div>
     </div>
 </div>
+<input type="hidden"
+       id="translateCommandNumber"
+       value="{{ "acheminement.Numéro de commande"|trans }}"/>
