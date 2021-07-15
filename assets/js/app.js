@@ -148,6 +148,14 @@ jQuery.deepCopy = function(object) {
     return object !== undefined ? JSON.parse(JSON.stringify(object)) : object;
 };
 
+jQuery.fn.display = function(hide = false) {
+    this.removeClass('d-none');
+    if (hide) {
+        this.addClass('d-none');
+    }
+    return this;
+};
+
 jQuery.mobileCheck = function() {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
         || window.screen.width <= 992;

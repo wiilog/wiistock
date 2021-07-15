@@ -72,16 +72,17 @@ function registerNotificationChannel() {
                 const $countFigure = $(`.header-icon.notifications`).find('.icon-figure');
                 if (payload.data.image) {
                     $notificationModal.find('.notification-image').attr('src', payload.data.image);
-                    $notificationModal.find('.notification-image').removeClass('d-none');
+                    $notificationModal.find('.notification-image').display();
                 } else {
-                    $notificationModal.find('.notification-image').addClass('d-none');
+                    $notificationModal.find('.notification-image').display(false);
                 }
                 $notificationModal.find('.notification-title').text(payload.data.title);
                 $notificationModal.find('.notification-content').text(payload.data.content);
                 $notificationModal.fadeIn(200);
-                let figure = Number.parseInt($countFigure.text());
+                let figure = Number.parseInt($countFigure.text()) || 0;
                 figure += 1;
                 $countFigure.text(figure);
+                $countFigure.display();
             });
         })
     });
