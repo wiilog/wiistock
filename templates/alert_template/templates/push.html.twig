@@ -18,7 +18,9 @@
     <button class="btn btn-primary" onclick="$('#upload-mail-image').click();">
         <i class='fas fa-pencil-alt'></i>
     </button>
-
+    <button class="btn btn-danger ml-2" onclick="$('#preview-mail-image').display(true); $('#upload-mail-image').val(null);">
+        <i class='fas fa-trash'></i>
+    </button>
     <input type="file" name="image" class="data-file" id="upload-mail-image" accept="image/png, image/jpeg, image/jpg" hidden>
 </div>
 

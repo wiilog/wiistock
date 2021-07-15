@@ -125,7 +125,7 @@ class PairingRepository extends EntityRepository
         return $this->createQueryBuilder("pairing")
             ->andWhere("pairing.active = 1")
             ->andWhere("pairing.end IS NOT NULL AND pairing.end < :now")
-            ->setParameter("now", new DateTime())
+            ->setParameter("now", new DateTime("now", new \DateTimeZone("Europe/Paris")))
             ->getQuery()
             ->getResult();
     }
