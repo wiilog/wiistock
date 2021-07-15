@@ -1006,6 +1006,7 @@ class DispatchController extends AbstractController {
             $csvHeader = array_merge(
                 [
                     'Numéro demande',
+                    $translator->trans('acheminement.Numéro de commande'),
                     'Date de création',
                     'Date de validation',
                     'Date de traitement',
@@ -1043,6 +1044,7 @@ class DispatchController extends AbstractController {
 
                     $row = [];
                     $row[] = $number;
+                    $row[] = $dispatch['commandNumber'] ?: '';
                     $row[] = $dispatch['creationDate'] ? $dispatch['creationDate']->format('d/m/Y H:i:s') : '';
                     $row[] = $dispatch['validationDate'] ? $dispatch['validationDate']->format('d/m/Y H:i:s') : '';
                     $row[] = $dispatch['treatmentDate'] ? $dispatch['treatmentDate']->format('d/m/Y H:i:s') : '';
