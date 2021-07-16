@@ -808,7 +808,7 @@ class ParametrageGlobalController extends AbstractController
 
         if($request->files->has("website-logo")) {
             $logo = $request->files->get("website-logo");
-            $fileName = $attachmentService->saveFile($logo, $logo->getClientOriginalName());
+            $fileName = $attachmentService->saveFile($logo);
             $setting = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::WEBSITE_LOGO]);
             if($parametrageGlobalRepository->getUnusedLogo($setting, $entityManager)){
                 unlink($setting->getValue());
@@ -828,7 +828,7 @@ class ParametrageGlobalController extends AbstractController
         if($request->files->has("email-logo")) {
             $logo = $request->files->get("email-logo");
 
-            $fileName = $attachmentService->saveFile($logo, $logo->getClientOriginalName());
+            $fileName = $attachmentService->saveFile($logo);
             $setting = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::EMAIL_LOGO]);
             if($parametrageGlobalRepository->getUnusedLogo($setting, $entityManager)){
                 unlink($setting->getValue());
@@ -848,7 +848,7 @@ class ParametrageGlobalController extends AbstractController
         if($request->files->has("mobile-logo-login")) {
             $logo = $request->files->get("mobile-logo-login");
 
-            $fileName = $attachmentService->saveFile($logo, $logo->getClientOriginalName());
+            $fileName = $attachmentService->saveFile($logo);
             $setting = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::MOBILE_LOGO_LOGIN]);
             if($parametrageGlobalRepository->getUnusedLogo($setting, $entityManager)){
                 unlink($setting->getValue());
@@ -868,7 +868,7 @@ class ParametrageGlobalController extends AbstractController
         if($request->files->has("mobile-logo-header")) {
             $logo = $request->files->get("mobile-logo-header");
 
-            $fileName = $attachmentService->saveFile($logo, $logo->getClientOriginalName());
+            $fileName = $attachmentService->saveFile($logo);
             $setting = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::MOBILE_LOGO_HEADER]);
             if($parametrageGlobalRepository->getUnusedLogo($setting, $entityManager)){
                 unlink($setting->getValue());
