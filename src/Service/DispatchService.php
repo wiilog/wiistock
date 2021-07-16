@@ -11,12 +11,14 @@ use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
+use App\Entity\ParametrageGlobal;
 use App\Entity\TrackingMovement;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Repository\FreeFieldRepository;
 use App\Repository\FieldsParamRepository;
+use App\Repository\ParametrageGlobalRepository;
 use App\Repository\StatutRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -156,6 +158,7 @@ class DispatchService {
     public function getNewDispatchConfig(StatutRepository $statutRepository,
                                          FreeFieldRepository $champLibreRepository,
                                          FieldsParamRepository $fieldsParamRepository,
+                                         ParametrageGlobalRepository $parametrageGlobalRepository,
                                          array $types,
                                          ?Arrivage $arrival = null) {
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
@@ -165,6 +168,7 @@ class DispatchService {
             'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
             'fieldsParam' => $fieldsParam,
             'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY),
+            'preFill' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::PREFILL_DUE_DATE_TODAY),
             'typeChampsLibres' => array_map(function(Type $type) use ($champLibreRepository) {
                 $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);
                 return [

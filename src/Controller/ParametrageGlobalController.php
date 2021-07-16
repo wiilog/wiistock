@@ -158,6 +158,7 @@ class ParametrageGlobalController extends AbstractController
                     'overconsumption_logo' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::OVERCONSUMPTION_LOGO),
                     'keepModal' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::KEEP_DISPATCH_PACK_MODAL_OPEN),
                     'openModal' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::OPEN_DISPATCH_ADD_PACK_MODAL_ON_CREATION),
+                    'preFill' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::PREFILL_DUE_DATE_TODAY),
                     'statuses' => $statusRepository->findByCategorieName(CategorieStatut::DISPATCH),
                     'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]),
                     'expectedDateColors' => [
