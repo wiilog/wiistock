@@ -1333,7 +1333,10 @@ class ReceptionController extends AbstractController {
             } else {
                 if($data['confirmed'] === true) {
                     $this->validateReception($entityManager, $reception);
-                    return new JsonResponse(1);
+                    return new JsonResponse([
+                        'code' => 1,
+                        'redirect' => $this->generateUrl('reception_index')
+                    ]);
                 } else {
                     $partielle = false;
                     foreach($listReceptionReferenceArticle as $receptionRA) {
@@ -1342,7 +1345,10 @@ class ReceptionController extends AbstractController {
                     if(!$partielle) {
                         $this->validateReception($entityManager, $reception);
                     }
-                    return new JsonResponse($partielle ? 0 : 1);
+                    return new JsonResponse([
+                        'code' => $partielle ? 0 : 1,
+                        'redirect' => $this->generateUrl('reception_index')
+                    ]);
                 }
             }
         }

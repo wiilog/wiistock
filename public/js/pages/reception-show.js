@@ -418,9 +418,10 @@ function finishReception(receptionId, confirmed, $button) {
             id: receptionId,
             confirmed: confirmed
         }), function (data) {
-            if (data === 1) {
-                window.location.reload();
-            } else if (data === 0) {
+            const code = data.code;
+            if (code === 1) {
+                window.location.href = data.redirect;
+            } else if (code === 0) {
                 $('#finishReception').click();
             } else {
                 showBSAlert(data, 'danger');
