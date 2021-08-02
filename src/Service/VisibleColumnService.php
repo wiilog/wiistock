@@ -20,7 +20,7 @@ class VisibleColumnService {
             array_map(
                 function (array $column) use ($columnsVisible) {
                     $alwaysVisible = $column['alwaysVisible'] ?? false;
-                    $visible = $alwaysVisible || in_array($column['name'], $columnsVisible);
+                    $visible = $column['visible'] ?? ($alwaysVisible || in_array($column['name'], $columnsVisible));
                     $translated = $column['translated'] ?? false;
                     $title = $column['title'] ?? '';
                     return [

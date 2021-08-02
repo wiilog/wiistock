@@ -25,6 +25,8 @@ class Utilisateur implements UserInterface, EquatableInterface
     const COL_VISIBLE_TRACKING_MOVEMENT_DEFAULT = ["origin", "date", "colis", "reference", "label", "quantity", "location", "type", "operateur", "group"];
     const COL_VISIBLE_LIT_DEFAULT = ["type", "arrivalNumber", "receptionNumber", "buyers", "numCommandeBl", "command", "provider", "references", "lastHistorique", "creationDate", "updateDate", "status", "actions"];
 	const SEARCH_DEFAULT = ["label", "reference"];
+    const COL_VISIBLE_RECEPTION_DEFAULT = ["actions", "Date", "number", "dateAttendue", "DateFin", "orderNumber", "receiver", "Fournisseur", "Statut", "Commentaire", "deliveries", "storageLocation"];
+
 
     /**
      * @ORM\Id()
@@ -245,6 +247,11 @@ class Utilisateur implements UserInterface, EquatableInterface
     /**
      * @ORM\Column(type="json", nullable=true)
      */
+    private $columnsVisibleForReception;
+
+    /**
+     * @ORM\Column(type="json", nullable=true)
+     */
     private $columnsVisibleForDispatch;
 
     /**
@@ -386,6 +393,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->columnsVisibleForDispatch = Utilisateur::COL_VISIBLE_DISPATCH_DEFAULT;
         $this->columnsVisibleForLitige = Utilisateur::COL_VISIBLE_LIT_DEFAULT;
         $this->columnsVisibleForTrackingMovement = Utilisateur::COL_VISIBLE_TRACKING_MOVEMENT_DEFAULT;
+        $this->columnsVisibleForReception = Utilisateur::COL_VISIBLE_RECEPTION_DEFAULT;
         $this->recherche = Utilisateur::SEARCH_DEFAULT;
         $this->rechercheForArticle = Utilisateur::SEARCH_DEFAULT;
         $this->roles = ['USER']; // évite bug -> champ roles ne doit pas être vide
@@ -428,6 +436,18 @@ class Utilisateur implements UserInterface, EquatableInterface
             [$this->email],
             $secondaryEmails
         );
+    }
+
+    public function getColumnsVisibleForReception()
+    {
+        return $this->columnsVisibleForReception;
+    }
+
+    public function setColumnsVisibleForReception($columnsVisibleForReception): self
+    {
+        $this->columnsVisibleForReception = $columnsVisibleForReception;
+
+        return $this;
     }
 
     public function getPassword(): ?string

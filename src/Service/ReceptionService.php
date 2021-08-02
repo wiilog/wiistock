@@ -4,6 +4,7 @@
 namespace App\Service;
 
 
+use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
@@ -11,6 +12,7 @@ use App\Entity\Demande;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
+use App\Entity\FreeField;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Reception;
 use App\Entity\Statut;
@@ -61,6 +63,9 @@ class ReceptionService
 
     /** @Required  */
     public GlobalParamService $globalParamService;
+
+    /** @Required  */
+    public VisibleColumnService $visibleColumnService;
 
 
     public function getDataForDatatable(Utilisateur $user, $params = null, $purchaseRequestFilter = null)
@@ -273,6 +278,29 @@ class ReceptionService
                 ['reception' => $reception]
             ),
         ];
+    }
+
+    public function getColumnVisibleConfig(EntityManagerInterface $entityManager,
+                                           Utilisateur $currentUser): array {
+
+        $columnsVisible = $currentUser->getColumnsVisibleForReception();
+        $columns = [
+            ['name' => "Actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true],
+            ["title" => "Date création", "name" => "Date", 'searchable' => true],
+            ["title" => "réception.n° de réception", "name" => "number", 'searchable' => true, 'translated' => true],
+            ["title" => "Date attendue", "name" => "dateAttendue", 'searchable' => true],
+            ["title" => "Date fin", "name" => "DateFin", 'searchable' => true],
+            ["title" => "Numéro commande", "name" => "orderNumber", 'searchable' => true],
+            ["title" => "Destinataire(s)", "name" => "receiver", 'searchable' => true],
+            ["title" => "Fournisseur", "name" => "Fournisseur", 'searchable' => true],
+            ["title" => "Statut", "name" => "Statut", 'searchable' => true],
+            ["title" => "Emplacement de stockage", "name" => "storageLocation", 'searchable' => true],
+            ["title" => "Commentaire", "name" => "Commentaire", 'searchable' => true],
+            ["title" => "Types de demande de livraison lié", "name" => "deliveries", 'searchable' => false, 'orderable' => false],
+            ["title" => "Urgence", "name" => "emergency", 'searchable' => false, 'orderable' => false, 'alwaysVisible' => true, 'class' => 'noVis', 'visible' => false],
+        ];
+
+        return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
     }
 
     public function createHeaderDetailsConfig(Reception $reception): array {
