@@ -265,6 +265,9 @@ class ReceptionService
             "orderNumber" => $reception->getOrderNumber() ?: "",
             "storageLocation" => FormatHelper::location($reception->getStorageLocation()),
             "emergency" => $reception->isManualUrgent() || $reception->hasUrgentArticles(),
+            "deliveries" => $this->templating->render('reception/delivery_types.html.twig', [
+                'deliveries' => $reception->getDemandes()
+            ]),
             'Actions' => $this->templating->render(
                 'reception/datatableReceptionRow.html.twig',
                 ['reception' => $reception]

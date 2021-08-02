@@ -40,6 +40,7 @@ $(function () {
             {"data": 'Statut', 'name': 'statut', 'title': 'Statut'},
             {"data": 'storageLocation', 'name': 'storageLocation', 'title': 'Emplacement de stockage'},
             {"data": 'Commentaire', 'name': 'commentaire', 'title': 'Commentaire'},
+            {"data": 'deliveries', 'name': 'deliveries', 'title': 'Types de demande de livraison lié', orderable: false},
             {"data": 'emergency', 'name': 'emergency', 'title': 'urgence', visible: false},
         ],
         rowConfig: {
