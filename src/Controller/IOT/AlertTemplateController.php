@@ -52,6 +52,10 @@ class AlertTemplateController extends AbstractController
                     'msg' => "Le modèle d'alerte <strong>${name}</strong> est lié à un ou plusieurs actionneurs, veuillez les supprimer avant."
                 ]);
             }
+            foreach ($alertTemplate->getNotifications() as $notification) {
+                $notification->setTemplate(null);
+            }
+            $entityManager->flush();
             $entityManager->remove($alertTemplate);
 
             $entityManager->flush();

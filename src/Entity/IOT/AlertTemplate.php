@@ -139,4 +139,11 @@ class AlertTemplate
 
         return $this;
     }
+
+    /**
+     * @return Notification[]
+     */
+    public function getNotifications(): Collection {
+        return $this->notifications;
+    }
 }

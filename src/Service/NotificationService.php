@@ -125,7 +125,7 @@ class NotificationService
     }
 
     private function dataRowNotification(Notification $notification) {
-        $config = $notification->getTemplate()->getConfig();
+        $config = $notification->getTemplate() ? $notification->getTemplate()->getConfig() : [];
         $src = null;
         if (isset($config['image']) && !empty($config['image'])) {
             $src = $_SERVER['APP_URL'] . '/uploads/attachements/' . $config['image'];
