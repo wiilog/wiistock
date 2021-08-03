@@ -646,7 +646,7 @@ class TrackingMovementService
             $movement['quantity'],
             $movement['typeName'],
             $movement['operatorUsername'],
-            $movement['commentaire'],
+            strip_tags($movement['commentaire']),
             $attachementName,
             $origine ?? ' ',
             $movement['numeroCommandeListArrivage'] && !empty($movement['numeroCommandeListArrivage'])
