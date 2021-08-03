@@ -17,9 +17,6 @@ class CheckPairingValidityCommand extends Command {
     /** @Required */
     public EntityManagerInterface $entityManager;
 
-    /** @Required */
-    public IOTService $iotService;
-
     protected function configure() {
         $this->setDescription("Deactivates pairing that reached the end date");
     }

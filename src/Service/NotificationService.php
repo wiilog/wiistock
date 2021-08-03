@@ -176,10 +176,11 @@ class NotificationService
                     ]
                 ],
                 'data' => $data ?? [],
-            ], 'validate_only' => false
+            ],
+            'validate_only' => false
         ];
         if (!$onlyData) {
-            $json['notification'] = [
+            $json['message']['notification'] = [
                 'title' => $title,
                 'body' => $content,
                 'image' => $imageURI

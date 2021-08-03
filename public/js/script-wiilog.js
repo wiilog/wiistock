@@ -70,11 +70,11 @@ function registerNotificationChannel() {
             FCM.onMessage((payload) => {
                 const $notificationModal = $('.notification-modal');
                 const $countFigure = $(`.header-icon.notifications`).find('.icon-figure');
-                if (payload.data.image) {
+                if (payload.data.image && payload.data.image !== "") {
                     $notificationModal.find('.notification-image').attr('src', payload.data.image);
                     $notificationModal.find('.notification-image').display();
                 } else {
-                    $notificationModal.find('.notification-image').display(false);
+                    $notificationModal.find('.notification-image').display(true);
                 }
                 $notificationModal.find('.notification-title').text(payload.data.title);
                 $notificationModal.find('.notification-content').text(payload.data.content);
