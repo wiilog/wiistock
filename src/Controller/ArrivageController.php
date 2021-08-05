@@ -757,6 +757,7 @@ class ArrivageController extends AbstractController
         $natureRepository = $entityManager->getRepository(Nature::class);
         $usersRepository = $entityManager->getRepository(Utilisateur::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $acheteursNames = [];
         foreach ($arrivage->getAcheteurs() as $user) {
             $acheteursNames[] = $user->getUsername();
@@ -783,7 +784,8 @@ class ArrivageController extends AbstractController
             'fieldsParam' => $fieldsParam,
             'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage),
             'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
-            'modalNewDispatchConfig' => $dispatchService->getNewDispatchConfig($statutRepository, $champLibreRepository, $fieldsParamRepository, $types, $arrivage)
+            'modalNewDispatchConfig' => $dispatchService->getNewDispatchConfig($statutRepository,
+                $champLibreRepository, $fieldsParamRepository, $parametrageGlobalRepository, $types, $arrivage)
         ]);
     }
 

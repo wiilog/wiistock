@@ -151,7 +151,7 @@
     <hr class="thick-line">
 
     <div class="row mt-2 mb-2">
-        <div class="col-12">
+        <div class="col-6">
             {% set checked = keepModal ? 'checked' %}
             <label class="switch">
                 <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-dispatch-pack-modal"
@@ -161,10 +161,7 @@
             </label>
             <label class="pl-1" for="param-redirect-arrival">{{ 'Garder la modale d\'ajout de colis ouverte à l\'enregistrement' | trans }}</label>
         </div>
-    </div>
-
-    <div class="row mt-2 mb-2">
-        <div class="col-12">
+        <div class="col-6">
             {% set checked = openModal ? 'checked' %}
             <label class="switch">
                 <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-dispatch-pack-modal"
@@ -173,6 +170,19 @@
                 <span class="slider round"></span>
             </label>
             <label class="pl-1" for="param-redirect-arrival">{{ 'Ouvrir la modale d\'ajout de colis à l\'ajout de la demande d\'acheminement' | trans }}</label>
+        </div>
+    </div>
+
+    <div class="row mt-2 mb-2">
+        <div class="col-6">
+            {% set checked = preFill ? 'checked' %}
+            <label class="switch">
+                <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-dispatch-pack-modal"
+                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::PREFILL_DUE_DATE_TODAY') }}"
+                       onchange="updateToggledParam($(this))">
+                <span class="slider round"></span>
+            </label>
+            <label class="pl-1" for="param-redirect-arrival">Pré-remplir la date du jour dans le champ à échéance Du et échéance Au</label>
         </div>
     </div>
 

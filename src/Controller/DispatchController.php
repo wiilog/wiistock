@@ -81,6 +81,7 @@ class DispatchController extends AbstractController {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -97,7 +98,8 @@ class DispatchController extends AbstractController {
             'types' => $types,
             'fieldsParam' => $fieldsParam,
             'fields' => $fields,
-            'modalNewConfig' => $service->getNewDispatchConfig($statutRepository, $champLibreRepository, $fieldsParamRepository, $types)
+            'modalNewConfig' => $service->getNewDispatchConfig($statutRepository, $champLibreRepository, $fieldsParamRepository,
+                $parametrageGlobalRepository, $types)
         ]);
     }
 

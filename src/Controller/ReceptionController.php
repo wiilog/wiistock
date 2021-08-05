@@ -322,6 +322,34 @@ class ReceptionController extends AbstractController {
     }
 
     /**
+     * @Route("/colonne-visible", name="save_column_visible_for_reception", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE}, mode=HasPermission::IN_JSON)
+     */
+    public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response {
+        $data = json_decode($request->getContent(), true);
+
+        $champs = array_keys($data);
+        $user = $this->getUser();
+        /** @var $user Utilisateur */
+        $champs[] = "actions";
+        $user->setColumnsVisibleForReception($champs);
+        $entityManager->flush();
+
+        return new JsonResponse();
+    }
+
+    /**
+     * @Route("/api-columns", name="reception_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE}, mode=HasPermission::IN_JSON)
+     */
+    public function apiColumns(EntityManagerInterface $entityManager): Response {
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+        $columns = $this->receptionService->getColumnVisibleConfig($entityManager, $currentUser);
+        return $this->json($columns);
+    }
+
+    /**
      * @Route("/api-article/{id}", name="reception_article_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE}, mode=HasPermission::IN_JSON)
      */
@@ -412,6 +440,9 @@ class ReceptionController extends AbstractController {
                 'champsLibres' => $champsLibres,
             ];
         }
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
+        $fields = $this->receptionService->getColumnVisibleConfig($entityManager, $user);
 
         return $this->render('reception/index.html.twig', [
             'typeChampLibres' => $typeChampLibre,
@@ -419,7 +450,8 @@ class ReceptionController extends AbstractController {
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::RECEPTION),
             'receptionLocation' => $this->globalParamService->getParamLocation(ParametrageGlobal::DEFAULT_LOCATION_RECEPTION),
             'purchaseRequestFilter' => $purchaseRequest ? implode(',', $purchaseRequestLinesOrderNumbers) : 0,
-            'purchaseRequest' => $purchaseRequest ? $purchaseRequest->getId() : ''
+            'purchaseRequest' => $purchaseRequest ? $purchaseRequest->getId() : '',
+            'fields' => $fields,
         ]);
     }
 
@@ -1333,7 +1365,10 @@ class ReceptionController extends AbstractController {
             } else {
                 if($data['confirmed'] === true) {
                     $this->validateReception($entityManager, $reception);
-                    return new JsonResponse(1);
+                    return new JsonResponse([
+                        'code' => 1,
+                        'redirect' => $this->generateUrl('reception_index')
+                    ]);
                 } else {
                     $partielle = false;
                     foreach($listReceptionReferenceArticle as $receptionRA) {
@@ -1342,7 +1377,10 @@ class ReceptionController extends AbstractController {
                     if(!$partielle) {
                         $this->validateReception($entityManager, $reception);
                     }
-                    return new JsonResponse($partielle ? 0 : 1);
+                    return new JsonResponse([
+                        'code' => $partielle ? 0 : 1,
+                        'redirect' => $this->generateUrl('reception_index')
+                    ]);
                 }
             }
         }
