@@ -163,6 +163,7 @@ class DispatchController extends AbstractController {
 
     /**
      * @Route("/creer", name="dispatch_new", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
+     * @throws Exception
      */
     public function new(Request $request,
                         FreeFieldService $freeFieldService,
@@ -184,7 +185,8 @@ class DispatchController extends AbstractController {
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $transporterRepository = $entityManager->getRepository(Transporteur::class);
         $packRepository = $entityManager->getRepository(Pack::class);
-
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $preFill = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::PREFILL_DUE_DATE_TODAY);
         $printDeliveryNote = $request->query->get('printDeliveryNote');
 
         $dispatch = new Dispatch();
@@ -250,10 +252,14 @@ class DispatchController extends AbstractController {
 
         if(!empty($startDate)) {
             $dispatch->setStartDate($startDate);
+        } else if ($preFill) {
+            $dispatch->setStartDate(new DateTime('now', new \DateTimeZone('Europe/Paris')));
         }
 
         if(!empty($endDate)) {
             $dispatch->setEndDate($endDate);
+        } else if ($preFill) {
+            $dispatch->setEndDate(new DateTime('now', new \DateTimeZone('Europe/Paris')));
         }
 
         if(!empty($carrier)) {
