@@ -87,10 +87,6 @@ class LivraisonsManagerService
 
         $entityManager->persist($livraison);
 
-        if($livraison->getDemande()->getType()->isNotificationsEnabled()) {
-            $this->notificationService->toTreat($livraison);
-        }
-
         return $livraison;
     }
 

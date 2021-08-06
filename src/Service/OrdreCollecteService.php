@@ -429,10 +429,6 @@ class OrdreCollecteService
 
             $entityManager->persist($newCollecte);
 
-            if ($newCollecte->getDemandeCollecte()->getType()->isNotificationsEnabled()) {
-                $this->notificationService->toTreat($newCollecte);
-            }
-
             foreach ($articlesToRemove as $mouvement) {
                 if ($mouvement['isRef'] == 1) {
                     $ordreCollecteRef = $ordreCollecteReferenceRepository->findByOrdreCollecteAndRefId($ordreCollecte, $mouvement['id']);
@@ -448,6 +444,10 @@ class OrdreCollecteService
             $demandeCollecte->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_INCOMPLETE));
 
             $entityManager->flush();
+
+            if ($newCollecte->getDemandeCollecte()->getType()->isNotificationsEnabled()) {
+                $this->notificationService->toTreat($newCollecte);
+            }
         }
         else {
             $statutCollecte = $statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_COLLECTE);

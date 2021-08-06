@@ -33,6 +33,7 @@ use App\Entity\Translation;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
+use App\Service\NotificationService;
 use WiiCommon\Helper\Stream;
 
 use App\Exceptions\ArticleNotAvailableException;
@@ -85,6 +86,9 @@ class ApiController extends AbstractFOSRestController
 
     /** @var Utilisateur|null */
     private $user;
+
+    /** @Required */
+    public NotificationService $notificationService;
 
     public function getUser(): Utilisateur
     {
@@ -613,7 +617,9 @@ class ApiController extends AbstractFOSRestController
                         }
 
                         $entityManager->flush();
-
+                        if($livraison->getDemande()->getType()->isNotificationsEnabled()) {
+                            $this->notificationService->toTreat($livraison);
+                        }
                         $preparationsManager->updateRefArticlesQuantities($preparation, $entityManager);
                     });
 

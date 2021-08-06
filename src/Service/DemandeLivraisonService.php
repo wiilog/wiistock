@@ -481,10 +481,6 @@ class DemandeLivraisonService
         $statutD = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
         $demande->setStatut($statutD);
 
-        if ($demande->getType()->isNotificationsEnabled()) {
-            $this->notificationService->toTreat($preparation);
-        }
-
         // modification du statut articles => en transit
         $articles = $demande->getArticles();
         foreach ($articles as $article) {
@@ -513,6 +509,9 @@ class DemandeLivraisonService
 
         try {
             $entityManager->flush();
+            if ($demande->getType()->isNotificationsEnabled()) {
+                $this->notificationService->toTreat($preparation);
+            }
         }
         /** @noinspection PhpRedundantCatchClauseInspection */
         catch (UniqueConstraintViolationException $e) {

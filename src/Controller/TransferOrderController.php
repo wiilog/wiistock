@@ -13,6 +13,7 @@ use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
 use App\Entity\Article;
 use App\Entity\Utilisateur;
+use App\Service\NotificationService;
 use WiiCommon\Helper\Stream;
 use App\Service\TransferOrderService;
 use DateTime;
@@ -37,6 +38,9 @@ class TransferOrderController extends AbstractController {
 
     private $userService;
     private $service;
+
+    /** @Required */
+    public NotificationService $notificationService;
 
     public function __construct(UserService $us, TransferOrderService $service) {
         $this->userService = $us;
@@ -136,6 +140,10 @@ class TransferOrderController extends AbstractController {
 
         try {
             $entityManager->flush();
+            if ($transferRequest->getType()->isNotificationsEnabled()) {
+                $this->notificationService->toTreat($transferOrder);
+            }
+
         }
         /** @noinspection PhpRedundantCatchClauseInspection */
         catch (UniqueConstraintViolationException $e) {

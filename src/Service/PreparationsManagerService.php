@@ -186,10 +186,6 @@ class PreparationsManagerService
             ->setDate($date)
             ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::PREPARATION, Preparation::STATUT_A_TRAITER));
 
-        if ($preparation->getDemande()->getType()->isNotificationsEnabled()) {
-            $this->notificationService->toTreat($preparation);
-        }
-
         $demande->addPreparation($newPreparation);
         foreach ($listOfArticleSplitted as $articleId) {
             /** @var Article $articleToKeep */
@@ -225,6 +221,10 @@ class PreparationsManagerService
 
         $entityManager->persist($newPreparation);
         $entityManager->flush();
+
+        if ($newPreparation->getDemande()->getType()->isNotificationsEnabled()) {
+            $this->notificationService->toTreat($newPreparation);
+        }
 
         return $newPreparation;
     }

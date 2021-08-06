@@ -291,8 +291,12 @@ class IOTService
             $entityManager->persist($ligneArticle);
             $request->addCollecteReference($ligneArticle);
         }
-        $this->cleanCreateCollectOrder($statutRepository, $request, $entityManager);
+        $ordreCollecte = $this->cleanCreateCollectOrder($statutRepository, $request, $entityManager);
         $entityManager->flush();
+
+        if ($ordreCollecte->getDemandeCollecte()->getType()->isNotificationsEnabled()) {
+            $this->notificationService->toTreat($ordreCollecte);
+        }
         return $request;
     }
 
@@ -322,9 +326,6 @@ class IOTService
 
         $entityManager->persist($ordreCollecte);
 
-        if ($ordreCollecte->getDemandeCollecte()->getType()->isNotificationsEnabled()) {
-            $this->notificationService->toTreat($ordreCollecte);
-        }
 
         // on modifie statut + date validation de la demande
         $demandeCollecte
@@ -332,6 +333,8 @@ class IOTService
                 $statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_A_TRAITER)
             )
             ->setValidationDate($date);
+
+        return $ordreCollecte;
     }
 
     private function treatAlertTemplateTriggerType(AlertTemplate $template, SensorMessage $message, EntityManagerInterface $entityManager) {

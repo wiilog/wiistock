@@ -42,6 +42,7 @@ use App\Service\LitigeService;
 use App\Service\LivraisonsManagerService;
 use App\Service\MailerService;
 use App\Service\MouvementStockService;
+use App\Service\NotificationService;
 use App\Service\PreparationsManagerService;
 use App\Service\TrackingMovementService;
 use App\Service\PDFGeneratorService;
@@ -110,6 +111,9 @@ class ReceptionController extends AbstractController {
      */
     private $mouvementStockService;
     private $mailerService;
+
+    /** @Required */
+    public NotificationService $notificationService;
 
     public function __construct(ArticleDataService $articleDataService,
                                 GlobalParamService $globalParamService,
@@ -1804,7 +1808,9 @@ class ReceptionController extends AbstractController {
                             $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
                             $mouvements = $mouvementRepository->findByPreparation($preparation);
                             $entityManager->flush();
-
+                            if($delivery->getDemande()->getType()->isNotificationsEnabled()) {
+                                $this->notificationService->toTreat($delivery);
+                            }
                             foreach ($mouvements as $mouvement) {
                                 $preparationsManagerService->createMouvementLivraison(
                                     $mouvement->getQuantity(),
@@ -1856,6 +1862,9 @@ class ReceptionController extends AbstractController {
 
                 try {
                     $entityManager->flush();
+                    if ($request->getType()->isNotificationsEnabled()) {
+                        $this->notificationService->toTreat($order);
+                    }
                 }
                 /** @noinspection PhpRedundantCatchClauseInspection */
                 catch (UniqueConstraintViolationException $e) {

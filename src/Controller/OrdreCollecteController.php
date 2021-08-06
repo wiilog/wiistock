@@ -225,10 +225,6 @@ class OrdreCollecteController extends AbstractController
             $ordreCollecte->addOrdreCollecteReference($ordreCollecteReference);
         }
 
-        if ($ordreCollecte->getDemandeCollecte()->getType()->isNotificationsEnabled()) {
-            $notificationService->toTreat($ordreCollecte);
-        }
-
         $entityManager->persist($ordreCollecte);
 
         // on modifie statut + date validation de la demande
@@ -240,6 +236,9 @@ class OrdreCollecteController extends AbstractController
 
         try {
             $entityManager->flush();
+            if ($ordreCollecte->getDemandeCollecte()->getType()->isNotificationsEnabled()) {
+                $notificationService->toTreat($ordreCollecte);
+            }
         }
         /** @noinspection PhpRedundantCatchClauseInspection */
         catch (UniqueConstraintViolationException $e) {

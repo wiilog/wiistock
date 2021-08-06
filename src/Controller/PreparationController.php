@@ -21,6 +21,7 @@ use App\Exceptions\NegativeQuantityException;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\LivraisonsManagerService;
+use App\Service\NotificationService;
 use App\Service\PDFGeneratorService;
 use App\Service\PreparationsManagerService;
 use App\Service\RefArticleDataService;
@@ -69,6 +70,9 @@ class PreparationController extends AbstractController
      * @var PreparationsManagerService
      */
     private $preparationsManagerService;
+
+    /** @Required */
+    public NotificationService $notificationService;
 
     public function __construct(PreparationsManagerService $preparationsManagerService,
                                 SpecificService $specificService,
@@ -134,7 +138,9 @@ class PreparationController extends AbstractController
         }
 
         $entityManager->flush();
-
+        if($livraison->getDemande()->getType()->isNotificationsEnabled()) {
+            $this->notificationService->toTreat($livraison);
+        }
         $preparationsManager->updateRefArticlesQuantities($preparation);
 
         return new JsonResponse([

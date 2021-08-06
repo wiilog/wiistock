@@ -256,10 +256,6 @@ class TransferOrderService {
             ->setStatus($status)
             ->setCreationDate($now);
 
-        if ($request->getType()->isNotificationsEnabled()) {
-            $this->notificationService->toTreat($transfer);
-        }
-
         return $transfer;
     }
 
