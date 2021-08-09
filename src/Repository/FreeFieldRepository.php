@@ -154,7 +154,8 @@ class FreeFieldRepository extends EntityRepository
             FROM App\Entity\FreeField champLibre
             JOIN champLibre.categorieCL categorieChampLibre
             JOIN champLibre.type type
-            WHERE type.id IN (:types)  AND categorieChampLibre.label = :categorieCLLabel "
+            WHERE type.id IN (:types)  AND categorieChampLibre.label = :categorieCLLabel
+            ORDER BY champLibre.label ASC"
         )
             ->setParameter(
                 'types',
