@@ -421,16 +421,22 @@ class ReceptionService
 
     public function getAlreadySavedReception(array &$collection, ?string $orderNumber, ?string $expectedDate, callable $onAdd = null): ?Reception {
         $reception = null;
-        foreach($collection as $receptionIntel) {
+        $receptionRepository = $this->entityManager->getRepository(Reception::class);
+
+        foreach($collection as &$receptionIntel) {
             if ($orderNumber === $receptionIntel['orderNumber']
                 && $expectedDate === $receptionIntel['expectedDate']) {
                 $reception = $receptionIntel['reception'];
+                $isPersistedReception = $this->entityManager->getUnitOfWork()->isInIdentityMap($reception);
+                if (!$isPersistedReception) {
+                    $reception = $receptionRepository->find($reception->getId());
+                    $receptionIntel['reception'] = $reception;
+                }
                 break;
             }
         }
 
         if (!$reception) {
-            $receptionRepository = $this->entityManager->getRepository(Reception::class);
             $receptions = $receptionRepository->findBy(
                 [
                     'orderNumber' => $orderNumber,
