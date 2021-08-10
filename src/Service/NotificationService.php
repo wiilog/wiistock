@@ -198,7 +198,8 @@ class NotificationService
     }
 
     private function compareEmergencies($entity): bool {
-        if ($entity instanceof Handling or $entity instanceof Dispatch) {
+        if ($entity instanceof Handling
+            || $entity instanceof Dispatch) {
             return $entity->getType()->isNotificationsEmergency($entity->getEmergency());
         } else {
             return false;

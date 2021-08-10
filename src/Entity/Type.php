@@ -785,9 +785,12 @@ class Type
 
     public function isNotificationsEmergency(?string $emergency): bool {
         return (
-            !empty($this->notificationsEmergencies)
-            && $emergency
-            && in_array($emergency, $this->notificationsEmergencies)
+            $this->notificationsEnabled
+            || (
+                !empty($this->notificationsEmergencies)
+                && $emergency
+                && in_array($emergency, $this->notificationsEmergencies)
+            )
         );
     }
 
