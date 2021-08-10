@@ -1180,7 +1180,9 @@ class DispatchController extends AbstractController {
                                      Dispatch $dispatch,
                                      PDFGeneratorService $pdf,
                                      DispatchService $dispatchService,
-                                     Request $request): JsonResponse {
+                                     Request $request,
+                                     SpecificService $specificService): JsonResponse {
+
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
 
@@ -1211,8 +1213,9 @@ class DispatchController extends AbstractController {
         $logo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DELIVERY_NOTE_LOGO);
 
         $nowDate = new DateTime('now');
+        $client = SpecificService::CLIENTS[$specificService->getAppClient()];
 
-        $documentTitle = "BL - {$dispatch->getNumber()} - Emerson - {$nowDate->format('dmYHis')}";
+        $documentTitle = "BL - {$dispatch->getNumber()} - {$client} - {$nowDate->format('dmYHis')}";
         $fileName = $pdf->generatePDFDeliveryNote($documentTitle, $logo, $dispatch);
 
         $deliveryNoteAttachment = new Attachment();
@@ -1401,7 +1404,8 @@ class DispatchController extends AbstractController {
                                         PDFGeneratorService $pdf,
                                         DispatchService $dispatchService,
                                         TranslatorInterface $translator,
-                                        Request $request): JsonResponse {
+                                        Request $request,
+                                        SpecificService $specificService): JsonResponse {
 
         if($dispatch->getDispatchPacks()->count() > DispatchService::WAYBILL_MAX_PACK) {
             $message = 'Attention : ' . $translator->trans("acheminement.L''acheminement contient plus de {nombre} colis", ["{nombre}" => DispatchService::WAYBILL_MAX_PACK]) . ', cette lettre de voiture ne peut contenir plus de ' . DispatchService::WAYBILL_MAX_PACK . ' lignes.';
@@ -1437,7 +1441,9 @@ class DispatchController extends AbstractController {
 
         $nowDate = new DateTime('now');
 
-        $title = "LDV - {$dispatch->getNumber()} - Emerson - {$nowDate->format('dmYHis')}";
+        $client = SpecificService::CLIENTS[$specificService->getAppClient()];
+
+        $title = "LDV - {$dispatch->getNumber()} - {$client} - {$nowDate->format('dmYHis')}";
         $fileName = $pdf->generatePDFWaybill($title, $logo, $dispatch);
 
         $wayBillAttachment = new Attachment();
