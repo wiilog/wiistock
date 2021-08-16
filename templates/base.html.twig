@@ -11,7 +11,7 @@
     {% else %}
         <title>{{ titlePrefix }}</title>
     {% endif %}
-    {% include 'notifications/notification.html.twig' %}
+
     <link rel="shortcut icon" href="{{ asset('img/favicon.ico') }}">
 
     {% block stylesheets %}
@@ -24,6 +24,7 @@
 
 <body>
 
+        {% include 'notifications/notification.html.twig' %}
     {% block body %}
     {% endblock %}
 
