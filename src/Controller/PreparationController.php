@@ -589,24 +589,19 @@ class PreparationController extends AbstractController
     }
 
     /**
+     * @Route("/{preparation}/check-etiquette", name="count_bar_codes", options={"expose"=true})
+     */
+    public function countBarcode(Preparation $preparation): Response {
+        return $this->json($preparation->getArticles()->count() > 0);
+    }
+
+    /**
      * @Route("/{preparation}/etiquettes", name="preparation_bar_codes_print", options={"expose"=true})
-     *
-     * @param Preparation $preparation
-     * @param RefArticleDataService $refArticleDataService
-     * @param ArticleDataService $articleDataService
-     * @param PDFGeneratorService $PDFGeneratorService
-     *
-     * @return Response
-     *
-     * @throws LoaderError
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
      */
     public function getBarCodes(Preparation $preparation,
                                 RefArticleDataService $refArticleDataService,
                                 ArticleDataService $articleDataService,
-                                PDFGeneratorService $PDFGeneratorService): Response
+                                PDFGeneratorService $PDFGeneratorService): ?Response
     {
         $articles = $preparation->getArticles()->toArray();
         $lignesArticle = $preparation->getLigneArticlePreparations()->toArray();
@@ -647,7 +642,9 @@ class PreparationController extends AbstractController
                 $fileName
             );
         } else {
-            throw new NotFoundHttpException('Aucune étiquette à imprimer');
+             return $this->json([
+                 'success'=> false,
+                 'msg'=> 'Aucune étiquette à imprimer']);
         }
     }
 
