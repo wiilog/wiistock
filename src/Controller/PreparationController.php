@@ -25,12 +25,9 @@ use App\Service\NotificationService;
 use App\Service\PDFGeneratorService;
 use App\Service\PreparationsManagerService;
 use App\Service\RefArticleDataService;
-use App\Service\SpecificService;
-use App\Service\UserService;
 use DateTime;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
-use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -41,9 +38,6 @@ use App\Service\ArticleDataService;
 use App\Entity\Demande;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 use WiiCommon\Helper\Stream;
 
 /**
@@ -52,36 +46,15 @@ use WiiCommon\Helper\Stream;
 class PreparationController extends AbstractController
 {
     /**
-     * @var UserService
-     */
-    private $userService;
-
-    /**
-     * @var ArticleDataService
-     */
-    private $articleDataService;
-
-    /**
-     * @var SpecificService
-     */
-    private $specificService;
-
-    /**
      * @var PreparationsManagerService
      */
-    private $preparationsManagerService;
+    private PreparationsManagerService $preparationsManagerService;
 
     /** @Required */
     public NotificationService $notificationService;
 
-    public function __construct(PreparationsManagerService $preparationsManagerService,
-                                SpecificService $specificService,
-                                ArticleDataService $articleDataService,
-                                UserService $userService)
+    public function __construct(PreparationsManagerService $preparationsManagerService)
     {
-        $this->userService = $userService;
-        $this->articleDataService = $articleDataService;
-        $this->specificService = $specificService;
         $this->preparationsManagerService = $preparationsManagerService;
     }
 
@@ -535,12 +508,6 @@ class PreparationController extends AbstractController
 
     /**
      * @Route("/csv", name="get_preparations_csv", options={"expose"=true}, methods={"GET"})
-     * @param Request $request
-     * @param PreparationsManagerService $preparationsManager
-     * @param CSVExportService $CSVExportService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws Exception
      */
     public function getPreparationCSV(Request $request,
                                       PreparationsManagerService $preparationsManager,
@@ -642,9 +609,7 @@ class PreparationController extends AbstractController
                 $fileName
             );
         } else {
-             return $this->json([
-                 'success'=> false,
-                 'msg'=> 'Aucune étiquette à imprimer']);
+            throw new NotFoundHttpException('Aucune étiquette à imprimer');
         }
     }
 
