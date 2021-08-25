@@ -37,7 +37,7 @@
                     <div class="col-6">
                         {% set postNbIsRequired =
                             isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED'))
-                            || isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_NS'))
+                            or isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_NS'))
                         %}
                         <div class="form-group">
                             <label for="postNb">Numéro de poste{{ postNbIsRequired ? '*' }}</label>
