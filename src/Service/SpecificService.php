@@ -8,7 +8,8 @@ class SpecificService
 	const CLIENT_COLLINS_SOA = 'collins-soa';
 	const CLIENT_CEA_LETI = 'cea-leti';
 	const CLIENT_SAFRAN_CS = 'safran-cs';
-	const CLIENT_SAFRAN_ED = 'safran-ed';
+    const CLIENT_SAFRAN_ED = 'safran-ed';
+    const CLIENT_SAFRAN_NS = 'safran-ns';
 	const CLIENT_TEREGA = 'terega';
 	const CLIENT_AIA = 'aia';
 	const CLIENT_EMERSON = 'emerson';

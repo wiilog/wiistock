@@ -11,7 +11,10 @@
 {% endblock %}
 
 {% block page_content %}
-    {% set isSafran = isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
+    {% set isSafran =
+        isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED'))
+        || isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_NS'))
+    %}
     {% set hasRightCreate = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE')) %}
     {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
     {% set editAttachments = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
