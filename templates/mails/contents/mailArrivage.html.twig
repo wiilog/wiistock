@@ -66,7 +66,9 @@
         {% endfor %}
 
     </ul>
-    {% if isUrgentArrival and isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
+    {% if isUrgentArrival and
+        (isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED'))
+        or isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_NS'))) %}
         {% if arrival.customs %}
             <p style="font-weight: bold">
                 La réception de cette commande sera effectuée après dédouanement.
@@ -79,6 +81,10 @@
     {% elseif isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
         <p>
             Votre colis sera livré en dropzone en milieu d'après-midi.
+        </p>
+    {% elseif isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_NS')) %}
+        <p>
+            Votre colis est disponible auprès du magasin.
         </p>
     {% endif %}
 {% endblock %}

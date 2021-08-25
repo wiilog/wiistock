@@ -270,7 +270,9 @@ class ArrivageDataService
     {
         $numeroCommandeList = $arrival->getNumeroCommandeList();
         $alertConfigs = [];
-        $isSEDCurrentClient = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED);
+        $isSEDCurrentClient =
+            $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)
+            || $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_NS);
 
         if (!empty($numeroCommandeList)) {
             $urgenceRepository = $this->entityManager->getRepository(Urgence::class);
@@ -488,7 +490,11 @@ class ArrivageDataService
         else if($arrivage->getIsUrgent() && $emergenciesArrivalsLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DROP_OFF_LOCATION_IF_EMERGENCY)) {
             $location = $emplacementRepository->find($emergenciesArrivalsLocation);
         }
-        else if ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED) && $arrivage->getDestinataire()) {
+        else if (
+            (
+                $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)
+                || $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_NS)
+            ) && $arrivage->getDestinataire()) {
             $location = $emplacementRepository->findOneBy(['label' => SpecificService::ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE]);
         } else if ($arrivage->getDropLocation()) {
             $location = $arrivage->getDropLocation();

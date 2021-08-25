@@ -25,7 +25,8 @@ class SafranEdEmplacementFixtures extends Fixture implements FixtureGroupInterfa
      */
     public function load(ObjectManager $manager)
     {
-        if ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)) {
+        if ($this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)
+            || $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_NS)) {
             $emplacementRepository = $manager->getRepository(Emplacement::class);
             $locationMvtDepose = $emplacementRepository->findOneBy(['label' => SpecificService::ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE]);
             if (!$locationMvtDepose) {

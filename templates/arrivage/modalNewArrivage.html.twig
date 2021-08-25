@@ -1,4 +1,7 @@
-{% set isClientSafranED = isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
+{% set isClientSafranED =
+    isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED'))
+    || isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_NS'))
+%}
 <form method="" class="modal fade" id="modalNewArrivage" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
