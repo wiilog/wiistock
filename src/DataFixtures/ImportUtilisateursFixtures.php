@@ -37,7 +37,6 @@ class ImportUtilisateursFixtures extends Fixture implements FixtureGroupInterfac
 
         $path = "src/DataFixtures/utilisateurs.csv";
         $file = fopen($path, "r");
-        $header = fgetcsv($file, 0, ",");
 
         $utilisateurRepository = $manager->getRepository(Utilisateur::class);
         $roleRepository = $manager->getRepository(Role::class);
@@ -69,7 +68,7 @@ class ImportUtilisateursFixtures extends Fixture implements FixtureGroupInterfac
 
                     $user = new Utilisateur();
                     $user
-                        ->setUsername($email)
+                        ->setUsername($line[0])
                         ->setEmail($email)
                         ->setRole($role)
                         ->setStatus(true)
