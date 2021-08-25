@@ -13,7 +13,7 @@
 {% block page_content %}
     {% set isSafran =
         isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED'))
-        || isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_NS'))
+        or isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_NS'))
     %}
     {% set hasRightCreate = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE')) %}
     {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
