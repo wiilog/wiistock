@@ -242,6 +242,11 @@ class ReferenceArticle extends FreeFieldEntity
      */
     private $requestTemplateLines;
 
+    /**
+     * @ORM\ManyToMany(targetEntity=VisibilityGroup::class, mappedBy="articleReferences")
+     */
+    private Collection $visibilityGroups;
+
     public function __construct()
     {
         $this->ligneArticles = new ArrayCollection();
@@ -267,6 +272,7 @@ class ReferenceArticle extends FreeFieldEntity
         $this->deliveryRequestTemplates = new ArrayCollection();
         $this->collectRequestTemplates = new ArrayCollection();
         $this->requestTemplateLines = new ArrayCollection();
+        $this->visibilityGroups = new ArrayCollection();
     }
 
     public function getId()
@@ -1138,6 +1144,43 @@ class ReferenceArticle extends FreeFieldEntity
             if ($requestTemplateLine->getReference() === $this) {
                 $requestTemplateLine->setReference(null);
             }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|VisibilityGroup[]
+     */
+    public function getVisibilityGroups(): Collection {
+        return $this->visibilityGroups;
+    }
+
+    public function addVisibilityGroup(VisibilityGroup $visibilityGroup): self {
+        if (!$this->visibilityGroups->contains($visibilityGroup)) {
+            $this->visibilityGroups[] = $visibilityGroup;
+            $visibilityGroup->addArticleReference($this);
+        }
+
+        return $this;
+    }
+
+    public function removeVisibilityGroup(VisibilityGroup $visibilityGroup): self {
+        if ($this->visibilityGroups->removeElement($visibilityGroup)) {
+            $visibilityGroup->removeArticleReference($this);
+        }
+
+        return $this;
+    }
+
+    public function setVisibilityGroups(?array $visibilityGroups): self {
+        foreach($this->getVisibilityGroups()->toArray() as $visibilityGroup) {
+            $this->removeVisibilityGroup($visibilityGroup);
+        }
+
+        $this->visibilityGroups = new ArrayCollection();
+        foreach($visibilityGroups as $visibilityGroup) {
+            $this->addVisibilityGroup($visibilityGroup);
         }
 
         return $this;

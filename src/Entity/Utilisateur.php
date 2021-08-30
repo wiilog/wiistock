@@ -353,6 +353,11 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $unreadNotifications;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=VisibilityGroup::class, inversedBy="users")
+     */
+    private ?VisibilityGroup $visibilityGroup = null;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -1896,4 +1901,22 @@ class Utilisateur implements UserInterface, EquatableInterface
 
         return $this;
     }
+
+
+    public function getVisibilityGroup(): ?VisibilityGroup {
+        return $this->visibilityGroup;
+    }
+
+    public function setVisibilityGroup(?VisibilityGroup $visibilityGroup): self {
+        if($this->visibilityGroup && $this->visibilityGroup !== $visibilityGroup) {
+            $this->visibilityGroup->removeUser($this);
+        }
+        $this->visibilityGroup = $visibilityGroup;
+        if($visibilityGroup) {
+            $visibilityGroup->addUser($this);
+        }
+
+        return $this;
+    }
+
 }
