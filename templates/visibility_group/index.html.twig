@@ -1,0 +1,29 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Paramétrage | Groupes de visibilité{% endblock %}
+
+{% block page_content %}
+    <div class="m-4 wii-page-card">
+        <div class="row wii-page-card-header">
+            <div class="ml-auto col-auto">
+                <div class="btn-group">
+                    <button type="button"
+                            class="btn btn-primary split-button btn-ripple">
+                        <span class="fa fa-plus mr-2"></span>
+                        Nouveau groupe de visibilité
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <table id="tableVisibilityGroup" class="table w-100">
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/pages/visibility-group/index.js') }}?v={{ web_version }}"></script>
+{% endblock %}
