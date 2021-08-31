@@ -17,11 +17,6 @@ class Action {
     const DELETE = 'supprimer';
     const EXPORT = 'exporter';
 
-    // menu accueil
-    const DISPLAY_INDI = 'afficher indicateurs';
-    const DISPLAY_INDIC_INV_REFERENCE = 'afficher indicateur fiabilité par réference';
-    const DISPLAY_INDIC_INV_MONETAIRE = 'afficher indicateur fiabilité monétaire';
-
     // menu traça
     const DISPLAY_ARRI = 'afficher arrivages';
     const DISPLAY_MOUV = 'afficher mouvements';
@@ -104,6 +99,7 @@ class Action {
     const DISPLAY_GLOB = 'afficher paramétrage global';
     const DISPLAY_ROLE = 'afficher rôles';
     const DISPLAY_UTIL = 'afficher utilisateurs';
+    const DISPLAY_VISIBILITY_GROUPS = 'afficher groupes de visibilité';
     const DISPLAY_DASHBOARDS = 'afficher dashboards';
     const DISPLAY_EXPO = 'afficher exports';
     const DISPLAY_TYPE = 'afficher types';
