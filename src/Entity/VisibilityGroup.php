@@ -30,6 +30,11 @@ class VisibilityGroup {
     private ?string $description = null;
 
     /**
+     * @ORM\Column(type="boolean", nullable=false)
+     */
+    private bool $active = true;
+
+    /**
      * @ORM\OneToMany(targetEntity=Utilisateur::class, mappedBy="visibilityGroup")
      */
     private Collection $users;
@@ -141,6 +146,15 @@ class VisibilityGroup {
             $this->addArticleReference($articleReference);
         }
 
+        return $this;
+    }
+
+    public function isActive(): bool {
+        return $this->active;
+    }
+
+    public function setActive(bool $active): self {
+        $this->active = $active;
         return $this;
     }
 }
