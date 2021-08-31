@@ -11,6 +11,7 @@ use App\Entity\Role;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
+use App\Service\CSVExportService;
 use App\Service\PasswordService;
 use App\Service\UserService;
 
@@ -20,6 +21,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
@@ -551,6 +553,43 @@ class UserController extends AbstractController
             $em->flush();
         }
         return new JsonResponse();
+    }
+
+    /**
+     * @Route("/export", name="export_csv_user", methods="GET")
+     */
+    public function exportCSV(CSVExportService $CSVExportService,
+                              UserService $userService,
+                              EntityManagerInterface $entityManager): StreamedResponse {
+        $csvHeader = [
+            'Rôle',
+            "Nom d'utilisateur",
+            'Email',
+            'Email 2',
+            'Email 3',
+            'Numéro de téléphone',
+            'Adresse',
+            'Dernière connexion',
+            'Clé de connexion mobile',
+            'Types de livraison',
+            "Types de d'acheminement",
+            'Types de service',
+            'Dropzone',
+            'Groupe de visibilité',
+            'Statut'
+        ];
+
+        return $CSVExportService->streamResponse(
+            function ($output) use ($CSVExportService, $userService, $entityManager) {
+                $userRepository = $entityManager->getRepository(Utilisateur::class);
+                $users = $userRepository->iterateAll();
+
+                foreach ($users as $user) {
+                    $userService->putCSVLine($CSVExportService, $output, $user);
+                }
+            }, 'export_utilisateurs.csv',
+            $csvHeader
+        );
     }
 
 }

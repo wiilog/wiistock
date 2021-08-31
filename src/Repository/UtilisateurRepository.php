@@ -243,4 +243,10 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         }, []);
     }
 
+    public function iterateAll(): iterable {
+        return $this->createQueryBuilder('user')
+            ->getQuery()
+            ->toIterable();
+    }
+
 }
