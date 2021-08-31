@@ -11,6 +11,7 @@ use App\Entity\Role;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
+use App\Service\CSVExportService;
 use App\Service\PasswordService;
 use App\Service\UserService;
 
@@ -20,41 +21,17 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 
 /**
  * @Route("/admin/utilisateur")
  */
-class UtilisateurController extends AbstractController
+class UserController extends AbstractController
 {
-
-    /**
-     * @var UserService
-     */
-    private $userService;
-
-    /**
-	 * @var UserPasswordEncoderInterface
-	 */
-    private $encoder;
-
-	/**
-	 * @var PasswordService
-	 */
-    private $passwordService;
-
-
-    public function __construct(PasswordService $passwordService,
-                                UserPasswordEncoderInterface $encoder,
-                                UserService $userService)
-    {
-        $this->userService = $userService;
-        $this->encoder = $encoder;
-        $this->passwordService = $passwordService;
-    }
 
     /**
      * @Route("/", name="user_index", methods="GET|POST")
@@ -91,7 +68,11 @@ class UtilisateurController extends AbstractController
      * @Route("/creer", name="user_new",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request,
+                        UserPasswordHasherInterface $encoder,
+                        PasswordService $passwordService,
+                        UserService $userService,
+                        EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
@@ -102,7 +83,7 @@ class UtilisateurController extends AbstractController
             $password = $data['password'];
             $password2 = $data['password2'];
             // validation du mot de passe
-            $result = $this->passwordService->checkPassword($password,$password2);
+            $result = $passwordService->checkPassword($password,$password2);
             if($result['response'] == false){
 				return new JsonResponse([
 					'success' => false,
@@ -151,7 +132,7 @@ class UtilisateurController extends AbstractController
             }
 
             $utilisateur = new Utilisateur();
-            $uniqueMobileKey = $this->userService->createUniqueMobileLoginKey($entityManager);
+            $uniqueMobileKey = $userService->createUniqueMobileLoginKey($entityManager);
             $role = $roleRepository->find($data['role']);
             $utilisateur
                 ->setUsername($data['username'])
@@ -165,7 +146,7 @@ class UtilisateurController extends AbstractController
                 ->setMobileLoginKey($uniqueMobileKey);
 
             if ($password !== '') {
-				$password = $this->encoder->encodePassword($utilisateur, $data['password']);
+				$password = $encoder->hashPassword($utilisateur, $data['password']);
 				$utilisateur->setPassword($password);
 			}
 
@@ -240,7 +221,11 @@ class UtilisateurController extends AbstractController
      * @Route("/modifier", name="user_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function edit(Request $request, EntityManagerInterface $entityManager): Response
+    public function edit(Request $request,
+                         UserPasswordHasherInterface $encoder,
+                         PasswordService $passwordService,
+                         UserService $userService,
+                         EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
             /** @var Utilisateur $loggedUser */
@@ -254,7 +239,7 @@ class UtilisateurController extends AbstractController
             $utilisateur = $utilisateurRepository->find($data['user']);
             $role = $roleRepository->find($data['role']);
 
-            $result = $this->passwordService->checkPassword($data['password'],$data['password2']);
+            $result = $passwordService->checkPassword($data['password'],$data['password2']);
             if ($result['response'] == false){
                 return new JsonResponse([
                 	'success' => false,
@@ -322,7 +307,7 @@ class UtilisateurController extends AbstractController
                 ->setPhone($data['phoneNumber'] ?? '');
 
             if ($data['password'] !== '') {
-                $password = $this->encoder->encodePassword($utilisateur, $data['password']);
+                $password = $encoder->hashPassword($utilisateur, $data['password']);
                 $utilisateur->setPassword($password);
             }
             foreach ($utilisateur->getDeliveryTypes() as $typeToRemove) {
@@ -394,7 +379,7 @@ class UtilisateurController extends AbstractController
             if ($utilisateur->getId() != $loggedUser->getId()) {
                 $dataResponse['msg'] = 'L\'utilisateur <strong>' . $utilisateur->getUsername() . '</strong> a bien été modifié.';
             } else {
-                if ($this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
+                if ($userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                     $dataResponse['msg'] = 'Vous avez bien modifié votre compte utilisateur.';
                 } else {
                     $dataResponse['msg'] = 'Vous avez bien modifié votre rôle utilisateur.';
@@ -437,9 +422,10 @@ class UtilisateurController extends AbstractController
      * @Route("/api", name="user_api",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::DISPLAY_UTIL}, mode=HasPermission::IN_JSON)
      */
-    public function api(Request $request): Response
+    public function api(Request $request,
+                        UserService $userService): Response
     {
-        $data = $this->userService->getDataForDatatable($request->request);
+        $data = $userService->getDataForDatatable($request->request);
 
         return new JsonResponse($data);
     }
@@ -448,10 +434,11 @@ class UtilisateurController extends AbstractController
      * @Route("/verification", name="user_check_delete", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
-	public function checkUserCanBeDeleted(Request $request): Response
+	public function checkUserCanBeDeleted(Request $request,
+                                          UserService $userService): Response
 	{
 		if ($userId = json_decode($request->getContent(), true)) {
-			$userIsUsed = $this->userService->isUsedByDemandsOrOrders($userId);
+			$userIsUsed = $userService->isUsedByDemandsOrOrders($userId);
 
 			if (!$userIsUsed) {
 				$delete = true;
@@ -471,6 +458,7 @@ class UtilisateurController extends AbstractController
      * @HasPermission({Menu::PARAM, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request,
+                           UserService $userService,
                            EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
@@ -480,7 +468,7 @@ class UtilisateurController extends AbstractController
             $username = $user->getUsername();
 
 			// on vérifie que l'utilisateur n'est plus utilisé
-			$isUserUsed = $this->userService->isUsedByDemandsOrOrders($user);
+			$isUserUsed = $userService->isUsedByDemandsOrOrders($user);
 
 			if ($isUserUsed) {
 				return new JsonResponse(false);
@@ -565,6 +553,43 @@ class UtilisateurController extends AbstractController
             $em->flush();
         }
         return new JsonResponse();
+    }
+
+    /**
+     * @Route("/export", name="export_csv_user", methods="GET")
+     */
+    public function exportCSV(CSVExportService $CSVExportService,
+                              UserService $userService,
+                              EntityManagerInterface $entityManager): StreamedResponse {
+        $csvHeader = [
+            'Rôle',
+            "Nom d'utilisateur",
+            'Email',
+            'Email 2',
+            'Email 3',
+            'Numéro de téléphone',
+            'Adresse',
+            'Dernière connexion',
+            'Clé de connexion mobile',
+            'Types de livraison',
+            "Types de d'acheminement",
+            'Types de service',
+            'Dropzone',
+            'Groupe de visibilité',
+            'Statut'
+        ];
+
+        return $CSVExportService->streamResponse(
+            function ($output) use ($CSVExportService, $userService, $entityManager) {
+                $userRepository = $entityManager->getRepository(Utilisateur::class);
+                $users = $userRepository->iterateAll();
+
+                foreach ($users as $user) {
+                    $userService->putCSVLine($CSVExportService, $output, $user);
+                }
+            }, 'export_utilisateurs.csv',
+            $csvHeader
+        );
     }
 
 }

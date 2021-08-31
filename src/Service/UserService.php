@@ -16,6 +16,7 @@ use App\Entity\Reception;
 use App\Entity\Role;
 use App\Entity\Utilisateur;
 
+use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
 use Symfony\Component\Security\Core\Security;
@@ -195,6 +196,30 @@ class UserService
         }
         while(!empty($userWithThisKey));
         return $mobileLoginKey;
+    }
+
+    public function putCSVLine(CSVExportService $CSVExportService,
+                               $output,
+                               Utilisateur $user): void {
+        $role = $user->getRole();
+        $secondaryEmails = $user->getSecondaryEmails() ?? [];
+        $CSVExportService->putLine($output, [
+            $role ? $role->getLabel() : '',
+            $user->getUsername() ?? '',
+            $user->getEmail() ?? '',
+            $secondaryEmails[0] ?? '',
+            $secondaryEmails[1] ?? '',
+            $user->getPhone() ?? '',
+            $user->getAddress() ?? '',
+            FormatHelper::datetime($user->getLastLogin()),
+            $user->getMobileLoginKey() ?? '',
+            FormatHelper::entity($user->getDeliveryTypes()->toArray(), 'label', ' / '),
+            FormatHelper::entity($user->getDispatchTypes()->toArray(), 'label', ' / '),
+            FormatHelper::entity($user->getHandlingTypes()->toArray(), 'label', ' / '),
+            FormatHelper::location($user->getDropzone()),
+            FormatHelper::visibilityGroup($user->getVisibilityGroup()),
+            $user->getStatus() ? 'Actif' : 'Inactif'
+        ]);
     }
 
 }
