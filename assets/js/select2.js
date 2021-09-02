@@ -19,6 +19,7 @@ const ROUTES = {
     sensorCodeWithoutPairing: `ajax_select_sensors_code_without_pairing`,
     triggerSensorWithoutPairing: `ajax_select_trigger_sensors_without_pairing`,
     triggerSensorCodeWithoutPairing: `ajax_select_trigger_sensors_code_without_pairing`,
+    visibilityGroup: `ajax_select_visibility_group`,
 }
 
 const INSTANT_SELECT_TYPES = {
@@ -115,7 +116,9 @@ export default class Select2 {
     }
 }
 
-$(document).ready(() => $(`[data-s2]`).each((id, elem) => Select2.init($(elem))));
+$(document).ready(() => $(`[data-s2]`).each((id, elem) => {
+    Select2.init($(elem))
+}));
 $(document).arrive(`[data-s2]`, function() {
     Select2.init($(this));
 });

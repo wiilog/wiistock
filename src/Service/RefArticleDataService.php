@@ -22,6 +22,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\CategorieCL;
 use App\Entity\ArticleFournisseur;
+use App\Entity\VisibilityGroup;
 use App\Helper\FormatHelper;
 use App\Repository\PurchaseRequestLineRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
@@ -227,7 +228,7 @@ class RefArticleDataService {
         ]);
     }
 
-    public function editRefArticle($refArticle,
+    public function editRefArticle(ReferenceArticle $refArticle,
                                    $data,
                                    Utilisateur $user,
                                    FreeFieldService $champLibreService,
@@ -239,6 +240,7 @@ class RefArticleDataService {
         $statutRepository = $this->entityManager->getRepository(Statut::class);
         $inventoryCategoryRepository = $this->entityManager->getRepository(InventoryCategory::class);
         $userRepository = $this->entityManager->getRepository(Utilisateur::class);
+        $visibilityGroupRepository = $this->entityManager->getRepository(VisibilityGroup::class);
 
         //modification champsFixes
         $entityManager = $this->entityManager;
@@ -327,6 +329,16 @@ class RefArticleDataService {
             $managers = is_string($data["managers"]) ? explode(',', $data['managers']) : $data["managers"];
             foreach ($managers as $manager) {
                 $refArticle->addManager($userRepository->find($manager));
+            }
+        }
+        foreach ($refArticle->getVisibilityGroups() as $visibilityGroup) {
+            $visibilityGroup->removeArticleReference($refArticle);
+        }
+        $entityManager->flush();
+        if (!empty($data["visibility-group"])) {
+            $visibilityGroups = is_string($data["visibility-group"]) ? explode(',', $data['visibility-group']) : $data["visibility-group"];
+            foreach ($visibilityGroups as $visibilityGroup) {
+                $refArticle->addVisibilityGroup($visibilityGroupRepository->find($visibilityGroup));
             }
         }
 

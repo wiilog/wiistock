@@ -14,6 +14,7 @@ use App\Entity\Pack;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
+use App\Entity\VisibilityGroup;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -116,6 +117,16 @@ class SelectController extends AbstractController {
     public function sensors(Request $request, EntityManagerInterface $manager): Response {
         $results = $manager->getRepository(Sensor::class)->getForSelect($request->query->get("term"));
 
+        return $this->json([
+            "results" => $results,
+        ]);
+    }
+
+    /**
+     * @Route("/select/groupe-de-visibilite", name="ajax_select_visibility_group", options={"expose"=true})
+     */
+    public function visibilityGroup(Request $request, EntityManagerInterface $manager): Response {
+        $results = $manager->getRepository(VisibilityGroup::class)->getForSelect($request->query->get("term"));
         return $this->json([
             "results" => $results,
         ]);

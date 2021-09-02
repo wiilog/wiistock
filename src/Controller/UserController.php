@@ -11,6 +11,7 @@ use App\Entity\Role;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
+use App\Entity\VisibilityGroup;
 use App\Service\CSVExportService;
 use App\Service\PasswordService;
 use App\Service\UserService;
@@ -77,6 +78,7 @@ class UserController extends AbstractController
         if ($data = json_decode($request->getContent(), true)) {
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+            $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
             $typeRepository = $entityManager->getRepository(Type::class);
             $roleRepository = $entityManager->getRepository(Role::class);
 
@@ -140,7 +142,8 @@ class UserController extends AbstractController
                 ->setSecondaryEmails($secondaryEmails)
                 ->setPhone($data['phoneNumber'])
                 ->setRole($role)
-				->setDropzone($data['dropzone'] ? $emplacementRepository->find(intval($data['dropzone'])) : null)
+                ->setDropzone($data['dropzone'] ? $emplacementRepository->find(intval($data['dropzone'])) : null)
+                ->setVisibilityGroup($data['visibility-group'] ? $visibilityGroupRepository->find(intval($data['visibility-group'])) : null)
                 ->setStatus(true)
                 ->setAddress($data['address'])
                 ->setMobileLoginKey($uniqueMobileKey);
@@ -212,7 +215,14 @@ class UserController extends AbstractController
                         'id' => $user->getDropzone()->getId(),
                         'text' => $user->getDropzone()->getLabel()
                     ]
-                    : null]);
+                    : null,
+                'visibilityGroup' => $user->getVisibilityGroup()
+                    ? [
+                        'id' => $user->getVisibilityGroup()->getId(),
+                        'text' => $user->getVisibilityGroup()->getLabel()
+                    ]
+                    : null
+                ]);
         }
         throw new BadRequestHttpException();
     }
@@ -233,6 +243,7 @@ class UserController extends AbstractController
 
             $typeRepository = $entityManager->getRepository(Type::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+            $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $roleRepository = $entityManager->getRepository(Role::class);
 
@@ -303,6 +314,7 @@ class UserController extends AbstractController
                 ->setUsername($data['username'])
                 ->setAddress($data['address'])
                 ->setDropzone($data['dropzone'] ? $emplacementRepository->find(intval($data['dropzone'])) : null)
+                ->setVisibilityGroup($data['visibility-group'] ? $visibilityGroupRepository->find(intval($data['visibility-group'])) : null)
                 ->setEmail($data['email'])
                 ->setPhone($data['phoneNumber'] ?? '');
 

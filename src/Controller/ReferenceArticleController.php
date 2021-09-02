@@ -21,6 +21,7 @@ use App\Entity\Utilisateur;
 use App\Entity\CollecteReference;
 use App\Entity\CategorieCL;
 use App\Entity\Collecte;
+use App\Entity\VisibilityGroup;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Helper\FormatHelper;
@@ -162,6 +163,7 @@ class ReferenceArticleController extends AbstractController
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
             $userRepository = $entityManager->getRepository(Utilisateur::class);
+            $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
 
             // on vérifie que la référence n'existe pas déjà
             $refAlreadyExist = $referenceArticleRepository->countByReference($data['reference']);
@@ -235,13 +237,23 @@ class ReferenceArticleController extends AbstractController
             $refArticle->setQuantiteReservee(0);
             $refArticle->setStockManagement($data['stockManagement'] ?? null);
 
-            $managerIds = Stream::explode(",", $data["managers"])
+            $visibilityGroupsIds = Stream::explode(",", $data["managers"])
                 ->filter(fn($userId) => $userId)
                 ->toArray();
-            foreach ($managerIds as $managerId) {
+            foreach ($visibilityGroupsIds as $managerId) {
                 $manager = $userRepository->find($managerId);
                 if ($manager) {
                     $refArticle->addManager($manager);
+                }
+            }
+
+            $visibilityGroupsIds = Stream::explode(",", $data["visibility-group"])
+                ->filter(fn($userId) => $userId)
+                ->toArray();
+            foreach ($visibilityGroupsIds as $visibilityGroupsId) {
+                $visibilityGroup = $visibilityGroupRepository->find($visibilityGroupsId);
+                if ($visibilityGroup) {
+                    $refArticle->addVisibilityGroup($visibilityGroup);
                 }
             }
 
