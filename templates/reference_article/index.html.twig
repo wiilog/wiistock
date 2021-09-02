@@ -11,6 +11,16 @@
                     <span class="no-filter col-auto">Aucun filtre...</span>
                 </div>
                 <div class="row" id="filters">
+                    {% if app.user.visibilityGroup %}
+                        {% include 'reference_article/oneFilter.html.twig' with {
+                            removable: false,
+                            filter: {
+                                champFixe: 'Groupe de visibilité',
+                                value: app.user.visibilityGroup.label,
+                            }
+                        } %}
+                    {% endif %}
+
                     {% for filter in filters %}
                         {% include 'reference_article/oneFilter.html.twig' %}
                     {% endfor %}

@@ -112,8 +112,8 @@ class UserService
 			'Dropzone' => $user->getDropzone() ? $user->getDropzone()->getLabel() : '',
 			'Dernière connexion' => $user->getLastLogin() ? $user->getLastLogin()->format('d/m/Y') : '',
             'role' => $user->getRole() ? $user->getRole()->getLabel() : '',
+            'visibilityGroup' => FormatHelper::visibilityGroup($user->getVisibilityGroup()),
 			'Actions' => $this->templating->render('utilisateur/datatableUtilisateurRow.html.twig', ['idUser' => $idUser]),
-            'visibilityGroup' => FormatHelper::visibilityGroup($user->getVisibilityGroup())
 		];
     }
 

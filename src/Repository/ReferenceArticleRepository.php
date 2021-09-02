@@ -282,22 +282,26 @@ class ReferenceArticleRepository extends EntityRepository {
 
         foreach ($filters as $filter) {
             $index++;
-            if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_STATUT) {
+            if ($filter['champFixe'] === FiltreRef::FIXED_FIELD_STATUT) {
                 if ($filter['value'] === ReferenceArticle::STATUT_ACTIF) {
                     $qb->leftJoin('ra.statut', 'filter_sra');
                     $qb->andWhere('filter_sra.nom LIKE \'' . $filter['value'] . '\'');
                 }
-            } else if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_MANAGERS) {
+            } else if ($filter['champFixe'] === FiltreRef::FIXED_FIELD_VISIBILITY_GROUP) {
+                $qb->leftJoin('ra.visibilityGroups', 'filter_visibility_groups')
+                    ->andWhere('filter_visibility_groups.label LIKE :filter_visibility_group')
+                    ->setParameter('filter_visibility_group', '%' . $filter['value'] . '%');
+            } else if ($filter['champFixe'] === FiltreRef::FIXED_FIELD_MANAGERS) {
                 $qb->leftJoin('ra.managers', 'filter_manager')
-                    ->andWhere('filter_manager.username LIKE :username')
-                    ->setParameter('username', '%' . $filter['value'] . '%');
-            } else if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_PROVIDER_CODE) {
+                    ->andWhere('filter_manager.username LIKE :filter_manager')
+                    ->setParameter('filter_manager', '%' . $filter['value'] . '%');
+            } else if ($filter['champFixe'] === FiltreRef::FIXED_FIELD_PROVIDER_CODE) {
                 $qb
                     ->leftJoin('ra.articlesFournisseur', 'filter_af_provider_code')
                     ->leftJoin('filter_af_provider_code.fournisseur', 'filter_provider_code')
                     ->andWhere('filter_provider_code.codeReference LIKE :providerCode')
                     ->setParameter('providerCode', '%' . $filter['value'] . '%');
-            } else if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_PROVIDER_LABEL) {
+            } else if ($filter['champFixe'] === FiltreRef::FIXED_FIELD_PROVIDER_LABEL) {
                 $qb
                     ->leftJoin('ra.articlesFournisseur', 'filter_af_provider_label')
                     ->leftJoin('filter_af_provider_label.fournisseur', 'filter_provider_label')
@@ -305,7 +309,7 @@ class ReferenceArticleRepository extends EntityRepository {
                     ->setParameter('providerLabel', '%' . $filter['value'] . '%');
             } else {
                 // cas particulier champ référence article fournisseur
-                if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_REF_ART_FOURN) {
+                if ($filter['champFixe'] === FiltreRef::FIXED_FIELD_REF_ART_FOURN) {
                     $qb
                         ->leftJoin('ra.articlesFournisseur', 'filter_af')
                         ->andWhere('filter_af.reference LIKE :reference')
