@@ -808,7 +808,8 @@ class ReferenceArticleController extends AbstractController
             'gestion de stock',
             'gestionnaire(s)',
             'Labels Fournisseurs',
-            'Codes Fournisseurs'
+            'Codes Fournisseurs',
+            'Groupe(s) de visibilité'
         ], $ffConfig['freeFieldsHeader']);
 
         $today = new DateTime();
@@ -860,6 +861,7 @@ class ReferenceArticleController extends AbstractController
             $managersByReference[$id] ?? "",
             $suppliersByReference[$id]['supplierLabels'] ?? "",
             $suppliersByReference[$id]['supplierCodes'] ?? "",
+            $reference['visibilityGroups'],
         ];
 
         foreach($ffConfig['freeFieldIds'] as $freeFieldId) {

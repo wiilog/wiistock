@@ -988,7 +988,7 @@ class ReceptionController extends AbstractController {
         // TODO verif null
 
         /** @var ReferenceArticle $refArticle */
-        $refArticle = $referenceArticleRepository->findOneByReference($reference);
+        $refArticle = $referenceArticleRepository->findOneBy(['reference' => $reference]);
 
         $typeArticle = $refArticle->getType();
 

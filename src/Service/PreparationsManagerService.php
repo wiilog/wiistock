@@ -257,7 +257,7 @@ class PreparationsManagerService
         if ($isRef) {
             $refArticle = ($article instanceof ReferenceArticle)
                 ? $article
-                : $referenceArticleRepository->findOneByReference($article);
+                : $referenceArticleRepository->findOneBy(['reference' => $article]);
             if ($refArticle) {
                 /** @var MouvementStock $preparationMovement */
                 $preparationMovement = $preparation->getReferenceArticleMovement($refArticle);
@@ -307,7 +307,7 @@ class PreparationsManagerService
 
         if ($mouvement['is_ref']) {
             // cas ref par ref
-            $refArticle = $referenceArticleRepository->findOneByReference($mouvement['reference']);
+            $refArticle = $referenceArticleRepository->findOneBy(['reference' => $mouvement['reference']]);
             if ($refArticle) {
                 $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $preparation);
                 $ligneArticle->setQuantitePrelevee($mouvement['quantity']);

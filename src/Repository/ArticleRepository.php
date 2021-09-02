@@ -94,11 +94,6 @@ class ArticleRepository extends EntityRepository {
         return $query->getResult();
     }
 
-    /**
-     * @param $demandes
-     * @param false $needAssoc
-     * @return Article[]
-     */
     public function findByDemandes($demandes, $needAssoc = false)
     {
         $queryBuilder = $this->createQueryBuilder('article')
@@ -144,32 +139,21 @@ class ArticleRepository extends EntityRepository {
         return $query->getSingleScalarResult();
     }
 
-    public function getArticleByReception($id)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT a.id as id, a.barCode as text
-            FROM App\Entity\Article a
-            JOIN a.reception r
-            WHERE r.id = :id "
-        )->setParameter('id', $id);;
-        return $query->execute();
-    }
+    public function getIdRefLabelAndQuantity() {
 
-    public function getIdRefLabelAndQuantity()
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        	/** @lang DQL */
-            "SELECT a.id, a.reference, a.label, a.quantite, a.barCode
-            FROM App\Entity\Article a
-            "
-        );
-        return $query->execute();
+        return $this->createQueryBuilder('article')
+            ->select('article.id')
+            ->addSelect('article.reference')
+            ->addSelect('article.label')
+            ->addSelect('article.quantite')
+            ->addSelect('article.barCode')
+            ->getQuery()
+            ->getResult();
     }
 
     public function iterateAll() {
-        $iterator = $this->createQueryBuilder('article')
+        return $this->createQueryBuilder('article')
+            ->distinct()
             ->select('referenceArticle.reference')
             ->addSelect('article.label')
             ->addSelect('article.quantite')
@@ -183,18 +167,16 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('article.batch')
             ->addSelect('article.stockEntryDate')
             ->addSelect('article.expiryDate')
+            ->addSelect("GROUP_CONCAT(join_visibilityGroups.label SEPARATOR ', ') AS visibilityGroups")
             ->leftJoin('article.articleFournisseur', 'articleFournisseur')
             ->leftJoin('article.emplacement', 'emplacement')
             ->leftJoin('article.type', 'type')
             ->leftJoin('article.statut', 'statut')
             ->leftJoin('articleFournisseur.referenceArticle', 'referenceArticle')
+            ->leftJoin('referenceArticle.visibilityGroups', 'join_visibilityGroups')
+            ->groupBy('article.id')
             ->getQuery()
-            ->iterate(null, Query::HYDRATE_ARRAY);
-
-        foreach($iterator as $item) {
-            // $item [index => article array]
-            yield array_pop($item);
-        }
+            ->toIterable();
     }
 
 	public function getIdAndRefBySearch($search, $activeOnly = false, $field = 'reference', $referenceArticleReference = null, $activeReferenceOnly = false)
