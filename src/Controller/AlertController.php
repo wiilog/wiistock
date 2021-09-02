@@ -85,8 +85,12 @@ class AlertController extends AbstractController
      */
     public function subscribeToToken(string $token, NotificationService $notificationService): Response
     {
-        $notificationService->subscribeClientToTopic($token);
-        return new JsonResponse();
+        try {
+            $notificationService->subscribeClientToTopic($token);
+            return new JsonResponse();
+        } catch (\Exception $exception) {
+            return new JsonResponse();
+        }
     }
 
     /**
