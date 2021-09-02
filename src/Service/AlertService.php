@@ -11,12 +11,7 @@ use App\Entity\ReferenceArticle;
 use WiiCommon\Helper\Stream;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
-use Exception;
 use Twig\Environment;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 
 class AlertService {
 
@@ -28,11 +23,6 @@ class AlertService {
         $this->templating = $templating;
     }
 
-    /**
-     * @param EntityManagerInterface $manager
-     * @throws NonUniqueResultException
-     * @throws Exception
-     */
     public function generateAlerts(EntityManagerInterface $manager) {
         $now = new DateTime("now");
         $parametrage = $manager->getRepository(ParametrageGlobal::class);
@@ -87,11 +77,6 @@ class AlertService {
         $manager->flush();
     }
 
-    /**
-     * @param ReferenceArticle $reference
-     * @param EntityManagerInterface $entityManager
-     * @throws NonUniqueResultException
-     */
     public function sendThresholdMails(ReferenceArticle $reference, EntityManagerInterface $entityManager) {
         $freeField = $entityManager->getRepository(FreeField::class)
             ->findOneByLabel(FreeField::MACHINE_PDT_FREE_FIELD);
@@ -113,14 +98,6 @@ class AlertService {
         $this->mailer->sendMail("FOLLOW GT // $type atteint", $content, $reference->getManagers()->toArray());
     }
 
-    /**
-     * @param $manager
-     * @param $articles
-     * @param $delay
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
     public function sendExpiryMails($manager, $articles, $delay) {
         if(!is_array($articles)) {
             $articles = [$articles];
@@ -141,49 +118,54 @@ class AlertService {
                                  Alert $alert) {
         $serializedAlert = $alert->serialize();
 
+        /** @var ReferenceArticle $reference */
+        /** @var Article $article */
         [$reference, $article] = $alert->getLinkedArticles();
 
-        if($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI)) {
-            $freeFieldRepository = $entityManager->getRepository(FreeField::class);
-            $freeFieldMachinePDT = $freeFieldRepository->findOneBy(['label' => 'Machine PDT']);
+        if($reference->getStatut()->getCode() !== ReferenceArticle::STATUT_INACTIF) {
 
-            if(($article || $reference)) {
-                $freeFields = $reference->getFreeFields();
-                if($freeFieldMachinePDT
-                    && $freeFields
-                    && array_key_exists($freeFieldMachinePDT->getId(), $freeFields)
-                    && $freeFields[(string)$freeFieldMachinePDT->getId()]) {
-                    $freeFieldMachinePDTValue = $freeFields[(string)$freeFieldMachinePDT->getId()];
-                } else {
-                    $freeFieldMachinePDTValue = '';
-                }
+            if ($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI)) {
+                $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+                $freeFieldMachinePDT = $freeFieldRepository->findOneBy(['label' => 'Machine PDT']);
 
-                $supplierArticles = $article
-                    ? [$article->getArticleFournisseur()]
-                    : $reference->getArticlesFournisseur()->toArray();
+                if (($article || $reference)) {
+                    $freeFields = $reference->getFreeFields();
+                    if ($freeFieldMachinePDT
+                        && $freeFields
+                        && array_key_exists($freeFieldMachinePDT->getId(), $freeFields)
+                        && $freeFields[(string)$freeFieldMachinePDT->getId()]) {
+                        $freeFieldMachinePDTValue = $freeFields[(string)$freeFieldMachinePDT->getId()];
+                    } else {
+                        $freeFieldMachinePDTValue = '';
+                    }
 
-                if(!empty($supplierArticles)) {
-                    /** @var ArticleFournisseur $supplierArticle */
-                    foreach($supplierArticles as $supplierArticle) {
-                        $supplier = $supplierArticle->getFournisseur();
+                    $supplierArticles = $article
+                        ? [$article->getArticleFournisseur()]
+                        : $reference->getArticlesFournisseur()->toArray();
+
+                    if (!empty($supplierArticles)) {
+                        /** @var ArticleFournisseur $supplierArticle */
+                        foreach ($supplierArticles as $supplierArticle) {
+                            $supplier = $supplierArticle->getFournisseur();
+                            $row = array_merge(array_values($serializedAlert), [
+                                $supplier->getNom(),
+                                $supplierArticle->getReference(),
+                                $freeFieldMachinePDTValue
+                            ]);
+                            $CSVExportService->putLine($output, $row);
+                        }
+                    } else {
                         $row = array_merge(array_values($serializedAlert), [
-                            $supplier->getNom(),
-                            $supplierArticle->getReference(),
+                            '', //supplier name
+                            '', //supplier article reference
                             $freeFieldMachinePDTValue
                         ]);
                         $CSVExportService->putLine($output, $row);
                     }
-                } else {
-                    $row = array_merge(array_values($serializedAlert), [
-                        '', //supplier name
-                        '', //supplier article reference
-                        $freeFieldMachinePDTValue
-                    ]);
-                    $CSVExportService->putLine($output, $row);
                 }
+            } else {
+                $CSVExportService->putLine($output, $serializedAlert);
             }
-        } else {
-            $CSVExportService->putLine($output, $serializedAlert);
         }
     }
 

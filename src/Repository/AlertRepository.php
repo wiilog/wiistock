@@ -9,7 +9,6 @@ use App\Helper\QueryCounter;
 use DateTime;
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\EntityRepository;
-use function Doctrine\ORM\QueryBuilder;
 
 /**
  * @method Alert|null find($id, $lockMode = null, $lockVersion = null)

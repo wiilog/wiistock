@@ -96,9 +96,6 @@ class AlertController extends AbstractController
     /**
      * @Route("/api", name="alerte_ref_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_ALER}, mode=HasPermission::IN_JSON)
-     * @param Request $request
-     * @param RefArticleDataService $refArticleDataService
-     * @return Response
      */
     public function api(Request $request,
                         RefArticleDataService $refArticleDataService): Response
@@ -110,12 +107,6 @@ class AlertController extends AbstractController
     /**
      * @Route("/csv", name="alert_export",options={"expose"=true}, methods="GET|POST" )
      * @HasPermission({Menu::STOCK, Action::EXPORT_ALER})
-     * @param Request $request
-     * @param AlertService $alertService
-     * @param SpecificService $specificService
-     * @param EntityManagerInterface $entityManager
-     * @param CSVExportService $CSVExportService
-     * @return Response
      */
     public function export(Request $request,
                            AlertService $alertService,
@@ -146,7 +137,8 @@ class AlertController extends AbstractController
                 "seuil d'alerte",
                 "seuil de sécurité",
                 "date de péremption",
-                "gestionnaire(s)"
+                "gestionnaire(s)",
+                "groupe(s) de visibilité"
             ];
 
             if ($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI)) {
