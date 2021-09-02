@@ -130,6 +130,11 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
                                 ->leftJoin('a.role', 'a_order')
                                 ->orderBy('a_order.label', $order);
                             break;
+                        case 'visibilityGroup':
+                            $qb
+                                ->leftJoin('a.visibilityGroup', 'order_visibility_group')
+                                ->orderBy('order_visibility_group.label', $order);
+                            break;
                         default:
                             $qb->orderBy('a.' . self::DtToDbLabels[$column], $order);
                     }
@@ -141,7 +146,13 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
                 if (!empty($search)) {
                     $qb
                         ->leftJoin('a.dropzone', 'd_search')
-                        ->andWhere('a.username LIKE :value OR a.email LIKE :value OR d_search.label LIKE :value')
+                        ->leftJoin('a.visibilityGroup', 'search_visibility_group')
+                        ->andWhere(
+                            'a.username LIKE :value'
+                            . ' OR a.email LIKE :value'
+                            . ' OR d_search.label LIKE :value'
+                            . ' OR search_visibility_group.label LIKE :value'
+                        )
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
