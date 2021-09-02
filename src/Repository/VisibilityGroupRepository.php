@@ -41,9 +41,9 @@ class VisibilityGroupRepository extends EntityRepository {
                 if (!empty($order)) {
                     $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
                     if ($column === 'status') {
-                        $queryBuilder->addOrderBy("visibility_group.active", $order);
+                        $queryBuilder->addOrderBy("visibility_group.active", $order === 'asc' ? 'desc' : 'asc');
                     }
-                    else if (property_exists(ReferenceArticle::class, $column)) {
+                    else if (property_exists(VisibilityGroup::class, $column)) {
                         $queryBuilder->addOrderBy("visibility_group.$column", $order);
                     }
                 }

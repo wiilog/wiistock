@@ -29,7 +29,9 @@ class VisibilityGroupService {
 
     public function dataRowGroup(VisibilityGroup $visibilityGroup): array {
         return [
-            'actions' => $this->templating->render('visibility_group/actions.html.twig'),
+            'actions' => $this->templating->render('visibility_group/actions.html.twig', [
+                'visibilityGroupId' => $visibilityGroup->getId()
+            ]),
             'label' => $visibilityGroup->getLabel(),
             'description' => $visibilityGroup->getDescription(),
             'status' => $visibilityGroup->isActive() ? 'Actif' : 'Inactif',

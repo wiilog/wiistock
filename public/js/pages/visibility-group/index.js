@@ -14,6 +14,9 @@ $(function() {
         drawConfig: {
             needsSearchOverride: true,
         },
+        rowConfig: {
+            needsRowClickAction: true,
+        },
         columns: [
             {data: `actions`, name: `actions`, title: '', className: 'noVis', orderable: false, width: `10px`},
             {data: `label`, title: `Libellé`},
@@ -21,5 +24,20 @@ $(function() {
             {data: `status`, title: `Statut`},
         ],
     };
-    initDataTable($('#tableVisibilityGroup'), groupsTableConfig);
+    let visibilityGroupTable = initDataTable($('#tableVisibilityGroup'), groupsTableConfig);
+
+    let modalNewVisibilityGroup = $("#modalNewVisibilityGroup");
+    let submitNewVisibilityGroup = $("#submitNewVisibilityGroup");
+    let urlNewVisibilityGroup = Routing.generate('visibility_group_new', true);
+    InitModal(modalNewVisibilityGroup, submitNewVisibilityGroup, urlNewVisibilityGroup, {tables: [visibilityGroupTable]});
+
+    let ModalDeleteVisibilityGroup = $("#modalDeleteVisibilityGroup");
+    let SubmitDeleteVisibilityGroup = $("#submitDeleteVisibilityGroup");
+    let urlDeleteVisibilityGroup = Routing.generate('visibility_group_delete', true)
+    InitModal(ModalDeleteVisibilityGroup, SubmitDeleteVisibilityGroup, urlDeleteVisibilityGroup, {tables: [visibilityGroupTable]});
+
+    let modalModifyVisibilityGroup = $('#modalEditVisibilityGroup');
+    let submitModifyVisibilityGroup = $('#submitEditVisibilityGroup');
+    let urlModifyVisibilityGroup = Routing.generate('visibility_group_edit', true);
+    InitModal(modalModifyVisibilityGroup, submitModifyVisibilityGroup, urlModifyVisibilityGroup, {tables: [visibilityGroupTable]});
 });
