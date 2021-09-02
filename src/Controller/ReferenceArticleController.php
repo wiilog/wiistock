@@ -197,10 +197,10 @@ class ReferenceArticleController extends AbstractController
             $refArticle->setQuantiteReservee(0);
             $refArticle->setStockManagement($data['stockManagement'] ?? null);
 
-            $visibilityGroupsIds = Stream::explode(",", $data["managers"])
-                ->filter(fn($userId) => $userId)
+            $managersIds = Stream::explode(",", $data["managers"])
+                ->filter()
                 ->toArray();
-            foreach ($visibilityGroupsIds as $managerId) {
+            foreach ($managersIds as $managerId) {
                 $manager = $userRepository->find($managerId);
                 if ($manager) {
                     $refArticle->addManager($manager);
@@ -208,7 +208,7 @@ class ReferenceArticleController extends AbstractController
             }
 
             $visibilityGroupsIds = Stream::explode(",", $data["visibility-group"])
-                ->filter(fn($userId) => $userId)
+                ->filter()
                 ->toArray();
             foreach ($visibilityGroupsIds as $visibilityGroupsId) {
                 $visibilityGroup = $visibilityGroupRepository->find($visibilityGroupsId);

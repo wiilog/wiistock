@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f1bf9364ac66f431209f0f20b2f71c2d",
+    "content-hash": "e2264ec2a92616a673e4eb6a6b6bf864",
     "packages": [
         {
             "name": "beberlei/doctrineextensions",
@@ -8341,11 +8341,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/wiilog/common-php.git",
-                "reference": "57f7ef3033bcfbfe890ef9c6f5a47bec511a8156"
+                "reference": "9b60a1a8427988480f3f2b0a8e059c726f2a84ef"
             },
             "require-dev": {
                 "phpunit/phpunit": "9"
             },
+            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -8358,7 +8359,7 @@
                     "email": "romain.barot@wiilog.fr"
                 }
             ],
-            "time": "2021-07-01T09:35:36+00:00"
+            "time": "2021-09-02T09:23:10+00:00"
         },
         {
             "name": "willdurand/jsonp-callback-validator",
@@ -10462,5 +10463,6 @@
         "ext-iconv": "*",
         "ext-json": "*"
     },
-    "platform-dev": []
+    "platform-dev": [],
+    "plugin-api-version": "2.1.0"
 }

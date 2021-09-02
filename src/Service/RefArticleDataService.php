@@ -23,8 +23,6 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Entity\CategorieCL;
-use App\Entity\ArticleFournisseur;
 use App\Entity\VisibilityGroup;
 use App\Helper\FormatHelper;
 use App\Repository\FiltreRefRepository;
