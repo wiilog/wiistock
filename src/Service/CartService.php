@@ -215,7 +215,7 @@ class CartService {
         foreach ($data as $key => $datum) {
             if (str_starts_with($key, 'reference')) {
                 $index = intval(substr($key, 9));
-                $reference = $referenceRepository->findOneByReference($datum);
+                $reference = $referenceRepository->findOneBy(['reference' => $datum]);
                 $quantityToDeliver = $data['quantity' . $index] ?? null;
                 $collecteReference = new CollecteReference();
                 $collecteReference
@@ -250,7 +250,7 @@ class CartService {
                         $index = $match[3];
                         $associatedPurchaseRequest = $data['purchase-' . $buyerID] ?: ($requestsByBuyer[$buyerID] ?? null);
                         $wantedQuantity = intval($data['quantity-' . $buyerID . '-' . $index]);
-                        $reference = $referenceArticleRepository->findOneByReference($datum);
+                        $reference = $referenceArticleRepository->findOneBy(['reference' => $datum]);
 
                         if ($associatedPurchaseRequest) {
                             $request = $associatedPurchaseRequest instanceof PurchaseRequest
@@ -317,7 +317,7 @@ class CartService {
         foreach ($data as $key => $datum) {
             if (str_starts_with($key, 'reference')) {
                 $index = intval(substr($key, 9));
-                $reference = $referenceRepository->findOneByReference($datum);
+                $reference = $referenceRepository->findOneBy(['reference' => $datum]);
                 $quantityToDeliver = $data['quantity' . $index] ?? null;
                 $data['quantity-to-pick'] = $quantityToDeliver;
                 $refArticleDataService->addRefToDemand($data, $reference, $utilisateur, false, $entityManager, $request, null, false, true);
@@ -374,7 +374,7 @@ class CartService {
 
         foreach ($data as $key => $datum) {
             if (str_starts_with($key, 'reference')) {
-                $reference = $referenceRepository->findOneByReference($datum);
+                $reference = $referenceRepository->findOneBy(['reference' => $datum]);
                 $request->addReference($reference);
             } else if (str_starts_with($key, 'article')) {
                 $article = $articleRepository->find($datum);

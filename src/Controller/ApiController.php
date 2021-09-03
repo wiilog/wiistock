@@ -599,7 +599,7 @@ class ApiController extends AbstractFOSRestController
                         }
 
                         foreach ($totalQuantitiesWithRef as $ref => $quantity) {
-                            $refArticle = $referenceArticleRepository->findOneByReference($ref);
+                            $refArticle = $referenceArticleRepository->findOneBy(['reference' => $ref]);
                             $ligneArticle = $ligneArticlePreparationRepository->findOneByRefArticleAndDemande($refArticle, $preparation->getDemande());
                             $preparationsManager->deleteLigneRefOrNot($ligneArticle);
                         }

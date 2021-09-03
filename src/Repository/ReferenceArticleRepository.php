@@ -9,7 +9,6 @@ use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
-use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use WiiCommon\Helper\Stream;
@@ -17,9 +16,6 @@ use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
-use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
 
 /**
@@ -71,8 +67,17 @@ class ReferenceArticleRepository extends EntityRepository {
             ->getArrayResult();
     }
 
-    public function iterateAll() {
-        $iterator = $this->createQueryBuilder('referenceArticle')
+    public function iterateAll(Utilisateur $user): iterable {
+        $queryBuilder = $this->createQueryBuilder('referenceArticle');
+
+        $visibilityGroup = $user->getVisibilityGroup();
+        if ($visibilityGroup) {
+            $queryBuilder
+                ->andWhere(':loggedUserVisibilityGroup MEMBER OF referenceArticle.visibilityGroups')
+                ->setParameter('loggedUserVisibilityGroup', $visibilityGroup);
+        }
+
+        return $queryBuilder->distinct()
             ->select('referenceArticle.id')
             ->addSelect('referenceArticle.reference')
             ->addSelect('referenceArticle.libelle')
@@ -92,37 +97,17 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('referenceArticle.needsMobileSync')
             ->addSelect('referenceArticle.freeFields')
             ->addSelect('referenceArticle.stockManagement')
+            ->addSelect("GROUP_CONCAT(join_visibilityGroups.label SEPARATOR ', ') AS visibilityGroups")
             ->leftJoin('referenceArticle.statut', 'statutRef')
             ->leftJoin('referenceArticle.emplacement', 'emplacementRef')
             ->leftJoin('referenceArticle.type', 'typeRef')
             ->leftJoin('referenceArticle.category', 'categoryRef')
             ->leftJoin('referenceArticle.buyer', 'join_buyer')
+            ->leftJoin('referenceArticle.visibilityGroups', 'join_visibilityGroups')
+            ->groupBy('referenceArticle.id')
             ->orderBy('referenceArticle.id', 'ASC')
             ->getQuery()
-            ->iterate(null, Query::HYDRATE_ARRAY);
-
-        foreach($iterator as $item) {
-            // $item [index => reference array]
-            yield array_pop($item);
-        }
-    }
-
-    /**
-     * @param $reference
-     * @return ReferenceArticle|null
-     * @throws NonUniqueResultException
-     */
-    public function findOneByReference($reference)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT r
-            FROM App\Entity\ReferenceArticle r
-            WHERE r.reference = :reference
-            "
-        )->setParameter('reference', $reference);
-
-        return $query->getOneOrNullResult();
+            ->toIterable();
     }
 
     public function getByNeedsMobileSync()
@@ -171,14 +156,6 @@ class ReferenceArticleRepository extends EntityRepository {
         return $res;
     }
 
-    /**
-     * @param string $search
-     * @param bool $activeOnly
-     * @param int $typeQuantity
-     * @param string $field
-     * @param null $locationFilter
-     * @return mixed
-     */
     public function getIdAndRefBySearch(?string $search,
                                         Utilisateur $user,
                                         $activeOnly = false,
@@ -782,13 +759,7 @@ class ReferenceArticleRepository extends EntityRepository {
         return $query->getSingleScalarResult();
     }
 
-    /**
-     * @param InventoryMission $mission
-     * @param $refId
-     * @return mixed
-     * @throws NonUniqueResultException
-     */
-    public function getEntryByMission($mission, $refId)
+    public function getEntryByMission(InventoryMission $mission, $refId)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
@@ -818,10 +789,9 @@ class ReferenceArticleRepository extends EntityRepository {
     }
 
     /**
-     * @param InventoryFrequency $frequency
      * @return ReferenceArticle[]
      */
-    public function findByFrequencyOrderedByLocation($frequency)
+    public function findByFrequencyOrderedByLocation(InventoryFrequency $frequency): array
     {
         $queryBuilder = $this->createQueryBuilder('referenceArticle')
             ->select('referenceArticle')
@@ -841,12 +811,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->execute();
     }
 
-    /**
-     * @param InventoryFrequency $frequency
-     * @return mixed
-     * @throws NonUniqueResultException
-     */
-    public function countActiveByFrequencyWithoutDateInventory($frequency)
+    public function countActiveByFrequencyWithoutDateInventory(InventoryFrequency $frequency)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
@@ -875,11 +840,9 @@ class ReferenceArticleRepository extends EntityRepository {
     }
 
     /**
-     * @param InventoryFrequency $frequency
-     * @param int $limit
-     * @return ReferenceArticle[]|Article[]
+     * @return ReferenceArticle[]
      */
-    public function findActiveByFrequencyWithoutDateInventoryOrderedByEmplacementLimited($frequency, $limit)
+    public function findActiveByFrequencyWithoutDateInventoryOrderedByEmplacementLimited(InventoryFrequency $frequency, int $limit): array
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
@@ -905,11 +868,7 @@ class ReferenceArticleRepository extends EntityRepository {
         return $query->execute();
     }
 
-    /**
-     * @param string $dateCode
-     * @return mixed
-     */
-    public function getHighestBarCodeByDateCode($dateCode)
+    public function getHighestBarCodeByDateCode(string $dateCode)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
@@ -926,12 +885,6 @@ class ReferenceArticleRepository extends EntityRepository {
         return $result ? $result[0]['barCode'] : null;
     }
 
-    /**
-     * @param ReferenceArticle $referenceArticle
-     * @return int
-     * @throws NonUniqueResultException
-     * @throws NoResultException
-     */
     public function getStockQuantity(ReferenceArticle $referenceArticle): int
     {
         if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
@@ -957,12 +910,6 @@ class ReferenceArticleRepository extends EntityRepository {
         return $stockQuantity;
     }
 
-    /**
-     * @param ReferenceArticle $referenceArticle
-     * @return int
-     * @throws NonUniqueResultException
-     * @throws NoResultException
-     */
     public function getReservedQuantity(ReferenceArticle $referenceArticle): int
     {
         if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
@@ -1003,13 +950,7 @@ class ReferenceArticleRepository extends EntityRepository {
         return $reservedQuantity;
     }
 
-    /**
-     * @param ReferenceArticle $ref
-     * @return int
-     * @throws NonUniqueResultException
-     * @throws NoResultException
-     */
-    public function countInventoryAnomaliesByRef($ref)
+    public function countInventoryAnomaliesByRef(ReferenceArticle $ref): int
     {
         $em = $this->getEntityManager();
 
@@ -1102,11 +1043,6 @@ class ReferenceArticleRepository extends EntityRepository {
             ->execute();
     }
 
-    /**
-     * @param TransferRequest[] $requests
-     * @param bool $isRequests
-     * @return int|mixed|string
-     */
     public function getReferenceArticlesGroupedByTransfer(array $requests, bool $isRequests = true) {
         if (!empty($requests)) {
             $queryBuilder = $this->createQueryBuilder('referenceArticle')

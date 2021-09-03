@@ -45,7 +45,7 @@ class UpdateRefQuantitiesCommand extends Command
     {
         $refToUpdate = $input->getArgument('ref');
         $referenceArticleRepository = $this->em->getRepository(ReferenceArticle::class);
-        $referenceArticleToUpdate = $referenceArticleRepository->findOneByReference($refToUpdate);
+        $referenceArticleToUpdate = $referenceArticleRepository->findOneBy(['reference' => $refToUpdate]);
         $output
             ->writeln('Quantité disponible avant mise à jour : ' . $referenceArticleToUpdate->getQuantiteDisponible() ?? 0);
         $output

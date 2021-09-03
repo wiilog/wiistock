@@ -785,14 +785,16 @@ class ReferenceArticleController extends AbstractController
             'gestion de stock',
             'gestionnaire(s)',
             'Labels Fournisseurs',
-            'Codes Fournisseurs'
+            'Codes Fournisseurs',
+            'Groupe(s) de visibilité'
         ], $ffConfig['freeFieldsHeader']);
 
         $today = new DateTime();
         $today = $today->format("d-m-Y H:i:s");
+        $user = $this->userService->getUser();
 
-        return $csvService->streamResponse(function($output) use ($manager, $csvService, $ffService, $ffConfig) {
-            $raRepository = $manager->getRepository(ReferenceArticle::class);
+        return $csvService->streamResponse(function($output) use ($manager, $csvService, $ffService, $ffConfig, $user) {
+            $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
             $managersByReference = $manager
                 ->getRepository(Utilisateur::class)
                 ->getUsernameManagersGroupByReference();
@@ -801,7 +803,7 @@ class ReferenceArticleController extends AbstractController
                 ->getRepository(Fournisseur::class)
                 ->getCodesAndLabelsGroupedByReference();
 
-            $references = $raRepository->iterateAll();
+            $references = $referenceArticleRepository->iterateAll($user);
             foreach($references as $reference) {
                 $this->putReferenceLine($output, $csvService, $ffService, $ffConfig, $managersByReference, $reference, $suppliersByReference);
             }
@@ -837,6 +839,7 @@ class ReferenceArticleController extends AbstractController
             $managersByReference[$id] ?? "",
             $suppliersByReference[$id]['supplierLabels'] ?? "",
             $suppliersByReference[$id]['supplierCodes'] ?? "",
+            $reference['visibilityGroups'],
         ];
 
         foreach($ffConfig['freeFieldIds'] as $freeFieldId) {

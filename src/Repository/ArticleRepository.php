@@ -94,11 +94,6 @@ class ArticleRepository extends EntityRepository {
         return $query->getResult();
     }
 
-    /**
-     * @param $demandes
-     * @param false $needAssoc
-     * @return Article[]
-     */
     public function findByDemandes($demandes, $needAssoc = false)
     {
         $queryBuilder = $this->createQueryBuilder('article')
@@ -131,8 +126,19 @@ class ArticleRepository extends EntityRepository {
         return $result;
     }
 
-    public function iterateAll() {
-        $iterator = $this->createQueryBuilder('article')
+    public function iterateAll(Utilisateur $user): iterable {
+        $queryBuilder = $this->createQueryBuilder('article');
+
+        $visibilityGroup = $user->getVisibilityGroup();
+        if ($visibilityGroup) {
+            $queryBuilder
+                ->join('article.articleFournisseur', 'join_supplierArticle')
+                ->join('join_supplierArticle.referenceArticle', 'join_referenceArticle')
+                ->andWhere(':loggedUserVisibilityGroup MEMBER OF join_referenceArticle.visibilityGroups')
+                ->setParameter('loggedUserVisibilityGroup', $visibilityGroup);
+        }
+
+        return $queryBuilder->distinct()
             ->select('referenceArticle.reference')
             ->addSelect('article.label')
             ->addSelect('article.quantite')
@@ -146,18 +152,16 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('article.batch')
             ->addSelect('article.stockEntryDate')
             ->addSelect('article.expiryDate')
+            ->addSelect("GROUP_CONCAT(join_visibilityGroups.label SEPARATOR ', ') AS visibilityGroups")
             ->leftJoin('article.articleFournisseur', 'articleFournisseur')
             ->leftJoin('article.emplacement', 'emplacement')
             ->leftJoin('article.type', 'type')
             ->leftJoin('article.statut', 'statut')
             ->leftJoin('articleFournisseur.referenceArticle', 'referenceArticle')
+            ->leftJoin('referenceArticle.visibilityGroups', 'join_visibilityGroups')
+            ->groupBy('article.id')
             ->getQuery()
-            ->iterate(null, Query::HYDRATE_ARRAY);
-
-        foreach($iterator as $item) {
-            // $item [index => article array]
-            yield array_pop($item);
-        }
+            ->toIterable();
     }
 
 	public function getIdAndRefBySearch($search,

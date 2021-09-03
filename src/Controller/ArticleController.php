@@ -629,15 +629,17 @@ class ArticleController extends AbstractController
             'lot',
             'date d\'entrée en stock',
             'date de péremption',
+            'groupe(s) de visibilité'
         ], $ffConfig['freeFieldsHeader']);
 
         $today = new DateTime();
         $today = $today->format("d-m-Y H:i:s");
+        $user = $this->userService->getUser();
 
-        return $csvService->streamResponse(function($output) use ($entityManager, $csvService, $freeFieldService, $ffConfig) {
+        return $csvService->streamResponse(function($output) use ($entityManager, $csvService, $freeFieldService, $ffConfig, $user) {
             $articleRepository = $entityManager->getRepository(Article::class);
 
-            $articles = $articleRepository->iterateAll();
+            $articles = $articleRepository->iterateAll($user);
             foreach($articles as $article) {
                 $this->putArticleLine($output, $csvService, $freeFieldService, $ffConfig, $article);
             }
@@ -663,6 +665,7 @@ class ArticleController extends AbstractController
             $article['batch'],
             $article['stockEntryDate'] ? $article['stockEntryDate']->format('d/m/Y H:i:s') : '',
             $article['expiryDate'] ? $article['expiryDate']->format('d/m/Y') : '',
+            $article['visibilityGroups'],
         ];
 
         foreach ($ffConfig['freeFieldIds'] as $freeFieldId) {
