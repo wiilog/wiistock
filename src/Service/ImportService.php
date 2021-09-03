@@ -1196,7 +1196,7 @@ class ImportService
         if(isset($data['secondaryEmail']) && isset($data['lastEmail'])) {
             if(!filter_var($data['secondaryEmail'], FILTER_VALIDATE_EMAIL)
                 && !filter_var($data['lastEmail'], FILTER_VALIDATE_EMAIL)) {
-                $this->throwError('Le format des adresses email 1 et 2 est incorrect');
+                $this->throwError('Le format des adresses email 2 et 3 est incorrect');
             }
             $user->setSecondaryEmails([$data['secondaryEmail'], $data['lastEmail']]);
         } else if(isset($data['secondaryEmail'])) {
