@@ -53,7 +53,6 @@ use App\Service\RefArticleDataService;
 use App\Service\TransferOrderService;
 use App\Service\TransferRequestService;
 use App\Service\UniqueNumberService;
-use App\Service\UserService;
 
 use App\Service\FreeFieldService;
 use DateTime;

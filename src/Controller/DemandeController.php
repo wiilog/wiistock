@@ -23,7 +23,6 @@ use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
 use App\Service\GlobalParamService;
 use App\Service\RefArticleDataService;
-use App\Service\UserService;
 use App\Service\DemandeLivraisonService;
 use App\Service\FreeFieldService;
 use DateTime;

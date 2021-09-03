@@ -2,7 +2,6 @@
 
 namespace App\Repository;
 
-use App\Entity\Alert;
 use App\Entity\Notification;
 use App\Helper\QueryCounter;
 use Doctrine\ORM\AbstractQuery;

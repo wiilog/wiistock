@@ -10,7 +10,6 @@ use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Service\ArticleFournisseurService;
-use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;

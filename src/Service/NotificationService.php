@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use App\Entity\Alert;
 use App\Entity\Dispatch;
 use App\Entity\FiltreSup;
 use App\Entity\Handling;

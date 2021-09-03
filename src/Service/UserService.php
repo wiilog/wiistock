@@ -13,7 +13,6 @@ use App\Entity\Parametre;
 use App\Entity\ParametreRole;
 use App\Entity\Preparation;
 use App\Entity\Reception;
-use App\Entity\Role;
 use App\Entity\Utilisateur;
 
 use App\Helper\FormatHelper;
