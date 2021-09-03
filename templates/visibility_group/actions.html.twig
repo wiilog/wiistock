@@ -1,0 +1,28 @@
+{% if hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::DISPLAY_VISIBILITY_GROUPS')) %}
+    <div class="d-flex">
+        <div class="dropdown dropright">
+            {% include 'datatable/dotsRow.html.twig' %}
+            <div class="dropdown-menu dropdown-follow-gt pointer">
+                <div class="d-none">
+                    <div class="action-on-click"
+                         data-id='{{ visibilityGroupId }}'
+                         data-target='#modalEditVisibilityGroup'
+                         data-toggle='modal'
+                         onclick="editRow($(this), Routing.generate('visibility_group_api_edit', true), $('#modalEditVisibilityGroup'), $('#submitEditVisibilityGroup'))">
+                        <i class='fas fa-pencil-alt '></i>
+                    </div>
+                </div>
+                <div>
+                    <div class="dropdown-item"
+                         onclick="checkAndDeleteRow($(this), '#modalDeleteVisibilityGroup', 'visibility_group_check_delete', '#submitDeleteVisibilityGroup')"
+                         data-id='{{ visibilityGroupId }}'
+                         data-target='#modalDeleteVisibilityGroup'
+                         data-toggle='modal'>
+                        <i class='fas fa-trash mr-2'></i>
+                        Supprimer
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
