@@ -381,14 +381,14 @@ function articleChanged($select) {
     }
 }
 
-function initNewReferenceArticleEditor() {
+function initNewReferenceArticleEditor($modal) {
     if (!editorNewReferenceArticleAlreadyDone) {
         initEditor('.editor-container-new');
         editorNewReferenceArticleAlreadyDone = true;
     }
-    Select2Old.provider($('.ajax-autocomplete-fournisseur'));
-    Select2Old.provider($('.ajax-autocomplete-fournisseurLabel'), '', 'demande_label_by_fournisseur');
-    Select2Old.location($('.ajax-autocomplete-location'));
+    Select2Old.provider($modal.find('.ajax-autocomplete-fournisseur'));
+    Select2Old.provider($modal.find('.ajax-autocomplete-fournisseurLabel'), '', 'demande_label_by_fournisseur');
+    Select2Old.location($modal.find('.ajax-autocomplete-location'));
     let modalRefArticleNew = $("#new-ref-inner-body");
     let submitNewRefArticle = $("#submitNewRefArticleFromRecep");
     let urlRefArticleNew = Routing.generate('reference_article_new', true);
@@ -407,8 +407,9 @@ function addArticle() {
     let path = Routing.generate('get_modal_new_ref', true);
     $.post(path, {}, function (modalNewRef) {
         $('#reception-add-ligne').val(null).trigger('change');
-        $('#innerNewRef').html(modalNewRef);
-        initNewReferenceArticleEditor();
+        const $modal = $('#innerNewRef');
+        $modal.html(modalNewRef);
+        initNewReferenceArticleEditor($modal);
     });
 }
 

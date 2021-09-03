@@ -36,8 +36,10 @@ const INSTANT_SELECT_TYPES = {
 export default class Select2 {
     static init($element) {
         const type = $element.data(`s2`);
-        if(!$element.find(`option[selected]`).exists() && !type &&
-            !$element.is(`[data-no-empty-option]`) && !$element.is(`[data-editable]`)) {
+        if(!$element.find(`option[selected]`).exists()
+            && !type
+            && !$element.is(`[data-no-empty-option]`)
+            && !$element.is(`[data-editable]`)) {
             $element.prepend(`<option selected>`);
         }
 

@@ -520,8 +520,13 @@ class ReferenceArticleController extends AbstractController
         $field = $request->query->get('field', 'reference');
         $locationFilter = $request->query->get('locationFilter');
         $buyerFilter = $request->query->get('buyerFilter');
+
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
+
         $refArticles = $referenceArticleRepository->getIdAndRefBySearch(
             $search,
+            $user,
             $activeOnly,
             $minQuantity !== null ? (int) $minQuantity : null,
             $typeQuantity,
@@ -910,9 +915,12 @@ class ReferenceArticleController extends AbstractController
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
 
-        $userId = $this->getUser()->getId();
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
+
+        $userId = $user->getId();
         $filters = $filtreRefRepository->getFieldsAndValuesByUser($userId);
-        $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $request->query, $this->getUser());
+        $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $request->query, $user);
         $refs = $queryResult['data'];
         $refs = array_map(function($refArticle) {
             return is_array($refArticle) ? $refArticle[0] : $refArticle;

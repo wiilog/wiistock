@@ -48,23 +48,27 @@ class ReferenceArticleRepository extends EntityRepository {
         "dateLastInventory"
     ];
 
-    public function getForSelect(?string $term) {
-        return $this->createQueryBuilder("reference")
+    private const CART_COLUMNS_ASSOCIATION = [
+        "label" => "libelle",
+        "availableQuantity" => "quantiteDisponible",
+    ];
+
+    public function getForSelect(?string $term, Utilisateur $user) {
+        $queryBuilder = $this->createQueryBuilder("reference");
+
+        $visibilityGroup = $user->getVisibilityGroup();
+        if ($visibilityGroup) {
+            $queryBuilder
+                ->andWhere(':loggedUserVisibilityGroup MEMBER OF reference.visibilityGroups')
+                ->setParameter('loggedUserVisibilityGroup', $visibilityGroup);
+        }
+
+        return $queryBuilder
             ->select("reference.id AS id, reference.reference AS text, reference.libelle AS label")
-            ->where("reference.reference LIKE :term")
+            ->andWhere("reference.reference LIKE :term")
             ->setParameter("term", "%$term%")
             ->getQuery()
             ->getArrayResult();
-    }
-
-    public function getIdAndLibelle() {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT r.id, r.libelle
-            FROM App\Entity\ReferenceArticle r
-            "
-        );
-        return $query->execute();
     }
 
     public function iterateAll() {
@@ -101,31 +105,6 @@ class ReferenceArticleRepository extends EntityRepository {
             // $item [index => reference array]
             yield array_pop($item);
         }
-    }
-
-    public function getBetweenLimits($min, $step) {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT ra
-                  FROM App\Entity\ReferenceArticle ra
-                  ORDER BY ra.id ASC"
-        )
-            ->setMaxResults($step)
-            ->setFirstResult($min);
-        return $query->execute();
-    }
-
-    public function getChampFixeById($id)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT r.id, r.libelle, r.reference, r.commentaire, r.quantite_stock, r.type_quantite, r.statut, r.type
-            FROM App\Entity\ReferenceArticle r
-            WHERE r.id = :id
-            "
-        )->setParameter('id', $id);
-
-        return $query->execute();
     }
 
     /**
@@ -200,50 +179,65 @@ class ReferenceArticleRepository extends EntityRepository {
      * @param null $locationFilter
      * @return mixed
      */
-    public function getIdAndRefBySearch($search, $activeOnly = false, $minQuantity = null, $typeQuantity = null, $field = 'reference', $locationFilter = null, $buyerFilter = null)
+    public function getIdAndRefBySearch(?string $search,
+                                        Utilisateur $user,
+                                        $activeOnly = false,
+                                        $minQuantity = null,
+                                        $typeQuantity = null,
+                                        $field = 'reference',
+                                        $locationFilter = null,
+                                        $buyerFilter = null)
     {
-        $queryBuilder = $this->createQueryBuilder('r')
-            ->select('r.id')
-            ->addSelect("r.${field} as text")
-            ->addSelect('r.typeQuantite as typeQuantity')
-            ->addSelect('r.isUrgent as urgent')
-            ->addSelect('r.emergencyComment as emergencyComment')
-            ->addSelect('r.libelle')
-            ->addSelect('r.barCode')
-            ->addSelect('e.label AS location')
-            ->addSelect('r.quantiteDisponible')
-            ->leftJoin('r.statut', 's')
-            ->leftJoin('r.emplacement', 'e')
-            ->where("r.${field} LIKE :search")
+        $queryBuilder = $this->createQueryBuilder('reference')
+            ->select('reference.id')
+            ->addSelect("reference.${field} as text")
+            ->addSelect('reference.typeQuantite as typeQuantity')
+            ->addSelect('reference.isUrgent as urgent')
+            ->addSelect('reference.emergencyComment as emergencyComment')
+            ->addSelect('reference.libelle')
+            ->addSelect('reference.barCode')
+            ->addSelect('join_location.label AS location')
+            ->addSelect('reference.quantiteDisponible')
+            ->leftJoin('reference.emplacement', 'join_location')
+            ->where("reference.${field} LIKE :search")
             ->setParameter('search', '%' . $search . '%');
+
+        $visibilityGroup = $user->getVisibilityGroup();
+        if ($visibilityGroup) {
+            $queryBuilder
+                ->andWhere(':loggedUserVisibilityGroup MEMBER OF reference.visibilityGroups')
+                ->setParameter('loggedUserVisibilityGroup', $visibilityGroup);
+        }
 
         if ($activeOnly !== null) {
             $queryBuilder
-                ->andWhere('s.nom = :activeStatus')
+                ->leftJoin('reference.statut', 'join_status')
+                ->andWhere('join_status.nom = :activeStatus')
                 ->setParameter('activeStatus', ReferenceArticle::STATUT_ACTIF);
         }
 
         if($minQuantity !== null) {
             $queryBuilder
-                ->andWhere('r.quantiteDisponible > :minQuantity')
+                ->andWhere('reference.quantiteDisponible > :minQuantity')
                 ->setParameter('minQuantity', $minQuantity);
         }
 
         if ($typeQuantity) {
             $queryBuilder
-                ->andWhere('r.typeQuantite = :type')
+                ->andWhere('reference.typeQuantite = :type')
                 ->setParameter('type', $typeQuantity);
         }
 
         if ($locationFilter) {
             $queryBuilder
-                ->andWhere("(r.emplacement IS NULL OR r.typeQuantite = 'article' OR r.emplacement = :location)")
-                ->setParameter('location', $locationFilter);
+                ->andWhere("(reference.emplacement IS NULL OR reference.typeQuantite = :typeQuantityArticle OR reference.emplacement = :location)")
+                ->setParameter('location', $locationFilter)
+                ->setParameter('typeQuantityArticle', ReferenceArticle::TYPE_QUANTITE_ARTICLE);
         }
 
         if ($buyerFilter) {
             $queryBuilder
-                ->andWhere("r.buyer = :buyer")
+                ->andWhere("reference.buyer = :buyer")
                 ->setParameter('buyer', $buyerFilter);
         }
 
@@ -252,9 +246,8 @@ class ReferenceArticleRepository extends EntityRepository {
             ->execute();
     }
 
-    public function findByFiltersAndParams($filters, $params, $user)
+    public function findByFiltersAndParams($filters, $params, Utilisateur $user)
     {
-        $needCLOrder = null;
         $em = $this->getEntityManager();
         $index = 0;
 
@@ -278,39 +271,46 @@ class ReferenceArticleRepository extends EntityRepository {
             'Gestion de stock' => ['field' => 'stockManagement', 'typage' => 'text']
         ];
 
-        $qb = $this->createQueryBuilder("ra");
+        $queryBuilder = $this->createQueryBuilder("ra");
+        $visibilityGroup = $user->getVisibilityGroup();
+        if ($visibilityGroup) {
+            $queryBuilder
+                ->andWhere(':loggedUserVisibilityGroup MEMBER OF ra.visibilityGroups')
+                ->setParameter('loggedUserVisibilityGroup', $visibilityGroup);
+        }
 
         foreach ($filters as $filter) {
             $index++;
             if ($filter['champFixe'] === FiltreRef::FIXED_FIELD_STATUT) {
                 if ($filter['value'] === ReferenceArticle::STATUT_ACTIF) {
-                    $qb->leftJoin('ra.statut', 'filter_sra');
-                    $qb->andWhere('filter_sra.nom LIKE \'' . $filter['value'] . '\'');
+                    $queryBuilder->leftJoin('ra.statut', 'filter_sra');
+                    $queryBuilder->andWhere('filter_sra.nom LIKE \'' . $filter['value'] . '\'');
                 }
             } else if ($filter['champFixe'] === FiltreRef::FIXED_FIELD_VISIBILITY_GROUP) {
-                $qb->leftJoin('ra.visibilityGroups', 'filter_visibility_groups')
+                $queryBuilder->leftJoin('ra.visibilityGroups', 'filter_visibility_groups')
                     ->andWhere('filter_visibility_groups.label LIKE :filter_visibility_group')
                     ->setParameter('filter_visibility_group', '%' . $filter['value'] . '%');
             } else if ($filter['champFixe'] === FiltreRef::FIXED_FIELD_MANAGERS) {
-                $qb->leftJoin('ra.managers', 'filter_manager')
+                $queryBuilder->leftJoin('ra.managers', 'filter_manager')
                     ->andWhere('filter_manager.username LIKE :filter_manager')
                     ->setParameter('filter_manager', '%' . $filter['value'] . '%');
             } else if ($filter['champFixe'] === FiltreRef::FIXED_FIELD_PROVIDER_CODE) {
-                $qb
+                $queryBuilder
                     ->leftJoin('ra.articlesFournisseur', 'filter_af_provider_code')
                     ->leftJoin('filter_af_provider_code.fournisseur', 'filter_provider_code')
                     ->andWhere('filter_provider_code.codeReference LIKE :providerCode')
                     ->setParameter('providerCode', '%' . $filter['value'] . '%');
             } else if ($filter['champFixe'] === FiltreRef::FIXED_FIELD_PROVIDER_LABEL) {
-                $qb
+                $queryBuilder
                     ->leftJoin('ra.articlesFournisseur', 'filter_af_provider_label')
                     ->leftJoin('filter_af_provider_label.fournisseur', 'filter_provider_label')
                     ->andWhere('filter_provider_label.nom LIKE :providerLabel')
                     ->setParameter('providerLabel', '%' . $filter['value'] . '%');
-            } else {
+            }
+            else {
                 // cas particulier champ référence article fournisseur
                 if ($filter['champFixe'] === FiltreRef::FIXED_FIELD_REF_ART_FOURN) {
-                    $qb
+                    $queryBuilder
                         ->leftJoin('ra.articlesFournisseur', 'filter_af')
                         ->andWhere('filter_af.reference LIKE :reference')
                         ->setParameter('reference', '%' . $filter['value'] . '%');
@@ -324,41 +324,41 @@ class ReferenceArticleRepository extends EntityRepository {
                         switch ($typage) {
                             case 'sync':
                                 if ($filter['value'] == 0) {
-                                    $qb
+                                    $queryBuilder
                                         ->andWhere("ra.needsMobileSync = :value$index OR ra.needsMobileSync IS NULL")
                                         ->setParameter("value$index", $filter['value']);
                                 }
                                 else {
-                                    $qb
+                                    $queryBuilder
                                         ->andWhere("ra.needsMobileSync = :value$index")
                                         ->setParameter("value$index", $filter['value']);
                                 }
                                 break;
                             case 'text':
-                                $qb
+                                $queryBuilder
                                     ->andWhere("ra." . $field . " LIKE :value" . $index)
                                     ->setParameter('value' . $index, '%' . $filter['value'] . '%');
                                 break;
                             case 'number':
-                                $qb
+                                $queryBuilder
                                     ->andWhere("ra.$field = :value$index")
                                     ->setParameter("value$index", $filter['value']);
                                 break;
                             case 'boolean':
-                                $qb
+                                $queryBuilder
                                     ->andWhere("ra.isUrgent = :value$index")
                                     ->setParameter("value$index", $filter['value']);
                                 break;
                             case 'list':
                                 switch ($field) {
                                     case 'type_id':
-                                        $qb
+                                        $queryBuilder
                                             ->leftJoin('ra.type', 'tFilter')
                                             ->andWhere('tFilter.label = :typeLabel')
                                             ->setParameter('typeLabel', $filter['value']);
                                         break;
                                     case 'emplacement_id':
-                                        $qb
+                                        $queryBuilder
                                             ->leftJoin('ra.emplacement', 'eFilter')
                                             ->andWhere('eFilter.label = :emplacementLabel')
                                             ->setParameter('emplacementLabel', $filter['value']);
@@ -416,7 +416,7 @@ class ReferenceArticleRepository extends EntityRepository {
 
                     if (!empty($jsonSearchesQueryArray)) {
                         $jsonSearchesQueryString = '(' . implode(' OR ', $jsonSearchesQueryArray) . ')';
-                        $qb->andWhere($jsonSearchesQueryString);
+                        $queryBuilder->andWhere($jsonSearchesQueryString);
                     }
                 }
             }
@@ -455,7 +455,7 @@ class ReferenceArticleRepository extends EntityRepository {
                                 ->from('App\Entity\ReferenceArticle', 'referenceArticle')
                                 ->innerJoin('referenceArticle.articlesFournisseur', 'articleFournisseur')
                                 ->innerJoin('articleFournisseur.fournisseur', 'fournisseur')
-                                ->where('fournisseur.codeReference LIKE :valueSearch')
+                                ->andWhere('fournisseur.codeReference LIKE :valueSearch')
                                 ->setParameter('valueSearch', $search);
 
                             $res = $subqb->getQuery()->execute();
@@ -470,7 +470,7 @@ class ReferenceArticleRepository extends EntityRepository {
                                 ->select('referenceArticle.id')
                                 ->from(ReferenceArticle::class, 'referenceArticle')
                                 ->innerJoin('referenceArticle.articlesFournisseur', 'articleFournisseur')
-                                ->where('articleFournisseur.reference LIKE :valueSearch')
+                                ->andWhere('articleFournisseur.reference LIKE :valueSearch')
                                 ->setParameter('valueSearch', $search);
 
                             $res = $subqb->getQuery()->execute();
@@ -508,16 +508,16 @@ class ReferenceArticleRepository extends EntityRepository {
                             $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
                             if(is_numeric($freeFieldId)) {
                                 $query[] = "JSON_SEARCH(ra.freeFields, 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
-                                $qb->setParameter("search", $date ?: $search);
+                                $queryBuilder->setParameter("search", $date ?: $search);
                             } else if (property_exists(ReferenceArticle::class, $field)) {
                                 if ($date && in_array($field, self::FIELDS_TYPE_DATE)) {
                                     $query[] = "ra.$field BETWEEN :dateMin AND :dateMax";
-                                    $qb
+                                    $queryBuilder
                                         ->setParameter("dateMin", "$date 00:00:00")
                                         ->setParameter("dateMax", "$date 23:59:59");
                                 } else {
                                     $query[] = "ra.$field LIKE :search";
-                                    $qb->setParameter('search', $search);
+                                    $queryBuilder->setParameter('search', $search);
                                 }
                             }
                             break;
@@ -533,111 +533,98 @@ class ReferenceArticleRepository extends EntityRepository {
                 }
 
                 if (!empty($query)) {
-                    $qb->andWhere(implode(' OR ', $query));
+                    $queryBuilder->andWhere(implode(' OR ', $query));
                 }
                 else {
                     // false condition because search is corresponding to 0 ra.id
-                    $qb->andWhere('ra.id = 0');
+                    $queryBuilder->andWhere('ra.id = 0');
                 }
             }
         }
 
         // compte éléments filtrés
-        $countQuery = QueryCounter::count($qb, "ra");
+        $countQuery = QueryCounter::count($queryBuilder, "ra");
 
         if (!empty($params) && !empty($params->get('order'))) {
-                $order = $params->get('order')[0]['dir'];
-                if (!empty($order)) {
-                    $columnIndex = $params->get('order')[0]['column'];
-                    $columnName = $params->get('columns')[$columnIndex]['data'];
-                    $column = self::DtToDbLabels[$columnName] ?? $columnName;
+            $order = $params->get('order')[0]['dir'];
+            if (!empty($order)) {
+                $columnIndex = $params->get('order')[0]['column'];
+                $columnName = $params->get('columns')[$columnIndex]['data'];
+                $column = self::DtToDbLabels[$columnName] ?? $columnName;
 
-                    $orderAddSelect = [];
+                $orderAddSelect = [];
 
-                    switch ($column) {
-                        case "actions":
-                            break;
-                        case "supplier":
-                            $orderAddSelect[] = 'order_supplier.nom';
-                            $qb
-                                ->leftJoin('ra.articlesFournisseur', 'order_articlesFournisseur')
-                                ->leftJoin('order_articlesFournisseur.fournisseur', 'order_supplier')
-                                ->orderBy('order_supplier.nom', $order);
-                            break;
-                        case "type":
-                            $orderAddSelect[] = 'order_type.label';
-                            $qb
-                                ->leftJoin('ra.type', 'order_type')
-                                ->orderBy('order_type.label', $order);
-                            break;
-                        case "location":
-                            $orderAddSelect[] = 'order_location.label';
-                            $qb
-                                ->leftJoin('ra.emplacement', 'order_location')
-                                ->orderBy('order_location.label', $order);
-                            break;
-                        case "status":
-                            $orderAddSelect[] = 'order_status.nom';
-                            $qb
-                                ->leftJoin('ra.statut', 'order_status')
-                                ->orderBy('order_status.nom', $order);
-                            break;
-                        case "buyer":
-                            $orderAddSelect[] = 'order_buyer.username';
-                            $qb
-                                ->leftJoin('ra.buyer', 'order_buyer')
-                                ->orderBy('order_buyer.username', $order);
-                            break;
-                        default:
-                            $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
-                            if(is_numeric($freeFieldId)) {
-                                /** @var FreeField $freeField */
-                                $freeField = $this->getEntityManager()->getRepository(FreeField::class)->find($freeFieldId);
-                                if($freeField->getTypage() === FreeField::TYPE_NUMBER) {
-                                    $qb->orderBy("CAST(JSON_EXTRACT(ra.freeFields, '$.\"$freeFieldId\"') AS SIGNED)", $order);
-                                } else {
-                                    $qb->orderBy("JSON_EXTRACT(ra.freeFields, '$.\"$freeFieldId\"')", $order);
-                                }
-                            } else if ($column != 'attachments' && property_exists(ReferenceArticle::class, $column)) {
-                                $qb->orderBy("ra.$column", $order);
+                switch ($column) {
+                    case "actions":
+                        break;
+                    case "supplier":
+                        $orderAddSelect[] = 'order_supplier.nom';
+                        $queryBuilder
+                            ->leftJoin('ra.articlesFournisseur', 'order_articlesFournisseur')
+                            ->leftJoin('order_articlesFournisseur.fournisseur', 'order_supplier')
+                            ->orderBy('order_supplier.nom', $order);
+                        break;
+                    case "type":
+                        $orderAddSelect[] = 'order_type.label';
+                        $queryBuilder
+                            ->leftJoin('ra.type', 'order_type')
+                            ->orderBy('order_type.label', $order);
+                        break;
+                    case "location":
+                        $orderAddSelect[] = 'order_location.label';
+                        $queryBuilder
+                            ->leftJoin('ra.emplacement', 'order_location')
+                            ->orderBy('order_location.label', $order);
+                        break;
+                    case "status":
+                        $orderAddSelect[] = 'order_status.nom';
+                        $queryBuilder
+                            ->leftJoin('ra.statut', 'order_status')
+                            ->orderBy('order_status.nom', $order);
+                        break;
+                    case "buyer":
+                        $orderAddSelect[] = 'order_buyer.username';
+                        $queryBuilder
+                            ->leftJoin('ra.buyer', 'order_buyer')
+                            ->orderBy('order_buyer.username', $order);
+                        break;
+                    default:
+                        $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
+                        if(is_numeric($freeFieldId)) {
+                            /** @var FreeField $freeField */
+                            $freeField = $this->getEntityManager()->getRepository(FreeField::class)->find($freeFieldId);
+                            if($freeField->getTypage() === FreeField::TYPE_NUMBER) {
+                                $queryBuilder->orderBy("CAST(JSON_EXTRACT(ra.freeFields, '$.\"$freeFieldId\"') AS SIGNED)", $order);
+                            } else {
+                                $queryBuilder->orderBy("JSON_EXTRACT(ra.freeFields, '$.\"$freeFieldId\"')", $order);
                             }
-                            break;
-                    }
+                        } else if ($column != 'attachments' && property_exists(ReferenceArticle::class, $column)) {
+                            $queryBuilder->orderBy("ra.$column", $order);
+                        }
+                        break;
                 }
             }
+        }
 
         if (!empty($params) && !empty($params->get('start'))) {
-            $qb->setFirstResult($params->get('start'));
+            $queryBuilder->setFirstResult($params->get('start'));
         }
         if (!empty($params) && !empty($params->get('length'))) {
-            $qb->setMaxResults($params->get('length'));
+            $queryBuilder->setMaxResults($params->get('length'));
         }
 
-        $qb
+        $queryBuilder
             ->select('ra')
             ->distinct();
 
         foreach ($orderAddSelect ?? [] as $addSelect) {
-            $qb->addSelect($addSelect);
+            $queryBuilder->addSelect($addSelect);
         }
 
         return [
-            'data' => $qb->getQuery()->getResult(),
+            'data' => $queryBuilder->getQuery()->getResult(),
             'count' => $countQuery
         ];
-    }
-
-    public function countByType($typeId)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT COUNT(ra)
-            FROM App\Entity\ReferenceArticle ra
-            WHERE ra.type = :typeId
-           "
-        )->setParameter('typeId', $typeId);
-
-        return $query->getSingleScalarResult();
     }
 
     public function countAll(): int {
@@ -664,18 +651,6 @@ class ReferenceArticleRepository extends EntityRepository {
         ]);
 
         return $query->getSingleScalarResult();
-    }
-
-    public function setQuantiteZeroForType($type)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "UPDATE App\Entity\ReferenceArticle ra
-            SET ra.quantiteStock = 0
-            WHERE ra.type = :type"
-        )->setParameter('type', $type);
-
-        return $query->execute();
     }
 
     public function countByReference($reference, $refId = null): int {
@@ -765,14 +740,14 @@ class ReferenceArticleRepository extends EntityRepository {
     private function getRefArticleCollecteQuery()
     {
         return (/** @lang DQL */
-        "SELECT ra.reference,
-                         e.label as location,
-                         ra.libelle as label,
-                         ocr.quantite as quantity,
-                         1 as is_ref,
-                         oc.id as id_collecte,
-                         ra.barCode,
-                         ra.libelle as reference_label
+            "SELECT ra.reference,
+                    e.label as location,
+                    ra.libelle as label,
+                    ocr.quantite as quantity,
+                    1 as is_ref,
+                    oc.id as id_collecte,
+                    ra.barCode,
+                    ra.libelle as reference_label
 			FROM App\Entity\ReferenceArticle ra
 			LEFT JOIN ra.emplacement e
 			JOIN ra.ordreCollecteReferences ocr
@@ -1171,11 +1146,6 @@ class ReferenceArticleRepository extends EntityRepository {
             return [];
         }
     }
-
-    private const CART_COLUMNS_ASSOCIATION = [
-        "label" => "libelle",
-        "availableQuantity" => "quantiteDisponible",
-    ];
 
     public function findInCart(Utilisateur $user, array $params) {
         $qb = $this->createQueryBuilder("reference_article");

@@ -8,6 +8,7 @@ use App\Entity\ArticleFournisseur;
 use App\Entity\Fournisseur;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
+use App\Entity\Utilisateur;
 use App\Service\ArticleFournisseurService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -24,15 +25,6 @@ use Symfony\Component\Routing\Annotation\Route;
 class ArticleFournisseurController extends AbstractController {
 
     /**
-     * @var UserService
-     */
-    private $userService;
-
-    public function __construct(UserService $userService) {
-        $this->userService = $userService;
-    }
-
-    /**
      * @Route("/", name="article_fournisseur_index")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI_FOUR})
      */
@@ -47,7 +39,10 @@ class ArticleFournisseurController extends AbstractController {
     public function api(Request $request, EntityManagerInterface $entityManager): Response {
         $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
 
-        $articlesFournisseurs = $articleFournisseurRepository->findByParams($request->request);
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
+
+        $articlesFournisseurs = $articleFournisseurRepository->findByParams($request->request, $user);
         $rows = [];
         foreach ($articlesFournisseurs['data'] as $articleFournisseur) {
             $rows[] = $this->dataRowArticleFournisseur($articleFournisseur);

@@ -6,6 +6,7 @@ use App\Entity\Livraison;
 use App\Entity\MouvementStock;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
+use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
@@ -14,6 +15,7 @@ use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query;
 use Exception;
 use Generator;
+use Symfony\Component\HttpFoundation\InputBag;
 
 /**
  * @method MouvementStock|null find($id, $lockMode = null, $lockVersion = null)
@@ -143,48 +145,15 @@ class MouvementStockRepository extends EntityRepository
 
     /**
      * @param string[] $types
-     * @return int
-     * @throws NonUniqueResultException
-     * @throws NoResultException
      */
-    public function countByTypes($types, $dateDebut = '', $dateFin = '')
+    public function countByTypes(array $types)
     {
-        $em = $this->getEntityManager();
-
-        $dql = "SELECT COUNT(m)
-            FROM App\Entity\MouvementStock m
-            WHERE m.type IN (:types)";
-
-
-        if (!empty($dateDebut)) {
-            $dql .= " AND m.date > :dateDebut";
-        }
-
-        if (!empty($dateFin)) {
-            $dql .= " AND m.date < :dateFin";
-        }
-        $query = $em->createQuery(
-            $dql
-        );
-
-        $query->setParameter('types', $types, Connection::PARAM_STR_ARRAY);
-        if (!empty($dateDebut)) {
-            $query->setParameter('dateDebut', $dateDebut);
-        }
-
-        if (!empty($dateFin)) {
-            $query->setParameter('dateFin', $dateFin);
-        }
-
-
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(m)
-            FROM App\Entity\MouvementStock m
-            WHERE m.type
-            IN (:types)"
-        )->setParameter('types', $types);
-        return $query->getSingleScalarResult();
+        return $this->createQueryBuilder('stock_movement')
+            ->select('COUNT(stock_movement)')
+            ->andWhere('stock_movement.type IN (:types)')
+            ->setParameter('types', $types)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function countTotalEntryPriceRefArticle($dateDebut = '', $dateFin = '')
@@ -365,13 +334,26 @@ class MouvementStockRepository extends EntityRepository
      * @return array
      * @throws Exception
      */
-    public function findByParamsAndFilters($params, $filters)
+    public function findByParamsAndFilters(InputBag $params,
+                                           array $filters,
+                                           Utilisateur $user)
     {
-        $em = $this->getEntityManager();
-        $qb = $em->createQueryBuilder();
+        $queryBuilder = $this->createQueryBuilder('stock_movement');
+        $exprBuilder = $queryBuilder->expr();
 
-        $qb
-            ->from('App\Entity\MouvementStock', 'm');
+        $visibilityGroup = $user->getVisibilityGroup();
+        if ($visibilityGroup) {
+            $queryBuilder
+                ->leftJoin('stock_movement.refArticle', 'join_refArticle')
+                ->leftJoin('stock_movement.article', 'join_article')
+                ->leftJoin('join_article.articleFournisseur', 'join_article_supplierArticle')
+                ->leftJoin('join_article_supplierArticle.referenceArticle', 'join_article_refArticle')
+                ->andWhere($exprBuilder->orX(
+                    ':loggedUserVisibilityGroup MEMBER OF join_refArticle.visibilityGroups',
+                    ':loggedUserVisibilityGroup MEMBER OF join_article_refArticle.visibilityGroups'
+                ))
+                ->setParameter('loggedUserVisibilityGroup', $visibilityGroup);
+        }
 
         $countTotal = $this->countAll();
         // filtres sup
@@ -383,31 +365,31 @@ class MouvementStockRepository extends EntityRepository
                         $splitted = explode(':', $type);
                         return $splitted[1] ?? $type;
                     }, $types);
-                    $qb
-                        ->andWhere('m.type in (:typeIds)')
+                    $queryBuilder
+                        ->andWhere('stock_movement.type in (:typeIds)')
                         ->setParameter('typeIds', $typeIds, Connection::PARAM_STR_ARRAY);
                     break;
                 case 'emplacement':
                     $value = explode(':', $filter['value']);
-                    $qb
-                        ->leftJoin('m.emplacementFrom', 'ef')
-                        ->leftJoin('m.emplacementTo', 'et')
+                    $queryBuilder
+                        ->leftJoin('stock_movement.emplacementFrom', 'ef')
+                        ->leftJoin('stock_movement.emplacementTo', 'et')
                         ->andWhere('ef.label = :location OR et.label = :location')
                         ->setParameter('location', $value[1] ?? $filter['value']);
                     break;
                 case 'utilisateurs':
                     $value = explode(',', $filter['value']);
-                    $qb
-                        ->join('m.user', 'u')
+                    $queryBuilder
+                        ->join('stock_movement.user', 'u')
                         ->andWhere("u.id in (:userId)")
                         ->setParameter('userId', $value);
                     break;
                 case 'dateMin':
-                    $qb->andWhere('m.date >= :dateMin')
+                    $queryBuilder->andWhere('stock_movement.date >= :dateMin')
                         ->setParameter('dateMin', $filter['value'] . " 00:00:00");
                     break;
                 case 'dateMax':
-                    $qb->andWhere('m.date <= :dateMax')
+                    $queryBuilder->andWhere('stock_movement.date <= :dateMax')
                         ->setParameter('dateMax', $filter['value'] . " 23:59:59");
                     break;
             }
@@ -417,24 +399,24 @@ class MouvementStockRepository extends EntityRepository
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
-                    $qb
-                        ->leftJoin('m.refArticle', 'ra3')
-                        ->leftJoin('m.article', 'a3')
+                    $queryBuilder
+                        ->leftJoin('stock_movement.refArticle', 'ra3')
+                        ->leftJoin('stock_movement.article', 'a3')
                         ->leftJoin('a3.articleFournisseur', 'af3')
                         ->leftJoin('af3.referenceArticle', 'ra4')
-                        ->leftJoin('m.emplacementFrom', 'ef3')
-                        ->leftJoin('m.emplacementTo', 'et3')
-                        ->leftJoin('m.user', 'u3')
+                        ->leftJoin('stock_movement.emplacementFrom', 'ef3')
+                        ->leftJoin('stock_movement.emplacementTo', 'et3')
+                        ->leftJoin('stock_movement.user', 'u3')
                         ->andWhere("(
-						ra3.reference LIKE :value OR
-						ra4.reference LIKE :value OR
-						ef3.label LIKE :value OR
-						ra3.barCode LIKE :value OR
-						a3.barCode LIKE :value OR
-						et3.label LIKE :value OR
-						m.type LIKE :value OR
-						u3.username LIKE :value OR
-						DATE_FORMAT(m.date, '%d/%m/%Y') LIKE :value
+                            ra3.reference LIKE :value OR
+                            ra4.reference LIKE :value OR
+                            ef3.label LIKE :value OR
+                            ra3.barCode LIKE :value OR
+                            a3.barCode LIKE :value OR
+                            et3.label LIKE :value OR
+                            stock_movement.type LIKE :value OR
+                            u3.username LIKE :value OR
+                            DATE_FORMAT(stock_movement.date, '%d/%m/%Y') LIKE :value
 						)")
                         ->setParameter('value', '%' . $search . '%');
                 }
@@ -445,47 +427,47 @@ class MouvementStockRepository extends EntityRepository
                     $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
 
                     if ($column === 'refArticle') {
-                        $qb
-                            ->leftJoin('m.refArticle', 'ra2')
+                        $queryBuilder
+                            ->leftJoin('stock_movement.refArticle', 'ra2')
                             ->orderBy('ra2.reference', $order);
                     } else if ($column === 'emplacementFrom') {
-                        $qb
-                            ->leftJoin('m.emplacementFrom', 'ef2')
+                        $queryBuilder
+                            ->leftJoin('stock_movement.emplacementFrom', 'ef2')
                             ->orderBy('ef2.label', $order);
                     } else if ($column === 'emplacementTo') {
-                        $qb
-                            ->leftJoin('m.emplacementTo', 'et2')
+                        $queryBuilder
+                            ->leftJoin('stock_movement.emplacementTo', 'et2')
                             ->orderBy('et2.label', $order);
                     } else if ($column === 'user') {
-                        $qb
-                            ->leftJoin('m.user', 'u2')
+                        $queryBuilder
+                            ->leftJoin('stock_movement.user', 'u2')
                             ->orderBy('u2.username', $order);
                     } else if ($column === 'barCode') {
-                        $qb
+                        $queryBuilder
 
-                            ->leftJoin('m.article','articleSort')
-                            ->leftJoin('m.refArticle', 'raSort')
+                            ->leftJoin('stock_movement.article','articleSort')
+                            ->leftJoin('stock_movement.refArticle', 'raSort')
                             ->addOrderBy('raSort.barCode', $order)
                             ->addOrderBy('articleSort.barCode', $order);
                     } else {
-                        $qb
-                            ->orderBy('m.' . $column, $order);
+                        $queryBuilder
+                            ->orderBy('stock_movement.' . $column, $order);
                     }
                 }
             }
         }
-        $qb
-            ->select('count(m)');
+        $queryBuilder
+            ->select('count(stock_movement)');
         // compte éléments filtrés
-        $countFiltered = $qb->getQuery()->getSingleScalarResult();
-        $qb
-            ->select('m');
+        $countFiltered = $queryBuilder->getQuery()->getSingleScalarResult();
+        $queryBuilder
+            ->select('stock_movement');
         if ($params) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+            if (!empty($params->get('start'))) $queryBuilder->setFirstResult($params->get('start'));
+            if (!empty($params->get('length'))) $queryBuilder->setMaxResults($params->get('length'));
         }
 
-        $query = $qb->getQuery();
+        $query = $queryBuilder->getQuery();
 
         return [
             'data' => $query ? $query->getResult() : null,
