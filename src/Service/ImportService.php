@@ -1196,7 +1196,7 @@ class ImportService
         if(isset($data['secondaryEmail']) && isset($data['lastEmail'])) {
             if(!filter_var($data['secondaryEmail'], FILTER_VALIDATE_EMAIL)
                 && !filter_var($data['lastEmail'], FILTER_VALIDATE_EMAIL)) {
-                $this->throwError('Le format des adresses email 1 et 2 sont incorrects');
+                $this->throwError('Le format des adresses email 1 et 2 est incorrect');
             }
             $user->setSecondaryEmails([$data['secondaryEmail'], $data['lastEmail']]);
         } else if(isset($data['secondaryEmail'])) {
@@ -1216,7 +1216,12 @@ class ImportService
         }
 
         if(isset($data['mobileLoginKey'])) {
-            $user->setMobileLoginKey($data['mobileLoginKey']);
+            $userWithExistingKey = $this->em->getRepository(Utilisateur::class)->findOneBy(['mobileLoginKey' => $data['mobileLoginKey']]);
+            if(!isset($userWithExistingKey)) {
+                $user->setMobileLoginKey($data['mobileLoginKey']);
+            } else {
+                $this->throwError('Cette clé de connexion est déjà utilisée par un autre utilisateur');
+            }
         } else {
             $mobileLoginKey = $this->userService->createUniqueMobileLoginKey($this->em);
             $user->setMobileLoginKey($mobileLoginKey);
