@@ -151,9 +151,19 @@ class ArticleRepository extends EntityRepository {
             ->getResult();
     }
 
-    public function iterateAll() {
-        return $this->createQueryBuilder('article')
-            ->distinct()
+    public function iterateAll($user) {
+        $qb = $this->createQueryBuilder('article');
+
+        $visibilityGroup = $user->getVisibilityGroup();
+        if ($visibilityGroup) {
+            $qb
+                ->join('article.articleFournisseur', 'join_supplierArticle')
+                ->join('join_supplierArticle.referenceArticle', 'join_referenceArticle')
+                ->andWhere(':loggedUserVisibilityGroup MEMBER OF join_referenceArticle.visibilityGroups')
+                ->setParameter('loggedUserVisibilityGroup', $visibilityGroup);
+        }
+
+        return $qb->distinct()
             ->select('referenceArticle.reference')
             ->addSelect('article.label')
             ->addSelect('article.quantite')

@@ -43,6 +43,8 @@ const AUTO_HIDE_DEFAULT_DELAY = 2000;
 const MAX_DATETIME_HTML_INPUT = '2100-12-31T23:59';
 const MAX_DATE_HTML_INPUT = '2100-12-31';
 
+const TEAM_SIZE = 10;
+
 $(function () {
     $(document).on('hide.bs.modal', function () {
         $('.select2-container.select2-container--open').remove();
@@ -1174,3 +1176,13 @@ function updateImagePreview(preview, upload, $title = null, $delete = null, $cal
         }
     })
 }
+
+(function () {
+    let count = 0;
+    $('.do-not-click-me-several-times').click(function () {
+        count += 1;
+        if (count === TEAM_SIZE) {
+            $('#modalEasterEgg').modal('show');
+        }
+    });
+})();

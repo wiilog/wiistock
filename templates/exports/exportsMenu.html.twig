@@ -5,7 +5,7 @@
 {% block page_content %}
     <div class="m-4 wii-page-card">
 
-        <p class="pl-0"><i class="fa fa-cookie mr-2"></i></p>
+        <p class="pl-0 do-not-click-me-several-times"><i class="fas fa-exclamation-circle mr-2"></i>Les références et articles exportés sont seulement ceux avec le groupe de visibilité rattaché à l'utilisateur</p>
         <br>
 
         <div class="row justify-content-center">
@@ -31,4 +31,6 @@
 
         <hr>
     </div>
+
+    {% include 'exports/easterEgg.html.twig' %}
 {% endblock %}

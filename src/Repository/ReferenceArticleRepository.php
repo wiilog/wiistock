@@ -61,9 +61,17 @@ class ReferenceArticleRepository extends EntityRepository {
         return $query->execute();
     }
 
-    public function iterateAll() {
-        return $this->createQueryBuilder('referenceArticle')
-            ->distinct()
+    public function iterateAll($user) {
+        $qb = $this->createQueryBuilder('referenceArticle');
+
+        $visibilityGroup = $user->getVisibilityGroup();
+        if ($visibilityGroup) {
+            $qb
+                ->andWhere(':loggedUserVisibilityGroup MEMBER OF referenceArticle.visibilityGroups')
+                ->setParameter('loggedUserVisibilityGroup', $visibilityGroup);
+        }
+
+        return $qb->distinct()
             ->select('referenceArticle.id')
             ->addSelect('referenceArticle.reference')
             ->addSelect('referenceArticle.libelle')

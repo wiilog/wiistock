@@ -625,11 +625,12 @@ class ArticleController extends AbstractController
 
         $today = new DateTime();
         $today = $today->format("d-m-Y H:i:s");
+        $user = $this->userService->getUser();
 
-        return $csvService->streamResponse(function($output) use ($entityManager, $csvService, $freeFieldService, $ffConfig) {
+        return $csvService->streamResponse(function($output) use ($entityManager, $csvService, $freeFieldService, $ffConfig, $user) {
             $articleRepository = $entityManager->getRepository(Article::class);
 
-            $articles = $articleRepository->iterateAll();
+            $articles = $articleRepository->iterateAll($user);
             foreach($articles as $article) {
                 $this->putArticleLine($output, $csvService, $freeFieldService, $ffConfig, $article);
             }

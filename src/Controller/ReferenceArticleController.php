@@ -814,8 +814,9 @@ class ReferenceArticleController extends AbstractController
 
         $today = new DateTime();
         $today = $today->format("d-m-Y H:i:s");
+        $user = $this->userService->getUser();
 
-        return $csvService->streamResponse(function($output) use ($manager, $csvService, $ffService, $ffConfig) {
+        return $csvService->streamResponse(function($output) use ($manager, $csvService, $ffService, $ffConfig, $user) {
             $raRepository = $manager->getRepository(ReferenceArticle::class);
             $managersByReference = $manager
                 ->getRepository(Utilisateur::class)
@@ -825,7 +826,7 @@ class ReferenceArticleController extends AbstractController
                 ->getRepository(Fournisseur::class)
                 ->getCodesAndLabelsGroupedByReference();
 
-            $references = $raRepository->iterateAll();
+            $references = $raRepository->iterateAll($user);
             foreach($references as $reference) {
                 $this->putReferenceLine($output, $csvService, $ffService, $ffConfig, $managersByReference, $reference, $suppliersByReference);
             }
