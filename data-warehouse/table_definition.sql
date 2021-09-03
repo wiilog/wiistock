@@ -156,7 +156,8 @@ CREATE TABLE dw_reference_article
     gestionnaires              text,
     statut                     varchar(255),
     date_dernier_inventaire    timestamp(0),
-    synchronisation_nomade     varchar(3)
+    synchronisation_nomade     varchar(3),
+    groupes_visibilite         text
 );
 
 CREATE TABLE dw_service

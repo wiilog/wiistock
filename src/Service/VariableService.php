@@ -12,7 +12,6 @@ use App\Entity\Preparation;
 use App\Entity\TransferOrder;
 use App\Helper\FormatHelper;
 use RuntimeException;
-use Symfony\Polyfill\Intl\Icu\Exception\NotImplementedException;
 
 class VariableService
 {

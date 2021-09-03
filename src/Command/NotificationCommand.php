@@ -2,9 +2,7 @@
 
 namespace App\Command;
 
-use App\Entity\Dispatch;
 use App\Service\NotificationService;
-use App\Service\DateService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;

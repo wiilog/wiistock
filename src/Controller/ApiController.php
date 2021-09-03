@@ -1031,7 +1031,7 @@ class ApiController extends AbstractFOSRestController
                     }
 
                     $res['finishedMovements'] = Stream::from($res['finishedMovements'])
-                        ->filter(fn($code) => $code)
+                        ->filter()
                         ->unique()
                         ->values();
                 }

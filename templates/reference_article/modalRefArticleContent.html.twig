@@ -97,6 +97,18 @@
             <option value="{{ articleRef.buyer ? articleRef.buyer.id }}" selected>{{ articleRef.buyer ? articleRef.buyer.username }}</option>
         </select>
     </div>
+    <div class="col-4 form-group w-100">
+        <label for="visibility-group">Groupe de visibilité</label>
+        <select name="visibility-group" class="form-control data" data-s2="visibilityGroup" {{ app.user.visibilityGroup ? 'disabled' }} multiple>
+            {% if app.user.visibilityGroup %}
+                <option value="{{ app.user.visibilityGroup.id }}" selected>{{ app.user.visibilityGroup.label }}</option>
+            {% else %}
+                {% for visibilityGroup in articleRef.visibilityGroups %}
+                    <option value="{{ visibilityGroup.id }}" selected>{{ visibilityGroup.label }}</option>
+                {% endfor %}
+            {% endif %}
+        </select>
+    </div>
 </div>
 <div class="row">
     <div class="form-group col-8">
@@ -174,7 +186,7 @@
         <label class="my-auto mr-2" for="quantite">Quantité</label>
         {# si on est sur une demande, la quantité ne doit pas être modifiée #}
         <input class="form-control rounded data" value='{{ articleRef.quantiteDisponible }}' type="number" min="0"
-                                      id="quantite" disabled>
+               id="quantite" disabled>
     </div>
 
     <div class="form-group col-4 article {{ dnone }}">

@@ -126,32 +126,7 @@ class ArticleRepository extends EntityRepository {
         return $result;
     }
 
-    public function countByType($typeId)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT COUNT(a)
-            FROM App\Entity\Article a
-            WHERE a.type = :typeId
-           "
-        )->setParameter('typeId', $typeId);
-
-        return $query->getSingleScalarResult();
-    }
-
-    public function getIdRefLabelAndQuantity() {
-
-        return $this->createQueryBuilder('article')
-            ->select('article.id')
-            ->addSelect('article.reference')
-            ->addSelect('article.label')
-            ->addSelect('article.quantite')
-            ->addSelect('article.barCode')
-            ->getQuery()
-            ->getResult();
-    }
-
-    public function iterateAll($user) {
+    public function iterateAll() {
         $qb = $this->createQueryBuilder('article');
 
         $visibilityGroup = $user->getVisibilityGroup();
@@ -189,20 +164,36 @@ class ArticleRepository extends EntityRepository {
             ->toIterable();
     }
 
-	public function getIdAndRefBySearch($search, $activeOnly = false, $field = 'reference', $referenceArticleReference = null, $activeReferenceOnly = false)
+	public function getIdAndRefBySearch($search,
+                                        $activeOnly = false,
+                                        $field = 'reference',
+                                        $referenceArticleReference = null,
+                                        $activeReferenceOnly = false,
+                                        Utilisateur $user)
 	{
         $statusNames = [
             Article::STATUT_ACTIF,
             Article::STATUT_EN_LITIGE
         ];
 
-        $queryBuilder = $this->createQueryBuilder('article')
+        $queryBuilder = $this->createQueryBuilder('article');
+
+        $visibilityGroup = $user->getVisibilityGroup();
+        if ($visibilityGroup) {
+            $queryBuilder
+                ->join('article.articleFournisseur', 'join_supplierArticle')
+                ->join('join_supplierArticle.referenceArticle', 'join_referenceArticle')
+                ->andWhere(':loggedUserVisibilityGroup MEMBER OF join_referenceArticle.visibilityGroups')
+                ->setParameter('loggedUserVisibilityGroup', $visibilityGroup);
+        }
+
+        $queryBuilder
             ->select('article.id AS id')
             ->addSelect("article.${field} AS text")
             ->addSelect('location.label AS locationLabel')
             ->addSelect('article.quantite AS quantity')
             ->leftJoin('article.emplacement', 'location')
-            ->where("article.${field} LIKE :search")
+            ->andWhere("article.${field} LIKE :search")
             ->setParameter('search', '%' . $search . '%');
 
         if ($activeOnly) {
@@ -326,18 +317,27 @@ class ArticleRepository extends EntityRepository {
 
 	}
 
-    public function findByParamsAndFilters($params, $filters, $user)
+    public function findByParamsAndFilters($params, $filters, Utilisateur $user)
     {
-        $qb = $this->createQueryBuilder("a");
+        $queryBuilder = $this->createQueryBuilder("a");
 
-        $countQuery = $countTotal = QueryCounter::count($qb, 'a');
+        $visibilityGroup = $user->getVisibilityGroup();
+        if ($visibilityGroup) {
+            $queryBuilder
+                ->join('a.articleFournisseur', 'join_supplierArticle')
+                ->join('join_supplierArticle.referenceArticle', 'join_referenceArticle')
+                ->andWhere(':loggedUserVisibilityGroup MEMBER OF join_referenceArticle.visibilityGroups')
+                ->setParameter('loggedUserVisibilityGroup', $visibilityGroup);
+        }
+
+        $countQuery = $countTotal = QueryCounter::count($queryBuilder, 'a');
 
 		// filtres sup
 		foreach ($filters as $filter) {
 			switch ($filter['field']) {
 				case 'statut':
 					$value = explode(',', $filter['value']);
-					$qb
+					$queryBuilder
 						->join('a.statut', 's_filter')
 						->andWhere('s_filter.nom IN (:statut)')
 						->setParameter('statut', $value);
@@ -430,16 +430,16 @@ class ArticleRepository extends EntityRepository {
                                 $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
                                 if(is_numeric($freeFieldId)) {
                                     $query[] = "JSON_SEARCH(a.freeFields, 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
-                                    $qb->setParameter("search", $date ?: $search);
+                                    $queryBuilder->setParameter("search", $date ?: $search);
                                 } else if (property_exists(Article::class, $field)) {
                                     if ($date && in_array($field, self::FIELDS_TYPE_DATE)) {
                                         $query[] = "a.$field BETWEEN :dateMin AND :dateMax";
-                                        $qb
+                                        $queryBuilder
                                             ->setParameter('dateMin' , $date . ' 00:00:00')
                                             ->setParameter('dateMax' , $date . ' 23:59:59');
                                     } else {
                                         $query[] = "a.$field LIKE :search";
-                                        $qb->setParameter('search', $search);
+                                        $queryBuilder->setParameter('search', $search);
                                     }
                                 }
                                 break;
@@ -456,11 +456,11 @@ class ArticleRepository extends EntityRepository {
                     }
 
                     if (!empty($query)) {
-                        $qb->andWhere(implode(' OR ', $query));
+                        $queryBuilder->andWhere(implode(' OR ', $query));
                     }
                 }
 
-				$countQuery =  QueryCounter::count($qb, 'a');
+				$countQuery =  QueryCounter::count($queryBuilder, 'a');
 			}
 
             if (!empty($params->get('order'))) {
@@ -470,28 +470,28 @@ class ArticleRepository extends EntityRepository {
 
                     switch ($column) {
                         case "type":
-                            $qb->leftJoin('a.type', 't')
+                            $queryBuilder->leftJoin('a.type', 't')
                                 ->orderBy('t.label', $order);
                             break;
                         case "supplierReference":
-                            $qb->leftJoin('a.articleFournisseur', 'af1')
+                            $queryBuilder->leftJoin('a.articleFournisseur', 'af1')
                                 ->orderBy('af1.reference', $order);
                             break;
                         case "location":
-                            $qb->leftJoin('a.emplacement', 'e')
+                            $queryBuilder->leftJoin('a.emplacement', 'e')
                                 ->orderBy('e.label', $order);
                             break;
                         case "reference":
-                            $qb->leftJoin('a.articleFournisseur', 'af2')
+                            $queryBuilder->leftJoin('a.articleFournisseur', 'af2')
                                 ->leftJoin('af2.referenceArticle', 'ra2')
                                 ->orderBy('ra2.reference', $order);
                             break;
                         case "status":
-                            $qb->leftJoin('a.statut', 's_sort')
+                            $queryBuilder->leftJoin('a.statut', 's_sort')
                                 ->orderBy('s_sort.nom', $order);
                             break;
                         case "pairing":
-                            $qb->leftJoin('a.pairings', 'order_pairings')
+                            $queryBuilder->leftJoin('a.pairings', 'order_pairings')
                                 ->orderBy('order_pairings.active', $order);
                             break;
                         default:
@@ -502,22 +502,22 @@ class ArticleRepository extends EntityRepository {
                                 /** @var FreeField $freeField */
                                 $freeField = $this->getEntityManager()->getRepository(FreeField::class)->find($freeFieldId);
                                 if($freeField->getTypage() === FreeField::TYPE_NUMBER) {
-                                    $qb->orderBy("CAST(JSON_EXTRACT(a.freeFields, '$.\"$freeFieldId\"') AS SIGNED)", $order);
+                                    $queryBuilder->orderBy("CAST(JSON_EXTRACT(a.freeFields, '$.\"$freeFieldId\"') AS SIGNED)", $order);
                                 } else {
-                                    $qb->orderBy("JSON_EXTRACT(a.freeFields, '$.\"$freeFieldId\"')", $order);
+                                    $queryBuilder->orderBy("JSON_EXTRACT(a.freeFields, '$.\"$freeFieldId\"')", $order);
                                 }
                             } else if (property_exists(Article::class, $field)) {
-                                $qb->orderBy("a.$field", $order);
+                                $queryBuilder->orderBy("a.$field", $order);
                             }
                             break;
                     }
                 }
             }
 
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+            if (!empty($params->get('start'))) $queryBuilder->setFirstResult($params->get('start'));
+            if (!empty($params->get('length'))) $queryBuilder->setMaxResults($params->get('length'));
         }
-        $query = $qb->getQuery();
+        $query = $queryBuilder->getQuery();
 
         return [
             'data' => $query ? $query->getResult() : null,
@@ -549,22 +549,6 @@ class ArticleRepository extends EntityRepository {
 		);
 
         return $query->getSingleScalarResult();
-    }
-
-    public function findDoublons()
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT a1
-			FROM App\Entity\Article a1
-			WHERE a1.reference IN (
-				SELECT a2.reference FROM App\Entity\Article a2
-				GROUP BY a2.reference
-				HAVING COUNT(a2.reference) > 1)"
-        );
-
-        return $query->execute();
     }
 
     public function getByPreparationsIds($preparationsIds)
@@ -705,42 +689,6 @@ class ArticleRepository extends EntityRepository {
 		return $query->execute();
 	}
 
-    public function getByStatutAndTypeWithoutInProgressPrepaNorLivraison(string $statusName,
-                                                                         string $typeLabel,
-                                                                         array $statutsPrepa,
-                                                                         array $statutsLivraison) {
-        $queryBuilder = $this->createQueryBuilder('article');
-        $exprBuilder = $queryBuilder->expr();
-
-        $queryBuilder = $queryBuilder
-            ->join('article.type', 'type')
-            ->join('article.statut', 'statut')
-            ->leftJoin('article.preparation', 'preparation')
-            ->leftJoin('preparation.statut', 'statutPreparation')
-            ->leftJoin('preparation.livraison', 'livraison')
-            ->leftJoin('livraison.statut', 'statutLivraison')
-            ->where(
-                $exprBuilder->andX(
-                    $exprBuilder->eq('type.label', ':typeLabel'),
-                    $exprBuilder->eq('statut.nom', ':statusName'),
-                    $exprBuilder->orX(
-                        $exprBuilder->isNull('preparation'),
-                        $exprBuilder->notIn('statutPreparation.nom', $statutsPrepa)
-                    ),
-                    $exprBuilder->orX(
-                        $exprBuilder->isNull('livraison'),
-                        $exprBuilder->notIn('statutLivraison.nom', $statutsLivraison)
-                    )
-                )
-            )
-            ->setParameter('typeLabel', $typeLabel)
-            ->setParameter('statusName', $statusName);
-
-        return $queryBuilder
-            ->getQuery()
-            ->execute();
-    }
-
 	private function getArticleCollecteQuery()
 	{
 		return (/** @lang DQL */
@@ -771,18 +719,6 @@ class ArticleRepository extends EntityRepository {
 		)->setParameter('reference', $reference);
 
 		return $query->getOneOrNullResult();
-	}
-
-	public function findByReference($reference)
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-			"SELECT a
-			FROM App\Entity\Article a
-			WHERE a.reference = :reference"
-		)->setParameter('reference', $reference);
-
-		return $query->execute();
 	}
 
     public function countByEmplacement($emplacementId)
@@ -878,7 +814,7 @@ class ArticleRepository extends EntityRepository {
             ->setMaxResults(1);
 
         $result = $query->execute();
-        return $result ? $result[0]['barCode'] : null;;
+        return $result ? $result[0]['barCode'] : null;
     }
 
     public function countInventoryAnomaliesByArt($article)

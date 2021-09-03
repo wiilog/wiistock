@@ -21,6 +21,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Entity\VisibilityGroup;
 use App\Exceptions\ImportException;
 use WiiCommon\Helper\Stream;
 use Closure;
@@ -239,7 +240,6 @@ class ImportService
         $colChampsLibres = array_filter($corresp, function ($elem) {
             return is_int($elem);
         }, ARRAY_FILTER_USE_KEY);
-
         $dataToCheck = $this->getDataToCheck($this->currentImport->getEntity(), $corresp);
 
         $headers = null;
@@ -625,6 +625,10 @@ class ImportService
                     'managers' => [
                         'needed' => $this->fieldIsNeeded('managers', Import::ENTITY_REF),
                         'value' => isset($corresp['managers']) ? $corresp['managers'] : null,
+                    ],
+                    'visibilityGroups' => [
+                        'needed' => $this->fieldIsNeeded('visibilityGroups', Import::ENTITY_REF),
+                        'value' => isset($corresp['visibilityGroups']) ? $corresp['visibilityGroups'] : null,
                     ]
                 ];
                 break;
@@ -931,6 +935,7 @@ class ImportService
         $isNewEntity = false;
         $refArtRepository = $this->em->getRepository(ReferenceArticle::class);
         $userRepository = $this->em->getRepository(Utilisateur::class);
+        $visibilityGroupRepository = $this->em->getRepository(VisibilityGroup::class);
         $refArt = $refArtRepository->findOneBy(['reference' => $data['reference']]);
 
         if (!$refArt) {
@@ -946,6 +951,22 @@ class ImportService
                 $this->throwError('La valeur saisie pour le champ synchronisation nomade est invalide (autorisé : "oui" ou "non")');
             } else {
                 $refArt->setNeedsMobileSync($value === 'oui');
+            }
+        }
+
+        foreach ($refArt->getVisibilityGroups() as $visibilityGroup) {
+            $visibilityGroup->removeArticleReference($refArt);
+        }
+
+        if (isset($data['visibilityGroups'])) {
+            $visibilityGroups = Stream::explode([";", ","], $data["visibilityGroups"])
+                ->unique()
+                ->map("trim")
+                ->map(fn($id) => $visibilityGroupRepository->find($id))
+                ->toArray();
+
+            foreach($visibilityGroups as $visibilityGroup) {
+                $refArt->addVisibilityGroup($visibilityGroup);
             }
         }
 

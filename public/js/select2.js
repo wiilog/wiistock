@@ -17,6 +17,7 @@ class Select2Old {
                 ajaxOptions = {},
                 {autoSelect, $nextField} = {},
                 {value: defaultOptionValue, text: defaultOptionText} = {}) {
+    console.log($select)
         $select.each(function () {
             const $self = $(this);
             let isMultiple = $self.attr('multiple') === 'multiple';

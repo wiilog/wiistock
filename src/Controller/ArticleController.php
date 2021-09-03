@@ -135,9 +135,14 @@ class ArticleController extends AbstractController
      * @Route("/api", name="article_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI}, mode=HasPermission::IN_JSON)
      */
-    public function api(Request $request): Response
+    public function api(Request $request,
+                        ArticleDataService $articleDataService): Response
     {
-        $data = $this->articleDataService->getDataForDatatable($request->request, $this->getUser());
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
+
+        $data = $articleDataService->getArticleDataByParams($request->request, $loggedUser);
+
         return new JsonResponse($data);
     }
 
@@ -439,7 +444,11 @@ class ArticleController extends AbstractController
         $activeReferenceOnly = $request->query->getBoolean('activeReferenceOnly');
 
         $articleRepository = $entityManager->getRepository(Article::class);
-        $articles = $articleRepository->getIdAndRefBySearch($search, $activeOnly, 'barCode', $referenceArticleReference, $activeReferenceOnly);
+
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
+
+        $articles = $articleRepository->getIdAndRefBySearch($search, $activeOnly, 'barCode', $referenceArticleReference, $activeReferenceOnly, $user);
 
         return new JsonResponse(['results' => $articles]);
     }

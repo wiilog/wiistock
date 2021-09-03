@@ -2,9 +2,7 @@
 
 namespace App\Command;
 
-use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorWrapper;
-use App\Service\IOT\IOTService;
 use App\Service\MailerService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
