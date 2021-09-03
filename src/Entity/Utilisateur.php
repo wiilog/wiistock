@@ -4,6 +4,7 @@ namespace App\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\EquatableInterface;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -16,7 +17,7 @@ use App\Entity\IOT\SensorWrapper;
  * @UniqueEntity(fields="email", message="Cette adresse email est déjà utilisée.")
  * @UniqueEntity(fields="username", message="Ce nom d'utilisateur est déjà utilisé.")
  */
-class Utilisateur implements UserInterface, EquatableInterface
+class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenticatedUserInterface
 {
 	const COL_VISIBLE_ARTICLES_DEFAULT = ["actions", "label", "reference", "articleReference", "type", "quantity", "location"];
     const COL_VISIBLE_REF_DEFAULT = ["actions", "label", "reference", "type", "quantity", "location"];

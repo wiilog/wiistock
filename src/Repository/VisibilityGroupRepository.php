@@ -2,7 +2,6 @@
 
 namespace App\Repository;
 
-use App\Entity\ReferenceArticle;
 use App\Entity\VisibilityGroup;
 use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
@@ -15,6 +14,15 @@ use Symfony\Component\HttpFoundation\InputBag;
  * @method VisibilityGroup[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class VisibilityGroupRepository extends EntityRepository {
+
+    public function getForSelect(?string $term) {
+        return $this->createQueryBuilder("visibility_group")
+            ->select("visibility_group.id AS id, visibility_group.label AS text")
+            ->where("visibility_group.label LIKE :term")
+            ->setParameter("term", "%$term%")
+            ->getQuery()
+            ->getArrayResult();
+    }
 
     public function findByParamsAndFilters(InputBag $params): array
     {
@@ -52,10 +60,8 @@ class VisibilityGroupRepository extends EntityRepository {
 
         $countFiltered = QueryCounter::count($queryBuilder, "visibility_group");
 
-        if ($params) {
-            if (!empty($params->get('start'))) $queryBuilder->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $queryBuilder->setMaxResults($params->get('length'));
-        }
+        if (!$params->has('start')) $queryBuilder->setFirstResult($params->get('start'));
+        if (!$params->has('length')) $queryBuilder->setMaxResults($params->get('length'));
 
         $query = $queryBuilder->getQuery();
         return [
@@ -64,4 +70,5 @@ class VisibilityGroupRepository extends EntityRepository {
             'total' => $countTotal
         ];
     }
+
 }

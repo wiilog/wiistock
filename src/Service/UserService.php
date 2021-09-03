@@ -16,6 +16,7 @@ use App\Entity\Reception;
 use App\Entity\Role;
 use App\Entity\Utilisateur;
 
+use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
 use Symfony\Component\Security\Core\Security;
@@ -95,35 +96,25 @@ class UserService
 
         $rows = [];
         foreach ($utilisateurs as $utilisateur) {
-            $rows[] = $this->dataRowUtilisateur($utilisateur);
+            $rows[] = $this->dataRowUser($utilisateur);
         }
         return ['data' => $rows];
     }
 
-	/**
-	 * @param Utilisateur $utilisateur
-	 * @return array
-	 * @throws LoaderError
-	 * @throws RuntimeError
-	 * @throws SyntaxError
-	 */
-    public function dataRowUtilisateur($utilisateur)
+    public function dataRowUser(Utilisateur $user): array
     {
-        $idUser = $utilisateur->getId();
-        $roleRepository = $this->entityManager->getRepository(Role::class);
-        $roles = $roleRepository->findAll();
+        $idUser = $user->getId();
 
-		$row = [
-			'id' => $utilisateur->getId() ?? '',
-			"Nom d'utilisateur" => $utilisateur->getUsername() ?? '',
-			'Email' => $utilisateur->getEmail() ?? '',
-			'Dropzone' => $utilisateur->getDropzone() ? $utilisateur->getDropzone()->getLabel() : '',
-			'Dernière connexion' => $utilisateur->getLastLogin() ? $utilisateur->getLastLogin()->format('d/m/Y') : '',
-            'role' => $utilisateur->getRole() ? $utilisateur->getRole()->getLabel() : '',
-			'Actions' => $this->templating->render('utilisateur/datatableUtilisateurRow.html.twig', ['idUser' => $idUser])
+		return [
+			'id' => $user->getId() ?? '',
+			"Nom d'utilisateur" => $user->getUsername() ?? '',
+			'Email' => $user->getEmail() ?? '',
+			'Dropzone' => $user->getDropzone() ? $user->getDropzone()->getLabel() : '',
+			'Dernière connexion' => $user->getLastLogin() ? $user->getLastLogin()->format('d/m/Y') : '',
+            'role' => $user->getRole() ? $user->getRole()->getLabel() : '',
+            'visibilityGroup' => FormatHelper::visibilityGroup($user->getVisibilityGroup()),
+			'Actions' => $this->templating->render('utilisateur/datatableUtilisateurRow.html.twig', ['idUser' => $idUser]),
 		];
-
-		return $row;
     }
 
 	/**
@@ -195,6 +186,30 @@ class UserService
         }
         while(!empty($userWithThisKey));
         return $mobileLoginKey;
+    }
+
+    public function putCSVLine(CSVExportService $CSVExportService,
+                               $output,
+                               Utilisateur $user): void {
+        $role = $user->getRole();
+        $secondaryEmails = $user->getSecondaryEmails() ?? [];
+        $CSVExportService->putLine($output, [
+            $role ? $role->getLabel() : '',
+            $user->getUsername() ?? '',
+            $user->getEmail() ?? '',
+            $secondaryEmails[0] ?? '',
+            $secondaryEmails[1] ?? '',
+            $user->getPhone() ?? '',
+            $user->getAddress() ?? '',
+            FormatHelper::datetime($user->getLastLogin()),
+            $user->getMobileLoginKey() ?? '',
+            FormatHelper::entity($user->getDeliveryTypes()->toArray(), 'label', ' / '),
+            FormatHelper::entity($user->getDispatchTypes()->toArray(), 'label', ' / '),
+            FormatHelper::entity($user->getHandlingTypes()->toArray(), 'label', ' / '),
+            FormatHelper::location($user->getDropzone()),
+            FormatHelper::visibilityGroup($user->getVisibilityGroup()),
+            $user->getStatus() ? 'Actif' : 'Inactif'
+        ]);
     }
 
 }

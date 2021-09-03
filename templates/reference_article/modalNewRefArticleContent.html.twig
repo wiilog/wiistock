@@ -72,6 +72,15 @@
         <select name="buyer" class="form-control data ajax-autocomplete-user buyer w-100">
         </select>
     </div>
+    <div class="col-4 form-group w-100">
+        <label for="visibility-group">Groupe de visibilité</label>
+        <select name="visibility-group" class="form-control data" data-s2="visibilityGroup" {{ app.user.visibilityGroup ? 'disabled' }} multiple>
+            {% if app.user.visibilityGroup is not null %}
+                <option value="{{ app.user.visibilityGroup.id }}">{{ app.user.visibilityGroup.label }}</option>
+            {% endif %}
+        </select>
+    </div>
+    <input type="hidden" class="no-clear" id="user-vg" data-id="{{ app.user.visibilityGroup ? app.user.visibilityGroup.id }}" data-value="{{ app.user.visibilityGroup ? app.user.visibilityGroup.label }}"/>
 </div>
 <div class="row mb-4">
     <div class="form-group col-8">

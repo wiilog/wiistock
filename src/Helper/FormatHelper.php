@@ -14,6 +14,7 @@ use App\Entity\Pack;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Entity\VisibilityGroup;
 use DateTime;
 use DateTimeInterface;
 use WiiCommon\Helper\Stream;
@@ -86,6 +87,10 @@ class FormatHelper {
 
     public static function nature(?Nature $nature, $else = "") {
         return $nature ? $nature->getLabel() : $else;
+    }
+
+    public static function visibilityGroup(?VisibilityGroup $visibilityGroup, $else = "") {
+        return $visibilityGroup ? $visibilityGroup->getLabel() : $else;
     }
 
     public static function entity($entities, string $field, string $separator = ", ") {

@@ -6,11 +6,14 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
+use App\Entity\FiltreRef;
 use App\Entity\Menu;
 use App\Entity\Role;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
+use App\Entity\VisibilityGroup;
+use App\Service\CSVExportService;
 use App\Service\PasswordService;
 use App\Service\UserService;
 
@@ -20,41 +23,17 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 
 /**
  * @Route("/admin/utilisateur")
  */
-class UtilisateurController extends AbstractController
+class UserController extends AbstractController
 {
-
-    /**
-     * @var UserService
-     */
-    private $userService;
-
-    /**
-	 * @var UserPasswordEncoderInterface
-	 */
-    private $encoder;
-
-	/**
-	 * @var PasswordService
-	 */
-    private $passwordService;
-
-
-    public function __construct(PasswordService $passwordService,
-                                UserPasswordEncoderInterface $encoder,
-                                UserService $userService)
-    {
-        $this->userService = $userService;
-        $this->encoder = $encoder;
-        $this->passwordService = $passwordService;
-    }
 
     /**
      * @Route("/", name="user_index", methods="GET|POST")
@@ -91,18 +70,23 @@ class UtilisateurController extends AbstractController
      * @Route("/creer", name="user_new",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request,
+                        UserPasswordHasherInterface $encoder,
+                        PasswordService $passwordService,
+                        UserService $userService,
+                        EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+            $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
             $typeRepository = $entityManager->getRepository(Type::class);
             $roleRepository = $entityManager->getRepository(Role::class);
 
             $password = $data['password'];
             $password2 = $data['password2'];
             // validation du mot de passe
-            $result = $this->passwordService->checkPassword($password,$password2);
+            $result = $passwordService->checkPassword($password,$password2);
             if($result['response'] == false){
 				return new JsonResponse([
 					'success' => false,
@@ -151,7 +135,7 @@ class UtilisateurController extends AbstractController
             }
 
             $utilisateur = new Utilisateur();
-            $uniqueMobileKey = $this->userService->createUniqueMobileLoginKey($entityManager);
+            $uniqueMobileKey = $userService->createUniqueMobileLoginKey($entityManager);
             $role = $roleRepository->find($data['role']);
             $utilisateur
                 ->setUsername($data['username'])
@@ -159,13 +143,14 @@ class UtilisateurController extends AbstractController
                 ->setSecondaryEmails($secondaryEmails)
                 ->setPhone($data['phoneNumber'])
                 ->setRole($role)
-				->setDropzone($data['dropzone'] ? $emplacementRepository->find(intval($data['dropzone'])) : null)
+                ->setDropzone($data['dropzone'] ? $emplacementRepository->find(intval($data['dropzone'])) : null)
+                ->setVisibilityGroup($data['visibility-group'] ? $visibilityGroupRepository->find(intval($data['visibility-group'])) : null)
                 ->setStatus(true)
                 ->setAddress($data['address'])
                 ->setMobileLoginKey($uniqueMobileKey);
 
             if ($password !== '') {
-				$password = $this->encoder->encodePassword($utilisateur, $data['password']);
+				$password = $encoder->hashPassword($utilisateur, $data['password']);
 				$utilisateur->setPassword($password);
 			}
 
@@ -231,7 +216,14 @@ class UtilisateurController extends AbstractController
                         'id' => $user->getDropzone()->getId(),
                         'text' => $user->getDropzone()->getLabel()
                     ]
-                    : null]);
+                    : null,
+                'visibilityGroup' => $user->getVisibilityGroup()
+                    ? [
+                        'id' => $user->getVisibilityGroup()->getId(),
+                        'text' => $user->getVisibilityGroup()->getLabel()
+                    ]
+                    : null
+                ]);
         }
         throw new BadRequestHttpException();
     }
@@ -240,7 +232,11 @@ class UtilisateurController extends AbstractController
      * @Route("/modifier", name="user_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function edit(Request $request, EntityManagerInterface $entityManager): Response
+    public function edit(Request $request,
+                         UserPasswordHasherInterface $encoder,
+                         PasswordService $passwordService,
+                         UserService $userService,
+                         EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
             /** @var Utilisateur $loggedUser */
@@ -248,13 +244,14 @@ class UtilisateurController extends AbstractController
 
             $typeRepository = $entityManager->getRepository(Type::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+            $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $roleRepository = $entityManager->getRepository(Role::class);
 
-            $utilisateur = $utilisateurRepository->find($data['user']);
+            $user = $utilisateurRepository->find($data['user']);
             $role = $roleRepository->find($data['role']);
 
-            $result = $this->passwordService->checkPassword($data['password'],$data['password2']);
+            $result = $passwordService->checkPassword($data['password'],$data['password2']);
             if ($result['response'] == false){
                 return new JsonResponse([
                 	'success' => false,
@@ -266,7 +263,7 @@ class UtilisateurController extends AbstractController
             // unicité de l'email
             $emailAlreadyUsed = $utilisateurRepository->count(['email' => $data['email']]);
 
-            if ($emailAlreadyUsed > 0  && $data['email'] != $utilisateur->getEmail()) {
+            if ($emailAlreadyUsed > 0  && $data['email'] != $user->getEmail()) {
 				return new JsonResponse([
 					'success' => false,
 					'msg' => 'Cette adresse email est déjà utilisée.',
@@ -284,7 +281,7 @@ class UtilisateurController extends AbstractController
 			// unicité de l'username
             $usernameAlreadyUsed = $utilisateurRepository->count(['username' => $data['username']]);
 
-			if ($usernameAlreadyUsed > 0  && $data['username'] != $utilisateur->getUsername() ) {
+			if ($usernameAlreadyUsed > 0  && $data['username'] != $user->getUsername() ) {
 				return new JsonResponse([
 					'success' => false,
 					'msg' => "Ce nom d'utilisateur est déjà utilisé.",
@@ -293,7 +290,7 @@ class UtilisateurController extends AbstractController
 			}
 
             //vérification que l'user connecté ne se désactive pas
-            if ($utilisateur->getId() === $loggedUser->getId() && $data['status'] == 0) {
+            if ($user->getId() === $loggedUser->getId() && $data['status'] == 0) {
 				return new JsonResponse([
 						'success' => false,
 						'msg' => 'Vous ne pouvez pas désactiver votre propre compte.',
@@ -311,47 +308,55 @@ class UtilisateurController extends AbstractController
                 }
             }
 
-            $utilisateur
+            $user
                 ->setSecondaryEmails($secondaryEmails)
                 ->setRole($role)
                 ->setStatus($data['status'])
                 ->setUsername($data['username'])
                 ->setAddress($data['address'])
                 ->setDropzone($data['dropzone'] ? $emplacementRepository->find(intval($data['dropzone'])) : null)
+                ->setVisibilityGroup($data['visibility-group'] ? $visibilityGroupRepository->find(intval($data['visibility-group'])) : null)
                 ->setEmail($data['email'])
                 ->setPhone($data['phoneNumber'] ?? '');
 
-            if ($data['password'] !== '') {
-                $password = $this->encoder->encodePassword($utilisateur, $data['password']);
-                $utilisateur->setPassword($password);
+            if($user->getVisibilityGroup()) {
+                $filters = $entityManager->getRepository(FiltreRef::class)->findBy(["champFixe" => FiltreRef::FIXED_FIELD_VISIBILITY_GROUP]);
+                foreach($filters as $filter) {
+                    $entityManager->remove($filter);
+                }
             }
-            foreach ($utilisateur->getDeliveryTypes() as $typeToRemove) {
-                $utilisateur->removeDeliveryType($typeToRemove);
+
+            if ($data['password'] !== '') {
+                $password = $encoder->hashPassword($user, $data['password']);
+                $user->setPassword($password);
+            }
+            foreach ($user->getDeliveryTypes() as $typeToRemove) {
+                $user->removeDeliveryType($typeToRemove);
             }
             if (isset($data['deliveryTypes'])) {
                 foreach ($data['deliveryTypes'] as $type) {
-                    $utilisateur->addDeliveryType($typeRepository->find($type));
+                    $user->addDeliveryType($typeRepository->find($type));
                 }
             }
-            foreach ($utilisateur->getDispatchTypes() as $typeToRemove) {
-                $utilisateur->removeDispatchType($typeToRemove);
+            foreach ($user->getDispatchTypes() as $typeToRemove) {
+                $user->removeDispatchType($typeToRemove);
             }
             if (isset($data['dispatchTypes'])) {
                 foreach ($data['dispatchTypes'] as $type) {
-                    $utilisateur->addDispatchType($typeRepository->find($type));
+                    $user->addDispatchType($typeRepository->find($type));
                 }
             }
-            foreach ($utilisateur->getHandlingTypes() as $typeToRemove) {
-                $utilisateur->removeHandlingType($typeToRemove);
+            foreach ($user->getHandlingTypes() as $typeToRemove) {
+                $user->removeHandlingType($typeToRemove);
             }
             if (isset($data['handlingTypes'])) {
                 foreach ($data['handlingTypes'] as $type) {
-                    $utilisateur->addHandlingType($typeRepository->find($type));
+                    $user->addHandlingType($typeRepository->find($type));
                 }
             }
 
             if (!empty($data['mobileLoginKey'])
-                && $data['mobileLoginKey'] !== $utilisateur->getMobileLoginKey()) {
+                && $data['mobileLoginKey'] !== $user->getMobileLoginKey()) {
 
                 $usersWithKey = $utilisateurRepository->findBy([
                     'mobileLoginKey' => $data['mobileLoginKey']
@@ -359,7 +364,7 @@ class UtilisateurController extends AbstractController
                 if (!empty($usersWithKey)
                     && (
                         count($usersWithKey) > 1
-                        || $usersWithKey[0]->getId() !== $utilisateur->getId()
+                        || $usersWithKey[0]->getId() !== $user->getId()
                     )) {
                     return new JsonResponse([
                         'success' => false,
@@ -379,22 +384,22 @@ class UtilisateurController extends AbstractController
                         ]);
                     }
                     else {
-                        $utilisateur
+                        $user
                             ->setMobileLoginKey($mobileLoginKey)
                             ->setApiKey(null);
                     }
                 }
             }
 
-            $entityManager->persist($utilisateur);
+            $entityManager->persist($user);
             $entityManager->flush();
 
             $dataResponse = ['success' => true];
 
-            if ($utilisateur->getId() != $loggedUser->getId()) {
-                $dataResponse['msg'] = 'L\'utilisateur <strong>' . $utilisateur->getUsername() . '</strong> a bien été modifié.';
+            if ($user->getId() != $loggedUser->getId()) {
+                $dataResponse['msg'] = 'L\'utilisateur <strong>' . $user->getUsername() . '</strong> a bien été modifié.';
             } else {
-                if ($this->userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
+                if ($userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                     $dataResponse['msg'] = 'Vous avez bien modifié votre compte utilisateur.';
                 } else {
                     $dataResponse['msg'] = 'Vous avez bien modifié votre rôle utilisateur.';
@@ -437,9 +442,10 @@ class UtilisateurController extends AbstractController
      * @Route("/api", name="user_api",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::DISPLAY_UTIL}, mode=HasPermission::IN_JSON)
      */
-    public function api(Request $request): Response
+    public function api(Request $request,
+                        UserService $userService): Response
     {
-        $data = $this->userService->getDataForDatatable($request->request);
+        $data = $userService->getDataForDatatable($request->request);
 
         return new JsonResponse($data);
     }
@@ -448,10 +454,11 @@ class UtilisateurController extends AbstractController
      * @Route("/verification", name="user_check_delete", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
-	public function checkUserCanBeDeleted(Request $request): Response
+	public function checkUserCanBeDeleted(Request $request,
+                                          UserService $userService): Response
 	{
 		if ($userId = json_decode($request->getContent(), true)) {
-			$userIsUsed = $this->userService->isUsedByDemandsOrOrders($userId);
+			$userIsUsed = $userService->isUsedByDemandsOrOrders($userId);
 
 			if (!$userIsUsed) {
 				$delete = true;
@@ -471,6 +478,7 @@ class UtilisateurController extends AbstractController
      * @HasPermission({Menu::PARAM, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request,
+                           UserService $userService,
                            EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
@@ -480,7 +488,7 @@ class UtilisateurController extends AbstractController
             $username = $user->getUsername();
 
 			// on vérifie que l'utilisateur n'est plus utilisé
-			$isUserUsed = $this->userService->isUsedByDemandsOrOrders($user);
+			$isUserUsed = $userService->isUsedByDemandsOrOrders($user);
 
 			if ($isUserUsed) {
 				return new JsonResponse(false);
@@ -565,6 +573,43 @@ class UtilisateurController extends AbstractController
             $em->flush();
         }
         return new JsonResponse();
+    }
+
+    /**
+     * @Route("/export", name="export_csv_user", methods="GET")
+     */
+    public function exportCSV(CSVExportService $CSVExportService,
+                              UserService $userService,
+                              EntityManagerInterface $entityManager): StreamedResponse {
+        $csvHeader = [
+            'Rôle',
+            "Nom d'utilisateur",
+            'Email',
+            'Email 2',
+            'Email 3',
+            'Numéro de téléphone',
+            'Adresse',
+            'Dernière connexion',
+            'Clé de connexion mobile',
+            'Types de livraison',
+            "Types de d'acheminement",
+            'Types de service',
+            'Dropzone',
+            'Groupe de visibilité',
+            'Statut'
+        ];
+
+        return $CSVExportService->streamResponse(
+            function ($output) use ($CSVExportService, $userService, $entityManager) {
+                $userRepository = $entityManager->getRepository(Utilisateur::class);
+                $users = $userRepository->iterateAll();
+
+                foreach ($users as $user) {
+                    $userService->putCSVLine($CSVExportService, $output, $user);
+                }
+            }, 'export_utilisateurs.csv',
+            $csvHeader
+        );
     }
 
 }
