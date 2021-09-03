@@ -1177,12 +1177,16 @@ function updateImagePreview(preview, upload, $title = null, $delete = null, $cal
     })
 }
 
-(function () {
+(() => {
     let count = 0;
-    $('.do-not-click-me-several-times').click(function () {
+    const $modalEasterEgg = $('#modalEasterEgg');
+    $('.do-not-click-me-several-times').click(() => {
         count += 1;
         if (count === TEAM_SIZE) {
-            $('#modalEasterEgg').modal('show');
+            $modalEasterEgg.modal('show');
         }
     });
+    $modalEasterEgg.on('hidden.bs.modal', () => {
+        count = 0;
+    })
 })();

@@ -571,6 +571,12 @@ label.required:after {
     animation-duration: 5000ms;
     animation-iteration-count: infinite;
     animation-timing-function: linear;
+
+    &.small-cookie {
+        width: 30px;
+        height: 30px;
+        cursor: pointer;
+    }
 }
 
 @keyframes spin {
