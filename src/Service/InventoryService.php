@@ -57,7 +57,8 @@ class InventoryService
         $quantitiesAreEqual = true;
 
 		if ($isRef) {
-			$refOrArt = $referenceArticleRepository->findOneBy(['barCode' => $barCode]) ?: $referenceArticleRepository->findOneBy(['reference' => $barCode]);
+			$refOrArt = $referenceArticleRepository->findOneBy(['barCode' => $barCode])
+                ?: $referenceArticleRepository->findOneBy(['reference' => $barCode]);
 			$quantity = $refOrArt->getQuantiteStock();
 		} else {
 		    /** @var Article $refOrArt */

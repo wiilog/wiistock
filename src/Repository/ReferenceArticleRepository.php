@@ -5,6 +5,8 @@ namespace App\Repository;
 use App\Entity\Article;
 use App\Entity\FreeField;
 use App\Entity\FiltreRef;
+use App\Entity\InventoryFrequency;
+use App\Entity\InventoryMission;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
@@ -65,17 +67,17 @@ class ReferenceArticleRepository extends EntityRepository {
             ->getArrayResult();
     }
 
-    public function iterateAll($user) {
-        $qb = $this->createQueryBuilder('referenceArticle');
+    public function iterateAll(Utilisateur $user): iterable {
+        $queryBuilder = $this->createQueryBuilder('referenceArticle');
 
         $visibilityGroup = $user->getVisibilityGroup();
         if ($visibilityGroup) {
-            $qb
+            $queryBuilder
                 ->andWhere(':loggedUserVisibilityGroup MEMBER OF referenceArticle.visibilityGroups')
                 ->setParameter('loggedUserVisibilityGroup', $visibilityGroup);
         }
 
-        return $qb->distinct()
+        return $queryBuilder->distinct()
             ->select('referenceArticle.id')
             ->addSelect('referenceArticle.reference')
             ->addSelect('referenceArticle.libelle')
@@ -757,7 +759,7 @@ class ReferenceArticleRepository extends EntityRepository {
         return $query->getSingleScalarResult();
     }
 
-    public function getEntryByMission($mission, $refId)
+    public function getEntryByMission(InventoryMission $mission, $refId)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
@@ -786,7 +788,10 @@ class ReferenceArticleRepository extends EntityRepository {
         return $query->getSingleScalarResult();
     }
 
-    public function findByFrequencyOrderedByLocation($frequency)
+    /**
+     * @return ReferenceArticle[]
+     */
+    public function findByFrequencyOrderedByLocation(InventoryFrequency $frequency): array
     {
         $queryBuilder = $this->createQueryBuilder('referenceArticle')
             ->select('referenceArticle')
@@ -806,7 +811,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->execute();
     }
 
-    public function countActiveByFrequencyWithoutDateInventory($frequency)
+    public function countActiveByFrequencyWithoutDateInventory(InventoryFrequency $frequency)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
@@ -834,7 +839,10 @@ class ReferenceArticleRepository extends EntityRepository {
         return $query->getOneOrNullResult();
     }
 
-    public function findActiveByFrequencyWithoutDateInventoryOrderedByEmplacementLimited($frequency, $limit)
+    /**
+     * @return ReferenceArticle[]
+     */
+    public function findActiveByFrequencyWithoutDateInventoryOrderedByEmplacementLimited(InventoryFrequency $frequency, int $limit): array
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
@@ -860,7 +868,7 @@ class ReferenceArticleRepository extends EntityRepository {
         return $query->execute();
     }
 
-    public function getHighestBarCodeByDateCode($dateCode)
+    public function getHighestBarCodeByDateCode(string $dateCode)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
@@ -942,7 +950,7 @@ class ReferenceArticleRepository extends EntityRepository {
         return $reservedQuantity;
     }
 
-    public function countInventoryAnomaliesByRef($ref)
+    public function countInventoryAnomaliesByRef(ReferenceArticle $ref): int
     {
         $em = $this->getEntityManager();
 

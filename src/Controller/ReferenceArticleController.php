@@ -794,7 +794,7 @@ class ReferenceArticleController extends AbstractController
         $user = $this->userService->getUser();
 
         return $csvService->streamResponse(function($output) use ($manager, $csvService, $ffService, $ffConfig, $user) {
-            $raRepository = $manager->getRepository(ReferenceArticle::class);
+            $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
             $managersByReference = $manager
                 ->getRepository(Utilisateur::class)
                 ->getUsernameManagersGroupByReference();
@@ -803,7 +803,7 @@ class ReferenceArticleController extends AbstractController
                 ->getRepository(Fournisseur::class)
                 ->getCodesAndLabelsGroupedByReference();
 
-            $references = $raRepository->iterateAll($user);
+            $references = $referenceArticleRepository->iterateAll($user);
             foreach($references as $reference) {
                 $this->putReferenceLine($output, $csvService, $ffService, $ffConfig, $managersByReference, $reference, $suppliersByReference);
             }

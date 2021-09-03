@@ -64,6 +64,7 @@ $(function () {
     $('.removeRequired, .form-group, label').removeClass('required');
 
     registerNotificationChannel();
+    registerEasterEgg();
 });
 
 function registerNotificationChannel() {
@@ -1177,7 +1178,7 @@ function updateImagePreview(preview, upload, $title = null, $delete = null, $cal
     })
 }
 
-(() => {
+function registerEasterEgg() {
     let count = 0;
     const $modalEasterEgg = $('#modalEasterEgg');
     $('.do-not-click-me-several-times').click(() => {
@@ -1189,4 +1190,4 @@ function updateImagePreview(preview, upload, $title = null, $delete = null, $cal
     $modalEasterEgg.on('hidden.bs.modal', () => {
         count = 0;
     })
-})();
+}
