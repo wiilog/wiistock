@@ -562,7 +562,8 @@ class TrackingMovementController extends AbstractController
             $templateDirectory = 'mouvement_traca';
 
             if ($typeId === 'fromStart') {
-                $currentClient = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED);
+                $currentClient = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED) ||
+                    $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_NS);
                 $fileToRender = "$templateDirectory/" . (
                     $currentClient
                         ? 'newMassMvtTraca.html.twig'
