@@ -43,6 +43,7 @@ $(function() {
     let params = JSON.stringify(PAGE_ALERTE);
 
     Select2Old.user($(".filter-select2.ajax-autocomplete-user"), "Gestionnaires");
+    Select2Old.init($(".filter-select2[name=multipleTypes]"), "Types");
 
     $.post(path, params, function (data) {
         displayFiltersSup(data);

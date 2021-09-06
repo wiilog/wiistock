@@ -9,7 +9,7 @@ use App\Helper\QueryCounter;
 use DateTime;
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\EntityRepository;
-use function Doctrine\ORM\QueryBuilder;
+use WiiCommon\Helper\Stream;
 
 /**
  * @method Alert|null find($id, $lockMode = null, $lockVersion = null)
@@ -60,11 +60,13 @@ class AlertRepository extends EntityRepository {
                     $qb->andWhere('a.date <= :dateMax')
                         ->setParameter('dateMax', $filter['value']. ' 23:59:59');
                     break;
-                case 'type':
+                case 'multipleTypes':
+                    $types = explode(',', $filter['value']);
+                    $types = Stream::from($types)->map(fn(string $type) => strtok($type, ':'))->toArray();
                     $qb
                         ->join('reference.type', 't3')
-                        ->andWhere('t3.label LIKE :type')
-                        ->setParameter('type', $filter['value']);
+                        ->andWhere('t3.id IN (:types)')
+                        ->setParameter('types', $types);
                     break;
                 case 'alert':
                     $value = Alert::TYPE_LABELS_IDS[$filter['value']];
@@ -104,8 +106,6 @@ class AlertRepository extends EntityRepository {
                         ->setParameter('value', '%' . str_replace('_', '\_', $search) . '%');
                 }
             }
-
-            $countFiltered = QueryCounter::count($qb, "a");
 
             if(!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
@@ -150,6 +150,8 @@ class AlertRepository extends EntityRepository {
 
         $qb->groupBy('a.id')
             ->addSelect('COALESCE(reference.quantiteDisponible, article.quantite) AS quantity');
+
+        $countFiltered = QueryCounter::count($qb, "a");
 
         if(!empty($params)) {
             if(!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
