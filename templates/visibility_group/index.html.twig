@@ -8,6 +8,8 @@
             <div class="ml-auto col-auto">
                 <div class="btn-group">
                     <button type="button"
+                            data-toggle="modal"
+                            data-target="#modalNewVisibilityGroup"
                             class="btn btn-primary split-button btn-ripple">
                         <span class="fa fa-plus mr-2"></span>
                         Nouveau groupe de visibilité
@@ -22,6 +24,10 @@
             </div>
         </div>
     </div>
+
+    {% include 'visibility_group/modals/edit.html.twig' %}
+    {% include 'visibility_group/modals/new.html.twig' %}
+    {% include 'visibility_group/modals/delete.html.twig' %}
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}

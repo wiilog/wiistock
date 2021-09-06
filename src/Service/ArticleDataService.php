@@ -371,21 +371,6 @@ class ArticleDataService
         return $toInsert;
     }
 
-    public function getDataForDatatable($params, $user)
-    {
-        return $this->getArticleDataByParams($params, $user);
-    }
-
-    public function getDataForDatatableByReceptionLigne($ligne, $user)
-    {
-        if ($ligne) {
-            $data = $this->getArticleDataByReceptionLigne($ligne);
-        } else {
-            $data = $this->getArticleDataByParams(null, $user);
-        }
-        return $data;
-    }
-
     public function getArticleDataByReceptionLigne(ReceptionReferenceArticle $ligne)
     {
         $articles = $ligne->getArticles();

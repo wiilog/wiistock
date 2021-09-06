@@ -397,7 +397,7 @@ class ArrivageController extends AbstractController
     }
 
     /**
-     * @Route("/{arrival}/urgent", name="patch_arrivage_urgent", options={"expose"=true}, methods="PATCH", condition="request.isXmlHttpRequest() && '%client%' == constant('\\App\\Service\\SpecificService::CLIENT_SAFRAN_ED')")
+     * @Route("/{arrival}/urgent", name="patch_arrivage_urgent", options={"expose"=true}, methods="PATCH", condition="request.isXmlHttpRequest() && ('%client%' == constant('\\App\\Service\\SpecificService::CLIENT_SAFRAN_ED') || '%client%' == constant('\\App\\Service\\SpecificService::CLIENT_SAFRAN_NS'))")
      * @Entity("arrival", expr="repository.find(arrival) ?: repository.findOneBy({'numeroArrivage': arrival})")
      */
     public function patchUrgentArrival(Arrivage $arrival,
@@ -486,7 +486,8 @@ class ArrivageController extends AbstractController
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
 
         $post = $request->request;
-        $isSEDCurrentClient = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED);
+        $isSEDCurrentClient = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)
+            || $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_NS);
 
         $arrivage = $arrivageRepository->find($post->get('id'));
 

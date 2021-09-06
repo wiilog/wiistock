@@ -264,7 +264,6 @@ class PreparationController extends AbstractController
             'livraison' => $preparation->getLivraison(),
             'preparation' => $preparation,
             'isPrepaEditable' => $preparationStatus === Preparation::STATUT_A_TRAITER || ($preparationStatus == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser()),
-            'articles' => $articleRepository->getIdRefLabelAndQuantity(),
             'headerConfig' => [
                 ['label' => 'Numéro', 'value' => $preparation->getNumero()],
                 ['label' => 'Statut', 'value' => $preparation->getStatut() ? ucfirst($preparation->getStatut()->getNom()) : ''],

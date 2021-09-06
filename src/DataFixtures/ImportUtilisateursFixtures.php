@@ -37,15 +37,14 @@ class ImportUtilisateursFixtures extends Fixture implements FixtureGroupInterfac
 
         $path = "src/DataFixtures/utilisateurs.csv";
         $file = fopen($path, "r");
-        $header = fgetcsv($file, 0, ",");
 
         $utilisateurRepository = $manager->getRepository(Utilisateur::class);
         $roleRepository = $manager->getRepository(Role::class);
 
-        $role = $roleRepository->findOneBy(["label" => "Utilisateur Emerson"]);
+        $role = $roleRepository->findOneBy(["label" => "Utilisateur Safran"]);
         if(!$role) {
             $role = new Role();
-            $role->setLabel("Utilisateur Emerson");
+            $role->setLabel("Utilisateur Safran");
             $role->setIsMailSendAccountCreation(false);
             $role->setDashboardsVisible([]);
             $role->setActive(true);
@@ -61,7 +60,6 @@ class ImportUtilisateursFixtures extends Fixture implements FixtureGroupInterfac
 
             if(isset($matches[0])) {
                 $email = strtolower($matches[0]);
-                $active = $line[2];
 
                 $existing = $utilisateurRepository->findOneBy(['email' => $email]);
 
@@ -70,10 +68,10 @@ class ImportUtilisateursFixtures extends Fixture implements FixtureGroupInterfac
 
                     $user = new Utilisateur();
                     $user
-                        ->setUsername($email)
+                        ->setUsername($line[0])
                         ->setEmail($email)
                         ->setRole($role)
-                        ->setStatus($active)
+                        ->setStatus(true)
                         ->setPassword("")
                         ->setMobileLoginKey($uniqueMobileKey);
 

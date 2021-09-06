@@ -72,7 +72,8 @@ class Import
     ];
 
 	const FIELDS_ENTITY = [
-	    'storageLocation' => 'Emplacement de stockage',
+        'storageLocation' => 'Emplacement de stockage',
+        'visibilityGroups' => 'Groupes de visibilités',
         'reference' => 'référence',
         'barCode' => 'code barre',
         'quantite' => 'quantité',

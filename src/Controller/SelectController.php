@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Article;
 use App\Entity\CategoryType;
-use App\Entity\Dispatch;
 use App\Entity\Emplacement;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
@@ -14,6 +13,8 @@ use App\Entity\Pack;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
+use App\Entity\VisibilityGroup;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -101,9 +102,12 @@ class SelectController extends AbstractController {
      * @Route("/select/references", name="ajax_select_references", options={"expose": true})
      */
     public function references(Request $request, EntityManagerInterface $manager): Response {
-        $results = $manager->getRepository(ReferenceArticle::class)->getForSelect(
-            $request->query->get("term"),
-        );
+        $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
+
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
+
+        $results = $referenceArticleRepository->getForSelect($request->query->get("term"), $user);
 
         return $this->json([
             "results" => $results,
@@ -116,6 +120,16 @@ class SelectController extends AbstractController {
     public function sensors(Request $request, EntityManagerInterface $manager): Response {
         $results = $manager->getRepository(Sensor::class)->getForSelect($request->query->get("term"));
 
+        return $this->json([
+            "results" => $results,
+        ]);
+    }
+
+    /**
+     * @Route("/select/groupe-de-visibilite", name="ajax_select_visibility_group", options={"expose"=true})
+     */
+    public function visibilityGroup(Request $request, EntityManagerInterface $manager): Response {
+        $results = $manager->getRepository(VisibilityGroup::class)->getForSelect($request->query->get("term"));
         return $this->json([
             "results" => $results,
         ]);

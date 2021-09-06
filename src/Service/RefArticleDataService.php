@@ -4,11 +4,14 @@ namespace App\Service;
 
 use App\Entity\Action;
 use App\Entity\Alert;
+use App\Entity\Article;
+use App\Entity\ArticleFournisseur;
+use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
-use App\Entity\FreeField;
 use App\Entity\Demande;
 use App\Entity\FiltreRef;
 use App\Entity\FiltreSup;
+use App\Entity\FreeField;
 use App\Entity\InventoryCategory;
 use App\Entity\LigneArticle;
 use App\Entity\LigneArticlePreparation;
@@ -20,22 +23,20 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Entity\CategorieCL;
-use App\Entity\ArticleFournisseur;
+use App\Entity\VisibilityGroup;
 use App\Helper\FormatHelper;
+use App\Repository\FiltreRefRepository;
 use App\Repository\PurchaseRequestLineRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
-use WiiCommon\Helper\Stream;
-use App\Repository\FiltreRefRepository;
 use DateTime;
-use RuntimeException;
-use Twig\Environment as Twig_Environment;
+use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Doctrine\ORM\EntityManagerInterface;
-use App\Entity\Article;
+use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\Stream;
 
 class RefArticleDataService {
 
@@ -62,7 +63,8 @@ class RefArticleDataService {
         ["title" => "Gestion de stock", "name" => "stockManagement", "type" => "text", "searchable" => true],
         ["title" => "Gestionnaire(s)", "name" => "managers", "orderable" => false, "type" => "text"],
         ["title" => "Commentaire", "name" => "comment", "type" => "text", "orderable" => false],
-        ["title" => "Commentaire d'urgence", "name" => "emergencyComment", "type" => "text", "orderable" => false]
+        ["title" => "Commentaire d'urgence", "name" => "emergencyComment", "type" => "text", "orderable" => false],
+        ["title" => FiltreRef::FIXED_FIELD_VISIBILITY_GROUP, "name" => "visibilityGroups", "type" => "list", "orderable" => true],
     ];
 
     /**
@@ -227,7 +229,7 @@ class RefArticleDataService {
         ]);
     }
 
-    public function editRefArticle($refArticle,
+    public function editRefArticle(ReferenceArticle $refArticle,
                                    $data,
                                    Utilisateur $user,
                                    FreeFieldService $champLibreService,
@@ -239,6 +241,7 @@ class RefArticleDataService {
         $statutRepository = $this->entityManager->getRepository(Statut::class);
         $inventoryCategoryRepository = $this->entityManager->getRepository(InventoryCategory::class);
         $userRepository = $this->entityManager->getRepository(Utilisateur::class);
+        $visibilityGroupRepository = $this->entityManager->getRepository(VisibilityGroup::class);
 
         //modification champsFixes
         $entityManager = $this->entityManager;
@@ -329,6 +332,16 @@ class RefArticleDataService {
                 $refArticle->addManager($userRepository->find($manager));
             }
         }
+        foreach ($refArticle->getVisibilityGroups() as $visibilityGroup) {
+            $visibilityGroup->removeArticleReference($refArticle);
+        }
+        $entityManager->flush();
+        if (!empty($data["visibility-group"])) {
+            $visibilityGroups = is_string($data["visibility-group"]) ? explode(',', $data['visibility-group']) : $data["visibility-group"];
+            foreach ($visibilityGroups as $visibilityGroup) {
+                $refArticle->addVisibilityGroup($visibilityGroupRepository->find($visibilityGroup));
+            }
+        }
 
         $entityManager->flush();
         //modification ou création des champsLibres
@@ -378,6 +391,9 @@ class RefArticleDataService {
             "stockQuantity" => $refArticle->getQuantiteStock() ?? 0,
             "buyer" => $refArticle->getBuyer() ? $refArticle->getBuyer()->getUsername() : '',
             "emergencyComment" => $refArticle->getEmergencyComment(),
+            "visibilityGroups" => Stream::from($refArticle->getVisibilityGroups())
+                ->map(fn(VisibilityGroup $group) => $group->getLabel())
+                ->join(", "),
             "barCode" => $refArticle->getBarCode() ?? "Non défini",
             "comment" => $refArticle->getCommentaire(),
             "status" => FormatHelper::status($refArticle->getStatut()),
@@ -699,7 +715,22 @@ class RefArticleDataService {
         $categorieCL = $categorieCLRepository->findOneBy(['label' => CategorieCL::REFERENCE_ARTICLE]);
         $freeFields = $freeFieldRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, $categorieCL);
 
-        return $this->visibleColumnService->getArrayConfig(self::REF_ARTICLE_FIELDS, $freeFields, $currentUser->getColumnVisible());
+        $fields = self::REF_ARTICLE_FIELDS;
+        if($currentUser->getVisibilityGroup()) {
+            $visibilityGroupsIndex = null;
+            foreach($fields as $index => $field) {
+                if($field["name"] === "visibilityGroups") {
+                    $visibilityGroupsIndex = $index;
+                    break;
+                }
+            }
+
+            if($visibilityGroupsIndex) {
+                array_splice($fields, $visibilityGroupsIndex, 1);
+            }
+        }
+
+        return $this->visibleColumnService->getArrayConfig($fields, $freeFields, $currentUser->getColumnVisible());
     }
 
     public function getFieldTitle(string $fieldName): ?string {

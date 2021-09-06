@@ -31,12 +31,12 @@ class PatchFiltreStatutArticleActifFixtures extends Fixture implements FixtureGr
         $utilisateurRepository = $manager->getRepository(Utilisateur::class);
         $listUser = $utilisateurRepository->findAll();
         foreach($listUser as $user){
-            $filter = $this->filtreRefRepository->findOneByUserAndChampFixe($user, FiltreRef::CHAMP_FIXE_STATUT);
+            $filter = $this->filtreRefRepository->findOneByUserAndChampFixe($user, FiltreRef::FIXED_FIELD_STATUT);
             if($filter == null){
                 $newFilter = new FiltreRef();
                 $newFilter
                     ->setUtilisateur($user)
-                    ->setChampFixe(FiltreRef::CHAMP_FIXE_STATUT)
+                    ->setChampFixe(FiltreRef::FIXED_FIELD_STATUT)
                     ->setValue('actif');
 
                 $manager->persist($newFilter);
