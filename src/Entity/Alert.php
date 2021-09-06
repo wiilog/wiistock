@@ -97,6 +97,7 @@ class Alert {
 
     public function serialize(): array {
         /** @var ReferenceArticle $reference */
+        /** @var Article $article */
         [$reference, $article] = $this->getLinkedArticles();
 
         return [
@@ -134,6 +135,7 @@ class Alert {
                 ->join(' / ')
         ];
     }
+
 
     public function getLinkedArticles(): array {
         if ($this->getReference()) {
