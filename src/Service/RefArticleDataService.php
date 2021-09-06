@@ -510,13 +510,13 @@ class RefArticleDataService {
         return ReferenceArticle::BARCODE_PREFIX . $dateCode . $counter;
     }
 
-    public function getAlerteDataByParams($params, $user) {
+    public function getAlerteDataByParams($params, Utilisateur $user) {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $alertRepository = $this->entityManager->getRepository(Alert::class);
 
         $filtresAlerte = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ALERTE, $user);
 
-        $results = $alertRepository->getAlertDataByParams($params, $filtresAlerte);
+        $results = $alertRepository->getAlertDataByParams($params, $filtresAlerte, $user);
         $alerts = $results['data'];
 
         $rows = [];
@@ -555,11 +555,10 @@ class RefArticleDataService {
             $code = $entity->getBarCode();
             $label = $entity->getLabel();
             $expiry = $entity->getExpiryDate() ? $entity->getExpiryDate()->format("d/m/Y H:i") : "Non défini";
-            $managers = $referenceArticle
-                ? Stream::from($referenceArticle->getManagers())
-                    ->map(fn (Utilisateur $utilisateur) => $utilisateur->getUsername())
-                    ->toArray()
-                : [];
+            $quantityType = $referenceArticle->getTypeQuantite();
+            $managers = Stream::from($referenceArticle->getManagers())
+                ->map(fn (Utilisateur $user) => $user->getUsername())
+                ->toArray();
             $managers = count($managers) > 0 ? implode(",", $managers) : 'Non défini';
         } else {
             throw new RuntimeException("Invalid alert");

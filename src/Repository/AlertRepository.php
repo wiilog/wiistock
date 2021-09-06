@@ -10,6 +10,7 @@ use App\Helper\QueryCounter;
 use DateTime;
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\EntityRepository;
+use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 
 /**
@@ -44,48 +45,71 @@ class AlertRepository extends EntityRepository {
             ->getResult();
     }
 
-    public function getAlertDataByParams($params, $filters) {
-        $qb = $this->createQueryBuilder("a")
+    public function getAlertDataByParams(InputBag $params, array $filters, Utilisateur $user) {
+        $queryBuilder = $this->createQueryBuilder("a");
+        $exprBuilder = $queryBuilder->expr();
+
+        $queryBuilder
             ->leftJoin("a.reference", "reference")
             ->leftJoin("a.article", "article");
 
-        $total = QueryCounter::count($qb, "a");
+        $visibilityGroup = $user->getVisibilityGroup();
+        if ($visibilityGroup) {
+            $queryBuilder
+                ->leftJoin('article.articleFournisseur', 'join_article_supplierArticle')
+                ->leftJoin('join_article_supplierArticle.referenceArticle', 'join_article_reference')
+                ->andWhere($exprBuilder->orX(
+                    ':loggedUserVisibilityGroup MEMBER OF reference.visibilityGroups',
+                    ':loggedUserVisibilityGroup MEMBER OF join_article_reference.visibilityGroups'
+                ))
+                ->setParameter('loggedUserVisibilityGroup', $visibilityGroup);
+        }
+
+        $total = QueryCounter::count($queryBuilder, "a");
 
         foreach($filters as $filter) {
             switch ($filter['field']) {
                 case 'dateMin':
-                    $qb->andWhere('a.date >= :dateMin')
+                    $queryBuilder->andWhere('a.date >= :dateMin')
                         ->setParameter('dateMin', $filter['value']. ' 00:00:00');
                     break;
                 case 'dateMax':
-                    $qb->andWhere('a.date <= :dateMax')
+                    $queryBuilder->andWhere('a.date <= :dateMax')
                         ->setParameter('dateMax', $filter['value']. ' 23:59:59');
                     break;
                 case 'multipleTypes':
                     $types = explode(',', $filter['value']);
-                    $types = Stream::from($types)->map(fn(string $type) => strtok($type, ':'))->toArray();
-                    $qb
-                        ->join('reference.type', 't3')
-                        ->andWhere('t3.id IN (:types)')
-                        ->setParameter('types', $types);
+                    $types = Stream::from($types)
+                        ->map(fn(string $type) => strtok($type, ':'))
+                        ->toArray();
+                    $queryBuilder
+                        ->leftJoin('reference.type', 'filter_multipleTypes_reference_type')
+                        ->leftJoin('article.articleFournisseur', 'filter_multipleTypes_article_supplierArticle')
+                        ->leftJoin('filter_multipleTypes_article_supplierArticle.referenceArticle', 'filter_multipleTypes_article_reference')
+                        ->leftJoin('filter_multipleTypes_article_reference.type', 'filter_multipleTypes_article_type')
+                        ->andWhere($exprBuilder->orX(
+                            'filter_multipleTypes_reference_type.id IN (:filter_multipleTypes_value)',
+                            'filter_multipleTypes_article_type.id IN (:filter_multipleTypes_value)'
+                        ))
+                        ->setParameter('filter_multipleTypes_value', $types);
                     break;
                 case 'alert':
                     $value = Alert::TYPE_LABELS_IDS[$filter['value']];
-                    $qb->andWhere('a.type = :alert')
+                    $queryBuilder->andWhere('a.type = :alert')
                         ->setParameter('alert', $value);
                     break;
                 case 'utilisateurs':
                     $value = explode(',', $filter['value']);
 
-                    $or = $qb->expr()->orX();
+                    $or = $queryBuilder->expr()->orX();
                     foreach($value as $user) {
                         $id = explode(":", $user)[0];
                         $or->add(":user_$id MEMBER OF reference.managers");
                         $or->add(":user_$id MEMBER OF articlera.managers");
-                        $qb->setParameter("user_$id", $id);
+                        $queryBuilder->setParameter("user_$id", $id);
                     }
 
-                    $qb->andWhere($or)
+                    $queryBuilder->andWhere($or)
                         ->leftJoin("article.articleFournisseur", "articleaf")
                         ->leftJoin("articleaf.referenceArticle", "articlera");
                     break;
@@ -97,8 +121,8 @@ class AlertRepository extends EntityRepository {
             if(!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if(!empty($search)) {
-                    $qb
-                        ->andWhere($qb->expr()->orX(
+                    $queryBuilder
+                        ->andWhere($queryBuilder->expr()->orX(
                             'reference.reference LIKE :value',
                             'reference.libelle LIKE :value',
                             'article.reference LIKE :value',
@@ -115,52 +139,52 @@ class AlertRepository extends EntityRepository {
 
                     switch($column) {
                         case "label":
-                            $qb->addSelect("COALESCE(article.label, reference.libelle) AS HIDDEN label")
+                            $queryBuilder->addSelect("COALESCE(article.label, reference.libelle) AS HIDDEN label")
                                 ->orderBy("label", $order);
                             break;
                         case "reference":
-                            $qb->addSelect("COALESCE(article.reference, reference.reference) AS HIDDEN stref")
+                            $queryBuilder->addSelect("COALESCE(article.reference, reference.reference) AS HIDDEN stref")
                                 ->orderBy("stref", $order);
                             break;
                         case "code":
-                            $qb->addSelect("COALESCE(article.barCode, reference.barCode) AS HIDDEN code")
+                            $queryBuilder->addSelect("COALESCE(article.barCode, reference.barCode) AS HIDDEN code")
                                 ->orderBy("code", $order);
                             break;
                         case "quantity":
-                            $qb->orderBy('quantity', $order);
+                            $queryBuilder->orderBy('quantity', $order);
                             break;
                         case "quantityType":
-                            $qb->orderBy("reference.typeQuantite", $order);
+                            $queryBuilder->orderBy("reference.typeQuantite", $order);
                             break;
                         case "securityThreshold":
-                            $qb->orderBy('reference.limitSecurity', $order);
+                            $queryBuilder->orderBy('reference.limitSecurity', $order);
                             break;
                         case "warningThreshold":
-                            $qb->orderBy('reference.limitWarning', $order);
+                            $queryBuilder->orderBy('reference.limitWarning', $order);
                             break;
                         case "expiry":
-                            $qb->orderBy('article.expiryDate', $order);
+                            $queryBuilder->orderBy('article.expiryDate', $order);
                             break;
                         default:
-                            $qb->orderBy('a.' . $column, $order);
+                            $queryBuilder->orderBy('a.' . $column, $order);
                             break;
                     }
                 }
             }
         }
 
-        $qb->groupBy('a.id')
+        $queryBuilder->groupBy('a.id')
             ->addSelect('COALESCE(reference.quantiteDisponible, article.quantite) AS quantity');
 
-        $countFiltered = QueryCounter::count($qb, "a");
+        $countFiltered = QueryCounter::count($queryBuilder, "a");
 
         if(!empty($params)) {
-            if(!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if(!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+            if(!empty($params->get('start'))) $queryBuilder->setFirstResult($params->get('start'));
+            if(!empty($params->get('length'))) $queryBuilder->setMaxResults($params->get('length'));
         }
 
         return [
-            'data' => $qb->getQuery()->getResult(AbstractQuery::HYDRATE_OBJECT),
+            'data' => $queryBuilder->getQuery()->getResult(AbstractQuery::HYDRATE_OBJECT),
             'count' => $countFiltered,
             'total' => $total
         ];

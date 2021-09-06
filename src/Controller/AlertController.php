@@ -102,7 +102,9 @@ class AlertController extends AbstractController
     public function api(Request $request,
                         RefArticleDataService $refArticleDataService): Response
     {
-        $data = $refArticleDataService->getAlerteDataByParams($request->request, $this->getUser());
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
+        $data = $refArticleDataService->getAlerteDataByParams($request->request, $user);
         return new JsonResponse($data);
     }
 
