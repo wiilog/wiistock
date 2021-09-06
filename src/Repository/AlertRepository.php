@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Alert;
 use App\Entity\Article;
 use App\Entity\ReferenceArticle;
+use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use DateTime;
 use Doctrine\ORM\AbstractQuery;
@@ -218,18 +219,49 @@ class AlertRepository extends EntityRepository {
             ->getResult();
     }
 
-    public function iterateBetween(DateTime $start, DateTime $end) {
+    /**
+     * @param string[] $statusCodeFilter
+     */
+    public function iterateBetween(DateTime $start,
+                                   DateTime $end,
+                                   Utilisateur $user,
+                                   array $statusCodeFilter = []): iterable {
         $qb = $this->createQueryBuilder('alert');
         $exprBuilder = $qb->expr();
-        $iterator = $this->createQueryBuilder('alert')
-            ->where($exprBuilder->between('alert.date',':start',':end'))
+        $queryBuilder = $this->createQueryBuilder('alert');
+        $queryBuilder
+            ->leftJoin('alert.reference', 'join_reference')
+            ->leftJoin('alert.article', 'join_article')
+            ->leftJoin('join_article.articleFournisseur', 'join_article_supplierArticle')
+            ->leftJoin('join_article_supplierArticle.referenceArticle', 'join_article_reference')
+            ->andWhere($exprBuilder->between('alert.date',':start',':end'))
             ->setParameter('start', $start)
-            ->setParameter('end', $end)
-            ->getQuery()
-            ->iterate();
-        foreach($iterator as $item) {
-            yield array_pop($item);
+            ->setParameter('end', $end);
+
+        $visibilityGroup = $user->getVisibilityGroup();
+        if ($visibilityGroup) {
+            $queryBuilder
+                ->andWhere($exprBuilder->orX(
+                    ':loggedUserVisibilityGroup MEMBER OF join_reference.visibilityGroups',
+                    ':loggedUserVisibilityGroup MEMBER OF join_article_reference.visibilityGroups'
+                ))
+                ->setParameter('loggedUserVisibilityGroup', $visibilityGroup);
         }
+
+        if (!empty($statusCodeFilter)) {
+            $queryBuilder
+                ->leftJoin('join_reference.statut', 'join_reference_status')
+                ->leftJoin('join_article_reference.statut', 'join_article_reference_status')
+                ->andWhere($exprBuilder->orX(
+                    'join_reference_status.code IN (:statusCodes)',
+                    'join_article_reference_status.code IN (:statusCodes)'
+                ))
+                ->setParameter('statusCodes', $statusCodeFilter);
+        }
+
+        return $queryBuilder
+            ->getQuery()
+            ->toIterable();
     }
 
 }
