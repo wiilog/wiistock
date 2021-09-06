@@ -7,7 +7,9 @@ use App\Entity\Action;
 use App\Entity\Alert;
 use App\Entity\CategoryType;
 use App\Entity\Menu;
+use App\Entity\ReferenceArticle;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use App\Service\AlertService;
 use App\Service\CSVExportService;
 use App\Service\NotificationService;
@@ -153,7 +155,10 @@ class AlertController extends AbstractController
             return $CSVExportService->streamResponse(function ($output) use ($alertService, $specificService, $entityManager, $CSVExportService, $dateTimeMin, $dateTimeMax) {
                 $alertRepository = $entityManager->getRepository(Alert::class);
 
-                $alerts = $alertRepository->iterateBetween($dateTimeMin, $dateTimeMax);
+                /** @var Utilisateur $user */
+                $user = $this->getUser();
+
+                $alerts = $alertRepository->iterateBetween($dateTimeMin, $dateTimeMax, $user, [ReferenceArticle::STATUT_ACTIF]);
                 /** @var Alert $alert */
                 foreach ($alerts as $alert) {
                     $alertService->putLineAlert($entityManager, $specificService, $CSVExportService, $output, $alert);

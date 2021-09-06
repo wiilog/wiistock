@@ -131,7 +131,7 @@ class Alert {
                 : "",
             'visibilityGroups' => Stream::from($reference->getVisibilityGroups())
                 ->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getLabel())
-                ->join(', ')
+                ->join(' / ')
         ];
     }
 

@@ -122,50 +122,48 @@ class AlertService {
         /** @var Article $article */
         [$reference, $article] = $alert->getLinkedArticles();
 
-        if($reference->getStatut()->getCode() !== ReferenceArticle::STATUT_INACTIF) {
+        if ($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI)) {
+            $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+            $freeFieldMachinePDT = $freeFieldRepository->findOneBy(['label' => 'Machine PDT']);
 
-            if ($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI)) {
-                $freeFieldRepository = $entityManager->getRepository(FreeField::class);
-                $freeFieldMachinePDT = $freeFieldRepository->findOneBy(['label' => 'Machine PDT']);
+            if (($article || $reference)) {
+                $freeFields = $reference->getFreeFields();
+                if ($freeFieldMachinePDT
+                    && $freeFields
+                    && array_key_exists($freeFieldMachinePDT->getId(), $freeFields)
+                    && $freeFields[(string)$freeFieldMachinePDT->getId()]) {
+                    $freeFieldMachinePDTValue = $freeFields[(string)$freeFieldMachinePDT->getId()];
+                } else {
+                    $freeFieldMachinePDTValue = '';
+                }
 
-                if (($article || $reference)) {
-                    $freeFields = $reference->getFreeFields();
-                    if ($freeFieldMachinePDT
-                        && $freeFields
-                        && array_key_exists($freeFieldMachinePDT->getId(), $freeFields)
-                        && $freeFields[(string)$freeFieldMachinePDT->getId()]) {
-                        $freeFieldMachinePDTValue = $freeFields[(string)$freeFieldMachinePDT->getId()];
-                    } else {
-                        $freeFieldMachinePDTValue = '';
-                    }
+                $supplierArticles = $article
+                    ? [$article->getArticleFournisseur()]
+                    : $reference->getArticlesFournisseur()->toArray();
 
-                    $supplierArticles = $article
-                        ? [$article->getArticleFournisseur()]
-                        : $reference->getArticlesFournisseur()->toArray();
-
-                    if (!empty($supplierArticles)) {
-                        /** @var ArticleFournisseur $supplierArticle */
-                        foreach ($supplierArticles as $supplierArticle) {
-                            $supplier = $supplierArticle->getFournisseur();
-                            $row = array_merge(array_values($serializedAlert), [
-                                $supplier->getNom(),
-                                $supplierArticle->getReference(),
-                                $freeFieldMachinePDTValue
-                            ]);
-                            $CSVExportService->putLine($output, $row);
-                        }
-                    } else {
+                if (!empty($supplierArticles)) {
+                    /** @var ArticleFournisseur $supplierArticle */
+                    foreach ($supplierArticles as $supplierArticle) {
+                        $supplier = $supplierArticle->getFournisseur();
                         $row = array_merge(array_values($serializedAlert), [
-                            '', //supplier name
-                            '', //supplier article reference
+                            $supplier->getNom(),
+                            $supplierArticle->getReference(),
                             $freeFieldMachinePDTValue
                         ]);
                         $CSVExportService->putLine($output, $row);
                     }
+                } else {
+                    $row = array_merge(array_values($serializedAlert), [
+                        '', //supplier name
+                        '', //supplier article reference
+                        $freeFieldMachinePDTValue
+                    ]);
+                    $CSVExportService->putLine($output, $row);
                 }
-            } else {
-                $CSVExportService->putLine($output, $serializedAlert);
             }
+        }
+        else {
+            $CSVExportService->putLine($output, $serializedAlert);
         }
     }
 
