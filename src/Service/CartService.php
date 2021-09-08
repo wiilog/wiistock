@@ -9,7 +9,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\CollecteReference;
-use App\Entity\Demande;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Parametre;
 use App\Entity\ParametreRole;
 use App\Entity\PurchaseRequest;

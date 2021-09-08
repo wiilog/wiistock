@@ -6,7 +6,7 @@ use App\Annotation\HasPermission;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieStatut;
-use App\Entity\Demande;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\FreeField;
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;

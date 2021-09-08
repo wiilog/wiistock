@@ -6,7 +6,7 @@ use App\Entity\Article;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
 use App\Entity\Collecte;
-use App\Entity\Demande;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispatch;
 use App\Entity\Handling;
 use App\Entity\Litige;

@@ -7,13 +7,13 @@ use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
-use App\Entity\Demande;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
-use App\Entity\LigneArticle;
+use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\ParametrageGlobal;
-use App\Entity\Preparation;
+use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Article;
 use App\Entity\Statut;
@@ -334,16 +334,16 @@ class DemandeController extends AbstractController
     {
         $articleRepository = $entityManager->getRepository(Article::class);
 
-        $ligneArticles = $demande->getLigneArticle();
+        $ligneArticles = $demande->getReferenceLines();
         $rowsRC = [];
         foreach ($ligneArticles as $ligneArticle) {
             $rowsRC[] = [
                 "Référence" => ($ligneArticle->getReference()->getReference() ? $ligneArticle->getReference()->getReference() : ''),
                 "Libellé" => ($ligneArticle->getReference()->getLibelle() ? $ligneArticle->getReference()->getLibelle() : ''),
                 "Emplacement" => ($ligneArticle->getReference()->getEmplacement() ? $ligneArticle->getReference()->getEmplacement()->getLabel() : ' '),
-                "Quantité à prélever" => $ligneArticle->getQuantite() ?? '',
+                "Quantité à prélever" => $ligneArticle->getQuantity() ?? '',
                 "barcode" => $ligneArticle->getReference() ? $ligneArticle->getReference()->getBarCode() : '',
-                "error" => $ligneArticle->getReference()->getQuantiteDisponible() < $ligneArticle->getQuantite()
+                "error" => $ligneArticle->getReference()->getQuantiteDisponible() < $ligneArticle->getQuantity()
                     && $demande->getStatut()->getCode() === Demande::STATUT_BROUILLON,
                 "Actions" => $this->renderView(
                     'demande/datatableLigneArticleRow.html.twig',
@@ -430,11 +430,11 @@ class DemandeController extends AbstractController
     {
         if ($data = json_decode($request->getContent(), true)) {
             $articleRepository = $entityManager->getRepository(Article::class);
-            $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
+            $referenceLineRepository = $entityManager->getRepository(DeliveryRequestReferenceLine::class);
 
             if (array_key_exists(ReferenceArticle::TYPE_QUANTITE_REFERENCE, $data)) {
-                $ligneAricle = $ligneArticleRepository->find($data[ReferenceArticle::TYPE_QUANTITE_REFERENCE]);
-                $entityManager->remove($ligneAricle);
+                $line = $referenceLineRepository->find($data[ReferenceArticle::TYPE_QUANTITE_REFERENCE]);
+                $entityManager->remove($line);
             } elseif (array_key_exists(ReferenceArticle::TYPE_QUANTITE_ARTICLE, $data)) {
                 $article = $articleRepository->find($data[ReferenceArticle::TYPE_QUANTITE_ARTICLE]);
                 $demande = $article->getDemande();
@@ -457,10 +457,10 @@ class DemandeController extends AbstractController
                                 EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
-            $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
-            $ligneArticle = $ligneArticleRepository->find($data['ligneArticle']);
-            $ligneArticle->setQuantite(max($data["quantite"], 0)); // protection contre quantités négatives
-            $this->getDoctrine()->getManager()->flush();
+            $referenceLineRepository = $entityManager->getRepository(DeliveryRequestReferenceLine::class);
+            $line = $referenceLineRepository->find($data['ligneArticle']);
+            $line->setQuantity(max($data["quantite"], 0)); // protection contre quantités négatives
+            $entityManager->flush();
 
             return new JsonResponse();
         }
@@ -478,18 +478,17 @@ class DemandeController extends AbstractController
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $articleRepository = $entityManager->getRepository(Article::class);
-            $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
+            $referenceLineRepository = $entityManager->getRepository(DeliveryRequestReferenceLine::class);
 
-            $ligneArticle = $ligneArticleRepository->find($data['id']);
-            $articleRef = $ligneArticle->getReference();
+            $referenceLine = $referenceLineRepository->find($data['id']);
+            $articleRef = $referenceLine->getReference();
             $statutArticleActif = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
             $qtt = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE ?
                 $articleRepository->getTotalQuantiteFromRefNotInDemand($articleRef, $statutArticleActif) :
                 $articleRef->getQuantiteStock();
             $json = $this->renderView('demande/modalEditArticleContent.html.twig', [
-                'ligneArticle' => $ligneArticle,
-                'maximum' => $qtt,
-                'toSplit' => $ligneArticle->getToSplit()
+                'ligneArticle' => $referenceLine,
+                'maximum' => $qtt
             ]);
 
             return new JsonResponse($json);
@@ -505,10 +504,10 @@ class DemandeController extends AbstractController
     {
         if ($data = json_decode($request->getContent(), true)) {
             $articleRepository = $entityManager->getRepository(Article::class);
-            $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
+            $referenceLineRepository = $entityManager->getRepository(DeliveryRequestReferenceLine::class);
 
             $articles = $articleRepository->findByDemandes([$data['id']]);
-            $references = $ligneArticleRepository->findByDemandes([$data['id']]);
+            $references = $referenceLineRepository->findByDemandes([$data['id']]);
             $count = count($articles) + count($references);
 
             return new JsonResponse($count > 0);
@@ -539,7 +538,7 @@ class DemandeController extends AbstractController
             $articleRepository = $entityManager->getRepository(Article::class);
             $preparationRepository = $entityManager->getRepository(Preparation::class);
             $livraisonRepository = $entityManager->getRepository(Livraison::class);
-            $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
+            $referenceLineRepository = $entityManager->getRepository(DeliveryRequestReferenceLine::class);
 
             $demandes = $demandeRepository->findByDates($dateTimeMin, $dateTimeMax);
 
@@ -573,7 +572,7 @@ class DemandeController extends AbstractController
             $livraisonOrders = $livraisonRepository->getNumeroLivraisonGroupByDemande($demandes);
 
             $articles = $articleRepository->findByDemandes($demandes, true);
-            $ligneArticles = $ligneArticleRepository->findByDemandes($demandes, true);
+            $referenceLines = $referenceLineRepository->findByDemandes($demandes, true);
 
             $nowStr = date("d-m-Y H:i");
             return $CSVExportService->createBinaryResponseFromData(
@@ -586,7 +585,7 @@ class DemandeController extends AbstractController
                     $prepartionOrders,
                     $livraisonOrders,
                     $articles,
-                    $ligneArticles,
+                    $referenceLines,
                     $freeFieldsConfig,
                     $freeFieldService
                 ) {
@@ -597,9 +596,9 @@ class DemandeController extends AbstractController
                     $livraisonOrdersForDemande = isset($livraisonOrders[$demandeId]) ? $livraisonOrders[$demandeId] : [];
                     $infosDemand = $this->getCSVExportFromDemand($demande, $firstDatePrepaForDemande, $prepartionOrdersForDemande, $livraisonOrdersForDemande);
 
-                    if (isset($ligneArticles[$demandeId])) {
-                        /** @var LigneArticle $ligneArticle */
-                        foreach ($ligneArticles[$demandeId] as $ligneArticle) {
+                    if (isset($referenceLines[$demandeId])) {
+                        /** @var DeliveryRequestReferenceLine $ligneArticle */
+                        foreach ($referenceLines[$demandeId] as $ligneArticle) {
                             $demandeData = [];
                             $articleRef = $ligneArticle->getReference();
 
@@ -611,7 +610,7 @@ class DemandeController extends AbstractController
                             $demandeData[] = '';
                             $demandeData[] = $articleRef ? $articleRef->getBarCode() : '';
                             $demandeData[] = $availableQuantity;
-                            $demandeData[] = $ligneArticle->getQuantite();
+                            $demandeData[] = $ligneArticle->getQuantity();
 
                             $freeFields = $demande->getFreeFields();
                             foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {

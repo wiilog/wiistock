@@ -1,6 +1,7 @@
 <?php
 namespace App\Entity;
 
+use App\Entity\DeliveryRequest\Demande;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -95,7 +96,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
      */
     private $receptions;
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Demande", mappedBy="utilisateur")
+     * @ORM\OneToMany(targetEntity="App\Entity\DeliveryRequest\Demande", mappedBy="utilisateur")
      */
     private $demandes;
     /**
@@ -103,7 +104,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
      */
     private $collectes;
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Preparation", mappedBy="utilisateur")
+     * @ORM\OneToMany(targetEntity="App\Entity\PreparationOrder\Preparation", mappedBy="utilisateur")
      */
     private $preparations;
 

@@ -8,12 +8,12 @@ use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
-use App\Entity\Demande;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
-use App\Entity\LigneArticlePreparation;
+use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\PrefixeNomDemande;
-use App\Entity\Preparation;
+use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
@@ -182,7 +182,7 @@ class DemandeLivraisonService
             $href = $this->router->generate('demande_show', ['id' => $demande->getId()]);
         }
 
-        $articlesCounter = ($demande->getArticles()->count() + $demande->getLigneArticle()->count());
+        $articlesCounter = ($demande->getArticleLines()->count() + $demande->getReferenceLines()->count());
         $articlePlural = $articlesCounter > 1 ? 's' : '';
         $bodyTitle = $articlesCounter . ' article' . $articlePlural . ' - ' . $demandeType;
 
@@ -395,7 +395,7 @@ class DemandeLivraisonService
             $response['success'] = true;
             $response['msg'] = '';
             // pour réf gérées par articles
-            $articles = $demande->getArticles();
+            $articles = $demande->getArticleLines();
             foreach ($articles as $article) {
                 $statutArticle = $article->getStatut();
                 if (isset($statutArticle)
@@ -418,9 +418,9 @@ class DemandeLivraisonService
             }
 
             // pour réf gérées par référence
-            foreach ($demande->getLigneArticle() as $ligne) {
+            foreach ($demande->getReferenceLines() as $ligne) {
                 $articleRef = $ligne->getReference();
-                if ($ligne->getQuantite() > $articleRef->getQuantiteDisponible()) {
+                if ($ligne->getQuantity() > $articleRef->getQuantiteDisponible()) {
                     $response['success'] = false;
                     $response['nomadMessage'] = 'Erreur de quantité sur l\'article : ' . $articleRef->getBarCode();
                     $response['msg'] = "La quantité demandée d'un des articles excède la quantité disponible (" . $articleRef->getQuantiteDisponible() . ").";
@@ -482,29 +482,28 @@ class DemandeLivraisonService
         $demande->setStatut($statutD);
 
         // modification du statut articles => en transit
-        $articles = $demande->getArticles();
+        $articles = $demande->getArticleLines();
         foreach ($articles as $article) {
             $article->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
-            $preparation->addArticle($article);
+            $preparation->addArticleLine($article);
         }
-        $lignesArticles = $demande->getLigneArticle();
+        $lignesArticles = $demande->getReferenceLines();
         $refArticleToUpdateQuantities = [];
         foreach ($lignesArticles as $ligneArticle) {
             $referenceArticle = $ligneArticle->getReference();
-            $lignesArticlePreparation = new LigneArticlePreparation();
+            $lignesArticlePreparation = new PreparationOrderReferenceLine();
             $lignesArticlePreparation
-                ->setToSplit($ligneArticle->getToSplit())
-                ->setQuantitePrelevee($ligneArticle->getQuantitePrelevee())
-                ->setQuantite($ligneArticle->getQuantite())
+                ->setPickedQuantity($ligneArticle->getPickedQuantity())
+                ->setQuantity($ligneArticle->getQuantity())
                 ->setReference($referenceArticle)
                 ->setPreparation($preparation);
             $entityManager->persist($lignesArticlePreparation);
             if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                $referenceArticle->setQuantiteReservee(($referenceArticle->getQuantiteReservee() ?? 0) + $ligneArticle->getQuantite());
+                $referenceArticle->setQuantiteReservee(($referenceArticle->getQuantiteReservee() ?? 0) + $ligneArticle->getQuantity());
             } else {
                 $refArticleToUpdateQuantities[] = $referenceArticle;
             }
-            $preparation->addLigneArticlePreparation($lignesArticlePreparation);
+            $preparation->addReferenceLine($lignesArticlePreparation);
         }
 
         try {
@@ -596,10 +595,10 @@ class DemandeLivraisonService
      * @param EntityManagerInterface $entityManager
      */
     public function managePreRemoveDeliveryRequest(Demande $demande, EntityManagerInterface $entityManager) {
-        foreach ($demande->getArticles() as $article) {
+        foreach ($demande->getArticleLines() as $article) {
             $article->setDemande(null);
         }
-        foreach ($demande->getLigneArticle() as $ligneArticle) {
+        foreach ($demande->getReferenceLines() as $ligneArticle) {
             $entityManager->remove($ligneArticle);
         }
     }

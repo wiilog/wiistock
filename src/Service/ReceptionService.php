@@ -7,7 +7,7 @@ namespace App\Service;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
-use App\Entity\Demande;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;

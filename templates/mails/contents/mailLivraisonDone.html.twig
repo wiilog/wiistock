@@ -2,12 +2,12 @@
 
 {% block content %}
 
-    <div>Numéro : {{ livraison.numero }}</div>
-    <div>Date de demande : {{ livraison.date|date('d/m/Y') }}</div>
-    <div>Demandeur : {{ livraison.utilisateur ? livraison.utilisateur.username }}</div>
-    <div>Destination : {{ livraison.destination.label }}</div>
-    {% if (livraison.commentaire is not empty and livraison.commentaire != '<p><br></p>') %}
-        <div>Commentaire : {{ livraison.commentaire|raw }}</div>
+    <div>Numéro : {{ request.numero }}</div>
+    <div>Date de demande : {{ request.date|date('d/m/Y') }}</div>
+    <div>Demandeur : {{ request.utilisateur ? request.utilisateur.username }}</div>
+    <div>Destination : {{ request.destination.label }}</div>
+    {% if (request.commentaire is not empty and request.commentaire != '<p><br></p>') %}
+        <div>Commentaire : {{ request.commentaire|raw }}</div>
     {% endif %}
     <br>
     <br>
@@ -35,23 +35,23 @@
         </tr>
         </thead>
         <tbody>
-        {% for ligneArticle in livraison.ligneArticle %}
+        {% for line in request.referenceLines %}
             <tr>
                 <td class="td"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ ligneArticle.reference.reference }}
+                    {{ line.reference.reference }}
                 </td>
                 <td class="td"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ ligneArticle.reference.libelle }}
+                    {{ line.reference.libelle }}
                 </td>
                 <td class="td"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ ligneArticle.quantite }}
+                    {{ line.quantite }}
                 </td>
             </tr>
         {% endfor %}
-        {% for article in livraison.articles %}
+        {% for article in request.articles %}
             <tr>
                 <td class="td"
                     style="border: 1px solid black; padding: 10px; text-align: center;">

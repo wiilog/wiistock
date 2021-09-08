@@ -3,12 +3,12 @@
 namespace App\Repository;
 
 use App\Entity\Article;
-use App\Entity\Demande;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FreeField;
 use App\Entity\IOT\Sensor;
 use App\Entity\OrdreCollecte;
-use App\Entity\Preparation;
+use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 
@@ -19,7 +19,6 @@ use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 
-use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
 use WiiCommon\Helper\StringHelper;
 

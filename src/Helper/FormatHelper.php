@@ -3,7 +3,7 @@
 namespace App\Helper;
 
 use App\Entity\Collecte;
-use App\Entity\Demande;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
 use App\Entity\Handling;

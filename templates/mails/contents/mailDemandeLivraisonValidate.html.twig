@@ -38,7 +38,8 @@
         </tr>
         </thead>
         <tbody>
-        {% for article in demande.articles %}
+        {% for line in demande.articleLines %}
+            {% set article = line.article %}
             <tr>
                 <td class="td"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
@@ -64,19 +65,19 @@
                 {% endif %}
                 <td class="td"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ article.quantiteAPrelever == 0 ? article.quantite : article.quantiteAPrelever }}
+                    {{ line.quantity }}
                 </td>
             </tr>
         {% endfor %}
-        {% for demandeRef in demande.ligneArticle %}
+        {% for line in demande.referenceLines %}
             <tr>
                 <td class="td"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ demandeRef.reference.reference }}
+                    {{ line.reference.reference }}
                 </td>
                 <td class="td"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ demandeRef.reference.barCode }}
+                    {{ line.reference.barCode }}
                 </td>
                 <td class="td"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
@@ -89,7 +90,7 @@
                 {% endif %}
                 <td class="td"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ demandeRef.quantite }}
+                    {{ line.quantite }}
                 </td>
             </tr>
         {% endfor %}

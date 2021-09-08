@@ -6,7 +6,7 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\Demande;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Livraison;
 use App\Entity\Menu;

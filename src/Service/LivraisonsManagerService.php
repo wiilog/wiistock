@@ -4,12 +4,12 @@ namespace App\Service;
 
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
-use App\Entity\Demande;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
-use App\Entity\LigneArticlePreparation;
+use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
-use App\Entity\Preparation;
+use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
@@ -160,9 +160,9 @@ class LivraisonsManagerService
             // quantités gérées à la référence
             $ligneArticles = $preparation->getLigneArticlePreparations();
 
-            /** @var LigneArticlePreparation $ligneArticle */
+            /** @var PreparationOrderReferenceLine $ligneArticle */
             foreach ($ligneArticles as $ligneArticle) {
-                $pickedQuantity = $ligneArticle->getQuantitePrelevee();
+                $pickedQuantity = $ligneArticle->getPickedQuantity();
                 $refArticle = $ligneArticle->getReference();
                 if (!empty($pickedQuantity)) {
                     $newQuantiteStock = (($refArticle->getQuantiteStock() ?? 0) - $pickedQuantity);
@@ -192,7 +192,7 @@ class LivraisonsManagerService
             $this->mailerService->sendMail(
                 'FOLLOW GT // Livraison effectuée',
                 $this->templating->render('mails/contents/mailLivraisonDone.html.twig', [
-                    'livraison' => $demande,
+                    'request' => $demande,
                     'title' => 'Votre demande a bien été livrée.',
                 ]),
                 $demande->getUtilisateur()
@@ -258,9 +258,9 @@ class LivraisonsManagerService
         $demande = $livraison->getDemande();
         $livraisonDestination = isset($demande) ? $demande->getDestination() : null;
 
-        /** @var LigneArticlePreparation $ligneArticle */
+        /** @var PreparationOrderReferenceLine $ligneArticle */
         foreach ($ligneArticles as $ligneArticle) {
-            $pickedQuantity = $ligneArticle->getQuantitePrelevee();
+            $pickedQuantity = $ligneArticle->getPickedQuantity();
             $refArticle = $ligneArticle->getReference();
             if (!empty($pickedQuantity)) {
                 if ($livraison->isCompleted()) {

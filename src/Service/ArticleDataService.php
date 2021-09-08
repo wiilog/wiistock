@@ -7,7 +7,7 @@ use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
-use App\Entity\Demande;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
@@ -364,7 +364,7 @@ class ArticleDataService
             if (count($demande->getPreparations()) > 0) {
                 $toInsert->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
                 $toInsert->setQuantitePrelevee($toInsert->getQuantite());
-                $demande->getPreparations()[0]->addArticle($toInsert);
+                $demande->getPreparations()[0]->addArticleLine($toInsert);
             }
         }
 

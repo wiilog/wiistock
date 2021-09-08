@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\IOT\Sensor;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -87,7 +88,7 @@ class Type
     private $receptions;
 
 	/**
-	 * @ORM\OneToMany(targetEntity="App\Entity\Demande", mappedBy="type")
+	 * @ORM\OneToMany(targetEntity="App\Entity\DeliveryRequest\Demande", mappedBy="type")
 	 */
 	private $demandesLivraison;
 

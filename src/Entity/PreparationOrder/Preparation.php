@@ -1,9 +1,17 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\PreparationOrder;
 
+use App\Entity\Article;
+use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Emplacement;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\SensorMessageTrait;
+use App\Entity\Livraison;
+use App\Entity\MouvementStock;
+use App\Entity\ReferenceArticle;
+use App\Entity\Statut;
+use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -13,7 +21,7 @@ use Doctrine\ORM\Mapping as ORM;
 use App\Entity\IOT\Pairing;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\PreparationRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\PreparationOrder\PreparationRepository")
  */
 class Preparation implements PairedEntity
 {
@@ -43,7 +51,7 @@ class Preparation implements PairedEntity
     private $numero;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Demande", inversedBy="preparations")
+     * @ORM\ManyToOne(targetEntity="App\Entity\DeliveryRequest\Demande", inversedBy="preparations")
      */
     private $demande;
 
@@ -69,14 +77,14 @@ class Preparation implements PairedEntity
 	private $mouvements;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="preparation")
+     * @ORM\OneToMany(targetEntity=PreparationOrderArticleLine::class, mappedBy="preparation")
      */
-    private $articles;
+    private Collection $articleLines;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\LigneArticlePreparation", mappedBy="preparation")
+     * @ORM\OneToMany(targetEntity=PreparationOrderReferenceLine::class, mappedBy="preparation")
      */
-    private $ligneArticlePreparations;
+    private Collection $referenceLines;
 
     /**
      * @ORM\ManyToOne(targetEntity=Emplacement::class)
@@ -92,8 +100,8 @@ class Preparation implements PairedEntity
     public function __construct()
     {
         $this->mouvements = new ArrayCollection();
-        $this->articles = new ArrayCollection();
-        $this->ligneArticlePreparations = new ArrayCollection();
+        $this->articleLines = new ArrayCollection();
+        $this->referenceLines = new ArrayCollection();
         $this->pairings = new ArrayCollection();
         $this->sensorMessages = new ArrayCollection();
     }
@@ -260,30 +268,30 @@ class Preparation implements PairedEntity
     }
 
     /**
-     * @return Collection|Article[]
+     * @return Collection|PreparationOrderArticleLine[]
      */
-    public function getArticles(): Collection
+    public function getArticleLines(): Collection
     {
-        return $this->articles;
+        return $this->articleLines;
     }
 
-    public function addArticle(Article $article): self
+    public function addArticleLine(PreparationOrderArticleLine $line): self
     {
-        if (!$this->articles->contains($article)) {
-            $this->articles[] = $article;
-            $article->setPreparation($this);
+        if (!$this->articleLines->contains($line)) {
+            $this->articleLines[] = $line;
+            $line->setPreparation($this);
         }
 
         return $this;
     }
 
-    public function removeArticle(Article $article): self
+    public function removeArticleLine(PreparationOrderArticleLine $line): self
     {
-        if ($this->articles->contains($article)) {
-            $this->articles->removeElement($article);
+        if ($this->articleLines->contains($line)) {
+            $this->articleLines->removeElement($line);
             // set the owning side to null (unless already changed)
-            if ($article->getPreparation() === $this) {
-                $article->setPreparation(null);
+            if ($line->getPreparation() === $this) {
+                $line->setPreparation(null);
             }
         }
 
@@ -291,30 +299,30 @@ class Preparation implements PairedEntity
     }
 
     /**
-     * @return Collection|LigneArticlePreparation[]
+     * @return Collection|PreparationOrderReferenceLine[]
      */
-    public function getLigneArticlePreparations(): Collection
+    public function getReferenceLines(): Collection
     {
-        return $this->ligneArticlePreparations;
+        return $this->referenceLines;
     }
 
-    public function addLigneArticlePreparation(LigneArticlePreparation $ligneArticlePreparation): self
+    public function addReferenceLine(PreparationOrderReferenceLine $line): self
     {
-        if (!$this->ligneArticlePreparations->contains($ligneArticlePreparation)) {
-            $this->ligneArticlePreparations[] = $ligneArticlePreparation;
-            $ligneArticlePreparation->setPreparation($this);
+        if (!$this->referenceLines->contains($line)) {
+            $this->referenceLines[] = $line;
+            $line->setPreparation($this);
         }
 
         return $this;
     }
 
-    public function removeLigneArticlePreparation(LigneArticlePreparation $ligneArticlePreparation): self
+    public function removeReferenceLine(PreparationOrderReferenceLine $line): self
     {
-        if ($this->ligneArticlePreparations->contains($ligneArticlePreparation)) {
-            $this->ligneArticlePreparations->removeElement($ligneArticlePreparation);
+        if ($this->referenceLines->contains($line)) {
+            $this->referenceLines->removeElement($line);
             // set the owning side to null (unless already changed)
-            if ($ligneArticlePreparation->getPreparation() === $this) {
-                $ligneArticlePreparation->setPreparation(null);
+            if ($line->getPreparation() === $this) {
+                $line->setPreparation(null);
             }
         }
 

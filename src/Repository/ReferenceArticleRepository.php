@@ -7,7 +7,7 @@ use App\Entity\FreeField;
 use App\Entity\FiltreRef;
 use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
-use App\Entity\Preparation;
+use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;

@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\IOT\HandlingRequestTemplate;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -68,12 +69,12 @@ class Statut
     private $receptions;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Demande", mappedBy="statut")
+     * @ORM\OneToMany(targetEntity="App\Entity\DeliveryRequest\Demande", mappedBy="statut")
      */
     private $demandes;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Preparation", mappedBy="statut")
+     * @ORM\OneToMany(targetEntity="App\Entity\PreparationOrder\Preparation", mappedBy="statut")
      */
     private $preparations;
 

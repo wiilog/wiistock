@@ -1,13 +1,21 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\DeliveryRequest;
 
+use App\Entity\Emplacement;
+use App\Entity\FreeFieldEntity;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\IOT\SensorWrapper;
+use App\Entity\Livraison;
+use App\Entity\PreparationOrder\Preparation;
+use App\Entity\Reception;
+use App\Entity\Statut;
 use App\Entity\Traits\CommentTrait;
 use App\Entity\Traits\RequestTrait;
+use App\Entity\Type;
+use App\Entity\Utilisateur;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -16,7 +24,7 @@ use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\DemandeRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\DeliveryRequest\DemandeRepository")
  */
 class Demande extends FreeFieldEntity implements PairedEntity
 {
@@ -62,7 +70,7 @@ class Demande extends FreeFieldEntity implements PairedEntity
 
     /**
      * @var Collection
-     * @ORM\OneToMany(targetEntity="App\Entity\Preparation", mappedBy="demande")
+     * @ORM\OneToMany(targetEntity="App\Entity\PreparationOrder\Preparation", mappedBy="demande")
      */
     private $preparations;
 
@@ -77,19 +85,19 @@ class Demande extends FreeFieldEntity implements PairedEntity
     private $type;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\LigneArticle", mappedBy="demande")
+     * @ORM\OneToMany(targetEntity=DeliveryRequestReferenceLine::class, mappedBy="request")
      */
-    private $ligneArticle;
+    private Collection $referenceLines;
+
+    /**
+     * @ORM\OneToMany(targetEntity=DeliveryRequestArticleLine::class, mappedBy="request")
+     */
+    private Collection $articleLines;
 
     /**
      * @ORM\Column(type="text", nullable=true)
      */
     private $commentaire;
-
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="demande")
-     */
-    private $articles;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="demandes")
@@ -103,8 +111,8 @@ class Demande extends FreeFieldEntity implements PairedEntity
 
 	public function __construct() {
         $this->preparations = new ArrayCollection();
-        $this->ligneArticle = new ArrayCollection();
-        $this->articles = new ArrayCollection();
+        $this->referenceLines = new ArrayCollection();
+        $this->articleLines = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -223,31 +231,43 @@ class Demande extends FreeFieldEntity implements PairedEntity
     }
 
     /**
-     * @return Collection|LigneArticle[]
+     * @return Collection|DeliveryRequestReferenceLine[]
      */
-    public function getLigneArticle(): Collection
+    public function getReferenceLines(): Collection
     {
-        return $this->ligneArticle;
+        return $this->referenceLines;
     }
 
-    public function addLigneArticle(LigneArticle $ligneArticle): self
+    public function addReferenceLine(DeliveryRequestReferenceLine $line): self
     {
-        if (!$this->ligneArticle->contains($ligneArticle)) {
-            $this->ligneArticle[] = $ligneArticle;
-            $ligneArticle->setDemande($this);
+        if (!$this->referenceLines->contains($line)) {
+            $this->referenceLines[] = $line;
+            $line->setRequest($this);
         }
 
         return $this;
     }
 
-    public function removeLigneArticle(LigneArticle $ligneArticle): self
+    public function removeReferenceLine(DeliveryRequestReferenceLine $line): self
     {
-        if ($this->ligneArticle->contains($ligneArticle)) {
-            $this->ligneArticle->removeElement($ligneArticle);
-            // set the owning side to null (unless already changed)
-            if ($ligneArticle->getDemande() === $this) {
-                $ligneArticle->setDemande(null);
+        if ($this->referenceLines->contains($line)) {
+            $this->referenceLines->removeElement($line);
+            if ($line->getRequest() === $this) {
+                $line->setRequest(null);
             }
+        }
+
+        return $this;
+    }
+
+    public function setReferenceLines(?array $lines): self {
+        foreach($this->getReferenceLines()->toArray() as $line) {
+            $this->removeReferenceLine($line);
+        }
+
+        $this->referenceLines = new ArrayCollection();
+        foreach($lines as $line) {
+            $this->addReferenceLine($line);
         }
 
         return $this;
@@ -267,30 +287,42 @@ class Demande extends FreeFieldEntity implements PairedEntity
     }
 
     /**
-     * @return Collection|Article[]
+     * @return Collection|DeliveryRequestArticleLine[]
      */
-    public function getArticles(): Collection
-    {
-        return $this->articles;
+    public function getArticleLines(): Collection {
+        return $this->articleLines;
     }
 
-    public function addArticle(Article $article): self
+    public function addArticleLine(DeliveryRequestArticleLine $line): self
     {
-        if (!$this->articles->contains($article)) {
-            $this->articles[] = $article;
-            $article->setDemande($this);
+        if (!$this->articleLines->contains($line)) {
+            $this->articleLines[] = $line;
+            $line->setRequest($this);
         }
 
         return $this;
     }
 
-    public function removeArticle(Article $article): self
+    public function removeArticleLine(DeliveryRequestArticleLine $line): self
     {
-        if ($this->articles->contains($article)) {
-            $this->articles->removeElement($article);
-            if ($article->getDemande() === $this) {
-                $article->setDemande(null);
+        if ($this->articleLines->contains($line)) {
+            $this->articleLines->removeElement($line);
+            if ($line->getRequest() === $this) {
+                $line->setRequest(null);
             }
+        }
+
+        return $this;
+    }
+
+    public function setArticleLines(?array $lines): self {
+        foreach($this->getArticleLines()->toArray() as $line) {
+            $this->removeArticleLine($line);
+        }
+
+        $this->articleLines = new ArrayCollection();
+        foreach($lines as $line) {
+            $this->addArticleLine($line);
         }
 
         return $this;

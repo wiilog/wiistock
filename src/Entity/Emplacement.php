@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\IOT\CollectRequestTemplate;
 use App\Entity\IOT\DeliveryRequestTemplate;
 use App\Entity\IOT\PairedEntity;
@@ -46,7 +47,7 @@ class Emplacement implements PairedEntity
     private Collection $livraisons;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Demande", mappedBy="destination")
+     * @ORM\OneToMany(targetEntity="App\Entity\DeliveryRequest\Demande", mappedBy="destination")
      */
     private Collection $demandes;
 

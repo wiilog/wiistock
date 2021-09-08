@@ -15,7 +15,7 @@ use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
 use App\Entity\InventoryEntry;
 use App\Entity\InventoryMission;
-use App\Entity\LigneArticlePreparation;
+use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Livraison;
 use App\Entity\Handling;
 use App\Entity\Menu;
@@ -25,7 +25,7 @@ use App\Entity\TrackingMovement;
 use App\Entity\OrdreCollecte;
 use App\Entity\DispatchPack;
 use App\Entity\Attachment;
-use App\Entity\Preparation;
+use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\TransferOrder;
@@ -561,7 +561,7 @@ class ApiController extends AbstractFOSRestController
 
                         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
                         $articleRepository = $entityManager->getRepository(Article::class);
-                        $ligneArticlePreparationRepository = $entityManager->getRepository(LigneArticlePreparation::class);
+                        $ligneArticlePreparationRepository = $entityManager->getRepository(PreparationOrderReferenceLine::class);
                         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
                         $preparationsManager->setEntityManager($entityManager);
