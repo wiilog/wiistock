@@ -6,6 +6,7 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategoryType;
+use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\FreeField;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
@@ -73,10 +74,12 @@ class ArticleDataService
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $articleRepository = $this->entityManager->getRepository(Article::class);
             if ($demande === 'collecte') {
+                // TODO adrien
                 $articles = $articleRepository->findByRefArticleAndStatut($refArticle, [Article::STATUT_INACTIF]);
             } else if ($demande === 'demande') {
-                $articles = $articleRepository->findActifByRefArticleWithoutDemand($refArticle);
+                $articles = $articleRepository->findActiveArticles($refArticle);
             } else if ($demande === 'transfert') {
+                // TODO adrien
                 $articles = $articleRepository->findByRefArticleAndStatut($refArticle, [Article::STATUT_ACTIF]);
             } else {
                 $articles = [];
@@ -126,7 +129,7 @@ class ArticleDataService
         return $data;
     }
 
-    public function getLivraisonArticlesByRefArticle(ReferenceArticle $refArticle, Utilisateur $user, ?int $deliveryRequestId)
+    public function getLivraisonArticlesByRefArticle(ReferenceArticle $refArticle, Demande $request, Utilisateur $user)
     {
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
             $data = [
@@ -139,7 +142,7 @@ class ArticleDataService
             $articleRepository = $this->entityManager->getRepository(Article::class);
             $parametreRoleRepository = $this->entityManager->getRepository(ParametreRole::class);
 
-            $articles = $articleRepository->findActifByRefArticleWithoutDemand($refArticle);
+            $articles = $articleRepository->findActiveArticles($refArticle);
             $role = $user->getRole();
 
             $parametreRepository = $this->entityManager->getRepository(Parametre::class);
@@ -190,12 +193,18 @@ class ArticleDataService
                             return 0;
                         })->toArray();
                 }
+
+                $articleIdsInRequest = $request->getArticleLines()
+                    ->map(fn (DeliveryRequestArticleLine $line) => $line->getArticle()->getId())
+                    ->toArray();
+
                 $data = [
                     'selection' => $this->templating->render('demande/newRefArticleByQuantiteArticleContent.html.twig', [
                         'articles' => $articles,
                         'preselect' => isset($management),
                         'maximum' => $availableQuantity,
-                        'deliveryRequestId' => $deliveryRequestId
+                        'deliveryRequest' => $request,
+                        'articleIdsInRequest' => $articleIdsInRequest
                     ])
                 ];
             }

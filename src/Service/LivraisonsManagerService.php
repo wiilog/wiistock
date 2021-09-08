@@ -6,7 +6,6 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
-use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\Preparation;

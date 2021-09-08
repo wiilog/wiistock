@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\IOT\HandlingRequestTemplate;
+use App\Entity\PreparationOrder\Preparation;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;

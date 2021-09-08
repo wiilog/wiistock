@@ -8,6 +8,7 @@ use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
+use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\FiltreRef;
 use App\Entity\FiltreSup;
@@ -475,17 +476,18 @@ class RefArticleDataService {
                         ->setReference($referenceArticle)
                         ->setRequest($demande);
                     $entityManager->persist($line);
-                    $demande->addReferenceLine($line);
                 } else {
                     $line = $referenceLineRepository->findOneByRefArticleAndDemande($referenceArticle, $demande, true);
                     $line->setQuantity($line->getQuantity() + max($data["quantity-to-pick"], 0));
                 }
             } else {
                 $article = $articleRepository->find($data['article']);
-                /** @var Article $article */
-                $article
-                    ->setDemande($demande)
-                    ->setQuantiteAPrelever(max($data["quantity-to-pick"], 0)); // protection contre quantités négatives
+                $line = new DeliveryRequestArticleLine();
+                $line
+                    ->setQuantity(max($data["quantity-to-pick"], 0))// protection contre quantités négatives
+                    ->setArticle($article)
+                    ->setRequest($demande);
+                $entityManager->persist($line);
                 $resp = 'article';
             }
         } else {

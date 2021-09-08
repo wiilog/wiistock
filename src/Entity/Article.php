@@ -6,6 +6,7 @@ use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\SensorMessageTrait;
+use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -120,7 +121,7 @@ class Article extends FreeFieldEntity implements PairedEntity
     /**
      * @ORM\OneToMany(targetEntity=PreparationOrderArticleLine::class, mappedBy="article")
      */
-    private Collection $preparationOrderArticleLines;
+    private Collection $preparationOrderLines;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\ReceptionReferenceArticle", inversedBy="articles")
@@ -196,7 +197,7 @@ class Article extends FreeFieldEntity implements PairedEntity
     public function __construct()
     {
         $this->deliveryRequestLines = new ArrayCollection();
-        $this->preparationOrderArticleLines = new ArrayCollection();
+        $this->preparationOrderLines = new ArrayCollection();
         $this->collectes = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
         $this->inventoryEntries = new ArrayCollection();
@@ -385,21 +386,21 @@ class Article extends FreeFieldEntity implements PairedEntity
     /**
      * @return Collection|PreparationOrderArticleLine[]
      */
-    public function getPreparationOrderArticleLines(): Collection {
-        return $this->preparationOrderArticleLines;
+    public function getPreparationOrderLines(): Collection {
+        return $this->preparationOrderLines;
     }
 
-    public function addPreparationOrderArticleLine(PreparationOrderArticleLine $line): self {
-        if (!$this->preparationOrderArticleLines->contains($line)) {
-            $this->preparationOrderArticleLines[] = $line;
+    public function addPreparationOrderLine(PreparationOrderArticleLine $line): self {
+        if (!$this->preparationOrderLines->contains($line)) {
+            $this->preparationOrderLines[] = $line;
             $line->setArticle($this);
         }
 
         return $this;
     }
 
-    public function removePreparationOrderArticleLine(PreparationOrderArticleLine $line): self {
-        if ($this->preparationOrderArticleLines->removeElement($line)) {
+    public function removePreparationOrderLine(PreparationOrderArticleLine $line): self {
+        if ($this->preparationOrderLines->removeElement($line)) {
             if ($line->getArticle() === $this) {
                 $line->setArticle(null);
             }
@@ -630,6 +631,7 @@ class Article extends FreeFieldEntity implements PairedEntity
      */
     public function getUsedAssociation(): ?int
     {
+        // TODO adrien
         $preparationCannotBeDeleted = $this->getPreparation()
                 ? $this->getPreparation()->getStatut()->getNom() !== Preparation::STATUT_A_TRAITER
                 : false;

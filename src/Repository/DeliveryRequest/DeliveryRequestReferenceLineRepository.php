@@ -5,6 +5,7 @@ namespace App\Repository\DeliveryRequest;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use WiiCommon\Helper\Stream;
 
 class DeliveryRequestReferenceLineRepository extends EntityRepository
 {
@@ -43,42 +44,22 @@ class DeliveryRequestReferenceLineRepository extends EntityRepository
             ->getOneOrNullResult();
     }
 
-    /**
-     * @param $demandes
-     * @param bool $needAssoc
-     * @return DeliveryRequestReferenceLine[]
-     */
-    public function findByDemandes($demandes, $needAssoc = false)
+    public function findByRequests(array $requests): array
     {
-        $queryBuilder = $this->createQueryBuilder('line');
-
-        if ($needAssoc) {
-            $queryBuilder->addSelect('demande.id AS demandeId');
-        }
-
-        $queryBuilder
-            ->join('line.request' , 'demande')
-            ->where('line.request IN (:demandes)')
-            ->setParameter('demandes', $demandes );
+        $queryBuilder = $this->createQueryBuilder('line')
+            ->select('line')
+            ->addSelect('request.id AS requestId');
 
         $result = $queryBuilder
+            ->join('line.request' , 'request')
+            ->where('request IN (:requests)')
+            ->setParameter('requests', $requests)
             ->getQuery()
             ->execute();
 
-        if ($needAssoc) {
-            $result = array_reduce($result, function(array $carry, $current) {
-                $ligneArticle =  $current[0];
-                $demandeId = $current['demandeId'];
-
-                if (!isset($carry[$demandeId])) {
-                    $carry[$demandeId] = [];
-                }
-
-                $carry[$demandeId][] = $ligneArticle;
-                return $carry;
-            }, []);
-        }
-        return $result;
+        return Stream::from($result)
+            ->keymap(fn(array $current) => [$current['requestId'], $current[0]], true)
+            ->toArray();
     }
 
     public function countByRefArticleDemande($referenceArticle, $request)

@@ -93,38 +93,6 @@ class ArticleRepository extends EntityRepository {
         return $query->getResult();
     }
 
-    public function findByDemandes($demandes, $needAssoc = false)
-    {
-        $queryBuilder = $this->createQueryBuilder('article')
-            ->select('article');
-
-        if ($needAssoc) {
-            $queryBuilder->addSelect('demande.id AS demandeId');
-        }
-
-        $result = $queryBuilder
-            ->join('article.demande' , 'demande')
-            ->where('article.demande IN (:demandes)')
-            ->setParameter('demandes', $demandes)
-            ->getQuery()
-            ->execute();
-
-        if ($needAssoc) {
-            $result = array_reduce($result, function(array $carry, $current) {
-                $article =  $current[0];
-                $demandeId = $current['demandeId'];
-
-                if (!isset($carry[$demandeId])) {
-                    $carry[$demandeId] = [];
-                }
-
-                $carry[$demandeId][] = $article;
-                return $carry;
-            }, []);
-        }
-        return $result;
-    }
-
     public function iterateAll(Utilisateur $user): iterable {
         $queryBuilder = $this->createQueryBuilder('article');
 
@@ -262,24 +230,7 @@ class ArticleRepository extends EntityRepository {
 		return $queryBuilder->getQuery()->execute();
 	}
 
-    public function getTotalQuantiteFromRefNotInDemand($refArticle, $statut)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            'SELECT SUM(a.quantite)
-			FROM App\Entity\Article a
-			JOIN a.articleFournisseur af
-			JOIN af.referenceArticle ra
-			WHERE a.statut =:statut AND ra = :refArticle AND a.demande is null
-			'
-        )->setParameters([
-            'refArticle' => $refArticle,
-            'statut' => $statut
-        ]);
-
-        return $query->getSingleScalarResult();
-    }
-
+    // TODO adrien REMOVE
 	public function findActifByRefArticleWithoutDemand($refArticle = null, $preparation = null, $demande = null)
 	{
 		return $this->createQueryBuilderActifWithoutDemand($refArticle, $preparation, $demande)
@@ -314,6 +265,22 @@ class ArticleRepository extends EntityRepository {
 
 	    return $queryBuilder;
 
+	}
+
+	public function findActiveArticles(ReferenceArticle $referenceArticle): array
+	{
+	    return $this->createQueryBuilder('article')
+            ->join('article.articleFournisseur', 'articleFournisseur')
+            ->join('articleFournisseur.referenceArticle', 'referenceArticle')
+            ->join('article.statut', 'articleStatus')
+            ->where('articleStatus.nom = :activeStatus')
+            ->andWhere('article.quantite IS NOT NULL')
+            ->andWhere('article.quantite > 0')
+            ->andWhere('referenceArticle = :refArticle')
+            ->setParameter('refArticle', $referenceArticle)
+            ->setParameter('activeStatus', Article::STATUT_ACTIF)
+            ->getQuery()
+            ->getResult();
 	}
 
     public function findByParamsAndFilters($params, $filters, Utilisateur $user)

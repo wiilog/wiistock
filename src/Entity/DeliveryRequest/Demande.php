@@ -2,6 +2,7 @@
 
 namespace App\Entity\DeliveryRequest;
 
+use App\Entity\Article;
 use App\Entity\Emplacement;
 use App\Entity\FreeFieldEntity;
 use App\Entity\IOT\PairedEntity;
@@ -228,6 +229,13 @@ class Demande extends FreeFieldEntity implements PairedEntity
         $this->statut = $statut;
 
         return $this;
+    }
+
+    public function getArticleLine(Article $article): DeliveryRequestArticleLine {
+        $articleLines = Stream::from($this->articleLines->toArray());
+        return $articleLines
+            ->filter(fn (DeliveryRequestArticleLine $line) => $line->getArticle() === $article)
+            ->first();
     }
 
     /**

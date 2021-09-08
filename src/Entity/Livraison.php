@@ -1,6 +1,7 @@
 <?php
 namespace App\Entity;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\PreparationOrder\Preparation;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -51,10 +52,9 @@ class Livraison
     private $utilisateur;
 
     /**
-     * @var Preparation|null
      * @ORM\OneToOne(targetEntity="App\Entity\PreparationOrder\Preparation", inversedBy="livraison")
      */
-    private $preparation;
+    private ?Preparation $preparation = null;
 
 	/**
 	 * @ORM\OneToMany(targetEntity="App\Entity\MouvementStock", mappedBy="livraisonOrder")

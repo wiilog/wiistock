@@ -28,7 +28,7 @@ class PreparationOrderArticleLine
     private ?int $pickedQuantity = null;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Article::class, inversedBy="preparationOrderArticleLines")
+     * @ORM\ManyToOne(targetEntity=Article::class, inversedBy="preparationOrderLines")
      * @ORM\JoinColumn(nullable=false)
      */
     private ?Article $article = null;
@@ -72,13 +72,13 @@ class PreparationOrderArticleLine
 
     public function setArticle(?Article $article): self {
         if($this->article && $this->article !== $article) {
-            $this->article->removePreparationOrderArticleLine($this);
+            $this->article->removePreparationOrderLine($this);
         }
 
         $this->article = $article;
 
         if($article) {
-            $article->addPreparationOrderArticleLine($this);
+            $article->addPreparationOrderLine($this);
         }
 
         return $this;

@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\ArticleFournisseur;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\FreeField;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
@@ -482,13 +483,15 @@ class ArticleController extends AbstractController
     public function getLivraisonArticlesByRefArticle(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
+            $requestRepository = $entityManager->getRepository(Demande::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $refArticle = $referenceArticleRepository->find($data['refArticle']);
+            $deliveryRequest = $requestRepository->find($data['deliveryRequestId']);
 
-            if ($refArticle) {
+            if ($refArticle && $deliveryRequest) {
                 /** @var Utilisateur $currentUser */
                 $currentUser = $this->getUser();
-                $json = $this->articleDataService->getLivraisonArticlesByRefArticle($refArticle, $currentUser, $data['deliveryRequestId']);
+                $json = $this->articleDataService->getLivraisonArticlesByRefArticle($refArticle, $deliveryRequest, $currentUser);
             } else {
                 $json = false; //TODO gérer erreur retour
             }

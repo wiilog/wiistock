@@ -323,6 +323,7 @@ class PreparationController extends AbstractController
 
             $refArticle = $ligneArticle->getReference();
             $preparation = $ligneArticle->getPreparation();
+            // TODO adrien
             $articles = $articleRepository->findActifByRefArticleWithoutDemand($refArticle, $preparation, $preparation->getDemande());
             $response = $this->renderView('preparation/modalSplitting.html.twig', [
                 'reference' => $refArticle->getReference(),
