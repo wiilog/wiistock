@@ -108,9 +108,11 @@ class CartService {
 
         $draft = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_BROUILLON);
         $refs = Stream::from($cart->getReferences())
-            ->map(function(ReferenceArticle $referenceArticle) {
+            ->map(function (ReferenceArticle $referenceArticle) {
                 return [
-                    'articles' => $referenceArticle->getAssociatedArticles(),
+                    'articles' => Stream::from($referenceArticle->getAssociatedArticles())
+                        ->filter(fn(Article $article) => $article->getStatut()->getCode() === Article::STATUT_ACTIF && $article->getQuantite() > 0)
+                        ->toArray(),
                     'reference' => $referenceArticle->getReference(),
                 ];
             })->toArray();
@@ -137,7 +139,9 @@ class CartService {
         $refs = Stream::from($cart->getReferences())
             ->map(function(ReferenceArticle $referenceArticle) {
                 return [
-                    'articles' => $referenceArticle->getAssociatedArticles(),
+                    'articles' => Stream::from($referenceArticle->getAssociatedArticles())
+                        ->filter(fn(Article $article) => $article->getStatut()->getCode() === Article::STATUT_ACTIF && $article->getQuantite() > 0)
+                        ->toArray(),
                     'reference' => $referenceArticle->getReference(),
                 ];
             })->toArray();
