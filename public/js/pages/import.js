@@ -259,6 +259,12 @@ function importTemplateChanged($dataTypeImport = null) {
         $linkToTemplate
             .append(`<div class="col-12">Un fichier de modèle d\'import est disponible pour les ${label}.</div>`)
             .append(`<div class="col-12"><a class="btn btn-primary" href="${url}">Télécharger</a></div>`);
+        if(valTypeImport === 'USER') {
+            $linkToTemplate
+                .append(`<div class="col-12 mt-3"><i class="fas fa-question-circle"></i>
+                            <span class="italic">Les nouveaux utilisateurs seront créés avec un mot de passe aléatoire. Ils devront configurer ce dernier via la fonctionnalité "<strong>Mot de passe oublié</strong>".</span>
+                        </div>`)
+        }
     }
     else if (valTypeImport === '') {
         $linkToTemplate.append('<div class="col-12">Des fichiers de modèles d\'import sont disponibles. Veuillez sélectionner un type de données à importer.</div>');
