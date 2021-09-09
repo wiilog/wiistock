@@ -7,6 +7,7 @@ use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\Pack;
 use App\Helper\FormatHelper;
+use DateTimeInterface;
 use WiiCommon\Helper\Stream;
 use DateTime;
 use Doctrine\DBAL\Connection;
@@ -415,7 +416,7 @@ class PackRepository extends EntityRepository
                 ->getResult()
         )
             ->map(function($pack) {
-                $pack['date'] = isset($pack['date']) ? FormatHelper::datetime($pack['date']) : null;
+                $pack['date'] = isset($pack['date']) ? $pack['date']->format(DateTimeInterface::ATOM) : null;
                 return $pack;
             })
             ->toArray();
