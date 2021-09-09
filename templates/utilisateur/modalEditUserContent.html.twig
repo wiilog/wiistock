@@ -105,7 +105,6 @@
                 class="form-control data ajax-autocomplete"
                 data-s2="visibilityGroup"
                 data-placeholder=""
-                {{ app.user.visibilityGroup ? 'disabled' }}
                 id="visibility-group">
             {% if user.visibilityGroup is not null %}
                 <option value="{{ user.visibilityGroup.id }}">{{ user.visibilityGroup.label }}</option>
