@@ -18,7 +18,8 @@ class VisibilityGroupRepository extends EntityRepository {
     public function getForSelect(?string $term) {
         return $this->createQueryBuilder("visibility_group")
             ->select("visibility_group.id AS id, visibility_group.label AS text")
-            ->where("visibility_group.label LIKE :term")
+            ->andWhere("visibility_group.label LIKE :term")
+            ->andWhere('visibility_group.active = true')
             ->setParameter("term", "%$term%")
             ->getQuery()
             ->getArrayResult();
