@@ -96,10 +96,7 @@
                 </div>
                 <div class="col-12 form-group w-100">
                     <label for="visibility-group">Groupe de visibilité</label>
-                    <select name="visibility-group" class="form-control data" data-s2="visibilityGroup" {{ app.user.visibilityGroup ? 'disabled' }}>
-                        {% if app.user.visibilityGroup is not null %}
-                            <option value="{{ app.user.visibilityGroup.id }}">{{ app.user.visibilityGroup.label }}</option>
-                        {% endif %}
+                    <select name="visibility-group" class="form-control data" data-s2="visibilityGroup">
                     </select>
                 </div>
             </div>
