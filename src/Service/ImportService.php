@@ -48,47 +48,42 @@ class ImportService
     public const IMPORT_MODE_PLAN = 3; // réaliser l'import dans la nuit (dans le cron à 23h59)
     public const IMPORT_MODE_NONE = 4; // rien n'a été réalisé sur l'import
 
-    private Twig_Environment $templating;
+    /** @Required */
+    public Twig_Environment $templating;
 
-    private RouterInterface $router;
+    /** @Required */
+    public RouterInterface $router;
 
-    private EntityManagerInterface $em;
-    private ArticleDataService $articleDataService;
-    private RefArticleDataService $refArticleDataService;
-    private MouvementStockService $mouvementStockService;
-    private LoggerInterface $logger;
-    private AttachmentService $attachmentService;
-    private ReceptionService $receptionService;
-    private ArticleFournisseurService $articleFournisseurService;
-    private UserService $userService;
+    /** @Required */
+    public ArticleDataService $articleDataService;
+
+    /** @Required */
+    public RefArticleDataService $refArticleDataService;
+
+    /** @Required */
+    public MouvementStockService $mouvementStockService;
+
+    /** @Required */
+    public LoggerInterface $logger;
+
+    /** @Required */
+    public AttachmentService $attachmentService;
+
+    /** @Required */
+    public ReceptionService $receptionService;
+
+    /** @Required */
+    public ArticleFournisseurService $articleFournisseurService;
+
+    /** @Required */
+    public UserService $userService;
 
     private Import $currentImport;
+    private EntityManagerInterface $em;
 
-    public function __construct(RouterInterface $router,
-                                LoggerInterface $logger,
-                                AttachmentService $attachmentService,
-                                EntityManagerInterface $em,
-                                Twig_Environment $templating,
-                                ArticleDataService $articleDataService,
-                                RefArticleDataService $refArticleDataService,
-                                ArticleFournisseurService $articleFournisseurService,
-                                ReceptionService $receptionService,
-                                MouvementStockService $mouvementStockService,
-                                UserService $userService)
-    {
-
-        $this->templating = $templating;
+    public function __construct(EntityManagerInterface $em) {
         $this->em = $em;
         $this->em->getConnection()->getConfiguration()->setSQLLogger(null);
-        $this->router = $router;
-        $this->articleDataService = $articleDataService;
-        $this->refArticleDataService = $refArticleDataService;
-        $this->mouvementStockService = $mouvementStockService;
-        $this->logger = $logger;
-        $this->attachmentService = $attachmentService;
-        $this->articleFournisseurService = $articleFournisseurService;
-        $this->receptionService = $receptionService;
-        $this->userService = $userService;
     }
 
     public function getDataForDatatable(Utilisateur $user, $params = null)
