@@ -1245,7 +1245,7 @@ class ImportService
             } else {
                 $this->throwError('Cette clé de connexion est déjà utilisée par un autre utilisateur');
             }
-        } else {
+        } else if(!isset($userAlreadyExists)) {
             $mobileLoginKey = $this->userService->createUniqueMobileLoginKey($this->em);
             $user->setMobileLoginKey($mobileLoginKey);
         }
