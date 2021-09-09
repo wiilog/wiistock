@@ -3,7 +3,6 @@
 namespace App\Entity;
 
 use App\Repository\NotificationTemplateRepository;
-use App\Service\VariableService;
 use Doctrine\ORM\Mapping as ORM;
 
 /**

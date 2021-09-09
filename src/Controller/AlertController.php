@@ -7,7 +7,9 @@ use App\Entity\Action;
 use App\Entity\Alert;
 use App\Entity\CategoryType;
 use App\Entity\Menu;
+use App\Entity\ReferenceArticle;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use App\Service\AlertService;
 use App\Service\CSVExportService;
 use App\Service\NotificationService;
@@ -96,26 +98,19 @@ class AlertController extends AbstractController
     /**
      * @Route("/api", name="alerte_ref_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_ALER}, mode=HasPermission::IN_JSON)
-     * @param Request $request
-     * @param RefArticleDataService $refArticleDataService
-     * @return Response
      */
     public function api(Request $request,
                         RefArticleDataService $refArticleDataService): Response
     {
-        $data = $refArticleDataService->getAlerteDataByParams($request->request, $this->getUser());
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
+        $data = $refArticleDataService->getAlerteDataByParams($request->request, $user);
         return new JsonResponse($data);
     }
 
     /**
      * @Route("/csv", name="alert_export",options={"expose"=true}, methods="GET|POST" )
      * @HasPermission({Menu::STOCK, Action::EXPORT_ALER})
-     * @param Request $request
-     * @param AlertService $alertService
-     * @param SpecificService $specificService
-     * @param EntityManagerInterface $entityManager
-     * @param CSVExportService $CSVExportService
-     * @return Response
      */
     public function export(Request $request,
                            AlertService $alertService,
@@ -146,7 +141,8 @@ class AlertController extends AbstractController
                 "seuil d'alerte",
                 "seuil de sécurité",
                 "date de péremption",
-                "gestionnaire(s)"
+                "gestionnaire(s)",
+                "groupe(s) de visibilité"
             ];
 
             if ($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI)) {
@@ -161,7 +157,10 @@ class AlertController extends AbstractController
             return $CSVExportService->streamResponse(function ($output) use ($alertService, $specificService, $entityManager, $CSVExportService, $dateTimeMin, $dateTimeMax) {
                 $alertRepository = $entityManager->getRepository(Alert::class);
 
-                $alerts = $alertRepository->iterateBetween($dateTimeMin, $dateTimeMax);
+                /** @var Utilisateur $user */
+                $user = $this->getUser();
+
+                $alerts = $alertRepository->iterateBetween($dateTimeMin, $dateTimeMax, $user, [ReferenceArticle::STATUT_ACTIF]);
                 /** @var Alert $alert */
                 foreach ($alerts as $alert) {
                     $alertService->putLineAlert($entityManager, $specificService, $CSVExportService, $output, $alert);

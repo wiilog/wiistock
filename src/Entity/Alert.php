@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Helper\FormatHelper;
 use App\Repository\AlertRepository;
 use Doctrine\ORM\Mapping as ORM;
+use WiiCommon\Helper\Stream;
 
 /**
  * @ORM\Entity(repositoryClass=AlertRepository::class)
@@ -95,6 +96,8 @@ class Alert {
     }
 
     public function serialize(): array {
+        /** @var ReferenceArticle $reference */
+        /** @var Article $article */
         [$reference, $article] = $this->getLinkedArticles();
 
         return [
@@ -126,9 +129,13 @@ class Alert {
                 : '',
             'managers' => $reference
                 ? FormatHelper::users($reference->getManagers())
-                : ""
+                : "",
+            'visibilityGroups' => Stream::from($reference->getVisibilityGroups())
+                ->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getLabel())
+                ->join(' / ')
         ];
     }
+
 
     public function getLinkedArticles(): array {
         if ($this->getReference()) {

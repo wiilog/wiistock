@@ -8,7 +8,6 @@ $(function () {
         $modal.find('.valueLabel').text('');
     });
 
-    $('.select2').select2();
     $printTag = $('#printTag');
     let activeFilter;
     if ($('#filters').find('.filter').length <= 0) {
@@ -369,6 +368,11 @@ function initNewReferenceArticleEditor(modal) {
     Select2Old.provider($(modal).find('.ajax-autocomplete-fournisseurLabel'), '', 'demande_label_by_fournisseur');
     Select2Old.location($(modal).find('.ajax-autocomplete-location'));
     clearModal(modal);
+    const $userVG = $('#user-vg');
+    if ($userVG.data('id')) {
+        let newOption = new Option($userVG.data('value'), $userVG.data('id'), true, true);
+        $(modal).find('select[name="visibility-group"]').append(newOption).trigger('change');
+    }
 }
 
 function deleteArticleFournisseur(button) {

@@ -43,6 +43,8 @@ const AUTO_HIDE_DEFAULT_DELAY = 2000;
 const MAX_DATETIME_HTML_INPUT = '2100-12-31T23:59';
 const MAX_DATE_HTML_INPUT = '2100-12-31';
 
+const TEAM_SIZE = 10;
+
 $(function () {
     $(document).on('hide.bs.modal', function () {
         $('.select2-container.select2-container--open').remove();
@@ -62,6 +64,7 @@ $(function () {
     $('.removeRequired, .form-group, label').removeClass('required');
 
     registerNotificationChannel();
+    registerEasterEgg();
 });
 
 function registerNotificationChannel() {
@@ -1172,5 +1175,19 @@ function updateImagePreview(preview, upload, $title = null, $delete = null, $cal
                 showBSAlert('La taille du fichier est supérieure à 10 mo.', 'danger')
             }
         }
+    })
+}
+
+function registerEasterEgg() {
+    let count = 0;
+    const $modalEasterEgg = $('#modalEasterEgg');
+    $('.do-not-click-me-several-times').click(() => {
+        count += 1;
+        if (count === TEAM_SIZE) {
+            $modalEasterEgg.modal('show');
+        }
+    });
+    $modalEasterEgg.on('hidden.bs.modal', () => {
+        count = 0;
     })
 }

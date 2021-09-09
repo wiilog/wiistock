@@ -2,14 +2,7 @@
 
 namespace App\Repository;
 
-use App\Entity\Dispatch;
-use App\Entity\Handling;
-use App\Entity\IOT\AlertTemplate;
-use App\Entity\Livraison;
 use App\Entity\NotificationTemplate;
-use App\Entity\OrdreCollecte;
-use App\Entity\Preparation;
-use App\Entity\TransferOrder;
 use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
 

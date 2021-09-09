@@ -6,11 +6,13 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
+use App\Entity\FiltreRef;
 use App\Entity\Menu;
 use App\Entity\Role;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
+use App\Entity\VisibilityGroup;
 use App\Service\CSVExportService;
 use App\Service\PasswordService;
 use App\Service\UserService;
@@ -77,6 +79,7 @@ class UserController extends AbstractController
         if ($data = json_decode($request->getContent(), true)) {
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+            $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
             $typeRepository = $entityManager->getRepository(Type::class);
             $roleRepository = $entityManager->getRepository(Role::class);
 
@@ -140,7 +143,8 @@ class UserController extends AbstractController
                 ->setSecondaryEmails($secondaryEmails)
                 ->setPhone($data['phoneNumber'])
                 ->setRole($role)
-				->setDropzone($data['dropzone'] ? $emplacementRepository->find(intval($data['dropzone'])) : null)
+                ->setDropzone($data['dropzone'] ? $emplacementRepository->find(intval($data['dropzone'])) : null)
+                ->setVisibilityGroup($data['visibility-group'] ? $visibilityGroupRepository->find(intval($data['visibility-group'])) : null)
                 ->setStatus(true)
                 ->setAddress($data['address'])
                 ->setMobileLoginKey($uniqueMobileKey);
@@ -212,7 +216,14 @@ class UserController extends AbstractController
                         'id' => $user->getDropzone()->getId(),
                         'text' => $user->getDropzone()->getLabel()
                     ]
-                    : null]);
+                    : null,
+                'visibilityGroup' => $user->getVisibilityGroup()
+                    ? [
+                        'id' => $user->getVisibilityGroup()->getId(),
+                        'text' => $user->getVisibilityGroup()->getLabel()
+                    ]
+                    : null
+                ]);
         }
         throw new BadRequestHttpException();
     }
@@ -233,10 +244,11 @@ class UserController extends AbstractController
 
             $typeRepository = $entityManager->getRepository(Type::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+            $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $roleRepository = $entityManager->getRepository(Role::class);
 
-            $utilisateur = $utilisateurRepository->find($data['user']);
+            $user = $utilisateurRepository->find($data['user']);
             $role = $roleRepository->find($data['role']);
 
             $result = $passwordService->checkPassword($data['password'],$data['password2']);
@@ -251,7 +263,7 @@ class UserController extends AbstractController
             // unicité de l'email
             $emailAlreadyUsed = $utilisateurRepository->count(['email' => $data['email']]);
 
-            if ($emailAlreadyUsed > 0  && $data['email'] != $utilisateur->getEmail()) {
+            if ($emailAlreadyUsed > 0  && $data['email'] != $user->getEmail()) {
 				return new JsonResponse([
 					'success' => false,
 					'msg' => 'Cette adresse email est déjà utilisée.',
@@ -269,7 +281,7 @@ class UserController extends AbstractController
 			// unicité de l'username
             $usernameAlreadyUsed = $utilisateurRepository->count(['username' => $data['username']]);
 
-			if ($usernameAlreadyUsed > 0  && $data['username'] != $utilisateur->getUsername() ) {
+			if ($usernameAlreadyUsed > 0  && $data['username'] != $user->getUsername() ) {
 				return new JsonResponse([
 					'success' => false,
 					'msg' => "Ce nom d'utilisateur est déjà utilisé.",
@@ -278,7 +290,7 @@ class UserController extends AbstractController
 			}
 
             //vérification que l'user connecté ne se désactive pas
-            if ($utilisateur->getId() === $loggedUser->getId() && $data['status'] == 0) {
+            if ($user->getId() === $loggedUser->getId() && $data['status'] == 0) {
 				return new JsonResponse([
 						'success' => false,
 						'msg' => 'Vous ne pouvez pas désactiver votre propre compte.',
@@ -296,47 +308,55 @@ class UserController extends AbstractController
                 }
             }
 
-            $utilisateur
+            $user
                 ->setSecondaryEmails($secondaryEmails)
                 ->setRole($role)
                 ->setStatus($data['status'])
                 ->setUsername($data['username'])
                 ->setAddress($data['address'])
                 ->setDropzone($data['dropzone'] ? $emplacementRepository->find(intval($data['dropzone'])) : null)
+                ->setVisibilityGroup($data['visibility-group'] ? $visibilityGroupRepository->find(intval($data['visibility-group'])) : null)
                 ->setEmail($data['email'])
                 ->setPhone($data['phoneNumber'] ?? '');
 
-            if ($data['password'] !== '') {
-                $password = $encoder->hashPassword($utilisateur, $data['password']);
-                $utilisateur->setPassword($password);
+            if($user->getVisibilityGroup()) {
+                $filters = $entityManager->getRepository(FiltreRef::class)->findBy(["champFixe" => FiltreRef::FIXED_FIELD_VISIBILITY_GROUP]);
+                foreach($filters as $filter) {
+                    $entityManager->remove($filter);
+                }
             }
-            foreach ($utilisateur->getDeliveryTypes() as $typeToRemove) {
-                $utilisateur->removeDeliveryType($typeToRemove);
+
+            if ($data['password'] !== '') {
+                $password = $encoder->hashPassword($user, $data['password']);
+                $user->setPassword($password);
+            }
+            foreach ($user->getDeliveryTypes() as $typeToRemove) {
+                $user->removeDeliveryType($typeToRemove);
             }
             if (isset($data['deliveryTypes'])) {
                 foreach ($data['deliveryTypes'] as $type) {
-                    $utilisateur->addDeliveryType($typeRepository->find($type));
+                    $user->addDeliveryType($typeRepository->find($type));
                 }
             }
-            foreach ($utilisateur->getDispatchTypes() as $typeToRemove) {
-                $utilisateur->removeDispatchType($typeToRemove);
+            foreach ($user->getDispatchTypes() as $typeToRemove) {
+                $user->removeDispatchType($typeToRemove);
             }
             if (isset($data['dispatchTypes'])) {
                 foreach ($data['dispatchTypes'] as $type) {
-                    $utilisateur->addDispatchType($typeRepository->find($type));
+                    $user->addDispatchType($typeRepository->find($type));
                 }
             }
-            foreach ($utilisateur->getHandlingTypes() as $typeToRemove) {
-                $utilisateur->removeHandlingType($typeToRemove);
+            foreach ($user->getHandlingTypes() as $typeToRemove) {
+                $user->removeHandlingType($typeToRemove);
             }
             if (isset($data['handlingTypes'])) {
                 foreach ($data['handlingTypes'] as $type) {
-                    $utilisateur->addHandlingType($typeRepository->find($type));
+                    $user->addHandlingType($typeRepository->find($type));
                 }
             }
 
             if (!empty($data['mobileLoginKey'])
-                && $data['mobileLoginKey'] !== $utilisateur->getMobileLoginKey()) {
+                && $data['mobileLoginKey'] !== $user->getMobileLoginKey()) {
 
                 $usersWithKey = $utilisateurRepository->findBy([
                     'mobileLoginKey' => $data['mobileLoginKey']
@@ -344,7 +364,7 @@ class UserController extends AbstractController
                 if (!empty($usersWithKey)
                     && (
                         count($usersWithKey) > 1
-                        || $usersWithKey[0]->getId() !== $utilisateur->getId()
+                        || $usersWithKey[0]->getId() !== $user->getId()
                     )) {
                     return new JsonResponse([
                         'success' => false,
@@ -364,20 +384,20 @@ class UserController extends AbstractController
                         ]);
                     }
                     else {
-                        $utilisateur
+                        $user
                             ->setMobileLoginKey($mobileLoginKey)
                             ->setApiKey(null);
                     }
                 }
             }
 
-            $entityManager->persist($utilisateur);
+            $entityManager->persist($user);
             $entityManager->flush();
 
             $dataResponse = ['success' => true];
 
-            if ($utilisateur->getId() != $loggedUser->getId()) {
-                $dataResponse['msg'] = 'L\'utilisateur <strong>' . $utilisateur->getUsername() . '</strong> a bien été modifié.';
+            if ($user->getId() != $loggedUser->getId()) {
+                $dataResponse['msg'] = 'L\'utilisateur <strong>' . $user->getUsername() . '</strong> a bien été modifié.';
             } else {
                 if ($userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
                     $dataResponse['msg'] = 'Vous avez bien modifié votre compte utilisateur.';

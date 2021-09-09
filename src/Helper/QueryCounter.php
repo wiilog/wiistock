@@ -10,13 +10,6 @@ use Doctrine\ORM\QueryBuilder;
 class QueryCounter
 {
 
-    /**
-     * @param QueryBuilder $query
-     * @param string|null $alias
-     * @return int
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
     public static function count(QueryBuilder $query, string $alias): int
     {
         $countQuery = clone $query;
@@ -29,15 +22,6 @@ class QueryCounter
             ->getSingleResult()["__query_count"];
     }
 
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @param string $entity
-     * @param array $statuses
-     * @param array $types
-     * @return int|mixed|string
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
     public static function countByStatusesAndTypes(EntityManagerInterface $entityManager,
                                                    string $entity,
                                                    array $types = [],

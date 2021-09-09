@@ -38,7 +38,7 @@ let pathDeleteUser = Routing.generate('user_delete', true);
 InitModal(modalDeleteUser, submitDeleteUser, pathDeleteUser, {tables: [tableUser]});
 
 $(function() {
-    $('.select2').select2();
+    $('.select2-old').select2();
     Select2Old.location($('.ajax-autocomplete-location-edit'));
 })
 
@@ -59,6 +59,10 @@ function editRowUser(button) {
         if (data.dropzone) {
             let newOption = new Option(data.dropzone.text, data.dropzone.id, true, true);
             modal.find('#dropzone').append(newOption).trigger('change');
+        }
+        if (data.visibilityGroup && modal.find('#visibility-group').find('option').length === 0) {
+            let newOption = new Option(data.visibilityGroup.text, data.visibilityGroup.id, true, true);
+            modal.find('#visibility-group').append(newOption).trigger('change');
         }
     }, 'json');
 
