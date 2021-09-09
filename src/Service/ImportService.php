@@ -18,31 +18,24 @@ use App\Entity\ParametrageGlobal;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\Attachment;
 use App\Entity\ReferenceArticle;
+use App\Entity\Role;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Exceptions\ImportException;
-use WiiCommon\Helper\Stream;
-use Closure;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManager;
+use Throwable;
+use WiiCommon\Helper\Stream;
+use Closure;
 use DateTime;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\ORMException;
-use Doctrine\ORM\TransactionRequiredException;
 use Exception;
 use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Contracts\Translation\TranslatorInterface;
-use Throwable;
 use Twig\Environment as Twig_Environment;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 
 
 class ImportService
@@ -55,64 +48,44 @@ class ImportService
     public const IMPORT_MODE_PLAN = 3; // réaliser l'import dans la nuit (dans le cron à 23h59)
     public const IMPORT_MODE_NONE = 4; // rien n'a été réalisé sur l'import
 
-    /**
-     * @var Twig_Environment
-     */
-    private $templating;
+    /** @Required */
+    public Twig_Environment $templating;
 
-    /**
-     * @var RouterInterface
-     */
-    private $router;
+    /** @Required */
+    public RouterInterface $router;
 
-    private $em;
-    private $articleDataService;
-    private $refArticleDataService;
-    private $mouvementStockService;
-    private $logger;
-    private $attachmentService;
-    private $receptionService;
-    private $articleFournisseurService;
-    private $translator;
+    /** @Required */
+    public ArticleDataService $articleDataService;
 
-    /** @var Import */
-    private $currentImport;
+    /** @Required */
+    public RefArticleDataService $refArticleDataService;
 
-    public function __construct(RouterInterface $router,
-                                LoggerInterface $logger,
-                                AttachmentService $attachmentService,
-                                EntityManagerInterface $em,
-                                Twig_Environment $templating,
-                                ArticleDataService $articleDataService,
-                                RefArticleDataService $refArticleDataService,
-                                ArticleFournisseurService $articleFournisseurService,
-                                ReceptionService $receptionService,
-                                MouvementStockService $mouvementStockService,
-                                TranslatorInterface $translator)
-    {
+    /** @Required */
+    public MouvementStockService $mouvementStockService;
 
-        $this->templating = $templating;
+    /** @Required */
+    public LoggerInterface $logger;
+
+    /** @Required */
+    public AttachmentService $attachmentService;
+
+    /** @Required */
+    public ReceptionService $receptionService;
+
+    /** @Required */
+    public ArticleFournisseurService $articleFournisseurService;
+
+    /** @Required */
+    public UserService $userService;
+
+    private Import $currentImport;
+    private EntityManagerInterface $em;
+
+    public function __construct(EntityManagerInterface $em) {
         $this->em = $em;
         $this->em->getConnection()->getConfiguration()->setSQLLogger(null);
-        $this->router = $router;
-        $this->articleDataService = $articleDataService;
-        $this->refArticleDataService = $refArticleDataService;
-        $this->mouvementStockService = $mouvementStockService;
-        $this->logger = $logger;
-        $this->attachmentService = $attachmentService;
-        $this->articleFournisseurService = $articleFournisseurService;
-        $this->receptionService = $receptionService;
-        $this->translator = $translator;
     }
 
-    /**
-     * @param null $params
-     * @param Utilisateur $user
-     * @return array
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
     public function getDataForDatatable(Utilisateur $user, $params = null)
     {
         $importRepository = $this->em->getRepository(Import::class);
@@ -136,13 +109,6 @@ class ImportService
         ];
     }
 
-    /**
-     * @param Import $import
-     * @return array
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
     public function dataRowImport(Import $import)
     {
         $importId = $import->getId();
@@ -180,10 +146,6 @@ class ImportService
         ];
     }
 
-    /**
-     * @param Attachment $attachment
-     * @return array
-     */
     public function getImportConfig(Attachment $attachment)
     {
         $path = $this->attachmentService->getServerPath($attachment);
@@ -209,18 +171,6 @@ class ImportService
         return $res;
     }
 
-    /**
-     * @param Import $import
-     * @param Utilisateur|null $user
-     * @param int $mode IMPORT_MODE_RUN ou IMPORT_MODE_FORCE_PLAN ou IMPORT_MODE_PLAN
-     * @return int Used mode
-     * @throws ImportException
-     * @throws NonUniqueResultException
-     * @throws ORMException
-     * @throws OptimisticLockException
-     * @throws Throwable
-     * @throws TransactionRequiredException
-     */
     public function treatImport(Import $import, ?Utilisateur $user, int $mode = self::IMPORT_MODE_PLAN): int
     {
         $this->currentImport = $import;
@@ -368,22 +318,6 @@ class ImportService
         return $importModeChoosen;
     }
 
-    /**
-     * @param array $row
-     * @param array $headers
-     * @param $dataToCheck
-     * @param $colChampsLibres
-     * @param array $refToUpdate
-     * @param array $stats
-     * @param bool $needsUnitClear
-     * @param array $receptionsWithCommand
-     * @param Utilisateur|null $user
-     * @param int $rowIndex
-     * @return array
-     * @throws ORMException
-     * @throws OptimisticLockException
-     * @throws TransactionRequiredException
-     */
     private function treatImportRow(array $row,
                                     array $headers,
                                     $dataToCheck,
@@ -414,6 +348,9 @@ class ImportService
                 case Import::ENTITY_ART:
                     $referenceArticle = $this->importArticleEntity($data, $colChampsLibres, $row, $stats, $rowIndex);
                     $refToUpdate[$referenceArticle->getId()] = $referenceArticle;
+                    break;
+                case Import::ENTITY_USER:
+                    $this->importUserEntity($data, $stats);
                     break;
             }
 
@@ -464,11 +401,6 @@ class ImportService
         return $resRow;
     }
 
-    /**
-     * @param string $entity
-     * @param array $corresp
-     * @return array
-     */
     private function getDataToCheck(string $entity, array $corresp)
     {
         switch ($entity) {
@@ -680,6 +612,66 @@ class ImportService
                     ],
                 ];
                 break;
+            case Import::ENTITY_USER:
+                $dataToCheck = [
+                    'role' => [
+                        'needed' => $this->fieldIsNeeded('role', Import::ENTITY_USER),
+                        'value' => $corresp['role'] ?? null,
+                    ],
+                    'username' => [
+                        'needed' => $this->fieldIsNeeded('username', Import::ENTITY_USER),
+                        'value' => $corresp['username'] ?? null,
+                    ],
+                    'email' => [
+                        'needed' => $this->fieldIsNeeded('email', Import::ENTITY_USER),
+                        'value' => $corresp['email'] ?? null,
+                    ],
+                    'secondaryEmail' => [
+                        'needed' => $this->fieldIsNeeded('secondaryEmail', Import::ENTITY_USER),
+                        'value' => $corresp['secondaryEmail'] ?? null,
+                    ],
+                    'lastEmail' => [
+                        'needed' => $this->fieldIsNeeded('lastEmail', Import::ENTITY_USER),
+                        'value' => $corresp['lastEmail'] ?? null,
+                    ],
+                    'phone' => [
+                        'needed' => $this->fieldIsNeeded('phone', Import::ENTITY_USER),
+                        'value' => $corresp['phone'] ?? null,
+                    ],
+                    'mobileLoginKey' => [
+                        'needed' => $this->fieldIsNeeded('mobileLoginKey', Import::ENTITY_USER),
+                        'value' => $corresp['mobileLoginKey'] ?? null,
+                    ],
+                    'address' => [
+                        'needed' => $this->fieldIsNeeded('address', Import::ENTITY_USER),
+                        'value' => $corresp['address'] ?? null,
+                    ],
+                    'deliveryTypes' => [
+                        'needed' => $this->fieldIsNeeded('deliveryTypes', Import::ENTITY_USER),
+                        'value' => $corresp['deliveryTypes'] ?? null,
+                    ],
+                    'dispatchTypes' => [
+                        'needed' => $this->fieldIsNeeded('dispatchTypes', Import::ENTITY_USER),
+                        'value' => $corresp['dispatchTypes'] ?? null,
+                    ],
+                    'handlingTypes' => [
+                        'needed' => $this->fieldIsNeeded('handlingTypes', Import::ENTITY_USER),
+                        'value' => $corresp['handlingTypes'] ?? null,
+                    ],
+                    'dropzone' => [
+                        'needed' => $this->fieldIsNeeded('dropzone', Import::ENTITY_USER),
+                        'value' => $corresp['dropzone'] ?? null,
+                    ],
+                    'visibilityGroup' => [
+                        'needed' => $this->fieldIsNeeded('visibilityGroup', Import::ENTITY_USER),
+                        'value' => $corresp['visibilityGroup'] ?? null,
+                    ],
+                    'status' => [
+                        'needed' => $this->fieldIsNeeded('status', Import::ENTITY_USER),
+                        'value' => $corresp['status'] ?? null,
+                    ],
+                ];
+                break;
             default:
                 $dataToCheck = [];
         }
@@ -719,13 +711,6 @@ class ImportService
         return $pieceJointeForLogFile;
     }
 
-    /**
-     * @param array $originalDatasToCheck
-     * @param array $row
-     * @param array $headers
-     * @return array
-     * @throws ImportException
-     */
     private function checkFieldsAndFillArrayBeforeImporting(array $originalDatasToCheck, array $row, array $headers): array
     {
         $data = [];
@@ -746,11 +731,6 @@ class ImportService
         return $data;
     }
 
-    /**
-     * @param array $data
-     * @param array $stats
-     * @throws ImportException
-     */
     private function importFournisseurEntity(array $data, array &$stats): void
     {
         $newEntity = false;
@@ -777,11 +757,6 @@ class ImportService
         $this->updateStats($stats, $newEntity);
     }
 
-    /**
-     * @param array $data
-     * @param array $stats
-     * @throws ImportException
-     */
     private function importArticleFournisseurEntity(array $data, array &$stats): void
     {
         $newEntity = false;
@@ -828,24 +803,11 @@ class ImportService
         $this->updateStats($stats, $newEntity);
     }
 
-    /**
-     * @param $message
-     * @throws ImportException
-     */
     public function throwError($message)
     {
         throw new ImportException($message);
     }
 
-    /**
-     * @param array $data
-     * @param array $receptionsWithCommand
-     * @param Utilisateur|null $user
-     * @param array $stats
-     * @return void
-     * @throws ImportException
-     * @throws NonUniqueResultException
-     */
     private function importReceptionEntity(array $data,
                                            array &$receptionsWithCommand,
                                            ?Utilisateur $user,
@@ -918,14 +880,6 @@ class ImportService
         }
     }
 
-    /**
-     * @param array $data
-     * @param array $colChampsLibres
-     * @param array $row
-     * @param array $stats
-     * @throws ImportException
-     * @throws Exception
-     */
     private function importReferenceEntity(array $data,
                                            array $colChampsLibres,
                                            array $row,
@@ -1121,16 +1075,6 @@ class ImportService
         $this->updateStats($stats, $isNewEntity);
     }
 
-    /**
-     * @param array $data
-     * @param array $colChampsLibres
-     * @param array $row
-     * @param array $stats
-     * @param int $rowIndex
-     * @return ReferenceArticle
-     * @throws ImportException
-     * @throws Exception
-     */
     private function importArticleEntity(array $data,
                                          array $colChampsLibres,
                                          array $row,
@@ -1238,13 +1182,147 @@ class ImportService
         return $refArticle;
     }
 
-    /**
-     * @param array $colChampsLibres
-     * @param ReferenceArticle|Article $refOrArt
-     * @param bool $isNewEntity
-     * @param array $row
-     * @throws ImportException
-     */
+    private function importUserEntity(array $data, array &$stats): void {
+
+        $userAlreadyExists = $this->em->getRepository(Utilisateur::class)->findOneBy(['email' => $data['email']]);
+
+        $user = $userAlreadyExists ?? new Utilisateur();
+
+        $role = $this->em->getRepository(Role::class)->findOneBy(['label' => $data['role']]);
+        if($role) {
+            $user->setRole($role);
+        } else {
+            $this->throwError("Le rôle ${data['role']} n'existe pas");
+        }
+
+        if(isset($data['username'])) {
+            $user->setUsername($data['username']);
+        }
+
+        if(!isset($userAlreadyExists)) {
+            if(!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+                $this->throwError('Le format de l\'adresse email est incorrect');
+            }
+            $user
+                ->setEmail($data['email'])
+                ->setPassword("");
+        }
+
+        if(isset($data['secondaryEmail']) && isset($data['lastEmail'])) {
+            if(!filter_var($data['secondaryEmail'], FILTER_VALIDATE_EMAIL)
+                && !filter_var($data['lastEmail'], FILTER_VALIDATE_EMAIL)) {
+                $this->throwError('Le format des adresses email 2 et 3 est incorrect');
+            }
+            $user->setSecondaryEmails([$data['secondaryEmail'], $data['lastEmail']]);
+        } else if(isset($data['secondaryEmail'])) {
+            if(!filter_var($data['secondaryEmail'], FILTER_VALIDATE_EMAIL)) {
+                $this->throwError('Le format de l\'adresse email 2 est incorrect');
+            }
+            $user->setSecondaryEmails([$data['secondaryEmail']]);
+        } else if(isset($data['lastEmail'])) {
+            if(!filter_var($data['lastEmail'], FILTER_VALIDATE_EMAIL)) {
+                $this->throwError('Le format de l\'adresse email 3 est incorrect');
+            }
+            $user->setSecondaryEmails([$data['lastEmail']]);
+        }
+
+        if(isset($data['phone'])) {
+            $user->setPhone($data['phone']);
+        }
+
+        if(isset($data['mobileLoginKey'])) {
+            $userWithExistingKey = $this->em->getRepository(Utilisateur::class)->findOneBy(['mobileLoginKey' => $data['mobileLoginKey']]);
+            if(!isset($userWithExistingKey)) {
+                $user->setMobileLoginKey($data['mobileLoginKey']);
+            } else {
+                $this->throwError('Cette clé de connexion est déjà utilisée par un autre utilisateur');
+            }
+        } else {
+            $mobileLoginKey = $this->userService->createUniqueMobileLoginKey($this->em);
+            $user->setMobileLoginKey($mobileLoginKey);
+        }
+
+        if(isset($data['address'])) {
+            $user->setAddress($data['address']);
+        }
+
+        if(isset($data['deliveryTypes'])) {
+            $deliveryCategory = $this->em->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::DEMANDE_LIVRAISON]);
+            $deliveryTypes = $this->em->getRepository(Type::class)->findBy([
+                'label' => array_map('trim', explode(',', $data['deliveryTypes'])),
+                'category' => $deliveryCategory
+            ]);
+
+            foreach ($user->getDeliveryTypes() as $type) {
+                $user->removeDeliveryType($type);
+            }
+
+            foreach ($deliveryTypes as $deliveryType) {
+                $user->addDeliveryType($deliveryType);
+            }
+        }
+
+        if(isset($data['dispatchTypes'])) {
+            $dispatchCategory = $this->em->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::DEMANDE_DISPATCH]);
+            $dispatchTypes = $this->em->getRepository(Type::class)->findBy([
+                'label' => array_map('trim', explode(',', $data['dispatchTypes'])),
+                'category' => $dispatchCategory
+            ]);
+
+            foreach ($user->getDispatchTypes() as $type) {
+                $user->removeDispatchType($type);
+            }
+
+            foreach ($dispatchTypes as $dispatchType) {
+                $user->addDispatchType($dispatchType);
+            }
+        }
+
+        if(isset($data['handlingTypes'])) {
+            $handlingCategory = $this->em->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::DEMANDE_HANDLING]);
+            $handlingTypes = $this->em->getRepository(Type::class)->findBy([
+                'label' => array_map('trim', explode(',', $data['handlingTypes'])),
+                'category' => $handlingCategory
+            ]);
+
+            foreach ($user->getHandlingTypes() as $type) {
+                $user->removeHandlingType($type);
+            }
+
+            foreach ($handlingTypes as $handlingType) {
+                $user->addHandlingType($handlingType);
+            }
+        }
+
+        if(isset($data['dropzone'])) {
+            $dropzone = $this->em->getRepository(Emplacement::class)->findOneBy(['label' => $data['dropzone']]);
+            if(!isset($dropzone)) {
+                $this->throwError("La dropzone ${data['dropzone']} n'existe pas");
+            }
+            $user->setDropzone($dropzone);
+        }
+
+        if(isset($data['visibilityGroup'])) {
+            $visibilityGroup = $this->em->getRepository(VisibilityGroup::class)->findOneBy(['label' => $data['visibilityGroup']]);
+            if(!isset($visibilityGroup)) {
+                $this->throwError("Le groupe de visibilité ${data['visibilityGroup']} n'existe pas");
+            }
+            $user->setVisibilityGroup($visibilityGroup);
+        }
+
+        if(isset($data['status'])) {
+            if(!in_array(strtolower($data['status']), ['actif', 'inactif']) ) {
+                $this->throwError('La valeur du champ Statut est incorrecte (actif ou inactif)');
+            }
+            $status = strtolower($data['status']) === 'actif' ? 1 : 0;
+            $user->setStatus($status);
+        }
+
+        $this->em->persist($user);
+
+        $this->updateStats($stats, !$user->getId());
+    }
+
     private function checkAndSetChampsLibres(array $colChampsLibres,
                                              $refOrArt,
                                              bool $isNewEntity,
@@ -1306,15 +1384,6 @@ class ImportService
         $refOrArt->setFreeFields($freeFieldsToInsert);
     }
 
-    /**
-     * @param string $dateString
-     * @param string $format
-     * @param string $outputFormat
-     * @param string $errorFormat
-     * @param FreeField $champLibre
-     * @return string
-     * @throws ImportException
-     */
     private function checkDate(string $dateString, string $format, string $outputFormat, string $errorFormat, FreeField $champLibre): ?string
     {
         $response = null;
@@ -1333,13 +1402,6 @@ class ImportService
         return $response;
     }
 
-    /**
-     * @param string $element
-     * @param FreeField $champLibre
-     * @param bool $isMultiple
-     * @return string
-     * @throws ImportException
-     */
     private function checkList(string $element, FreeField $champLibre, bool $isMultiple): ?string
     {
         $response = null;
@@ -1357,13 +1419,6 @@ class ImportService
         return $response;
     }
 
-    /**
-     * @param ReferenceArticle|Article $refOrArt
-     * @param int $formerQuantity
-     * @param int $newQuantity
-     * @param bool $isNewEntity
-     * @throws Exception
-     */
     private function checkAndCreateMvtStock($refOrArt, int $formerQuantity, int $newQuantity, bool $isNewEntity)
     {
         $diffQuantity = $isNewEntity ? $newQuantity : ($newQuantity - $formerQuantity);
@@ -1380,10 +1435,6 @@ class ImportService
         }
     }
 
-    /**
-     * @param string $ref
-     * @return Fournisseur
-     */
     private function checkAndCreateProvider(string $ref)
     {
         $fournisseurRepository = $this->em->getRepository(Fournisseur::class);
@@ -1405,11 +1456,6 @@ class ImportService
         return in_array($field, Import::FIELDS_NEEDED[$entity]);
     }
 
-    /**
-     * @param array $data
-     * @param Article|ReferenceArticle $articleOrRef
-     * @throws ImportException
-     */
     private function checkAndCreateEmplacement(array $data,
                                                $articleOrRef): void
     {
@@ -1433,14 +1479,6 @@ class ImportService
         }
     }
 
-    /**
-     * @param string|null $articleFournisseurReference
-     * @param string|null $fournisseurReference
-     * @param ReferenceArticle|null $referenceArticle
-     * @return ArticleFournisseur|null
-     * @throws ImportException
-     * @throws Exception
-     */
     private function checkAndCreateArticleFournisseur(?string $articleFournisseurReference,
                                                       ?string $fournisseurReference,
                                                       ?ReferenceArticle $referenceArticle): ?ArticleFournisseur
@@ -1512,10 +1550,6 @@ class ImportService
         return $articleFournisseur;
     }
 
-    /**
-     * @param array $stats
-     * @param boolean $newEntity
-     */
     private function updateStats(array &$stats, bool $newEntity)
     {
         if ($newEntity) {
