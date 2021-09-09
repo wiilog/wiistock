@@ -1231,8 +1231,16 @@ class ImportService
         }
 
         if(isset($data['mobileLoginKey'])) {
+            $minMobileKeyLength = UserService::MIN_MOBILE_KEY_LENGTH;
+            $maxMobileKeyLength = UserService::MAX_MOBILE_KEY_LENGTH;
+
+            if(strlen($data['mobileLoginKey']) < UserService::MIN_MOBILE_KEY_LENGTH
+                || strlen($data['mobileLoginKey']) > UserService::MAX_MOBILE_KEY_LENGTH) {
+                $this->throwError("La clé de connexion doit faire entre ${minMobileKeyLength} et ${maxMobileKeyLength} caractères");
+            }
+
             $userWithExistingKey = $this->em->getRepository(Utilisateur::class)->findOneBy(['mobileLoginKey' => $data['mobileLoginKey']]);
-            if(!isset($userWithExistingKey)) {
+            if(!isset($userWithExistingKey) || $userWithExistingKey->getId() === $user->getId()) {
                 $user->setMobileLoginKey($data['mobileLoginKey']);
             } else {
                 $this->throwError('Cette clé de connexion est déjà utilisée par un autre utilisateur');
