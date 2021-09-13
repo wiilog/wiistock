@@ -758,6 +758,16 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
+     * @Route("/voir/{id}", name="reference_article_show_page", options={"expose"=true})
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE})
+     */
+    public function showPage(ReferenceArticle $referenceArticle): Response {
+        return $this->render('reference_article/show/show.html.twig', [
+            'referenceArticle' => $referenceArticle
+        ]);
+    }
+
+    /**
      * @Route("/exporter-refs", name="export_all_refs", options={"expose"=true}, methods="GET|POST")
      */
     public function exportAllRefs(EntityManagerInterface $manager,
