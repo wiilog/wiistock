@@ -56,7 +56,7 @@ $fa-font-path: '~@fortawesome/fontawesome-free/webfonts';
 @import "toggle_button";
 @import "radio_button";
 @import "service";
-@import "switch";
+@import "forms";
 @import "WYSIWYG";
 @import "drag_and_drop";
 @import "select2";
@@ -72,7 +72,6 @@ $fa-font-path: '~@fortawesome/fontawesome-free/webfonts';
 @import "list";
 @import "iot";
 @import "notification";
-@import "article_reference";
 
 /* filters à garder après buttons */
 @import "filters";
