@@ -536,7 +536,7 @@ class PreparationController extends AbstractController
                 'référence',
                 'libellé',
                 'emplacement',
-                'quantité à collecter',
+                'quantité à préparer',
                 'code-barre'
             ];
             $nowStr = new DateTime('now');

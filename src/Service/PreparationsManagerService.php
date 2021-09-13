@@ -9,6 +9,7 @@ use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorWrapper;
+use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
@@ -640,19 +641,22 @@ class PreparationsManagerService
     public function putPreparationLines($handle, Preparation $preparation): void {
         $preparationBaseData = $preparation->serialize();
 
-        foreach ($preparation->getReferenceLines() as $ligneArticle) {
-            $referenceArticle = $ligneArticle->getReference();
+        /** @var PreparationOrderReferenceLine $referenceLine */
+        foreach ($preparation->getReferenceLines() as $referenceLine) {
+            $referenceArticle = $referenceLine->getReference();
 
             $this->CSVExportService->putLine($handle, array_merge($preparationBaseData, [
                 $referenceArticle->getReference() ?? '',
                 $referenceArticle->getLibelle() ?? '',
                 $referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '',
-                $ligneArticle->getQuantity() ?? 0,
+                $referenceLine->getQuantity() ?? 0,
                 $referenceArticle->getBarCode()
             ]));
         }
 
-        foreach ($preparation->getArticleLines() as $article) {
+        /** @var PreparationOrderArticleLine $articleLine */
+        foreach ($preparation->getArticleLines() as $articleLine) {
+            $article = $articleLine->getArticle();
             $articleFournisseur = $article->getArticleFournisseur();
             $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
             $reference = $referenceArticle ? $referenceArticle->getReference() : '';
@@ -661,7 +665,7 @@ class PreparationsManagerService
                 $reference,
                 $article->getLabel() ?? '',
                 $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
-                $article->getQuantite() ?? 0,
+                $articleLine->getQuantity(),
                 $article->getBarCode()
             ]));
         }
