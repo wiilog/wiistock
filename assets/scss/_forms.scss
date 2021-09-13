@@ -1,3 +1,34 @@
+.plus-minus-field {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+
+    input {
+        flex: 1 1 auto;
+        margin-left: 2px;
+        margin-right: 2px;
+        text-align: center;
+    }
+
+    .plus, .minus {
+        background: white;
+        border: 1px solid $color;
+        border-radius: 4px;
+        color: $color;
+        width: 37px;
+        min-width: 37px;
+        height: 37px;
+
+        &.minus:before {
+            content: "-";
+        }
+
+        &.plus:before {
+            content: "+";
+        }
+    }
+}
 
 .wii-switch {
     display: inline-block;

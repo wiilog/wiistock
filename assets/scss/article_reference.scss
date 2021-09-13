@@ -11,9 +11,8 @@ $grey: #CBCBCB;
         width: 100%;
         margin-top: 7px;
 
-        .select2 {
+        .select2, .select2-container {
             font-weight: normal;
-            color: red;
             width: 100%;
         }
 
@@ -96,4 +95,90 @@ $grey: #CBCBCB;
     }
 }
 
+.ra-box {
+    background: white;
+    border-radius: 4px;
+    box-shadow: 0.5px 0.5px 3px #333;
+
+    .header {
+        color: #3353D7;
+        font-weight: bold;
+        font-size: 18pt;
+        padding: 16px 20px;
+        border-bottom: 1px solid #CBCBCB;
+    }
+
+    .content {
+        padding: 16px 20px;
+    }
+}
+
+.ra-header {
+    margin-top: 120px;
+    border: #3353D7 solid 1px;
+    border-radius: 5px;
+    width: 450px;
+
+    .type {
+        background-color: #3353D7;
+        height: 20px;
+        text-align: center;
+        color: #FFFFFF;
+        font-weight: 600;
+    }
+
+    .image-container {
+        background-color: #F5F5F7;
+        margin: 10px;
+        width: 100px;
+        height: 100px;
+        display: flex;
+        justify-content: center;
+        border-radius: 5px;
+    }
+
+    .specifications {
+        margin: 10px 10px 10px 0;
+    }
+}
+
+.ra-title {
+    color: #3353D7;
+    font-size: 30px;
+    font-weight: bold;
+}
+
+.ra-subtitle {
+    color: #666666;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.ra-field-name {
+    color: #000000;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.ra-field-text {
+    color: #000000;
+    font-size: 24px;
+}
+
+.ra-body-text {
+    color: #000000;
+    font-size: 22px;
+}
+
+.ra-type {
+    color: #FFFFFF;
+    font-size: 22px;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.ra-small-text {
+    color: #666666;
+    font-size: 20px;
+}
 
