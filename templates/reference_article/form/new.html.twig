@@ -3,29 +3,59 @@
 {% block title %}Stock | Référence | Créer un article de référence{% endblock %}
 
 {% block page_content %}
-<div class="row">
-    <div class="col-6">
-        <div class="ra-box">
-            <div class="header">Gestion quantité</div>
-            <div class="content">
-                contenu<br>
-                contenu<br>
-                contenu<br>
-                contenu<br>
+    <div class="d-flex justify-content-center align-items-center">
+        <div class="row ra-column">
+            <div class="col-6">
+                <div class="ra-box">
+                    <div class="content">
+                        <label>
+                            Référence*
+                            <input type="text" name="reference" class="form-control">
+                        </label>
+                        <label>
+                            Statut*
+                        </label>
+                        <div class="wii-switch needed" data-title="Statut">
+                                    <input type="radio" name="statut" value="actif" content="Actif">
+                                    <input type="radio" name="statut" value="inactif" content="Inactif">
+                                </div>
+                    </div>
+                </div>
+                <div class="ra-box">
+                    <div class="header">Gestion quantité</div>
+                    <div class="content">
+                        contenu<br>
+                        contenu<br>
+                        contenu<br>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="ra-box">
+                    <div class="header">Gestion quantité</div>
+                    <div class="content">
+                        contenu<br>
+                        contenu<br>
+                        contenu<br>
+                        contenu<br>
+                        contenu<br>
+                        contenu<br>
+                        contenu<br>
+                        contenu<br>
+                        contenu<br>
+                        contenu<br>
+                        contenu<br>
+                    </div>
+                </div>
+                <div class="ra-box">
+                    <div class="header">Gestion quantité</div>
+                    <div class="content">
+                        contenu<br>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-6">
-        <div class="ra-box">
-            <div class="header">Gestion quantité</div>
-            <div class="content">
-            contenu<br>
-            contenu<br>
-            contenu<br>
-            </div>
-        </div>
-    </div>
-</div>
 {% endblock %}
 
 {% block javascripts %}
