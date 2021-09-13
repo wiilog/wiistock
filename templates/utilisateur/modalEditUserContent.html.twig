@@ -102,16 +102,13 @@
     <div class="col-12 form-group w-100">
         <label for="visibility-group">Groupe de visibilité</label>
         <select name="visibility-group"
-                class="form-control data ajax-autocomplete"
-                data-s2="visibilityGroup"
-                data-placeholder=""
-                id="visibility-group">
-            {% if user.visibilityGroup is not null %}
-                <option value="{{ user.visibilityGroup.id }}">{{ user.visibilityGroup.label }}</option>
-            {% endif %}
+                class="form-control data"
+                data-s2="visibilityGroup" multiple>
+            {% for visibilityGroup in user.visibilityGroups %}
+                <option value="{{ visibilityGroup.id }}" selected>{{ visibilityGroup.label }}</option>
+            {% endfor %}
         </select>
     </div>
-
     <div class="col-12 form-group">
         <label>Statut*</label><br>
         <div class="wii-switch needed" data-title="Statut">

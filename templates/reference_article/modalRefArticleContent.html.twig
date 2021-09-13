@@ -98,15 +98,11 @@
         </select>
     </div>
     <div class="col-4 form-group w-100">
-        <label for="visibility-group">Groupes de visibilité</label>
-        <select name="visibility-group" class="form-control data" data-s2="visibilityGroup" {{ app.user.visibilityGroup ? 'disabled' }} multiple>
-            {% if app.user.visibilityGroup %}
-                <option value="{{ app.user.visibilityGroup.id }}" selected>{{ app.user.visibilityGroup.label }}</option>
-            {% else %}
-                {% for visibilityGroup in articleRef.visibilityGroups %}
-                    <option value="{{ visibilityGroup.id }}" selected>{{ visibilityGroup.label }}</option>
-                {% endfor %}
-            {% endif %}
+        <label for="visibility-group">Groupe de visibilité</label>
+        <select name="visibility-group" class="form-control data needed" data-s2="visibilityGroup">
+                {% if articleRef.visibilityGroup %}
+                    <option value="{{ articleRef.visibilityGroup.id }}" selected>{{ articleRef.visibilityGroup.label }}</option>
+                {% endif %}
         </select>
     </div>
 </div>

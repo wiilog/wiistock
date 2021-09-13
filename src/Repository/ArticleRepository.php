@@ -12,6 +12,7 @@ use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 
+use App\Entity\VisibilityGroup;
 use App\Helper\QueryCounter;
 use WiiCommon\Helper\Stream;
 use App\Service\VisibleColumnService;
@@ -128,14 +129,16 @@ class ArticleRepository extends EntityRepository {
 
     public function iterateAll(Utilisateur $user): iterable {
         $queryBuilder = $this->createQueryBuilder('article');
-
-        $visibilityGroup = $user->getVisibilityGroup();
-        if ($visibilityGroup) {
+        $visibilityGroup = $user->getVisibilityGroups();
+        if (!$visibilityGroup->isEmpty()) {
             $queryBuilder
                 ->join('article.articleFournisseur', 'join_supplierArticle')
                 ->join('join_supplierArticle.referenceArticle', 'join_referenceArticle')
-                ->andWhere(':loggedUserVisibilityGroup MEMBER OF join_referenceArticle.visibilityGroups')
-                ->setParameter('loggedUserVisibilityGroup', $visibilityGroup);
+                ->join('join_referenceArticle.visibilityGroup', 'visibility_group')
+                ->andWhere('visibility_group.id IN (:userVisibilityGroups)')
+                ->setParameter('userVisibilityGroups', Stream::from(
+                    $visibilityGroup->toArray()
+                )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
         }
 
         return $queryBuilder->distinct()
@@ -177,14 +180,16 @@ class ArticleRepository extends EntityRepository {
         ];
 
         $queryBuilder = $this->createQueryBuilder('article');
-
-        $visibilityGroup = $user->getVisibilityGroup();
-        if ($visibilityGroup) {
+        $visibilityGroup = $user->getVisibilityGroups();
+        if (!$visibilityGroup->isEmpty()) {
             $queryBuilder
                 ->join('article.articleFournisseur', 'join_supplierArticle')
                 ->join('join_supplierArticle.referenceArticle', 'join_referenceArticle')
-                ->andWhere(':loggedUserVisibilityGroup MEMBER OF join_referenceArticle.visibilityGroups')
-                ->setParameter('loggedUserVisibilityGroup', $visibilityGroup);
+                ->join('join_referenceArticle.visibilityGroup', 'visibility_group')
+                ->andWhere('visibility_group.id IN (:userVisibilityGroups)')
+                ->setParameter('userVisibilityGroups', Stream::from(
+                    $visibilityGroup->toArray()
+                )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
         }
 
         $queryBuilder
@@ -321,13 +326,16 @@ class ArticleRepository extends EntityRepository {
     {
         $queryBuilder = $this->createQueryBuilder("a");
 
-        $visibilityGroup = $user->getVisibilityGroup();
-        if ($visibilityGroup) {
+        $visibilityGroup = $user->getVisibilityGroups();
+        if (!$visibilityGroup->isEmpty()) {
             $queryBuilder
                 ->join('a.articleFournisseur', 'join_supplierArticle')
                 ->join('join_supplierArticle.referenceArticle', 'join_referenceArticle')
-                ->andWhere(':loggedUserVisibilityGroup MEMBER OF join_referenceArticle.visibilityGroups')
-                ->setParameter('loggedUserVisibilityGroup', $visibilityGroup);
+                ->join('join_referenceArticle.visibilityGroup', 'visibility_group')
+                ->andWhere('visibility_group.id IN (:userVisibilityGroups)')
+                ->setParameter('userVisibilityGroups', Stream::from(
+                    $visibilityGroup->toArray()
+                )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
         }
 
         $countQuery = $countTotal = QueryCounter::count($queryBuilder, 'a');

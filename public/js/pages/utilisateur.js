@@ -60,9 +60,11 @@ function editRowUser(button) {
             let newOption = new Option(data.dropzone.text, data.dropzone.id, true, true);
             modal.find('#dropzone').append(newOption).trigger('change');
         }
-        if (data.visibilityGroup && modal.find('#visibility-group').find('option').length === 0) {
-            let newOption = new Option(data.visibilityGroup.text, data.visibilityGroup.id, true, true);
-            modal.find('#visibility-group').append(newOption).trigger('change');
+        if (data.visibilityGroups && modal.find('#visibility-group').find('option').length === 0) {
+            data.visibilityGroups.forEach((vg) => {
+                let newOption = new Option(vg.text, vg.id, true, true);
+                modal.find('#visibility-group').append(newOption).trigger('change');
+            });
         }
     }, 'json');
 
