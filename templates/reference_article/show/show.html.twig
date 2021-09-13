@@ -3,32 +3,118 @@
 {% block title %}Stock | Référence | Article de référence{% endblock %}
 
 {% block page_content %}
-    <div class="row">
-        <div class="col-6 d-flex justify-content-end">
-            <div class="ra-header d-flex flex-column">
-                <div class="type">{{ referenceArticle.type.label }}</div>
-                <div class="d-flex">
-                    <div class="image-container">
-                        <img src="{{ asset('svg/reference_article/product.svg') }}" alt="Image produit" width="50px">
-                    </div>
-                    <div class="specifications">
-                        <div><strong>Ref : {{ referenceArticle.reference }}</strong></div>
-                        <div><strong>{{ referenceArticle.libelle }}</strong></div>
-                        <div class="d-flex align-content-center my-3">
-                            <img src="{{ asset('svg/reference_article/stock.svg') }}" alt="Icône stock" class="mr-2" width="20px">
-                            <span>Quantité disponible <strong>{{ referenceArticle.quantiteDisponible }}</strong></span>
+    <div class="ra-container d-flex justify-content-center align-content-center">
+        <div class="row ra-column">
+            <div class="col-6">
+                <div class="ra-header d-flex flex-column">
+                    <div class="ra-type">{{ referenceArticle.type.label }}</div>
+                    <div class="d-flex header-wrapper">
+                        <div class="image-container">
+                            <img src="{{ asset('svg/reference_article/product.svg') }}" alt="Image produit" width="70px">
                         </div>
-                        <div class="d-flex align-content-center">
-                            <span>Référence {{ referenceArticle.statut == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') ? 'active' : 'inactive' }}</span>
-                            <span><img src="{{ asset('svg/reference_article/' ~ (referenceArticle.needsMobileSync ? 'mobile-sync-on.svg' : 'mobile-sync-off.svg')) }}"
-                                       alt="Icône synchronisation nomade" width="10px">Synchronisation nomade</span>
+                        <div class="specifications">
+                            <div><strong>Ref : {{ referenceArticle.reference }}</strong></div>
+                            <div><strong>{{ referenceArticle.libelle }}</strong></div>
+                            <div class="d-flex align-content-center my-3">
+                                <img src="{{ asset('svg/reference_article/stock.svg') }}" alt="Icône stock" class="mr-2" width="15px">
+                                <span class="ra-field-text">Quantité disponible <strong>{{ referenceArticle.quantiteDisponible }}</strong></span>
+                            </div>
+                            <div class="d-flex align-content-center">
+                            <span class="ra-small-text mr-3">
+                                Référence {{ referenceArticle.statut == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') ? 'active' : 'inactive' }}
+                            </span>
+                                <div class="d-flex align-content-center">
+                                    <img
+                                        src="{{ asset('svg/reference_article/' ~ (referenceArticle.needsMobileSync ? 'mobile-sync-on.svg' : 'mobile-sync-off.svg')) }}"
+                                        alt="Icône synchronisation nomade" width="10px"><span class="ra-small-text ml-2">Synchronisation nomade<sup>
+                                        <img src="{{ asset('svg/reference_article/information.svg') }}" alt="Icône information" width="10px"
+                                             class="has-tooltip" title="A définir"></sup>
+                                </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ra-box mt-3">
+                    <div class="header ra-title">Informations</div>
+                    <div class="content">
+                        <div class="d-flex">
+                            <div class="col-6 d-flex">
+                                <img src="{{ asset('svg/reference_article/manager.svg') }}" alt="Icône utilisateur" width="20px">
+                                <div class="box-item ml-3">
+                                    <span class="ra-field-name">Gestionnaires</span>
+                                    <span>{{ referenceArticle.managers | map(m => m.username) | join(', ') }}</span>
+                                </div>
+                            </div>
+                            <div class="col-6 d-flex">
+                                <img src="{{ asset('svg/reference_article/manager.svg') }}" alt="Icône utilisateur" width="20px">
+                                <div class="box-item ml-3">
+                                    <span class="ra-field-name">Acheteur</span>
+                                    <span>{{ referenceArticle.buyer ? referenceArticle.buyer.username }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex mt-4">
+                            <div class="col-6 d-flex">
+                                <img src="{{ asset('svg/reference_article/warehouse.svg') }}" alt="Icône utilisateur" width="20px">
+                                <div class="box-item ml-3">
+                                    <span class="ra-field-name">Catégorie d'inventaire</span>
+                                    <span>{{ referenceArticle.category ? referenceArticle.category.label : '-' }}</span>
+                                </div>
+                            </div>
+                            <div class="col-6 d-flex">
+                                <img src="{{ asset('svg/reference_article/calendar.svg') }}" alt="Icône utilisateur" width="20px">
+                                <div class="box-item ml-3">
+                                    <span class="ra-field-name">Date de dernier inventaire</span>
+                                    <span>{{ referenceArticle.dateLastInventory ? referenceArticle.dateLastInventory | date('D d M Y') : '-' }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex mt-4 ml-3">
+                            <span class="ra-field-name mr-2">Groupe de visibilité</span> <span
+                                class="ra-body-text"> Groupe 1</span>{# TODO ajouter le groupe de visibilité #}
+                        </div>
+
+                        <div class="my-4 ml-3">
+                            <span class="ra-subtitle">Pièces jointe</span>
+                            {% set url = app.request is not null ? app.request.getSchemeAndHttpHost() : app_url %}
+                            {% for attachment in referenceArticle.attachments %}
+                                <div class="attachment-item mt-2">
+                                    <img src="{{ asset('svg/reference_article/file.svg') }}" alt="Icône fichier" width="13px" class="mr-2">
+                                    <a target="_blank" class="ra-small-text"
+                                       href="{{ url ~ '/uploads/attachements/' ~ attachment.fileName }}"
+                                       download="{{ attachment.originalName }}">
+                                        {{ attachment.originalName }}
+                                    </a>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="content comment-container">
+                        <div class="ml-3">
+                            <span class="ra-subtitle">Commentaire</span>
+                            <div
+                                class="mt-2">{{ referenceArticle.commentaire and referenceArticle.commentaire != '<p><br></p>' ? referenceArticle.commentaire | raw : '-' }}</div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="col-6">
-
+            <div class="col-6">
+                <div class="ra-box">
+                    <div class="header ra-title">Gestion quantité</div>
+                    <div class="content">
+                        <div class="d-flex">
+                            <div class="d-flex ml-3">
+                                <span class="ra-field-name mr-2">
+                                    Quantité gérée à {{ referenceArticle.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_REFERENCE') ? 'la référence' : 'l\'article' }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 {% endblock %}
