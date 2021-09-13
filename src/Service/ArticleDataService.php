@@ -366,6 +366,7 @@ class ArticleDataService
         $entityManager->persist($toInsert);
         $this->freeFieldService->manageFreeFields($toInsert, $data, $entityManager);
         // optionnel : ajout dans une demande
+        // TODO Adrien
         if ($demande) {
             $demande->addArticle($toInsert);
             $toInsert->setQuantiteAPrelever($toInsert->getQuantite());

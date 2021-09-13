@@ -219,7 +219,7 @@ class PreparationController extends AbstractController
                             'isRef' => false,
                             'isRefByArt' => false,
                             'quantity' =>  $articleLine->getPickedQuantity(),
-                            'id' => $article->getId(),
+                            'id' => $articleLine->getId(),
                             'isPrepaEditable' => $isPrepaEditable,
                             'stockManagement' => $article->getArticleFournisseur()->getReferenceArticle()->getStockManagement()
                         ])
@@ -324,10 +324,20 @@ class PreparationController extends AbstractController
             $preparation = $ligneArticle->getPreparation();
             // TODO adrien
             $articles = $articleRepository->findActifByRefArticleWithoutDemand($refArticle, $preparation, $preparation->getDemande());
+
+            $pickedQuantitiesByArticle = Stream::from($preparation->getArticleLines())
+                ->keymap(fn(PreparationOrderArticleLine $articleLine) => [
+                    $articleLine->getArticle()->getId(),
+                    $articleLine->getPickedQuantity()
+                ])
+                ->toArray();
+
+
             $response = $this->renderView('preparation/modalSplitting.html.twig', [
                 'reference' => $refArticle->getReference(),
                 'referenceId' => $refArticle->getId(),
                 'articles' => $articles,
+                'pickedQuantities' => $pickedQuantitiesByArticle,
                 'quantite' => $ligneArticle->getQuantity(),
                 'preparation' => $preparation,
                 'demande' => $preparation->getDemande(),
@@ -458,16 +468,16 @@ class PreparationController extends AbstractController
                                         EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
-            $articleRepository = $entityManager->getRepository(Article::class);
-            $ligneArticlePreparationRepository = $entityManager->getRepository(PreparationOrderReferenceLine::class);
+            $referenceLineRepository = $entityManager->getRepository(PreparationOrderReferenceLine::class);
+            $articleLineRepository = $entityManager->getRepository(PreparationOrderArticleLine::class);
 
-            if ($data['ref']) {
-                $ligneArticle = $ligneArticlePreparationRepository->find($data['id']);
-                $quantity = $ligneArticle->getQuantity();
-            } else {
-                $article = $articleRepository->find($data['id']);
-                $quantity = $article->getQuantitePrelevee();
-            }
+            $repository = $data['ref']
+                ? $referenceLineRepository
+                : $articleLineRepository;
+
+            /** @var PreparationOrderReferenceLine|PreparationOrderArticleLine $line */
+            $line = $repository->find($data['id']);
+            $quantity = $line->getPickedQuantity();
 
             $json = $this->renderView(
                 'preparation/modalEditLigneArticleContent.html.twig',

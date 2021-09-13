@@ -671,26 +671,22 @@ class ReferenceArticleRepository extends EntityRepository {
 
     public function getByLivraisonsIds($livraisonsIds)
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT ra.reference,
-                         e.label as location,
-                         ra.libelle as label,
-                         la.quantitePrelevee as quantity,
-                         1 as is_ref,
-                         l.id as id_livraison,
-                         ra.barCode
-			FROM App\Entity\ReferenceArticle ra
-			LEFT JOIN ra.emplacement e
-			JOIN ra.ligneArticlePreparations la
-			JOIN la.preparation p
-			JOIN p.livraison l
-			JOIN l.statut s
-			WHERE l.id IN (:livraisonsIds) AND la.quantitePrelevee > 0"
-        )->setParameter('livraisonsIds', $livraisonsIds, Connection::PARAM_STR_ARRAY);
-
-        return $query->execute();
+        return $this->createQueryBuilder('referenceArticle')
+            ->select('referenceArticle.reference AS reference')
+            ->addSelect('join_location.label AS location')
+            ->addSelect('referenceArticle.libelle AS label')
+            ->addSelect('join_preparationLine.pickedQuantity AS quantity')
+            ->addSelect('1 AS is_ref')
+            ->addSelect('join_delivery.id AS id_livraison')
+            ->addSelect('referenceArticle.barCode AS barCode')
+            ->leftJoin('referenceArticle.emplacement', 'join_location')
+            ->join('referenceArticle.preparationOrderReferenceLines', 'join_preparationLine')
+            ->join('join_preparationLine.preparation', 'join_preparation')
+            ->join('join_preparation.livraison', 'join_delivery')
+            ->andWhere('join_delivery.id IN (:deliveryIds) AND join_preparationLine.pickedQuantity > 0')
+            ->setParameter('livraisonsIds', $livraisonsIds, Connection::PARAM_STR_ARRAY)
+            ->getQuery()
+            ->execute();
     }
 
     public function getByOrdreCollectesIds($collectesIds)
