@@ -1076,4 +1076,12 @@ class ReferenceArticleController extends AbstractController
 
         return new JsonResponse(['success' => true]);
     }
+
+    /**
+     * @Route("/nouveau-page", name="reference_article_new", options={"expose"=true})
+     */
+    public function newTemplate() {
+        return $this->render("reference_article/form/new.html.twig", [
+        ]);
+    }
 }

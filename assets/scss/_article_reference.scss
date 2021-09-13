@@ -1,0 +1,17 @@
+.ra-box {
+    background: white;
+    border-radius: 4px;
+    box-shadow: 0.5px 0.5px 3px #333;
+
+    .header {
+        color: #3353D7;
+        font-weight: bold;
+        font-size: 18pt;
+        padding: 16px 20px;
+        border-bottom: 1px solid #CBCBCB;
+    }
+
+    .content {
+        padding: 16px 20px;
+    }
+}
