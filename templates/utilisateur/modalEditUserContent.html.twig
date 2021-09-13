@@ -101,10 +101,13 @@
     </div>
     <div class="col-12 form-group w-100">
         <label for="visibility-group">Groupe de visibilité</label>
-        <select name="visibility-group" class="form-control data ajax-autocomplete"
-                data-s2="visibilityGroup" {{ app.user.visibilityGroup ? 'disabled' }} id="visibility-group">
-            {% if app.user.visibilityGroup is not null %}
-                <option value="{{ app.user.visibilityGroup.id }}">{{ app.user.visibilityGroup.label }}</option>
+        <select name="visibility-group"
+                class="form-control data ajax-autocomplete"
+                data-s2="visibilityGroup"
+                data-placeholder=""
+                id="visibility-group">
+            {% if user.visibilityGroup is not null %}
+                <option value="{{ user.visibilityGroup.id }}">{{ user.visibilityGroup.label }}</option>
             {% endif %}
         </select>
     </div>

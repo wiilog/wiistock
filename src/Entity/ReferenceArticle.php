@@ -1103,12 +1103,12 @@ class ReferenceArticle extends FreeFieldEntity
         return $this->typeQuantite === self::TYPE_QUANTITE_REFERENCE
             ? []
             : Stream::from($this->articlesFournisseur)
-            ->map(function(ArticleFournisseur $articleFournisseur) {
-                return $articleFournisseur->getArticles()->toArray();
-            })
-            ->flatten()
-            ->unique()
-            ->toArray();
+                ->map(function(ArticleFournisseur $articleFournisseur) {
+                    return $articleFournisseur->getArticles()->toArray();
+                })
+                ->flatten()
+                ->unique()
+                ->toArray();
     }
 
 
