@@ -75,16 +75,10 @@
     <div class="col-4 form-group w-100">
         <label for="visibility-group">Groupes de visibilité</label>
         <select name="visibility-group"
-                class="form-control data"
-                data-s2="visibilityGroup"
-                {{ app.user.visibilityGroup ? 'disabled' }}
-                multiple>
-            {% if app.user.visibilityGroup %}
-                <option value="{{ app.user.visibilityGroup.id }}" selected>{{ app.user.visibilityGroup.label }}</option>
-            {% endif %}
+                class="form-control data needed"
+                data-s2="visibilityGroup">
         </select>
     </div>
-    <input type="hidden" class="no-clear" id="user-vg" data-id="{{ app.user.visibilityGroup ? app.user.visibilityGroup.id }}" data-value="{{ app.user.visibilityGroup ? app.user.visibilityGroup.label }}"/>
 </div>
 <div class="row mb-4">
     <div class="form-group col-8">

@@ -5,10 +5,12 @@ namespace App\Repository;
 use App\Entity\ArticleFournisseur;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
+use App\Entity\VisibilityGroup;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Symfony\Component\HttpFoundation\InputBag;
+use WiiCommon\Helper\Stream;
 
 /**
  * @method ArticleFournisseur|null find($id, $lockMode = null, $lockVersion = null)
@@ -125,14 +127,16 @@ class ArticleFournisseurRepository extends EntityRepository
     public function findByParams(?InputBag $params, Utilisateur $user)
     {
         $queryBuilder = $this->createQueryBuilder('supplier_article');
-        $visibilityGroup = $user->getVisibilityGroup();
-        if ($visibilityGroup) {
+        $visibilityGroup = $user->getVisibilityGroups();
+        if (!$visibilityGroup->isEmpty()) {
             $queryBuilder
                 ->join('supplier_article.referenceArticle', 'join_referenceArticle')
-                ->andWhere(':loggedUserVisibilityGroup MEMBER OF join_referenceArticle.visibilityGroups')
-                ->setParameter('loggedUserVisibilityGroup', $visibilityGroup);
+                ->join('join_referenceArticle.visibilityGroup', 'visibility_group')
+                ->andWhere('visibility_group.id IN (:userVisibilityGroups)')
+                ->setParameter('userVisibilityGroups', Stream::from(
+                    $visibilityGroup->toArray()
+                )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
         }
-
         $countTotal = $this->countAll();
 
         $queryBuilder

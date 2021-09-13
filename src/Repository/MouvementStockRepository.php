@@ -7,6 +7,7 @@ use App\Entity\MouvementStock;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
+use App\Entity\VisibilityGroup;
 use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
@@ -15,6 +16,7 @@ use Doctrine\ORM\Query;
 use Exception;
 use Generator;
 use Symfony\Component\HttpFoundation\InputBag;
+use WiiCommon\Helper\Stream;
 
 /**
  * @method MouvementStock|null find($id, $lockMode = null, $lockVersion = null)
@@ -339,19 +341,22 @@ class MouvementStockRepository extends EntityRepository
     {
         $queryBuilder = $this->createQueryBuilder('stock_movement');
         $exprBuilder = $queryBuilder->expr();
-
-        $visibilityGroup = $user->getVisibilityGroup();
-        if ($visibilityGroup) {
+        $visibilityGroup = $user->getVisibilityGroups();
+        if (!$visibilityGroup->isEmpty()) {
             $queryBuilder
                 ->leftJoin('stock_movement.refArticle', 'join_refArticle')
                 ->leftJoin('stock_movement.article', 'join_article')
                 ->leftJoin('join_article.articleFournisseur', 'join_article_supplierArticle')
                 ->leftJoin('join_article_supplierArticle.referenceArticle', 'join_article_refArticle')
+                ->leftJoin('join_refArticle.visibilityGroup', 'visibility_group')
+                ->leftJoin('join_article_refArticle.visibilityGroup', 'join_article_reference_visibility_group')
                 ->andWhere($exprBuilder->orX(
-                    ':loggedUserVisibilityGroup MEMBER OF join_refArticle.visibilityGroups',
-                    ':loggedUserVisibilityGroup MEMBER OF join_article_refArticle.visibilityGroups'
+                    'visibility_group.id IN (:userVisibilityGroups)',
+                    'join_article_reference_visibility_group.id IN (:userVisibilityGroups)',
                 ))
-                ->setParameter('loggedUserVisibilityGroup', $visibilityGroup);
+                ->setParameter('userVisibilityGroups', Stream::from(
+                    $visibilityGroup->toArray()
+                )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
         }
 
         $countTotal = $this->countAll();

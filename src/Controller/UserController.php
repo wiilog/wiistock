@@ -27,6 +27,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use WiiCommon\Helper\Stream;
 
 
 /**
@@ -144,7 +145,6 @@ class UserController extends AbstractController
                 ->setPhone($data['phoneNumber'])
                 ->setRole($role)
                 ->setDropzone($data['dropzone'] ? $emplacementRepository->find(intval($data['dropzone'])) : null)
-                ->setVisibilityGroup($data['visibility-group'] ? $visibilityGroupRepository->find(intval($data['visibility-group'])) : null)
                 ->setStatus(true)
                 ->setAddress($data['address'])
                 ->setMobileLoginKey($uniqueMobileKey);
@@ -153,6 +153,14 @@ class UserController extends AbstractController
 				$password = $encoder->hashPassword($utilisateur, $data['password']);
 				$utilisateur->setPassword($password);
 			}
+
+            $visibilityGroupsIds = is_string($data["visibility-group"]) ? explode(',', $data['visibility-group']) : $data["visibility-group"];
+            foreach ($visibilityGroupsIds as $visibilityGroupsId) {
+                $visibilityGroup = $visibilityGroupRepository->find($visibilityGroupsId);
+                if ($visibilityGroup) {
+                    $utilisateur->addVisibilityGroup($visibilityGroup);
+                }
+            }
 
             if (isset($data['deliveryTypes'])) {
                 foreach ($data['deliveryTypes'] as $type) {
@@ -217,12 +225,11 @@ class UserController extends AbstractController
                         'text' => $user->getDropzone()->getLabel()
                     ]
                     : null,
-                'visibilityGroup' => $user->getVisibilityGroup()
-                    ? [
-                        'id' => $user->getVisibilityGroup()->getId(),
-                        'text' => $user->getVisibilityGroup()->getLabel()
-                    ]
-                    : null
+                'visibilityGroup' => Stream::from($user->getVisibilityGroups()->toArray())
+                    ->map(fn(VisibilityGroup $visibilityGroup) => [
+                        'id' => $visibilityGroup->getId(),
+                        'text' => $visibilityGroup->getLabel()
+                    ])->toArray(),
                 ]);
         }
         throw new BadRequestHttpException();
@@ -315,11 +322,15 @@ class UserController extends AbstractController
                 ->setUsername($data['username'])
                 ->setAddress($data['address'])
                 ->setDropzone($data['dropzone'] ? $emplacementRepository->find(intval($data['dropzone'])) : null)
-                ->setVisibilityGroup($data['visibility-group'] ? $visibilityGroupRepository->find(intval($data['visibility-group'])) : null)
                 ->setEmail($data['email'])
                 ->setPhone($data['phoneNumber'] ?? '');
 
-            if($user->getVisibilityGroup()) {
+            $visibilityGroups = is_string($data["visibility-group"]) ? explode(',', $data['visibility-group']) : $data["visibility-group"];
+            foreach ($visibilityGroups as $visibilityGroup) {
+                $user->addVisibilityGroup($visibilityGroupRepository->find($visibilityGroup));
+            }
+
+            if(!$user->getVisibilityGroups()->isEmpty()) {
                 $filters = $entityManager->getRepository(FiltreRef::class)->findBy(["champFixe" => FiltreRef::FIXED_FIELD_VISIBILITY_GROUP]);
                 foreach($filters as $filter) {
                     $entityManager->remove($filter);
@@ -595,7 +606,7 @@ class UserController extends AbstractController
             "Types de d'acheminement",
             'Types de service',
             'Dropzone',
-            'Groupe de visibilité',
+            'Groupe(s) de visibilité',
             'Statut'
         ];
 

@@ -10,6 +10,7 @@ use App\Entity\InventoryMission;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
+use App\Entity\VisibilityGroup;
 use App\Helper\QueryCounter;
 use WiiCommon\Helper\Stream;
 use App\Service\VisibleColumnService;
@@ -52,11 +53,14 @@ class ReferenceArticleRepository extends EntityRepository {
     public function getForSelect(?string $term, Utilisateur $user) {
         $queryBuilder = $this->createQueryBuilder("reference");
 
-        $visibilityGroup = $user->getVisibilityGroup();
-        if ($visibilityGroup) {
+        $visibilityGroup = $user->getVisibilityGroups();
+        if (!$visibilityGroup->isEmpty()) {
             $queryBuilder
-                ->andWhere(':loggedUserVisibilityGroup MEMBER OF reference.visibilityGroups')
-                ->setParameter('loggedUserVisibilityGroup', $visibilityGroup);
+                ->join('reference.visibilityGroup', 'visibility_group')
+                ->andWhere('visibility_group.id IN (:userVisibilityGroups)')
+                ->setParameter('userVisibilityGroups', Stream::from(
+                    $visibilityGroup->toArray()
+                )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
         }
 
         return $queryBuilder
@@ -70,11 +74,14 @@ class ReferenceArticleRepository extends EntityRepository {
     public function iterateAll(Utilisateur $user): iterable {
         $queryBuilder = $this->createQueryBuilder('referenceArticle');
 
-        $visibilityGroup = $user->getVisibilityGroup();
-        if ($visibilityGroup) {
+        $visibilityGroup = $user->getVisibilityGroups();
+        if (!$visibilityGroup->isEmpty()) {
             $queryBuilder
-                ->andWhere(':loggedUserVisibilityGroup MEMBER OF referenceArticle.visibilityGroups')
-                ->setParameter('loggedUserVisibilityGroup', $visibilityGroup);
+                ->join('referenceArticle.visibilityGroup', 'visibility_group')
+                ->andWhere('visibility_group.id IN (:userVisibilityGroups)')
+                ->setParameter('userVisibilityGroups', Stream::from(
+                    $visibilityGroup->toArray()
+                )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
         }
 
         return $queryBuilder->distinct()
@@ -97,13 +104,13 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('referenceArticle.needsMobileSync')
             ->addSelect('referenceArticle.freeFields')
             ->addSelect('referenceArticle.stockManagement')
-            ->addSelect("GROUP_CONCAT(join_visibilityGroups.label SEPARATOR ', ') AS visibilityGroups")
+            ->addSelect('join_visibilityGroup.label AS visibilityGroup')
             ->leftJoin('referenceArticle.statut', 'statutRef')
             ->leftJoin('referenceArticle.emplacement', 'emplacementRef')
             ->leftJoin('referenceArticle.type', 'typeRef')
             ->leftJoin('referenceArticle.category', 'categoryRef')
             ->leftJoin('referenceArticle.buyer', 'join_buyer')
-            ->leftJoin('referenceArticle.visibilityGroups', 'join_visibilityGroups')
+            ->leftJoin('referenceArticle.visibilityGroup', 'join_visibilityGroup')
             ->groupBy('referenceArticle.id')
             ->orderBy('referenceArticle.id', 'ASC')
             ->getQuery()
@@ -179,11 +186,14 @@ class ReferenceArticleRepository extends EntityRepository {
             ->where("reference.${field} LIKE :search")
             ->setParameter('search', '%' . $search . '%');
 
-        $visibilityGroup = $user->getVisibilityGroup();
-        if ($visibilityGroup) {
+        $visibilityGroup = $user->getVisibilityGroups();
+        if (!$visibilityGroup->isEmpty()) {
             $queryBuilder
-                ->andWhere(':loggedUserVisibilityGroup MEMBER OF reference.visibilityGroups')
-                ->setParameter('loggedUserVisibilityGroup', $visibilityGroup);
+                ->join('reference.visibilityGroup', 'visibility_group')
+                ->andWhere('visibility_group.id IN (:userVisibilityGroups)')
+                ->setParameter('userVisibilityGroups', Stream::from(
+                    $visibilityGroup->toArray()
+                )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
         }
 
         if ($activeOnly !== null) {
@@ -249,11 +259,14 @@ class ReferenceArticleRepository extends EntityRepository {
         ];
 
         $queryBuilder = $this->createQueryBuilder("ra");
-        $visibilityGroup = $user->getVisibilityGroup();
-        if ($visibilityGroup) {
+        $visibilityGroup = $user->getVisibilityGroups();
+        if (!$visibilityGroup->isEmpty()) {
             $queryBuilder
-                ->andWhere(':loggedUserVisibilityGroup MEMBER OF ra.visibilityGroups')
-                ->setParameter('loggedUserVisibilityGroup', $visibilityGroup);
+                ->join('ra.visibilityGroup', 'visibility_group')
+                ->andWhere('visibility_group.id IN (:userVisibilityGroups)')
+                ->setParameter('userVisibilityGroups', Stream::from(
+                    $visibilityGroup->toArray()
+                )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
         }
 
         foreach ($filters as $filter) {
