@@ -10,6 +10,8 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Livraison;
 use App\Entity\Menu;
+use App\Entity\PreparationOrder\PreparationOrderArticleLine;
+use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -120,13 +122,15 @@ class LivraisonController extends AbstractController
         $data = [];
         if ($preparation) {
             $rows = [];
-            foreach ($preparation->getArticles() as $article) {
-                if ($article->getQuantite() !== 0 && $article->getQuantitePrelevee() !== 0) {
+            /** @var PreparationOrderArticleLine $articleLine */
+            foreach ($preparation->getArticleLines() as $articleLine) {
+                $article = $articleLine->getArticle();
+                if ($articleLine->getQuantity() !== 0 && $articleLine->getPickedQuantity() !== 0) {
                     $rows[] = [
                         "Référence" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
-                        "Libellé" => $article->getLabel() ? $article->getLabel() : '',
+                        "Libellé" => $article->getLabel() ?: '',
                         "Emplacement" => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
-                        "Quantité" => $article->getQuantitePrelevee(),
+                        "Quantité" => $articleLine->getPickedQuantity(),
                         "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
                             'id' => $article->getId(),
                         ])
@@ -134,15 +138,17 @@ class LivraisonController extends AbstractController
                 }
             }
 
-            foreach ($preparation->getLigneArticlePreparations() as $ligne) {
-                if ($ligne->getQuantitePrelevee() > 0) {
+            /** @var PreparationOrderReferenceLine $referenceLine */
+            foreach ($preparation->getReferenceLines() as $referenceLine) {
+                if ($referenceLine->getPickedQuantity() > 0) {
+                    $reference = $referenceLine->getReference();
                     $rows[] = [
-                        "Référence" => $ligne->getReference()->getReference(),
-                        "Libellé" => $ligne->getReference()->getLibelle(),
-                        "Emplacement" => $ligne->getReference()->getEmplacement() ? $ligne->getReference()->getEmplacement()->getLabel() : '',
-                        "Quantité" => $ligne->getQuantitePrelevee(),
+                        "Référence" => $reference->getReference(),
+                        "Libellé" => $reference->getLibelle(),
+                        "Emplacement" => $reference->getEmplacement() ? $reference->getEmplacement()->getLabel() : '',
+                        "Quantité" => $referenceLine->getPickedQuantity(),
                         "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
-                            'refArticleId' => $ligne->getReference()->getId(),
+                            'refArticleId' => $reference->getId(),
                         ])
                     ];
                 }
@@ -161,7 +167,6 @@ class LivraisonController extends AbstractController
      */
     public function show(Livraison $livraison): Response
     {
-
         $demande = $livraison->getDemande();
 
         $utilisateurPreparation = $livraison->getPreparation() ? $livraison->getPreparation()->getUtilisateur() : null;

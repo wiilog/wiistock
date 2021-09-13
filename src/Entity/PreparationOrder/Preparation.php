@@ -267,11 +267,16 @@ class Preparation implements PairedEntity
         return $this->getDemande() ? $this->getDemande()->getCommentaire() : "";
     }
 
+    public function getArticleLine(Article $article): ?Article
+    {
+        $correspondingArticleLines = $this->articleLines->filter(fn(PreparationOrderArticleLine $articleLine) => ($articleLine->getArticle() === $article));
+        return $correspondingArticleLines->first() ?: null;
+    }
+
     /**
      * @return Collection|PreparationOrderArticleLine[]
      */
-    public function getArticleLines(): Collection
-    {
+    public function getArticleLines(): Collection {
         return $this->articleLines;
     }
 

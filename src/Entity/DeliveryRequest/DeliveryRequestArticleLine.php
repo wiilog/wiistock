@@ -102,29 +102,4 @@ class DeliveryRequestArticleLine
 
         return $this;
     }
-
-    public function getToSplit(): ?bool
-    {
-        return $this->toSplit;
-    }
-
-    public function setToSplit(?bool $toSplit): self
-    {
-        $this->toSplit = $toSplit;
-
-        return $this;
-    }
-
-    public function getQuantitePrelevee(): ?int
-    {
-        return $this->quantitePrelevee;
-    }
-
-    public function setQuantitePrelevee(?int $quantitePrelevee): self
-    {
-        $this->quantitePrelevee = $quantitePrelevee;
-
-        return $this;
-    }
-
 }

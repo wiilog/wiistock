@@ -593,20 +593,23 @@ class ArticleRepository extends EntityRepository {
 
     public function getByLivraisonsIds($livraisonsIds)
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT a.reference, e.label as location, a.label, a.quantitePrelevee as quantity, 0 as is_ref, l.id as id_livraison, a.barCode
-			FROM App\Entity\Article a
-			LEFT JOIN a.emplacement e
-			JOIN a.preparation p
-			JOIN p.livraison l
-			JOIN l.statut s
-			WHERE l.id IN (:livraisonsIds)
-			  AND a.quantite > 0"
-        )->setParameter('livraisonsIds', $livraisonsIds, Connection::PARAM_STR_ARRAY);
-
-		return $query->execute();
+        return $this->createQueryBuilder('article')
+            ->select('article.reference AS reference')
+            ->addSelect('join_location.label AS location')
+            ->addSelect('article.label AS label')
+            ->addSelect('join_preparationOrderLines.quantity AS quantity')
+            ->addSelect('0 as is_ref')
+            ->addSelect('join_delivery.id AS id_livraison')
+            ->addSelect('article.barCode AS barCode')
+            ->leftJoin('article.emplacement', 'join_location')
+            ->join('article.preparationOrderLines', 'join_preparationOrderLines')
+            ->join('join_preparationOrderLines.preparation', 'join_preparation')
+            ->join('join_preparation.livraison', 'join_delivery')
+            ->andWhere('join_delivery.id IN (:deliveryIds)')
+            ->andWhere('article.quantite > 0')
+            ->setParameter('deliveryIds', $livraisonsIds, Connection::PARAM_STR_ARRAY)
+            ->getQuery()
+            ->execute();
 	}
 
 	public function getByOrdreCollectesIds($collectesIds)

@@ -10,6 +10,7 @@ use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorWrapper;
+use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
@@ -172,26 +173,27 @@ class PreparationController extends AbstractController
 
         if (isset($demande)) {
             $rows = [];
-            foreach ($preparation->getReferenceLines() as $ligneArticle) {
-                $articleRef = $ligneArticle->getReference();
+            /** @var PreparationOrderReferenceLine $referenceLine */
+            foreach ($preparation->getReferenceLines() as $referenceLine) {
+                $articleRef = $referenceLine->getReference();
                 $isRefByArt = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE;
-                if ($ligneArticle->getPickedQuantity() > 0 ||
+                if ($referenceLine->getPickedQuantity() > 0 ||
                     ($preparationStatut !== Preparation::STATUT_PREPARE && $preparationStatut !== Preparation::STATUT_INCOMPLETE)) {
-                    $qttForCurrentLine = $ligneArticle->getQuantity() ?? null;
+                    $qttForCurrentLine = $referenceLine->getQuantity() ?? null;
                     $rows[] = [
                         "Référence" => $articleRef ? $articleRef->getReference() : ' ',
                         "Libellé" => $articleRef ? $articleRef->getLibelle() : ' ',
                         "Emplacement" => $articleRef ? ($articleRef->getEmplacement() ? $articleRef->getEmplacement()->getLabel() : '') : '',
                         "Quantité" => $articleRef->getQuantiteStock(),
                         "Quantité à prélever" => $qttForCurrentLine,
-                        "Quantité prélevée" => $ligneArticle->getPickedQuantity() ? $ligneArticle->getPickedQuantity() : ' ',
-                        'active' => !empty($ligneArticle->getPickedQuantity()),
+                        "Quantité prélevée" => $referenceLine->getPickedQuantity() ?: ' ',
+                        'active' => !empty($referenceLine->getPickedQuantity()),
                         "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
                             'barcode' => $articleRef->getBarCode(),
                             'isRef' => true,
                             'artOrRefId' => $articleRef->getId(),
                             'isRefByArt' => $isRefByArt,
-                            'id' => $ligneArticle->getId(),
+                            'id' => $referenceLine->getId(),
                             'isPrepaEditable' => $isPrepaEditable,
                             'stockManagement' => $articleRef->getStockManagement()
                         ])
@@ -199,27 +201,24 @@ class PreparationController extends AbstractController
                 }
             }
 
-            foreach ($preparation->getArticleLines() as $article) {
-                if ($article->getQuantite() > 0 ||
+            /** @var PreparationOrderArticleLine $articleLine */
+            foreach ($preparation->getArticleLines() as $articleLine) {
+                $article = $articleLine->getArticle();
+                if ($articleLine->getPickedQuantity() > 0 ||
                     ($preparationStatut !== Preparation::STATUT_PREPARE && $preparationStatut !== Preparation::STATUT_INCOMPLETE)) {
-                    if (empty($article->getQuantiteAPrelever())) {
-                        $article->setQuantiteAPrelever($article->getQuantite());
-                        $this->getDoctrine()->getManager()->flush();
-                    }
                     $rows[] = [
                         "Référence" => ($article->getArticleFournisseur() && $article->getArticleFournisseur()->getReferenceArticle()) ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
                         "Libellé" => $article->getLabel() ?? '',
                         "Emplacement" => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
                         "Quantité" => $article->getQuantite() ?? '',
-                        "Quantité à prélever" => $article->getQuantiteAPrelever() ?? '',
-                        "Quantité prélevée" => $article->getQuantitePrelevee() ?? ' ',
-                        'active' => !empty($article->getQuantitePrelevee()),
+                        "pickedQuantity" => $articleLine->getPickedQuantity() ?? ' ',
+                        'active' => !empty( $articleLine->getPickedQuantity()),
                         "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
                             'barcode' => $article->getBarCode(),
                             'artOrRefId' => $article->getId(),
                             'isRef' => false,
                             'isRefByArt' => false,
-                            'quantity' => $article->getQuantiteAPrelever(),
+                            'quantity' =>  $articleLine->getPickedQuantity(),
                             'id' => $article->getId(),
                             'isPrepaEditable' => $isPrepaEditable,
                             'stockManagement' => $article->getArticleFournisseur()->getReferenceArticle()->getStockManagement()
@@ -392,7 +391,13 @@ class PreparationController extends AbstractController
                         $referenceArticle = $articleFournisseur->getReferenceArticle();
                         if ($referenceArticle && $referenceArticle->getId() === $ligneArticle->getReference()->getId()) {
                             $pickedQuantity = $data['articles'][$idArticle];
-                            $this->preparationsManagerService->treatArticleSplitting($article, $pickedQuantity, $ligneArticle, $inTransitStatus);
+                            $this->preparationsManagerService->treatArticleSplitting(
+                                $entityManager,
+                                $article,
+                                $pickedQuantity,
+                                $ligneArticle,
+                                $inTransitStatus
+                            );
                         }
                     }
                 }
