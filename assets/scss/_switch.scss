@@ -17,7 +17,6 @@
         transition: all 200ms linear;
 
         &:not(:disabled) {
-
             cursor: pointer;
 
             &:hover:not(:checked) {

@@ -2,23 +2,49 @@
 
 {% block title %}Stock | Référence | Créer un article de référence{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('reference-article') }}
+{% endblock %}
+
 {% block page_content %}
     <div class="d-flex justify-content-center align-items-center">
-        <div class="row ra-column">
+        <div class="row ra-form ra-column">
             <div class="col-6">
                 <div class="ra-box">
                     <div class="content">
                         <label>
                             Référence*
-                            <input type="text" name="reference" class="form-control">
+                            <input type="text" name="reference" class="form-control needed">
+                        </label>
+                        <label>
+                            Label*
+                            <input type="text" name="libelle" class="form-control needed">
+                        </label>
+                        <label>
+                            Type*
+                            <select name="type"
+                                    data-s2 data-placeholder="Choisissez un type"
+                                    onchange="typeChoice($(this)); toggleRequiredChampsLibres($(this),'create')"
+                                    class="form-control data d-block type needed">
+                                {% for type in types %}
+                                    <option value="{{ type.id }}">{{ type.label }}</option>
+                                {% endfor %}
+                            </select>
                         </label>
                         <label>
                             Statut*
                         </label>
                         <div class="wii-switch needed" data-title="Statut">
-                                    <input type="radio" name="statut" value="actif" content="Actif">
-                                    <input type="radio" name="statut" value="inactif" content="Inactif">
-                                </div>
+                            <input type="radio" name="statut" value="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}" content="Actif">
+                            <input type="radio" name="statut" value="{{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') }}"
+                                   content="Inactif">
+                        </div>
+
+                        <label class="with-checkbox">
+                            <input type="checkbox">
+                            Synchronisation nomade
+                        </label>
                     </div>
                 </div>
                 <div class="ra-box">
@@ -34,17 +60,26 @@
                 <div class="ra-box">
                     <div class="header">Gestion quantité</div>
                     <div class="content">
-                        contenu<br>
-                        contenu<br>
-                        contenu<br>
-                        contenu<br>
-                        contenu<br>
-                        contenu<br>
-                        contenu<br>
-                        contenu<br>
-                        contenu<br>
-                        contenu<br>
-                        contenu<br>
+                        <label>
+                            Gestion quantité*
+                        </label>
+                        <div class="wii-switch needed" data-title="Statut">
+                            <input type="radio" name="type_quantite" value="reference" content="Référence">
+                            <input type="radio" name="type_quantite" value="article" content="Article">
+                        </div>
+
+                        <div class="reference-form">
+                            <div class="row">
+                                <div class="col-12 col-md-4">
+
+                                    <label>
+                                        Emplacement*
+                                        <select name="emplacement" class="form-control w-100 data needed" data-s2="location">
+                                        </select>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="ra-box">
@@ -60,4 +95,5 @@
 
 {% block javascripts %}
     {{ parent() }}
+    {{ encore_entry_script_tags('reference-article') }}
 {% endblock %}

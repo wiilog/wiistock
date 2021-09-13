@@ -1,0 +1,99 @@
+$color: #3353D7;
+$grey: #CBCBCB;
+
+.btn-primary {
+    background: $color;
+}
+
+.ra-form {
+    label {
+        font-weight: bold;
+        width: 100%;
+        margin-top: 7px;
+
+        .select2 {
+            font-weight: normal;
+            color: red;
+            width: 100%;
+        }
+
+        input[type="checkbox"] {
+            margin-right: 7px;
+            width: 15px;
+            height: 15px;
+        }
+    }
+
+    label.with-checkbox {
+        display: flex;
+        align-items: center;
+        font-weight: normal;
+        margin-top: 14px;
+    }
+
+    .wii-switch {
+        display: inline-flex;
+        border-color: $grey;
+        height: 38px;
+        padding: 0;
+
+        input[type="radio"] {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            border-radius: 0;
+            margin: 0;
+
+            &:before {
+                padding: 0 10px;
+            }
+
+            &:first-of-type {
+                border-radius: 4px 0 0 4px;
+            }
+
+            &:last-of-type {
+                border-radius: 0 4px 4px 0;
+            }
+
+            &:checked {
+                background: $color;
+            }
+
+            &:not(:checked) {
+                color: $color;
+
+                &:hover {
+                    color: white;
+                    background-color: $color;
+                }
+            }
+        }
+    }
+}
+
+.ra-column {
+    width: 1200px;
+    margin-top: 30px;
+}
+
+.ra-box {
+    background: white;
+    border-radius: 4px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+
+    .header {
+        color: #3353D7;
+        font-weight: bold;
+        font-size: 18pt;
+        padding: 16px 20px;
+        border-bottom: 1px solid $grey;
+    }
+
+    .content {
+        padding: 16px 20px;
+    }
+}
+
+

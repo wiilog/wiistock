@@ -1080,8 +1080,13 @@ class ReferenceArticleController extends AbstractController
     /**
      * @Route("/nouveau-page", name="reference_article_new", options={"expose"=true})
      */
-    public function newTemplate() {
+    public function newTemplate(EntityManagerInterface $manager) {
+        $typeRepository = $manager->getRepository(Type::class);
+
+        $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
+
         return $this->render("reference_article/form/new.html.twig", [
+            "types" => $types,
         ]);
     }
 }
