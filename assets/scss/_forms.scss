@@ -1,3 +1,5 @@
+@import "variables";
+
 .plus-minus-field {
     display: flex;
     flex-direction: row;
@@ -13,9 +15,9 @@
 
     .plus, .minus {
         background: white;
-        border: 1px solid $color;
+        border: 1px solid $primary;
         border-radius: 4px;
-        color: $color;
+        color: $primary;
         width: 37px;
         min-width: 37px;
         height: 37px;

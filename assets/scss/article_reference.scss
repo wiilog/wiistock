@@ -30,6 +30,11 @@ $grey: #CBCBCB;
         margin-top: 14px;
     }
 
+    .plus-minus-field .plus, .plus-minus-field .minus {
+        border-color: $color;
+        color: $color;
+    }
+
     .wii-switch {
         display: inline-flex;
         border-color: $grey;
