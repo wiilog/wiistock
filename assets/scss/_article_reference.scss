@@ -1,17 +1,68 @@
+$color: #3353D7;
+$grey: #CBCBCB;
+
+.btn-primary {
+    background: $color;
+}
+
+.ra-form {
+
+}
+
+.ra-column {
+    width: 1200px;
+    margin-top: 30px;
+}
+
 .ra-box {
     background: white;
-    border-radius: 4px;
-    box-shadow: 0.5px 0.5px 3px #333;
+    border-radius: 3px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
 
     .header {
         color: #3353D7;
         font-weight: bold;
         font-size: 18pt;
         padding: 16px 20px;
-        border-bottom: 1px solid #CBCBCB;
+        border-bottom: 1px solid $grey;
     }
 
     .content {
         padding: 16px 20px;
     }
 }
+
+label {
+    font-weight: bold;
+    width: 100%;
+}
+
+.wii-switch {
+    border-color: $grey;
+    padding: 0;
+
+    input[type="radio"] {
+        border-radius: 0;
+
+        &:first-of-type {
+            border-radius: 4px 0 0 4px;
+        }
+
+        &:last-of-type {
+            border-radius: 0 4px 4px 0;
+        }
+
+        &:checked {
+            background: $color;
+        }
+
+        &:not(:checked) {
+            color: $color;
+
+            &:hover {
+                color: white;
+                background-color: $color;
+            }
+        }
+    }
+    }
