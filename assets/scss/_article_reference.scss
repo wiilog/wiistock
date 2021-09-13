@@ -1,6 +1,20 @@
 $color: #3353D7;
 $grey: #CBCBCB;
 
+body {
+    background-color: #F5F7F7;
+
+    .header-container {
+        height: 150px;
+        border-bottom-left-radius: 15px;
+        border-bottom-right-radius: 15px;
+    }
+}
+
+.ra-container {
+    margin-top: 120px;
+}
+
 .btn-primary {
     background: $color;
 }
@@ -20,37 +34,34 @@ $grey: #CBCBCB;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
 
     .header {
-        color: #3353D7;
-        font-weight: bold;
-        font-size: 18pt;
         padding: 16px 20px;
         border-bottom: 1px solid $grey;
     }
 
     .content {
         padding: 16px 20px;
+
+        .box-item {
+            display: grid;
+        }
     }
 }
 
 .ra-header {
-    margin-top: 120px;
     border: #3353D7 solid 1px;
     border-radius: 5px;
-    width: 450px;
 
-    .type {
-        background-color: #3353D7;
-        height: 20px;
-        text-align: center;
-        color: #FFFFFF;
-        font-weight: 600;
+    .header-wrapper {
+        background-color: #FFFFFF;
+        border-bottom-left-radius: 5px;
+        border-bottom-right-radius: 5px;
     }
 
     .image-container {
         background-color: #F5F5F7;
         margin: 10px;
-        width: 100px;
-        height: 100px;
+        width: 120px;
+        height: 120px;
         display: flex;
         justify-content: center;
         border-radius: 5px;
@@ -61,49 +72,66 @@ $grey: #CBCBCB;
     }
 }
 
+.attachment-item {
+    display: flex;
+    align-items: center;
+    width: 50%;
+    text-overflow: ellipsis;
+    border: #666666 solid 1px;
+    border-radius: 5px;
+    padding: 5px 10px;
+}
+
 .ra-title {
     color: #3353D7;
-    font-size: 30px;
+    font-size: 18px;
     font-weight: bold;
 }
 
 .ra-subtitle {
     color: #666666;
-    font-size: 22px;
+    font-size: 14px;
     font-weight: bold;
 }
 
 .ra-field-name {
     color: #000000;
-    font-size: 22px;
+    font-size: 14px;
     font-weight: bold;
 }
 
 .ra-field-text {
     color: #000000;
-    font-size: 24px;
+    font-size: 16px;
 }
 
 .ra-body-text {
     color: #000000;
-    font-size: 22px;
+    font-size: 14px;
 }
 
 .ra-type {
     color: #FFFFFF;
-    font-size: 22px;
+    font-size: 16px;
     text-transform: uppercase;
     font-weight: bold;
+    background-color: #3353D7;
+    height: 20px;
+    text-align: center;
 }
 
 .ra-small-text {
     color: #666666;
-    font-size: 20px;
+    font-size: 12px;
 }
 
 label {
     font-weight: bold;
     width: 100%;
+}
+
+.comment-container {
+    background-color: #E8E8E8;
 }
 
 .wii-switch {
