@@ -25,6 +25,7 @@ use App\Entity\VisibilityGroup;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Helper\FormatHelper;
+use App\Repository\FreeFieldRepository;
 use App\Service\AttachmentService;
 use WiiCommon\Helper\Stream;
 use App\Service\DemandeCollecteService;
@@ -761,9 +762,14 @@ class ReferenceArticleController extends AbstractController
      * @Route("/voir/{id}", name="reference_article_show_page", options={"expose"=true})
      * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE})
      */
-    public function showPage(ReferenceArticle $referenceArticle): Response {
+    public function showPage(ReferenceArticle $referenceArticle, EntityManagerInterface $manager): Response {
+        $type = $referenceArticle->getType();
+        $freeFields = $manager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
+
         return $this->render('reference_article/show/show.html.twig', [
-            'referenceArticle' => $referenceArticle
+            'referenceArticle' => $referenceArticle,
+            'freeFields' => $freeFields,
+            'lastInventoryDate' => FormatHelper::longDate($referenceArticle->getDateLastInventory())
         ]);
     }
 

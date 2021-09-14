@@ -94,6 +94,7 @@ body {
 .ra-column {
     width: 1200px;
     margin-top: 30px;
+    margin-bottom: 30px;
 }
 
 .ra-box {
@@ -107,7 +108,7 @@ body {
     }
 
     .content {
-        padding: 16px 20px;
+        padding: 16px 5px;
 
         .box-item {
             display: grid;
@@ -118,6 +119,7 @@ body {
 .ra-header {
     border: #3353D7 solid 1px;
     border-radius: 5px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
 
     .header-wrapper {
         background-color: #FFFFFF;
@@ -137,6 +139,55 @@ body {
 
     .specifications {
         margin: 10px 10px 10px 0;
+    }
+}
+
+.ra-dropdown {
+    background-color: #FFFFFF;
+    border-top: 1px solid #CBCBCB;
+    margin : 40px auto;
+
+    .dropdown-wrapper {
+        padding : 15px;
+        background : #FFFFFF;
+        cursor : pointer;
+        display: block;
+
+        &::after {
+            float: right;
+            right: 10%;
+            content: "+";
+        }
+    }
+
+    .slide {
+        clear: both;
+        width: 100%;
+        height: 0;
+        overflow: hidden;
+        text-align: center;
+        transition: height .4s ease;
+
+        .provider-label {
+            background-color: #E8E8E8;
+            height: 35px;
+            display: flex;
+            align-items: center;
+        }
+    }
+
+    .slide li {
+        text-align: left;
+    }
+
+    #touch {
+        position: absolute;
+        opacity: 0;
+        height: 0;
+    }
+
+    #touch:checked + .slide {
+        height: auto;
     }
 }
 
