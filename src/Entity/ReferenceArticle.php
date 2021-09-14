@@ -918,7 +918,7 @@ class ReferenceArticle extends FreeFieldEntity
         $ligneArticles = $this->getDeliveryRequestLines();
         $inProgress = false;
         foreach ($ligneArticles as $ligneArticle) {
-            $demande = $ligneArticle->getDemande();
+            $demande = $ligneArticle->getRequest();
             if ($demande->needsToBeProcessed()) {
                 $inProgress = true;
                 break;

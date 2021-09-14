@@ -595,8 +595,8 @@ class DemandeLivraisonService
      * @param EntityManagerInterface $entityManager
      */
     public function managePreRemoveDeliveryRequest(Demande $demande, EntityManagerInterface $entityManager) {
-        foreach ($demande->getArticleLines() as $article) {
-            $article->setDemande(null);
+        foreach ($demande->getArticleLines() as $articleLine) {
+            $entityManager->remove($articleLine);
         }
         foreach ($demande->getReferenceLines() as $ligneArticle) {
             $entityManager->remove($ligneArticle);
