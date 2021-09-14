@@ -145,7 +145,6 @@ body {
 .ra-dropdown {
     background-color: #FFFFFF;
     border-top: 1px solid #CBCBCB;
-    margin : 40px auto;
 
     .dropdown-wrapper {
         padding : 15px;
@@ -183,7 +182,7 @@ body {
     #touch {
         position: absolute;
         opacity: 0;
-        height: 0;
+        max-height: 0;
     }
 
     #touch:checked + .slide {
@@ -194,9 +193,9 @@ body {
 .attachment-item {
     display: flex;
     align-items: center;
-    width: 50%;
+    width: 45%;
     text-overflow: ellipsis;
-    border: #666666 solid 1px;
+    border: #CBCBCB solid 1px;
     border-radius: 5px;
     padding: 5px 10px;
 }
@@ -226,7 +225,7 @@ body {
 
 .ra-body-text {
     color: #000000;
-    font-size: 14px;
+    font-size: 13px;
 }
 
 .ra-type {
@@ -242,6 +241,18 @@ body {
 .ra-small-text {
     color: #666666;
     font-size: 12px;
+}
+
+.ra-btn-success {
+    border: none;
+    background-color: #2FC2AB;
+    padding: 10px 25px;
+    border-radius: 5px;
+    color: #FFFFFF;
+
+    &:hover {
+        background-color: rgba(47, 194, 171, 0.8);
+    }
 }
 
 label {
