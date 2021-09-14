@@ -165,7 +165,7 @@ class FormatHelper {
 
     public static function longDate(?DateTimeInterface $date, $else = "-"): ?string {
         return $date
-            ? (self::WEEK_DAYS[$date->format("w")] . " " . $date->format("d") . " " . strtolower(self::MONTHS[$date->format("n")]) . " " . $date->format("Y"))
+            ? (substr(self::WEEK_DAYS[$date->format("w")], 0, 3) . " " . $date->format("d") . " " . strtolower(self::MONTHS[$date->format("n")]) . " " . $date->format("Y"))
             : $else;
     }
 
