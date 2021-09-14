@@ -137,6 +137,7 @@ class DashboardSettingsController extends AbstractController {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
 
         $values = json_decode($request->request->get('values'), true);
         $values += [ //default values should be initialized hered
@@ -150,6 +151,7 @@ class DashboardSettingsController extends AbstractController {
             "handlingTypes" => [],
             "dispatchTypes" => [],
             "referenceTypes" => [],
+            "managers" => [],
             "arrivalStatuses" => [],
             "handlingStatuses" => [],
             "dispatchStatuses" => [],
@@ -262,6 +264,10 @@ class DashboardSettingsController extends AbstractController {
             $values['referenceTypes'] = $typeRepository->findBy(['id' => $values['referenceTypes']]);
         }
 
+        if(!empty($values['managers'])) {
+            $values['managers'] = $userRepository->findBy(['id' => $values['managers']]);
+        }
+
         if(!empty($values['handlingTypes'])) {
             $values['handlingTypes'] = $typeRepository->findBy(['id' => $values['handlingTypes']]);
         }
@@ -281,6 +287,7 @@ class DashboardSettingsController extends AbstractController {
         if(!empty($values['natures'])) {
             $values['natures'] = $natureRepository->findBy(['id' => $values['natures']]);
         }
+
 
         $arrivalTypes = $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]);
         $dispatchTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
@@ -339,7 +346,6 @@ class DashboardSettingsController extends AbstractController {
             $values = json_decode($request->request->get("values"), true);
             if (isset($values['jsonConfig'])) {
                 $valuesDecoded = json_decode($values['jsonConfig'], true);
-                dump($valuesDecoded);
                 if (isset($valuesDecoded['locations']) && isset($values['locations'])) {
                     $valuesDecoded['locations'] = $values['locations'];
                 }

@@ -197,13 +197,28 @@ class AlertRepository extends EntityRepository {
             ->getSingleScalarResult();
     }
 
-    public function countAllActive(): int {
-        return $this->createQueryBuilder("alert")
+    public function countAllActiveByParams(array $params): int {
+        $qb = $this->createQueryBuilder("alert")
             ->select("COUNT(alert)")
             ->leftJoin("alert.reference","reference")
             ->leftJoin("reference.statut","refStatus")
             ->where("reference IS NULL OR refStatus.nom = :active")
-            ->setParameter("active", ReferenceArticle::STATUT_ACTIF)
+            ->setParameter("active", ReferenceArticle::STATUT_ACTIF);
+
+        if (isset($params['managers']) && !empty($params['managers'])) {
+            $qb
+                ->join('reference.managers', 'managers')
+                ->andWhere('managers.id IN (:managers)')
+                ->setParameter('managers', $params['managers']);
+        }
+
+        if (isset($params['referenceTypes']) && !empty($params['referenceTypes'])) {
+            $qb
+                ->join('reference.type', 'type')
+                ->andWhere('type.id IN (:referenceTypes)')
+                ->setParameter('referenceTypes', $params['referenceTypes']);
+        }
+        return $qb
             ->getQuery()
             ->getSingleScalarResult();
     }

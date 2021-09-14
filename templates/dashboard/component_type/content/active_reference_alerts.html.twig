@@ -10,8 +10,8 @@
                             name="referenceTypes"
                             multiple
                             title="Types(s) de références">
-                        {% for type in values.locations %}
-                            <option value="{{ type.id }}" selected>{{ type.label }}</option>
+                        {% for type in referenceTypes %}
+                            <option value="{{ type.id }}" {{ type in values.referenceTypes ? 'selected' }}>{{ type.label }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -20,5 +20,24 @@
                 </div>
             </div>
         </div>
+    </div>
+    <div class="row form-group">
+        <div class="col-12">
+            <label>Gestionnaire(s)</label>
+        </div>
+        <div class="col-12">
+            <select class="ajax-autocomplete-user data form-control w-100 needed"
+                    name="managers"
+                    multiple
+                    title="Gestionnaire(s)">
+                {% for location in values.managers %}
+                    <option value="{{ location.id }}" selected>{{ location.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <input class="checkbox"
+               hidden
+               type="checkbox"
+               name="redirect" checked/>
     </div>
 {% endblock %}

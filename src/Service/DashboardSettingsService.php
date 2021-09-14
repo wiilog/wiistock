@@ -986,8 +986,15 @@ class DashboardSettingsService {
     public function getComponentLink(Dashboard\ComponentType $componentType,
                                      array $config) {
         $meterKey = $componentType->getMeterKey();
-
         switch ($meterKey) {
+            case Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS:
+                $managers = $config['managers'] ?? [];
+                $types = $config['referenceTypes'] ?? [];
+                $link = $this->router->generate('alerte_index', [
+                    'managers' => implode(',', $managers),
+                    'referenceTypes' => implode(',', $types)
+                ]);
+                break;
             case Dashboard\ComponentType::ENTRIES_TO_HANDLE:
             case Dashboard\ComponentType::ONGOING_PACKS:
                 $locations = $config['locations'] ?? [];
