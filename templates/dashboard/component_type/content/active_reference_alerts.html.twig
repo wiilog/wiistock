@@ -1,0 +1,24 @@
+{% extends 'dashboard/component_type/content/base_form.html.twig' %}
+
+{% block content %}
+    <div class="row">
+        <div class="form-group col-12">
+            <label>Type(s) de références*</label>
+            <div class="input-group flex-nowrap no-gutters">
+                <div class="flex-fill">
+                    <select class="data form-control h-100 w-100 needed select2"
+                            name="referenceTypes"
+                            multiple
+                            title="Types(s) de références">
+                        {% for type in values.locations %}
+                            <option value="{{ type.id }}" selected>{{ type.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="input-group-append col-4">
+                    <button class="btn btn-primary select-all-types w-100" type="button">Tous les types</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

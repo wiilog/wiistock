@@ -149,6 +149,7 @@ class DashboardSettingsController extends AbstractController {
             "arrivalTypes" => [],
             "handlingTypes" => [],
             "dispatchTypes" => [],
+            "referenceTypes" => [],
             "arrivalStatuses" => [],
             "handlingStatuses" => [],
             "dispatchStatuses" => [],
@@ -234,8 +235,9 @@ class DashboardSettingsController extends AbstractController {
 
             $entityTypes = $typeRepository->findByCategoryLabels($categoryTypes);
             $entityStatuses = $statusRepository->findByCategorieNames($entitiesStatuses, true, [Statut::NOT_TREATED, Statut::TREATED, Statut::PARTIAL]);
+        } else if ($componentType->getMeterKey() === Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS) {
+            $entityTypes = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         }
-
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         foreach(["locations", "firstOriginLocation", "secondOriginLocation", "firstDestinationLocation", "secondDestinationLocation"] as $field) {
             if(!empty($values[$field])) {
@@ -254,6 +256,10 @@ class DashboardSettingsController extends AbstractController {
 
         if(!empty($values['dispatchTypes'])) {
             $values['dispatchTypes'] = $typeRepository->findBy(['id' => $values['dispatchTypes']]);
+        }
+
+        if(!empty($values['referenceTypes'])) {
+            $values['referenceTypes'] = $typeRepository->findBy(['id' => $values['referenceTypes']]);
         }
 
         if(!empty($values['handlingTypes'])) {
@@ -278,6 +284,7 @@ class DashboardSettingsController extends AbstractController {
 
         $arrivalTypes = $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]);
         $dispatchTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
+        $referenceTypes = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $arrivalStatuses = $statusRepository->findByCategorieName(CategorieStatut::ARRIVAGE);
         $handlingTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
         $handlingStatuses = $statusRepository->findByCategorieName(CategorieStatut::HANDLING);
@@ -297,6 +304,7 @@ class DashboardSettingsController extends AbstractController {
                     'arrivalTypes' => $arrivalTypes,
                     'handlingTypes' => $handlingTypes,
                     'dispatchTypes' => $dispatchTypes,
+                    'referenceTypes' => $referenceTypes,
                     'arrivalStatuses' => $arrivalStatuses,
                     'handlingStatuses' => $handlingStatuses,
                     'dispatchStatuses' => $dispatchStatuses,
@@ -331,6 +339,7 @@ class DashboardSettingsController extends AbstractController {
             $values = json_decode($request->request->get("values"), true);
             if (isset($values['jsonConfig'])) {
                 $valuesDecoded = json_decode($values['jsonConfig'], true);
+                dump($valuesDecoded);
                 if (isset($valuesDecoded['locations']) && isset($values['locations'])) {
                     $valuesDecoded['locations'] = $values['locations'];
                 }
