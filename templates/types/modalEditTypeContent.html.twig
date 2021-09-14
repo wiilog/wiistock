@@ -35,7 +35,7 @@
     </div>
 
     {% set needsHide = type.category.label != constant('App\\Entity\\CategoryType::ARTICLE') %}
-    <div class="form-group {{ needsHide ? 'd-none' }} send-mail">
+    <div class="form-group {{ needsHide ? 'd-none' }} color-picker">
         <label>Couleur</label>
         <input type="color" class="data form-control" name="color" value="{{ type.color }}" list="presetColors">
         <datalist id="presetColors">
