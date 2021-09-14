@@ -2,6 +2,11 @@
 
 {% block title %}Stock | Référence | Article de référence{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('reference-article') }}
+{% endblock %}
+
 {% block page_content %}
     <div class="ra-container d-flex justify-content-center align-content-center">
         <div class="row ra-column">
@@ -43,14 +48,15 @@
                                 <img src="{{ asset('svg/reference_article/manager.svg') }}" alt="Icône utilisateur" width="20px">
                                 <div class="box-item ml-3">
                                     <span class="ra-field-name">Gestionnaires</span>
-                                    <span>{{ referenceArticle.managers | map(m => m.username) | join(', ') }}</span>
+                                    <span
+                                        class="ra-body-text">{{ referenceArticle.managers is not empty ? referenceArticle.managers | map(m => m.username) | join(', ') : '-' }}</span>
                                 </div>
                             </div>
                             <div class="col-6 d-flex">
                                 <img src="{{ asset('svg/reference_article/manager.svg') }}" alt="Icône utilisateur" width="20px">
                                 <div class="box-item ml-3">
                                     <span class="ra-field-name">Acheteur</span>
-                                    <span>{{ referenceArticle.buyer ? referenceArticle.buyer.username }}</span>
+                                    <span class="ra-body-text">{{ referenceArticle.buyer ? referenceArticle.buyer.username : '-' }}</span>
                                 </div>
                             </div>
                         </div>
@@ -60,14 +66,14 @@
                                 <img src="{{ asset('svg/reference_article/warehouse.svg') }}" alt="Icône utilisateur" width="20px">
                                 <div class="box-item ml-3">
                                     <span class="ra-field-name">Catégorie d'inventaire</span>
-                                    <span>{{ referenceArticle.category ? referenceArticle.category.label : '-' }}</span>
+                                    <span class="ra-body-text">{{ referenceArticle.category ? referenceArticle.category.label : '-' }}</span>
                                 </div>
                             </div>
                             <div class="col-6 d-flex">
                                 <img src="{{ asset('svg/reference_article/calendar.svg') }}" alt="Icône utilisateur" width="20px">
                                 <div class="box-item ml-3">
                                     <span class="ra-field-name">Date de dernier inventaire</span>
-                                    <span>{{ referenceArticle.dateLastInventory ? referenceArticle.dateLastInventory | date('D d M Y') : '-' }}</span>
+                                    <span class="ra-body-text">{{ lastInventoryDate }}</span>
                                 </div>
                             </div>
                         </div>
@@ -79,17 +85,19 @@
 
                         <div class="my-4 ml-3">
                             <span class="ra-subtitle">Pièces jointe</span>
-                            {% set url = app.request is not null ? app.request.getSchemeAndHttpHost() : app_url %}
-                            {% for attachment in referenceArticle.attachments %}
-                                <div class="attachment-item mt-2">
-                                    <img src="{{ asset('svg/reference_article/file.svg') }}" alt="Icône fichier" width="13px" class="mr-2">
-                                    <a target="_blank" class="ra-small-text"
-                                       href="{{ url ~ '/uploads/attachements/' ~ attachment.fileName }}"
-                                       download="{{ attachment.originalName }}">
-                                        {{ attachment.originalName }}
-                                    </a>
-                                </div>
-                            {% endfor %}
+                            <div class="d-flex flex-wrap">
+                                {% set url = app.request is not null ? app.request.getSchemeAndHttpHost() : app_url %}
+                                {% for attachment in referenceArticle.attachments %}
+                                    <div class="attachment-item mt-2 {{ loop.index % 2 != 0 ? 'mr-3' }}">
+                                        <img src="{{ asset('svg/reference_article/file.svg') }}" alt="Icône fichier" width="13px" class="mr-2">
+                                        <a target="_blank" class="ra-small-text"
+                                           href="{{ url ~ '/uploads/attachements/' ~ attachment.fileName }}"
+                                           download="{{ attachment.originalName }}">
+                                            {{ attachment.originalName }}
+                                        </a>
+                                    </div>
+                                {% endfor %}
+                            </div>
                         </div>
                     </div>
                     <div class="content comment-container">
@@ -106,13 +114,117 @@
                     <div class="header ra-title">Gestion quantité</div>
                     <div class="content">
                         <div class="d-flex">
-                            <div class="d-flex ml-3">
-                                <span class="ra-field-name mr-2">
-                                    Quantité gérée à {{ referenceArticle.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_REFERENCE') ? 'la référence' : 'l\'article' }}
+                            <div class="col-6 d-flex">
+                                {% set isReferenceManagementQuantity = referenceArticle.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_REFERENCE') %}
+                                <img src="{{ asset('svg/reference_article/' ~ (isReferenceManagementQuantity ? 'pack.svg' : 'article.svg')) }}" alt="Icône colis" width="20px">
+                                <span class="ra-field-name ml-3">
+                                    Quantité gérée à {{ isReferenceManagementQuantity ? 'la référence' : 'l\'article' }}
                                 </span>
                             </div>
                         </div>
+
+                        <div class="d-flex mt-4">
+                            <div class="col-4 d-flex">
+                                <img src="{{ asset('svg/reference_article/location.svg') }}" alt="Icône emplacement" width="20px">
+                                <div class="box-item ml-3">
+                                    <span class="ra-field-name">Emplacement</span>
+                                    <span>{{ referenceArticle.emplacement ? referenceArticle.emplacement.label : '-' }}</span>
+                                </div>
+                            </div>
+                            <div class="col-8 d-flex">
+                                <img src="{{ asset('svg/reference_article/stock.svg') }}" alt="Icône stock" width="20px">
+                                <div class="box-item ml-3">
+                                    <span class="ra-field-name">Quantité en stock</span>
+                                    <span>{{ referenceArticle.quantiteStock }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex mt-4">
+                            <div class="col-4 d-flex">
+                                <img src="{{ asset('svg/reference_article/price.svg') }}" alt="Icône prix" width="15px">
+                                <div class="box-item ml-3">
+                                    <span class="ra-field-name">Prix unitaire (€)</span>
+                                    <span>{{ referenceArticle.prixUnitaire ?? '-' }}</span>
+                                </div>
+                            </div>
+                            <div class="col-4 d-flex">
+                                <img src="{{ asset('svg/reference_article/alert-threshold.svg') }}" alt="Icône seuil d'alerte" width="20px">
+                                <div class="box-item ml-3">
+                                    <span class="ra-field-name">Seuil d'alerte</span>
+                                    <span>{{ referenceArticle.limitWarning ?? '-' }}</span>
+                                </div>
+                            </div>
+                            <div class="col-4 d-flex">
+                                <img src="{{ asset('svg/reference_article/security-threshold.svg') }}" alt="Icône seuil de sécurité" width="20px">
+                                <div class="box-item ml-3">
+                                    <span class="ra-field-name">Seuil de sécurité</span>
+                                    <span>{{ referenceArticle.limitSecurity ?? '-' }}</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                    <div class="ra-dropdown mt-3">
+                        <label for="touch">
+                            <span class="ra-subtitle dropdown-wrapper">Fournisseurs</span>
+                        </label>
+                        <input type="checkbox" id="touch">
+
+                        <ul class="slide">
+                            {% for providerArticle in referenceArticle.articlesFournisseur %}
+                                <li class="mb-3">
+                                    <div class="provider-label">
+                                        <span class="ra-field-name ml-3">{{ providerArticle.fournisseur.nom }}</span>&nbsp;-&nbsp;
+                                        <span class="ra-body-text">{{ providerArticle.fournisseur.codeReference }}</span>
+                                    </div>
+                                    <div class="d-flex mt-3">
+                                        <div class="col-4 d-flex flex-column">
+                                            <span class="ra-field-name">Ref article fournisseur</span>
+                                            <span class="ra-body-text">{{ providerArticle.reference ?? '-' }}</span>
+                                        </div>
+                                        <div class="col-4 d-flex flex-column">
+                                            <span class="ra-field-name">Label</span>
+                                            <span class="ra-body-text">{{ providerArticle.label ?? '-' }}</span>
+                                        </div>
+                                        <div class="col-4 d-flex flex-column">
+                                            <span class="ra-field-name">Quantité en stock</span>
+                                            <span class="ra-body-text">{{ providerArticle.referenceArticle.quantiteStock }}</span>
+                                        </div>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="ra-box mt-3">
+                    <div class="header ra-title">Champs libres</div>
+                    <div class="content d-flex flex-wrap">
+                        {% for freeField in freeFields %}
+                            {% set value = referenceArticle.freeFields[freeField.id]
+                                ?? (freeField.defaultValue
+                                ?? '') %}
+
+                            <div class="col-6 box-item mb-3">
+                                <span class="ra-field-name">{{ freeField.label }}</span>
+                                {% if freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATE') %}
+                                    <span class="ra-body-text">{{ value | date('d/m/Y') }}</span>
+                                {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATETIME') %}
+                                    <span class="ra-body-text">{{ value | replace({'/': '-'}) | date('d/m/Y H:i') }}</span>
+                                {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_BOOL') %}
+                                    <span class="ra-body-text">{{ value == 1 ? 'Oui' : 'Non' }}</span>
+                                {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_LIST_MULTIPLE') %}
+                                    {% set values = value | split(';') | join(', ') %}
+                                    <span class="ra-body-text">{{ values }}</span>
+                                {% else %}
+                                    <span class="ra-body-text">{{ value }}</span>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end mt-4">
+                    <button class="ra-btn-success">Modifier</button>
                 </div>
             </div>
         </div>
@@ -121,5 +233,6 @@
 
 {% block javascripts %}
     {{ parent() }}
+    {{ encore_entry_script_tags('reference-article') }}
     <script src="{{ asset('js/pages/referenceArticle.js') }}?v={{ web_version }}"></script>
 {% endblock %}
