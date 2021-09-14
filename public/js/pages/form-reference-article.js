@@ -42,8 +42,8 @@ function addArticleFournisseurReferenceArticle($plusButton) {
 }
 
 function loadAndDisplayInfos($select) {
-    const $form = $select.parents('.ligneFournisseurArticle');
-    const $nomSelect = $form.find('.ajax-autocomplete-fournisseurLabel');
+    const $form = $select.closest('.ligneFournisseurArticle');
+    const $nomSelect = $form.find('[name="fournisseurLabel"]');
     if($select.val()) {
         const [selected] = $select.select2('data');
         if (selected) {
@@ -79,8 +79,8 @@ function loadAndDisplayInfos($select) {
     });
 }
 function loadAndDisplayLabels($select) {
-    const $form = $select.parents('.ligneFournisseurArticle');
-    const $codeSelect = $form.find('.ajax-autocomplete-fournisseur');
+    const $form = $select.closest('.ligneFournisseurArticle');
+    const $codeSelect = $form.find('[name="fournisseur"]');
     if($select.val()) {
         const [selected] = $select.select2('data');
         if (selected) {

@@ -92,6 +92,7 @@ function SubmitAction($modal,
  *   - keepForm true if we do not clear form
  *   - keepModal true if we do not close form
  *   - validator function which calculate custom form validation
+ *   - onSuccess called on success
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery} $submit jQuery element of the submit button
  * @param {string} path
@@ -99,7 +100,7 @@ function SubmitAction($modal,
 function processSubmitAction($modal,
                              $submit,
                              path,
-                             {tables, keepModal, keepForm, validator, headerCallback} = {}) {
+                             {tables, keepModal, keepForm, validator, onSuccess, headerCallback} = {}) {
     const isAttachmentForm = $modal.find('input[name="isAttachmentForm"]').val() === '1';
     const {success, errorMessages, $isInvalidElements, data} = ProcessForm($modal, isAttachmentForm, validator);
     if (success) {
@@ -128,6 +129,10 @@ function processSubmitAction($modal,
                     });
                 }
                 else {
+                    if(onSuccess) {
+                        onSuccess(data);
+                    }
+
                     const res = treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, headerCallback);
                     if (!res) {
                         return;

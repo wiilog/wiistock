@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Article;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
+use App\Entity\Fournisseur;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
@@ -137,6 +138,16 @@ class SelectController extends AbstractController {
     }
 
     /**
+     * @Route("/select/utilisateur", name="ajax_select_user", options={"expose"=true})
+     */
+    public function user(Request $request, EntityManagerInterface $manager): Response {
+        $results = $manager->getRepository(Utilisateur::class)->getForSelect($request->query->get("term"));
+        return $this->json([
+            "results" => $results,
+        ]);
+    }
+
+    /**
      * @Route("/select/capteurs", name="ajax_select_sensor_wrappers", options={"expose"=true})
      */
     public function getSensorWrappers(Request $request, EntityManagerInterface $entityManager): Response {
@@ -255,4 +266,29 @@ class SelectController extends AbstractController {
         ]);
     }
 
+    /**
+     * @Route("/select/fournisseur-code", name="ajax_select_supplier_code", options={"expose"=true})
+     */
+    public function supplierByCode(Request $request, EntityManagerInterface $entityManager): Response {
+        $search = $request->query->get('term');
+
+        $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+        $fournisseur = $fournisseurRepository->getIdAndCodeBySearch($search);
+
+        return $this->json(['results' => $fournisseur]);
+    }
+
+    /**
+     * @Route("/select/fournisseur-label", name="ajax_select_supplier_label", options={"expose"=true})
+     */
+    public function supplierByLabel(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $search = $request->query->get('term');
+        $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+
+        $fournisseurs = $fournisseurRepository->getIdAndLabelseBySearch($search);
+        return $this->json([
+            'results' => $fournisseurs
+        ]);
+    }
 }

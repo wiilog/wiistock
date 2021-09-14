@@ -8341,7 +8341,7 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/wiilog/common-php.git",
-                "reference": "9b60a1a8427988480f3f2b0a8e059c726f2a84ef"
+                "reference": "89372c3f38d9e32e16b8d1873596a3bf69e6a3cc"
             },
             "require-dev": {
                 "phpunit/phpunit": "9"
@@ -8359,7 +8359,7 @@
                     "email": "romain.barot@wiilog.fr"
                 }
             ],
-            "time": "2021-09-02T09:23:10+00:00"
+            "time": "2021-09-14T10:12:58+00:00"
         },
         {
             "name": "willdurand/jsonp-callback-validator",
