@@ -12,7 +12,7 @@ body {
 }
 
 .ra-container {
-    margin-top: 120px;
+    margin-top: 60px;
 }
 
 .btn-primary {
@@ -20,6 +20,8 @@ body {
 }
 
 .ra-form {
+    margin-top: 90px !important;
+
     label {
         font-weight: bold;
         margin-top: 7px;
@@ -124,6 +126,7 @@ body {
     border: solid 1px;
     border-radius: 5px;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+    margin-top: 15px;
 
     .header-wrapper {
         background-color: #FFFFFF;
@@ -263,6 +266,7 @@ body {
     color: #FFFFFF;
 
     &:hover {
+        color: white !important;
         background-color: rgba(47, 194, 171, 0.8);
     }
 }
@@ -352,4 +356,9 @@ span.icon {
         border-bottom-color: #3353D7 !important;
         border-top-color: #3353D7 !important;
     }
+}
+
+
+label[for="touch"] {
+    width: 100%;
 }
