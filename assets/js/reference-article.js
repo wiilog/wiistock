@@ -14,7 +14,8 @@ $(document).ready(() => {
     });
 
     $(`.save`).click(function() {
-        processSubmitAction($(`.ra-form`), $(this), Routing.generate('reference_article_new', true), {
+        const $button = $(this);
+        processSubmitAction($(`.ra-form`), $button, $button.data(`submit`), {
             onSuccess: () => window.location.href = Routing.generate('reference_article_index')
         });
     });

@@ -1,28 +1,33 @@
-{% macro supplier_article_line(line, index) %}
+{% macro supplier_article_line(reference, line, index) %}
     <div class="ligneFournisseurArticle"
          data-multiple-key="frl"
          data-multiple-object-index="{{ index }}">
-        {{ line ? dump(line) }}
         <div class="row">
             <div class="form-group col-md-6 col-12">
                 <label for="reference">Nom fournisseur*</label>
                 <select class="form-control w-100 data needed" data-s2="supplierLabel" onchange="loadAndDisplayLabels($(this))"
                         name="fournisseurLabel">
+                    {% if line and line.fournisseur %}
+                        <option value="{{ line.fournisseur.id }}">{{ line.fournisseur.nom }}</option>
+                    {% endif %}
                 </select>
             </div>
             <div class="form-group col-md-6 col-12">
                 <label for="reference">Code fournisseur*</label>
                 <select class="form-control w-100 data needed" data-s2="supplierCode" onchange="loadAndDisplayInfos($(this))"
                         name="fournisseur">
+                    {% if line and line.fournisseur %}
+                        <option value="{{ line.fournisseur.id }}">{{ line.fournisseur.codeReference }}</option>
+                    {% endif %}
                 </select>
             </div>
-            <div class="form-group col-md-6 col-12 d-none newContent">
+            <div class="form-group col-md-6 col-12 {{ not reference.id ? 'd-none newContent' }}">
                 <label for="reference">Ref article fournisseur*</label>
-                <input class="form-control data w-100 data needed" type="text" name="referenceFournisseur">
+                <input class="form-control data w-100 data needed" type="text" name="referenceFournisseur" value="{{ line ? line.reference }}">
             </div>
-            <div class="form-group col-md-6 col-12 d-none newContent">
+            <div class="form-group col-md-6 col-12 {{ not reference.id ? 'd-none newContent' }}">
                 <label for="reference">Label*</label>
-                <input class="form-control w-100 data needed" type="text" name="labelFournisseur">
+                <input class="form-control w-100 data needed" type="text" name="labelFournisseur" value="{{ line ? line.label }}">
             </div>
         </div>
         <span class="delete-supplier-article">Supprimer l'article fournisseur</span>
@@ -299,7 +304,13 @@
                 <div class="header">Fournisseurs</div>
                 <div class="content">
                     <div class="supplier-articles">
-                        {{ macros.supplier_article_line(null, 0) }}
+                        {% if reference.id %}
+                            {% for article in reference.articlesFournisseur %}
+                                {{ macros.supplier_article_line(reference, article, 0) }}
+                            {% endfor %}
+                        {% else %}
+                            {{ macros.supplier_article_line(reference, null, 0) }}
+                        {% endif %}
                     </div>
                     <button class="btn btn-primary add-supplier-article"><i class="fa fa-plus mr-2"></i>Ajouter un article fournisseur</button>
                 </div>
@@ -335,7 +346,7 @@
 
             <div class="save-buttons">
                 <button class="btn btn-secondary">Annuler</button>
-                <button class="btn btn-success ml-2 save">Enregistrer</button>
+                <button class="btn btn-success ml-2 save" data-submit="{{ submit_url }}">Enregistrer</button>
             </div>
         </div>
     </div>
@@ -343,5 +354,5 @@
 </div>
 
 <template id="supplier-article-template">
-    {{ macros.supplier_article_line(null, 'index') }}
+    {{ macros.supplier_article_line(reference, null, 'index') }}
 </template>

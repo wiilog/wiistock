@@ -1110,6 +1110,7 @@ class ReferenceArticleController extends AbstractController
 
         return $this->render("reference_article/form/new.html.twig", [
             "new_reference" => new ReferenceArticle(),
+            "submit_url" => $this->generateUrl("reference_article_new"),
             "types" => $types,
             "stockManagement" => [
                 ReferenceArticle::STOCK_MANAGEMENT_FEFO,
@@ -1146,6 +1147,7 @@ class ReferenceArticleController extends AbstractController
 
         return $this->render("reference_article/form/edit.html.twig", [
             "reference" => $reference,
+            "submit_url" => $this->generateUrl("reference_article_edit"),
             "types" => $types,
             "stockManagement" => [
                 ReferenceArticle::STOCK_MANAGEMENT_FEFO,
