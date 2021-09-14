@@ -757,10 +757,29 @@ class ReferenceArticleController extends AbstractController
         $type = $referenceArticle->getType();
         $freeFields = $manager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
 
+        $providerArticles = Stream::from($referenceArticle->getArticlesFournisseur())
+            ->reduce(function(array $carry, ArticleFournisseur $providerArticle) use ($referenceArticle) {
+                $articles = $referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE
+                    ? $providerArticle->getArticles()->toArray()
+                    : [];
+                $carry[] = [
+                    'providerName' => $providerArticle->getFournisseur()->getNom(),
+                    'providerCode' => $providerArticle->getFournisseur()->getCodeReference(),
+                    'reference' => $providerArticle->getReference(),
+                    'label' => $providerArticle->getLabel(),
+                    'quantity' => Stream::from($articles)
+                        ->reduce(fn(int $carry, Article $article) => ($article->getStatut() && $article->getStatut()->getNom() === Article::STATUT_ACTIF)
+                            ? $carry + $article->getQuantite()
+                            : $carry, 0)
+                ];
+                return $carry;
+                }, []);
+
         return $this->render('reference_article/show/show.html.twig', [
             'referenceArticle' => $referenceArticle,
+            'providerArticles' => $providerArticles,
             'freeFields' => $freeFields,
-            'lastInventoryDate' => FormatHelper::longDate($referenceArticle->getDateLastInventory())
+            'lastInventoryDate' => FormatHelper::longDate($referenceArticle->getDateLastInventory()),
         ]);
     }
 

@@ -121,7 +121,7 @@ body {
 }
 
 .ra-header {
-    border: #3353D7 solid 1px;
+    border: solid 1px;
     border-radius: 5px;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
 
@@ -160,6 +160,8 @@ body {
             float: right;
             right: 10%;
             content: "+";
+            color: #3353D7;
+            font-size: 20px;
         }
     }
 
@@ -244,7 +246,6 @@ body {
     font-size: 16px;
     text-transform: uppercase;
     font-weight: bold;
-    background-color: #3353D7;
     height: 20px;
     text-align: center;
 }
@@ -339,4 +340,16 @@ span.icon {
 
 .comment-container {
     background-color: #E8E8E8;
+}
+
+.tooltip {
+
+    .tooltip-inner {
+        background: #3353D7 !important;
+    }
+
+    .arrow:before {
+        border-bottom-color: #3353D7 !important;
+        border-top-color: #3353D7 !important;
+    }
 }

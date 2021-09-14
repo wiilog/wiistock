@@ -33,6 +33,18 @@
                name="description"
                value="{{ type.description }}">
     </div>
+
+    {% set needsHide = type.category.label != constant('App\\Entity\\CategoryType::ARTICLE') %}
+    <div class="form-group {{ needsHide ? 'd-none' }} color-picker">
+        <label>Couleur</label>
+        <input type="color" class="data form-control" name="color" value="{{ type.color }}" list="presetColors">
+        <datalist id="presetColors">
+            {% for color in constant('App\\Entity\\Type::PRESET_COLORS') %}
+                <option>{{ color }}</option>
+            {% endfor %}
+        </datalist>
+    </div>
+
     {% set needsHide = type.category.label != constant('App\\Entity\\CategoryType::DEMANDE_LIVRAISON') %}
     <div class="form-group {{ needsHide ? 'd-none' }} send-mail">
         <label>Envoi de mails au demandeur ?</label>
