@@ -88,7 +88,7 @@
                             <div class="d-flex flex-wrap">
                                 {% set url = app.request is not null ? app.request.getSchemeAndHttpHost() : app_url %}
                                 {% for attachment in referenceArticle.attachments %}
-                                    <div class="attachment-item mt-2 {{ loop.index % 2 != 0 ? 'mr-3' }}">
+                                    <div class="attachment-item {{ loop.index % 2 != 0 ? 'mr-3' }}">
                                         <img src="{{ asset('svg/reference_article/file.svg') }}" alt="Icône fichier" width="13px" class="mr-2">
                                         <a target="_blank" class="ra-small-text"
                                            href="{{ url ~ '/uploads/attachements/' ~ attachment.fileName }}"

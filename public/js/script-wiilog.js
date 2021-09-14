@@ -287,13 +287,13 @@ function typeChoice($select, $freeFieldsContainer = null) {
     }
 }
 
-function updateQuantityDisplay($elem) {
-    let $modalBody = $elem.closest('.modal-body');
+function updateQuantityDisplay($elem, parent = '.modal-body') {
+    let $modalBody = $elem.closest(parent);
     const $reference = $modalBody.find('.reference');
     const $article = $modalBody.find('.article');
     const $allArticle = $modalBody.find('.article, .emergency-comment');
     let typeQuantite = $modalBody.find('.type_quantite').val();
-
+console.log(typeQuantite, $modalBody);
     if (typeQuantite == 'reference') {
         $allArticle.addClass('d-none');
         $reference.removeClass('d-none');

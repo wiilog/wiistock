@@ -1,5 +1,6 @@
-function displayRequiredChampsFixesByTypeQuantiteReferenceArticle(typeQuantite, $button) {
-    let $modal = $button.closest('.modal');
+function displayRequiredChampsFixesByTypeQuantiteReferenceArticle(typeQuantite, $button, parent = '.modal') {
+    let $modal = $button.closest(parent);
+    console.log($modal, typeQuantite);
     if (typeQuantite === 'article') {
         $modal.find('#quantite').removeClass('needed');
         $modal.find('#emplacement').removeClass('needed');
@@ -106,9 +107,9 @@ function loadAndDisplayLabels($select) {
     }
 }
 
-function toggleRequiredChampsFixes(button) {
-    let $modal = button.closest('.modal');
+function toggleRequiredChampsFixes(button, parent = '.modal') {
+    let $modal = button.closest(parent);
     clearErrorMsg(button);
     clearInvalidInputs($modal);
-    displayRequiredChampsFixesByTypeQuantiteReferenceArticle(button.data('title'), button);
+    displayRequiredChampsFixesByTypeQuantiteReferenceArticle(button.data('title'), button, parent);
 }

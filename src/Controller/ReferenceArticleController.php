@@ -208,7 +208,6 @@ class ReferenceArticleController extends AbstractController
                     $refArticle->addManager($manager);
                 }
             }
-            dump($data);
 
             $supplierReferenceLines = is_array($data['frl']) ? $data['frl'] : json_decode($data['frl'], true);
             if (!empty($supplierReferenceLines)) {
@@ -1110,7 +1109,7 @@ class ReferenceArticleController extends AbstractController
         }
 
         return $this->render("reference_article/form/new.html.twig", [
-            "reference" => new ReferenceArticle(),
+            "new_reference" => new ReferenceArticle(),
             "types" => $types,
             "stockManagement" => [
                 ReferenceArticle::STOCK_MANAGEMENT_FEFO,
@@ -1118,6 +1117,41 @@ class ReferenceArticleController extends AbstractController
             ],
             "categories" => $inventoryCategories,
             "freeFieldTypes" => $typeChampLibre,
+            "freeFieldsGroupedByTypes" => $freeFieldsGroupedByTypes,
+        ]);
+    }
+
+    /**
+     * @Route("/modifier-page/{reference}", name="reference_article_edit_page", options={"expose"=true})
+     */
+    public function editTemplate(EntityManagerInterface $manager, ReferenceArticle $reference) {
+        $typeRepository = $manager->getRepository(Type::class);
+        $inventoryCategoryRepository = $manager->getRepository(InventoryCategory::class);
+        $freeFieldRepository = $manager->getRepository(FreeField::class);
+
+        $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
+        $inventoryCategories = $inventoryCategoryRepository->findAll();
+
+        $freeFieldsGroupedByTypes = [];
+
+        foreach ($types as $type) {
+            $champsLibres = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
+            $typeChampLibre[] = [
+                'typeLabel' =>  $type->getLabel(),
+                'typeId' => $type->getId(),
+                'champsLibres' => $champsLibres,
+            ];
+            $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
+        }
+
+        return $this->render("reference_article/form/edit.html.twig", [
+            "reference" => $reference,
+            "types" => $types,
+            "stockManagement" => [
+                ReferenceArticle::STOCK_MANAGEMENT_FEFO,
+                ReferenceArticle::STOCK_MANAGEMENT_FIFO
+            ],
+            "categories" => $inventoryCategories,
             "freeFieldsGroupedByTypes" => $freeFieldsGroupedByTypes,
         ]);
     }
