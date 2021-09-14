@@ -20,6 +20,7 @@ class TypeService {
         $category = $categoryTypeRepository->find($data['category']);
 
         $isDispatch = ($category->getLabel() === CategoryType::DEMANDE_DISPATCH);
+        $isArticle = ($category->getLabel() === CategoryType::ARTICLE);
 
         $type
             ->setLabel($data['label'])
@@ -36,6 +37,8 @@ class TypeService {
             $type
                 ->setDropLocation($dropLocation)
                 ->setPickLocation($pickLocation);
+        } else if ($isArticle) {
+            $type->setColor($data['color']);
         }
     }
 }
