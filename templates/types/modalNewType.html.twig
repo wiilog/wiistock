@@ -20,7 +20,8 @@
                                         data-needs-default-locations="{{ category.label == constant('App\\Entity\\CategoryType::DEMANDE_DISPATCH') }}"
                                         data-needs-send-mail="{{ category.label == constant('App\\Entity\\CategoryType::DEMANDE_LIVRAISON') }}"
                                         data-enable-notifications="{{ category.label in constant('App\\Entity\\NotificationTemplate::NOTIFICATIONS_TYPES') }}"
-                                        data-notifications-emergencies="{{ category.label in constant('App\\Entity\\NotificationTemplate::NOTIFICATIONS_EMERGENCIES') }}">
+                                        data-notifications-emergencies="{{ category.label in constant('App\\Entity\\NotificationTemplate::NOTIFICATIONS_EMERGENCIES') }}"
+                                        data-color-picker="{{ category.label == constant('App\\Entity\\CategoryType::ARTICLE') }}">
                                     {{ category.label }}
                                 </option>
                             {% endfor %}
@@ -38,6 +39,17 @@
                     <div class="form-group col-12">
                         <label for="label">Description</label>
                         <input type="text" class="data form-control" name="description">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-12 d-none color-picker">
+                        <label for="color">Couleur</label>
+                        <input type="color" class="data form-control lite-picker" name="color" list="presetColors" value="{{ constant('App\\Entity\\Type::DEFAULT_COLOR') }}">
+                        <datalist id="presetColors">
+                            {% for color in constant('App\\Entity\\Type::PRESET_COLORS') %}
+                                <option>{{ color }}</option>
+                            {% endfor %}
+                        </datalist>
                     </div>
                 </div>
                 <div class="row">

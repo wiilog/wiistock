@@ -12,34 +12,15 @@
                 } %}
             {% endif %}
             <div class="dropdown-menu dropdown-follow-gt pointer">
+                <div class="dropdown-item action-on-click d-none"
+                     onclick="window.location.href = Routing.generate('reference_article_show_page', {id: {{ reference_id }}}, true)">
+                    <i class='fas fa-eye mr-2'></i>Voir
+                </div>
+
                 {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
-                    <div id='edit{{ reference_id }}' class="dropdown-item d-none">
-                        <div data-id='{{ reference_id }}'
-                             data-target='#modalEditRefArticle'
-                             data-toggle='modal'
-                             class="action-on-click"
-                             onclick="
-                             clearModal('#modalEditRefArticle'),
-                             editRow(
-                                 $(this),
-                                Routing.generate('reference_article_edit_api', true),
-                                $('#modalEditRefArticle'),
-                                $('#submitEditRefArticle'),
-                                true,
-                                '.editor-container-edit',
-                                false,
-                                () => afterLoadingEditModal($(this)),
-                                false)">
-                            <i class='fas fa-pencil-alt mr-2'></i>Modifier
-                        </div>
-                    </div>
-                {% else %}
-                    <div class="dropdown-item action-on-click d-none"
-                         data-id='{{ reference_id }}'
-                         data-target='#modalShowRefArticle'
-                         data-toggle='modal'
-                         onclick="showRow($(this), Routing.generate('reference_article_show', true), $('#modalShowRefArticle'))">
-                        <i class='fas fa-eye mr-2'></i>Voir
+                    <div class="dropdown-item"
+                         onclick="window.location.href = Routing.generate('reference_article_edit_page', {reference: $(this).data('id')}, true)">
+                        <i class='fas fa-pencil-alt mr-2'></i>Modifier
                     </div>
                 {% endif %}
 

@@ -2,10 +2,12 @@
 
 namespace App\Repository;
 
+use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
+use WiiCommon\Helper\Stream;
 
 /**
  * @method VisibilityGroup|null find($id, $lockMode = null, $lockVersion = null)
@@ -15,12 +17,22 @@ use Symfony\Component\HttpFoundation\InputBag;
  */
 class VisibilityGroupRepository extends EntityRepository {
 
-    public function getForSelect(?string $term) {
-        return $this->createQueryBuilder("visibility_group")
+    public function getForSelect(?string $term, Utilisateur $user) {
+        $qb = $this->createQueryBuilder("visibility_group")
             ->select("visibility_group.id AS id, visibility_group.label AS text")
             ->andWhere("visibility_group.label LIKE :term")
             ->andWhere('visibility_group.active = true')
-            ->setParameter("term", "%$term%")
+            ->setParameter("term", "%$term%");
+
+        $visibilityGroup = $user->getVisibilityGroups();
+        if (!$visibilityGroup->isEmpty()) {
+            $qb
+                ->andWhere('visibility_group.id IN (:userVisibilityGroups)')
+                ->setParameter('userVisibilityGroups', Stream::from(
+                    $visibilityGroup->toArray()
+                )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
+        }
+        return $qb
             ->getQuery()
             ->getArrayResult();
     }

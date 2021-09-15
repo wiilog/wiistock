@@ -908,20 +908,12 @@ class ImportService
             }
         }
 
-        foreach ($refArt->getVisibilityGroups() as $visibilityGroup) {
-            $visibilityGroup->removeArticleReference($refArt);
-        }
-
-        if (isset($data['visibilityGroups'])) {
-            $visibilityGroups = Stream::explode([";", ","], $data["visibilityGroups"])
-                ->unique()
-                ->map("trim")
-                ->map(fn($id) => $visibilityGroupRepository->find($id))
-                ->toArray();
-
-            foreach($visibilityGroups as $visibilityGroup) {
-                $refArt->addVisibilityGroup($visibilityGroup);
+        if(isset($data['visibilityGroup'])) {
+            $visibilityGroup = $visibilityGroupRepository->findOneBy(['label' => $data['visibilityGroup']]);
+            if(!isset($visibilityGroup)) {
+                $this->throwError("Le groupe de visibilité ${data['visibilityGroup']} n'existe pas");
             }
+            $refArt->setVisibilityGroup($visibilityGroup);
         }
 
         if (isset($data['managers'])) {
@@ -1185,6 +1177,7 @@ class ImportService
     private function importUserEntity(array $data, array &$stats): void {
 
         $userAlreadyExists = $this->em->getRepository(Utilisateur::class)->findOneBy(['email' => $data['email']]);
+        $visibilityGroupRepository = $this->em->getRepository(VisibilityGroup::class);
 
         $user = $userAlreadyExists ?? new Utilisateur();
 
@@ -1309,13 +1302,20 @@ class ImportService
             }
             $user->setDropzone($dropzone);
         }
+        foreach ($user->getVisibilityGroups() as $visibilityGroup) {
+            $visibilityGroup->removeUser($user);
+        }
 
-        if(isset($data['visibilityGroup'])) {
-            $visibilityGroup = $this->em->getRepository(VisibilityGroup::class)->findOneBy(['label' => $data['visibilityGroup']]);
-            if(!isset($visibilityGroup)) {
-                $this->throwError("Le groupe de visibilité ${data['visibilityGroup']} n'existe pas");
+        if (isset($data['visibilityGroups'])) {
+            $visibilityGroups = Stream::explode([";", ","], $data["visibilityGroups"])
+                ->unique()
+                ->map("trim")
+                ->map(fn($id) => $visibilityGroupRepository->find($id))
+                ->toArray();
+
+            foreach($visibilityGroups as $visibilityGroup) {
+                $user->addVisibilityGroup($visibilityGroup);
             }
-            $user->setVisibilityGroup($visibilityGroup);
         }
 
         if(isset($data['status'])) {

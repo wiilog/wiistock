@@ -33,6 +33,7 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use RuntimeException;
+use Symfony\Component\Form\Form;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -333,15 +334,9 @@ class RefArticleDataService {
                 $refArticle->addManager($userRepository->find($manager));
             }
         }
-        foreach ($refArticle->getVisibilityGroups() as $visibilityGroup) {
-            $visibilityGroup->removeArticleReference($refArticle);
-        }
         $entityManager->flush();
-        if (!empty($data["visibility-group"])) {
-            $visibilityGroups = is_string($data["visibility-group"]) ? explode(',', $data['visibility-group']) : $data["visibility-group"];
-            foreach ($visibilityGroups as $visibilityGroup) {
-                $refArticle->addVisibilityGroup($visibilityGroupRepository->find($visibilityGroup));
-            }
+        if (isset($data["visibility-group"])) {
+            $refArticle->setVisibilityGroup($data['visibility-group'] ? $visibilityGroupRepository->find(intval($data['visibility-group'])) : null);
         }
 
         $entityManager->flush();
@@ -392,9 +387,7 @@ class RefArticleDataService {
             "stockQuantity" => $refArticle->getQuantiteStock() ?? 0,
             "buyer" => $refArticle->getBuyer() ? $refArticle->getBuyer()->getUsername() : '',
             "emergencyComment" => $refArticle->getEmergencyComment(),
-            "visibilityGroups" => Stream::from($refArticle->getVisibilityGroups())
-                ->map(fn(VisibilityGroup $group) => $group->getLabel())
-                ->join(", "),
+            "visibilityGroups" => FormatHelper::visibilityGroup($refArticle->getVisibilityGroup()),
             "barCode" => $refArticle->getBarCode() ?? "Non défini",
             "comment" => $refArticle->getCommentaire(),
             "status" => FormatHelper::status($refArticle->getStatut()),
@@ -716,7 +709,7 @@ class RefArticleDataService {
         $freeFields = $freeFieldRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, $categorieCL);
 
         $fields = self::REF_ARTICLE_FIELDS;
-        if($currentUser->getVisibilityGroup()) {
+        if(!$currentUser->getVisibilityGroups()->isEmpty()) {
             $visibilityGroupsIndex = null;
             foreach($fields as $index => $field) {
                 if($field["name"] === "visibilityGroups") {

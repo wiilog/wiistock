@@ -24,6 +24,16 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         'Rôle' => 'role',
     ];
 
+    public function getForSelect(?string $term) {
+        return $this->createQueryBuilder("user")
+            ->select("user.id AS id, user.username AS text")
+            ->andWhere("user.username LIKE :term")
+            ->andWhere('user.status = true')
+            ->setParameter("term", "%$term%")
+            ->getQuery()
+            ->getArrayResult();
+    }
+
     public function getIdAndLibelleBySearch($search)
     {
         return $this->createQueryBuilder('u')
@@ -132,7 +142,7 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
                             break;
                         case 'visibilityGroup':
                             $qb
-                                ->leftJoin('a.visibilityGroup', 'order_visibility_group')
+                                ->leftJoin('a.visibilityGroups', 'order_visibility_group')
                                 ->orderBy('order_visibility_group.label', $order);
                             break;
                         default:
@@ -146,7 +156,7 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
                 if (!empty($search)) {
                     $qb
                         ->leftJoin('a.dropzone', 'd_search')
-                        ->leftJoin('a.visibilityGroup', 'search_visibility_group')
+                        ->leftJoin('a.visibilityGroups', 'search_visibility_group')
                         ->andWhere(
                             'a.username LIKE :value'
                             . ' OR a.email LIKE :value'

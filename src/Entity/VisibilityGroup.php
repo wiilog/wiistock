@@ -35,12 +35,12 @@ class VisibilityGroup {
     private bool $active = true;
 
     /**
-     * @ORM\OneToMany(targetEntity=Utilisateur::class, mappedBy="visibilityGroup")
+     * @ORM\ManyToMany(targetEntity=Utilisateur::class, inversedBy="visibilityGroups")
      */
     private Collection $users;
 
     /**
-     * @ORM\ManyToMany(targetEntity=ReferenceArticle::class, inversedBy="visibilityGroups")
+     * @ORM\OneToMany(targetEntity=ReferenceArticle::class, mappedBy="visibilityGroup")
      */
     private Collection $articleReferences;
 
@@ -83,7 +83,7 @@ class VisibilityGroup {
     public function addUser(Utilisateur $user): self {
         if (!$this->users->contains($user)) {
             $this->users[] = $user;
-            $user->setVisibilityGroup($this);
+            $user->addVisibilityGroup($this);
         }
 
         return $this;
@@ -91,9 +91,7 @@ class VisibilityGroup {
 
     public function removeUser(Utilisateur $user): self {
         if ($this->users->removeElement($user)) {
-            if ($user->getVisibilityGroup() === $this) {
-                $user->setVisibilityGroup(null);
-            }
+            $user->removeVisibilityGroup($this);
         }
 
         return $this;
@@ -122,7 +120,7 @@ class VisibilityGroup {
     public function addArticleReference(ReferenceArticle $articleReference): self {
         if (!$this->articleReferences->contains($articleReference)) {
             $this->articleReferences[] = $articleReference;
-            $articleReference->addVisibilityGroup($this);
+            $articleReference->setVisibilityGroup($this);
         }
 
         return $this;
@@ -130,7 +128,9 @@ class VisibilityGroup {
 
     public function removeArticleReference(ReferenceArticle $articleReference): self {
         if ($this->articleReferences->removeElement($articleReference)) {
-            $articleReference->removeVisibilityGroup($this);
+            if ($articleReference->getVisibilityGroup() === $this) {
+                $articleReference->setVisibilityGroup(null);
+            }
         }
 
         return $this;

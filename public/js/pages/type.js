@@ -33,6 +33,7 @@ modalNewType.on('hidden.bs.modal', function () {
     modalNewType.find('.notifications-emergencies').addClass(`d-none`);
     modalNewType.find('.notifications-emergencies-select').addClass(`d-none`);
     modalNewType.find('.enable-notifications').addClass(`d-none`);
+    modalNewType.find('.color-picker').addClass(`d-none`);
 });
 
 let modalEditType = $('#modalEditType');
@@ -90,6 +91,7 @@ function typeSelectChange($typeSelect, $modal) {
     const $notificationsContainer = $modal.find('.enable-notifications');
     const $mailCheck = $mailCheckContainer.find('input[name="sendMail"]');
     const $notificationsEmergencies = $modal.find('select[name=notificationsEmergencies]');
+    const $colorPicker = $modal.find('.color-picker');
 
     const category = $selectedOption.data(`category`);
     $notificationsEmergencies.val(null).trigger(`change`);
@@ -115,6 +117,12 @@ function typeSelectChange($typeSelect, $modal) {
         $defaultLocations.removeClass('d-none');
     } else {
         $defaultLocations.addClass('d-none');
+    }
+
+    if ($selectedOption.data('color-picker')) {
+        $colorPicker.removeClass('d-none');
+    } else {
+        $colorPicker.addClass('d-none');
     }
 }
 

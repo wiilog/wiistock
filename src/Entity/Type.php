@@ -44,6 +44,18 @@ class Type
     const LABEL_DELIVERY = 'livraison';
     const LABEL_COLLECT = 'collecte';
 
+    const PRESET_COLORS = [
+        '#D76433',
+        '#D7B633',
+        '#A5D733',
+        '#33D7D1',
+        '#33A5D7',
+        '#3353D7',
+        '#6433D7',
+        '#D73353',
+    ];
+
+    const DEFAULT_COLOR = '#3353D7';
 
 	/**
      * @ORM\Id()
@@ -181,6 +193,11 @@ class Type
      * @ORM\OneToMany(targetEntity="App\Entity\IOT\Sensor", mappedBy="type")
      */
     private Collection $sensors;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private ?string $color = null;
 
     public function __construct()
     {
@@ -889,6 +906,18 @@ class Type
                 $sensor->setType(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getColor(): ?string
+    {
+        return $this->color;
+    }
+
+    public function setColor(string $color): self
+    {
+        $this->color = $color;
 
         return $this;
     }

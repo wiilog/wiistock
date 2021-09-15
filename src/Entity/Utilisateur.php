@@ -357,9 +357,9 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     private $unreadNotifications;
 
     /**
-     * @ORM\ManyToOne(targetEntity=VisibilityGroup::class, inversedBy="users")
+     * @ORM\ManyToMany(targetEntity=VisibilityGroup::class, mappedBy="users")
      */
-    private ?VisibilityGroup $visibilityGroup = null;
+    private Collection $visibilityGroups;
 
     public function __construct()
     {
@@ -411,6 +411,8 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->purchaseRequestRequesters = new ArrayCollection();
         $this->sensorWrappers = new ArrayCollection();
         $this->unreadNotifications = new ArrayCollection();
+        $this->visibilityGroups = new ArrayCollection();
+
     }
 
     public function getId()
@@ -1905,18 +1907,38 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
-
-    public function getVisibilityGroup(): ?VisibilityGroup {
-        return $this->visibilityGroup;
+    /**
+     * @return Collection|VisibilityGroup[]
+     */
+    public function getVisibilityGroups(): Collection {
+        return $this->visibilityGroups;
     }
 
-    public function setVisibilityGroup(?VisibilityGroup $visibilityGroup): self {
-        if($this->visibilityGroup && $this->visibilityGroup !== $visibilityGroup) {
-            $this->visibilityGroup->removeUser($this);
-        }
-        $this->visibilityGroup = $visibilityGroup;
-        if($visibilityGroup) {
+    public function addVisibilityGroup(VisibilityGroup $visibilityGroup): self {
+        if (!$this->visibilityGroups->contains($visibilityGroup)) {
+            $this->visibilityGroups[] = $visibilityGroup;
             $visibilityGroup->addUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeVisibilityGroup(VisibilityGroup $visibilityGroup): self {
+        if ($this->visibilityGroups->removeElement($visibilityGroup)) {
+            $visibilityGroup->removeUser($this);
+        }
+
+        return $this;
+    }
+
+    public function setVisibilityGroups(?array $visibilityGroups): self {
+        foreach($this->getVisibilityGroups()->toArray() as $visibilityGroup) {
+            $this->removeVisibilityGroup($visibilityGroup);
+        }
+
+        $this->visibilityGroups = new ArrayCollection();
+        foreach($visibilityGroups as $visibilityGroup) {
+            $this->addVisibilityGroup($visibilityGroup);
         }
 
         return $this;

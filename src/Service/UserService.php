@@ -111,7 +111,7 @@ class UserService
 			'Dropzone' => $user->getDropzone() ? $user->getDropzone()->getLabel() : '',
 			'Dernière connexion' => $user->getLastLogin() ? $user->getLastLogin()->format('d/m/Y') : '',
             'role' => $user->getRole() ? $user->getRole()->getLabel() : '',
-            'visibilityGroup' => FormatHelper::visibilityGroup($user->getVisibilityGroup()),
+            'visibilityGroup' => FormatHelper::entity($user->getVisibilityGroups()->toArray(), "label", ' / '),
 			'Actions' => $this->templating->render('utilisateur/datatableUtilisateurRow.html.twig', ['idUser' => $idUser]),
 		];
     }
@@ -206,7 +206,7 @@ class UserService
             FormatHelper::entity($user->getDispatchTypes()->toArray(), 'label', ' / '),
             FormatHelper::entity($user->getHandlingTypes()->toArray(), 'label', ' / '),
             FormatHelper::location($user->getDropzone()),
-            FormatHelper::visibilityGroup($user->getVisibilityGroup()),
+            FormatHelper::entity($user->getVisibilityGroups()->toArray(), "label", ' / '),
             $user->getStatus() ? 'Actif' : 'Inactif'
         ]);
     }

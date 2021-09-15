@@ -245,9 +245,9 @@ class ReferenceArticle extends FreeFieldEntity
     private $requestTemplateLines;
 
     /**
-     * @ORM\ManyToMany(targetEntity=VisibilityGroup::class, mappedBy="articleReferences")
+     * @ORM\ManyToOne(targetEntity=VisibilityGroup::class, inversedBy="articleReferences")
      */
-    private Collection $visibilityGroups;
+    private ?VisibilityGroup $visibilityGroup = null;
 
     public function __construct()
     {
@@ -274,7 +274,6 @@ class ReferenceArticle extends FreeFieldEntity
         $this->deliveryRequestTemplates = new ArrayCollection();
         $this->collectRequestTemplates = new ArrayCollection();
         $this->requestTemplateLines = new ArrayCollection();
-        $this->visibilityGroups = new ArrayCollection();
     }
 
     public function getId()
@@ -1152,39 +1151,20 @@ class ReferenceArticle extends FreeFieldEntity
     }
 
     /**
-     * @return Collection|VisibilityGroup[]
+     * @return VisibilityGroup
      */
-    public function getVisibilityGroups(): Collection {
-        return $this->visibilityGroups;
+    public function getVisibilityGroup(): ?VisibilityGroup {
+        return $this->visibilityGroup;
     }
 
-    public function addVisibilityGroup(VisibilityGroup $visibilityGroup): self {
-        if (!$this->visibilityGroups->contains($visibilityGroup)) {
-            $this->visibilityGroups[] = $visibilityGroup;
+    public function setVisibilityGroup(VisibilityGroup $visibilityGroup): self {
+        if($this->visibilityGroup && $this->visibilityGroup !== $visibilityGroup) {
+            $this->visibilityGroup->removeArticleReference($this);
+        }
+        $this->visibilityGroup = $visibilityGroup;
+        if($visibilityGroup) {
             $visibilityGroup->addArticleReference($this);
         }
-
-        return $this;
-    }
-
-    public function removeVisibilityGroup(VisibilityGroup $visibilityGroup): self {
-        if ($this->visibilityGroups->removeElement($visibilityGroup)) {
-            $visibilityGroup->removeArticleReference($this);
-        }
-
-        return $this;
-    }
-
-    public function setVisibilityGroups(?array $visibilityGroups): self {
-        foreach($this->getVisibilityGroups()->toArray() as $visibilityGroup) {
-            $this->removeVisibilityGroup($visibilityGroup);
-        }
-
-        $this->visibilityGroups = new ArrayCollection();
-        foreach($visibilityGroups as $visibilityGroup) {
-            $this->addVisibilityGroup($visibilityGroup);
-        }
-
         return $this;
     }
 }

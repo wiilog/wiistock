@@ -224,7 +224,7 @@ class FournisseurController extends AbstractController
     }
 
     /**
-     * @Route("/autocomplete", name="get_fournisseur", options={"expose"=true}, condition="request.isXmlHttpRequest()")
+     * @Route("/autocomplete", name="get_fournisseur", options={"expose"=true})
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return JsonResponse
@@ -241,11 +241,7 @@ class FournisseurController extends AbstractController
     }
 
     /**
-     * @Route("get-label-fournisseur", name ="demande_label_by_fournisseur", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     *
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return Response
+     * @Route("/get-label-fournisseur", name ="demande_label_by_fournisseur", options={"expose"=true})
      */
     public function getLabelsFournisseurs(Request $request, EntityManagerInterface $entityManager): Response
     {

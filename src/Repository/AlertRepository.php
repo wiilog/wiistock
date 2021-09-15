@@ -6,6 +6,7 @@ use App\Entity\Alert;
 use App\Entity\Article;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
+use App\Entity\VisibilityGroup;
 use App\Helper\QueryCounter;
 use DateTime;
 use Doctrine\ORM\AbstractQuery;
@@ -53,16 +54,20 @@ class AlertRepository extends EntityRepository {
             ->leftJoin("a.reference", "reference")
             ->leftJoin("a.article", "article");
 
-        $visibilityGroup = $user->getVisibilityGroup();
-        if ($visibilityGroup) {
+        $visibilityGroup = $user->getVisibilityGroups();
+        if (!$visibilityGroup->isEmpty()) {
             $queryBuilder
                 ->leftJoin('article.articleFournisseur', 'join_article_supplierArticle')
                 ->leftJoin('join_article_supplierArticle.referenceArticle', 'join_article_reference')
+                ->leftJoin('reference.visibilityGroup', 'visibility_group')
+                ->leftJoin('join_article_reference.visibilityGroup', 'join_article_reference_visibility_group')
                 ->andWhere($exprBuilder->orX(
-                    ':loggedUserVisibilityGroup MEMBER OF reference.visibilityGroups',
-                    ':loggedUserVisibilityGroup MEMBER OF join_article_reference.visibilityGroups'
+                    'visibility_group.id IN (:userVisibilityGroups)',
+                    'join_article_reference_visibility_group.id IN (:userVisibilityGroups)',
                 ))
-                ->setParameter('loggedUserVisibilityGroup', $visibilityGroup);
+                ->setParameter('userVisibilityGroups', Stream::from(
+                    $visibilityGroup->toArray()
+                )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
         }
 
         $total = QueryCounter::count($queryBuilder, "a");
@@ -262,14 +267,18 @@ class AlertRepository extends EntityRepository {
             ->setParameter('start', $start)
             ->setParameter('end', $end);
 
-        $visibilityGroup = $user->getVisibilityGroup();
-        if ($visibilityGroup) {
+        $visibilityGroup = $user->getVisibilityGroups();
+        if (!$visibilityGroup->isEmpty()) {
             $queryBuilder
+                ->leftJoin('join_reference.visibilityGroup', 'visibility_group')
+                ->leftJoin('join_article_reference.visibilityGroup', 'join_article_reference_visibility_group')
                 ->andWhere($exprBuilder->orX(
-                    ':loggedUserVisibilityGroup MEMBER OF join_reference.visibilityGroups',
-                    ':loggedUserVisibilityGroup MEMBER OF join_article_reference.visibilityGroups'
+                    'visibility_group.id IN (:userVisibilityGroups)',
+                    'join_article_reference_visibility_group.id IN (:userVisibilityGroups)',
                 ))
-                ->setParameter('loggedUserVisibilityGroup', $visibilityGroup);
+                ->setParameter('userVisibilityGroups', Stream::from(
+                    $visibilityGroup->toArray()
+                )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
         }
 
         if (!empty($statusCodeFilter)) {
