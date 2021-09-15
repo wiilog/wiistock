@@ -129,8 +129,7 @@ class SelectController extends AbstractController {
      * @Route("/select/groupe-de-visibilite", name="ajax_select_visibility_group", options={"expose"=true})
      */
     public function visibilityGroup(Request $request, EntityManagerInterface $manager): Response {
-        $user = $this->getUser();
-        $results = $manager->getRepository(VisibilityGroup::class)->getForSelect($request->query->get("term"), $user);
+        $results = $manager->getRepository(VisibilityGroup::class)->getForSelect($request->query->get("term"), $this->getUser());
         return $this->json([
             "results" => $results,
         ]);
