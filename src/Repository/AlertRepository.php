@@ -223,6 +223,19 @@ class AlertRepository extends EntityRepository {
                 ->andWhere('type.id IN (:referenceTypes)')
                 ->setParameter('referenceTypes', $params['referenceTypes']);
         }
+
+        if (isset($params['user'])) {
+            $user = $params['user'];
+            $visibilityGroup = $user->getVisibilityGroups();
+            if (!$visibilityGroup->isEmpty()) {
+                $qb
+                    ->leftJoin('reference.visibilityGroup', 'visibility_group')
+                    ->andWhere('visibility_group.id IN (:userVisibilityGroups)')
+                    ->setParameter('userVisibilityGroups', Stream::from(
+                        $visibilityGroup->toArray()
+                    )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
+            }
+        }
         return $qb
             ->getQuery()
             ->getSingleScalarResult();
