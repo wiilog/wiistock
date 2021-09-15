@@ -486,7 +486,7 @@ class PreparationController extends AbstractController
                     'quantity' => $quantity,
                     'max' => $data['ref']
                         ? $quantity
-                        : (isset($article) ? $article->getQuantiteAPrelever() : null)
+                        : ($line instanceof PreparationOrderArticleLine ? $line->getQuantity() : null)
                 ]
             );
 

@@ -327,12 +327,12 @@ class CartService {
                 $refArticleDataService->addRefToDemand($data, $reference, $utilisateur, false, $entityManager, $request, null, false, true);
             } else if (str_starts_with($key, 'article')) {
                 $index = intval(substr($key, 7));
+                /** @var Article $article */
                 $article = $articleRepository->find($datum);
                 $quantityToDeliver = $data['quantity' . $index] ?? null;
 
-                $article
-                    ->setDemande($request)
-                    ->setQuantiteAPrelever(max($quantityToDeliver, 0)); // protection contre quantités négatives
+                $articleLine = $demandeLivraisonService->createArticleLine($article, $request, max($quantityToDeliver, 0));
+                $entityManager->persist($articleLine);
             }
         }
         $this->emptyCart($cart);

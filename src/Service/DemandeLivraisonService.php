@@ -7,6 +7,8 @@ namespace App\Service;
 use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
+use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
+use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\FreeField;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
@@ -395,21 +397,23 @@ class DemandeLivraisonService
             $response['success'] = true;
             $response['msg'] = '';
             // pour réf gérées par articles
-            $articles = $demande->getArticleLines();
-            foreach ($articles as $article) {
-                $statutArticle = $article->getStatut();
+            $articleLines = $demande->getArticleLines();
+            /** @var DeliveryRequestArticleLine $articleLine */
+            foreach ($articleLines as $articleLine) {
+                $statutArticle = $articleLine->getStatut();
+                $article = $articleLine->getArticle();
                 if (isset($statutArticle)
                     && $statutArticle->getNom() !== Article::STATUT_ACTIF) {
                     $response['success'] = false;
-                    $response['nomadMessage'] = 'Erreur de quantité sur l\'article : ' . $article->getBarCode();
+                    $response['nomadMessage'] = 'Erreur de quantité sur l\'article : ' . $articleLine->getBarCode();
                     $response['msg'] = "Un article de votre demande n'est plus disponible. Assurez vous que chacun des articles soit en statut disponible pour valider votre demande.";
                 } else {
-                    $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
+                    $refArticle = $articleLine->getArticleFournisseur()->getReferenceArticle();
                     $totalQuantity = $refArticle->getQuantiteDisponible();
                     $treshHold = ($article->getQuantite() > $totalQuantity)
                         ? $totalQuantity
                         : $article->getQuantite();
-                    if ($article->getQuantiteAPrelever() > $treshHold) {
+                    if ($articleLine->getQuantity() > $treshHold) {
                         $response['success'] = false;
                         $response['nomadMessage'] = 'Erreur de quantité sur l\'article : ' . $article->getBarCode();
                         $response['msg'] = "La quantité demandée d'un des articles excède la quantité disponible (" . $treshHold . ").";
@@ -418,9 +422,10 @@ class DemandeLivraisonService
             }
 
             // pour réf gérées par référence
-            foreach ($demande->getReferenceLines() as $ligne) {
-                $articleRef = $ligne->getReference();
-                if ($ligne->getQuantity() > $articleRef->getQuantiteDisponible()) {
+            /** @var DeliveryRequestReferenceLine $line */
+            foreach ($demande->getReferenceLines() as $line) {
+                $articleRef = $line->getReference();
+                if ($line->getQuantity() > $articleRef->getQuantiteDisponible()) {
                     $response['success'] = false;
                     $response['nomadMessage'] = 'Erreur de quantité sur l\'article : ' . $articleRef->getBarCode();
                     $response['msg'] = "La quantité demandée d'un des articles excède la quantité disponible (" . $articleRef->getQuantiteDisponible() . ").";
@@ -601,5 +606,19 @@ class DemandeLivraisonService
         foreach ($demande->getReferenceLines() as $ligneArticle) {
             $entityManager->remove($ligneArticle);
         }
+    }
+
+    public function createArticleLine(Article $article,
+                                      Demande $request,
+                                      int $quantityToPick = 0,
+                                      int $pickedQuantity = 0): DeliveryRequestArticleLine {
+
+        $articleLine = new DeliveryRequestArticleLine();
+        $articleLine
+            ->setQuantity($quantityToPick)
+            ->setPickedQuantity($pickedQuantity)
+            ->setArticle($article)
+            ->setRequest($request);
+        return $articleLine;
     }
 }

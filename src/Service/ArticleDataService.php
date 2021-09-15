@@ -295,7 +295,7 @@ class ArticleDataService
         }
     }
 
-    public function newArticle($data, EntityManagerInterface $entityManager, Demande $demande = null) {
+    public function newArticle($data, EntityManagerInterface $entityManager) {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
@@ -365,18 +365,6 @@ class ArticleDataService
         }
         $entityManager->persist($toInsert);
         $this->freeFieldService->manageFreeFields($toInsert, $data, $entityManager);
-        // optionnel : ajout dans une demande
-        // TODO Adrien
-        if ($demande) {
-            $demande->addArticle($toInsert);
-            $toInsert->setQuantiteAPrelever($toInsert->getQuantite());
-
-            if (count($demande->getPreparations()) > 0) {
-                $toInsert->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
-                $toInsert->setQuantitePrelevee($toInsert->getQuantite());
-                $demande->getPreparations()[0]->addArticleLine($toInsert);
-            }
-        }
 
         return $toInsert;
     }

@@ -100,10 +100,10 @@ class PreparationsManagerService
         }
     }
 
-    public function treatPreparation(Preparation $preparation,
-                                     $userNomade,
-                                     Emplacement $emplacement,
-                                     array $articlesToKeep,
+    public function treatPreparation(Preparation            $preparation,
+                                                            $userNomade,
+                                     Emplacement            $emplacement,
+                                     array                  $articleLinesToKeep,
                                      EntityManagerInterface $entityManager = null): ?Preparation
     {
         if (!isset($entityManager)) {
@@ -138,7 +138,7 @@ class PreparationsManagerService
 
         // TODO get remaining articles and refs
         if (!$isPreparationComplete) {
-            return $this->persistPreparationFromOldOne($preparation, $demande, $statutRepository, $articleRepository, $articlesToKeep, $entityManager);
+            return $this->persistPreparationFromOldOne($preparation, $demande, $statutRepository, $articleRepository, $articleLinesToKeep, $entityManager);
         } else {
             return null;
         }
@@ -185,11 +185,10 @@ class PreparationsManagerService
             ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::PREPARATION, Preparation::STATUT_A_TRAITER));
 
         $demande->addPreparation($newPreparation);
-        foreach ($listOfArticleSplitted as $articleId) {
-            /** @var Article $articleToKeep */
-            $articleToKeep = $articleRepository->find($articleId);
-            $newPreparation->addArticleLine($articleToKeep);
-            $demande->addArticle($articleToKeep);
+        foreach ($listOfArticleSplitted as $lineId) {
+            /** @var PreparationOrderArticleLine $line */
+            $line = $articleRepository->find($lineId);
+            $newPreparation->addArticleLine($line);
         }
 
         foreach ($preparation->getReferenceLines() as $ligneArticlePreparation) {
@@ -344,27 +343,23 @@ class PreparationsManagerService
     public function treatArticleSplitting(EntityManagerInterface        $entityManager,
                                           Article                       $article,
                                           int                           $quantity,
-                                          PreparationOrderReferenceLine $line,
+                                          PreparationOrderReferenceLine $referenceLine,
                                           Statut                        $statusArticle): void
     {
         if ($quantity && $quantity <= $article->getQuantite()) {
             $article->setStatut($statusArticle);
-            $preparation = $line->getPreparation();
+            $preparation = $referenceLine->getPreparation();
             $articleLine = $preparation->getArticleLine($article);
 
             if (!isset($articleLine)) {
-                $articleLine = new PreparationOrderArticleLine();
-                $articleLine
-                    ->setPreparation($preparation)
-                    ->setPickedQuantity(0)
-                    ->setQuantity(0);
+                $articleLine = $this->createArticleLine($article, $preparation);
                 $entityManager->persist($articleLine);
             }
 
             // si on a enlevé de la quantité à l'article : on enlève la difference à la quantité de la ligne article
             // si on a ajouté de la quantité à l'article : on enlève la ajoute à la quantité de la ligne article
             // si rien a changé on touche pas à la quantité de la ligne article
-            $line->setQuantity($line->getQuantity() + ($articleLine->getPickedQuantity() - $quantity));
+            $referenceLine->setQuantity($referenceLine->getQuantity() + ($articleLine->getPickedQuantity() - $quantity));
             $articleLine
                 ->setQuantity($quantity)
                 ->setPickedQuantity($quantity);
@@ -388,52 +383,52 @@ class PreparationsManagerService
                                                   EntityManagerInterface $entityManager): array
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $articlesSplittedToKeep = [];
+        $splitArticleLineIds = [];
 
-        $articles = $preparation->getArticleLines();
-        foreach ($articles as $article) {
+        $articleLines = $preparation->getArticleLines();
+        $articleTransitStatus = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT);
+        $articleActiveStatus = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
+
+        foreach ($articleLines as $line) {
+            $article = $line->getArticle();
             $mouvementAlreadySaved = $preparation->getArticleMovement($article);
             if (!$mouvementAlreadySaved) {
-                $quantitePrelevee = $article->getQuantitePrelevee();
-                $selected = !(empty($quantitePrelevee));
-                $article->setStatut(
-                    $statutRepository->findOneByCategorieNameAndStatutCode(
-                        Article::CATEGORIE,
-                        $selected ? Article::STATUT_EN_TRANSIT : Article::STATUT_ACTIF
-                    )
-                );
+                $pickedQuantity = $line->getPickedQuantity();
+                $selected = !(empty($pickedQuantity));
+                $article->setStatut($selected ? $articleTransitStatus : $articleActiveStatus);
 
-                if ($article->getQuantite() >= $quantitePrelevee) {
+                if ($article->getQuantite() >= $pickedQuantity) {
                     // scission des articles dont la quantité prélevée n'est pas totale
-                    if ($article->getQuantite() !== $quantitePrelevee) {
+                    if ($article->getQuantite() > $pickedQuantity) {
                         $newArticle = [
                             'articleFournisseur' => $article->getArticleFournisseur()->getId(),
                             'libelle' => $article->getLabel(),
                             'prix' => $article->getPrixUnitaire(),
                             'conform' => !$article->getConform(),
                             'commentaire' => $article->getcommentaire(),
-                            'quantite' => $selected ? $article->getQuantite() - $article->getQuantitePrelevee() : 0,
+                            'quantite' => $selected ? ($article->getQuantite() - $line->getPickedQuantity()) : 0,
                             'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
                             'statut' => $selected ? Article::STATUT_ACTIF : Article::STATUT_INACTIF,
                             'refArticle' => $article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getId() : ''
                         ];
 
-                        foreach ($article->getFreeFields() as $clId => $valeurChampLibre) {
-                            $newArticle[$clId] = $valeurChampLibre;
-                        }
+                        // copy of all free fields
+                        $newArticle += $article->getFreeFields();
+
                         $insertedArticle = $this->articleDataService->newArticle($newArticle, $entityManager);
-                        $entityManager->flush();
                         if ($selected) {
-                            if ($article->getQuantitePrelevee() !== $article->getQuantiteAPrelever()) {
-                                $insertedArticle->setQuantiteAPrelever($article->getQuantiteAPrelever() - $article->getQuantitePrelevee());
-                                $articlesSplittedToKeep[] = $insertedArticle->getId();
+                            if ($line->getQuantity() > $line->getPickedQuantity()) {
+                                $newArticleLine = $this->createArticleLine($insertedArticle, $preparation);
+                                $newArticleLine->setQuantity($line->getQuantity() - $pickedQuantity);
+                                $entityManager->persist($newArticleLine);
+                                $splitArticleLineIds[] = $newArticleLine->getId();
                             }
-                            $article->setQuantite($quantitePrelevee);
+                            $article->setQuantite($pickedQuantity);
                         } else {
-                            $preparation->addArticleLine($insertedArticle);
-                            $preparation->removeArticleLine($article);
-                            $articlesSplittedToKeep[] = $article->getId();
+                            $preparation->removeArticleLine($line);
+                            $splitArticleLineIds[] = $line->getId();
                         }
+                        $entityManager->flush();
                     }
                     if ($selected) {
                         // création des mouvements de préparation pour les articles
@@ -441,7 +436,7 @@ class PreparationsManagerService
                         $mouvement
                             ->setUser($user)
                             ->setArticle($article)
-                            ->setQuantity($quantitePrelevee)
+                            ->setQuantity($pickedQuantity)
                             ->setEmplacementFrom($article->getEmplacement())
                             ->setType(MouvementStock::TYPE_TRANSFER)
                             ->setPreparationOrder($preparation);
@@ -486,7 +481,7 @@ class PreparationsManagerService
                 ->setUtilisateur($user);
             $entityManager->flush();
         }
-        return $articlesSplittedToKeep;
+        return $splitArticleLineIds;
     }
 
     public function getDataForDatatable($params = null, $filterDemande = null)
@@ -579,12 +574,14 @@ class PreparationsManagerService
         $preparation->setStatut($statutP);
         $preparation->getMouvements()->clear();
 
-        foreach ($preparation->getReferenceLines() as $ligneArticle) {
-            $ligneArticle->setPickedQuantity(0);
+        /** @var PreparationOrderReferenceLine $referenceLine */
+        foreach ($preparation->getReferenceLines() as $referenceLine) {
+            $referenceLine->setPickedQuantity(0);
         }
 
-        foreach ($preparation->getArticleLines() as $article) {
-            $article->setQuantitePrelevee(0);
+        /** @var PreparationOrderArticleLine $articleLine */
+        foreach ($preparation->getArticleLines() as $articleLine) {
+            $articleLine->setPickedQuantity(0);
         }
     }
 
@@ -614,20 +611,25 @@ class PreparationsManagerService
                 ->setStatut($requestStatusDraft);
         }
 
-        foreach ($preparation->getArticleLines() as $article) {
-            $article->setPreparation(null);
+        /** @var PreparationOrderArticleLine $articleLine */
+        foreach ($preparation->getArticleLines()->toArray() as $articleLine) {
+            $article = $articleLine->getArticle();
             $article->setStatut($statutActifArticle);
-            $article->setQuantitePrelevee(0);
+
+            $articleLine->setArticle(null);
+            $articleLine->setPreparation(null);
+            $entityManager->remove($articleLine);
         }
 
         $refToUpdate = [];
 
-        foreach ($preparation->getReferenceLines() as $ligneArticlePreparation) {
-            $refArticle = $ligneArticlePreparation->getReference();
+        /** @var PreparationOrderReferenceLine $referenceLine */
+        foreach ($preparation->getReferenceLines() as $referenceLine) {
+            $refArticle = $referenceLine->getReference();
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 $quantiteReservee = $refArticle->getQuantiteReservee();
-                $quantiteAPrelever = $ligneArticlePreparation->getQuantity();
-                $newQuantiteReservee = ($quantiteReservee - $quantiteAPrelever);
+                $quantityToPick = $referenceLine->getQuantity();
+                $newQuantiteReservee = ($quantiteReservee - $quantityToPick);
                 $refArticle->setQuantiteReservee($newQuantiteReservee > 0 ? $newQuantiteReservee : 0);
 
                 $newQuantiteReservee = $refArticle->getQuantiteReservee();
@@ -637,7 +639,7 @@ class PreparationsManagerService
             } else {
                 $refToUpdate[] = $refArticle;
             }
-            $entityManager->remove($ligneArticlePreparation);
+            $entityManager->remove($referenceLine);
         }
         return $refToUpdate;
     }
@@ -685,5 +687,18 @@ class PreparationsManagerService
             ->setActive(true);
 
         return $pairing;
+    }
+
+    public function createArticleLine(Article $article,
+                                      Preparation $preparation,
+                                      int $quantityToPick = 0,
+                                      int $pickedQuantity = 0): PreparationOrderArticleLine {
+        $articleLine = new PreparationOrderArticleLine();
+        $articleLine
+            ->setQuantity($quantityToPick)
+            ->setPickedQuantity($pickedQuantity)
+            ->setArticle($article)
+            ->setPreparation($preparation);
+        return $articleLine;
     }
 }

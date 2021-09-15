@@ -16,6 +16,7 @@ use App\Entity\LitigeHistoric;
 use App\Entity\FieldsParam;
 use App\Entity\CategorieCL;
 use App\Entity\MouvementStock;
+use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PurchaseRequest;
 use App\Entity\PurchaseRequestLine;
 use App\Entity\TrackingMovement;
@@ -1678,16 +1679,16 @@ class ReceptionController extends AbstractController {
     /**
      * @Route("/avec-conditionnement/{reception}", name="reception_new_with_packing", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      */
-    public function newWithPacking(Request $request,
-                                   MailerService $mailerService,
-                                   TransferRequestService $transferRequestService,
-                                   TransferOrderService $transferOrderService,
+    public function newWithPacking(Request                 $transferRequest,
+                                   MailerService           $mailerService,
+                                   TransferRequestService  $transferRequestService,
+                                   TransferOrderService    $transferOrderService,
                                    DemandeLivraisonService $demandeLivraisonService,
-                                   TranslatorInterface $translator,
-                                   EntityManagerInterface $entityManager,
-                                   Reception $reception,
-                                   ArticleDataService $articleDataService,
-                                   FreeFieldService $champLibreService,
+                                   TranslatorInterface     $translator,
+                                   EntityManagerInterface  $entityManager,
+                                   Reception               $reception,
+                                   ArticleDataService      $articleDataService,
+                                   FreeFieldService        $champLibreService,
                                    TrackingMovementService $trackingMovementService,
                                    MouvementStockService $mouvementStockService,
                                    PreparationsManagerService $preparationsManagerService,
@@ -1697,7 +1698,7 @@ class ReceptionController extends AbstractController {
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
 
-        if($data = json_decode($request->getContent(), true)) {
+        if($data = json_decode($transferRequest->getContent(), true)) {
             $articles = $data['conditionnement'];
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
@@ -1739,7 +1740,7 @@ class ReceptionController extends AbstractController {
                     'msg' => 'Vous ne pouvez pas créer une demande de livraison et une demande de transfert en même temps.'
                 ]);
             }
-            $request = null;
+            $transferRequest = null;
             $demande = null;
             $createDirectDelivery = (bool)$data['direct-delivery'];
 
@@ -1814,20 +1815,20 @@ class ReceptionController extends AbstractController {
 
                 /** @var Utilisateur $requester */
                 $requester = $this->getUser();
-                $request = $transferRequestService->createTransferRequest($entityManager, $toTreatRequest, $origin, $destination, $requester);
+                $transferRequest = $transferRequestService->createTransferRequest($entityManager, $toTreatRequest, $origin, $destination, $requester);
 
-                $request
+                $transferRequest
                     ->setReception($reception)
                     ->setValidationDate($now);
 
-                $order = $transferOrderService->createTransferOrder($entityManager, $toTreatOrder, $request);;
+                $order = $transferOrderService->createTransferOrder($entityManager, $toTreatOrder, $transferRequest);;
 
-                $entityManager->persist($request);
+                $entityManager->persist($transferRequest);
                 $entityManager->persist($order);
 
                 try {
                     $entityManager->flush();
-                    if ($request->getType()->isNotificationsEnabled()) {
+                    if ($transferRequest->getType()->isNotificationsEnabled()) {
                         $this->notificationService->toTreat($order);
                     }
                 }
@@ -1851,14 +1852,28 @@ class ReceptionController extends AbstractController {
                 }
 
                 $noCommande = isset($article['noCommande']) ? $article['noCommande'] : null;
-                if ($request) {
+                if ($transferRequest) {
                     $article['statut'] = Article::STATUT_EN_TRANSIT;
                 }
 
-                $article = $articleDataService->newArticle($article, $entityManager, $demande);
-                if ($request) {
-                    $request->addArticle($article);
-                    $article->setQuantiteAPrelever($article->getQuantite());
+                $article = $articleDataService->newArticle($article, $entityManager);
+
+                if ($demande) {
+                    $deliveryArticleLine = $demandeLivraisonService->createArticleLine($article, $demande, $article->getQuantite());
+                    $entityManager->persist($deliveryArticleLine);
+
+                    /** @var Preparation $preparation */
+                    $preparation = $demande->getPreparations()->first();
+                    if ($preparation) {
+                        $preparationArticleLine = $preparationsManagerService->createArticleLine($article, $preparation, $article->getQuantite());
+                        $entityManager->persist($preparationArticleLine);
+
+                        $article->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
+                    }
+                }
+
+                if ($transferRequest) {
+                    $transferRequest->addArticle($article);
                 }
 
                 $ref = $article->getArticleFournisseur()->getReferenceArticle();
