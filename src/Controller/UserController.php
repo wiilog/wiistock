@@ -155,28 +155,30 @@ class UserController extends AbstractController
 			}
 
             $visibilityGroupsIds = is_string($data["visibility-group"]) ? explode(',', $data['visibility-group']) : $data["visibility-group"];
-            foreach ($visibilityGroupsIds as $visibilityGroupsId) {
-                $visibilityGroup = $visibilityGroupRepository->find($visibilityGroupsId);
-                if ($visibilityGroup) {
-                    $utilisateur->addVisibilityGroup($visibilityGroup);
+            if ($visibilityGroupsIds) {
+                $visibilityGroups = $visibilityGroupRepository->findBy(["id" => $visibilityGroupsIds]);
+            }
+
+            $utilisateur->setVisibilityGroups($visibilityGroups ?? []);
+
+            if (!empty($data['deliveryTypes'])) {
+                $types = $typeRepository->findBy(["id" => $data['deliveryTypes']]);
+                foreach ($types as $type) {
+                    $utilisateur->addDeliveryType($type);
                 }
             }
 
-            if (isset($data['deliveryTypes'])) {
-                foreach ($data['deliveryTypes'] as $type) {
-                    $utilisateur->addDeliveryType($typeRepository->find($type));
+            if (!empty($data['dispatchTypes'])) {
+                $types = $typeRepository->findBy(["id" => $data['dispatchTypes']]);
+                foreach ($types as $type) {
+                    $utilisateur->addDispatchType($type);
                 }
             }
 
-            if (isset($data['dispatchTypes'])) {
-                foreach ($data['dispatchTypes'] as $type) {
-                    $utilisateur->addDispatchType($typeRepository->find($type));
-                }
-            }
-
-            if (isset($data['handlingTypes'])) {
-                foreach ($data['handlingTypes'] as $type) {
-                    $utilisateur->addHandlingType($typeRepository->find($type));
+            if (!empty($data['handlingTypes'])) {
+                $types = $typeRepository->findBy(["id" => $data['handlingTypes']]);
+                foreach ($types as $type) {
+                    $utilisateur->addHandlingType($type);
                 }
             }
 
@@ -325,10 +327,12 @@ class UserController extends AbstractController
                 ->setEmail($data['email'])
                 ->setPhone($data['phoneNumber'] ?? '');
 
-            $visibilityGroups = is_string($data["visibility-group"]) ? explode(',', $data['visibility-group']) : $data["visibility-group"];
-            foreach ($visibilityGroups as $visibilityGroup) {
-                $user->addVisibilityGroup($visibilityGroupRepository->find($visibilityGroup));
+            $visibilityGroupsIds = is_string($data["visibility-group"]) ? explode(',', $data['visibility-group']) : $data["visibility-group"];
+            if ($visibilityGroupsIds) {
+                $visibilityGroups = $visibilityGroupRepository->findBy(["id" => $visibilityGroupsIds]);
             }
+
+            $user->setVisibilityGroups($visibilityGroups ?? []);
 
             if(!$user->getVisibilityGroups()->isEmpty()) {
                 $filters = $entityManager->getRepository(FiltreRef::class)->findBy(["champFixe" => FiltreRef::FIXED_FIELD_VISIBILITY_GROUP]);
