@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\ArticleFournisseur;
+use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\FreeField;
 use App\Entity\FiltreSup;
@@ -281,10 +282,11 @@ class ArticleController extends AbstractController
             $trackingPack = $article->getTrackingPack();
 
             if ($article->getCollectes()->isEmpty()
+                && $article->getPreparationOrderLines()->isEmpty()
                 && $article->getOrdreCollecte()->isEmpty()
                 && $article->getTransferRequests()->isEmpty()
                 && $article->getInventoryMissions()->isEmpty()
-                && $article->getInventoryEntries()) {
+                && $article->getInventoryEntries()->isEmpty()) {
 
                 if ($trackingPack) {
                     $trackingPack->setArticle(null);
@@ -314,35 +316,14 @@ class ArticleController extends AbstractController
                 }
                 $entityManager->flush();
 
-                // Delete prepa
-                $preparation = $article->getPreparation();
-                if ($preparation) {
-                    $refToUpdate = $preparationsManagerService->managePreRemovePreparation($preparation, $entityManager);
-                    $entityManager->flush();
-                    $entityManager->remove($preparation);
-
-                    // il faut que la preparation soit supprimée avant une maj des articles
-                    $entityManager->flush();
-
-                    foreach ($refToUpdate as $reference) {
-                        $refArticleDataService->updateRefArticleQuantities($entityManager, $reference);
-                    }
-
-                    $entityManager->flush();
+                /** @var DeliveryRequestArticleLine $line */
+                foreach ($article->getDeliveryRequestLines()->toArray() as $line) {
+                    $line->setRequest(null);
+                    $entityManager->remove($line);
                 }
-                // Delete demande
-
-                $demande = $article->getDemande();
-                if ($demande) {
-                    $demandeLivraisonService->managePreRemoveDeliveryRequest($demande, $entityManager);
-                    $entityManager->remove($demande);
-                    $entityManager->flush();
-                }
-
                 $entityManager->remove($article);
                 $entityManager->flush();
 
-                $response['delete'] = $rows;
                 return new JsonResponse([
                     'delete' => $rows,
                     'success' => true,
