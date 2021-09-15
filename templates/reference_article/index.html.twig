@@ -11,12 +11,12 @@
                     <span class="no-filter col-auto">Aucun filtre...</span>
                 </div>
                 <div class="row" id="filters">
-                    {% if app.user.visibilityGroup %}
+                    {% if app.user.visibilityGroups | length > 0 %}
                         {% include 'reference_article/oneFilter.html.twig' with {
                             removable: false,
                             filter: {
-                                champFixe: 'Groupe de visibilité',
-                                value: app.user.visibilityGroup.label,
+                                champFixe: 'Groupes de visibilité',
+                                value: app.user.visibilityGroups | map(vg => vg.label) | join(','),
                             }
                         } %}
                     {% endif %}

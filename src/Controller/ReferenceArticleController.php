@@ -162,6 +162,7 @@ class ReferenceArticleController extends AbstractController
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
                 ->setCommentaire($data['commentaire'])
+                ->setVisibilityGroup($data['visibility-group'] ? $visibilityGroupRepository->find(intval($data['visibility-group'])) : null)
                 ->setTypeQuantite($typeArticle)
                 ->setPrixUnitaire(max(0, $data['prix']))
                 ->setType($type)
@@ -204,16 +205,6 @@ class ReferenceArticleController extends AbstractController
                 $manager = $userRepository->find($managerId);
                 if ($manager) {
                     $refArticle->addManager($manager);
-                }
-            }
-
-            $visibilityGroupsIds = Stream::explode(",", $data["visibility-group"])
-                ->filter()
-                ->toArray();
-            foreach ($visibilityGroupsIds as $visibilityGroupsId) {
-                $visibilityGroup = $visibilityGroupRepository->find($visibilityGroupsId);
-                if ($visibilityGroup) {
-                    $refArticle->addVisibilityGroup($visibilityGroup);
                 }
             }
 
@@ -786,7 +777,7 @@ class ReferenceArticleController extends AbstractController
             'gestionnaire(s)',
             'Labels Fournisseurs',
             'Codes Fournisseurs',
-            'Groupe(s) de visibilité'
+            'Groupe de visibilité'
         ], $ffConfig['freeFieldsHeader']);
 
         $today = new DateTime();
@@ -839,7 +830,7 @@ class ReferenceArticleController extends AbstractController
             $managersByReference[$id] ?? "",
             $suppliersByReference[$id]['supplierLabels'] ?? "",
             $suppliersByReference[$id]['supplierCodes'] ?? "",
-            $reference['visibilityGroups'],
+            $reference['visibilityGroup'],
         ];
 
         foreach($ffConfig['freeFieldIds'] as $freeFieldId) {
