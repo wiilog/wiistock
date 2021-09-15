@@ -19,13 +19,14 @@
         </p>
     </div>
 {% endif %}
-<div class="file-bag"></div>
+<div class="file-bag" {% if icon is defined %}data-icon="{{ icon }}"{% endif %}></div>
 
 {% if isNew != true %}
     {% for attachment in attachments %}
         {% include 'attachment/attachmentLine.html.twig' with {
             attachment: attachment,
-            canRemove: editAttachments
+            canRemove: editAttachments,
+            icon: icon ?? null,
         } %}
     {% endfor %}
 {% endif %}
