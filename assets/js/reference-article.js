@@ -14,10 +14,14 @@ $(document).ready(() => {
     });
 
     $(`.save`).click(function() {
-        const $button = $(this);
-        processSubmitAction($(`.ra-form`), $button, $button.data(`submit`), {
-            onSuccess: () => window.location.href = Routing.generate('reference_article_index')
-        });
+        if($('.supplier-container').length === 0 && $('.ligneFournisseurArticle').length === 0) {
+            showBSAlert('Un fournisseur minimum est obligatoire pour continuer', 'warning');
+        } else {
+            const $button = $(this);
+            processSubmitAction($(`.ra-form`), $button, $button.data(`submit`), {
+                onSuccess: () => window.location.href = Routing.generate('reference_article_index')
+            });
+        }
     });
 
     $('.edit-image').click(() => $('#upload-article-reference-image').click());
@@ -41,6 +45,17 @@ $(document).ready(() => {
                 updateArticleReferenceImage($('.image-container'), $uploadArticleReferenceImage);
             }
         }
+    });
+
+    $('.delete-button-container').click(function() {
+        const supplierArticleId = $(this).data('id');
+        const $suppliersToRemove = $('#suppliers-to-remove');
+        if($suppliersToRemove.val() === '') {
+            $suppliersToRemove.val(supplierArticleId);
+        } else {
+            $suppliersToRemove.val($suppliersToRemove.val() + ',' + supplierArticleId);
+        }
+        $(this).closest('.supplier-container').remove();
     });
 
     $(document).on(`click`, `.increase-decrease-field .increase, .increase-decrease-field .decrease` , function(){

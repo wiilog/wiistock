@@ -70,7 +70,7 @@ class ArticleFournisseur
     public function setReferenceArticle(?ReferenceArticle $referenceArticle): self
     {
         $this->referenceArticle = $referenceArticle;
-        if(!$referenceArticle->getArticlesFournisseur()->contains($this)) {
+        if($referenceArticle && !$referenceArticle->getArticlesFournisseur()->contains($this)) {
             $referenceArticle->addArticleFournisseur($this);
         }
 
