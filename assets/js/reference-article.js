@@ -3,9 +3,9 @@ import {initEditor} from './utils';
 
 $(document).ready(() => {
     initEditor(`.editor-container`);
+    $('.list-multiple').select2();
 
     $(`.add-supplier-article`).click(function() {
-        console.log("ok", $(this).siblings(`.supplier-articles`))
         $(this).siblings(`.supplier-articles`).append($(`#supplier-article-template`).html());
     });
 
@@ -20,16 +20,7 @@ $(document).ready(() => {
         });
     });
 
-    $('#upload-article-reference-image').change(() => {
-        const $uploadArticleReferenceImage = $('#upload-article-reference-image')[0];
-        if ($uploadArticleReferenceImage.files && $uploadArticleReferenceImage.files.length > 0) {
-            if($uploadArticleReferenceImage.files[0].size > MAX_UPLOAD_FILE_SIZE) {
-                showBSAlert(`La taille de l'image ne peut excéder 10mo`, `warning`);
-            } else {
-                updateArticleReferenceImage($('.image-container'), $uploadArticleReferenceImage);
-            }
-        }
-    });
+    $('.edit-image').click(() => $('#upload-article-reference-image').click());
 
     $('.delete-image').click(() => {
         const $imageContainer = $('.image-container');
@@ -39,6 +30,17 @@ $(document).ready(() => {
         $imageContainer.css('background-image', "url(" + $defaultImage.val() + ")");
         $imageContainer.css('background-color', '#F5F5F7');
         $imageContainer.css('background-size', '100px');
+    });
+
+    $('#upload-article-reference-image').change(() => {
+        const $uploadArticleReferenceImage = $('#upload-article-reference-image')[0];
+        if ($uploadArticleReferenceImage.files && $uploadArticleReferenceImage.files.length > 0) {
+            if($uploadArticleReferenceImage.files[0].size > MAX_UPLOAD_FILE_SIZE) {
+                showBSAlert(`La taille de l'image ne peut excéder 10mo`, `warning`);
+            } else {
+                updateArticleReferenceImage($('.image-container'), $uploadArticleReferenceImage);
+            }
+        }
     });
 
     $(document).on(`click`, `.increase-decrease-field .increase, .increase-decrease-field .decrease` , function(){
@@ -62,8 +64,10 @@ function updateInputValue($button) {
     const value = parseInt($input.val());
     if($button.hasClass('increase')){
         $input.val(value+1);
+        $input.removeClass('is-invalid');
     } else if($button.hasClass('decrease') && value !== 1) {
         $input.val(value-1);
+        $input.removeClass('is-invalid');
     }
 
     $input.trigger(`change`);

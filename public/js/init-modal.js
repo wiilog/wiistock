@@ -809,7 +809,7 @@ function dragLeaveDiv(event, div) {
 }
 
 function openFileExplorer(span) {
-    span.closest('.modal').find('.fileInput').trigger('click');
+    span.siblings('.fileInput').trigger('click');
 }
 
 function saveDroppedFiles(event, $div) {

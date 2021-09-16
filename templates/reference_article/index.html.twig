@@ -68,9 +68,7 @@
                 <div class="btn-group">
                     {% if hasRightToCreate %}
                         <button type="button" class="btn btn-primary split-button btn-ripple"
-                                data-toggle="modal" data-target="#modalNewRefArticle"
-                                data-backdrop="static" data-keyboard="false"
-                                onclick='initNewReferenceArticleEditor("#modalNewRefArticle")'>
+                                onclick="window.location.href = Routing.generate('reference_article_new_page', {}, true)">
                             <span class="fa fa-plus mr-2"></span>Nouvel article de référence
                         </button>
                     {% elseif hasRightToExport %}

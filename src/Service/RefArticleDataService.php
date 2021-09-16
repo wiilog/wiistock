@@ -25,14 +25,13 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Helper\FormatHelper;
-use App\Repository\FiltreRefRepository;
 use App\Repository\PurchaseRequestLineRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
+
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use RuntimeException;
-use Symfony\Component\Form\Form;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -68,59 +67,44 @@ class RefArticleDataService {
         ["title" => FiltreRef::FIXED_FIELD_VISIBILITY_GROUP, "name" => "visibilityGroups", "type" => "list", "orderable" => true],
     ];
 
-    /**
-     * @var FiltreRefRepository
-     */
     private $filtreRefRepository;
 
-    /**
-     * @var Twig_Environment
-     */
-    private $templating;
+    /** @Required */
+    public Twig_Environment $templating;
 
-    /**
-     * @var UserService
-     */
-    private $userService;
+    /** @Required */
+    public UserService $userService;
 
     /**
      * @var object|string
      */
     private $user;
 
-    private $entityManager;
+    /** @Required */
+    public EntityManagerInterface $entityManager;
 
-    /**
-     * @var RouterInterface
-     */
-    private $router;
-    private $freeFieldService;
-    private $articleFournisseurService;
-    private $alertService;
-    private $visibleColumnService;
-    private $attachmentService;
+    /** @Required */
+    public RouterInterface $router;
 
-    public function __construct(RouterInterface $router,
-                                UserService $userService,
-                                FreeFieldService $champLibreService,
-                                EntityManagerInterface $entityManager,
-                                Twig_Environment $templating,
-                                VisibleColumnService $visibleColumnService,
-                                TokenStorageInterface $tokenStorage,
-                                ArticleFournisseurService $articleFournisseurService,
-                                AlertService $alertService,
-                                AttachmentService $attachmentService) {
-        $this->filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
-        $this->freeFieldService = $champLibreService;
-        $this->templating = $templating;
+    /** @Required */
+    public FreeFieldService $freeFieldService;
+
+    /** @Required */
+    public ArticleFournisseurService $articleFournisseurService;
+
+    /** @Required */
+    public AlertService $alertService;
+
+    /** @Required */
+    public VisibleColumnService $visibleColumnService;
+
+    /** @Required */
+    public AttachmentService $attachmentService;
+
+    public function __construct(TokenStorageInterface $tokenStorage,
+                                EntityManagerInterface $entityManager) {
         $this->user = $tokenStorage->getToken() ? $tokenStorage->getToken()->getUser() : null;
-        $this->entityManager = $entityManager;
-        $this->userService = $userService;
-        $this->router = $router;
-        $this->articleFournisseurService = $articleFournisseurService;
-        $this->alertService = $alertService;
-        $this->visibleColumnService = $visibleColumnService;
-        $this->attachmentService = $attachmentService;
+        $this->filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
     }
 
     public function getRefArticleDataByParams($params = null) {
@@ -343,6 +327,14 @@ class RefArticleDataService {
 
         $champLibreService->manageFreeFields($refArticle, $data, $entityManager);
         if(isset($request)) {
+            if($request->files->has('image')) {
+                $file = $request->files->get('image');
+                $attachments = $this->attachmentService->createAttachements([$file]);
+                $entityManager->persist($attachments[0]);
+
+                $refArticle->setImage($attachments[0]);
+                $request->files->remove('image');
+            }
             $this->attachmentService->manageAttachments($entityManager, $refArticle, $request->files);
         }
         $entityManager->flush();
