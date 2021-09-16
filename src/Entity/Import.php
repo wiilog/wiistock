@@ -131,7 +131,7 @@ class Import
         'dispatchTypes' => 'Types d\'acheminement',
         'handlingTypes' => 'Types de services',
         'dropzone' => 'Dropzone',
-        'visibilityGroup' => 'Groupe de visibilité',
+        'visibilityGroup' => 'Groupes de visibilité',
         'status' => 'Statut',
 	];
 
