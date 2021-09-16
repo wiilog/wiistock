@@ -911,7 +911,7 @@ class ImportService
         if(isset($data['visibilityGroups'])) {
             $visibilityGroup = $visibilityGroupRepository->findOneBy(['label' => $data['visibilityGroups']]);
             if(!isset($visibilityGroup)) {
-                $this->throwError("Le groupe de visibilité ${data['visibilityGroup']} n'existe pas");
+                $this->throwError("Le groupe de visibilité ${data['visibilityGroups']} n'existe pas");
             }
             $refArt->setVisibilityGroup($visibilityGroup);
         }
