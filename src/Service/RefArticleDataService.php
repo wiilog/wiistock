@@ -238,21 +238,24 @@ class RefArticleDataService {
             $supplierReferenceLines = json_decode($data['frl'], true);
             foreach($supplierReferenceLines as $supplierReferenceLine) {
                 $referenceArticleFournisseur = $supplierReferenceLine['referenceFournisseur'];
+                $existingSupplierArticle = $entityManager->getRepository(ArticleFournisseur::class)->findOneBy(['reference' => $referenceArticleFournisseur]);
 
-                try {
-                    $supplierArticle = $this->articleFournisseurService->createArticleFournisseur([
-                        'fournisseur' => $supplierReferenceLine['fournisseur'],
-                        'article-reference' => $refArticle,
-                        'label' => $supplierReferenceLine['labelFournisseur'],
-                        'reference' => $referenceArticleFournisseur
-                    ]);
+                if(!isset($existingSupplierArticle)) {
+                    try {
+                        $supplierArticle = $this->articleFournisseurService->createArticleFournisseur([
+                            'fournisseur' => $supplierReferenceLine['fournisseur'],
+                            'article-reference' => $refArticle,
+                            'label' => $supplierReferenceLine['labelFournisseur'],
+                            'reference' => $referenceArticleFournisseur
+                        ]);
 
-                    $entityManager->persist($supplierArticle);
-                } catch(Exception $exception) {
-                    if($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
-                        $response['success'] = false;
-                        $response['msg'] = "La référence '$referenceArticleFournisseur' existe déjà pour un article fournisseur.";
-                        return $response;
+                        $entityManager->persist($supplierArticle);
+                    } catch (Exception $exception) {
+                        if ($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
+                            $response['success'] = false;
+                            $response['msg'] = "La référence '$referenceArticleFournisseur' existe déjà pour un article fournisseur.";
+                            return $response;
+                        }
                     }
                 }
             }
