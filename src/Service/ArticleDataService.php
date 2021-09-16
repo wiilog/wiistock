@@ -111,7 +111,7 @@ class ArticleDataService
         return $json;
     }
 
-    public function getCollecteArticleOrNoByRefArticle($refArticle)
+    public function getCollecteArticleOrNoByRefArticle($refArticle, Utilisateur $user)
     {
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
             $data = [
@@ -120,7 +120,9 @@ class ArticleDataService
             ];
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $data = [
-                'selection' => $this->templating->render('collecte/newRefArticleByQuantiteRefContentTemp.html.twig'),
+                'selection' => $this->templating->render('collecte/newRefArticleByQuantiteRefContentTemp.html.twig', [
+                    'roleIsHandlingArticles' => $user->getRole()->getParametreRoles()
+                ]),
             ];
         } else {
             $data = false; //TODO gérer erreur retour

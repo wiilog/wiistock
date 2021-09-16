@@ -1,0 +1,36 @@
+<!-- Modale Ajout d'article -->
+<div method="" class="modal fade" id="modalPickArticle" role="dialog" aria-labelledby="modalAddArticleTitle"
+     aria-hidden="true" data-collecte-id="{{ collecte.id }}">
+    <div class="modal-dialog  modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Choix d'article pour la référence  <span class="reference"></span></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-input container-fluid">
+                <form class="row">
+                    <div class="form-group mt-2 col-12">
+                        <input name="referenceArticle" hidden>
+                        <label for="article-to-pick">Code article (laisser vide pour créer un nouvel article)</label>
+                        <select class="form-control data" id="article-to-pick" name="article-to-pick"
+                                data-s2="collectableArticles" data-include-params="input[name=referenceArticle]">
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="error-msg"></div>
+            <div class="modal-footer d-none">
+                <div class="btn btn-secondary" data-dismiss="modal">Annuler</div>
+                <button id="submitNewArticle"
+                        name="collecte"
+                        value="{{collecte.id}}"
+                        type="button"
+                        class="btn data btn-primary">
+                    Ajouter
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

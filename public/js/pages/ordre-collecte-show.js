@@ -48,10 +48,21 @@ $submitFinishCollecte.on('click', function () {
 });
 
 function toggleCheck($elem) {
-    $elem
-        .parents('tr')
-        .toggleClass('active')
-        .toggleClass('table-success');
+    const $ordreCollecteIntels = $elem.parent('.d-flex').find('.ordre-collecte-data');
+    const isManagedByRef = $ordreCollecteIntels.data('is-ref');
+    const barCode = $ordreCollecteIntels.data('bar-code');
+    const id = $ordreCollecteIntels.data('id');
+    if (isManagedByRef) {
+        $elem
+            .parents('tr')
+            .toggleClass('active')
+            .toggleClass('table-success');
+    } else {
+        const $modal = $('#modalPickArticle');
+        $modal.find('.reference').text(barCode);
+        $modal.find('input[name="referenceArticle"]').val(id);
+        $modal.modal('show');
+    }
 }
 
 function checkIfRowSelected(success) {

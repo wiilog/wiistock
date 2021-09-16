@@ -14,7 +14,7 @@ final class Version20210915191745 extends AbstractMigration {
             $this->addSql("ALTER TABLE article ADD inactive_since DATETIME DEFAULT NULL");
         }
 
-        $this->connection->executeQuery(
+        $this->addSql(
             "UPDATE
                     article
                         INNER JOIN statut s on article.statut_id = s.id,
