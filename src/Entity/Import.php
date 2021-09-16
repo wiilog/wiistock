@@ -82,7 +82,7 @@ class Import
 
 	const FIELDS_ENTITY = [
         'storageLocation' => 'Emplacement de stockage',
-        'visibilityGroups' => 'Groupes de visibilités',
+        'visibilityGroups' => 'Groupes de visibilité',
         'reference' => 'référence',
         'barCode' => 'code barre',
         'quantite' => 'quantité',
