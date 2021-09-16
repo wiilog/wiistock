@@ -25,6 +25,16 @@ body {
     background: $color;
 }
 
+.btn-success {
+    background: #2FC2AB;
+    font-weight: bold;
+
+    &:hover, &:focus, &:active {
+        background: #1b9b87 !important;
+        border-color: #1b9b87 !important;
+    }
+}
+
 .ra-form {
     margin-top: 90px !important;
 
@@ -306,15 +316,6 @@ span.icon {
     display: flex;
     justify-content: flex-end;
     margin-top: 15px;
-}
-
-.btn-success {
-    background: #2FC2AB;
-    font-weight: bold;
-
-    &:hover, &:focus {
-        background: #1b9b87;
-    }
 }
 
 .btn-secondary {
