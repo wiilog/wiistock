@@ -322,7 +322,7 @@ class RefArticleDataService {
             }
         }
         $entityManager->flush();
-        if (isset($data["visibility-group"])) {
+        if (isset($data["visibility-group"]) && $data["visibility-group"] !== 'null') {
             $refArticle->setVisibilityGroup($data['visibility-group'] ? $visibilityGroupRepository->find(intval($data['visibility-group'])) : null);
         }
 
