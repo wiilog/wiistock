@@ -316,7 +316,10 @@ function processInputsForm($modal, data, isAttachmentForm) {
         const $input = $(this);
         const name = $input.attr('name');
 
-        const $formGroupLabel = $input.closest('.form-group').find('label');
+        let $formGroupLabel = $input.closest('.form-group').find('label');
+        if (!$formGroupLabel.exists()) {
+            $formGroupLabel = $input.closest('label').find('.ra-field-name');
+        }
         const $editorContainer = $input.siblings('.ql-container');
         const $qlEditor = $editorContainer.length > 0
             ? $editorContainer.find('.ql-editor')
@@ -345,7 +348,9 @@ function processInputsForm($modal, data, isAttachmentForm) {
             .replace(/\*/g, '')
             .replace(/\n/g, ' ')
             .trim();
-
+        if (name === 'quantity') {
+            console.log(label)
+        }
         // validation données obligatoires
         if ($input.hasClass('needed')
             && $input.is(':disabled') === false

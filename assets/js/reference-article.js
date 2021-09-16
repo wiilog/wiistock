@@ -15,7 +15,9 @@ $(document).ready(() => {
 
     $(`.save`).click(function() {
         const $button = $(this);
-        processSubmitAction($(`.ra-form`), $button, $button.data(`submit`), {
+        const $form = $(`.ra-form`);
+        clearFormErrors($form)
+        processSubmitAction($form, $button, $button.data(`submit`), {
             onSuccess: () => window.location.href = Routing.generate('reference_article_index')
         });
     });
@@ -65,7 +67,7 @@ function updateInputValue($button) {
     if($button.hasClass('increase')){
         $input.val(value+1);
         $input.removeClass('is-invalid');
-    } else if($button.hasClass('decrease') && value !== 1) {
+    } else if($button.hasClass('decrease') && value >= 1) {
         $input.val(value-1);
         $input.removeClass('is-invalid');
     }
