@@ -235,43 +235,6 @@ class ArticleRepository extends EntityRepository {
 		return $queryBuilder->getQuery()->execute();
 	}
 
-    // TODO adrien REMOVE
-	public function findActifByRefArticleWithoutDemand($refArticle = null, $preparation = null, $demande = null)
-	{
-		return $this->createQueryBuilderActifWithoutDemand($refArticle, $preparation, $demande)
-            ->getQuery()
-            ->execute();
-	}
-
-	private function createQueryBuilderActifWithoutDemand($refArticle = null, $preparation = null, $demande = null): QueryBuilder
-	{
-	    $queryBuilder = $this->createQueryBuilder('article')
-            ->join('article.articleFournisseur', 'articleFournisseur')
-            ->join('articleFournisseur.referenceArticle', 'referenceArticle')
-            ->join('article.statut', 'articleStatut')
-            ->leftJoin('article.demande', 'demande')
-            ->leftJoin('demande.statut', 'statutDemande')
-            ->where('articleStatut.nom = :articleActif')
-            ->andWhere('article.quantite IS NOT NULL')
-            ->andWhere('article.quantite > 0')
-            ->andWhere('(article.preparation IS NULL OR article.preparation = :prepa OR statutDemande.nom = :delivered)')
-            ->andWhere('(article.demande IS NULL OR article.demande = :dem OR statutDemande.nom = :draft OR statutDemande.nom = :delivered)')
-            ->setParameter('articleActif', Article::STATUT_ACTIF)
-            ->setParameter('prepa', $preparation)
-            ->setParameter('dem', $demande)
-            ->setParameter('delivered', Demande::STATUT_LIVRE)
-            ->setParameter('draft', Demande::STATUT_BROUILLON);
-
-	    if (!empty($refArticle)) {
-            $queryBuilder
-                ->andWhere('referenceArticle = :refArticle')
-                ->setParameter('refArticle', $refArticle);
-        }
-
-	    return $queryBuilder;
-
-	}
-
 	public function findActiveArticles(ReferenceArticle $referenceArticle): array
 	{
 	    return $this->createQueryBuilder('article')
@@ -549,7 +512,7 @@ class ArticleRepository extends EntityRepository {
 	}
 
     public function getArticlePrepaForPickingByUser($user, array $preparationIdsFilter = []) {
-        $queryBuilder = $this->createQueryBuilderActifWithoutDemand()
+        $queryBuilder = $this->createQueryBuilder('article')
             ->select('DISTINCT article.reference AS reference')
             ->addSelect('article.label AS label')
             ->addSelect('emplacement.label AS location')
@@ -571,11 +534,18 @@ class ArticleRepository extends EntityRepository {
                     ELSE :null
                 END) AS management_order
             ')
+            ->join('article.articleFournisseur', 'articleFournisseur')
+            ->join('articleFournisseur.referenceArticle', 'referenceArticle')
+            ->join('article.statut', 'articleStatut')
             ->leftJoin('article.emplacement', 'emplacement')
             ->join('referenceArticle.ligneArticlePreparations', 'ligneArticlePreparation')
             ->join('ligneArticlePreparation.preparation', 'preparation')
             ->join('preparation.statut', 'statutPreparation')
             ->andWhere('(statutPreparation.nom = :preparationToTreat OR (statutPreparation.nom = :preparationInProgress AND preparation.utilisateur = :preparationOperator))')
+            ->andWhere('articleStatut.nom = :articleActif')
+            ->andWhere('article.quantite IS NOT NULL')
+            ->andWhere('article.quantite > 0')
+            ->setParameter('articleActif', Article::STATUT_ACTIF)
             ->setParameter('preparationToTreat', Preparation::STATUT_A_TRAITER)
             ->setParameter('preparationInProgress', Preparation::STATUT_EN_COURS_DE_PREPARATION)
             ->setParameter('preparationOperator', $user)

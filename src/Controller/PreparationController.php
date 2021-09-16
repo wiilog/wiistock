@@ -322,8 +322,7 @@ class PreparationController extends AbstractController
 
             $refArticle = $ligneArticle->getReference();
             $preparation = $ligneArticle->getPreparation();
-            // TODO adrien
-            $articles = $articleRepository->findActifByRefArticleWithoutDemand($refArticle, $preparation, $preparation->getDemande());
+            $articles = $articleRepository->findActiveArticles($refArticle);
 
             $pickedQuantitiesByArticle = Stream::from($preparation->getArticleLines())
                 ->keymap(fn(PreparationOrderArticleLine $articleLine) => [
