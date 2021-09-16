@@ -554,6 +554,12 @@ class ReferenceArticleRepository extends EntityRepository {
                             ->leftJoin('order_articlesFournisseur.fournisseur', 'order_supplier')
                             ->orderBy('order_supplier.nom', $order);
                         break;
+                    case 'visibilityGroups':
+                        $orderAddSelect[] = 'order_group.label';
+                        $queryBuilder
+                            ->leftJoin('ra.visibilityGroup', 'order_group')
+                            ->orderBy('order_group.label', $order);
+                        break;
                     case "type":
                         $orderAddSelect[] = 'order_type.label';
                         $queryBuilder
