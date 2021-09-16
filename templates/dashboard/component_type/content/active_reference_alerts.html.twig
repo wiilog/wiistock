@@ -1,0 +1,43 @@
+{% extends 'dashboard/component_type/content/base_form.html.twig' %}
+
+{% block content %}
+    <div class="row">
+        <div class="form-group col-12">
+            <label>Type(s) de références*</label>
+            <div class="input-group flex-nowrap no-gutters">
+                <div class="flex-fill">
+                    <select class="data form-control h-100 w-100 needed select2"
+                            name="referenceTypes"
+                            multiple
+                            title="Types(s) de références">
+                        {% for type in referenceTypes %}
+                            <option value="{{ type.id }}" {{ type in values.referenceTypes ? 'selected' }}>{{ type.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="input-group-append col-4">
+                    <button class="btn btn-primary select-all-types w-100" type="button">Tous les types</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row form-group">
+        <div class="col-12">
+            <label>Gestionnaire(s)</label>
+        </div>
+        <div class="col-12">
+            <select class="ajax-autocomplete-user data form-control w-100 needed"
+                    name="managers"
+                    multiple
+                    title="Gestionnaire(s)">
+                {% for location in values.managers %}
+                    <option value="{{ location.id }}" selected>{{ location.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <input class="checkbox"
+               hidden
+               type="checkbox"
+               name="redirect" checked/>
+    </div>
+{% endblock %}

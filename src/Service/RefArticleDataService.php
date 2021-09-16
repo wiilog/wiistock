@@ -32,6 +32,7 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use RuntimeException;
+use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -495,13 +496,26 @@ class RefArticleDataService {
         return ReferenceArticle::BARCODE_PREFIX . $dateCode . $counter;
     }
 
-    public function getAlerteDataByParams($params, Utilisateur $user) {
+    public function getAlerteDataByParams(InputBag $params, Utilisateur $user) {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $alertRepository = $this->entityManager->getRepository(Alert::class);
+        if ($params->has('managers') && !empty($params->get('managers')) ||
+            $params->has('referenceTypes') && !empty($params->get('referenceTypes'))) {
+            $filters = [
+                [
+                    'field' => 'multipleTypes',
+                    'value' => $params->get('referenceTypes')
+                ],
+                [
+                    'field' => 'utilisateurs',
+                    'value' => $params->get('managers')
+                ]
+            ];
+        } else {
+            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DEM_LIVRAISON, $this->user);
+        }
 
-        $filtresAlerte = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ALERTE, $user);
-
-        $results = $alertRepository->getAlertDataByParams($params, $filtresAlerte, $user);
+        $results = $alertRepository->getAlertDataByParams($params, $filters, $user);
         $alerts = $results['data'];
 
         $rows = [];
