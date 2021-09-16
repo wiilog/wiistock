@@ -908,8 +908,8 @@ class ImportService
             }
         }
 
-        if(isset($data['visibilityGroup'])) {
-            $visibilityGroup = $visibilityGroupRepository->findOneBy(['label' => $data['visibilityGroup']]);
+        if(isset($data['visibilityGroups'])) {
+            $visibilityGroup = $visibilityGroupRepository->findOneBy(['label' => $data['visibilityGroups']]);
             if(!isset($visibilityGroup)) {
                 $this->throwError("Le groupe de visibilité ${data['visibilityGroup']} n'existe pas");
             }
@@ -1305,14 +1305,12 @@ class ImportService
         foreach ($user->getVisibilityGroups() as $visibilityGroup) {
             $visibilityGroup->removeUser($user);
         }
-
-        if (isset($data['visibilityGroups'])) {
-            $visibilityGroups = Stream::explode([";", ","], $data["visibilityGroups"])
+        if (isset($data['visibilityGroup'])) {
+            $visibilityGroups = Stream::explode([";", ","], $data["visibilityGroup"])
                 ->unique()
                 ->map("trim")
                 ->map(fn($id) => $visibilityGroupRepository->find($id))
                 ->toArray();
-
             foreach($visibilityGroups as $visibilityGroup) {
                 $user->addVisibilityGroup($visibilityGroup);
             }
