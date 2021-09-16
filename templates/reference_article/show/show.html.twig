@@ -91,7 +91,7 @@
                         </div>
                         <div class="d-flex mt-4 ml-3">
                             <span class="ra-field-name mr-2">Groupe de visibilité</span> <span
-                                class="ra-body-text"> Groupe 1</span>{# TODO ajouter le groupe de visibilité #}
+                                class="ra-body-text"> {{ referenceArticle.visibilityGroup ? referenceArticle.visibilityGroup.label }}</span>
                         </div>
                         <div class="my-4 ml-3">
                             {% set plural = referenceArticle.attachments | length > 1 ? 's' : '' %}
