@@ -186,13 +186,6 @@ body {
         overflow: hidden;
         text-align: center;
         transition: height .4s ease;
-
-        .provider-label {
-            background-color: #E8E8E8;
-            height: 35px;
-            display: flex;
-            align-items: center;
-        }
     }
 
     .slide li {
@@ -208,6 +201,13 @@ body {
     #touch:checked + .slide {
         height: auto;
     }
+}
+
+.provider-label {
+    background-color: #E8E8E8;
+    height: 35px;
+    display: flex;
+    align-items: center;
 }
 
 .attachment-item, .attachement {
