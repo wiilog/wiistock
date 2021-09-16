@@ -509,21 +509,23 @@ class DashboardSettingsService {
 
     private function serializeReferenceArticles(EntityManagerInterface $manager,
                                                 Dashboard\ComponentType $componentType,
-                                                bool $example = false,
-                                                DashboardMeter\Indicator $meter = null,
+                                                bool $example,
+                                                ?DashboardMeter\Indicator $meter,
                                                 ?Utilisateur $utilisateur): array
     {
         $alertRepository = $manager->getRepository(Alert::class);
 
-        $count = $alertRepository->countAllActiveByParams(array_merge(
-            $meter->getComponent()->getConfig(),
-            ['user' => $utilisateur]
-        ));
         if ($example) {
             $values = $componentType->getExampleValues();
         } else {
+            $count = $meter
+                ? $alertRepository->countAllActiveByParams(array_merge(
+                    $meter->getComponent()->getConfig(),
+                    ['user' => $utilisateur]
+                ))
+                : 0;
             $values = [
-                'count' => $count
+                'count' => $count ?? 0
             ];
         }
 
