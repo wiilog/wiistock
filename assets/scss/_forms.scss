@@ -1,3 +1,36 @@
+@import "variables";
+
+.increase-decrease-field {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: baseline;
+
+    input {
+        flex: 1 1 auto;
+        margin-left: 4px;
+        margin-right: 4px;
+        text-align: center;
+    }
+
+    .increase, .decrease {
+        background: white;
+        border: 1px solid $primary;
+        border-radius: 4px;
+        color: $primary;
+        width: 37px;
+        min-width: 37px;
+        height: 37px;
+
+        &.decrease:before {
+            content: "-";
+        }
+
+        &.increase:before {
+            content: "+";
+        }
+    }
+}
 
 .wii-switch {
     display: inline-block;
@@ -17,7 +50,6 @@
         transition: all 200ms linear;
 
         &:not(:disabled) {
-
             cursor: pointer;
 
             &:hover:not(:checked) {
@@ -38,4 +70,14 @@
             text-align: center;
         }
     }
+}
+
+.lite-picker {
+    width: 30%;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }

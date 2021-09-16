@@ -23,7 +23,6 @@ $(document).ready(() => {
         InitModal(modalEditPairingEnd, submitEditPairingEnd, urlEditPairingEnd, {
             success: response => {
                 if(!$(response.selector).exists()) {
-                    console.log("ok")
                     $(`.pairing-dates-content`).append(`
                         <br/><br/>
                         <span class="pairing-date-prefix">Fin le : </span><br/>
@@ -48,7 +47,6 @@ function initMapCall(callback) {
 
 function initChartCall(callback) {
     const $charts = $(`[data-chart]`);
-    console.log($charts);
     if ($charts.length > 0) {
         $charts.each((i, elem) => initLineChart(elem, callback));
     } else {

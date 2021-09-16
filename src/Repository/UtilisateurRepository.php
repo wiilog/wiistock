@@ -24,6 +24,16 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         'Rôle' => 'role',
     ];
 
+    public function getForSelect(?string $term) {
+        return $this->createQueryBuilder("user")
+            ->select("user.id AS id, user.username AS text")
+            ->andWhere("user.username LIKE :term")
+            ->andWhere('user.status = true')
+            ->setParameter("term", "%$term%")
+            ->getQuery()
+            ->getArrayResult();
+    }
+
     public function getIdAndLibelleBySearch($search)
     {
         return $this->createQueryBuilder('u')

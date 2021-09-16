@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Article;
+use App\Entity\Attachment;
 use App\Entity\CategoryType;
 use App\Entity\Fournisseur;
 use App\Entity\FreeField;
@@ -25,6 +26,7 @@ use App\Entity\VisibilityGroup;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Helper\FormatHelper;
+use App\Repository\FreeFieldRepository;
 use App\Service\AttachmentService;
 use WiiCommon\Helper\Stream;
 use App\Service\DemandeCollecteService;
@@ -112,7 +114,7 @@ class ReferenceArticleController extends AbstractController
                         ArticleFournisseurService $articleFournisseurService,
                         AttachmentService $attachmentService): Response
     {
-        if ($data = $request->request->all()) {
+        if (($data = $request->request->all()) || ($data = json_decode($request->getContent(), true))) {
 
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
@@ -171,7 +173,6 @@ class ReferenceArticleController extends AbstractController
 				->setBarCode($this->refArticleDataService->generateBarCode())
                 ->setBuyer(isset($data['buyer']) ? $userRepository->find($data['buyer']) : null);
 
-
             if ($refArticle->getIsUrgent()) {
                 $refArticle->setUserThatTriggeredEmergency($loggedUser);
             }
@@ -208,7 +209,7 @@ class ReferenceArticleController extends AbstractController
                 }
             }
 
-            $supplierReferenceLines = json_decode($data['frl'], true);
+            $supplierReferenceLines = is_array($data['frl']) ? $data['frl'] : json_decode($data['frl'], true);
             if (!empty($supplierReferenceLines)) {
                 foreach ($supplierReferenceLines as $supplierReferenceLine) {
                     $referenceArticleFournisseur = $supplierReferenceLine['referenceFournisseur'];
@@ -253,6 +254,15 @@ class ReferenceArticleController extends AbstractController
             $entityManager->flush();
 
             $champLibreService->manageFreeFields($refArticle, $data, $entityManager);
+
+            if($request->files->has('image')) {
+                $file = $request->files->get('image');
+                $attachments = $attachmentService->createAttachements([$file]);
+                $entityManager->persist($attachments[0]);
+
+                $refArticle->setImage($attachments[0]);
+                $request->files->remove('image');
+            }
             $attachmentService->manageAttachments($entityManager, $refArticle, $request->files);
 
             $entityManager->flush();
@@ -749,6 +759,40 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
+     * @Route("/voir/{id}", name="reference_article_show_page", options={"expose"=true})
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE})
+     */
+    public function showPage(ReferenceArticle $referenceArticle, EntityManagerInterface $manager): Response {
+        $type = $referenceArticle->getType();
+        $freeFields = $manager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
+
+        $providerArticles = Stream::from($referenceArticle->getArticlesFournisseur())
+            ->reduce(function(array $carry, ArticleFournisseur $providerArticle) use ($referenceArticle) {
+                $articles = $referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE
+                    ? $providerArticle->getArticles()->toArray()
+                    : [];
+                $carry[] = [
+                    'providerName' => $providerArticle->getFournisseur()->getNom(),
+                    'providerCode' => $providerArticle->getFournisseur()->getCodeReference(),
+                    'reference' => $providerArticle->getReference(),
+                    'label' => $providerArticle->getLabel(),
+                    'quantity' => Stream::from($articles)
+                        ->reduce(fn(int $carry, Article $article) => ($article->getStatut() && $article->getStatut()->getNom() === Article::STATUT_ACTIF)
+                            ? $carry + $article->getQuantite()
+                            : $carry, 0)
+                ];
+                return $carry;
+                }, []);
+
+        return $this->render('reference_article/show/show.html.twig', [
+            'referenceArticle' => $referenceArticle,
+            'providerArticles' => $providerArticles,
+            'freeFields' => $freeFields,
+            'lastInventoryDate' => FormatHelper::longDate($referenceArticle->getDateLastInventory(), true),
+        ]);
+    }
+
+    /**
      * @Route("/exporter-refs", name="export_all_refs", options={"expose"=true}, methods="GET|POST")
      */
     public function exportAllRefs(EntityManagerInterface $manager,
@@ -1066,5 +1110,80 @@ class ReferenceArticleController extends AbstractController
         $entityManager->flush();
 
         return new JsonResponse(['success' => true]);
+    }
+
+    /**
+     * @Route("/nouveau-page", name="reference_article_new_page", options={"expose"=true})
+     */
+    public function newTemplate(EntityManagerInterface $manager) {
+        $typeRepository = $manager->getRepository(Type::class);
+        $inventoryCategoryRepository = $manager->getRepository(InventoryCategory::class);
+        $freeFieldRepository = $manager->getRepository(FreeField::class);
+
+        $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
+        $inventoryCategories = $inventoryCategoryRepository->findAll();
+
+        $typeChampLibre =  [];
+        $freeFieldsGroupedByTypes = [];
+
+        foreach ($types as $type) {
+            $champsLibres = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
+            $typeChampLibre[] = [
+                'typeLabel' =>  $type->getLabel(),
+                'typeId' => $type->getId(),
+                'champsLibres' => $champsLibres,
+            ];
+            $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
+        }
+
+        return $this->render("reference_article/form/new.html.twig", [
+            "new_reference" => new ReferenceArticle(),
+            "submit_url" => $this->generateUrl("reference_article_new"),
+            "types" => $types,
+            "stockManagement" => [
+                ReferenceArticle::STOCK_MANAGEMENT_FEFO,
+                ReferenceArticle::STOCK_MANAGEMENT_FIFO
+            ],
+            "categories" => $inventoryCategories,
+            "freeFieldTypes" => $typeChampLibre,
+            "freeFieldsGroupedByTypes" => $freeFieldsGroupedByTypes,
+        ]);
+    }
+
+    /**
+     * @Route("/modifier-page/{reference}", name="reference_article_edit_page", options={"expose"=true})
+     */
+    public function editTemplate(EntityManagerInterface $manager, ReferenceArticle $reference) {
+        $typeRepository = $manager->getRepository(Type::class);
+        $inventoryCategoryRepository = $manager->getRepository(InventoryCategory::class);
+        $freeFieldRepository = $manager->getRepository(FreeField::class);
+
+        $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
+        $inventoryCategories = $inventoryCategoryRepository->findAll();
+
+        $freeFieldsGroupedByTypes = [];
+
+        foreach ($types as $type) {
+            $champsLibres = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
+            $typeChampLibre[] = [
+                'typeLabel' =>  $type->getLabel(),
+                'typeId' => $type->getId(),
+                'champsLibres' => $champsLibres,
+            ];
+            $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
+        }
+
+        return $this->render("reference_article/form/edit.html.twig", [
+            "reference" => $reference,
+            "lastInventoryDate" => FormatHelper::longDate($reference->getDateLastInventory(), true),
+            "submit_url" => $this->generateUrl("reference_article_edit"),
+            "types" => $types,
+            "stockManagement" => [
+                ReferenceArticle::STOCK_MANAGEMENT_FEFO,
+                ReferenceArticle::STOCK_MANAGEMENT_FIFO
+            ],
+            "categories" => $inventoryCategories,
+            "freeFieldsGroupedByTypes" => $freeFieldsGroupedByTypes,
+        ]);
     }
 }

@@ -92,6 +92,7 @@ function SubmitAction($modal,
  *   - keepForm true if we do not clear form
  *   - keepModal true if we do not close form
  *   - validator function which calculate custom form validation
+ *   - onSuccess called on success
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery} $submit jQuery element of the submit button
  * @param {string} path
@@ -99,7 +100,7 @@ function SubmitAction($modal,
 function processSubmitAction($modal,
                              $submit,
                              path,
-                             {tables, keepModal, keepForm, validator, headerCallback} = {}) {
+                             {tables, keepModal, keepForm, validator, onSuccess, headerCallback} = {}) {
     const isAttachmentForm = $modal.find('input[name="isAttachmentForm"]').val() === '1';
     const {success, errorMessages, $isInvalidElements, data} = ProcessForm($modal, isAttachmentForm, validator);
     if (success) {
@@ -128,6 +129,10 @@ function processSubmitAction($modal,
                     });
                 }
                 else {
+                    if(onSuccess) {
+                        onSuccess(data);
+                    }
+
                     const res = treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, headerCallback);
                     if (!res) {
                         return;
@@ -734,10 +739,15 @@ function displayAttachements(files, $dropFrame, isMultiple = true) {
 
             let reader = new FileReader();
             reader.addEventListener('load', function () {
+                let icon = `fa-file`;
+                if($fileBag.is(`[data-icon]`)) {
+                    icon = $fileBag.data(`icon`);
+                }
+
                 $fileBag.append(`
                     <p class="attachement" value="` + withoutExtension(fileName) + `">
                         <a target="_blank" href="` + reader.result + `">
-                            <i class="fa fa-file mr-2"></i>` + fileName + `
+                            <i class="fa ${icon} mr-2"></i>` + fileName + `
                         </a>
                         <i class="fa fa-times red pointer" onclick="removeAttachment($(this))"></i>
                     </p>`);
@@ -799,7 +809,7 @@ function dragLeaveDiv(event, div) {
 }
 
 function openFileExplorer(span) {
-    span.closest('.modal').find('.fileInput').trigger('click');
+    span.siblings('.fileInput').trigger('click');
 }
 
 function saveDroppedFiles(event, $div) {

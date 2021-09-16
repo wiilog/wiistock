@@ -437,8 +437,8 @@ class ArticleRepository extends EntityRepository {
                                 $field = self::FIELD_ENTITY_NAME[$searchField] ?? $searchField;
                                 $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
                                 if(is_numeric($freeFieldId)) {
-                                    $query[] = "JSON_SEARCH(a.freeFields, 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
-                                    $queryBuilder->setParameter("search", $date ?: $search);
+                                    $query[] = "JSON_SEARCH(LOWER(a.freeFields), 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
+                                    $queryBuilder->setParameter("search", $date ?: strtolower($search));
                                 } else if (property_exists(Article::class, $field)) {
                                     if ($date && in_array($field, self::FIELDS_TYPE_DATE)) {
                                         $query[] = "a.$field BETWEEN :dateMin AND :dateMax";

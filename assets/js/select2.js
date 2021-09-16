@@ -20,6 +20,9 @@ const ROUTES = {
     triggerSensorWithoutPairing: `ajax_select_trigger_sensors_without_pairing`,
     triggerSensorCodeWithoutPairing: `ajax_select_trigger_sensors_code_without_pairing`,
     visibilityGroup: `ajax_select_visibility_group`,
+    user: `ajax_select_user`,
+    supplierCode: `ajax_select_supplier_code`,
+    supplierLabel: `ajax_select_supplier_label`,
 }
 
 const INSTANT_SELECT_TYPES = {
