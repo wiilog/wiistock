@@ -7,7 +7,8 @@ use App\Entity\FreeField;
 use App\Entity\FiltreRef;
 use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
-use App\Entity\Preparation;
+use App\Entity\Livraison;
+use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -683,26 +684,22 @@ class ReferenceArticleRepository extends EntityRepository {
 
     public function getByLivraisonsIds($livraisonsIds)
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT ra.reference,
-                         e.label as location,
-                         ra.libelle as label,
-                         la.quantitePrelevee as quantity,
-                         1 as is_ref,
-                         l.id as id_livraison,
-                         ra.barCode
-			FROM App\Entity\ReferenceArticle ra
-			LEFT JOIN ra.emplacement e
-			JOIN ra.ligneArticlePreparations la
-			JOIN la.preparation p
-			JOIN p.livraison l
-			JOIN l.statut s
-			WHERE l.id IN (:livraisonsIds) AND la.quantitePrelevee > 0"
-        )->setParameter('livraisonsIds', $livraisonsIds, Connection::PARAM_STR_ARRAY);
-
-        return $query->execute();
+        return $this->createQueryBuilder('referenceArticle')
+            ->select('referenceArticle.reference AS reference')
+            ->addSelect('join_location.label AS location')
+            ->addSelect('referenceArticle.libelle AS label')
+            ->addSelect('join_preparationLine.pickedQuantity AS quantity')
+            ->addSelect('1 AS is_ref')
+            ->addSelect('join_delivery.id AS id_livraison')
+            ->addSelect('referenceArticle.barCode AS barCode')
+            ->leftJoin('referenceArticle.emplacement', 'join_location')
+            ->join('referenceArticle.preparationOrderReferenceLines', 'join_preparationLine')
+            ->join('join_preparationLine.preparation', 'join_preparation')
+            ->join('join_preparation.livraison', 'join_delivery')
+            ->andWhere('join_delivery.id IN (:deliveryIds) AND join_preparationLine.pickedQuantity > 0')
+            ->setParameter('livraisonsIds', $livraisonsIds, Connection::PARAM_STR_ARRAY)
+            ->getQuery()
+            ->execute();
     }
 
     public function getByOrdreCollectesIds($collectesIds)
@@ -926,37 +923,43 @@ class ReferenceArticleRepository extends EntityRepository {
     public function getReservedQuantity(ReferenceArticle $referenceArticle): int
     {
         if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-            $em = $this->getEntityManager();
-            $queryForLignes = $em
-                ->createQuery("
-                    SELECT SUM(ligneArticles.quantite)
-                    FROM App\Entity\ReferenceArticle ra
-                    JOIN ra.ligneArticlePreparations ligneArticles
-                    JOIN ligneArticles.preparation preparation
-                    JOIN preparation.statut preparationStatus
-                    WHERE (preparationStatus.nom = :preparationStatusToTreat OR preparationStatus.nom = :preparationStatusCurrent)
-                      AND ra = :refArt
-                ")
+            $referenceReservedQuantity = $this->createQueryBuilder('referenceArticle')
+                ->select('SUM(preparationLine.quantity)')
+                ->join('referenceArticle.preparationOrderReferenceLines', 'preparationLine')
+                ->join('preparationLine.preparation', 'preparation')
+                ->join('preparation.statut', 'preparationStatus')
+                ->andWhere('preparationStatus.nom IN (:inProgressPreparationStatus)')
+                ->andWhere('referenceArticle = :referenceArticle')
+                ->setMaxResults(1)
                 ->setParameters([
-                    'refArt' => $referenceArticle->getId(),
-                    'preparationStatusToTreat' => Preparation::STATUT_A_TRAITER,
-                    'preparationStatusCurrent' => Preparation::STATUT_EN_COURS_DE_PREPARATION,
-                ]);
-            $queryForArticles = $em
-                ->createQuery("
-                        SELECT SUM(a.quantiteAPrelever)
-                        FROM App\Entity\Article a
-                        JOIN a.articleFournisseur artf
-                        JOIN a.statut statut
-                        WHERE artf.referenceArticle = :refArt
-                        AND statut.nom = :transitStatutArt
-                ")->setParameters([
-                    'refArt' => $referenceArticle->getId(),
-                    'transitStatutArt' => Article::STATUT_EN_TRANSIT
-                ]);
-            $reservedQuantityLignes = ($queryForLignes->getSingleScalarResult() ?? 0);
-            $reservedQuantityArticles = ($queryForArticles->getSingleScalarResult() ?? 0);
-            $reservedQuantity = $reservedQuantityLignes + $reservedQuantityArticles;
+                    'referenceArticle' => $referenceArticle,
+                    'inProgressPreparationStatus' => [Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION],
+                ])
+                ->getQuery()
+                ->getSingleScalarResult();
+            $articleReservedQuantity = $this->createQueryBuilder('referenceArticle')
+                ->select('SUM(preparationOrderLine.quantity)')
+                ->join('referenceArticle.articlesFournisseur', 'supplierArticles')
+                ->join('supplierArticles.articles', 'article')
+                ->join('article.statut', 'articleStatus')
+                ->join('article.preparationOrderLines', 'preparationOrderLine')
+                ->join('preparationOrderLine.preparation', 'preparation')
+                ->leftJoin('preparation.livraison', 'delivery')
+                ->join('preparation.statut', 'preparationStatus')
+                ->leftJoin('delivery.statut', 'deliveryStatus')
+                ->andWhere('(preparationStatus.nom IN (:inProgressPreparationStatus) OR deliveryStatus.nom IN (:inProgressDeliveryStatus))')
+                ->andWhere('articleStatus.nom = :transitArticleStatus')
+                ->andWhere('referenceArticle = :referenceArticle')
+                ->setMaxResults(1)
+                ->setParameters([
+                    'referenceArticle' => $referenceArticle,
+                    'transitArticleStatus' => Article::STATUT_EN_TRANSIT,
+                    'inProgressPreparationStatus' => [Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION],
+                    'inProgressDeliveryStatus' => [Livraison::STATUT_A_TRAITER],
+                ])
+                ->getQuery()
+                ->getSingleScalarResult();
+            $reservedQuantity = ($referenceReservedQuantity ?? 0) + ($articleReservedQuantity ?? 0);
         } else {
             $reservedQuantity = $referenceArticle->getQuantiteReservee();
         }

@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Entity\IOT\RequestTemplateLine;
+use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
+use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CommentTrait;
 use DateTimeInterface;
@@ -72,9 +74,9 @@ class ReferenceArticle extends FreeFieldEntity
     private $quantiteStock;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\LigneArticle", mappedBy="reference")
+     * @ORM\OneToMany(targetEntity=DeliveryRequestReferenceLine::class, mappedBy="reference")
      */
-    private $ligneArticles;
+    private Collection $deliveryRequestLines;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="referenceArticles")
@@ -172,9 +174,9 @@ class ReferenceArticle extends FreeFieldEntity
     private $isUrgent;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\LigneArticlePreparation", mappedBy="reference")
+     * @ORM\OneToMany(targetEntity=PreparationOrderReferenceLine::class, mappedBy="reference")
      */
-    private $ligneArticlePreparations;
+    private Collection $preparationOrderReferenceLines;
 
     /**
      * @ORM\Column(type="text", nullable=true)
@@ -249,7 +251,7 @@ class ReferenceArticle extends FreeFieldEntity
 
     public function __construct()
     {
-        $this->ligneArticles = new ArrayCollection();
+        $this->deliveryRequestLines = new ArrayCollection();
         $this->articlesFournisseur = new ArrayCollection();
         $this->collecteReferences = new ArrayCollection();
         $this->receptionReferenceArticles = new ArrayCollection();
@@ -258,7 +260,7 @@ class ReferenceArticle extends FreeFieldEntity
         $this->inventoryCategoryHistory = new ArrayCollection();
         $this->inventoryMissions = new ArrayCollection();
         $this->ordreCollecteReferences = new ArrayCollection();
-        $this->ligneArticlePreparations = new ArrayCollection();
+        $this->preparationOrderReferenceLines = new ArrayCollection();
         $this->managers = new ArrayCollection();
         $this->attachments = new ArrayCollection();
 
@@ -344,30 +346,30 @@ class ReferenceArticle extends FreeFieldEntity
     }
 
     /**
-     * @return Collection|LigneArticle[]
+     * @return Collection|DeliveryRequestReferenceLine[]
      */
-    public function getLigneArticles(): Collection
+    public function getDeliveryRequestLines(): Collection
     {
-        return $this->ligneArticles;
+        return $this->deliveryRequestLines;
     }
 
-    public function addLigneArticle(LigneArticle $ligneArticle): self
+    public function addDeliveryRequestReferenceLine(DeliveryRequestReferenceLine $line): self
     {
-        if (!$this->ligneArticles->contains($ligneArticle)) {
-            $this->ligneArticles[] = $ligneArticle;
-            $ligneArticle->setReference($this);
+        if (!$this->deliveryRequestLines->contains($line)) {
+            $this->deliveryRequestLines[] = $line;
+            $line->setReference($this);
         }
 
         return $this;
     }
 
-    public function removeLigneArticle(LigneArticle $ligneArticle): self
+    public function removeDeliveryRequestReferenceLine(DeliveryRequestReferenceLine $line): self
     {
-        if ($this->ligneArticles->contains($ligneArticle)) {
-            $this->ligneArticles->removeElement($ligneArticle);
+        if ($this->deliveryRequestLines->contains($line)) {
+            $this->deliveryRequestLines->removeElement($line);
             // set the owning side to null (unless already changed)
-            if ($ligneArticle->getReference() === $this) {
-                $ligneArticle->setReference(null);
+            if ($line->getReference() === $this) {
+                $line->setReference(null);
             }
         }
 
@@ -785,27 +787,27 @@ class ReferenceArticle extends FreeFieldEntity
     }
 
     /**
-     * @return Collection|LigneArticlePreparation[]
+     * @return Collection|PreparationOrderReferenceLine[]
      */
-    public function getLigneArticlePreparations(): Collection
+    public function getPreparationOrderReferenceLines(): Collection
     {
-        return $this->ligneArticlePreparations;
+        return $this->preparationOrderReferenceLines;
     }
 
-    public function addLigneArticlePreparation(LigneArticlePreparation $ligneArticlePreparation): self
+    public function addPreparationOrderReferenceLine(PreparationOrderReferenceLine $line): self
     {
-        if (!$this->ligneArticlePreparations->contains($ligneArticlePreparation)) {
-            $this->ligneArticlePreparations[] = $ligneArticlePreparation;
-            $ligneArticlePreparation->setReference($this);
+        if (!$this->preparationOrderReferenceLines->contains($line)) {
+            $this->preparationOrderReferenceLines[] = $line;
+            $line->setReference($this);
         }
 
         return $this;
     }
 
-    public function removeLigneArticlePreparation(LigneArticlePreparation $ligneArticlePreparation): self
+    public function removePreparationOrderReferenceLine(PreparationOrderReferenceLine $ligneArticlePreparation): self
     {
-        if ($this->ligneArticlePreparations->contains($ligneArticlePreparation)) {
-            $this->ligneArticlePreparations->removeElement($ligneArticlePreparation);
+        if ($this->preparationOrderReferenceLines->contains($ligneArticlePreparation)) {
+            $this->preparationOrderReferenceLines->removeElement($ligneArticlePreparation);
             // set the owning side to null (unless already changed)
             if ($ligneArticlePreparation->getReference() === $this) {
                 $ligneArticlePreparation->setReference(null);
@@ -912,10 +914,10 @@ class ReferenceArticle extends FreeFieldEntity
     }
 
     public function isInRequestsInProgress(): bool {
-        $ligneArticles = $this->getLigneArticles();
+        $ligneArticles = $this->getDeliveryRequestLines();
         $inProgress = false;
         foreach ($ligneArticles as $ligneArticle) {
-            $demande = $ligneArticle->getDemande();
+            $demande = $ligneArticle->getRequest();
             if ($demande->needsToBeProcessed()) {
                 $inProgress = true;
                 break;

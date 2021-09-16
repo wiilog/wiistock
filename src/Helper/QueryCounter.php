@@ -3,8 +3,6 @@
 namespace App\Helper;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
 
 class QueryCounter

@@ -144,7 +144,7 @@ class ImportController extends AbstractController
                         'reference',
                         'conform',
                         'quantiteAPrelever',
-                        'quantitePrelevee',
+                        'pickedQuantity',
                         'dateEmergencyTriggered',
                         'isUrgent',
                         'quantiteDisponible',

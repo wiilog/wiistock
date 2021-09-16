@@ -5,6 +5,8 @@ namespace App\Service;
 use App\Entity\FiltreSup;
 use App\Entity\Livraison;
 
+use App\Entity\PreparationOrder\PreparationOrderArticleLine;
+use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -116,14 +118,15 @@ class LivraisonService
                 $demande->getCommentaire() ? strip_tags($demande->getCommentaire()) : ''
             ];
 
-            foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
-                if ($ligneArticle->getQuantitePrelevee() > 0) {
-                    $referenceArticle = $ligneArticle->getReference();
+            /** @var PreparationOrderReferenceLine $referenceLine */
+            foreach ($preparation->getReferenceLines() as $referenceLine) {
+                if ($referenceLine->getPickedQuantity() > 0) {
+                    $referenceArticle = $referenceLine->getReference();
                     $line = array_merge($dataLivraison, [
                         $referenceArticle->getReference() ?? '',
                         $referenceArticle->getLibelle() ?? '',
                         $demande->getDestination() ? $demande->getDestination()->getLabel() : '',
-                        $ligneArticle->getQuantite() ?? 0,
+                        $referenceLine->getQuantity() ?? 0,
                         $referenceArticle->getQuantiteStock() ?? 0,
                         $referenceArticle->getBarCode(),
                     ]);
@@ -131,8 +134,10 @@ class LivraisonService
                 }
             }
 
-            foreach ($preparation->getArticles() as $article) {
-                if ($article->getQuantite() > 0) {
+            /** @var PreparationOrderArticleLine $articleLine */
+            foreach ($preparation->getArticleLines() as $articleLine) {
+                if ($articleLine->getPickedQuantity() > 0) {
+                    $article = $articleLine->getArticle();
                     $articleFournisseur = $article->getArticleFournisseur();
                     $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
                     $reference = $referenceArticle ? $referenceArticle->getReference() : '';
@@ -141,7 +146,7 @@ class LivraisonService
                         $reference,
                         $article->getLabel() ?? '',
                         $demande->getDestination() ? $demande->getDestination()->getLabel() : '',
-                        $article->getQuantiteAPrelever() ?? 0,
+                        $articleLine->getQuantity() ?? 0,
                         $article->getQuantite() ?? 0,
                         $article->getBarCode(),
                     ]);

@@ -2,14 +2,18 @@
 
 namespace App\Entity;
 
+use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\SensorMessageTrait;
+use App\Entity\PreparationOrder\Preparation;
+use App\Entity\PreparationOrder\PreparationOrderArticleLine;
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Selectable;
 use Doctrine\ORM\Mapping as ORM;
-use DateTime as WiiDateTime;
 
 use App\Entity\IOT\Pairing;
 
@@ -77,7 +81,12 @@ class Article extends FreeFieldEntity implements PairedEntity
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="articles")
      */
-    private $statut;
+    private ?Statut $statut = null;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private ?DateTime $inactiveSince = null;
 
     /**
      * @ORM\Column(type="boolean")
@@ -110,19 +119,14 @@ class Article extends FreeFieldEntity implements PairedEntity
     private $emplacement;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Demande", inversedBy="articles")
+     * @ORM\OneToMany(targetEntity=DeliveryRequestArticleLine::class, mappedBy="article")
      */
-    private $demande;
+    private Collection $deliveryRequestLines;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\OneToMany(targetEntity=PreparationOrderArticleLine::class, mappedBy="article")
      */
-    private $quantiteAPrelever;
-
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
-    private $quantitePrelevee;
+    private Collection $preparationOrderLines;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\ReceptionReferenceArticle", inversedBy="articles")
@@ -161,12 +165,6 @@ class Article extends FreeFieldEntity implements PairedEntity
     private $litiges;
 
     /**
-     * @var Preparation|null
-     * @ORM\ManyToOne(targetEntity="App\Entity\Preparation", inversedBy="articles")
-     */
-    private $preparation;
-
-    /**
      * @ORM\OneToOne(targetEntity=Pack::class, mappedBy="article")
      */
     private $trackingPack;
@@ -203,6 +201,8 @@ class Article extends FreeFieldEntity implements PairedEntity
 
     public function __construct()
     {
+        $this->deliveryRequestLines = new ArrayCollection();
+        $this->preparationOrderLines = new ArrayCollection();
         $this->collectes = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
         $this->inventoryEntries = new ArrayCollection();
@@ -303,6 +303,15 @@ class Article extends FreeFieldEntity implements PairedEntity
         return $this;
     }
 
+    public function getInactiveSince(): ?DateTime {
+        return $this->inactiveSince;
+    }
+
+    public function setInactiveSince(?DateTime $inactiveSince): self {
+        $this->inactiveSince = $inactiveSince;
+        return $this;
+    }
+
     public function getConform(): ?bool
     {
         return $this->conform;
@@ -361,34 +370,55 @@ class Article extends FreeFieldEntity implements PairedEntity
         $this->emplacement = $emplacement;
         return $this;
     }
-    public function getDemande(): ?Demande
-    {
-        return $this->demande;
+
+    /**
+     * @return Collection|DeliveryRequestArticleLine[]
+     */
+    public function getDeliveryRequestLines(): Collection {
+        return $this->deliveryRequestLines;
     }
 
-    public function setDemande(?Demande $demande): self
-    {
-        if ($this->demande !== $demande) {
-            if (isset($this->demande)) {
-                $this->demande->removeArticle($this);
-            }
-            $this->demande = $demande;
-
-            if (isset($this->demande)) {
-                $this->demande->addArticle($this);
-            }
+    public function addDeliveryRequestLine(DeliveryRequestArticleLine $line): self {
+        if (!$this->deliveryRequestLines->contains($line)) {
+            $this->deliveryRequestLines[] = $line;
+            $line->setArticle($this);
         }
+
         return $this;
     }
 
-    public function getQuantiteAPrelever(): ?int
-    {
-        return $this->quantiteAPrelever;
+    public function removeDeliveryRequestLine(DeliveryRequestArticleLine $line): self {
+        if ($this->deliveryRequestLines->removeElement($line)) {
+            if ($line->getArticle() === $this) {
+                $line->setArticle(null);
+            }
+        }
+
+        return $this;
     }
 
-    public function setQuantiteAPrelever(?int $quantiteAPrelever): self
-    {
-        $this->quantiteAPrelever = $quantiteAPrelever;
+    /**
+     * @return Collection|PreparationOrderArticleLine[]
+     */
+    public function getPreparationOrderLines(): Collection {
+        return $this->preparationOrderLines;
+    }
+
+    public function addPreparationOrderLine(PreparationOrderArticleLine $line): self {
+        if (!$this->preparationOrderLines->contains($line)) {
+            $this->preparationOrderLines[] = $line;
+            $line->setArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removePreparationOrderLine(PreparationOrderArticleLine $line): self {
+        if ($this->preparationOrderLines->removeElement($line)) {
+            if ($line->getArticle() === $this) {
+                $line->setArticle(null);
+            }
+        }
 
         return $this;
     }
@@ -580,38 +610,6 @@ class Article extends FreeFieldEntity implements PairedEntity
         return $this;
     }
 
-    public function getQuantitePrelevee(): ?int
-    {
-        return $this->quantitePrelevee;
-    }
-
-    public function setQuantitePrelevee(?int $quantitePrelevee): self
-    {
-        $this->quantitePrelevee = $quantitePrelevee;
-
-        return $this;
-    }
-
-    public function getPreparation(): ?Preparation
-    {
-        return $this->preparation;
-    }
-
-    public function setPreparation(?Preparation $preparation): self
-    {
-        if ($this->preparation && $this->preparation !== $preparation) {
-            $this->preparation->removeArticle($this);
-        }
-
-        $this->preparation = $preparation;
-
-        if ($this->preparation) {
-            $this->preparation->addArticle($this);
-        }
-
-        return $this;
-    }
-
     /**
      * @return null|Pack
      */
@@ -656,7 +654,7 @@ class Article extends FreeFieldEntity implements PairedEntity
                         ? self::USED_ASSOC_INVENTORY
                         : ($this->getStatut()->getNom() === self::STATUT_INACTIF
                             ? self::USED_ASSOC_STATUT_NOT_AVAILABLE
-                            : ($this->getPreparation()
+                            : ((!$this->getPreparationOrderLines()->isEmpty())
                                 ? self::USED_ASSOC_PREPA_IN_PROGRESS
                                 : ((!$this->getTransferRequests()->isEmpty())
                                     ? self::USED_ASSOC_TRANSFERT_REQUEST
@@ -677,6 +675,8 @@ class Article extends FreeFieldEntity implements PairedEntity
     }
 
     public function isInRequestsInProgress(): bool {
+
+        // TODO adrien
         $request = $this->getDemande();
         $preparation = $this->getPreparation();
         $articleFournisseur = $this->getArticleFournisseur();
@@ -693,6 +693,7 @@ class Article extends FreeFieldEntity implements PairedEntity
     }
 
     public function isUsedInQuantityChangingProcesses(): bool {
+        // todo demande
         $demande = $this->getDemande();
         $transfers = $this->getTransferRequests();
         $inProgress = $demande ? $demande->needsToBeProcessed() : false;

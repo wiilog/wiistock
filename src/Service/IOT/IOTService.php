@@ -7,7 +7,7 @@ namespace App\Service\IOT;
 use App\Entity\Article;
 use App\Entity\Collecte;
 use App\Entity\CollecteReference;
-use App\Entity\Demande;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Handling;
 use App\Entity\IOT\AlertTemplate;
@@ -21,12 +21,12 @@ use App\Entity\IOT\SensorMessage;
 use App\Entity\IOT\SensorProfile;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\IOT\TriggerAction;
-use App\Entity\LigneArticle;
+use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\LocationGroup;
 use App\Entity\OrdreCollecte;
 use App\Entity\OrdreCollecteReference;
 use App\Entity\Pack;
-use App\Entity\Preparation;
+use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Helper\FormatHelper;
@@ -176,9 +176,9 @@ class IOTService
             $entityManager->persist($request);
             $valid = true;
             $entityManager->flush();
-            foreach ($request->getLigneArticle() as $ligneArticle) {
+            foreach ($request->getReferenceLines() as $ligneArticle) {
                 $reference = $ligneArticle->getReference();
-                if ($reference->getQuantiteDisponible() < $ligneArticle->getQuantite()) {
+                if ($reference->getQuantiteDisponible() < $ligneArticle->getQuantity()) {
                     $valid = false;
                     break;
                 }
@@ -248,13 +248,13 @@ class IOTService
             ->setFreeFields($requestTemplate->getFreeFields());
 
         foreach ($requestTemplate->getLines() as $requestTemplateLine) {
-            $ligneArticle = new LigneArticle();
+            $ligneArticle = new DeliveryRequestReferenceLine();
             $ligneArticle
                 ->setReference($requestTemplateLine->getReference())
-                ->setDemande($request)
-                ->setQuantite($requestTemplateLine->getQuantityToTake()); // protection contre quantités négatives
+                ->setRequest($request)
+                ->setQuantity($requestTemplateLine->getQuantityToTake()); // protection contre quantités négatives
             $entityManager->persist($ligneArticle);
-            $request->addLigneArticle($ligneArticle);
+            $request->addReferenceLine($ligneArticle);
         }
         return $request;
     }
@@ -498,7 +498,7 @@ class IOTService
     private function treatAddMessageOrdrePrepa(Preparation $preparation, SensorMessage $sensorMessage) {
         $preparation->addSensorMessage($sensorMessage);
         $this->treatAddMessageDeliveryRequest($preparation->getDemande(), $sensorMessage);
-        foreach ($preparation->getArticles() as $article) {
+        foreach ($preparation->getArticleLines() as $article) {
             $this->treatAddMessageArticle($article, $sensorMessage);
         }
     }

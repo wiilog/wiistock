@@ -10,10 +10,11 @@ use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorWrapper;
-use App\Entity\LigneArticlePreparation;
+use App\Entity\PreparationOrder\PreparationOrderArticleLine;
+use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
-use App\Entity\Preparation;
+use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -35,7 +36,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Service\ArticleDataService;
-use App\Entity\Demande;
+use App\Entity\DeliveryRequest\Demande;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use WiiCommon\Helper\Stream;
@@ -172,26 +173,27 @@ class PreparationController extends AbstractController
 
         if (isset($demande)) {
             $rows = [];
-            foreach ($preparation->getLigneArticlePreparations() as $ligneArticle) {
-                $articleRef = $ligneArticle->getReference();
+            /** @var PreparationOrderReferenceLine $referenceLine */
+            foreach ($preparation->getReferenceLines() as $referenceLine) {
+                $articleRef = $referenceLine->getReference();
                 $isRefByArt = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE;
-                if ($ligneArticle->getQuantitePrelevee() > 0 ||
+                if ($referenceLine->getPickedQuantity() > 0 ||
                     ($preparationStatut !== Preparation::STATUT_PREPARE && $preparationStatut !== Preparation::STATUT_INCOMPLETE)) {
-                    $qttForCurrentLine = $ligneArticle->getQuantite() ?? null;
+                    $qttForCurrentLine = $referenceLine->getQuantity() ?? null;
                     $rows[] = [
                         "Référence" => $articleRef ? $articleRef->getReference() : ' ',
                         "Libellé" => $articleRef ? $articleRef->getLibelle() : ' ',
                         "Emplacement" => $articleRef ? ($articleRef->getEmplacement() ? $articleRef->getEmplacement()->getLabel() : '') : '',
                         "Quantité" => $articleRef->getQuantiteStock(),
                         "Quantité à prélever" => $qttForCurrentLine,
-                        "Quantité prélevée" => $ligneArticle->getQuantitePrelevee() ? $ligneArticle->getQuantitePrelevee() : ' ',
-                        'active' => !empty($ligneArticle->getQuantitePrelevee()),
+                        "Quantité prélevée" => $referenceLine->getPickedQuantity() ?: ' ',
+                        'active' => !empty($referenceLine->getPickedQuantity()),
                         "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
                             'barcode' => $articleRef->getBarCode(),
                             'isRef' => true,
                             'artOrRefId' => $articleRef->getId(),
                             'isRefByArt' => $isRefByArt,
-                            'id' => $ligneArticle->getId(),
+                            'id' => $referenceLine->getId(),
                             'isPrepaEditable' => $isPrepaEditable,
                             'stockManagement' => $articleRef->getStockManagement()
                         ])
@@ -199,28 +201,25 @@ class PreparationController extends AbstractController
                 }
             }
 
-            foreach ($preparation->getArticles() as $article) {
-                if ($article->getQuantite() > 0 ||
+            /** @var PreparationOrderArticleLine $articleLine */
+            foreach ($preparation->getArticleLines() as $articleLine) {
+                $article = $articleLine->getArticle();
+                if ($articleLine->getPickedQuantity() > 0 ||
                     ($preparationStatut !== Preparation::STATUT_PREPARE && $preparationStatut !== Preparation::STATUT_INCOMPLETE)) {
-                    if (empty($article->getQuantiteAPrelever())) {
-                        $article->setQuantiteAPrelever($article->getQuantite());
-                        $this->getDoctrine()->getManager()->flush();
-                    }
                     $rows[] = [
                         "Référence" => ($article->getArticleFournisseur() && $article->getArticleFournisseur()->getReferenceArticle()) ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
                         "Libellé" => $article->getLabel() ?? '',
                         "Emplacement" => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
                         "Quantité" => $article->getQuantite() ?? '',
-                        "Quantité à prélever" => $article->getQuantiteAPrelever() ?? '',
-                        "Quantité prélevée" => $article->getQuantitePrelevee() ?? ' ',
-                        'active' => !empty($article->getQuantitePrelevee()),
+                        "pickedQuantity" => $articleLine->getPickedQuantity() ?? ' ',
+                        'active' => !empty( $articleLine->getPickedQuantity()),
                         "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
                             'barcode' => $article->getBarCode(),
                             'artOrRefId' => $article->getId(),
                             'isRef' => false,
                             'isRefByArt' => false,
-                            'quantity' => $article->getQuantiteAPrelever(),
-                            'id' => $article->getId(),
+                            'quantity' =>  $articleLine->getPickedQuantity(),
+                            'id' => $articleLine->getId(),
                             'isPrepaEditable' => $isPrepaEditable,
                             'stockManagement' => $article->getArticleFournisseur()->getReferenceArticle()->getStockManagement()
                         ])
@@ -316,19 +315,30 @@ class PreparationController extends AbstractController
                                    Request $request): Response
     {
         if ($ligneArticleId = json_decode($request->getContent(), true)) {
-            $ligneArticlePreparationRepository = $entityManager->getRepository(LigneArticlePreparation::class);
+            $ligneArticlePreparationRepository = $entityManager->getRepository(PreparationOrderReferenceLine::class);
             $articleRepository = $entityManager->getRepository(Article::class);
 
             $ligneArticle = $ligneArticlePreparationRepository->find($ligneArticleId);
 
             $refArticle = $ligneArticle->getReference();
             $preparation = $ligneArticle->getPreparation();
+            // TODO adrien
             $articles = $articleRepository->findActifByRefArticleWithoutDemand($refArticle, $preparation, $preparation->getDemande());
+
+            $pickedQuantitiesByArticle = Stream::from($preparation->getArticleLines())
+                ->keymap(fn(PreparationOrderArticleLine $articleLine) => [
+                    $articleLine->getArticle()->getId(),
+                    $articleLine->getPickedQuantity()
+                ])
+                ->toArray();
+
+
             $response = $this->renderView('preparation/modalSplitting.html.twig', [
                 'reference' => $refArticle->getReference(),
                 'referenceId' => $refArticle->getId(),
                 'articles' => $articles,
-                'quantite' => $ligneArticle->getQuantite(),
+                'pickedQuantities' => $pickedQuantitiesByArticle,
+                'quantite' => $ligneArticle->getQuantity(),
                 'preparation' => $preparation,
                 'demande' => $preparation->getDemande(),
                 'managementType' => $refArticle->getStockManagement()
@@ -350,7 +360,7 @@ class PreparationController extends AbstractController
 
             $statutRepository = $entityManager->getRepository(Statut::class);
             $preparationRepository = $entityManager->getRepository(Preparation::class);
-            $ligneArticlePreparationRepository = $entityManager->getRepository(LigneArticlePreparation::class);
+            $ligneArticlePreparationRepository = $entityManager->getRepository(PreparationOrderReferenceLine::class);
 
             if (!empty($data['articles'])) {
                 $preparation = $preparationRepository->find($data['preparation']);
@@ -374,10 +384,10 @@ class PreparationController extends AbstractController
                 $articleFirst = $articleRepository->find(array_key_first($data['articles']));
                 $refArticle = $articleFirst->getArticleFournisseur()->getReferenceArticle();
 
-                /** @var LigneArticlePreparation $ligneArticle */
+                /** @var PreparationOrderReferenceLine $ligneArticle */
                 $ligneArticle = $ligneArticlePreparationRepository->findOneByRefArticleAndDemande($refArticle, $preparation);
 
-                if ($pickedQuantities > $ligneArticle->getQuantite()) {
+                if ($pickedQuantities > $ligneArticle->getQuantity()) {
                     return $this->json([
                         'success' => false,
                         'msg' => 'Vous avez trop sélectionné d\'article.'
@@ -391,7 +401,13 @@ class PreparationController extends AbstractController
                         $referenceArticle = $articleFournisseur->getReferenceArticle();
                         if ($referenceArticle && $referenceArticle->getId() === $ligneArticle->getReference()->getId()) {
                             $pickedQuantity = $data['articles'][$idArticle];
-                            $this->preparationsManagerService->treatArticleSplitting($article, $pickedQuantity, $ligneArticle, $inTransitStatus);
+                            $this->preparationsManagerService->treatArticleSplitting(
+                                $entityManager,
+                                $article,
+                                $pickedQuantity,
+                                $ligneArticle,
+                                $inTransitStatus
+                            );
                         }
                     }
                 }
@@ -417,7 +433,7 @@ class PreparationController extends AbstractController
                                      EntityManagerInterface $entityManager): Response
     {
         $articleRepository = $entityManager->getRepository(Article::class);
-        $ligneArticlePreparationRepository = $entityManager->getRepository(LigneArticlePreparation::class);
+        $ligneArticlePreparationRepository = $entityManager->getRepository(PreparationOrderReferenceLine::class);
 
         if ($data = json_decode($request->getContent(), true)) {
             if ($data['isRef']) {
@@ -430,12 +446,12 @@ class PreparationController extends AbstractController
                 $ligneRef = $ligneArticlePreparationRepository->findOneByRefArticleAndDemande($ligneArticle->getArticleFournisseur()->getReferenceArticle(), $ligneArticle->getPreparation());
 
                 if (isset($ligneRef)) {
-                    $ligneRef->setQuantite($ligneRef->getQuantite() + ($ligneArticle->getQuantitePrelevee() - intval($data['quantite'])));
+                    $ligneRef->setQuantity($ligneRef->getQuantity() + ($ligneArticle->getPickedQuantity() - intval($data['quantite'])));
                 }
             }
             // protection contre quantités négatives
             if (isset($data['quantite'])) {
-                $ligneArticle->setQuantitePrelevee(max($data['quantite'], 0));
+                $ligneArticle->setPickedQuantity(max($data['quantite'], 0));
             }
             $entityManager->flush();
 
@@ -452,16 +468,16 @@ class PreparationController extends AbstractController
                                         EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
-            $articleRepository = $entityManager->getRepository(Article::class);
-            $ligneArticlePreparationRepository = $entityManager->getRepository(LigneArticlePreparation::class);
+            $referenceLineRepository = $entityManager->getRepository(PreparationOrderReferenceLine::class);
+            $articleLineRepository = $entityManager->getRepository(PreparationOrderArticleLine::class);
 
-            if ($data['ref']) {
-                $ligneArticle = $ligneArticlePreparationRepository->find($data['id']);
-                $quantity = $ligneArticle->getQuantite();
-            } else {
-                $article = $articleRepository->find($data['id']);
-                $quantity = $article->getQuantitePrelevee();
-            }
+            $repository = $data['ref']
+                ? $referenceLineRepository
+                : $articleLineRepository;
+
+            /** @var PreparationOrderReferenceLine|PreparationOrderArticleLine $line */
+            $line = $repository->find($data['id']);
+            $quantity = $line->getPickedQuantity();
 
             $json = $this->renderView(
                 'preparation/modalEditLigneArticleContent.html.twig',
@@ -470,7 +486,7 @@ class PreparationController extends AbstractController
                     'quantity' => $quantity,
                     'max' => $data['ref']
                         ? $quantity
-                        : (isset($article) ? $article->getQuantiteAPrelever() : null)
+                        : ($line instanceof PreparationOrderArticleLine ? $line->getQuantity() : null)
                 ]
             );
 
@@ -535,7 +551,7 @@ class PreparationController extends AbstractController
                 'référence',
                 'libellé',
                 'emplacement',
-                'quantité à collecter',
+                'quantité à préparer',
                 'code-barre'
             ];
             $nowStr = new DateTime('now');
@@ -558,7 +574,7 @@ class PreparationController extends AbstractController
      * @Route("/{preparation}/check-etiquette", name="count_bar_codes", options={"expose"=true})
      */
     public function countBarcode(Preparation $preparation): Response {
-        return $this->json($preparation->getArticles()->count() > 0);
+        return $this->json($preparation->getArticleLines()->count() > 0);
     }
 
     /**
@@ -569,11 +585,11 @@ class PreparationController extends AbstractController
                                 ArticleDataService $articleDataService,
                                 PDFGeneratorService $PDFGeneratorService): ?Response
     {
-        $articles = $preparation->getArticles()->toArray();
-        $lignesArticle = $preparation->getLigneArticlePreparations()->toArray();
+        $articles = $preparation->getArticleLines()->toArray();
+        $lignesArticle = $preparation->getReferenceLines()->toArray();
         $referenceArticles = [];
 
-        /** @var LigneArticlePreparation $ligne */
+        /** @var PreparationOrderReferenceLine $ligne */
         foreach ($lignesArticle as $ligne) {
             $reference = $ligne->getReference();
             if ($reference->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
