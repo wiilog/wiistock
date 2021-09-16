@@ -13,7 +13,7 @@ let tableUserConfig = {
         { "data": "Dropzone", 'title': 'Drop zone' },
         { "data": "Dernière connexion", 'title': 'Dernière connexion' },
         { "data": "role", 'title': 'Rôle' },
-        { "data": "visibilityGroup", 'title': 'Groupe de visibilité' },
+        { "data": "visibilityGroup", 'title': 'Groupes de visibilité' },
     ],
     rowConfig: {
         needsRowClickAction: true
