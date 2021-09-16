@@ -3,9 +3,11 @@
 namespace App\Controller;
 
 use App\Entity\CategoryType;
+use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
+use App\Entity\ReferenceArticle;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -80,7 +82,12 @@ class FiltreRefController extends AbstractController
 
                 // champ Value
                 if (isset($data['value'])) {
-                    $filter->setValue(is_array($data['value']) ? implode(",", $data['value']) : $data['value']);
+                    if ($filter->getChampFixe() === FiltreRef::FIXED_FIELD_VISIBILITY_GROUP) {
+                        $value = implode(',', json_decode($data['value']));
+                    } else {
+                        $value = is_array($data['value']) ? implode(",", $data['value']) : $data['value'];
+                    }
+                    $filter->setValue($value);
                 }
 
                 // champ Utilisateur
@@ -164,6 +171,7 @@ class FiltreRefController extends AbstractController
 					$options[] = $type->getLabel();
 				}
 			} else if ($value === 'visibilityGroups' || $value === 'visibilityGroup') {
+                $multiple = true;
                 $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
                 $visibilityGroups = $visibilityGroupRepository->findBy(["active" => true], ["label" => "asc"]);
 				$options = [];
