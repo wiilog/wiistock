@@ -1310,7 +1310,10 @@ class ImportService
                 ->unique()
                 ->map("trim")
                 ->map(function($label) use ($visibilityGroupRepository) {
-                    return $visibilityGroupRepository->findOneBy(['label' => ltrim($label)]);
+                    $visibilityGroup = $visibilityGroupRepository->findOneBy(['label' => ltrim($label)]);
+                    if (!$visibilityGroup) {
+                        $this->throwError('Le groupe de visibilité ' . $label . ' n\'existe pas.');
+                    }
                 })
                 ->toArray();
             foreach($visibilityGroups as $visibilityGroup) {
