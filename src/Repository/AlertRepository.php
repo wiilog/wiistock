@@ -53,7 +53,6 @@ class AlertRepository extends EntityRepository {
         $queryBuilder
             ->leftJoin("a.reference", "reference")
             ->leftJoin("a.article", "article");
-
         $visibilityGroup = $user->getVisibilityGroups();
         if (!$visibilityGroup->isEmpty()) {
             $queryBuilder

@@ -18,6 +18,8 @@ $(document).ready(() => {
             showBSAlert('Un fournisseur minimum est obligatoire pour continuer', 'warning');
         } else {
             const $button = $(this);
+            const $form = $(`.ra-form`);
+            clearFormErrors($form);
             processSubmitAction($(`.ra-form`), $button, $button.data(`submit`), {
                 onSuccess: () => window.location.href = Routing.generate('reference_article_index')
             });
@@ -80,7 +82,7 @@ function updateInputValue($button) {
     if($button.hasClass('increase')){
         $input.val(value+1);
         $input.removeClass('is-invalid');
-    } else if($button.hasClass('decrease') && value !== 1) {
+    } else if($button.hasClass('decrease') && value >= 1) {
         $input.val(value-1);
         $input.removeClass('is-invalid');
     }

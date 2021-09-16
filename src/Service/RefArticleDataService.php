@@ -65,7 +65,7 @@ class RefArticleDataService {
         ["title" => "Gestionnaire(s)", "name" => "managers", "orderable" => false, "type" => "text"],
         ["title" => "Commentaire", "name" => "comment", "type" => "text", "orderable" => false],
         ["title" => "Commentaire d'urgence", "name" => "emergencyComment", "type" => "text", "orderable" => false],
-        ["title" => FiltreRef::FIXED_FIELD_VISIBILITY_GROUP, "name" => "visibilityGroups", "type" => "list", "orderable" => true],
+        ["title" => FiltreRef::FIXED_FIELD_VISIBILITY_GROUP, "name" => "visibilityGroups", "type" => "list multiple", "orderable" => true],
     ];
 
     private $filtreRefRepository;
@@ -523,9 +523,8 @@ class RefArticleDataService {
                 ]
             ];
         } else {
-            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DEM_LIVRAISON, $this->user);
+            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ALERTE, $this->user);
         }
-
         $results = $alertRepository->getAlertDataByParams($params, $filters, $user);
         $alerts = $results['data'];
 
@@ -738,7 +737,6 @@ class RefArticleDataService {
                 array_splice($fields, $visibilityGroupsIndex, 1);
             }
         }
-
         return $this->visibleColumnService->getArrayConfig($fields, $freeFields, $currentUser->getColumnVisible());
     }
 

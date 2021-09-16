@@ -186,11 +186,12 @@
                                 {% endif %}
                             </label>
                         </div>
-                        <div class="col-12 col-md-6 mt-3 d-flex flex-column justify-content-around">
-                            <span class="ra-field-name">Date de dernier inventaire</span>
-                            <span
-                                class="ra-field-text">{{ lastInventoryDate is defined and lastInventoryDate is not null and lastInventoryDate != '' ? lastInventoryDate : '-' }}</span>
-                        </div>
+                        {% if reference.id %}
+                            <div class="col-12 col-md-6 mt-3 d-flex flex-column justify-content-around">
+                                <span class="ra-field-name">Date de dernier inventaire</span>
+                                <span class="ra-field-text">{{ lastInventoryDate is defined and lastInventoryDate is not null and lastInventoryDate != '' ? lastInventoryDate : '-' }}</span>
+                            </div>
+                        {% endif %}
                     </div>
                     <div class="row">
                         <div class="col-12 col-md-6 mt-3">
@@ -230,56 +231,81 @@
             <div class="ra-box">
                 <div class="header">Gestion quantité</div>
                 <div class="content">
-                    <label class="ra-field-name">
-                        Gestion quantité*
-                    </label>
-                    <div class="wii-switch needed" data-title="Statut">
-                        <input type="radio" name="type_quantite" value="reference" content="Référence" data-title="reference"
-                            {{ reference.id ? 'class="type_quantite" disabled' : 'class="type_quantite data"' }}
-                               onclick="toggleRequiredChampsFixes($(this), '.ra-form'); updateQuantityDisplay($(this), '.ra-form', true)"
-                            {{ not reference.typeQuantite or reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_REFERENCE') ? 'checked' }}>
-                        <input type="radio" name="type_quantite" value="article" content="Article" data-title="article"
-                            {{ reference.id ? 'class="type_quantite" disabled' : 'class="type_quantite data"' }}
-                               onclick="toggleRequiredChampsFixes($(this), '.ra-form'); updateQuantityDisplay($(this), '.ra-form', true)"
-                            {{ reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_ARTICLE') ? 'checked' }}>
-                    </div>
+                    {% if reference.id %}
+                        {% set isReferenceManagementQuantity = reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_REFERENCE') %}
+                        <div class="row no-gutters">
+                            <div class="col-auto">
+                                <img src="{{ asset('svg/reference_article/' ~ (isReferenceManagementQuantity ? 'pack.svg' : 'article.svg')) }}"
+                                     alt="Icône colis" width="20px">
+                            </div>
+                            <div class="col-auto">
+                                <span class="ra-field-name ml-3">
+                                    Quantité gérée à {{ isReferenceManagementQuantity ? 'la référence' : 'l\'article' }}
+                                </span>
+                            </div>
+                        </div>
+                    {% else %}
+                        <label class="ra-field-name">
+                            Gestion quantité*
+                        </label>
+                        <div class="wii-switch needed" data-title="Statut">
+                            <input type="radio" name="type_quantite" value="reference" content="Référence" data-title="reference"
+                                {{ reference.id ? 'class="type_quantite" disabled' : 'class="type_quantite data"' }}
+                                   onclick="toggleRequiredChampsFixes($(this), '.ra-form'); updateQuantityDisplay($(this), '.ra-form', true)"
+                                {{ not reference.typeQuantite or reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_REFERENCE') ? 'checked' }}>
+                            <input type="radio" name="type_quantite" value="article" content="Article" data-title="article"
+                                {{ reference.id ? 'class="type_quantite" disabled' : 'class="type_quantite data"' }}
+                                   onclick="toggleRequiredChampsFixes($(this), '.ra-form'); updateQuantityDisplay($(this), '.ra-form', true)"
+                                {{ reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_ARTICLE') ? 'checked' }}>
+                        </div>
+                    {% endif %}
 
                     <div class="reference-form">
-                        <div class="row align-items-baseline">
+                        <div class="row">
                             <div class="col-12 col-md-4 reference mt-3">
                                 <label>
-                                        <span class="icon ra-field-name">
-                                            <img src="{{ asset('svg/reference_article/location.svg') }}" class="icon" alt="Image emplacement">
-                                            Emplacement*
-                                        </span>
-                                    <select name="emplacement" id="emplacement" class="form-control w-100 data needed"
-                                            data-s2="location" data-placeholder="Sélectionnez un emplacement">
-                                        {% if reference.emplacement %}
-                                            <option value="{{ reference.emplacement.id }}">{{ reference.emplacement.label }}</option>
-                                        {% endif %}
-                                    </select>
+                                    <span class="icon ra-field-name">
+                                        <img src="{{ asset('svg/reference_article/location.svg') }}" class="icon" alt="Image emplacement">
+                                        Emplacement*
+                                    </span>
+                                    {% if reference.id %}
+                                        <span class="ra-field-text">{{ reference.emplacement ? reference.emplacement.label }}</span>
+                                    {% else %}
+                                        <select name="emplacement" id="emplacement" class="form-control w-100 data needed"
+                                                data-s2="location" data-placeholder="Sélectionnez un emplacement">
+                                            {% if reference.emplacement %}
+                                                <option value="{{ reference.emplacement.id }}">{{ reference.emplacement.label }}</option>
+                                            {% endif %}
+                                        </select>
+                                    {% endif %}
                                 </label>
                             </div>
                             <div class="col-12 col-md-4 reference mt-3">
                                 <label>
-                                        <span class="icon ra-field-name">
-                                            <img src="{{ asset('svg/reference_article/stock.svg') }}" class="icon" alt="Image quantité">
-                                            Quantité*
-                                        </span>
-                                    <div class="increase-decrease-field">
-                                        <button class="decrease"></button>
-                                        <input type="number" id="quantite" name="quantite" class="form-control data needed"
-                                               value="{{ reference.quantiteDisponible ?? 0 }}" min="1">
-                                        <button class="increase"></button>
-                                    </div>
+                                    <span class="icon ra-field-name">
+                                        <img src="{{ asset('svg/reference_article/stock.svg') }}" class="icon" alt="Image quantité">
+                                        Quantité en Stock{{ not reference.id ? '*' }}
+                                    </span>
+                                    {% if reference.id %}
+                                        <span class="ra-field-text">{{ reference.quantiteStock ?? 0 }}</span>
+                                    {% else %}
+                                        <div class="increase-decrease-field">
+                                            <button class="decrease"></button>
+                                            <input type="number" id="quantite" name="quantite" class="form-control data needed"
+                                                   value="0" min="0">
+                                            <button class="increase"></button>
+                                        </div>
+                                    {% endif %}
                                 </label>
+                            </div>
+                            <div class="col-12 col-md-4 reference">
                             </div>
                             <div class="col-12 col-md-4 reference mt-3">
                                 <label>
-                                        <span class="icon ra-field-name">
-                                            <img src="{{ asset('svg/reference_article/euro.svg') }}" class="icon" alt="Image euro">
-                                            Prix unitaire (€)
-                                        </span>
+                                    <span class="icon ra-field-name">
+                                        <img src="{{ asset('svg/reference_article/euro.svg') }}" class="icon" alt="Image euro">
+                                        Prix unitaire (€)
+                                    </span>
                                     <input type="text" name="prix" class="form-control w-100 data" value="{{ reference.prixUnitaire }}">
                                 </label>
                             </div>
@@ -304,11 +330,11 @@
                                 <label>
                                         <span class="icon ra-field-name">
                                             <img src="{{ asset('svg/reference_article/threshold.svg') }}" class="icon" alt="Image seuil d'alerte">
-                                            Seuil d'alerte*
+                                            Seuil d'alerte
                                         </span>
                                     <div class="increase-decrease-field">
                                         <button class="decrease"></button>
-                                        <input type="number" name="limitWarning" class="form-control data needed"
+                                        <input type="number" name="limitWarning" class="form-control data"
                                                value="{{ reference.limitWarning ?? 0 }}" min="0">
                                         <button class="increase"></button>
                                     </div>
@@ -319,11 +345,11 @@
                                         <span class="icon ra-field-name">
                                             <img src="{{ asset('svg/reference_article/threshold_red.svg') }}" class="icon"
                                                  alt="Image seuil de sécurité">
-                                            Seuil de sécurité*
+                                            Seuil de sécurité
                                         </span>
                                     <div class="increase-decrease-field">
                                         <button class="decrease"></button>
-                                        <input type="number" name="limitSecurity" class="form-control data needed"
+                                        <input type="number" name="limitSecurity" class="form-control data"
                                                value="{{ reference.limitSecurity ?? 0 }}" min="0">
                                         <button class="increase"></button>
                                     </div>
