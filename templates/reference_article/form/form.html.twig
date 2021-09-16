@@ -30,7 +30,9 @@
                 <input class="form-control w-100 data needed" type="text" name="labelFournisseur" value="{{ line ? line.label }}">
             </div>
         </div>
-        <span class="delete-supplier-article">Supprimer l'article fournisseur</span>
+        {% if index > 0 %}
+            <span class="delete-supplier-article">Supprimer l'article fournisseur</span>
+        {% endif %}
         <hr>
     </div>
 {% endmacro %}
@@ -350,8 +352,8 @@
                 <div class="content">
                     <div class="supplier-articles">
                         {% if reference.id %}
-                            {% for article in reference.articlesFournisseur %}
-                                {{ macros.supplier_article_line(reference, article, 0) }}
+                            {% for index, article in reference.articlesFournisseur %}
+                                {{ macros.supplier_article_line(reference, article, index) }}
                             {% endfor %}
                         {% else %}
                             {{ macros.supplier_article_line(reference, null, 0) }}
