@@ -282,19 +282,6 @@ body {
     font-size: 12px;
 }
 
-.ra-btn-success {
-    border: none;
-    background-color: #2FC2AB;
-    padding: 10px 25px;
-    border-radius: 5px;
-    color: #FFFFFF;
-
-    &:hover, &:focus {
-        color: white !important;
-        background-color: rgba(47, 194, 171, 0.8);
-    }
-}
-
 span.icon {
     display: flex;
     align-items: center;
@@ -325,7 +312,7 @@ span.icon {
     background: #2FC2AB;
     font-weight: bold;
 
-    &:hover {
+    &:hover, &:focus {
         background: #1b9b87;
     }
 }
