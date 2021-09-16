@@ -1,4 +1,5 @@
 {% set disabledNeeded = disabledNeeded is defined ? disabledNeeded : false %}
+{% set fieldNameClass = fieldNameClass is defined and fieldNameClass ? fieldNameClass : '' %}
 
 {% if freeFields|length > 0 %}
     <div class="row">

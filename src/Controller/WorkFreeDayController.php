@@ -4,6 +4,7 @@
 namespace App\Controller;
 
 use App\Entity\WorkFreeDay;
+use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -35,7 +36,7 @@ class WorkFreeDayController extends AbstractController
                     'workFreeDayId' => $day->getId(),
                     'dateStr' => $day->getDay()->format('Y-m-d')
                 ]),
-                'day' => $this->getFrenchDay($day->getDay())
+                'day' => FormatHelper::longDate($day->getDay())
             ];
         }
 
@@ -111,16 +112,5 @@ class WorkFreeDayController extends AbstractController
         }
 
         return new JsonResponse($data);
-    }
-
-    private function getFrenchDay($day): string
-    {
-        $weekDays = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
-        $monthYear = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Aout", "Septembre", "Octobre", "Novembre", "Décembre"];
-        $intDay = $day->format('w');
-        $intMonth = $day->format('n');
-        $numDay = $day->format('d');
-        $year = $day->format('Y');
-        return ($weekDays[$intDay] . " " . $numDay . " " . $monthYear[$intMonth - 1] . " " . $year);
     }
 }

@@ -1,5 +1,6 @@
 {% set required = required is defined and required %}
 {% set editAttachments = editAttachments is not defined or editAttachments %}
+{% set fieldNameClass = fieldNameClass is defined and fieldNameClass ? fieldNameClass : '' %}
 <input type="hidden" name="isAttachmentForm" value="1"/>
 <input type="hidden" name="isFileNeeded" value="{{ required ? 1 : 0 }}"/>
 
