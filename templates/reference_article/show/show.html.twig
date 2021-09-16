@@ -158,7 +158,7 @@
                                 <img src="{{ asset('svg/reference_article/stock.svg') }}" alt="Icône stock" width="20px">
                                 <div class="box-item ml-3">
                                     <span class="ra-field-name">Quantité en stock</span>
-                                    <span class="ra-body-text">{{ referenceArticle.quantiteStock }}</span>
+                                    <span class="ra-body-text">{{ referenceArticle.quantiteStock ?? 0 }}</span>
                                 </div>
                             </div>
                             {% if not isReferenceManagementQuantity %}

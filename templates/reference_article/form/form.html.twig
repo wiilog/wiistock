@@ -240,7 +240,7 @@
                     </div>
 
                     <div class="reference-form">
-                        <div class="row align-items-baseline">
+                        <div class="row">
                             <div class="col-12 col-md-4 reference mt-3">
                                 <label>
                                         <span class="icon ra-field-name">
@@ -257,16 +257,20 @@
                             </div>
                             <div class="col-12 col-md-4 reference mt-3">
                                 <label>
-                                        <span class="icon ra-field-name">
-                                            <img src="{{ asset('svg/reference_article/stock.svg') }}" class="icon" alt="Image quantité">
-                                            Quantité*
-                                        </span>
-                                    <div class="increase-decrease-field">
-                                        <button class="decrease"></button>
-                                        <input type="number" id="quantite" name="quantite" class="form-control data needed"
-                                               value="{{ reference.quantiteDisponible ?? 0 }}" min="1">
-                                        <button class="increase"></button>
-                                    </div>
+                                    <span class="icon ra-field-name">
+                                        <img src="{{ asset('svg/reference_article/stock.svg') }}" class="icon" alt="Image quantité">
+                                        Quantité en Stock{{ not reference.id ? '*' }}
+                                    </span>
+                                    {% if reference.id %}
+                                        <span class="ra-field-text">{{ reference.quantiteStock ?? 0 }}</span>
+                                    {% else %}
+                                        <div class="increase-decrease-field">
+                                            <button class="decrease"></button>
+                                            <input type="number" id="quantite" name="quantite" class="form-control data needed"
+                                                   value="0" min="0">
+                                            <button class="increase"></button>
+                                        </div>
+                                    {% endif %}
                                 </label>
                             </div>
                             <div class="col-12 col-md-4 reference mt-3">

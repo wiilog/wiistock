@@ -48,7 +48,8 @@ body {
             border-radius: 5px;
         }
 
-        input {
+        input,
+        .select2-container {
             margin-top: 5px;
         }
     }
@@ -261,6 +262,7 @@ body {
 .ra-field-text {
     color: #000000;
     font-size: 16px;
+    font-weight: normal;
 }
 
 .ra-body-text {
