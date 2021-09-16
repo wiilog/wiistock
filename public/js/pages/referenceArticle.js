@@ -22,7 +22,7 @@ $(function () {
     });
     displayActifOrInactif($('#toggleActivOrInactiv'), true);
     registerNumberInputProtection($('#modalNewRefArticle').find('input[type="number"]'));
-
+    $('input[name="type_quantite"]:checked').click();
 });
 
 function redirectPaperclipClick(button) {

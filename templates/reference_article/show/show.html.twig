@@ -1,6 +1,7 @@
 {% extends 'layout.html.twig' %}
 
 {% block title %}Stock | Référence | Article de référence{% endblock %}
+{% block titleLink path('reference_article_index') %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -10,7 +11,7 @@
 {% block page_content %}
     <div class="ra-container d-flex justify-content-center align-content-center">
         <div class="row ra-column">
-            <div class="col-6">
+            <div class="col-12 col-md-6">
                 <div class="ra-header d-flex flex-column" style="border-color: {{ referenceArticle.type.color }}">
                     <div class="ra-type" style="background-color: {{ referenceArticle.type.color }}">{{ referenceArticle.type.label }}</div>
                     <div class="d-flex header-wrapper">
@@ -128,7 +129,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-6">
+            <div class="col-12 col-md-6">
                 <div class="ra-box">
                     <div class="header ra-title">Gestion quantité</div>
                     <div class="content">

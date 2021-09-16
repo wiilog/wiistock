@@ -30,7 +30,9 @@
                 <input class="form-control w-100 data needed" type="text" name="labelFournisseur" value="{{ line ? line.label }}">
             </div>
         </div>
-        <span class="delete-supplier-article">Supprimer l'article fournisseur</span>
+        {% if index > 0 %}
+            <span class="delete-supplier-article">Supprimer l'article fournisseur</span>
+        {% endif %}
         <hr>
     </div>
 {% endmacro %}
@@ -42,7 +44,7 @@
 
 <div class="d-flex justify-content-center align-items-center" style="margin-bottom: 50px;">
     <div class="row ra-form ra-column">
-        <div class="col-6">
+        <div class="col-12 col-md-6">
             <div class="ra-box">
                 <div class="content d-flex">
                     <div class="col-5">
@@ -222,7 +224,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-6">
+        <div class="col-12 col-md-6">
             <div class="ra-box">
                 <div class="header">Gestion quantité</div>
                 <div class="content">
@@ -328,10 +330,10 @@
 
                             <div class="form-group col-12 col-md-6 mt-3">
                                 <div class="article d-none">
-                                    <label>Urgence ?</label><br>
-                                    <label class="switch">
-                                        <input class="checkbox" type="checkbox" name="urgence" onchange="toggleEmergency($(this))">
-                                        <span class="slider round"></span>
+                                    <label class="with-checkbox">
+                                        <input type="checkbox" name="urgence" class="checkbox data"
+                                               onchange="toggleEmergency($(this))" {{ reference.needsMobileSync ? 'checked' }}>
+                                        Urgence
                                     </label>
                                 </div>
                             </div>
@@ -350,8 +352,8 @@
                 <div class="content">
                     <div class="supplier-articles">
                         {% if reference.id %}
-                            {% for article in reference.articlesFournisseur %}
-                                {{ macros.supplier_article_line(reference, article, 0) }}
+                            {% for index, article in reference.articlesFournisseur %}
+                                {{ macros.supplier_article_line(reference, article, index) }}
                             {% endfor %}
                         {% else %}
                             {{ macros.supplier_article_line(reference, null, 0) }}
