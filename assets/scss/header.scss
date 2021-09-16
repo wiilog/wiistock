@@ -4,7 +4,7 @@
 
 .header-container {
     background-repeat: no-repeat;
-    padding-bottom: 1%;
+    padding-bottom: 10px;
     padding-left: 1rem;
     padding-right: 1rem;
 
@@ -18,7 +18,7 @@
     &:not(.header-ext) {
         @extend .bg-primary-followgt;
 
-        padding-bottom: 6%;
+        padding-bottom: 60px;
     }
 
     .web-version {
@@ -28,7 +28,7 @@
     }
 
     & ~ .container-fluid {
-        margin-top: -6%;
+        margin-top: -60px;
     }
 
     .main-header {

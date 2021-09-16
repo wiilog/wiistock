@@ -247,6 +247,11 @@ class ReferenceArticle extends FreeFieldEntity
      */
     private ?VisibilityGroup $visibilityGroup = null;
 
+    /**
+     * @ORM\OneToOne(targetEntity=Attachment::class, inversedBy="referenceArticle", cascade={"persist", "remove"})
+     */
+    private $image;
+
     public function __construct()
     {
         $this->ligneArticles = new ArrayCollection();
@@ -1163,6 +1168,25 @@ class ReferenceArticle extends FreeFieldEntity
         if($visibilityGroup) {
             $visibilityGroup->addArticleReference($this);
         }
+        return $this;
+    }
+
+    public function getImage(): ?Attachment
+    {
+        return $this->image;
+    }
+
+    public function setImage(?Attachment $image): self {
+        if($this->image && $this->image->getReferenceArticle() !== $this) {
+            $oldImage = $this->image;
+            $this->image = null;
+            $oldImage->setReferenceArticle(null);
+        }
+        $this->image = $image;
+        if($this->image && $this->image->getReferenceArticle() !== $this) {
+            $this->image->setReferenceArticle($this);
+        }
+
         return $this;
     }
 }

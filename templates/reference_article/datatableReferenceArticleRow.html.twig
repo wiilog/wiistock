@@ -12,16 +12,15 @@
                 } %}
             {% endif %}
             <div class="dropdown-menu dropdown-follow-gt pointer">
-                <div class="dropdown-item action-on-click d-none"
-                     onclick="window.location.href = Routing.generate('reference_article_show_page', {id: {{ reference_id }}}, true)">
-                    <i class='fas fa-eye mr-2'></i>Voir
-                </div>
+                <a class="dropdown-item action-on-click d-none"
+                   href="{{ path('reference_article_show_page', {id: reference_id}) }}">
+                </a>
 
                 {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
-                    <div class="dropdown-item"
-                         onclick="window.location.href = Routing.generate('reference_article_edit_page', {reference: $(this).data('id')}, true)">
+                    <a class="dropdown-item"
+                         href="{{ path('reference_article_edit_page', {reference: reference_id}) }}" target="_blank">
                         <i class='fas fa-pencil-alt mr-2'></i>Modifier
-                    </div>
+                    </a>
                 {% endif %}
 
                 <div class="dropdown-item"
