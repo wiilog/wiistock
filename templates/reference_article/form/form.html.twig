@@ -330,10 +330,10 @@
 
                             <div class="form-group col-12 col-md-6 mt-3">
                                 <div class="article d-none">
-                                    <label>Urgence ?</label><br>
-                                    <label class="switch">
-                                        <input class="checkbox" type="checkbox" name="urgence" onchange="toggleEmergency($(this))">
-                                        <span class="slider round"></span>
+                                    <label class="with-checkbox">
+                                        <input type="checkbox" name="urgence" class="checkbox data"
+                                               onchange="toggleEmergency($(this))" {{ reference.needsMobileSync ? 'checked' }}>
+                                        Urgence
                                     </label>
                                 </div>
                             </div>
