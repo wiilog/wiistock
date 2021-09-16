@@ -1,11 +1,11 @@
-{% macro supplier_article_line(reference, line, index) %}
+{% macro supplier_article_line(reference, line, editable = false, index = 0) %}
     <div class="ligneFournisseurArticle"
          data-multiple-key="frl"
          data-multiple-object-index="{{ index }}">
         <div class="row">
             <div class="form-group col-md-6 col-12">
                 <label class="ra-field-name">Nom fournisseur*</label>
-                <select class="form-control w-100 data needed" data-s2="supplierLabel" onchange="loadAndDisplayLabels($(this))"
+                <select class="form-control w-100 {{ editable ? 'data needed'}}" {{ not editable ? 'disabled readonly' }} data-s2="supplierLabel" onchange="loadAndDisplayLabels($(this))"
                         name="fournisseurLabel">
                     {% if line and line.fournisseur %}
                         <option value="{{ line.fournisseur.id }}">{{ line.fournisseur.nom }}</option>
@@ -14,7 +14,7 @@
             </div>
             <div class="form-group col-md-6 col-12">
                 <label class="ra-field-name">Code fournisseur*</label>
-                <select class="form-control w-100 data needed" data-s2="supplierCode" onchange="loadAndDisplayInfos($(this))"
+                <select class="form-control w-100 {{ editable ? 'data needed'}}" {{ not editable ? 'disabled readonly' }} data-s2="supplierCode" onchange="loadAndDisplayInfos($(this))"
                         name="fournisseur">
                     {% if line and line.fournisseur %}
                         <option value="{{ line.fournisseur.id }}">{{ line.fournisseur.codeReference }}</option>
@@ -23,11 +23,11 @@
             </div>
             <div class="form-group col-md-6 col-12 {{ not reference.id ? 'd-none newContent' }}">
                 <label class="ra-field-name">Ref article fournisseur*</label>
-                <input class="form-control data w-100 data needed" type="text" name="referenceFournisseur" value="{{ line ? line.reference }}">
+                <input class="form-control data w-100 {{ editable ? 'data needed'}}" {{ not editable ? 'disabled readonly' }} type="text" name="referenceFournisseur" value="{{ line ? line.reference }}">
             </div>
             <div class="form-group col-md-6 col-12 {{ not reference.id ? 'd-none newContent' }}">
                 <label class="ra-field-name">Libellé*</label>
-                <input class="form-control w-100 data needed" type="text" name="labelFournisseur" value="{{ line ? line.label }}">
+                <input class="form-control w-100 {{ editable ? 'data needed'}}" {{ not editable ? 'disabled readonly' }} type="text" name="labelFournisseur" value="{{ line ? line.label }}">
             </div>
         </div>
         {% if index > 0 %}
@@ -350,10 +350,10 @@
                     <div class="supplier-articles">
                         {% if reference.id %}
                             {% for index, article in reference.articlesFournisseur %}
-                                {{ macros.supplier_article_line(reference, article, index) }}
+                                {{ macros.supplier_article_line(reference, article, false) }}
                             {% endfor %}
                         {% else %}
-                            {{ macros.supplier_article_line(reference, null, 0) }}
+                            {{ macros.supplier_article_line(reference, null, true) }}
                         {% endif %}
                     </div>
                     <button class="btn btn-primary add-supplier-article"><i class="fa fa-plus mr-2"></i>Ajouter un article fournisseur</button>
@@ -404,5 +404,5 @@
 </div>
 
 <template id="supplier-article-template">
-    {{ macros.supplier_article_line(reference, null, 'index') }}
+    {{ macros.supplier_article_line(reference, null, true, 'index') }}
 </template>
