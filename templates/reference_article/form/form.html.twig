@@ -182,10 +182,12 @@
                                 {% endif %}
                             </label>
                         </div>
-                        <div class="col-12 col-md-6 mt-3 d-flex flex-column justify-content-around">
-                            <span class="ra-field-name">Date de dernier inventaire</span>
-                            <span class="ra-field-text">{{ lastInventoryDate is defined and lastInventoryDate is not null and lastInventoryDate != '' ? lastInventoryDate : '-' }}</span>
-                        </div>
+                        {% if reference.id %}
+                            <div class="col-12 col-md-6 mt-3 d-flex flex-column justify-content-around">
+                                <span class="ra-field-name">Date de dernier inventaire</span>
+                                <span class="ra-field-text">{{ lastInventoryDate is defined and lastInventoryDate is not null and lastInventoryDate != '' ? lastInventoryDate : '-' }}</span>
+                            </div>
+                        {% endif %}
                     </div>
                     <div class="row">
                         <div class="col-12 col-md-6 mt-3">
@@ -324,11 +326,11 @@
                                 <label>
                                         <span class="icon ra-field-name">
                                             <img src="{{ asset('svg/reference_article/threshold.svg') }}" class="icon" alt="Image seuil d'alerte">
-                                            Seuil d'alerte*
+                                            Seuil d'alerte
                                         </span>
                                     <div class="increase-decrease-field">
                                         <button class="decrease"></button>
-                                        <input type="number" name="limitWarning" class="form-control data needed"
+                                        <input type="number" name="limitWarning" class="form-control data"
                                                value="{{ reference.limitWarning ?? 0 }}" min="0">
                                         <button class="increase"></button>
                                     </div>
@@ -339,11 +341,11 @@
                                         <span class="icon ra-field-name">
                                             <img src="{{ asset('svg/reference_article/threshold_red.svg') }}" class="icon"
                                                  alt="Image seuil de sécurité">
-                                            Seuil de sécurité*
+                                            Seuil de sécurité
                                         </span>
                                     <div class="increase-decrease-field">
                                         <button class="decrease"></button>
-                                        <input type="number" name="limitSecurity" class="form-control data needed"
+                                        <input type="number" name="limitSecurity" class="form-control data"
                                                value="{{ reference.limitSecurity ?? 0 }}" min="0">
                                         <button class="increase"></button>
                                     </div>
