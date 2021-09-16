@@ -291,4 +291,18 @@ class SelectController extends AbstractController {
             'results' => $fournisseurs
         ]);
     }
+
+    /**
+     * @Route("/select/articles-collectables", name="ajax_select_collectable_articles", options={"expose"=true})
+     */
+    public function collectableArticles(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $search = $request->query->get('term');
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $articles = $articleRepository->getCollectableArticlesForSelect($search);
+
+        return $this->json([
+            "results" => $articles
+        ]);
+    }
 }

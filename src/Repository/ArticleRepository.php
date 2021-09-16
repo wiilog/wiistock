@@ -1026,4 +1026,23 @@ class ArticleRepository extends EntityRepository {
             ->getQuery()
             ->getResult();
     }
+
+    public function getCollectableArticlesForSelect(?string $search, ?int $referenceArticle = null) {
+        $qb = $this->createQueryBuilder("article")
+            ->select("article.id AS id, article.barCode AS text")
+            ->andWhere("article.barCode LIKE :search")
+            ->andWhere("article.inactiveSince IS NOT NULL")
+            ->andWhere("article.inactiveSince > :one_month_ago")
+            ->setParameter("search", "%$search%")
+            ->setParameter("one_month_ago", new DateTime("-1 month"));
+
+        if($referenceArticle) {
+            $qb->join("article.articleFournisseur", "article_fournisseur")
+                ->join("article_fournisseur.referenceArticle", "reference_article")
+                ->andWhere("reference_article.id = :reference_article")
+                ->setParameter("reference_article", $referenceArticle);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 }

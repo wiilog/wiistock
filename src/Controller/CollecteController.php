@@ -273,12 +273,13 @@ class CollecteController extends AbstractController
 
             $refArticle = $referenceArticleRepository->find($data['referenceArticle']);
             $collecte = $collecteRepository->find($data['collecte']);
-            if (($data['quantity-to-pick'] <= 0) || empty($data['quantity-to-pick'])) {
+            if (!$data['article-to-pick'] && ($data['quantity-to-pick'] ?? 0) <= 0) {
                 return new JsonResponse([
-                    'success' => false,
-                    'msg' => 'La quantité doit être superieur à zero.'
+                    "success" => false,
+                    "msg" => "Vous devez sélectionner un article ou la quantité doit être superieure à zero"
                 ]);
             }
+
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 if ($collecteReferenceRepository->countByCollecteAndRA($collecte, $refArticle) > 0) {
                     $collecteReference = $collecteReferenceRepository->getByCollecteAndRA($collecte, $refArticle);
@@ -300,11 +301,12 @@ class CollecteController extends AbstractController
             } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                 $demandeCollecteService->persistArticleInDemand($data, $refArticle, $collecte);
             }
+
             $entityManager->flush();
 
             return new JsonResponse([
-                'success' => true,
-                'msg' => 'La référence <strong>' . $refArticle->getLibelle() . '</strong> a bien été ajoutée à la collecte.'
+                "success" => true,
+                "msg" => "La référence <strong>{$refArticle->getLibelle()}</strong> a bien été ajoutée à la collecte."
             ]);
 
         }
