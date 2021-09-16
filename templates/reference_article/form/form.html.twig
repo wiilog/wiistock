@@ -263,8 +263,8 @@
                                         </span>
                                     <div class="increase-decrease-field">
                                         <button class="decrease"></button>
-                                        <input type="number" id="quantite" name="quantite" class="form-control data needed"
-                                               value="{{ reference.quantiteDisponible ?? 0 }}" min="1">
+                                        <input type="number" id="quantite" name="quantite" class="form-control {{ not reference.id ? 'data needed' }}"
+                                               {{ reference.id ? 'readonly' }} value="{{ reference.quantiteDisponible ?? 0 }}" min="1">
                                         <button class="increase"></button>
                                     </div>
                                 </label>
