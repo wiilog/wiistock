@@ -149,14 +149,14 @@ class PreparationsManagerService
         $treatedReferenceLines = $preparation->getReferenceLines()
             ->filter(fn(PreparationOrderReferenceLine $line) => (
                 !$line->getPickedQuantity()
-                || $line->getPickedQuantity() < $line->getQuantity()
+                || $line->getPickedQuantity() < $line->getQuantityToPick()
             ))
             ->count();
         $treatedArticleLines = $preparation->getArticleLines()
             ->filter(fn(PreparationOrderArticleLine $line) => (
-                !$line->getQuantity()
+                !$line->getQuantityToPick()
                 || !$line->getPickedQuantity()
-                || $line->getPickedQuantity() < $line->getQuantity()
+                || $line->getPickedQuantity() < $line->getQuantityToPick()
             ))
             ->count();
 
@@ -194,19 +194,19 @@ class PreparationsManagerService
         foreach ($preparation->getReferenceLines() as $ligneArticlePreparation) {
             $refArticle = $ligneArticlePreparation->getReference();
             $pickedQuantity = $ligneArticlePreparation->getPickedQuantity();
-            if ($ligneArticlePreparation->getQuantity() !== $pickedQuantity) {
+            if ($ligneArticlePreparation->getQuantityToPick() !== $pickedQuantity) {
                 $newLigneArticle = new PreparationOrderReferenceLine();
                 $selectedQuantityForPreviousLigne = $ligneArticlePreparation->getPickedQuantity() ?? 0;
                 $newQuantity = ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE)
-                    ? ($ligneArticlePreparation->getQuantity() - $selectedQuantityForPreviousLigne)
-                    : $ligneArticlePreparation->getQuantity();
+                    ? ($ligneArticlePreparation->getQuantityToPick() - $selectedQuantityForPreviousLigne)
+                    : $ligneArticlePreparation->getQuantityToPick();
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                    $ligneArticlePreparation->setQuantity($ligneArticlePreparation->getPickedQuantity() ?? 0);
+                    $ligneArticlePreparation->setQuantityToPick($ligneArticlePreparation->getPickedQuantity() ?? 0);
                 }
                 $newLigneArticle
                     ->setPreparation($newPreparation)
                     ->setReference($refArticle)
-                    ->setQuantity($newQuantity);
+                    ->setQuantityToPick($newQuantity);
 
                 if (empty($pickedQuantity)) {
                     $entityManager->remove($ligneArticlePreparation);
@@ -290,7 +290,7 @@ class PreparationsManagerService
 
     public function deleteLigneRefOrNot(?PreparationOrderReferenceLine $ligne)
     {
-        if ($ligne && $ligne->getQuantity() === 0) {
+        if ($ligne && $ligne->getQuantityToPick() === 0) {
             $this->entityManager->remove($ligne);
         }
     }
@@ -359,9 +359,9 @@ class PreparationsManagerService
             // si on a enlevé de la quantité à l'article : on enlève la difference à la quantité de la ligne article
             // si on a ajouté de la quantité à l'article : on enlève la ajoute à la quantité de la ligne article
             // si rien a changé on touche pas à la quantité de la ligne article
-            $referenceLine->setQuantity($referenceLine->getQuantity() + ($articleLine->getPickedQuantity() - $quantity));
+            $referenceLine->setQuantityToPick($referenceLine->getQuantityToPick() + ($articleLine->getPickedQuantity() - $quantity));
             $articleLine
-                ->setQuantity($quantity)
+                ->setQuantityToPick($quantity)
                 ->setPickedQuantity($quantity);
         }
     }
@@ -417,9 +417,9 @@ class PreparationsManagerService
 
                         $insertedArticle = $this->articleDataService->newArticle($newArticle, $entityManager);
                         if ($selected) {
-                            if ($line->getQuantity() > $line->getPickedQuantity()) {
+                            if ($line->getQuantityToPick() > $line->getPickedQuantity()) {
                                 $newArticleLine = $this->createArticleLine($insertedArticle, $preparation);
-                                $newArticleLine->setQuantity($line->getQuantity() - $pickedQuantity);
+                                $newArticleLine->setQuantityToPick($line->getQuantityToPick() - $pickedQuantity);
                                 $entityManager->persist($newArticleLine);
                                 $splitArticleLineIds[] = $newArticleLine->getId();
                             }
@@ -628,7 +628,7 @@ class PreparationsManagerService
             $refArticle = $referenceLine->getReference();
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 $quantiteReservee = $refArticle->getQuantiteReservee();
-                $quantityToPick = $referenceLine->getQuantity();
+                $quantityToPick = $referenceLine->getQuantityToPick();
                 $newQuantiteReservee = ($quantiteReservee - $quantityToPick);
                 $refArticle->setQuantiteReservee($newQuantiteReservee > 0 ? $newQuantiteReservee : 0);
 
@@ -655,7 +655,7 @@ class PreparationsManagerService
                 $referenceArticle->getReference() ?? '',
                 $referenceArticle->getLibelle() ?? '',
                 $referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '',
-                $referenceLine->getQuantity() ?? 0,
+                $referenceLine->getQuantityToPick() ?? 0,
                 $referenceArticle->getBarCode()
             ]));
         }
@@ -671,7 +671,7 @@ class PreparationsManagerService
                 $reference,
                 $article->getLabel() ?? '',
                 $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
-                $articleLine->getQuantity(),
+                $articleLine->getQuantityToPick(),
                 $article->getBarCode()
             ]));
         }
@@ -695,7 +695,7 @@ class PreparationsManagerService
                                       int $pickedQuantity = 0): PreparationOrderArticleLine {
         $articleLine = new PreparationOrderArticleLine();
         $articleLine
-            ->setQuantity($quantityToPick)
+            ->setQuantityToPick($quantityToPick)
             ->setPickedQuantity($pickedQuantity)
             ->setArticle($article)
             ->setPreparation($preparation);

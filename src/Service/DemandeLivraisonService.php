@@ -413,7 +413,7 @@ class DemandeLivraisonService
                     $treshHold = ($article->getQuantite() > $totalQuantity)
                         ? $totalQuantity
                         : $article->getQuantite();
-                    if ($articleLine->getQuantity() > $treshHold) {
+                    if ($articleLine->getQuantityToPick() > $treshHold) {
                         $response['success'] = false;
                         $response['nomadMessage'] = 'Erreur de quantité sur l\'article : ' . $article->getBarCode();
                         $response['msg'] = "La quantité demandée d'un des articles excède la quantité disponible (" . $treshHold . ").";
@@ -425,7 +425,7 @@ class DemandeLivraisonService
             /** @var DeliveryRequestReferenceLine $line */
             foreach ($demande->getReferenceLines() as $line) {
                 $articleRef = $line->getReference();
-                if ($line->getQuantity() > $articleRef->getQuantiteDisponible()) {
+                if ($line->getQuantityToPick() > $articleRef->getQuantiteDisponible()) {
                     $response['success'] = false;
                     $response['nomadMessage'] = 'Erreur de quantité sur l\'article : ' . $articleRef->getBarCode();
                     $response['msg'] = "La quantité demandée d'un des articles excède la quantité disponible (" . $articleRef->getQuantiteDisponible() . ").";
@@ -499,12 +499,12 @@ class DemandeLivraisonService
             $lignesArticlePreparation = new PreparationOrderReferenceLine();
             $lignesArticlePreparation
                 ->setPickedQuantity($ligneArticle->getPickedQuantity())
-                ->setQuantity($ligneArticle->getQuantity())
+                ->setQuantityToPick($ligneArticle->getQuantityToPick())
                 ->setReference($referenceArticle)
                 ->setPreparation($preparation);
             $entityManager->persist($lignesArticlePreparation);
             if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                $referenceArticle->setQuantiteReservee(($referenceArticle->getQuantiteReservee() ?? 0) + $ligneArticle->getQuantity());
+                $referenceArticle->setQuantiteReservee(($referenceArticle->getQuantiteReservee() ?? 0) + $ligneArticle->getQuantityToPick());
             } else {
                 $refArticleToUpdateQuantities[] = $referenceArticle;
             }
@@ -615,7 +615,7 @@ class DemandeLivraisonService
 
         $articleLine = new DeliveryRequestArticleLine();
         $articleLine
-            ->setQuantity($quantityToPick)
+            ->setQuantityToPick($quantityToPick)
             ->setPickedQuantity($pickedQuantity)
             ->setArticle($article)
             ->setRequest($request);

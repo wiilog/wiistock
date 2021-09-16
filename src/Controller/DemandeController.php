@@ -339,9 +339,9 @@ class DemandeController extends AbstractController
                 "Référence" => ($line->getReference()->getReference() ? $line->getReference()->getReference() : ''),
                 "Libellé" => ($line->getReference()->getLibelle() ? $line->getReference()->getLibelle() : ''),
                 "Emplacement" => ($line->getReference()->getEmplacement() ? $line->getReference()->getEmplacement()->getLabel() : ' '),
-                "Quantité à prélever" => $line->getQuantity() ?? '',
+                "Quantité à prélever" => $line->getQuantityToPick() ?? '',
                 "barcode" => $line->getReference() ? $line->getReference()->getBarCode() : '',
-                "error" => $line->getReference()->getQuantiteDisponible() < $line->getQuantity()
+                "error" => $line->getReference()->getQuantiteDisponible() < $line->getQuantityToPick()
                     && $demande->getStatut()->getCode() === Demande::STATUT_BROUILLON,
                 "Actions" => $this->renderView(
                     'demande/datatableLigneArticleRow.html.twig',
@@ -363,9 +363,9 @@ class DemandeController extends AbstractController
                 "Référence" => ($article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
                 "Libellé" => ($article->getLabel() ?: ''),
                 "Emplacement" => ($article->getEmplacement() ? $article->getEmplacement()->getLabel() : ' '),
-                "Quantité à prélever" => $line->getQuantity() ?: '',
+                "Quantité à prélever" => $line->getQuantityToPick() ?: '',
                 "barcode" => $article->getBarCode() ?? '',
-                "error" => $article->getQuantite() < $line->getQuantity(),
+                "error" => $article->getQuantite() < $line->getQuantityToPick(),
                 "Actions" => $this->renderView(
                     'demande/datatableLigneArticleRow.html.twig',
                     [
@@ -456,7 +456,7 @@ class DemandeController extends AbstractController
         if ($data = json_decode($request->getContent(), true)) {
             $referenceLineRepository = $entityManager->getRepository(DeliveryRequestReferenceLine::class);
             $line = $referenceLineRepository->find($data['ligneArticle']);
-            $line->setQuantity(max($data["quantite"], 0)); // protection contre quantités négatives
+            $line->setQuantityToPick(max($data["quantite"], 0)); // protection contre quantités négatives
             $entityManager->flush();
 
             return new JsonResponse();
@@ -602,7 +602,7 @@ class DemandeController extends AbstractController
                         $demandeData[] = '';
                         $demandeData[] = $articleRef ? $articleRef->getBarCode() : '';
                         $demandeData[] = $availableQuantity;
-                        $demandeData[] = $line->getQuantity();
+                        $demandeData[] = $line->getQuantityToPick();
 
                         $freeFields = $demande->getFreeFields();
                         foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
@@ -626,7 +626,7 @@ class DemandeController extends AbstractController
                         $demandeData[] = $article->getBarCode();
                         $demandeData[] = '';
                         $demandeData[] = $article->getQuantite();
-                        $demandeData[] = $line->getQuantity();
+                        $demandeData[] = $line->getQuantityToPick();
                         $freeFields = $demande->getFreeFields();
                         foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
                             $demandeData[] = $freeFieldService->serializeValue([

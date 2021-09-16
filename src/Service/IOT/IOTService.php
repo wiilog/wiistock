@@ -178,7 +178,7 @@ class IOTService
             $entityManager->flush();
             foreach ($request->getReferenceLines() as $ligneArticle) {
                 $reference = $ligneArticle->getReference();
-                if ($reference->getQuantiteDisponible() < $ligneArticle->getQuantity()) {
+                if ($reference->getQuantiteDisponible() < $ligneArticle->getQuantityToPick()) {
                     $valid = false;
                     break;
                 }
@@ -252,7 +252,7 @@ class IOTService
             $ligneArticle
                 ->setReference($requestTemplateLine->getReference())
                 ->setRequest($request)
-                ->setQuantity($requestTemplateLine->getQuantityToTake()); // protection contre quantités négatives
+                ->setQuantityToPick($requestTemplateLine->getQuantityToTake()); // protection contre quantités négatives
             $entityManager->persist($ligneArticle);
             $request->addReferenceLine($ligneArticle);
         }

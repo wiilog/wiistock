@@ -125,7 +125,7 @@ class LivraisonController extends AbstractController
             /** @var PreparationOrderArticleLine $articleLine */
             foreach ($preparation->getArticleLines() as $articleLine) {
                 $article = $articleLine->getArticle();
-                if ($articleLine->getQuantity() !== 0 && $articleLine->getPickedQuantity() !== 0) {
+                if ($articleLine->getQuantityToPick() !== 0 && $articleLine->getPickedQuantity() !== 0) {
                     $rows[] = [
                         "Référence" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
                         "Libellé" => $article->getLabel() ?: '',

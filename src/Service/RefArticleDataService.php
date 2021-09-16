@@ -449,12 +449,12 @@ class RefArticleDataService {
                 $line
                     ->setReference($referenceArticle)
                     ->setRequest($demande)
-                    ->setQuantity(max($data["quantity-to-pick"], 0)); // protection contre quantités négatives
+                    ->setQuantityToPick(max($data["quantity-to-pick"], 0)); // protection contre quantités négatives
                 $entityManager->persist($line);
                 $demande->addReferenceLine($line);
             } else {
                 $line = $referenceLineRepository->findOneByRefArticleAndDemande($referenceArticle, $demande);
-                $line->setQuantity($line->getQuantity() + max($data["quantity-to-pick"], 0)); // protection contre quantités négatives
+                $line->setQuantityToPick($line->getQuantityToPick() + max($data["quantity-to-pick"], 0)); // protection contre quantités négatives
             }
 
             if(!$fromNomade && $editRef) {
@@ -465,19 +465,19 @@ class RefArticleDataService {
                 if($fromNomade || $referenceLineRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                     $line = new DeliveryRequestReferenceLine();
                     $line
-                        ->setQuantity(max($data["quantity-to-pick"], 0))// protection contre quantités négatives
+                        ->setQuantityToPick(max($data["quantity-to-pick"], 0))// protection contre quantités négatives
                         ->setReference($referenceArticle)
                         ->setRequest($demande);
                     $entityManager->persist($line);
                 } else {
                     $line = $referenceLineRepository->findOneByRefArticleAndDemande($referenceArticle, $demande, true);
-                    $line->setQuantity($line->getQuantity() + max($data["quantity-to-pick"], 0));
+                    $line->setQuantityToPick($line->getQuantityToPick() + max($data["quantity-to-pick"], 0));
                 }
             } else {
                 $article = $articleRepository->find($data['article']);
                 $line = new DeliveryRequestArticleLine();
                 $line
-                    ->setQuantity(max($data["quantity-to-pick"], 0))// protection contre quantités négatives
+                    ->setQuantityToPick(max($data["quantity-to-pick"], 0))// protection contre quantités négatives
                     ->setArticle($article)
                     ->setRequest($demande);
                 $entityManager->persist($line);
@@ -642,7 +642,7 @@ class RefArticleDataService {
              * @var PreparationOrderReferenceLine $ligneArticlePrepaEnCours
              */
             foreach($lignesArticlePrepaEnCours as $ligneArticlePrepaEnCours) {
-                $totalReservedQuantity += $ligneArticlePrepaEnCours->getQuantity();
+                $totalReservedQuantity += $ligneArticlePrepaEnCours->getQuantityToPick();
             }
             $referenceArticle->setQuantiteReservee($totalReservedQuantity);
         }

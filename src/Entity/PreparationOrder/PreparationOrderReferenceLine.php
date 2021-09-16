@@ -20,7 +20,7 @@ class PreparationOrderReferenceLine
     /**
      * @ORM\Column(type="integer")
      */
-    private ?int $quantity = null;
+    private ?int $quantityToPick = null;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
@@ -43,14 +43,12 @@ class PreparationOrderReferenceLine
         return $this->id;
     }
 
-    public function getQuantity(): ?int
-    {
-        return $this->quantity;
+    public function getQuantityToPick(): ?int {
+        return $this->quantityToPick;
     }
 
-    public function setQuantity(int $quantity): self
-    {
-        $this->quantity = $quantity;
+    public function setQuantityToPick(int $quantityToPick): self {
+        $this->quantityToPick = $quantityToPick;
 
         return $this;
     }

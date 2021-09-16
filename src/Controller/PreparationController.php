@@ -179,7 +179,7 @@ class PreparationController extends AbstractController
                 $isRefByArt = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE;
                 if ($referenceLine->getPickedQuantity() > 0 ||
                     ($preparationStatut !== Preparation::STATUT_PREPARE && $preparationStatut !== Preparation::STATUT_INCOMPLETE)) {
-                    $qttForCurrentLine = $referenceLine->getQuantity() ?? null;
+                    $qttForCurrentLine = $referenceLine->getQuantityToPick() ?? null;
                     $rows[] = [
                         "Référence" => $articleRef ? $articleRef->getReference() : ' ',
                         "Libellé" => $articleRef ? $articleRef->getLibelle() : ' ',
@@ -338,7 +338,7 @@ class PreparationController extends AbstractController
                 'referenceId' => $refArticle->getId(),
                 'articles' => $articles,
                 'pickedQuantities' => $pickedQuantitiesByArticle,
-                'quantite' => $ligneArticle->getQuantity(),
+                'quantite' => $ligneArticle->getQuantityToPick(),
                 'preparation' => $preparation,
                 'demande' => $preparation->getDemande(),
                 'managementType' => $refArticle->getStockManagement()
@@ -387,7 +387,7 @@ class PreparationController extends AbstractController
                 /** @var PreparationOrderReferenceLine $ligneArticle */
                 $ligneArticle = $ligneArticlePreparationRepository->findOneByRefArticleAndDemande($refArticle, $preparation);
 
-                if ($pickedQuantities > $ligneArticle->getQuantity()) {
+                if ($pickedQuantities > $ligneArticle->getQuantityToPick()) {
                     return $this->json([
                         'success' => false,
                         'msg' => 'Vous avez trop sélectionné d\'article.'
@@ -446,7 +446,7 @@ class PreparationController extends AbstractController
                 $ligneRef = $ligneArticlePreparationRepository->findOneByRefArticleAndDemande($ligneArticle->getArticleFournisseur()->getReferenceArticle(), $ligneArticle->getPreparation());
 
                 if (isset($ligneRef)) {
-                    $ligneRef->setQuantity($ligneRef->getQuantity() + ($ligneArticle->getPickedQuantity() - intval($data['quantite'])));
+                    $ligneRef->setQuantityToPick($ligneRef->getQuantityToPick() + ($ligneArticle->getPickedQuantity() - intval($data['quantite'])));
                 }
             }
             // protection contre quantités négatives
@@ -486,7 +486,7 @@ class PreparationController extends AbstractController
                     'quantity' => $quantity,
                     'max' => $data['ref']
                         ? $quantity
-                        : ($line instanceof PreparationOrderArticleLine ? $line->getQuantity() : null)
+                        : ($line instanceof PreparationOrderArticleLine ? $line->getQuantityToPick() : null)
                 ]
             );
 

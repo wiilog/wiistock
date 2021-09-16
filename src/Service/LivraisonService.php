@@ -126,7 +126,7 @@ class LivraisonService
                         $referenceArticle->getReference() ?? '',
                         $referenceArticle->getLibelle() ?? '',
                         $demande->getDestination() ? $demande->getDestination()->getLabel() : '',
-                        $referenceLine->getQuantity() ?? 0,
+                        $referenceLine->getQuantityToPick() ?? 0,
                         $referenceArticle->getQuantiteStock() ?? 0,
                         $referenceArticle->getBarCode(),
                     ]);
@@ -146,7 +146,7 @@ class LivraisonService
                         $reference,
                         $article->getLabel() ?? '',
                         $demande->getDestination() ? $demande->getDestination()->getLabel() : '',
-                        $articleLine->getQuantity() ?? 0,
+                        $articleLine->getQuantityToPick() ?? 0,
                         $article->getQuantite() ?? 0,
                         $article->getBarCode(),
                     ]);

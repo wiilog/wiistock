@@ -525,32 +525,27 @@ class ArticleRepository extends EntityRepository {
         return $query->getSingleScalarResult();
     }
 
-    public function getByPreparationsIds($preparationsIds)
+    public function getByPreparationsIds($preparationsIds): array
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT a.reference,
-                         e.label as location,
-                         a.label,
-                         (CASE
-                            WHEN a.quantiteAPrelever IS NULL THEN a.quantite
-                            ELSE a.quantiteAPrelever
-                         END) as quantity,
-                         0 as is_ref,
-                         p.id as id_prepa,
-                         a.barCode,
-                         ra.reference as reference_article_reference
-			FROM App\Entity\Article a
-			LEFT JOIN a.emplacement e
-			JOIN a.preparation p
-			JOIN p.statut s
-			JOIN a.articleFournisseur af
-			JOIN af.referenceArticle ra
-			WHERE p.id IN (:preparationsIds)
-			  AND a.quantite > 0"
-        )->setParameter('preparationsIds', $preparationsIds, Connection::PARAM_STR_ARRAY);
-
-		return $query->execute();
+        return $this->createQueryBuilder('article')
+            ->select('article.reference AS reference')
+            ->addSelect('join_location.label AS location')
+            ->addSelect('article.label AS label')
+            ->addSelect('join_preparationLine.quantityToPick AS quantity')
+            ->addSelect('0 AS is_ref')
+            ->addSelect('join_preparation.id AS id_prepa')
+            ->addSelect('article.barCode AS barCode')
+            ->addSelect('join_referenceArticle.reference AS reference_article_reference')
+            ->leftJoin('article.emplacement', 'join_location')
+            ->join('article.preparationOrderLines', 'join_preparationLine')
+            ->join('join_preparationLine.preparation', 'join_preparation')
+            ->join('article.articleFournisseur', 'join_supplierArticle')
+            ->join('join_supplierArticle.referenceArticle', 'join_referenceArticle')
+            ->andWhere('join_preparation.id IN (:preparationIds)')
+            ->andWhere('article.quantite > 0')
+            ->setParameter('preparationsIds', $preparationsIds, Connection::PARAM_STR_ARRAY)
+            ->getQuery()
+            ->getResult();
 	}
 
     public function getArticlePrepaForPickingByUser($user, array $preparationIdsFilter = []) {
@@ -605,7 +600,7 @@ class ArticleRepository extends EntityRepository {
             ->select('article.reference AS reference')
             ->addSelect('join_location.label AS location')
             ->addSelect('article.label AS label')
-            ->addSelect('join_preparationOrderLines.quantity AS quantity')
+            ->addSelect('join_preparationOrderLines.quantityToPick AS quantity')
             ->addSelect('0 as is_ref')
             ->addSelect('join_delivery.id AS id_livraison')
             ->addSelect('article.barCode AS barCode')
