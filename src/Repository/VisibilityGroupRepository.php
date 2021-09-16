@@ -24,14 +24,6 @@ class VisibilityGroupRepository extends EntityRepository {
             ->andWhere('visibility_group.active = true')
             ->setParameter("term", "%$term%");
 
-        $visibilityGroup = $user->getVisibilityGroups();
-        if (!$visibilityGroup->isEmpty()) {
-            $qb
-                ->andWhere('visibility_group.id IN (:userVisibilityGroups)')
-                ->setParameter('userVisibilityGroups', Stream::from(
-                    $visibilityGroup->toArray()
-                )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
-        }
         return $qb
             ->getQuery()
             ->getArrayResult();
