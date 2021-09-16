@@ -1160,7 +1160,7 @@ class ReferenceArticle extends FreeFieldEntity
         return $this->visibilityGroup;
     }
 
-    public function setVisibilityGroup(VisibilityGroup $visibilityGroup): self {
+    public function setVisibilityGroup(?VisibilityGroup $visibilityGroup): self {
         if($this->visibilityGroup && $this->visibilityGroup !== $visibilityGroup) {
             $this->visibilityGroup->removeArticleReference($this);
         }

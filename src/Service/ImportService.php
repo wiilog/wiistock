@@ -1309,7 +1309,9 @@ class ImportService
             $visibilityGroups = Stream::explode([";", ","], $data["visibilityGroup"])
                 ->unique()
                 ->map("trim")
-                ->map(fn($id) => $visibilityGroupRepository->find($id))
+                ->map(function($label) use ($visibilityGroupRepository) {
+                    return $visibilityGroupRepository->findOneBy(['label' => ltrim($label)]);
+                })
                 ->toArray();
             foreach($visibilityGroups as $visibilityGroup) {
                 $user->addVisibilityGroup($visibilityGroup);
