@@ -565,7 +565,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
         'Alertes de stock' => [
             'hint' => 'Nombre d\'alertes de péremption, seuil de sécurité et alerte en cours',
             'category' => Dashboard\ComponentType::CATEGORY_STOCK,
-            'template' => Dashboard\ComponentType::GENERIC_TEMPLATE,
+            'template' => Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS,
             'meterKey' => Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS,
             'exampleValues' => [
                 'count' => 11,

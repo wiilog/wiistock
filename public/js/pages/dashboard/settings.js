@@ -1013,6 +1013,7 @@ function initSecondStep(html, component) {
 
     $modalComponentTypeSecondStep.find(`.select2`).select2();
     Select2Old.location($modalComponentTypeSecondStep.find('.ajax-autocomplete-location'));
+    Select2Old.user($modalComponentTypeSecondStep.find('.ajax-autocomplete-user'));
     Select2Old.carrier($modalComponentTypeSecondStep.find('.ajax-autocomplete-carrier'));
 
     const $submitButton = $modalComponentTypeSecondStep.find('button[type="submit"]');

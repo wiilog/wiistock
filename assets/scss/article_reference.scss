@@ -1,3 +1,4 @@
+$responsive-breakpoint: 1200px;
 $color: #3353D7;
 $grey: #CBCBCB;
 
@@ -5,10 +6,13 @@ body {
     background-color: #F5F7F7;
 
     .header-container {
-        height: 150px;
         border-bottom-left-radius: 15px;
         border-bottom-right-radius: 15px;
     }
+}
+
+.select2-container {
+    width: 100% !important;
 }
 
 .ra-container {
@@ -92,7 +96,7 @@ body {
             &:not(:checked) {
                 color: $color;
 
-                &:not(:disabled):hover {
+                &:not(:disabled):hover, &:not(:disabled):focus {
                     color: white;
                     background-color: $color;
                 }
@@ -105,6 +109,13 @@ body {
     width: 1200px;
     margin-top: 30px;
     margin-bottom: 30px;
+}
+
+
+@media (max-width: $responsive-breakpoint) {
+    .ra-column {
+        width: calc(100% - 20px);
+    }
 }
 
 .ra-box {
@@ -276,7 +287,7 @@ body {
     border-radius: 5px;
     color: #FFFFFF;
 
-    &:hover {
+    &:hover, &:focus {
         color: white !important;
         background-color: rgba(47, 194, 171, 0.8);
     }

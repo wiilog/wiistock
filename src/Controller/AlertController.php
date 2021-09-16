@@ -46,11 +46,27 @@ class AlertController extends AbstractController
      * @Route("/liste", name="alerte_index", methods="GET|POST", options={"expose"=true})
      * @HasPermission({Menu::STOCK, Action::DISPLAY_ALER})
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $query = $request->query;
+
+        $referenceTypes = $query->has('referenceTypes') ? $query->get('referenceTypes', '') : '';
+        $managers = $query->has('managers') ? $query->get('managers', '') : '';
         $typeRepository = $this->getDoctrine()->getRepository(Type::class);
+        $utilisateurRepository = $this->getDoctrine()->getRepository(Utilisateur::class);
+        if (!empty($managers)) {
+            $managersIds = explode(',', $managers);
+            $managersFilter = !empty($managersIds)
+                ? $utilisateurRepository->findBy(['id' => $managersIds])
+                : [];
+        } else {
+            $managersFilter = [];
+        }
         return $this->render('alerte_reference/index.html.twig', [
             "types" => $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]),
+            "referenceTypes" => $referenceTypes,
+            "managers" => $managers,
+            "managersFilter" => $managersFilter,
             "alerts" => [
                 "security" => "Seuil de sécurité",
                 "alert" => "Seuil d'alerte",
