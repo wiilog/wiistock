@@ -36,9 +36,9 @@
 }
 
 .isWrong {
-    border: 3px dashed $red;
+    background: $red;
 }
 
 .isRight {
-    border: 3px dashed $green;
+    background: $green;
 }
