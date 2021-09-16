@@ -515,9 +515,8 @@ class RefArticleDataService {
                 ]
             ];
         } else {
-            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DEM_LIVRAISON, $this->user);
+            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ALERTE, $this->user);
         }
-
         $results = $alertRepository->getAlertDataByParams($params, $filters, $user);
         $alerts = $results['data'];
 
