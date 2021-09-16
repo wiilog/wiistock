@@ -17,7 +17,7 @@ use WiiCommon\Helper\Stream;
  */
 class VisibilityGroupRepository extends EntityRepository {
 
-    public function getForSelect(?string $term, Utilisateur $user) {
+    public function getForSelect(?string $term) {
         $qb = $this->createQueryBuilder("visibility_group")
             ->select("visibility_group.id AS id, visibility_group.label AS text")
             ->andWhere("visibility_group.label LIKE :term")
