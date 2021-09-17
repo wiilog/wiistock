@@ -111,10 +111,9 @@
                                 <select name="type"
                                         data-s2 data-placeholder="Choisissez un type"
                                         class="form-control data d-block type needed"
-                                        onchange="typeChoice($(this), $(this).closest('.ra-form').find('.free-fields-container')); toggleRequiredChampsLibres($(this),'create', $(this).closest('.ra-form').find('.free-fields-container'))"
+                                        onchange="typeChoice($(this), $(this).closest('.ra-form').find('.free-fields-container')); toggleRequiredChampsLibres($(this),'create', $(this).closest('.ra-form').find('.free-fields-container'))">
                                     {% for type in types %}
-                                        <option value="{{ type.id }}"
-                                                {% if reference.type and reference.type.id == type.id %}selected{% endif %}>
+                                        <option value="{{ type.id }}">
                                             {{ type.label }}
                                         </option>
                                     {% endfor %}
@@ -311,8 +310,11 @@
                                     {% else %}
                                         <div class="increase-decrease-field">
                                             <button class="decrease"></button>
-                                            <input type="number" id="quantite" name="quantite" class="form-control data needed"
-                                                   value="0" min="0">
+                                            <input type="number"
+                                                   id="quantite"
+                                                   name="quantite"
+                                                   class="form-control data needed"
+                                                   min="0">
                                             <button class="increase"></button>
                                         </div>
                                     {% endif %}
