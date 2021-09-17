@@ -41,7 +41,7 @@
 
 {% set editable = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
 {% set disabled = editable ? '' : 'disabled' %}
-
+{% set isReferenceManagementQuantity = reference.id and reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_REFERENCE') %}
 <div class="d-flex justify-content-center align-items-center" style="margin-bottom: 50px;">
     <div class="row ra-form ra-column">
         <div class="col-12 col-md-6">
@@ -226,7 +226,6 @@
                 <div class="header">Gestion quantité</div>
                 <div class="content">
                     {% if reference.id %}
-                        {% set isReferenceManagementQuantity = reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_REFERENCE') %}
                         <div class="row no-gutters">
                             <div class="col-auto">
                                 <img src="{{ asset('svg/reference_article/' ~ (isReferenceManagementQuantity ? 'pack.svg' : 'article.svg')) }}"
@@ -238,6 +237,13 @@
                                 </span>
                             </div>
                         </div>
+                        <input type="radio" name="type_quantite"
+                               class="type_quantite"
+                               hidden
+                               value="{{ isReferenceManagementQuantity ? "reference" : "article" }}"
+                               content="{{ isReferenceManagementQuantity ? "Référence" : "Article"}}"
+                               data-title="{{ isReferenceManagementQuantity ? "reference" : "article" }}"
+                               onclick="toggleRequiredChampsFixes($(this), '.ra-form'); updateQuantityDisplay($(this), '.ra-form', true)" checked>
                     {% else %}
                         <label class="ra-field-name">
                             Gestion quantité*
