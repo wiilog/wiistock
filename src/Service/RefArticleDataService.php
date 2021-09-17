@@ -32,6 +32,7 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use RuntimeException;
+use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -64,7 +65,7 @@ class RefArticleDataService {
         ["title" => "Gestionnaire(s)", "name" => "managers", "orderable" => false, "type" => "text"],
         ["title" => "Commentaire", "name" => "comment", "type" => "text", "orderable" => false],
         ["title" => "Commentaire d'urgence", "name" => "emergencyComment", "type" => "text", "orderable" => false],
-        ["title" => FiltreRef::FIXED_FIELD_VISIBILITY_GROUP, "name" => "visibilityGroups", "type" => "list", "orderable" => true],
+        ["title" => FiltreRef::FIXED_FIELD_VISIBILITY_GROUP, "name" => "visibilityGroups", "type" => "list multiple", "orderable" => true],
     ];
 
     private $filtreRefRepository;
@@ -233,25 +234,36 @@ class RefArticleDataService {
         $category = $inventoryCategoryRepository->find($data['categorie']);
         $price = max(0, $data['prix']);
         if(isset($data['reference'])) $refArticle->setReference($data['reference']);
+
+        if (isset($data['suppliers-to-remove']) && $data['suppliers-to-remove'] !== "") {
+            $suppliers = $this->entityManager->getRepository(ArticleFournisseur::class)->findBy(['id' => explode(',', $data['suppliers-to-remove'])]);
+            foreach ($suppliers as $supplier) {
+                $refArticle->removeArticleFournisseur($supplier);
+            }
+        }
+
         if(isset($data['frl'])) {
             $supplierReferenceLines = json_decode($data['frl'], true);
             foreach($supplierReferenceLines as $supplierReferenceLine) {
                 $referenceArticleFournisseur = $supplierReferenceLine['referenceFournisseur'];
+                $existingSupplierArticle = $entityManager->getRepository(ArticleFournisseur::class)->findOneBy(['reference' => $referenceArticleFournisseur]);
 
-                try {
-                    $supplierArticle = $this->articleFournisseurService->createArticleFournisseur([
-                        'fournisseur' => $supplierReferenceLine['fournisseur'],
-                        'article-reference' => $refArticle,
-                        'label' => $supplierReferenceLine['labelFournisseur'],
-                        'reference' => $referenceArticleFournisseur
-                    ]);
+                if(!isset($existingSupplierArticle)) {
+                    try {
+                        $supplierArticle = $this->articleFournisseurService->createArticleFournisseur([
+                            'fournisseur' => $supplierReferenceLine['fournisseur'],
+                            'article-reference' => $refArticle,
+                            'label' => $supplierReferenceLine['labelFournisseur'],
+                            'reference' => $referenceArticleFournisseur
+                        ]);
 
-                    $entityManager->persist($supplierArticle);
-                } catch(Exception $exception) {
-                    if($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
-                        $response['success'] = false;
-                        $response['msg'] = "La référence '$referenceArticleFournisseur' existe déjà pour un article fournisseur.";
-                        return $response;
+                        $entityManager->persist($supplierArticle);
+                    } catch (Exception $exception) {
+                        if ($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
+                            $response['success'] = false;
+                            $response['msg'] = "La référence '$referenceArticleFournisseur' existe déjà pour un article fournisseur.";
+                            return $response;
+                        }
                     }
                 }
             }
@@ -318,7 +330,7 @@ class RefArticleDataService {
             }
         }
         $entityManager->flush();
-        if (isset($data["visibility-group"])) {
+        if (isset($data["visibility-group"]) && $data["visibility-group"] !== 'null') {
             $refArticle->setVisibilityGroup($data['visibility-group'] ? $visibilityGroupRepository->find(intval($data['visibility-group'])) : null);
         }
 
@@ -495,13 +507,25 @@ class RefArticleDataService {
         return ReferenceArticle::BARCODE_PREFIX . $dateCode . $counter;
     }
 
-    public function getAlerteDataByParams($params, Utilisateur $user) {
+    public function getAlerteDataByParams(InputBag $params, Utilisateur $user) {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $alertRepository = $this->entityManager->getRepository(Alert::class);
-
-        $filtresAlerte = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ALERTE, $user);
-
-        $results = $alertRepository->getAlertDataByParams($params, $filtresAlerte, $user);
+        if ($params->has('managers') && !empty($params->get('managers')) ||
+            $params->has('referenceTypes') && !empty($params->get('referenceTypes'))) {
+            $filters = [
+                [
+                    'field' => 'multipleTypes',
+                    'value' => $params->get('referenceTypes')
+                ],
+                [
+                    'field' => 'utilisateurs',
+                    'value' => $params->get('managers')
+                ]
+            ];
+        } else {
+            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ALERTE, $this->user);
+        }
+        $results = $alertRepository->getAlertDataByParams($params, $filters, $user);
         $alerts = $results['data'];
 
         $rows = [];
@@ -713,7 +737,6 @@ class RefArticleDataService {
                 array_splice($fields, $visibilityGroupsIndex, 1);
             }
         }
-
         return $this->visibleColumnService->getArrayConfig($fields, $freeFields, $currentUser->getColumnVisible());
     }
 

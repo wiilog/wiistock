@@ -17,21 +17,13 @@ use WiiCommon\Helper\Stream;
  */
 class VisibilityGroupRepository extends EntityRepository {
 
-    public function getForSelect(?string $term, Utilisateur $user) {
+    public function getForSelect(?string $term) {
         $qb = $this->createQueryBuilder("visibility_group")
             ->select("visibility_group.id AS id, visibility_group.label AS text")
             ->andWhere("visibility_group.label LIKE :term")
             ->andWhere('visibility_group.active = true')
             ->setParameter("term", "%$term%");
 
-        $visibilityGroup = $user->getVisibilityGroups();
-        if (!$visibilityGroup->isEmpty()) {
-            $qb
-                ->andWhere('visibility_group.id IN (:userVisibilityGroups)')
-                ->setParameter('userVisibilityGroups', Stream::from(
-                    $visibilityGroup->toArray()
-                )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
-        }
         return $qb
             ->getQuery()
             ->getArrayResult();

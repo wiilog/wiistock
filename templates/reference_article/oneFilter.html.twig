@@ -7,6 +7,8 @@
                 {% set value = 'oui' %}
             {% elseif (filter.value == '') %}
                 {% set value = 'non' %}
+            {% elseif (filter.value == '') %}
+                {% set value = 'non' %}
             {% else %}
                 {% set value = filter.value %}
             {% endif %}

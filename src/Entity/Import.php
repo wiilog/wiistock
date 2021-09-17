@@ -82,7 +82,7 @@ class Import
 
 	const FIELDS_ENTITY = [
         'storageLocation' => 'Emplacement de stockage',
-        'visibilityGroups' => 'Groupes de visibilités',
+        'visibilityGroups' => 'Groupes de visibilité',
         'reference' => 'référence',
         'barCode' => 'code barre',
         'quantite' => 'quantité',
@@ -131,7 +131,7 @@ class Import
         'dispatchTypes' => 'Types d\'acheminement',
         'handlingTypes' => 'Types de services',
         'dropzone' => 'Dropzone',
-        'visibilityGroup' => 'Groupe de visibilité',
+        'visibilityGroup' => 'Groupes de visibilité',
         'status' => 'Statut',
 	];
 

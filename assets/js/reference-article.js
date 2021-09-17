@@ -13,11 +13,21 @@ $(document).ready(() => {
         $(this).closest(`.ligneFournisseurArticle`).remove();
     });
 
+    $(`#touch`).change(function() {
+        $(this).closest(`.ra-dropdown`).find(`.dropdown-wrapper`).toggleClass(`open`)
+    })
+
     $(`.save`).click(function() {
-        const $button = $(this);
-        processSubmitAction($(`.ra-form`), $button, $button.data(`submit`), {
-            onSuccess: () => window.location.href = Routing.generate('reference_article_index')
-        });
+        if($('.supplier-container').length === 0 && $('.ligneFournisseurArticle').length === 0) {
+            showBSAlert('Un fournisseur minimum est obligatoire pour continuer', 'warning');
+        } else {
+            const $button = $(this);
+            const $form = $(`.ra-form`);
+            clearFormErrors($form);
+            processSubmitAction($(`.ra-form`), $button, $button.data(`submit`), {
+                onSuccess: () => window.location.href = Routing.generate('reference_article_index')
+            });
+        }
     });
 
     $('.edit-image').click(() => $('#upload-article-reference-image').click());
@@ -43,6 +53,17 @@ $(document).ready(() => {
         }
     });
 
+    $('.delete-button-container').click(function() {
+        const supplierArticleId = $(this).data('id');
+        const $suppliersToRemove = $('#suppliers-to-remove');
+        if($suppliersToRemove.val() === '') {
+            $suppliersToRemove.val(supplierArticleId);
+        } else {
+            $suppliersToRemove.val($suppliersToRemove.val() + ',' + supplierArticleId);
+        }
+        $(this).closest('.supplier-container').remove();
+    });
+
     $(document).on(`click`, `.increase-decrease-field .increase, .increase-decrease-field .decrease` , function(){
         updateInputValue($(this));
     });
@@ -61,13 +82,16 @@ function updateArticleReferenceImage($div, $image) {
 
 function updateInputValue($button) {
     const $input = $button.siblings('input').first();
-    const value = parseInt($input.val());
+    const value = parseInt($input.val()) || 0;
     if($button.hasClass('increase')){
         $input.val(value+1);
         $input.removeClass('is-invalid');
-    } else if($button.hasClass('decrease') && value !== 1) {
+    } else if($button.hasClass('decrease') && value >= 1) {
         $input.val(value-1);
         $input.removeClass('is-invalid');
+    }
+    else {
+        $input.val(0)
     }
 
     $input.trigger(`change`);

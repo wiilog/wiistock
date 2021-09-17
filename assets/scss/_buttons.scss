@@ -63,15 +63,15 @@ button:focus {
     box-shadow: 0.5px 0.5px 3px black;
 
     &:hover {
-        background-color: $blueGT;
+        background-color: $blueButton;
         color: $white !important;
-        border-color: $blueGT;
+        border-color: $blueButton;
     }
 
     &:focus {
-        background-color: $blueGT;
+        background-color: $blueButton;
         color: $white !important;
-        border-color: $blueGT;
+        border-color: $blueButton;
         box-shadow: 0.5px 0.5px 3px black;
     }
 }

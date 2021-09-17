@@ -202,9 +202,9 @@ class UserService
             $user->getAddress() ?? '',
             FormatHelper::datetime($user->getLastLogin()),
             $user->getMobileLoginKey() ?? '',
-            FormatHelper::entity($user->getDeliveryTypes()->toArray(), 'label', ' / '),
-            FormatHelper::entity($user->getDispatchTypes()->toArray(), 'label', ' / '),
-            FormatHelper::entity($user->getHandlingTypes()->toArray(), 'label', ' / '),
+            FormatHelper::entity($user->getDeliveryTypes()->toArray(), 'label', ' , '),
+            FormatHelper::entity($user->getDispatchTypes()->toArray(), 'label', ' , '),
+            FormatHelper::entity($user->getHandlingTypes()->toArray(), 'label', ' , '),
             FormatHelper::location($user->getDropzone()),
             FormatHelper::entity($user->getVisibilityGroups()->toArray(), "label", ' / '),
             $user->getStatus() ? 'Actif' : 'Inactif'
