@@ -32,8 +32,8 @@ let tableArticleConfig = {
         {"data": 'Libellé', 'title': 'Libellé'},
         {"data": 'Emplacement', 'title': 'Emplacement'},
         {"data": 'Quantité', 'title': 'Quantité en stock'},
-        {"data": 'Quantité à prélever', 'title': 'Quantité à prélever'},
-        {"data": 'Quantité prélevée', 'name': 'pickedQuantity', 'title': 'Quantité prélevée'},
+        {"data": 'quantityToPick', 'title': 'Quantité à prélever'},
+        {"data": 'pickedQuantity', 'title': 'Quantité prélevée'},
     ],
     rowConfig: {
         needsRowClickAction: true,

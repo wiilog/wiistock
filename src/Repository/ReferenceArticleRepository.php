@@ -665,28 +665,23 @@ class ReferenceArticleRepository extends EntityRepository {
         return $qb->getQuery()->getSingleScalarResult();
     }
 
-    public function getByPreparationsIds($preparationsIds)
+    public function getByPreparationsIds($preparationsIds): array
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT
-                    ra.reference,
-                    ra.typeQuantite as type_quantite,
-                    e.label as location,
-                    ra.libelle as label,
-                    la.quantite as quantity,
-                    1 as is_ref,
-                    ra.barCode,
-                    p.id as id_prepa
-			FROM App\Entity\ReferenceArticle ra
-			LEFT JOIN ra.emplacement e
-			JOIN ra.ligneArticlePreparations la
-			JOIN la.preparation p
-			JOIN p.statut s
-			WHERE p.id IN (:preparationsIds)"
-        )->setParameter('preparationsIds', $preparationsIds, Connection::PARAM_STR_ARRAY);
-
-        return $query->execute();
+        return $this->createQueryBuilder('reference_article')
+            ->select('reference_article.reference AS reference')
+            ->addSelect('reference_article.typeQuantite AS type_quantite')
+            ->addSelect('join_location.label AS location')
+            ->addSelect('join_preparationLine.quantityToPick AS quantity')
+            ->addSelect('1 as is_ref')
+            ->addSelect('reference_article.barCode AS barCode')
+            ->addSelect('join_preparation.id AS id_prepa')
+            ->leftJoin('reference_article.emplacement', 'join_location')
+            ->join('reference_article.preparationOrderReferenceLines', 'join_preparationLine')
+            ->join('join_preparationLine.preparation', 'join_preparation')
+            ->andWhere('join_preparation.id IN (:preparationsIds)')
+            ->setParameter('preparationsIds', $preparationsIds, Connection::PARAM_STR_ARRAY)
+            ->getQuery()
+            ->execute();
     }
 
     public function getByLivraisonsIds($livraisonsIds)
@@ -931,7 +926,7 @@ class ReferenceArticleRepository extends EntityRepository {
     {
         if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $referenceReservedQuantity = $this->createQueryBuilder('referenceArticle')
-                ->select('SUM(preparationLine.quantity)')
+                ->select('SUM(preparationLine.quantityToPick)')
                 ->join('referenceArticle.preparationOrderReferenceLines', 'preparationLine')
                 ->join('preparationLine.preparation', 'preparation')
                 ->join('preparation.statut', 'preparationStatus')
@@ -945,7 +940,7 @@ class ReferenceArticleRepository extends EntityRepository {
                 ->getQuery()
                 ->getSingleScalarResult();
             $articleReservedQuantity = $this->createQueryBuilder('referenceArticle')
-                ->select('SUM(preparationOrderLine.quantity)')
+                ->select('SUM(preparationOrderLine.quantityToPick)')
                 ->join('referenceArticle.articlesFournisseur', 'supplierArticles')
                 ->join('supplierArticles.articles', 'article')
                 ->join('article.statut', 'articleStatus')

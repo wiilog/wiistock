@@ -262,6 +262,10 @@ function initDataTable($table, options) {
             tooltips.push({id, text: column.tooltip});
         }
 
+        if(!column.name) {
+            column.name = column.data;
+        }
+
         if(config.order && Array.isArray(config.order)) {
             const newOrder = [];
             for(let [name, order] of config.order) {

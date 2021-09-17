@@ -183,7 +183,7 @@ function initPageDatatable() {
             {"data": 'barcode', 'title': 'Code barre'},
             {"data": 'Libellé', 'title': 'Libellé'},
             {"data": 'Emplacement', 'title': 'Emplacement'},
-            {"data": 'Quantité à prélever', 'title': 'Quantité à prélever'},
+            {"data": 'quantityToPick', 'title': 'Quantité à prélever'},
             {"data": 'error', 'title': 'Erreur', visible: false},
         ],
         rowConfig: {

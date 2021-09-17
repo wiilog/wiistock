@@ -339,7 +339,7 @@ class DemandeController extends AbstractController
                 "Référence" => ($line->getReference()->getReference() ? $line->getReference()->getReference() : ''),
                 "Libellé" => ($line->getReference()->getLibelle() ? $line->getReference()->getLibelle() : ''),
                 "Emplacement" => ($line->getReference()->getEmplacement() ? $line->getReference()->getEmplacement()->getLabel() : ' '),
-                "Quantité à prélever" => $line->getQuantityToPick() ?? '',
+                "quantityToPick" => $line->getQuantityToPick() ?? '',
                 "barcode" => $line->getReference() ? $line->getReference()->getBarCode() : '',
                 "error" => $line->getReference()->getQuantiteDisponible() < $line->getQuantityToPick()
                     && $demande->getStatut()->getCode() === Demande::STATUT_BROUILLON,
@@ -363,7 +363,7 @@ class DemandeController extends AbstractController
                 "Référence" => ($article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
                 "Libellé" => ($article->getLabel() ?: ''),
                 "Emplacement" => ($article->getEmplacement() ? $article->getEmplacement()->getLabel() : ' '),
-                "Quantité à prélever" => $line->getQuantityToPick() ?: '',
+                "quantityToPick" => $line->getQuantityToPick() ?: '',
                 "barcode" => $article->getBarCode() ?? '',
                 "error" => $article->getQuantite() < $line->getQuantityToPick(),
                 "Actions" => $this->renderView(
@@ -479,7 +479,7 @@ class DemandeController extends AbstractController
 
             $maximumQuantity = $articleRef->getQuantiteStock();
             $json = $this->renderView('demande/modalEditArticleContent.html.twig', [
-                'ligneArticle' => $referenceLine,
+                'line' => $referenceLine,
                 'maximum' => $maximumQuantity
             ]);
 

@@ -47,11 +47,11 @@
                 </td>
                 <td class="td"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ line.quantite }}
+                    {{ line.quantityToPick }}
                 </td>
             </tr>
         {% endfor %}
-        {% for article in request.articles %}
+        {% for article in request.articleLines %}
             <tr>
                 <td class="td"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
@@ -63,7 +63,7 @@
                 </td>
                 <td class="td"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ article.quantite }}
+                    {{ article.quantityToPick }}
                 </td>
             </tr>
         {% endfor %}

@@ -179,14 +179,13 @@ class PreparationController extends AbstractController
                 $isRefByArt = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE;
                 if ($referenceLine->getPickedQuantity() > 0 ||
                     ($preparationStatut !== Preparation::STATUT_PREPARE && $preparationStatut !== Preparation::STATUT_INCOMPLETE)) {
-                    $qttForCurrentLine = $referenceLine->getQuantityToPick() ?? null;
                     $rows[] = [
-                        "Référence" => $articleRef ? $articleRef->getReference() : ' ',
-                        "Libellé" => $articleRef ? $articleRef->getLibelle() : ' ',
-                        "Emplacement" => $articleRef ? ($articleRef->getEmplacement() ? $articleRef->getEmplacement()->getLabel() : '') : '',
+                        "Référence" => $articleRef->getReference(),
+                        "Libellé" => $articleRef->getLibelle(),
+                        "Emplacement" => FormatHelper::location($articleRef->getEmplacement()),
                         "Quantité" => $articleRef->getQuantiteStock(),
-                        "Quantité à prélever" => $qttForCurrentLine,
-                        "Quantité prélevée" => $referenceLine->getPickedQuantity() ?: ' ',
+                        "quantityToPick" => $referenceLine->getQuantityToPick() ?: ' ',
+                        "pickedQuantity" => $referenceLine->getPickedQuantity() ?: ' ',
                         'active' => !empty($referenceLine->getPickedQuantity()),
                         "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
                             'barcode' => $articleRef->getBarCode(),
@@ -209,8 +208,9 @@ class PreparationController extends AbstractController
                     $rows[] = [
                         "Référence" => ($article->getArticleFournisseur() && $article->getArticleFournisseur()->getReferenceArticle()) ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
                         "Libellé" => $article->getLabel() ?? '',
-                        "Emplacement" => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
+                        "Emplacement" => FormatHelper::location($article->getEmplacement()),
                         "Quantité" => $article->getQuantite() ?? '',
+                        "quantityToPick" => $articleLine->getQuantityToPick() ?? ' ',
                         "pickedQuantity" => $articleLine->getPickedQuantity() ?? ' ',
                         'active' => !empty( $articleLine->getPickedQuantity()),
                         "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
@@ -239,8 +239,7 @@ class PreparationController extends AbstractController
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_PREPA})
      */
     public function show(Preparation $preparation,
-                         EntityManagerInterface $entityManager): Response
-    {
+                         EntityManagerInterface $entityManager): Response {
         $sensorWrappers = $entityManager->getRepository(SensorWrapper::class)->findWithNoActiveAssociation();
         $sensorWrappers = Stream::from($sensorWrappers)
             ->filter(function(SensorWrapper $wrapper) {
@@ -476,7 +475,7 @@ class PreparationController extends AbstractController
 
             /** @var PreparationOrderReferenceLine|PreparationOrderArticleLine $line */
             $line = $repository->find($data['id']);
-            $quantity = $line->getPickedQuantity();
+            $quantity = $line->getQuantityToPick();
 
             $json = $this->renderView(
                 'preparation/modalEditLigneArticleContent.html.twig',
