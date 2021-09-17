@@ -92,11 +92,11 @@
                             <select name="type"
                                     data-s2 data-placeholder="Choisissez un type"
                                 {% if not reference.id %}
-                                class="form-control data d-block type needed"
-                                onchange="typeChoice($(this), $(this).closest('.ra-form').find('.free-fields-container')); toggleRequiredChampsLibres($(this),'create', $(this).closest('.ra-form').find('.free-fields-container'))"
-                            {% else %}
-                                class="form-control d-block type"
-                                disabled
+                                    class="form-control data d-block type needed"
+                                    onchange="typeChoice($(this), $(this).closest('.ra-form').find('.free-fields-container')); toggleRequiredChampsLibres($(this),'create', $(this).closest('.ra-form').find('.free-fields-container'))"
+                                {% else %}
+                                    class="form-control d-block type"
+                                    disabled
                                 {% endif %}>
                                 {% for type in types %}
                                     <option value="{{ type.id }}"
@@ -458,7 +458,8 @@
                 <button class="btn btn-success ml-2 save data"
                         data-submit="{{ submit_url }}"
                         value="{{ reference.id }}"
-                        name="idRefArticle">Enregistrer
+                        name="idRefArticle">
+                    Enregistrer
                 </button>
             </div>
         </div>
