@@ -13,6 +13,10 @@ $(document).ready(() => {
         $(this).closest(`.ligneFournisseurArticle`).remove();
     });
 
+    $(`#touch`).change(function() {
+        $(this).closest(`.ra-dropdown`).find(`.dropdown-wrapper`).toggleClass(`open`)
+    })
+
     $(`.save`).click(function() {
         if($('.supplier-container').length === 0 && $('.ligneFournisseurArticle').length === 0) {
             showBSAlert('Un fournisseur minimum est obligatoire pour continuer', 'warning');
@@ -78,13 +82,16 @@ function updateArticleReferenceImage($div, $image) {
 
 function updateInputValue($button) {
     const $input = $button.siblings('input').first();
-    const value = parseInt($input.val());
+    const value = parseInt($input.val()) || 0;
     if($button.hasClass('increase')){
         $input.val(value+1);
         $input.removeClass('is-invalid');
     } else if($button.hasClass('decrease') && value >= 1) {
         $input.val(value-1);
         $input.removeClass('is-invalid');
+    }
+    else {
+        $input.val(0)
     }
 
     $input.trigger(`change`);

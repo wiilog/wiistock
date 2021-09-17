@@ -185,7 +185,12 @@ body {
     }
 
     .specifications {
+        font-size: 16px;
         margin: 10px 10px 10px 0;
+
+        .ref {
+            font-size: 20px;
+        }
     }
 }
 
@@ -205,6 +210,10 @@ body {
             content: "+";
             color: $blue;
             font-size: 20px;
+        }
+
+        &.open::after {
+            content: "-";
         }
     }
 
@@ -352,6 +361,10 @@ span.icon {
 
 .comment-container {
     background-color: #E8E8E8;
+
+    img {
+        max-width: 100%;
+    }
 }
 
 .tooltip {
