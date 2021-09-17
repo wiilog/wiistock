@@ -50,7 +50,13 @@
     <div class="row ra-form ra-column">
         <div class="col-12 col-md-6">
             <div class="ra-box">
-                <div class="content d-flex">
+                {% if reference.id %}
+                    <div class="d-flex justify-content-center align-items-center type-container ra-type"
+                         style="background-color: {{ reference.type.color }};">
+                        {{ reference.type.label }}
+                    </div>
+                {% endif %}
+                <div class="content d-flex" style="border: 1px solid {{ reference.id ? reference.type.color }}">
                     <div class="col-5">
                         <div class="image-container"
                              style="background-image: url({{ reference.image
@@ -87,25 +93,22 @@
                             Libellé*
                             <input type="text" name="libelle" class="form-control data needed" placeholder="Libellé" value="{{ reference.libelle }}">
                         </label>
-                        <label class="mt-3 ra-field-name">
-                            Type*
-                            <select name="type"
-                                    data-s2 data-placeholder="Choisissez un type"
-                                {% if not reference.id %}
-                                    class="form-control data d-block type needed"
-                                    onchange="typeChoice($(this), $(this).closest('.ra-form').find('.free-fields-container')); toggleRequiredChampsLibres($(this),'create', $(this).closest('.ra-form').find('.free-fields-container'))"
-                                {% else %}
-                                    class="form-control d-block type"
-                                    disabled
-                                {% endif %}>
-                                {% for type in types %}
-                                    <option value="{{ type.id }}"
-                                            {% if reference.type and reference.type.id == type.id %}selected{% endif %}>
-                                        {{ type.label }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </label>
+                        {% if not reference.id %}
+                            <label class="mt-3 ra-field-name">
+                                Type*
+                                <select name="type"
+                                        data-s2 data-placeholder="Choisissez un type"
+                                        class="form-control data d-block type needed"
+                                        onchange="typeChoice($(this), $(this).closest('.ra-form').find('.free-fields-container')); toggleRequiredChampsLibres($(this),'create', $(this).closest('.ra-form').find('.free-fields-container'))"
+                                    {% for type in types %}
+                                        <option value="{{ type.id }}"
+                                                {% if reference.type and reference.type.id == type.id %}selected{% endif %}>
+                                            {{ type.label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+                        {% endif %}
                         <label class="mt-3 ra-field-name">
                             Statut*
                         </label>
@@ -188,8 +191,11 @@
                         </div>
                         {% if reference.id %}
                             <div class="col-12 col-md-6 mt-3 d-flex flex-column justify-content-around">
-                                <span class="ra-field-name">Date de dernier inventaire</span>
-                                <span class="ra-field-text">{{ lastInventoryDate is defined and lastInventoryDate is not null and lastInventoryDate != '' ? lastInventoryDate : '-' }}</span>
+                                <span class="icon ra-field-name"><img src="{{ asset('svg/reference_article/calendar.svg') }}" class="icon" alt="Image calendrier">
+                                    Date de dernier inventaire</span>
+                                <span class="ra-field-text">
+                                    {{ lastInventoryDate is defined and lastInventoryDate is not null and lastInventoryDate != '' ? lastInventoryDate : '-' }}
+                                </span>
                             </div>
                         {% endif %}
                     </div>
@@ -247,7 +253,7 @@
                                class="type_quantite"
                                hidden
                                value="{{ isReferenceManagementQuantity ? "reference" : "article" }}"
-                               content="{{ isReferenceManagementQuantity ? "Référence" : "Article"}}"
+                               content="{{ isReferenceManagementQuantity ? "Référence" : "Article" }}"
                                data-title="{{ isReferenceManagementQuantity ? "reference" : "article" }}"
                                onclick="toggleRequiredChampsFixes($(this), '.ra-form'); updateQuantityDisplay($(this), '.ra-form', true)" checked>
                     {% else %}

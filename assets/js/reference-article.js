@@ -90,6 +90,9 @@ function updateInputValue($button) {
         $input.val(value-1);
         $input.removeClass('is-invalid');
     }
+    else {
+        $input.val(0)
+    }
 
     $input.trigger(`change`);
 }

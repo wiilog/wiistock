@@ -1,7 +1,7 @@
 @import "variables";
 
 $responsive-breakpoint: 1200px;
-$color: #3353D7;
+$blue: #3353D7;
 $grey: #CBCBCB;
 
 body {
@@ -22,7 +22,7 @@ body {
 }
 
 .btn-primary {
-    background: $color;
+    background: $blue;
 }
 
 .ra-form {
@@ -62,8 +62,8 @@ body {
     }
 
     .increase-decrease-field .increase, .increase-decrease-field .decrease {
-        border-color: $color;
-        color: $color;
+        border-color: $blue;
+        color: $blue;
     }
 
     .wii-switch {
@@ -93,15 +93,15 @@ body {
             }
 
             &:checked {
-                background: $color;
+                background: $blue;
             }
 
             &:not(:checked) {
-                color: $color;
+                color: $blue;
 
                 &:not(:disabled):hover, &:not(:disabled):focus {
                     color: white;
-                    background-color: $color;
+                    background-color: $blue;
                 }
             }
         }
@@ -127,10 +127,14 @@ body {
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
     margin-top: 15px;
 
+    .type-container {
+        height: 20px;
+    }
+
     .header {
         padding: 16px 20px;
         border-bottom: 1px solid $grey;
-        color: $color;
+        color: $blue;
         font-weight: bold;
     }
 
@@ -194,7 +198,7 @@ body {
             float: right;
             right: 10%;
             content: "+";
-            color: #3353D7;
+            color: $blue;
             font-size: 20px;
         }
 
@@ -246,13 +250,13 @@ body {
     margin-top: 5px;
 
     svg {
-        color: $color !important;
+        color: $blue !important;
         font-size: 0.8rem;
     }
 }
 
 .ra-title {
-    color: #3353D7;
+    color: $blue;
     font-size: 18px;
     font-weight: bold;
 }
@@ -310,7 +314,7 @@ span.icon {
 .delete-supplier-article {
     display: block;
     width: 100%;
-    color: $color;
+    color: $blue;
     font-weight: bold;
     text-align: right;
     cursor: pointer;
@@ -321,7 +325,7 @@ span.icon {
     margin-bottom: 5px;
 
     .delete-button-container {
-        border: #3353D7 1px solid;
+        border: $blue 1px solid;
         padding: 15px 5px;
         border-radius: 5px;
     }
@@ -356,12 +360,12 @@ span.icon {
 .tooltip {
 
     .tooltip-inner {
-        background: #3353D7 !important;
+        background: $blue !important;
     }
 
     .arrow:before {
-        border-bottom-color: #3353D7 !important;
-        border-top-color: #3353D7 !important;
+        border-bottom-color: $blue !important;
+        border-top-color: $blue !important;
     }
 }
 
@@ -375,7 +379,7 @@ input[type="checkbox"] {
     width: 20px;
     vertical-align: middle;
     margin: 0 0.4em 0.4em 0;
-    border: 3px solid #007dc6;
+    border: 3px solid $blue;
     border-radius: 4px;
     -webkit-appearance: none;
     -webkit-transition: box-shadow 200ms;
@@ -383,12 +387,12 @@ input[type="checkbox"] {
 }
 
 input[type="checkbox"]:not(:disabled):hover {
-    border-color:#007dc6;
+    border-color:$blue;
 
 }
 
 input[type="checkbox"]:active:not(:disabled) {
-    border-color:#007dc6;
+    border-color:$blue;
 }
 
 input[type="checkbox"]:focus {
@@ -397,8 +401,8 @@ input[type="checkbox"]:focus {
 }
 
 input[type="checkbox"]:checked {
-    border-color:#007dc6;
-    background-color: #007dc6;
+    border-color:$blue;
+    background-color: $blue;
 }
 
 input[type="checkbox"]:checked:before {
