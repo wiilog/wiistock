@@ -99,10 +99,10 @@
     </div>
     <div class="col-4 form-group w-100">
         <label for="visibility-group">Groupe de visibilité</label>
-        <select name="visibility-group" class="form-control data needed" data-s2="visibilityGroup">
-                {% if articleRef.visibilityGroup %}
-                    <option value="{{ articleRef.visibilityGroup.id }}" selected>{{ articleRef.visibilityGroup.label }}</option>
-                {% endif %}
+        <select name="visibility-group" class="form-control data" data-s2="visibilityGroup">
+            {% if articleRef.visibilityGroup %}
+                <option value="{{ articleRef.visibilityGroup.id }}" selected>{{ articleRef.visibilityGroup.label }}</option>
+            {% endif %}
         </select>
     </div>
 </div>
