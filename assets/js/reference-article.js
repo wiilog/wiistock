@@ -13,6 +13,10 @@ $(document).ready(() => {
         $(this).closest(`.ligneFournisseurArticle`).remove();
     });
 
+    $(`#touch`).change(function() {
+        $(this).closest(`.ra-dropdown`).find(`.dropdown-wrapper`).toggleClass(`open`)
+    })
+
     $(`.save`).click(function() {
         if($('.supplier-container').length === 0 && $('.ligneFournisseurArticle').length === 0) {
             showBSAlert('Un fournisseur minimum est obligatoire pour continuer', 'warning');
