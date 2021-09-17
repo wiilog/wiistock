@@ -180,7 +180,12 @@ body {
     }
 
     .specifications {
+        font-size: 16px;
         margin: 10px 10px 10px 0;
+
+        .ref {
+            font-size: 20px;
+        }
     }
 }
 
