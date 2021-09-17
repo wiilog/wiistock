@@ -56,7 +56,7 @@
                         {{ reference.type.label }}
                     </div>
                 {% endif %}
-                <div class="content d-flex" style="border: 1px solid {{ reference.id ? reference.type.color }}">
+                <div class="content d-flex" style="border: {{ reference.id ? '1px solid' ~ reference.type.color }}">
                     <div class="col-5">
                         <div class="image-container"
                              style="background-image: url({{ reference.image
@@ -217,7 +217,7 @@
                                 'button': 'Parcourir vos fichiers',
                                 'attachments': reference.attachments,
                                 'editAttachments': hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')),
-                                'fieldNameClass': 'ra-field-name'
+                                'fieldNameClass': 'ra-field-name',
                             } %}
                         </div>
                     </div>
