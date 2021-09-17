@@ -284,7 +284,7 @@
                                 <label>
                                     <span class="icon ra-field-name">
                                         <img src="{{ asset('svg/reference_article/stock.svg') }}" class="icon" alt="Image quantité">
-                                        Quantité en Stock{{ not reference.id ? '*' }}
+                                        {{ not reference.id ? 'Quantité*' : 'Quantité en stock' }}
                                     </span>
                                     {% if reference.id %}
                                         <span class="ra-field-text">{{ reference.quantiteStock ?? 0 }}</span>
