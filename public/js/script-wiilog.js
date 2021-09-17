@@ -299,6 +299,7 @@ function updateQuantityDisplay($elem, parent = '.modal-body') {
 
         clearCheckboxes($allArticle);
         $allArticle.find('input, select').val('');
+        $reference.find('input[name="quantite"]').val(0);
         $allArticle.find('select.select2-hidden-accessible').select2('val', '');
     } else if (typeQuantite == 'article') {
         $reference.addClass('d-none');
