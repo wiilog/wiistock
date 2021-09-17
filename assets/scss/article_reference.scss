@@ -207,6 +207,10 @@ body {
             color: #3353D7;
             font-size: 20px;
         }
+
+        &.open::after {
+            content: "-";
+        }
     }
 
     .slide {
