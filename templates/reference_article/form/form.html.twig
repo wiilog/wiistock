@@ -420,11 +420,14 @@
                                             <span class="ra-field-name">Label</span>
                                             <span class="ra-body-text">{{ supplierArticle.label ?? '-' }}</span>
                                         </div>
-                                        <div class="col-2 d-flex justify-content-end align-items-start">
-                                            <div class="delete-button-container pointer" data-id="{{ supplierArticle.id }}">
-                                                <img src="{{ asset('svg/reference_article/delete.svg') }}" alt="Icône supprimer" width="18px">
+                                        {% if supplierArticle.articles.empty %}
+                                            <div class="col-2 d-flex justify-content-end align-items-start">
+                                                <div class="delete-button-container pointer"
+                                                     data-id="{{ supplierArticle.id }}">
+                                                    <img src="{{ asset('svg/reference_article/delete.svg') }}" alt="Icône supprimer" width="18px">
+                                                </div>
                                             </div>
-                                        </div>
+                                        {% endif %}
                                     </div>
                                 </div>
                             {% endfor %}
