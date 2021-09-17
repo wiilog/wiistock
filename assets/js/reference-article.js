@@ -78,7 +78,7 @@ function updateArticleReferenceImage($div, $image) {
 
 function updateInputValue($button) {
     const $input = $button.siblings('input').first();
-    const value = parseInt($input.val());
+    const value = parseInt($input.val()) || 0;
     if($button.hasClass('increase')){
         $input.val(value+1);
         $input.removeClass('is-invalid');
