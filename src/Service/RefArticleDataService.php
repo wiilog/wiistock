@@ -234,6 +234,14 @@ class RefArticleDataService {
         $category = $inventoryCategoryRepository->find($data['categorie']);
         $price = max(0, $data['prix']);
         if(isset($data['reference'])) $refArticle->setReference($data['reference']);
+
+        if (isset($data['suppliers-to-remove']) && $data['suppliers-to-remove'] !== "") {
+            $suppliers = $this->entityManager->getRepository(ArticleFournisseur::class)->findBy(['id' => explode(',', $data['suppliers-to-remove'])]);
+            foreach ($suppliers as $supplier) {
+                $refArticle->removeArticleFournisseur($supplier);
+            }
+        }
+
         if(isset($data['frl'])) {
             $supplierReferenceLines = json_decode($data['frl'], true);
             foreach($supplierReferenceLines as $supplierReferenceLine) {

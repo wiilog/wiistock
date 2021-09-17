@@ -19,6 +19,7 @@ class ArticleFournisseur
     private $id;
 
     /**
+     * @var ReferenceArticle|null
      * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="articlesFournisseur")
      * @ORM\JoinColumn(name="reference_article_id", referencedColumnName="id", onDelete="CASCADE")
      */
@@ -69,8 +70,11 @@ class ArticleFournisseur
 
     public function setReferenceArticle(?ReferenceArticle $referenceArticle): self
     {
+        if($this->referenceArticle && $this->referenceArticle !== $referenceArticle) {
+            $this->referenceArticle->removeArticleFournisseur($this);
+        }
         $this->referenceArticle = $referenceArticle;
-        if(!$referenceArticle->getArticlesFournisseur()->contains($this)) {
+        if($referenceArticle) {
             $referenceArticle->addArticleFournisseur($this);
         }
 

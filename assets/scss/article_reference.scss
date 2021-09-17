@@ -314,6 +314,22 @@ span.icon {
     cursor: pointer;
 }
 
+.supplier-article-container {
+    margin-top: 5px;
+    margin-bottom: 5px;
+
+    .delete-button-container {
+        border: #3353D7 1px solid;
+        padding: 15px 5px;
+        border-radius: 5px;
+    }
+}
+
+.supplier-container:last-of-type {
+    border-bottom: #CBCBCB 1px solid;
+    padding-bottom: 5px;
+}
+
 .save-buttons {
     display: flex;
     justify-content: flex-end;
