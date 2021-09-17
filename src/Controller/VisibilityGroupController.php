@@ -120,7 +120,7 @@ class VisibilityGroupController extends AbstractController
 
     /**
      * @Route("/api-modifier", name="visibility_group_api_edit", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::REFERENTIEL, Action::EDIT}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_VISIBILITY_GROUPS}, mode=HasPermission::IN_JSON)
      */
     public function apiEdit(Request $request,
                             EntityManagerInterface $entityManager): Response

@@ -22,7 +22,8 @@ $(function () {
     });
     displayActifOrInactif($('#toggleActivOrInactiv'), true);
     registerNumberInputProtection($('#modalNewRefArticle').find('input[type="number"]'));
-
+    $('input[name="type_quantite"]:checked').click();
+    $('input[name="urgence"]:checked').trigger('change');
 });
 
 function redirectPaperclipClick(button) {

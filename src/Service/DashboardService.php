@@ -376,9 +376,8 @@ class DashboardService {
     public function persistActiveReferenceAlerts(EntityManagerInterface $entityManager,
                                                  Dashboard\Component $component): void {
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
-
         $alertRepository = $entityManager->getRepository(Alert::class);
-        $count = $alertRepository->countAllActive();
+        $count = $alertRepository->countAllActiveByParams($component->getConfig());
 
         $meter
             ->setCount($count ?? 0);

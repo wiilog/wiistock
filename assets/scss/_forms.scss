@@ -1,10 +1,10 @@
 @import "variables";
 
-.plus-minus-field {
+.increase-decrease-field {
     display: flex;
     flex-direction: row;
     justify-content: center;
-    align-items: center;
+    align-items: baseline;
 
     input {
         flex: 1 1 auto;
@@ -13,7 +13,7 @@
         text-align: center;
     }
 
-    .plus, .minus {
+    .increase, .decrease {
         background: white;
         border: 1px solid $primary;
         border-radius: 4px;
@@ -22,11 +22,11 @@
         min-width: 37px;
         height: 37px;
 
-        &.minus:before {
+        &.decrease:before {
             content: "-";
         }
 
-        &.plus:before {
+        &.increase:before {
             content: "+";
         }
     }
@@ -74,4 +74,10 @@
 
 .lite-picker {
     width: 30%;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }

@@ -316,7 +316,10 @@ function processInputsForm($modal, data, isAttachmentForm) {
         const $input = $(this);
         const name = $input.attr('name');
 
-        const $formGroupLabel = $input.closest('.form-group').find('label');
+        let $formGroupLabel = $input.closest('.form-group').find('label');
+        if (!$formGroupLabel.exists()) {
+            $formGroupLabel = $input.closest('label').find('.ra-field-name');
+        }
         const $editorContainer = $input.siblings('.ql-container');
         const $qlEditor = $editorContainer.length > 0
             ? $editorContainer.find('.ql-editor')
@@ -345,7 +348,9 @@ function processInputsForm($modal, data, isAttachmentForm) {
             .replace(/\*/g, '')
             .replace(/\n/g, ' ')
             .trim();
-
+        if (name === 'quantity') {
+            console.log(label)
+        }
         // validation données obligatoires
         if ($input.hasClass('needed')
             && $input.is(':disabled') === false
@@ -739,10 +744,15 @@ function displayAttachements(files, $dropFrame, isMultiple = true) {
 
             let reader = new FileReader();
             reader.addEventListener('load', function () {
+                let icon = `fa-file`;
+                if($fileBag.is(`[data-icon]`)) {
+                    icon = $fileBag.data(`icon`);
+                }
+
                 $fileBag.append(`
                     <p class="attachement" value="` + withoutExtension(fileName) + `">
                         <a target="_blank" href="` + reader.result + `">
-                            <i class="fa fa-file mr-2"></i>` + fileName + `
+                            <i class="fa ${icon} mr-2"></i>` + fileName + `
                         </a>
                         <i class="fa fa-times red pointer" onclick="removeAttachment($(this))"></i>
                     </p>`);
@@ -804,7 +814,7 @@ function dragLeaveDiv(event, div) {
 }
 
 function openFileExplorer(span) {
-    span.closest('.modal').find('.fileInput').trigger('click');
+    span.siblings('.fileInput').trigger('click');
 }
 
 function saveDroppedFiles(event, $div) {

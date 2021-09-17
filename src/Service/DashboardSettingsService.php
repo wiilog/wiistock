@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Action;
+use App\Entity\Alert;
 use App\Entity\AverageRequestTime;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
@@ -69,20 +70,20 @@ class DashboardSettingsService {
         }
 
         $pageIndex = 0;
-        $dashboards = $pages->map(function(Dashboard\Page $page) use (&$pageIndex, $entityManager, $mode) {
+        $dashboards = $pages->map(function(Dashboard\Page $page) use (&$pageIndex, $entityManager, $mode, $user) {
             $rowIndex = 0;
             return [
                 "id" => $page->getId(),
                 "name" => $page->getName(),
                 "dashboardIndex" => $pageIndex++,
                 "rows" => $page->getRows()
-                    ->map(function(Dashboard\PageRow $row) use (&$rowIndex, $entityManager, $mode) {
+                    ->map(function(Dashboard\PageRow $row) use (&$rowIndex, $entityManager, $mode, $user) {
                         return [
                             "id" => $row->getId(),
                             "size" => $row->getSize(),
                             "rowIndex" => $rowIndex++,
                             "components" => $row->getComponents()
-                                ->map(function(Dashboard\Component $component) use ($entityManager, $mode) {
+                                ->map(function(Dashboard\Component $component) use ($entityManager, $mode, $user) {
                                     $type = $component->getType();
                                     $config = $component->getConfig();
                                     $meter = $component->getMeter();
@@ -96,7 +97,7 @@ class DashboardSettingsService {
                                         "template" => $type->getTemplate(),
                                         "config" => $config,
                                         "meterKey" => $meterKey,
-                                        "initData" => $this->serializeValues($entityManager, $type, $config, $mode, $mode === self::MODE_EDIT, $meter),
+                                        "initData" => $this->serializeValues($entityManager, $type, $config, $mode, $mode === self::MODE_EDIT, $meter, $user),
                                     ];
                                 })
                                 ->getValues(),
@@ -122,7 +123,8 @@ class DashboardSettingsService {
                                     array $config,
                                     ?int $mode = null,
                                     bool $example = false,
-                                    $meter = null): array {
+                                    $meter = null,
+                                    Utilisateur $currentUser = null): array {
         $values = [];
         $meterKey = $componentType->getMeterKey();
         Stream::from($config)
@@ -153,6 +155,9 @@ class DashboardSettingsService {
         }
 
         switch ($meterKey) {
+            case Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS:
+                $values += $this->serializeReferenceArticles($entityManager, $componentType, $example, $meter, $currentUser);
+                break;
             case Dashboard\ComponentType::ONGOING_PACKS:
                 $values += $this->serializeOngoingPacks($entityManager, $componentType, $config, $example, $meter);
                 break;
@@ -185,7 +190,6 @@ class DashboardSettingsService {
                 break;
             case Dashboard\ComponentType::DAILY_ARRIVALS_EMERGENCIES:
             case Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE:
-            case Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS:
             case Dashboard\ComponentType::MONETARY_RELIABILITY_INDICATOR:
             case Dashboard\ComponentType::REFERENCE_RELIABILITY:
                 $values += $this->serializeSimpleCounter($componentType, $example, $meter);
@@ -498,6 +502,31 @@ class DashboardSettingsService {
             unset($values['delay']);
         } else if (empty($values['delay'])) {
             $values['delay'] = '-';
+        }
+
+        return $values;
+    }
+
+    private function serializeReferenceArticles(EntityManagerInterface $manager,
+                                                Dashboard\ComponentType $componentType,
+                                                bool $example,
+                                                ?DashboardMeter\Indicator $meter,
+                                                ?Utilisateur $utilisateur): array
+    {
+        $alertRepository = $manager->getRepository(Alert::class);
+
+        if ($example) {
+            $values = $componentType->getExampleValues();
+        } else {
+            $count = $meter
+                ? $alertRepository->countAllActiveByParams(array_merge(
+                    $meter->getComponent()->getConfig(),
+                    ['user' => $utilisateur]
+                ))
+                : 0;
+            $values = [
+                'count' => $count ?? 0
+            ];
         }
 
         return $values;
@@ -986,8 +1015,15 @@ class DashboardSettingsService {
     public function getComponentLink(Dashboard\ComponentType $componentType,
                                      array $config) {
         $meterKey = $componentType->getMeterKey();
-
         switch ($meterKey) {
+            case Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS:
+                $managers = $config['managers'] ?? [];
+                $types = $config['referenceTypes'] ?? [];
+                $link = $this->router->generate('alerte_index', [
+                    'managers' => implode(',', $managers),
+                    'referenceTypes' => implode(',', $types)
+                ]);
+                break;
             case Dashboard\ComponentType::ENTRIES_TO_HANDLE:
             case Dashboard\ComponentType::ONGOING_PACKS:
                 $locations = $config['locations'] ?? [];

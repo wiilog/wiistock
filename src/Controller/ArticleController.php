@@ -613,7 +613,7 @@ class ArticleController extends AbstractController
             'lot',
             'date d\'entrée en stock',
             'date de péremption',
-            'groupe(s) de visibilité'
+            'groupe de visibilité'
         ], $ffConfig['freeFieldsHeader']);
 
         $today = new DateTime();
@@ -649,7 +649,7 @@ class ArticleController extends AbstractController
             $article['batch'],
             $article['stockEntryDate'] ? $article['stockEntryDate']->format('d/m/Y H:i:s') : '',
             $article['expiryDate'] ? $article['expiryDate']->format('d/m/Y') : '',
-            $article['visibilityGroups'],
+            $article['visibilityGroup'],
         ];
 
         foreach ($ffConfig['freeFieldIds'] as $freeFieldId) {

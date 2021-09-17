@@ -1,6 +1,5 @@
 function displayRequiredChampsFixesByTypeQuantiteReferenceArticle(typeQuantite, $button, parent = '.modal') {
     let $modal = $button.closest(parent);
-    console.log($modal, typeQuantite);
     if (typeQuantite === 'article') {
         $modal.find('#quantite').removeClass('needed');
         $modal.find('#emplacement').removeClass('needed');

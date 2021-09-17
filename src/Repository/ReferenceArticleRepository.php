@@ -278,9 +278,10 @@ class ReferenceArticleRepository extends EntityRepository {
                     $queryBuilder->andWhere('filter_sra.nom LIKE \'' . $filter['value'] . '\'');
                 }
             } else if ($filter['champFixe'] === FiltreRef::FIXED_FIELD_VISIBILITY_GROUP) {
-                $queryBuilder->leftJoin('ra.visibilityGroups', 'filter_visibility_groups')
-                    ->andWhere('filter_visibility_groups.label LIKE :filter_visibility_group')
-                    ->setParameter('filter_visibility_group', '%' . $filter['value'] . '%');
+                $value = explode(',', $filter['value']);
+                $queryBuilder->leftJoin('ra.visibilityGroup', 'filter_visibility_group')
+                    ->andWhere('filter_visibility_group.label IN (:filter_visibility_group)')
+                    ->setParameter('filter_visibility_group', $value);
             } else if ($filter['champFixe'] === FiltreRef::FIXED_FIELD_MANAGERS) {
                 $queryBuilder->leftJoin('ra.managers', 'filter_manager')
                     ->andWhere('filter_manager.username LIKE :filter_manager')
@@ -498,8 +499,8 @@ class ReferenceArticleRepository extends EntityRepository {
                             $field = self::DtToDbLabels[$searchField] ?? $searchField;
                             $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
                             if(is_numeric($freeFieldId)) {
-                                $query[] = "JSON_SEARCH(ra.freeFields, 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
-                                $queryBuilder->setParameter("search", $date ?: $search);
+                                $query[] = "JSON_SEARCH(LOWER(ra.freeFields), 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
+                                $queryBuilder->setParameter("search", $date ?: strtolower($search));
                             } else if (property_exists(ReferenceArticle::class, $field)) {
                                 if ($date && in_array($field, self::FIELDS_TYPE_DATE)) {
                                     $query[] = "ra.$field BETWEEN :dateMin AND :dateMax";
@@ -554,6 +555,12 @@ class ReferenceArticleRepository extends EntityRepository {
                             ->leftJoin('ra.articlesFournisseur', 'order_articlesFournisseur')
                             ->leftJoin('order_articlesFournisseur.fournisseur', 'order_supplier')
                             ->orderBy('order_supplier.nom', $order);
+                        break;
+                    case 'visibilityGroups':
+                        $orderAddSelect[] = 'order_group.label';
+                        $queryBuilder
+                            ->leftJoin('ra.visibilityGroup', 'order_group')
+                            ->orderBy('order_group.label', $order);
                         break;
                     case "type":
                         $orderAddSelect[] = 'order_type.label';

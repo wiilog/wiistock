@@ -1,6 +1,7 @@
 {% extends 'layout.html.twig' %}
 
 {% block title %}Stock | Référence | Article de référence{% endblock %}
+{% block titleLink path('reference_article_index') %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -10,15 +11,18 @@
 {% block page_content %}
     <div class="ra-container d-flex justify-content-center align-content-center">
         <div class="row ra-column">
-            <div class="col-6">
+            <div class="col-12 col-md-6">
                 <div class="ra-header d-flex flex-column" style="border-color: {{ referenceArticle.type.color }}">
                     <div class="ra-type" style="background-color: {{ referenceArticle.type.color }}">{{ referenceArticle.type.label }}</div>
                     <div class="d-flex header-wrapper">
-                        <div class="image-container">
-                            <img src="{{ asset('svg/reference_article/product.svg') }}" alt="Image produit" width="70px">
+                        <div class="image-container-show" style="background-image: url('{{ referenceArticle.image
+                        ? (app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ referenceArticle.image.fileName)
+                        : asset('svg/reference_article/product.svg') }}');
+                            background-color: {{ referenceArticle.image ? '#FFFFFF' : "#F5F5F7" }};
+                            background-size: {{ referenceArticle.image ? 'cover' : '50%' }}">
                         </div>
                         <div class="specifications">
-                            <div><strong>Ref : {{ referenceArticle.reference }}</strong></div>
+                            <div><strong class="ref">Ref : {{ referenceArticle.reference }}</strong></div>
                             <div><strong>{{ referenceArticle.libelle }}</strong></div>
                             <div class="d-flex align-content-center my-3">
                                 <img src="{{ asset('svg/reference_article/stock.svg') }}" alt="Icône stock" class="mr-2" width="15px">
@@ -88,23 +92,29 @@
                         </div>
                         <div class="d-flex mt-4 ml-3">
                             <span class="ra-field-name mr-2">Groupe de visibilité</span> <span
-                                class="ra-body-text"> Groupe 1</span>{# TODO ajouter le groupe de visibilité #}
+                                class="ra-body-text"> {{ referenceArticle.visibilityGroup ? referenceArticle.visibilityGroup.label }}</span>
                         </div>
                         <div class="my-4 ml-3">
                             {% set plural = referenceArticle.attachments | length > 1 ? 's' : '' %}
                             <span class="ra-subtitle">Pièce{{ plural }} jointe{{ plural }}</span>
                             <div class="d-flex flex-wrap">
                                 {% set url = app.request is not null ? app.request.getSchemeAndHttpHost() : app_url %}
-                                {% for attachment in referenceArticle.attachments %}
-                                    <div class="attachment-item {{ loop.index % 2 != 0 ? 'mr-3' }}">
-                                        <img src="{{ asset('svg/reference_article/file.svg') }}" alt="Icône fichier" width="13px" class="mr-2">
-                                        <a target="_blank" class="ra-small-text"
-                                           href="{{ url ~ '/uploads/attachements/' ~ attachment.fileName }}"
-                                           download="{{ attachment.originalName }}">
-                                            {{ attachment.originalName }}
-                                        </a>
+                                {% if referenceArticle.attachments | length > 0 %}
+                                    {% for attachment in referenceArticle.attachments %}
+                                        <div class="attachment-item {{ loop.index % 2 != 0 ? 'mr-3' }}">
+                                            <img src="{{ asset('svg/reference_article/file.svg') }}" alt="Icône fichier" width="13px" class="mr-2">
+                                            <a target="_blank" class="ra-small-text"
+                                               href="{{ url ~ attachment.fullPath }}"
+                                               download="{{ attachment.originalName }}">
+                                                {{ attachment.originalName }}
+                                            </a>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="d-flex mt-2">
+                                        <span class="ra-small-text">Cette référence n'a aucune pièce jointe</span>
                                     </div>
-                                {% endfor %}
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -119,7 +129,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-6">
+            <div class="col-12 col-md-6">
                 <div class="ra-box">
                     <div class="header ra-title">Gestion quantité</div>
                     <div class="content">
@@ -134,37 +144,52 @@
                             </div>
                         </div>
                         <div class="d-flex mt-4">
-                            <div class="col-4 d-flex">
-                                <img src="{{ asset('svg/reference_article/location.svg') }}" alt="Icône emplacement" width="20px">
-                                <div class="box-item ml-3">
-                                    <span class="ra-field-name">Emplacement</span>
-                                    <span class="ra-body-text">{{ referenceArticle.emplacement ? referenceArticle.emplacement.label : '-' }}</span>
+                            {% if isReferenceManagementQuantity %}
+                                <div class="col-4 d-flex">
+                                    <img src="{{ asset('svg/reference_article/location.svg') }}" alt="Icône emplacement" width="20px">
+                                    <div class="box-item ml-3">
+                                        <span class="ra-field-name">Emplacement</span>
+                                        <span
+                                            class="ra-body-text">{{ referenceArticle.emplacement ? referenceArticle.emplacement.label : '-' }}</span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-8 d-flex">
+                            {% endif %}
+                            <div class="col-{{ isReferenceManagementQuantity ? '8' : '6' }} d-flex">
                                 <img src="{{ asset('svg/reference_article/stock.svg') }}" alt="Icône stock" width="20px">
                                 <div class="box-item ml-3">
                                     <span class="ra-field-name">Quantité en stock</span>
-                                    <span class="ra-body-text">{{ referenceArticle.quantiteStock }}</span>
+                                    <span class="ra-body-text">{{ referenceArticle.quantiteStock ?? 0 }}</span>
                                 </div>
                             </div>
+                            {% if not isReferenceManagementQuantity %}
+                                <div class="col-6 d-flex">
+                                    <img src="{{ asset('svg/reference_article/stock-management.svg') }}" alt="Icône gestion de stock" width="20px">
+                                    <div class="box-item ml-3">
+                                        <span class="ra-field-name">Gestion de stock</span>
+                                        <span
+                                            class="ra-body-text">{{ referenceArticle.stockManagement != '' ? referenceArticle.stockManagement : '-' }}</span>
+                                    </div>
+                                </div>
+                            {% endif %}
                         </div>
                         <div class="d-flex mt-4">
-                            <div class="col-4 d-flex">
-                                <img src="{{ asset('svg/reference_article/price.svg') }}" alt="Icône prix" width="15px">
-                                <div class="box-item ml-3">
-                                    <span class="ra-field-name">Prix unitaire (€)</span>
-                                    <span class="ra-body-text">{{ referenceArticle.prixUnitaire ?? '-' }}</span>
+                            {% if isReferenceManagementQuantity %}
+                                <div class="col-4 d-flex">
+                                    <img src="{{ asset('svg/reference_article/price.svg') }}" alt="Icône prix" width="15px">
+                                    <div class="box-item ml-3">
+                                        <span class="ra-field-name">Prix unitaire (€)</span>
+                                        <span class="ra-body-text">{{ referenceArticle.prixUnitaire ?? '-' }}</span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-4 d-flex">
+                            {% endif %}
+                            <div class="col-{{ isReferenceManagementQuantity ? '4' : '6' }} d-flex">
                                 <img src="{{ asset('svg/reference_article/alert-threshold.svg') }}" alt="Icône seuil d'alerte" width="20px">
                                 <div class="box-item ml-3">
                                     <span class="ra-field-name">Seuil d'alerte</span>
                                     <span class="ra-body-text">{{ referenceArticle.limitWarning ?? '-' }}</span>
                                 </div>
                             </div>
-                            <div class="col-4 d-flex">
+                            <div class="col-{{ isReferenceManagementQuantity ? '4' : '6' }} d-flex">
                                 <img src="{{ asset('svg/reference_article/security-threshold.svg') }}" alt="Icône seuil de sécurité" width="20px">
                                 <div class="box-item ml-3">
                                     <span class="ra-field-name">Seuil de sécurité</span>
@@ -173,7 +198,16 @@
                             </div>
                         </div>
                     </div>
-                    <div class="ra-dropdown mt-3">
+                    {% if referenceArticle.isUrgent %}
+                        <div class="d-flex align-items-center urgent-container">
+                            <img src="{{ asset('svg/reference_article/urgent.svg') }}" alt="Icône référence urgente" width="25px">
+                            <div class="d-flex flex-column ml-3">
+                                <span class="ra-field-name">Référence urgente</span>
+                                <div class="ra-body-text">{{ referenceArticle.emergencyComment | raw }}</div>
+                            </div>
+                        </div>
+                    {% endif %}
+                    <div class="ra-dropdown {{ not referenceArticle.isUrgent ? 'mt-3' : 'border-0' }}">
                         <label for="touch">
                             {% set plural = referenceArticle.articlesFournisseur | length > 1 ? 's' : '' %}
                             <span class="ra-subtitle dropdown-wrapper">Fournisseur{{ plural }}</span>
@@ -210,29 +244,35 @@
                 <div class="ra-box mt-3">
                     {% set plural = freeFields | length > 1 ? 's' : '' %}
                     <div class="header ra-title">Champ{{ plural }} libre{{ plural }}</div>
-                    <div class="content d-flex flex-wrap">
-                        {% for freeField in freeFields %}
-                            {% set value = referenceArticle.freeFields[freeField.id] ?? (freeField.defaultValue ?? '') %}
-                            <div class="col-6 box-item mb-3">
-                                <span class="ra-field-name">{{ freeField.label }}</span>
-                                {% if freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATE') %}
-                                    <span class="ra-body-text">{{ value | date('d/m/Y') }}</span>
-                                {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATETIME') %}
-                                    <span class="ra-body-text">{{ value | replace({'/': '-'}) | date('d/m/Y H:i') }}</span>
-                                {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_BOOL') %}
-                                    <span class="ra-body-text">{{ value == 1 ? 'Oui' : 'Non' }}</span>
-                                {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_LIST_MULTIPLE') %}
-                                    {% set values = value | split(';') | join(', ') %}
-                                    <span class="ra-body-text">{{ values }}</span>
-                                {% else %}
-                                    <span class="ra-body-text">{{ value }}</span>
-                                {% endif %}
-                            </div>
-                        {% endfor %}
-                    </div>
+                    {% if referenceArticle.freeFields | length > 0 %}
+                        <div class="content d-flex flex-wrap">
+                            {% for freeField in freeFields %}
+                                {% set value = referenceArticle.freeFields[freeField.id] ?? (freeField.defaultValue ?? '') %}
+                                <div class="col-6 box-item mb-3">
+                                    <span class="ra-field-name">{{ freeField.label }}</span>
+                                    {% if freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATE') %}
+                                        <span class="ra-body-text">{{ value | date('d/m/Y') }}</span>
+                                    {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATETIME') %}
+                                        <span class="ra-body-text">{{ value | replace({'/': '-'}) | date('d/m/Y H:i') }}</span>
+                                    {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_BOOL') %}
+                                        <span class="ra-body-text">{{ value == 1 ? 'Oui' : 'Non' }}</span>
+                                    {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_LIST_MULTIPLE') %}
+                                        {% set values = value | split(';') | join(', ') %}
+                                        <span class="ra-body-text">{{ values }}</span>
+                                    {% else %}
+                                        <span class="ra-body-text">{{ value }}</span>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="content ml-3">
+                            <span class="ra-small-text">Cette référence n'a aucun champ libre</span>
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="d-flex justify-content-end mt-4">
-                    <a href="{{ path('reference_article_edit_page', {'reference': referenceArticle.id, 'from': 'show'}) }}" class="ra-btn-success">Modifier</a>
+                    <a href="{{ path('reference_article_edit_page', {'reference': referenceArticle.id, 'from': 'show'}) }}" class="btn btn-success">Modifier</a>
                 </div>
             </div>
         </div>

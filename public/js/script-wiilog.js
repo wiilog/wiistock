@@ -293,13 +293,13 @@ function updateQuantityDisplay($elem, parent = '.modal-body') {
     const $article = $modalBody.find('.article');
     const $allArticle = $modalBody.find('.article, .emergency-comment');
     let typeQuantite = $modalBody.find('.type_quantite').val();
-console.log(typeQuantite, $modalBody);
     if (typeQuantite == 'reference') {
         $allArticle.addClass('d-none');
         $reference.removeClass('d-none');
 
         clearCheckboxes($allArticle);
         $allArticle.find('input, select').val('');
+        $reference.find('input[name="quantite"]').val(0);
         $allArticle.find('select.select2-hidden-accessible').select2('val', '');
     } else if (typeQuantite == 'article') {
         $reference.addClass('d-none');

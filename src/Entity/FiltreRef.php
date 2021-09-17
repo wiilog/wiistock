@@ -12,7 +12,7 @@ class FiltreRef
     const FIXED_FIELD_REF_ART_FOURN = 'référence article fournisseur';
     const FIXED_FIELD_STATUT = 'status';
     const FIXED_FIELD_MANAGERS = 'Gestionnaire(s)';
-    const FIXED_FIELD_VISIBILITY_GROUP = 'Groupes de visibilité';
+    const FIXED_FIELD_VISIBILITY_GROUP = 'Groupe de visibilité';
     const FIXED_FIELD_PROVIDER_CODE = 'Code fournisseur';
     const FIXED_FIELD_PROVIDER_LABEL = 'Nom fournisseur';
 
