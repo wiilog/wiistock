@@ -101,11 +101,12 @@
                                 {% set url = app.request is not null ? app.request.getSchemeAndHttpHost() : app_url %}
                                 {% if referenceArticle.attachments | length > 0 %}
                                     {% for attachment in referenceArticle.attachments %}
-                                        <div class="attachment-item {{ loop.index % 2 != 0 ? 'mr-3' }}">
+                                        <div class="attachment-item show {{ loop.index % 2 != 0 ? 'mr-3' }}">
                                             <img src="{{ asset('svg/reference_article/file.svg') }}" alt="Icône fichier" width="13px" class="mr-2">
-                                            <a target="_blank" class="ra-small-text"
+                                            <a target="_blank" class="ra-small-text has-tooltip"
                                                href="{{ url ~ attachment.fullPath }}"
-                                               download="{{ attachment.originalName }}">
+                                               download="{{ attachment.originalName }}"
+                                               title="{{ attachment.originalName }}">
                                                 {{ attachment.originalName }}
                                             </a>
                                         </div>

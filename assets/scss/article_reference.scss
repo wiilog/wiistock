@@ -241,13 +241,22 @@ body {
 .attachment-item, .attachement {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     width: 45%;
-    text-overflow: ellipsis;
     border: #CBCBCB solid 1px;
     border-radius: 5px;
     padding: 5px 10px;
     margin-top: 5px;
+
+    &:not(.show) {
+        justify-content: space-between;
+    }
+
+    a:first-of-type {
+        display: block;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
 
     svg {
         color: $blue !important;

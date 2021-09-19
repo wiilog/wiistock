@@ -751,7 +751,7 @@ function displayAttachements(files, $dropFrame, isMultiple = true) {
 
                 $fileBag.append(`
                     <p class="attachement" value="` + withoutExtension(fileName) + `">
-                        <a target="_blank" href="` + reader.result + `">
+                        <a target="_blank" href="` + reader.result + `" class="has-tooltip" title="${fileName}">
                             <i class="fa ${icon} mr-2"></i>` + fileName + `
                         </a>
                         <i class="fa fa-times red pointer" onclick="removeAttachment($(this))"></i>
