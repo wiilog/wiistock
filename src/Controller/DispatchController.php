@@ -203,6 +203,10 @@ class DispatchController extends AbstractController {
             ? ($emplacementRepository->find($post->get('depose')) ?: $type->getDropLocation())
             : $type->getDropLocation();
 
+        $destination = $post->get('destination')
+            ? $emplacementRepository->find($post->get('destination')) ?: $type->getDropLocation()
+            : null;
+
         $comment = $post->get('commentaire');
         $startDateRaw = $post->get('startDate');
         $endDateRaw = $post->get('endDate');
@@ -244,7 +248,8 @@ class DispatchController extends AbstractController {
             ->setLocationFrom($locationTake)
             ->setLocationTo($locationDrop)
             ->setBusinessUnit($businessUnit)
-            ->setNumber($dispatchNumber);
+            ->setNumber($dispatchNumber)
+            ->setDestination($destination);
 
         if(!empty($comment)) {
             $dispatch->setCommentaire($comment);
@@ -479,6 +484,10 @@ class DispatchController extends AbstractController {
             ? ($emplacementRepository->find($post->get('depose')) ?: $type->getDropLocation())
             : $type->getDropLocation();
 
+        $destination = $post->get('destination')
+            ? $emplacementRepository->find($post->get('destination'))
+            : null;
+
         if(!$locationTake || !$locationDrop) {
             return new JsonResponse([
                 'success' => false,
@@ -534,7 +543,8 @@ class DispatchController extends AbstractController {
             ->setLocationFrom($locationTake)
             ->setLocationTo($locationDrop)
             ->setProjectNumber($projectNumber)
-            ->setCommentaire($post->get('commentaire') ?: '');
+            ->setCommentaire($post->get('commentaire') ?: '')
+            ->setDestination($destination);
 
         $freeFieldService->manageFreeFields($dispatch, $post->all(), $entityManager);
 
@@ -1023,6 +1033,7 @@ class DispatchController extends AbstractController {
                     'Destinataire',
                     $translator->trans('acheminement.Emplacement prise'),
                     $translator->trans('acheminement.Emplacement dépose'),
+                    $translator->trans('acheminement.Destination'),
                     'Nb ' . $translator->trans('colis.colis'),
                     'Statut',
                     'Urgence',
@@ -1061,6 +1072,7 @@ class DispatchController extends AbstractController {
                     $row[] = $receiversStr;
                     $row[] = $dispatch['locationFrom'] ?? '';
                     $row[] = $dispatch['locationTo'] ?? '';
+                    $row[] = $dispatch['destination'] ?? '';
                     $row[] = $nbPacksByDispatch[$number] ?? '';
                     $row[] = $dispatch['status'] ?? '';
                     $row[] = $dispatch['emergency'] ?? '';

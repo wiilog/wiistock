@@ -56,6 +56,8 @@
         </div>
     </div>
 
+    <input type="hidden" name="destination-translation" value="{{ 'acheminement.Destination'|trans }}">
+
     {% include "dispatch/modalNewDispatch.html.twig" with modalNewConfig %}
     {% include "utils/visible_columns.html.twig" with {
         'fields': fields,

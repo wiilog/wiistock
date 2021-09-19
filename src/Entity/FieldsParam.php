@@ -83,6 +83,7 @@ class FieldsParam
     const FIELD_CODE_ATTACHMENTS_DISPATCH = 'attachments';
     const FIELD_CODE_LOCATION_PICK = 'pickLocation';
     const FIELD_CODE_LOCATION_DROP = 'dropLocation';
+    const FIELD_CODE_DESTINATION = 'destination';
 
     const FIELD_LABEL_CARRIER_DISPATCH = 'transporteur';
     const FIELD_LABEL_CARRIER_TRACKING_NUMBER_DISPATCH = 'numéro de tracking transporteur';
@@ -94,6 +95,7 @@ class FieldsParam
     const FIELD_LABEL_ATTACHMENTS_DISPATCH = 'pièces jointes';
     const FIELD_LABEL_LOCATION_PICK = 'emplacement de prise';
     const FIELD_LABEL_LOCATION_DROP = 'emplacement de dépose';
+    const FIELD_LABEL_DESTINATION = 'destination';
 
     const ENTITY_CODE_HANDLING = 'services';
 
