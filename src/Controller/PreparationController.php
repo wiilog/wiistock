@@ -430,26 +430,30 @@ class PreparationController extends AbstractController
     public function editLigneArticle(Request $request,
                                      EntityManagerInterface $entityManager): Response
     {
-        $articleRepository = $entityManager->getRepository(Article::class);
-        $ligneArticlePreparationRepository = $entityManager->getRepository(PreparationOrderReferenceLine::class);
+        $preparationOrderArticleLineRepository = $entityManager->getRepository(PreparationOrderArticleLine::class);
+        $preparationOrderReferenceLineRepository = $entityManager->getRepository(PreparationOrderReferenceLine::class);
 
         if ($data = json_decode($request->getContent(), true)) {
-            if ($data['isRef']) {
-                $ligneArticle = $ligneArticlePreparationRepository->find($data['ligneArticle']);
-            } else {
-                $ligneArticle = $articleRepository->find($data['ligneArticle']);
-            }
 
-            if ($ligneArticle instanceof Article) {
-                $ligneRef = $ligneArticlePreparationRepository->findOneByRefArticleAndDemande($ligneArticle->getArticleFournisseur()->getReferenceArticle(), $ligneArticle->getPreparation());
+            /** @var PreparationOrderArticleLine|PreparationOrderReferenceLine $line */
+            $line = $data['isRef']
+                ? $preparationOrderReferenceLineRepository->find($data['ligneArticle'])
+                : $preparationOrderArticleLineRepository->find($data['ligneArticle']);
+
+            if ($line instanceof PreparationOrderArticleLine) {
+                $article = $line->getArticle();
+                $ligneRef = $preparationOrderReferenceLineRepository->findOneByRefArticleAndDemande(
+                    $article->getArticleFournisseur()->getReferenceArticle(),
+                    $line->getPreparation()
+                );
 
                 if (isset($ligneRef)) {
-                    $ligneRef->setQuantityToPick($ligneRef->getQuantityToPick() + ($ligneArticle->getPickedQuantity() - intval($data['quantite'])));
+                    $ligneRef->setQuantityToPick($ligneRef->getQuantityToPick() + ($line->getPickedQuantity() - intval($data['quantite'])));
                 }
             }
             // protection contre quantités négatives
             if (isset($data['quantite'])) {
-                $ligneArticle->setPickedQuantity(max($data['quantite'], 0));
+                $line->setPickedQuantity(max($data['quantite'], 0));
             }
             $entityManager->flush();
 

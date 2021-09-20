@@ -4,7 +4,6 @@ namespace App\Repository\PreparationOrder;
 
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
 
 /**
  * @method PreparationOrderReferenceLine|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,12 +13,6 @@ use Doctrine\ORM\NonUniqueResultException;
  */
 class PreparationOrderReferenceLineRepository extends EntityRepository
 {
-    /**
-     * @param $referenceArticle
-     * @param $preparation
-     * @return PreparationOrderReferenceLine
-     * @throws NonUniqueResultException
-     */
     public function findOneByRefArticleAndDemande($referenceArticle, $preparation): ?PreparationOrderReferenceLine
     {
         return $this->createQueryBuilder('line')
