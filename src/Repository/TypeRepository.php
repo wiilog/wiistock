@@ -29,7 +29,7 @@ class TypeRepository extends EntityRepository
      * @param string|null $order ("asc" ou "desc")
      * @return Type[]
      */
-    public function findByCategoryLabels(array $categoryLabels, $order = null)
+    public function findByCategoryLabels(array $categoryLabels, $order = null): array
     {
         $queryBuilder = $this
             ->createQueryBuilder('type')

@@ -111,10 +111,9 @@
                                 <select name="type"
                                         data-s2 data-placeholder="Choisissez un type"
                                         class="form-control data d-block type needed"
-                                        onchange="typeChoice($(this), $(this).closest('.ra-form').find('.free-fields-container')); toggleRequiredChampsLibres($(this),'create', $(this).closest('.ra-form').find('.free-fields-container'))"
+                                        onchange="typeChoice($(this), $(this).closest('.ra-form').find('.free-fields-container')); toggleRequiredChampsLibres($(this),'create', $(this).closest('.ra-form').find('.free-fields-container'))">
                                     {% for type in types %}
-                                        <option value="{{ type.id }}"
-                                                {% if reference.type and reference.type.id == type.id %}selected{% endif %}>
+                                        <option value="{{ type.id }}">
                                             {{ type.label }}
                                         </option>
                                     {% endfor %}
@@ -147,7 +146,7 @@
                 </div>
             </div>
             <div class="ra-box">
-                <div class="header">Informations</div>
+                <div class="header ra-title">Informations</div>
                 <div class="content">
                     <div class="row">
                         <div class="col-12 col-md-6">
@@ -243,7 +242,7 @@
         </div>
         <div class="col-12 col-md-6">
             <div class="ra-box">
-                <div class="header">Gestion quantité</div>
+                <div class="header ra-title">Gestion quantité</div>
                 <div class="content">
                     {% if reference.id %}
                         <div class="row no-gutters">
@@ -282,51 +281,70 @@
 
                     <div class="reference-form">
                         <div class="row">
-                            <div class="col-12 col-md-4 reference mt-3">
-                                <label>
-                                    <span class="icon ra-field-name">
-                                        <img src="{{ asset('svg/reference_article/location.svg') }}" class="icon" alt="Image emplacement">
-                                        Emplacement{{ not reference.id ? '*' }}
-                                    </span>
+                            <div class="col-12">
+                                <div class="row">
                                     {% if reference.id %}
-                                        <span class="ra-field-text">{{ reference.emplacement ? reference.emplacement.label }}</span>
+                                        <div class="col-12 col-md-4 reference mt-3">
+                                            <div class="d-flex">
+                                                <img src="{{ asset('svg/reference_article/location.svg') }}" class="icon" alt="Image emplacement" width="20px">
+                                                <label class="box-item ml-3">
+                                                    <span class="ra-field-name">Emplacement</span>
+                                                    <span class="ra-body-text">
+                                                        {% if reference.emplacement %}
+                                                            {{ reference.emplacement.label }}
+                                                        {% endif %}
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-4 mt-3 d-flex">
+                                            <img src="{{ asset('svg/reference_article/stock.svg') }}" alt="Icône stock" width="20px">
+                                            <label class="box-item ml-3">
+                                                <span class="ra-field-name">Quantité en stock</span>
+                                                <span class="ra-body-text">{{ reference.quantiteStock ?? 0 }}</span>
+                                            </label>
+                                        </div>
                                     {% else %}
-                                        <select name="emplacement" id="emplacement" class="form-control w-100 data needed"
-                                                data-s2="location" data-placeholder="Sélectionnez un emplacement">
-                                            {% if reference.emplacement %}
-                                                <option value="{{ reference.emplacement.id }}">{{ reference.emplacement.label }}</option>
-                                            {% endif %}
-                                        </select>
-                                    {% endif %}
-                                </label>
-                            </div>
-                            <div class="col-12 col-md-4 reference mt-3">
-                                <label>
-                                    <span class="icon ra-field-name">
-                                        <img src="{{ asset('svg/reference_article/stock.svg') }}" class="icon" alt="Image quantité">
-                                        {{ not reference.id ? 'Quantité*' : 'Quantité en stock' }}
-                                    </span>
-                                    {% if reference.id %}
-                                        <span class="ra-field-text">{{ reference.quantiteStock ?? 0 }}</span>
-                                    {% else %}
-                                        <div class="increase-decrease-field">
-                                            <button class="decrease"></button>
-                                            <input type="number" id="quantite" name="quantite" class="form-control data needed"
-                                                   value="0" min="0">
-                                            <button class="increase"></button>
+                                        <div class="col-12 col-md-4 reference mt-3">
+                                            <label>
+                                                <span class="icon ra-field-name">
+                                                    <img src="{{ asset('svg/reference_article/location.svg') }}" class="icon" alt="Image emplacement">
+                                                    Emplacement*
+                                                </span>
+                                                <select name="emplacement" id="emplacement" class="form-control w-100 data needed"
+                                                        data-s2="location" data-placeholder="Sélectionnez un emplacement">
+                                                </select>
+                                            </label>
+                                        </div>
+                                        <div class="col-12 col-md-4 mt-3">
+                                            <label>
+                                                <span class="icon ra-field-name">
+                                                    <img src="{{ asset('svg/reference_article/stock.svg') }}" class="icon" alt="Image quantité">
+                                                    Quantité*
+                                                </span>
+                                                <div class="increase-decrease-field">
+                                                    <button class="decrease"></button>
+                                                    <input type="number"
+                                                           id="quantite"
+                                                           name="quantite"
+                                                           class="form-control data needed"
+                                                           min="0">
+                                                    <button class="increase"></button>
+                                                </div>
+                                            </label>
                                         </div>
                                     {% endif %}
-                                </label>
+                                    <div class="col"></div>
+                                </div>
                             </div>
-                            <div class="col-12 col-md-4 reference">
-                            </div>
+
                             <div class="col-12 col-md-4 reference mt-3">
                                 <label>
                                     <span class="icon ra-field-name">
                                         <img src="{{ asset('svg/reference_article/euro.svg') }}" class="icon" alt="Image euro">
                                         Prix unitaire (€)
                                     </span>
-                                    <input type="text" name="prix" class="form-control w-100 data" value="{{ reference.prixUnitaire }}">
+                                    <input type="number" name="prix" class="form-control w-100 data" value="{{ reference.prixUnitaire }}">
                                 </label>
                             </div>
                             <div class="col-12 col-md-4 article mt-3">
@@ -334,7 +352,7 @@
                                         <span class="icon ra-field-name">
                                             <img src="{{ asset('svg/reference_article/stock-management.svg') }}" class="icon"
                                                  alt="Image gestion de stock">
-                                            Gestion de stock (€)
+                                            Gestion de stock
                                         </span>
                                     <select name="stockManagement" data-s2 data-placeholder="Sélectionnez une gestion de stock"
                                             class="form-control data">
@@ -348,10 +366,10 @@
                             </div>
                             <div class="col-12 col-md-4 mt-3">
                                 <label>
-                                        <span class="icon ra-field-name">
-                                            <img src="{{ asset('svg/reference_article/threshold.svg') }}" class="icon" alt="Image seuil d'alerte">
-                                            Seuil d'alerte
-                                        </span>
+                                    <span class="icon ra-field-name">
+                                        <img src="{{ asset('svg/reference_article/threshold.svg') }}" class="icon" alt="Image seuil d'alerte">
+                                        Seuil d'alerte
+                                    </span>
                                     <div class="increase-decrease-field">
                                         <button class="decrease"></button>
                                         <input type="number" name="limitWarning" class="form-control data"
@@ -362,11 +380,11 @@
                             </div>
                             <div class="col-12 col-md-4 mt-3">
                                 <label>
-                                        <span class="icon ra-field-name">
-                                            <img src="{{ asset('svg/reference_article/threshold_red.svg') }}" class="icon"
-                                                 alt="Image seuil de sécurité">
-                                            Seuil de sécurité
-                                        </span>
+                                    <span class="icon ra-field-name">
+                                        <img src="{{ asset('svg/reference_article/threshold_red.svg') }}" class="icon"
+                                             alt="Image seuil de sécurité">
+                                        Seuil de sécurité
+                                    </span>
                                     <div class="increase-decrease-field">
                                         <button class="decrease"></button>
                                         <input type="number" name="limitSecurity" class="form-control data"
@@ -376,20 +394,24 @@
                                 </label>
                             </div>
 
-                            <div class="form-group col-12 col-md-6 mt-3">
-                                <div class="article d-none">
-                                    <label class="with-checkbox">
-                                        <input type="checkbox" name="urgence" class="checkbox data"
-                                               onchange="toggleEmergency($(this))" {{ reference.needsMobileSync ? 'checked' }}>
-                                        Urgence
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="form-group col-12 col-md-6">
-                                <div class="emergency-comment d-none">
-                                    <label for="emergency-comment-input">Commentaire de l'urgence</label>
-                                    <input class="form-control data" type="text" name="emergency-comment-input"
-                                           value="{{ reference.emergencyComment }}">
+                            <div class="col-12">
+                                <div class="row">
+                                    <div class="form-group col-12 col-md-4 mt-3">
+                                        <div class="article d-none">
+                                            <label class="with-checkbox">
+                                                <input type="checkbox" name="urgence" class="checkbox data"
+                                                       onchange="toggleEmergency($(this))" {{ reference.isUrgent ? 'checked' }}>
+                                                Urgence
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-12 col-md-8">
+                                        <label class="emergency-comment d-none">
+                                            <span class="ra-field-name">Commentaire de l'urgence</span>
+                                            <input class="form-control data" type="text" name="emergency-comment-input"
+                                                   value="{{ reference.emergencyComment }}">
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -397,7 +419,7 @@
                 </div>
             </div>
             <div class="ra-box">
-                <div class="header">Fournisseurs</div>
+                <div class="header ra-title">Fournisseurs</div>
                 <div class="content">
                     <div class="supplier-articles">
                         {% if reference.id %}
@@ -441,7 +463,7 @@
                 </div>
             </div>
             <div class="ra-box">
-                <div class="header">Champs libres</div>
+                <div class="header ra-title">Champs libres</div>
                 <div class="content free-fields-container">
                     {% if reference.id %}
                         {% include 'free_field/freeFieldsViewing.html.twig' with {
