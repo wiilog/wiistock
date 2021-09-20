@@ -281,26 +281,20 @@
 
                     <div class="reference-form">
                         <div class="row">
-                            <div class="col-12 col-md-6 reference mt-3">
-                                <label>
-                                    <span class="icon ra-field-name">
-                                        <img src="{{ asset('svg/reference_article/location.svg') }}" class="icon" alt="Image emplacement">
-                                        Emplacement{{ not reference.id ? '*' }}
-                                    </span>
-                                    {% if reference.id %}
-                                        <span class="ra-field-text">{{ reference.emplacement ? reference.emplacement.label }}</span>
-                                    {% else %}
-                                        <select name="emplacement" id="emplacement" class="form-control w-100 data needed"
-                                                data-s2="location" data-placeholder="Sélectionnez un emplacement">
-                                            {% if reference.emplacement %}
-                                                <option value="{{ reference.emplacement.id }}">{{ reference.emplacement.label }}</option>
-                                            {% endif %}
-                                        </select>
-                                    {% endif %}
-                                </label>
-                            </div>
-
                             {% if reference.id %}
+                                <div class="col-12 col-md-6 reference mt-3">
+                                    <div class="d-flex">
+                                        <img src="{{ asset('svg/reference_article/location.svg') }}" class="icon" alt="Image emplacement" width="20px">
+                                        <label class="box-item ml-3">
+                                            <span class="ra-field-name">Emplacement</span>
+                                            <span class="ra-body-text">
+                                                {% if reference.emplacement %}
+                                                    {{ reference.emplacement.label }}
+                                                {% endif %}
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
                                 <div class="col-12 col-md-6 mt-3 d-flex">
                                     <img src="{{ asset('svg/reference_article/stock.svg') }}" alt="Icône stock" width="20px">
                                     <label class="box-item ml-3">
@@ -309,6 +303,17 @@
                                     </label>
                                 </div>
                             {% else %}
+                                <div class="col-12 col-md-6 reference mt-3">
+                                    <label>
+                                        <span class="icon ra-field-name">
+                                            <img src="{{ asset('svg/reference_article/location.svg') }}" class="icon" alt="Image emplacement">
+                                            Emplacement*
+                                        </span>
+                                        <select name="emplacement" id="emplacement" class="form-control w-100 data needed"
+                                                data-s2="location" data-placeholder="Sélectionnez un emplacement">
+                                        </select>
+                                    </label>
+                                </div>
                                 <div class="col-12 col-md-6 mt-3">
                                     <label>
                                         <span class="icon ra-field-name">
