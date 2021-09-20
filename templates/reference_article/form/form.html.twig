@@ -146,7 +146,7 @@
                 </div>
             </div>
             <div class="ra-box">
-                <div class="header">Informations</div>
+                <div class="header ra-title">Informations</div>
                 <div class="content">
                     <div class="row">
                         <div class="col-12 col-md-6">
@@ -242,7 +242,7 @@
         </div>
         <div class="col-12 col-md-6">
             <div class="ra-box">
-                <div class="header">Gestion quantité</div>
+                <div class="header ra-title">Gestion quantité</div>
                 <div class="content">
                     {% if reference.id %}
                         <div class="row no-gutters">
@@ -333,7 +333,7 @@
                                         <img src="{{ asset('svg/reference_article/euro.svg') }}" class="icon" alt="Image euro">
                                         Prix unitaire (€)
                                     </span>
-                                    <input type="text" name="prix" class="form-control w-100 data" value="{{ reference.prixUnitaire }}">
+                                    <input type="number" name="prix" class="form-control w-100 data" value="{{ reference.prixUnitaire }}">
                                 </label>
                             </div>
                             <div class="col-12 col-md-6 article mt-3">
@@ -408,7 +408,7 @@
                 </div>
             </div>
             <div class="ra-box">
-                <div class="header">Fournisseurs</div>
+                <div class="header ra-title">Fournisseurs</div>
                 <div class="content">
                     <div class="supplier-articles">
                         {% if reference.id %}
@@ -452,7 +452,7 @@
                 </div>
             </div>
             <div class="ra-box">
-                <div class="header">Champs libres</div>
+                <div class="header ra-title">Champs libres</div>
                 <div class="content free-fields-container">
                     {% if reference.id %}
                         {% include 'free_field/freeFieldsViewing.html.twig' with {
