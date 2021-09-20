@@ -281,58 +281,64 @@
 
                     <div class="reference-form">
                         <div class="row">
-                            {% if reference.id %}
-                                <div class="col-12 col-md-6 reference mt-3">
-                                    <div class="d-flex">
-                                        <img src="{{ asset('svg/reference_article/location.svg') }}" class="icon" alt="Image emplacement" width="20px">
-                                        <label class="box-item ml-3">
-                                            <span class="ra-field-name">Emplacement</span>
-                                            <span class="ra-body-text">
-                                                {% if reference.emplacement %}
-                                                    {{ reference.emplacement.label }}
-                                                {% endif %}
-                                            </span>
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="col-12 col-md-6 mt-3 d-flex">
-                                    <img src="{{ asset('svg/reference_article/stock.svg') }}" alt="Icône stock" width="20px">
-                                    <label class="box-item ml-3">
-                                        <span class="ra-field-name">Quantité en stock</span>
-                                        <span class="ra-body-text">{{ reference.quantiteStock ?? 0 }}</span>
-                                    </label>
-                                </div>
-                            {% else %}
-                                <div class="col-12 col-md-6 reference mt-3">
-                                    <label>
-                                        <span class="icon ra-field-name">
-                                            <img src="{{ asset('svg/reference_article/location.svg') }}" class="icon" alt="Image emplacement">
-                                            Emplacement*
-                                        </span>
-                                        <select name="emplacement" id="emplacement" class="form-control w-100 data needed"
-                                                data-s2="location" data-placeholder="Sélectionnez un emplacement">
-                                        </select>
-                                    </label>
-                                </div>
-                                <div class="col-12 col-md-6 mt-3">
-                                    <label>
-                                        <span class="icon ra-field-name">
-                                            <img src="{{ asset('svg/reference_article/stock.svg') }}" class="icon" alt="Image quantité">
-                                            Quantité*
-                                        </span>
-                                            <div class="increase-decrease-field">
-                                                <button class="decrease"></button>
-                                                <input type="number"
-                                                       id="quantite"
-                                                       name="quantite"
-                                                       class="form-control data needed"
-                                                       min="0">
-                                                <button class="increase"></button>
+                            <div class="col-12">
+                                <div class="row">
+                                    {% if reference.id %}
+                                        <div class="col-12 col-md-4 reference mt-3">
+                                            <div class="d-flex">
+                                                <img src="{{ asset('svg/reference_article/location.svg') }}" class="icon" alt="Image emplacement" width="20px">
+                                                <label class="box-item ml-3">
+                                                    <span class="ra-field-name">Emplacement</span>
+                                                    <span class="ra-body-text">
+                                                        {% if reference.emplacement %}
+                                                            {{ reference.emplacement.label }}
+                                                        {% endif %}
+                                                    </span>
+                                                </label>
                                             </div>
-                                    </label>
+                                        </div>
+                                        <div class="col-12 col-md-4 mt-3 d-flex">
+                                            <img src="{{ asset('svg/reference_article/stock.svg') }}" alt="Icône stock" width="20px">
+                                            <label class="box-item ml-3">
+                                                <span class="ra-field-name">Quantité en stock</span>
+                                                <span class="ra-body-text">{{ reference.quantiteStock ?? 0 }}</span>
+                                            </label>
+                                        </div>
+                                    {% else %}
+                                        <div class="col-12 col-md-4 reference mt-3">
+                                            <label>
+                                                <span class="icon ra-field-name">
+                                                    <img src="{{ asset('svg/reference_article/location.svg') }}" class="icon" alt="Image emplacement">
+                                                    Emplacement*
+                                                </span>
+                                                <select name="emplacement" id="emplacement" class="form-control w-100 data needed"
+                                                        data-s2="location" data-placeholder="Sélectionnez un emplacement">
+                                                </select>
+                                            </label>
+                                        </div>
+                                        <div class="col-12 col-md-4 mt-3">
+                                            <label>
+                                                <span class="icon ra-field-name">
+                                                    <img src="{{ asset('svg/reference_article/stock.svg') }}" class="icon" alt="Image quantité">
+                                                    Quantité*
+                                                </span>
+                                                <div class="increase-decrease-field">
+                                                    <button class="decrease"></button>
+                                                    <input type="number"
+                                                           id="quantite"
+                                                           name="quantite"
+                                                           class="form-control data needed"
+                                                           min="0">
+                                                    <button class="increase"></button>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    {% endif %}
+                                    <div class="col"></div>
                                 </div>
-                            {% endif %}
-                            <div class="col-12 col-md-6 reference mt-3">
+                            </div>
+
+                            <div class="col-12 col-md-4 reference mt-3">
                                 <label>
                                     <span class="icon ra-field-name">
                                         <img src="{{ asset('svg/reference_article/euro.svg') }}" class="icon" alt="Image euro">
@@ -341,7 +347,7 @@
                                     <input type="number" name="prix" class="form-control w-100 data" value="{{ reference.prixUnitaire }}">
                                 </label>
                             </div>
-                            <div class="col-12 col-md-6 article mt-3">
+                            <div class="col-12 col-md-4 article mt-3">
                                 <label>
                                         <span class="icon ra-field-name">
                                             <img src="{{ asset('svg/reference_article/stock-management.svg') }}" class="icon"
@@ -358,7 +364,7 @@
                                     </select>
                                 </label>
                             </div>
-                            <div class="col-12 col-md-6 mt-3">
+                            <div class="col-12 col-md-4 mt-3">
                                 <label>
                                     <span class="icon ra-field-name">
                                         <img src="{{ asset('svg/reference_article/threshold.svg') }}" class="icon" alt="Image seuil d'alerte">
@@ -372,7 +378,7 @@
                                     </div>
                                 </label>
                             </div>
-                            <div class="col-12 col-md-6 mt-3">
+                            <div class="col-12 col-md-4 mt-3">
                                 <label>
                                     <span class="icon ra-field-name">
                                         <img src="{{ asset('svg/reference_article/threshold_red.svg') }}" class="icon"
@@ -390,7 +396,7 @@
 
                             <div class="col-12">
                                 <div class="row">
-                                    <div class="form-group col-12 col-md-6 mt-3">
+                                    <div class="form-group col-12 col-md-4 mt-3">
                                         <div class="article d-none">
                                             <label class="with-checkbox">
                                                 <input type="checkbox" name="urgence" class="checkbox data"
@@ -399,9 +405,9 @@
                                             </label>
                                         </div>
                                     </div>
-                                    <div class="form-group col-12 col-md-6">
+                                    <div class="form-group col-12 col-md-8">
                                         <label class="emergency-comment d-none">
-                                            <span for="emergency-comment-input" class="ra-field-name">Commentaire de l'urgence</span>
+                                            <span class="ra-field-name">Commentaire de l'urgence</span>
                                             <input class="form-control data" type="text" name="emergency-comment-input"
                                                    value="{{ reference.emergencyComment }}">
                                         </label>
