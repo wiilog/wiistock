@@ -558,7 +558,7 @@ class PreparationController extends AbstractController
      * @Route("/{preparation}/check-etiquette", name="count_bar_codes", options={"expose"=true})
      */
     public function countBarcode(Preparation $preparation): Response {
-        return $this->json($preparation->getArticles()->count() > 0);
+        return $this->json($preparation->getArticles()->count() > 0 || $preparation->getLigneArticlePreparations()->count() > 0);
     }
 
     /**
