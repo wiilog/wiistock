@@ -2,8 +2,10 @@
 
 namespace App\Repository\DeliveryRequest;
 
+use App\Entity\Article;
 use App\Entity\AverageRequestTime;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Reception;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use DateTime;
@@ -417,6 +419,29 @@ class DemandeRepository extends EntityRepository
         ");
         $res = $unionQuery->fetchAllAssociative();
         return $res[0]['count'] ?? 0;
+    }
+
+    public function findOneByArticle(Article $article, ?Reception $reception): ?Demande {
+        $queryBuilder = $this->createQueryBuilder('request');
+        $queryBuilder
+            ->join('request.articleLines', 'articleLines')
+            ->join('articleLines.article', 'article')
+            ->andWhere('article = :article')
+            ->setParameter('article', $article);
+        if ($reception) {
+            $queryBuilder
+                ->join('request.reception', 'reception')
+                ->andWhere('reception = :reception')
+                ->setParameter('reception', $reception);
+        }
+
+        return $queryBuilder
+            ->orderBy('request.date', Criteria::DESC)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getSingleResult();
+
+
     }
 
 }

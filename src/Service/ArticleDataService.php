@@ -413,6 +413,7 @@ class ArticleDataService
     public function dataRowArticle(Article $article, Reception $reception = null)
     {
         $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
+        $deliveryRequestRepository = $this->entityManager->getRepository(Demande::class);
         $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
         $categorieCL = $categorieCLRepository->findOneBy(['label' => CategorieCL::ARTICLE]);
 
@@ -433,6 +434,8 @@ class ArticleDataService
         $sensorCode = ($lastMessage && $lastMessage->getSensor() && $lastMessage->getSensor()->getAvailableSensorWrapper()) ? $lastMessage->getSensor()->getAvailableSensorWrapper()->getName() : null;
         $hasPairing = !$article->getSensorMessages()->isEmpty() || !$article->getPairings()->isEmpty();
 
+        $lastDeliveryRequest = $deliveryRequestRepository->findOneByArticle($article, $reception);
+
         $row = [
             "id" => $article->getId() ?? "Non défini",
             "label" => $article->getLabel() ?? "Non défini",
@@ -452,7 +455,7 @@ class ArticleDataService
             "actions" => $this->templating->render('article/datatableArticleRow.html.twig', [
                 'url' => $url,
                 'articleId' => $article->getId(),
-                'demandeId' => $article->getDemande() ? $article->getDemande()->getId() : null,
+                'demandeId' => $lastDeliveryRequest ? $lastDeliveryRequest->getId() : null,
                 'articleFilter' => $article->getBarCode(),
                 'fromReception' => isset($reception),
                 'receptionId' => $reception ? $reception->getId() : null,
@@ -492,6 +495,7 @@ class ArticleDataService
 
     public function getBarcodeConfig(Article $article, Reception $reception = null): array {
         $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
+        $deliveryRequestRepository = $this->entityManager->getRepository(Demande::class);
 
         if (!isset($this->wantCLOnLabel)
             && !isset($this->clWantedOnLabel)
@@ -548,7 +552,8 @@ class ArticleDataService
             $location = $reception->getStorageLocation() ? $reception->getStorageLocation()->getLabel() : '';
         }
         else if (isset($reception) && $wantDestinationLocation) {
-            $location = $article->getDemande() ? $article->getDemande()->getDestination()->getLabel() : '';
+            $lastDeliveryRequest = $deliveryRequestRepository->findOneByArticle($article, $reception);
+            $location = $lastDeliveryRequest ? $lastDeliveryRequest->getDestination()->getLabel() : '';
         }
         else if ($wantsRecipientDropzone
                 && $articleReceptionRecipient

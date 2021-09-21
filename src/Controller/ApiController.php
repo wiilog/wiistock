@@ -1767,7 +1767,7 @@ class ApiController extends AbstractFOSRestController
                 // we can transfer if reference is active AND it is not linked to any active orders
                 $referenceArticleArray['can_transfer'] = (
                     ($statusReferenceId === $referenceActiveStatusId)
-                    && !$referenceArticle->isUsedInQuantityChangingProcesses()
+                    && !$referenceArticleRepository->isUsedInQuantityChangingProcesses($referenceArticle)
                 );
                 $resData['article'] = $referenceArticleArray;
             } else {

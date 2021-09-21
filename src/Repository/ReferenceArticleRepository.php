@@ -3,13 +3,16 @@
 namespace App\Repository;
 
 use App\Entity\Article;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\FreeField;
 use App\Entity\FiltreRef;
 use App\Entity\InventoryFrequency;
 use App\Entity\InventoryMission;
 use App\Entity\Livraison;
+use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
+use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Helper\QueryCounter;
@@ -1128,6 +1131,39 @@ class ReferenceArticleRepository extends EntityRepository {
             "count" => $countTotal,
             "total" => $countTotal
         ];
+    }
+
+    public function isUsedInQuantityChangingProcesses(ReferenceArticle $referenceArticle): bool {
+        $queryBuilder = $this->createQueryBuilder('reference');
+        $exprBuilder = $queryBuilder->expr();
+        $articleIsProcessed = $queryBuilder
+            ->leftJoin('reference.deliveryRequestLines', 'deliveryRequestLine')
+            ->leftJoin('deliveryRequestLine.request', 'deliveryRequest')
+            ->leftJoin('deliveryRequest.statut', 'deliveryRequestStatus')
+
+            ->leftJoin('reference.ordreCollecteReferences', 'collectOrderLines')
+            ->leftJoin('collectOrderLines.ordreCollecte', 'collectOrder')
+            ->leftJoin('collectOrder.statut', 'collectOrderStatus')
+
+            ->leftJoin('reference.transferRequests', 'transferRequest')
+            ->leftJoin('transferRequest.status', 'transferRequestStatus')
+
+            ->andWhere('reference = :reference')
+            ->andWhere($exprBuilder->orX(
+                '(deliveryRequestLine IS NOT NULL AND deliveryRequestStatus.code NOT IN (:deliveryRequestStatus_processed))',
+                '(transferRequest.id IS NOT NULL AND transferRequestStatus.code NOT IN (:transferRequestStatus_processed))',
+                '(collectOrder.id IS NOT NULL AND collectOrderStatus.code NOT IN (:collectOrderStatusStatus_processed))'
+            ))
+
+            ->setParameter('reference', $referenceArticle)
+            ->setParameter('deliveryRequestStatus_processed', [Demande::STATUT_BROUILLON, Demande::STATUT_LIVRE, Demande::STATUT_LIVRE_INCOMPLETE])
+            ->setParameter('transferRequestStatus_processed', [TransferRequest::DRAFT, TransferRequest::TREATED])
+            ->setParameter('collectOrderStatusStatus_processed', [OrdreCollecte::STATUT_TRAITE])
+
+            ->getQuery()
+            ->getResult();
+
+        return !empty($articleIsProcessed);
     }
 
 }

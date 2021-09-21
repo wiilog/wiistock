@@ -372,18 +372,18 @@ class ArticleController extends AbstractController
 
                 $articlesMvtTracaIsEmpty = $article->getTrackingMovements()->isEmpty();
                 $articlesMvtStockIsEmpty = $article->getMouvements()->isEmpty();
-                $articleRequest = $article->getDemande();
-                $articlePrepa = $article->getPreparation();
-                $isNotUsedInAssoc = $articlesMvtTracaIsEmpty && $articlesMvtStockIsEmpty && empty($articleRequest) && empty($articlePrepa);
+                $hasNoDeliveryRequestLines = $article->getDeliveryRequestLines()->isEmpty();
+                $hasNoPreparationOrderLines = $article->getDeliveryRequestLines()->isEmpty();
+                $isNotUsedInAssoc = ($articlesMvtTracaIsEmpty && $articlesMvtStockIsEmpty && $hasNoDeliveryRequestLines && $hasNoPreparationOrderLines);
                 if (($hasRightToDeleteTraca || $articlesMvtTracaIsEmpty)
                     && ($hasRightToDeleteStock || $articlesMvtStockIsEmpty)
-                    && ($hasRightToDeleteRequests || empty($articleRequest))
-                    && ($hasRightToDeleteOrders || empty($articlePrepa))) {
+                    && ($hasRightToDeleteRequests || $hasNoDeliveryRequestLines)
+                    && ($hasRightToDeleteOrders || $hasNoPreparationOrderLines)) {
                     return new JsonResponse([
                         'delete' => $isFromReception || $isNotUsedInAssoc,
                         'html' => $this->renderView('article/modalDeleteArticleRight.html.twig', [
-                            'prepa' => $articlePrepa ? $articlePrepa->getNumero() : null,
-                            'request' => $articleRequest ? $articleRequest->getNumero() : null,
+                            'prepa' => $hasNoPreparationOrderLines ? $hasNoPreparationOrderLines->getNumero() : null,
+                            'request' => $hasNoDeliveryRequestLines ? $hasNoDeliveryRequestLines->getNumero() : null,
                             'mvtStockIsEmpty' => $articlesMvtStockIsEmpty,
                             'mvtTracaIsEmpty' => $articlesMvtTracaIsEmpty,
                             'askQuestion' => $isFromReception

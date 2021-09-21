@@ -120,10 +120,17 @@ class MouvementStockController extends AbstractController
             $chosenMvtLocation = $data["chosen-mvt-location"];
             $movementBarcode = $data["movement-barcode"];
             $unavailableArticleStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
-            $chosenArticleToMove = $referenceArticleRepository->findOneBy(['barCode' => $movementBarcode]);
-            if (empty($chosenArticleToMove)) {
-                $chosenArticleToMove = $articleRepository->findOneBy(['barCode' => $movementBarcode]);
-            }
+            $chosenArticleToMove = (
+                $referenceArticleRepository->findOneBy(['barCode' => $movementBarcode])
+                ?: $articleRepository->findOneBy(['barCode' => $movementBarcode])
+            );
+
+            $chosenRepository = (
+                ($chosenArticleToMove instanceof ReferenceArticle)
+                    ? $referenceArticleRepository
+                    : $articleRepository
+            );
+
             $chosenArticleStatus = $chosenArticleToMove->getStatut();
             $chosenArticleStatusName = $chosenArticleStatus ? $chosenArticleStatus->getNom() : null;
             if (empty($chosenArticleToMove) || !in_array($chosenArticleStatusName, [ReferenceArticle::STATUT_ACTIF, Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE])) {
@@ -174,7 +181,8 @@ class MouvementStockController extends AbstractController
                     }
                 } else if ($chosenMvtType === MouvementStock::TYPE_TRANSFER) {
                     $chosenLocation = $emplacementRepository->find($chosenMvtLocation);
-                    if ($chosenArticleToMove->isUsedInQuantityChangingProcesses()) {
+                    if ($chosenArticleToMove
+                        && $chosenRepository->isUsedInQuantityChangingProcesses($chosenArticleToMove)) {
                         $response['msg'] = 'La référence saisie est présente dans une demande de livraison/collecte/transfert en cours de traitement, impossible de la transférer.';
                     } else if (empty($chosenLocation)) {
                         $response['msg'] = 'L\'emplacement saisi est inconnu.';
