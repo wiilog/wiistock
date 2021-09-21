@@ -17,7 +17,7 @@
                     <label for="type" title="Colis">{{ 'mouvement de traçabilité.Colis'|trans }}*</label>
                     <div class="d-flex">
                         {% if prefixPackCodeWithDispatchNumber %}
-                            <input type="text" class="form-control text-right no-clear mr-2" value="{{ dispatch.number }}" disabled>
+                            <input type="text" class="pack-code-prefix form-control text-right no-clear mr-2" value="{{ dispatch.number }}-" disabled>
                         {% endif %}
                         <input type="text"
                                class="form-control data needed"
