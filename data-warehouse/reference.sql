@@ -22,7 +22,7 @@ SELECT
     IF(reference_article.needs_mobile_sync = 1, 'oui', 'non') AS synchronisation_nomade,
     reference_article.stock_management AS gestion_stock,
     GROUP_CONCAT(gestionnaires.username SEPARATOR ', ') AS gestionnaires,
-    GROUP_CONCAT(visibility_group.label SEPARATOR ', ') AS groupes_visibilite
+    visibility_group.label AS groupe_visibilite
 
 FROM reference_article
 
@@ -32,8 +32,7 @@ FROM reference_article
          LEFT JOIN inventory_category ON reference_article.category_id = inventory_category.id
          LEFT JOIN reference_article_utilisateur ON reference_article.id = reference_article_utilisateur.reference_article_id
          LEFT JOIN utilisateur AS gestionnaires ON reference_article_utilisateur.utilisateur_id = gestionnaires.id
-         LEFT JOIN visibility_group_reference_article ON reference_article.id = visibility_group_reference_article.reference_article_id
-         LEFT JOIN visibility_group ON visibility_group_reference_article.visibility_group_id = visibility_group.id
+         LEFT JOIN visibility_group ON reference_article.visibility_group_id = visibility_group.id
 
          LEFT JOIN alert AS alerte_stock ON reference_article.id = alerte_stock.reference_id
 
@@ -55,4 +54,5 @@ GROUP BY
     categorie_inventaire,
     date_dernier_inventaire,
     synchronisation_nomade,
-    gestion_stock
+    gestion_stock,
+    groupe_visibilite

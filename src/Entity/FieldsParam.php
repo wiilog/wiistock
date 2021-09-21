@@ -44,7 +44,7 @@ class FieldsParam
     const FIELD_CODE_CHAUFFEUR_ARRIVAGE = 'chauffeur';
     const FIELD_CODE_NUMERO_TRACKING_ARRIVAGE = 'noTracking';
     const FIELD_CODE_NUM_COMMANDE_ARRIVAGE = 'numeroCommandeList';
-    const FIELD_CODE_DROP_LOCATION_ARRIVAGE = 'dropLocation';
+    const FIELD_CODE_DROP_LOCATION_ARRIVAGE = 'dropLocationArrival';
     const FIELD_CODE_TARGET_ARRIVAGE = 'destinataire';
     const FIELD_CODE_BUYERS_ARRIVAGE = 'acheteurs';
     const FIELD_CODE_PRINT_ARRIVAGE = 'imprimerArrivage';
