@@ -6,7 +6,6 @@ use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\SensorMessageTrait;
-use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -676,32 +675,6 @@ class Article extends FreeFieldEntity implements PairedEntity
             || $preparation
             || ($referenceArticle && $referenceArticle->isInRequestsInProgress())
         );
-    }
-
-    public function isUsedInQuantityChangingProcesses(): bool {
-        // todo demande
-        $demande = $this->getDemande();
-        $transfers = $this->getTransferRequests();
-        $inProgress = $demande ? $demande->needsToBeProcessed() : false;
-        if (!$inProgress) {
-            $collectes = $this->getOrdreCollecte();
-            /** @var OrdreCollecte $collecte */
-            foreach ($collectes as $collecte) {
-                if ($collecte->needsToBeProcessed()) {
-                    $inProgress = true;
-                    break;
-                }
-            }
-            if (!$inProgress) {
-                foreach ($transfers as $transfer) {
-                    if ($transfer->needsToBeProcessed()) {
-                        $inProgress = true;
-                        break;
-                    }
-                }
-            }
-        }
-        return $inProgress;
     }
 
     /**
