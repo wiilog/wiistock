@@ -1024,36 +1024,4 @@ class ArticleRepository extends EntityRepository {
 
         return !empty($articleIsProcessed);
     }
-
-    public function isInRequestsInProgress(Article $article): bool {
-        $queryBuilder = $this->createQueryBuilder('article');
-        $exprBuilder = $queryBuilder->expr();
-        $articleIsProcessed = $queryBuilder
-            ->leftJoin('article.deliveryRequestLines', 'deliveryRequestLine')
-            ->leftJoin('deliveryRequestLine.request', 'deliveryRequest')
-            ->leftJoin('deliveryRequest.statut', 'deliveryRequestStatus')
-
-            ->leftJoin('article.transferRequests', 'transferRequest')
-            ->leftJoin('transferRequest.status', 'transferRequestStatus')
-
-            ->leftJoin('article.ordreCollecte', 'collectOrder')
-            ->leftJoin('collectOrder.statut', 'collectOrderStatus')
-
-            ->andWhere('article = :article')
-            ->andWhere($exprBuilder->orX(
-                '(deliveryRequestLine IS NOT NULL AND deliveryRequestStatus.code NOT IN (:deliveryRequestStatus_processed))',
-                '(transferRequest.id IS NOT NULL AND transferRequestStatus.code NOT IN (:transferRequestStatus_processed))',
-                '(collectOrder.id IS NOT NULL AND collectOrderStatus.code NOT IN (:collectOrderStatusStatus_processed))'
-            ))
-
-            ->setParameter('article', $article)
-            ->setParameter('deliveryRequestStatus_processed', [Demande::STATUT_BROUILLON, Demande::STATUT_LIVRE, Demande::STATUT_LIVRE_INCOMPLETE])
-            ->setParameter('transferRequestStatus_processed', [TransferRequest::DRAFT, TransferRequest::TREATED])
-            ->setParameter('collectOrderStatusStatus_processed', [OrdreCollecte::STATUT_TRAITE])
-
-            ->getQuery()
-            ->getResult();
-
-        return !empty($articleIsProcessed);
-    }
 }

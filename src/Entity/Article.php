@@ -659,24 +659,6 @@ class Article extends FreeFieldEntity implements PairedEntity
         );
     }
 
-    public function isInRequestsInProgress(): bool {
-
-        // TODO adrien
-        $request = $this->getDemande();
-        $preparation = $this->getPreparation();
-        $articleFournisseur = $this->getArticleFournisseur();
-        $referenceArticle = $articleFournisseur ? $articleFournisseur->getReferenceArticle() : null;
-        return (
-            (
-                $request
-                && $request->getStatut()
-                && $request->getStatut()->getNom() !== Demande::STATUT_BROUILLON
-            )
-            || $preparation
-            || ($referenceArticle && $referenceArticle->isInRequestsInProgress())
-        );
-    }
-
     /**
      * @return Collection|TransferRequest[]
      */
@@ -818,5 +800,10 @@ class Article extends FreeFieldEntity implements PairedEntity
         }
 
         return $this;
+    }
+
+    public function getReferenceArticle(): ?ReferenceArticle {
+        $supplierArticle = $this->getArticleFournisseur();
+        return $supplierArticle ? $supplierArticle->getReferenceArticle() : null;
     }
 }

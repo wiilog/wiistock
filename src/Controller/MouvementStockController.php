@@ -125,12 +125,6 @@ class MouvementStockController extends AbstractController
                 ?: $articleRepository->findOneBy(['barCode' => $movementBarcode])
             );
 
-            $chosenRepository = (
-                ($chosenArticleToMove instanceof ReferenceArticle)
-                    ? $referenceArticleRepository
-                    : $articleRepository
-            );
-
             $chosenArticleStatus = $chosenArticleToMove->getStatut();
             $chosenArticleStatusName = $chosenArticleStatus ? $chosenArticleStatus->getNom() : null;
             if (empty($chosenArticleToMove) || !in_array($chosenArticleStatusName, [ReferenceArticle::STATUT_ACTIF, Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE])) {
@@ -181,8 +175,8 @@ class MouvementStockController extends AbstractController
                     }
                 } else if ($chosenMvtType === MouvementStock::TYPE_TRANSFER) {
                     $chosenLocation = $emplacementRepository->find($chosenMvtLocation);
-                    if ($chosenArticleToMove
-                        && $chosenRepository->isUsedInQuantityChangingProcesses($chosenArticleToMove)) {
+                    if (($chosenArticleToMove instanceof Article && !in_array($chosenArticleToMove->getStatut()->getCode(), [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE]))
+                        || ($chosenArticleToMove instanceof ReferenceArticle && $referenceArticleRepository->isUsedInQuantityChangingProcesses($chosenArticleToMove))) {
                         $response['msg'] = 'La référence saisie est présente dans une demande de livraison/collecte/transfert en cours de traitement, impossible de la transférer.';
                     } else if (empty($chosenLocation)) {
                         $response['msg'] = 'L\'emplacement saisi est inconnu.';

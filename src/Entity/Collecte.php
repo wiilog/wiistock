@@ -347,15 +347,6 @@ class Collecte extends FreeFieldEntity implements Serializable, PairedEntity {
         return $this;
     }
 
-    public function needsToBeProcessed(): bool {
-        $demandeStatus = $this->getStatut();
-        return (
-            !$demandeStatus
-            || ($demandeStatus->getNom() === Collecte::STATUT_A_TRAITER)
-            || ($demandeStatus->getNom() === Collecte::STATUT_INCOMPLETE)
-        );
-    }
-
     public function getPairings(): Collection {
         $pairingsArray = Stream::from($this->getOrdresCollecte()->toArray())
             ->flatMap(fn(OrdreCollecte $collectOrder) => $collectOrder->getPairings()->toArray())
