@@ -400,7 +400,8 @@ class DispatchController extends AbstractController {
             'dispatchTreat' => [
                 'treatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::TREATED])
             ],
-            'printBL' => $printBL
+            'printBL' => $printBL,
+            'prefixPackCodeWithDispatchNumber' => $paramRepository->getOneParamByLabel(ParametrageGlobal::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER)
         ]);
     }
 
@@ -719,12 +720,30 @@ class DispatchController extends AbstractController {
                             Dispatch $dispatch): Response {
         $data = json_decode($request->getContent(), true);
 
-        $packCode = $data['pack'];
+        $packCode = trim($data['pack']);
         $natureId = $data['nature'];
         $quantity = $data['quantity'];
         $comment = $data['comment'];
         $weight = (floatval(str_replace(',', '.', $data['weight'])) ?: null);
         $volume = (floatval(str_replace(',', '.', $data['volume'])) ?: null);
+
+        $globalSettingsRepository = $entityManager->getRepository(ParametrageGlobal::class);
+
+        $prefixPackCodeWithDispatchNumber = $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
+        if($prefixPackCodeWithDispatchNumber) {
+            $packCode = $dispatch->getNumber() . '-' . $packCode;
+        }
+
+        $packMustBeNew = $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::PACK_MUST_BE_NEW);
+        if($packMustBeNew) {
+            $existingPack = $entityManager->getRepository(Pack::class)->findOneBy(['code' => $packCode]);
+            if($existingPack) {
+                return $this->json([
+                    'success' => false,
+                    'msg' => "Le colis <strong>${packCode}</strong> existe déjà en base de données"
+                ]);
+            }
+        }
 
         $alreadyCreated = !$dispatch
             ->getDispatchPacks()
