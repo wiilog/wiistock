@@ -25,6 +25,11 @@ let modalEditArticle = $("#modalEditArticle");
 let submitEditArticle = $("#submitEditArticle");
 InitModal(modalEditArticle, submitEditArticle, urlEditArticle, {tables: [tableArticle]});
 
+let urlAddArticle = Routing.generate('ordre_collecte_add_article', true);
+let modalAddArticle = $("#modalPickArticle");
+let submitAddArticle = $("#submitNewArticle");
+InitModal(modalAddArticle, submitAddArticle, urlAddArticle, {tables: [tableArticle]});
+
 let modalDeleteOrdreCollecte = $('#modalDeleteOrdreCollecte');
 let submitDeleteOrdreCollecte = $('#submitDeleteOrdreCollecte');
 let urlDeleteOrdreCollecte = Routing.generate('ordre_collecte_delete',{'id':id}, true);
@@ -49,9 +54,10 @@ $submitFinishCollecte.on('click', function () {
 
 function toggleCheck($elem) {
     const $ordreCollecteIntels = $elem.parent('.d-flex').find('.ordre-collecte-data');
-    const isManagedByRef = $ordreCollecteIntels.data('is-ref');
+    const isManagedByRef = !($ordreCollecteIntels.data('byArticle') === 1);
+    const quantity = $ordreCollecteIntels.data('quantity');
     const barCode = $ordreCollecteIntels.data('bar-code');
-    const id = $ordreCollecteIntels.data('id');
+    const id = $ordreCollecteIntels.data('ref-id');
     if (isManagedByRef) {
         $elem
             .parents('tr')
@@ -61,6 +67,7 @@ function toggleCheck($elem) {
         const $modal = $('#modalPickArticle');
         $modal.find('.reference').text(barCode);
         $modal.find('input[name="referenceArticle"]').val(id);
+        $modal.find('input[name="quantity-to-pick"]').attr('max', quantity);
         $modal.modal('show');
     }
 }

@@ -10,6 +10,7 @@ use App\Entity\IOT\Sensor;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
+use App\Entity\Statut;
 use App\Entity\Utilisateur;
 
 use App\Entity\VisibilityGroup;
@@ -1030,10 +1031,13 @@ class ArticleRepository extends EntityRepository {
     public function getCollectableArticlesForSelect(?string $search, ?int $referenceArticle = null) {
         $qb = $this->createQueryBuilder("article")
             ->select("article.id AS id, article.barCode AS text")
+            ->join('article.statut', 'statut')
             ->andWhere("article.barCode LIKE :search")
             ->andWhere("article.inactiveSince IS NOT NULL")
             ->andWhere("article.inactiveSince > :one_month_ago")
+            ->andWhere("statut.code = :inactive")
             ->setParameter("search", "%$search%")
+            ->setParameter("inactive", Article::STATUT_INACTIF)
             ->setParameter("one_month_ago", new DateTime("-1 month"));
 
         if($referenceArticle) {

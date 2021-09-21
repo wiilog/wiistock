@@ -2,8 +2,10 @@
     <input type="hidden"
            class="ordre-collecte-data"
            data-is-ref='{{ refArticleId is defined ? 1 : 0 }}'
+           data-by-article="{{ byArticle }}"
            data-bar-code='{{ barCode }}'
            data-quantity="{{ quantity }}"
+           data-ref-id="{{ refArticleId is defined ? refArticleId }}"
            data-id="{{ id }}"
            data-emplacement="{{ location }}">
     {% if modifiable %}
