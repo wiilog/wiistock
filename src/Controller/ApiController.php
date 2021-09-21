@@ -2173,6 +2173,46 @@ class ApiController extends AbstractFOSRestController
         );
     }
 
+    /**
+     * @Rest\Post("/api/empty-round", name="api_empty_round", methods={"POST"}, condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function emptyRound(Request $request, TrackingMovementService $trackingMovementService, EntityManagerInterface $manager): JsonResponse {
+        $emptyRounds = $request->request->get('params')
+            ? json_decode($request->request->get('params'), true)
+            : [$request->request->all()];
+
+        $packRepository = $manager->getRepository(Pack::class);
+        $locationRepository = $manager->getRepository(Emplacement::class);
+        $user = $this->getUser();
+
+        foreach ($emptyRounds as $emptyRound) {
+            $date = new DateTime(trim($emptyRound['date'], '"'));
+
+            $emptyRoundPack = $packRepository->findOneBy(['code' => Pack::EMPTY_ROUND_PACK]);
+            $location = $locationRepository->findOneBy(['label' => $emptyRound['location']]);
+
+            $trackingMovement = $trackingMovementService->createTrackingMovement(
+                $emptyRoundPack,
+                $location,
+                $user,
+                $date,
+                true,
+                true,
+                TrackingMovement::TYPE_EMPTY_ROUND,
+                ['commentaire' => $emptyRound['comment']]
+            );
+
+            $manager->persist($trackingMovement);
+        }
+        $manager->flush();
+
+        return $this->json([
+            "success" => true
+        ]);
+    }
+
     private function getMenuRights($user, UserService $userService)
     {
         return [
@@ -2183,7 +2223,8 @@ class ApiController extends AbstractFOSRestController
             'group' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_GROUP, $user),
             'ungroup' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_UNGROUP, $user),
             'demande' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_HAND, $user),
-            'inventoryManager' => $userService->hasRightFunction(Menu::STOCK, Action::INVENTORY_MANAGER, $user)
+            'inventoryManager' => $userService->hasRightFunction(Menu::STOCK, Action::INVENTORY_MANAGER, $user),
+            'emptyRound' => $userService->hasRightFunction(Menu::TRACA, Action::EMPTY_ROUND, $user)
         ];
     }
 
