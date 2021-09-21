@@ -6,7 +6,7 @@ use App\Entity\LocationGroup;
 use App\Repository\IOT\PairingRepository;
 use App\Entity\Emplacement;
 use App\Entity\Pack;
-use App\Entity\Preparation;
+use App\Entity\PreparationOrder\Preparation;
 use App\Entity\OrdreCollecte;
 use App\Entity\Article;
 use DateTimeInterface;

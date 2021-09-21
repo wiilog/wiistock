@@ -65,10 +65,11 @@
                                         <span class="slider round"></span>
                                     </label>
                                     <label class="px-1 m-auto">Quantité&nbsp;:</label>
+
                                     <input class="input w-25"
                                            data-ref="{{ reference }}"
-                                           value="{{ article.quantitePrelevee and article.preparation and article.preparation.id == preparation.id ? article.quantitePrelevee : '' }}"
-                                           data-value-init="{{ article.quantitePrelevee and article.preparation and article.preparation.id == preparation.id ? article.quantitePrelevee : 0 }}"
+                                           value="{{ pickedQuantitiesByArticle[article.id] ?? '' }}"
+                                           data-value-init="{{ pickedQuantitiesByArticle[article.id] ?? 0 }}"
                                            data-total="{{ quantiteArt }}"
                                            data-quantite="{{ quantiteArt }}"
                                            type="number"

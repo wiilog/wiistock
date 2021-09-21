@@ -2,9 +2,9 @@
 
 namespace App\Command;
 
-use App\Entity\LigneArticlePreparation;
+use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Livraison;
-use App\Entity\Preparation;
+use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Service\RefArticleDataService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -71,13 +71,13 @@ class UpdateRefQuantitiesCommand extends Command
         $output
             ->writeln('');
         $refPrepasEnCours = $referenceArticleToUpdate
-            ->getLigneArticlePreparations()
-            ->filter(function (LigneArticlePreparation $ligneArticlePreparation) {
+            ->getPreparationOrderReferenceLines()
+            ->filter(function (PreparationOrderReferenceLine $ligneArticlePreparation) {
                 $preparation = $ligneArticlePreparation->getPreparation();
                 return $preparation->getStatut()->getNom() === Preparation::STATUT_EN_COURS_DE_PREPARATION
                     || $preparation->getStatut()->getNom() === Preparation::STATUT_A_TRAITER;
             })
-            ->map(function (LigneArticlePreparation $ligneArticlePreparation) {
+            ->map(function (PreparationOrderReferenceLine $ligneArticlePreparation) {
                 $preparation = $ligneArticlePreparation->getPreparation();
                 return $preparation->getNumero();
             });
@@ -93,12 +93,12 @@ class UpdateRefQuantitiesCommand extends Command
         $output
             ->writeln('');
         $refLivraisonEnCours = $referenceArticleToUpdate
-            ->getLigneArticlePreparations()
-            ->filter(function (LigneArticlePreparation $ligneArticlePreparation) {
+            ->getPreparationOrderReferenceLines()
+            ->filter(function (PreparationOrderReferenceLine $ligneArticlePreparation) {
                 $preparation = $ligneArticlePreparation->getPreparation();
                 $livraison = $preparation->getLivraison();
                 return isset($livraison) && $livraison->getStatut()->getNom() === Livraison::STATUT_A_TRAITER;
-            })->map(function (LigneArticlePreparation $ligneArticlePreparation) {
+            })->map(function (PreparationOrderReferenceLine $ligneArticlePreparation) {
                 $preparation = $ligneArticlePreparation->getPreparation();
                 $livraison = $preparation->getLivraison();
                 return $livraison->getNumero();

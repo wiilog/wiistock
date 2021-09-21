@@ -51,7 +51,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use App\Entity\Demande;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\ArticleFournisseur;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 
@@ -424,7 +424,7 @@ class ReferenceArticleController extends AbstractController
             /** @var ReferenceArticle $refArticle */
             $refArticle = $referenceArticleRepository->find($data['refArticle']);
             if (!($refArticle->getCollecteReferences()->isEmpty())
-                || !($refArticle->getLigneArticles()->isEmpty())
+                || !($refArticle->getDeliveryRequestLines()->isEmpty())
                 || !($refArticle->getReceptionReferenceArticles()->isEmpty())
                 || !($refArticle->getMouvements()->isEmpty())
                 || !($refArticle->getArticlesFournisseur()->isEmpty())

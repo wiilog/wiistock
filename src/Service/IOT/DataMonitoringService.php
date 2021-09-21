@@ -4,7 +4,7 @@ namespace App\Service\IOT;
 
 use App\Entity\Article;
 use App\Entity\Collecte;
-use App\Entity\Demande;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
@@ -12,7 +12,7 @@ use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\OrdreCollecte;
 use App\Entity\Pack;
-use App\Entity\Preparation;
+use App\Entity\PreparationOrder\Preparation;
 use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;

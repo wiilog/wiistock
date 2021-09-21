@@ -4,7 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
-use App\Entity\Preparation;
+use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;

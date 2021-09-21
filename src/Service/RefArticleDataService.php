@@ -8,16 +8,17 @@ use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
-use App\Entity\Demande;
+use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\FiltreRef;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\InventoryCategory;
-use App\Entity\LigneArticle;
-use App\Entity\LigneArticlePreparation;
+use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
+use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Livraison;
 use App\Entity\Menu;
-use App\Entity\Preparation;
+use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
@@ -447,20 +448,20 @@ class RefArticleDataService {
                                    ?FreeFieldService $champLibreService, $editRef = true, $fromCart = false) {
         $resp = true;
         $articleRepository = $entityManager->getRepository(Article::class);
-        $ligneArticleRepository = $entityManager->getRepository(LigneArticle::class);
+        $referenceLineRepository = $entityManager->getRepository(DeliveryRequestReferenceLine::class);
         // cas gestion quantité par référence
         if($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-            if($fromNomade || $ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
-                $ligneArticle = new LigneArticle();
-                $ligneArticle
+            if($fromNomade || $referenceLineRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
+                $line = new DeliveryRequestReferenceLine();
+                $line
                     ->setReference($referenceArticle)
-                    ->setDemande($demande)
-                    ->setQuantite(max($data["quantity-to-pick"], 0)); // protection contre quantités négatives
-                $entityManager->persist($ligneArticle);
-                $demande->addLigneArticle($ligneArticle);
+                    ->setRequest($demande)
+                    ->setQuantityToPick(max($data["quantity-to-pick"], 0)); // protection contre quantités négatives
+                $entityManager->persist($line);
+                $demande->addReferenceLine($line);
             } else {
-                $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($referenceArticle, $demande);
-                $ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantity-to-pick"], 0)); // protection contre quantités négatives
+                $line = $referenceLineRepository->findOneByRefArticleAndDemande($referenceArticle, $demande);
+                $line->setQuantityToPick($line->getQuantityToPick() + max($data["quantity-to-pick"], 0)); // protection contre quantités négatives
             }
 
             if(!$fromNomade && $editRef) {
@@ -468,25 +469,25 @@ class RefArticleDataService {
             }
         } else if($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             if($fromNomade || $this->userService->hasParamQuantityByRef() || $fromCart) {
-                if($fromNomade || $ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
-                    $ligneArticle = new LigneArticle();
-                    $ligneArticle
-                        ->setQuantite(max($data["quantity-to-pick"], 0))// protection contre quantités négatives
+                if($fromNomade || $referenceLineRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
+                    $line = new DeliveryRequestReferenceLine();
+                    $line
+                        ->setQuantityToPick(max($data["quantity-to-pick"], 0))// protection contre quantités négatives
                         ->setReference($referenceArticle)
-                        ->setDemande($demande)
-                        ->setToSplit(true);
-                    $entityManager->persist($ligneArticle);
-                    $demande->addLigneArticle($ligneArticle);
+                        ->setRequest($demande);
+                    $entityManager->persist($line);
                 } else {
-                    $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemandeAndToSplit($referenceArticle, $demande);
-                    $ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantity-to-pick"], 0));
+                    $line = $referenceLineRepository->findOneByRefArticleAndDemande($referenceArticle, $demande, true);
+                    $line->setQuantityToPick($line->getQuantityToPick() + max($data["quantity-to-pick"], 0));
                 }
             } else {
                 $article = $articleRepository->find($data['article']);
-                /** @var Article $article */
-                $article
-                    ->setDemande($demande)
-                    ->setQuantiteAPrelever(max($data["quantity-to-pick"], 0)); // protection contre quantités négatives
+                $line = new DeliveryRequestArticleLine();
+                $line
+                    ->setQuantityToPick(max($data["quantity-to-pick"], 0))// protection contre quantités négatives
+                    ->setArticle($article)
+                    ->setRequest($demande);
+                $entityManager->persist($line);
                 $resp = 'article';
             }
         } else {
@@ -644,8 +645,8 @@ class RefArticleDataService {
         } else {
             $totalReservedQuantity = 0;
             $lignesArticlePrepaEnCours = $referenceArticle
-                ->getLigneArticlePreparations()
-                ->filter(function(LigneArticlePreparation $ligneArticlePreparation) use ($fromCommand) {
+                ->getPreparationOrderReferenceLines()
+                ->filter(function(PreparationOrderReferenceLine $ligneArticlePreparation) use ($fromCommand) {
                     $preparation = $ligneArticlePreparation->getPreparation();
                     $livraison = $preparation->getLivraison();
                     return $preparation->getStatut()->getNom() === Preparation::STATUT_EN_COURS_DE_PREPARATION
@@ -657,10 +658,10 @@ class RefArticleDataService {
                         );
                 });
             /**
-             * @var LigneArticlePreparation $ligneArticlePrepaEnCours
+             * @var PreparationOrderReferenceLine $ligneArticlePrepaEnCours
              */
             foreach($lignesArticlePrepaEnCours as $ligneArticlePrepaEnCours) {
-                $totalReservedQuantity += $ligneArticlePrepaEnCours->getQuantite();
+                $totalReservedQuantity += $ligneArticlePrepaEnCours->getQuantityToPick();
             }
             $referenceArticle->setQuantiteReservee($totalReservedQuantity);
         }

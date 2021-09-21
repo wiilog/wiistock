@@ -9,7 +9,7 @@ use App\Entity\Livraison;
 use App\Entity\Notification;
 use App\Entity\NotificationTemplate;
 use App\Entity\OrdreCollecte;
-use App\Entity\Preparation;
+use App\Entity\PreparationOrder\Preparation;
 use App\Entity\TransferOrder;
 use Doctrine\ORM\EntityManagerInterface;
 use Google_Client;

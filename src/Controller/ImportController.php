@@ -143,8 +143,6 @@ class ImportController extends AbstractController
                         'barCode',
                         'reference',
                         'conform',
-                        'quantiteAPrelever',
-                        'quantitePrelevee',
                         'dateEmergencyTriggered',
                         'isUrgent',
                         'quantiteDisponible',

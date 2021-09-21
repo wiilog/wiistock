@@ -4,12 +4,13 @@ namespace App\Service;
 
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
-use App\Entity\Demande;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
-use App\Entity\LigneArticlePreparation;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
-use App\Entity\Preparation;
+use App\Entity\PreparationOrder\Preparation;
+use App\Entity\PreparationOrder\PreparationOrderArticleLine;
+use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
@@ -39,13 +40,6 @@ class LivraisonsManagerService
     private $templating;
     private $mouvementStockService;
 
-    /**
-     * LivraisonsManagerService constructor.
-     * @param EntityManagerInterface $entityManager
-     * @param MouvementStockService $mouvementStockService
-     * @param MailerService $mailerService
-     * @param Twig_Environment $templating
-     */
     public function __construct(EntityManagerInterface $entityManager,
                                 MouvementStockService $mouvementStockService,
                                 MailerService $mailerService,
@@ -149,32 +143,36 @@ class LivraisonsManagerService
 
             $preparation = $livraison->getPreparation();
 
-            // quantités gérées à l'article
-            $articles = $preparation->getArticles();
-            foreach ($articles as $article) {
+            $inactiveArticleStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
+            $articleLines = $preparation->getArticleLines();
+
+            /** @var PreparationOrderArticleLine $articleLine */
+            foreach ($articleLines as $articleLine) {
+                $article = $articleLine->getArticle();
                 $article
-                    ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF))
+                    ->setStatut($inactiveArticleStatus)
                     ->setEmplacement($demande->getDestination());
             }
 
-            // quantités gérées à la référence
-            $ligneArticles = $preparation->getLigneArticlePreparations();
+            $referenceLines = $preparation->getReferenceLines();
 
-            /** @var LigneArticlePreparation $ligneArticle */
-            foreach ($ligneArticles as $ligneArticle) {
-                $pickedQuantity = $ligneArticle->getQuantitePrelevee();
-                $refArticle = $ligneArticle->getReference();
-                if (!empty($pickedQuantity)) {
-                    $newQuantiteStock = (($refArticle->getQuantiteStock() ?? 0) - $pickedQuantity);
-                    $newQuantiteReservee = (($refArticle->getQuantiteReservee() ?? 0) - $pickedQuantity);
+            /** @var PreparationOrderReferenceLine $referenceLine */
+            foreach ($referenceLines as $referenceLine) {
+                $pickedQuantity = $referenceLine->getPickedQuantity();
+                $reference = $referenceLine->getReference();
+
+                if ($reference->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE
+                    && !empty($pickedQuantity)) {
+                    $newQuantiteStock = (($reference->getQuantiteStock() ?? 0) - $pickedQuantity);
+                    $newQuantiteReservee = (($reference->getQuantiteReservee() ?? 0) - $pickedQuantity);
 
                     if ($newQuantiteStock >= 0
                         && $newQuantiteReservee >= 0
                         && $newQuantiteStock >= $newQuantiteReservee) {
-                        $refArticle->setQuantiteStock($newQuantiteStock);
-                        $refArticle->setQuantiteReservee($newQuantiteReservee);
+                        $reference->setQuantiteStock($newQuantiteStock);
+                        $reference->setQuantiteReservee($newQuantiteReservee);
                     } else {
-                        throw new NegativeQuantityException($refArticle);
+                        throw new NegativeQuantityException($reference);
                     }
                 }
             }
@@ -192,7 +190,7 @@ class LivraisonsManagerService
             $this->mailerService->sendMail(
                 'FOLLOW GT // Livraison effectuée',
                 $this->templating->render('mails/contents/mailLivraisonDone.html.twig', [
-                    'livraison' => $demande,
+                    'request' => $demande,
                     'title' => 'Votre demande a bien été livrée.',
                 ]),
                 $demande->getUtilisateur()
@@ -230,8 +228,12 @@ class LivraisonsManagerService
         $livraisonStatus = $livraison->getStatut();
         $livraisonStatusName = $livraisonStatus->getNom();
 
-        foreach ($preparation->getArticles() as $article) {
-            $pickedQuantity = $article->getQuantite();
+        $articleLines = $preparation->getArticleLines();
+
+        /** @var PreparationOrderArticleLine $articleLine */
+        foreach ($articleLines as $articleLine) {
+            $article = $articleLine->getArticle();
+            $pickedQuantity = $articleLine->getPickedQuantity();
             if (!empty($pickedQuantity)) {
                 $this->resetStockMovementOnDeleteForArticle(
                     $user,
@@ -253,15 +255,15 @@ class LivraisonsManagerService
             }
         }
 
-        $ligneArticles = $preparation->getLigneArticlePreparations();
+        $referenceLines = $preparation->getReferenceLines();
 
         $demande = $livraison->getDemande();
         $livraisonDestination = isset($demande) ? $demande->getDestination() : null;
 
-        /** @var LigneArticlePreparation $ligneArticle */
-        foreach ($ligneArticles as $ligneArticle) {
-            $pickedQuantity = $ligneArticle->getQuantitePrelevee();
-            $refArticle = $ligneArticle->getReference();
+        /** @var PreparationOrderReferenceLine $referenceLine */
+        foreach ($referenceLines as $referenceLine) {
+            $pickedQuantity = $referenceLine->getPickedQuantity();
+            $refArticle = $referenceLine->getReference();
             if (!empty($pickedQuantity)) {
                 if ($livraison->isCompleted()) {
                     $newQuantiteStock = (($refArticle->getQuantiteStock() ?? 0) + $pickedQuantity);

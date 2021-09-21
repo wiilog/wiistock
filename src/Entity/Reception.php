@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CommentTrait;
 use DateTime;
@@ -100,7 +101,7 @@ class Reception extends FreeFieldEntity
     private $dateFinReception;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Demande", mappedBy="reception")
+     * @ORM\OneToMany(targetEntity="App\Entity\DeliveryRequest\Demande", mappedBy="reception")
      */
     private $demandes;
 

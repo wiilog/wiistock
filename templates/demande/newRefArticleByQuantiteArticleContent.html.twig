@@ -3,9 +3,14 @@
     <select class="form-control ajax-autocomplete-article data select2" id="article"
             onchange="ajaxEditArticle($(this))" name="article">
         <option value="">Choisir un article</option>
+        {% set index = 0 %}
         {% for article in articles %}
-            {% if (article.demande is not null and article.demande.id != deliveryRequestId) or (article.demande is null) %}
-                <option value="{{ article.id }}" {{ preselect and loop.index0 == 0 ? 'selected' }}>{{ article.barCode }}</option>
+            {% if article.id not in articleIdsInRequest %}
+                <option value="{{ article.id }}"
+                        {{ preselect and index == 0 ? 'selected' }}>
+                    {{ article.barCode }}
+                </option>
+                {% set index = index + 1 %}
             {% endif %}
         {% endfor %}
     </select>
