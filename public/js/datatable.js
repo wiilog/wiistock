@@ -313,7 +313,10 @@ function initDataTable($table, options) {
             fixedColumns: {
                 heightMatch: 'auto'
             },
-            colReorder: !!config.page,
+            colReorder: {
+                enable: !!config.page,
+                realtime: false,
+            },
             autoWidth: true,
             scrollX: true,
             language: {
@@ -327,9 +330,6 @@ function initDataTable($table, options) {
                     response,
                     $table
                 }, drawConfig || {}));
-                if (config.page && config.page !== '') {
-                    getAndApplyOrder(config.page, datatableToReturn);
-                }
             },
             initComplete: () => {
                 let $searchInputContainer = $table.parents('.dataTables_wrapper').find('.dataTables_filter');
@@ -339,12 +339,15 @@ function initDataTable($table, options) {
                     initCompleteCallback();
                 }
                 attachDropdownToBodyOnDropdownOpening($table);
+                if (config.page && config.page !== '') {
+                    getAndApplyOrder(config.page, datatableToReturn).then(() => {
+                        datatableToReturn.on('column-reorder', function () {
+                            setOrder(config.page, datatableToReturn.colReorder.order());
+                        });
+                    });
+                }
             }
         }, config));
-
-    datatableToReturn.on('column-reorder', function () {
-        setOrder(config.page, datatableToReturn.colReorder.order())
-    });
 
     return datatableToReturn;
 }
@@ -475,12 +478,15 @@ function attachDropdownToBodyOnDropdownOpening($table) {
 }
 
 function getAndApplyOrder(page, datatable) {
-    $.post(Routing.generate('get_columns_order'), {page})
-        .then((result) => {
-            if (result.order.length > 0) {
-                datatable.colReorder.order(result.order);
-            }
-        });
+    return new Promise((resolve) => {
+        $.post(Routing.generate('get_columns_order'), {page})
+            .then((result) => {
+                if (result.order.length > 0) {
+                    datatable.colReorder.order(result.order);
+                }
+                resolve();
+            });
+    });
 }
 
 function setOrder(page, order) {
