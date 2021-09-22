@@ -60,7 +60,7 @@ class ArticleDataService
         $this->visibleColumnService = $visibleColumnService;
     }
 
-    public function getArticleOrNoByRefArticle($refArticle, $demande, $byRef)
+    public function getCollecteArticleOrNoByRefArticle($refArticle, $demande, $byRef)
     {
         if ($demande === 'livraison') {
             $demande = 'demande';
@@ -113,6 +113,26 @@ class ArticleDataService
 
     public function getCollecteArticleOrNoByRefArticle($refArticle)
     {
+        $parametreRoleRepository = $this->entityManager->getRepository(ParametreRole::class);
+
+        $role = $user->getRole();
+
+        $parametreRepository = $this->entityManager->getRepository(Parametre::class);
+        $param = $parametreRepository->findOneBy(['label' => Parametre::LABEL_AJOUT_QUANTITE]);
+
+        $paramQuantite = $parametreRoleRepository->findOneByRoleAndParam($role, $param);
+
+        // si le paramétrage n'existe pas pour ce rôle, on le crée (valeur par défaut)
+        if (!$paramQuantite) {
+            $paramQuantite = new ParametreRole();
+            $paramQuantite
+                ->setValue($param->getDefaultValue())
+                ->setRole($role)
+                ->setParametre($param);
+            $this->entityManager->persist($paramQuantite);
+            $this->entityManager->flush();
+        }
+        $byRef = $paramQuantite->getValue() == Parametre::VALUE_PAR_REF;
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
             $data = [
                 'modif' => $this->refArticleDataService->getViewEditRefArticle($refArticle, true),
@@ -120,7 +140,9 @@ class ArticleDataService
             ];
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $data = [
-                'selection' => $this->templating->render('collecte/newRefArticleByQuantiteRefContentTemp.html.twig'),
+                'selection' => $this->templating->render('collecte/newRefArticleByQuantiteRefContentTemp.html.twig', [
+                    'roleIsHandlingArticles' => !$byRef
+                ]),
             ];
         } else {
             $data = false; //TODO gérer erreur retour

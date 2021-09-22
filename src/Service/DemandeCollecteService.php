@@ -206,13 +206,12 @@ class DemandeCollecteService
      */
     public function persistArticleInDemand(array $data,
                                            ReferenceArticle $referenceArticle,
-                                           Collecte $collecte): Article {
+                                           Collecte $collecte, OrdreCollecte $order = null): Article {
         $statutRepository = $this->entityManager->getRepository(Statut::class);
         $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);
         $articleFournisseurRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
 
-        $article = new Article();
-        $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_INACTIF);
+        $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT);
         $date = new DateTime('now');
         $ref = $date->format('YmdHis');
 
@@ -238,18 +237,31 @@ class DemandeCollecteService
         }
 
         $this->entityManager->persist($articleFournisseur);
-        $article
-            ->setLabel($referenceArticle->getLibelle() . '-' . $index)
-            ->setConform(true)
-            ->setStatut($statut)
-            ->setReference($ref . '-' . $index)
-            ->setQuantite(max($data['quantity-to-pick'], 0)) // protection contre quantités négatives
-            ->setEmplacement($collecte->getPointCollecte())
-            ->setArticleFournisseur($articleFournisseur)
-            ->setType($referenceArticle->getType())
-            ->setBarCode($this->articleDataService->generateBarCode());
-        $this->entityManager->persist($article);
-        $collecte->addArticle($article);
+
+        if (isset($data["article-to-pick"])) {
+            $article = $this->entityManager->getRepository(Article::class)->find($data["article-to-pick"]);
+            $article
+                ->setStatut($statut)
+                ->setQuantite(max($data['quantity-to-pick'], 0)); // protection contre quantités négatives
+        } else {
+            $article = (new Article())
+                ->setLabel($referenceArticle->getLibelle() . '-' . $index)
+                ->setConform(true)
+                ->setStatut($statut)
+                ->setReference($ref . '-' . $index)
+                ->setQuantite(max($data['quantity-to-pick'], 0)) // protection contre quantités négatives
+                ->setEmplacement($collecte->getPointCollecte())
+                ->setArticleFournisseur($articleFournisseur)
+                ->setType($referenceArticle->getType())
+                ->setBarCode($this->articleDataService->generateBarCode());
+            $this->entityManager->persist($article);
+        }
+
+        if ($order) {
+            $order->addArticle($article);
+        } else {
+            $collecte->addArticle($article);
+        }
         return $article;
     }
 

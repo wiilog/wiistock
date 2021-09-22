@@ -448,7 +448,7 @@ class ArticleController extends AbstractController
                 $refArticle = $referenceArticleRepository->find($data['referenceArticle']);
             }
             if ($refArticle) {
-                $json = $this->articleDataService->getCollecteArticleOrNoByRefArticle($refArticle);
+                $json = $this->articleDataService->getCollecteArticleOrNoByRefArticle($refArticle, $this->getUser());
             } else {
                 $json = false; //TODO gérer erreur retour
             }

@@ -272,6 +272,8 @@ class PreparationsManagerService
                 ? $article
                 : $articleRepository->findOneByReference($article);
             if ($article) {
+                $article->setInactiveSince(new DateTime());
+
                 /** @var MouvementStock $preparationMovement */
                 $preparationMovement = $preparation->getArticleMovement($article);
 

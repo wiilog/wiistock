@@ -75,8 +75,11 @@ function importFirebase() {
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
 
-    const FCM = firebase.messaging();
-    global.FCM = FCM;
+    try {
+        global.FCM = firebase.messaging();
+    } catch(ignored) {
+        console.error(`Failed to instantiate FCM`);
+    }
 }
 
 function importLeaflet() {
@@ -113,8 +116,12 @@ export const GROUP_EVERYTHING = 0;
 export const GROUP_WHEN_NEEDED = 0;
 
 jQuery.fn.keymap = function(callable, grouping = NO_GROUPING) {
+    return keymap(this, callable, grouping);
+}
+
+export function keymap(array, callable, grouping = NO_GROUPING) {
     const values = {};
-    for(const input of this) {
+    for(const input of array) {
         const [key, value] = callable(input);
 
         if(grouping === NO_GROUPING) {

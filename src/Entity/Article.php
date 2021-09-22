@@ -7,12 +7,12 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Selectable;
 use Doctrine\ORM\Mapping as ORM;
-use DateTime as WiiDateTime;
 
 use App\Entity\IOT\Pairing;
 
@@ -80,7 +80,12 @@ class Article extends FreeFieldEntity implements PairedEntity
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="articles")
      */
-    private $statut;
+    private ?Statut $statut = null;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private ?DateTime $inactiveSince = null;
 
     /**
      * @ORM\Column(type="boolean")
@@ -294,6 +299,15 @@ class Article extends FreeFieldEntity implements PairedEntity
     {
         $this->statut = $statut;
 
+        return $this;
+    }
+
+    public function getInactiveSince(): ?DateTime {
+        return $this->inactiveSince;
+    }
+
+    public function setInactiveSince(?DateTime $inactiveSince): self {
+        $this->inactiveSince = $inactiveSince;
         return $this;
     }
 

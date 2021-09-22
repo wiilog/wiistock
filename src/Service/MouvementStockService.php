@@ -172,6 +172,10 @@ class MouvementStockService
 
         if($article instanceof Article) {
             $newMouvement->setArticle($article);
+
+            if($type === MouvementStock::TYPE_SORTIE) {
+                $article->setInactiveSince(new DateTime());
+            }
         }
         else if($article instanceof ReferenceArticle) {
             $newMouvement->setRefArticle($article);
