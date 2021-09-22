@@ -60,57 +60,6 @@ class ArticleDataService
         $this->visibleColumnService = $visibleColumnService;
     }
 
-    public function getArticleOrNoByRefArticle($refArticle, $demande, $byRef)
-    {
-        if ($demande === 'livraison') {
-            $demande = 'demande';
-        }
-
-        if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-            $json = $this->templating->render('reference_article/newRefArticleByQuantiteRefContent.html.twig', [
-                'maximum' => $demande === 'demande' ? $refArticle->getQuantiteDisponible() : null,
-                'needsQuantity' => $demande !== 'transfert'
-            ]);
-        } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-            $articleRepository = $this->entityManager->getRepository(Article::class);
-            if ($demande === 'collecte') {
-                // TODO adrien
-                $articles = $articleRepository->findByRefArticleAndStatut($refArticle, [Article::STATUT_INACTIF]);
-            } else if ($demande === 'demande') {
-                $articles = $articleRepository->findActiveArticles($refArticle);
-            } else if ($demande === 'transfert') {
-                // TODO adrien
-                $articles = $articleRepository->findByRefArticleAndStatut($refArticle, [Article::STATUT_ACTIF]);
-            } else {
-                $articles = [];
-            }
-            if (empty($articles)) {
-                $articles[] = [
-                    'id' => '',
-                    'barCode' => 'aucun article disponible',
-                ];
-            }
-
-            $quantity = $refArticle->getQuantiteDisponible();
-            if ($byRef && $demande == 'demande') {
-				$json = $this->templating->render('demande/choiceContent.html.twig', [
-					'maximum' => $quantity
-				]);
-			} else {
-				$json = $this->templating->render('reference_article/newRefArticleByQuantiteArticleContent.html.twig', [
-					'articles' => $articles,
-					'maximum' => $demande === 'transfert' ? null : $quantity
-				]);
-			}
-
-
-        } else {
-            $json = false; //TODO gérer erreur retour
-        }
-
-        return $json;
-    }
-
     public function getCollecteArticleOrNoByRefArticle($refArticle)
     {
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
