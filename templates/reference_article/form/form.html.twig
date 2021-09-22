@@ -324,7 +324,7 @@
                                                 </span>
                                                 <div class="increase-decrease-field">
                                                     <button class="decrease"></button>
-                                                    <input type="number"
+                                                    <input type="number" data-no-arrow
                                                            id="quantite"
                                                            name="quantite"
                                                            class="form-control data needed"
@@ -372,7 +372,8 @@
                                     </span>
                                     <div class="increase-decrease-field">
                                         <button class="decrease"></button>
-                                        <input type="number" name="limitWarning" class="form-control data"
+                                        <input type="number" data-no-arrow
+                                               name="limitWarning" class="form-control data"
                                                value="{{ reference.limitWarning ?? 0 }}" min="0">
                                         <button class="increase"></button>
                                     </div>
@@ -387,7 +388,8 @@
                                     </span>
                                     <div class="increase-decrease-field">
                                         <button class="decrease"></button>
-                                        <input type="number" name="limitSecurity" class="form-control data"
+                                        <input type="number" data-no-arrow
+                                               name="limitSecurity" class="form-control data"
                                                value="{{ reference.limitSecurity ?? 0 }}" min="0">
                                         <button class="increase"></button>
                                     </div>

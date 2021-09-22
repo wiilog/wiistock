@@ -1977,7 +1977,7 @@ class ApiController extends AbstractFOSRestController
                     $pack,
                     null,
                     $this->getUser(),
-                    $groupDate,
+                    DateTime::createFromFormat("d/m/Y H:i:s", $data["date"]),
                     true,
                     true,
                     TrackingMovement::TYPE_GROUP,
