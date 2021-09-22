@@ -107,19 +107,19 @@
             <table class="table">
                 <tr>
                     <th>Date de création</th>
-                    <td>{{ dispatch.creationDate | date('d/m/Y H:i:s') }}</td>
+                    <td>{{ dispatch.creationDate | date('d/m/Y H:i') }}</td>
                     <th>Emplacement de prise</th>
                     <td>{{ dispatch.locationFrom | format_helper('location') }}</td>
                 </tr>
                 <tr>
                     <th>Date de validation</th>
-                    <td>{{ dispatch.validationDate | date('d/m/Y H:i:s') }}</td>
+                    <td>{{ dispatch.validationDate | date('d/m/Y H:i') }}</td>
                     <th>Emplacement de dépose</th>
                     <td>{{ dispatch.locationTo | format_helper('location') }}</td>
                 </tr>
                 <tr>
                     <th>Date de traitement</th>
-                    <td>{{ dispatch.treatmentDate | date('d/m/Y H:i:s') }}</td>
+                    <td>{{ dispatch.treatmentDate | date('d/m/Y H:i') }}</td>
                     <th>Destination</th>
                     <td>{{ dispatch.destination | format_helper('location') }}</td>
                 </tr>
