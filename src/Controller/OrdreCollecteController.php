@@ -14,12 +14,14 @@ use App\Entity\Menu;
 use App\Entity\OrdreCollecte;
 use App\Entity\OrdreCollecteReference;
 
+use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
+use App\Service\DemandeCollecteService;
 use App\Service\NotificationService;
 use App\Service\OrdreCollecteService;
 use App\Service\PDFGeneratorService;
@@ -164,6 +166,7 @@ class OrdreCollecteController extends AbstractController
                         ? ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER)
                         : false,
                     'location' => $location,
+                    'byArticle' => $referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE
                 ])
             ];
         }
@@ -186,6 +189,7 @@ class OrdreCollecteController extends AbstractController
                         : false,
                     'articleId' =>$article->getId(),
                     "location" => $location,
+                    'byArticle' => false
                 ])
             ];
         }
@@ -287,6 +291,45 @@ class OrdreCollecteController extends AbstractController
 
             $entityManager->flush();
 
+            return new JsonResponse();
+        }
+        throw new BadRequestHttpException();
+    }
+
+    /**
+     * @Route("/ajouter-article", name="ordre_collecte_add_article", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::STOCK, Action::EDIT}, mode=HasPermission::IN_JSON)
+     */
+    public function addArticle(Request $request,
+                                DemandeCollecteService $collecteService,
+                                EntityManagerInterface $entityManager): Response {
+        if ($data = json_decode($request->getContent(), true)) {
+            $ordreCollecteRepository = $entityManager->getRepository(OrdreCollecte::class);
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+
+            $reference = $referenceArticleRepository->find($data['referenceArticle']);
+            $order = $ordreCollecteRepository->find($data['collecte']);
+
+            $demande = $order->getDemandeCollecte();
+            $collecteService->persistArticleInDemand($data, $reference, $demande, $order);
+
+            /**
+             * @var OrdreCollecteReference $orderLine
+             */
+            $orderLine = $order
+                ->getOrdreCollecteReferences()
+                ->filter(fn(OrdreCollecteReference $ordreCollecteReference) => $ordreCollecteReference->getReferenceArticle() === $reference)
+                ->first();
+
+            if ($orderLine) {
+                $newQuantity = max($orderLine->getQuantite() - $data['quantity-to-pick'], 0);
+                $orderLine->setQuantite($newQuantity);
+                if ($newQuantity === 0) {
+                    $entityManager->remove($orderLine);
+                }
+            }
+
+            $entityManager->flush();
             return new JsonResponse();
         }
         throw new BadRequestHttpException();

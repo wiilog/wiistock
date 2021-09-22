@@ -60,8 +60,79 @@ class ArticleDataService
         $this->visibleColumnService = $visibleColumnService;
     }
 
+    public function getCollecteArticleOrNoByRefArticle($refArticle, $demande, $byRef)
+    {
+        if ($demande === 'livraison') {
+            $demande = 'demande';
+        }
+
+        if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+            $json = $this->templating->render('reference_article/newRefArticleByQuantiteRefContent.html.twig', [
+                'maximum' => $demande === 'demande' ? $refArticle->getQuantiteDisponible() : null,
+                'needsQuantity' => $demande !== 'transfert'
+            ]);
+        } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+            $articleRepository = $this->entityManager->getRepository(Article::class);
+            if ($demande === 'collecte') {
+                // TODO adrien
+                $articles = $articleRepository->findByRefArticleAndStatut($refArticle, [Article::STATUT_INACTIF]);
+            } else if ($demande === 'demande') {
+                $articles = $articleRepository->findActiveArticles($refArticle);
+            } else if ($demande === 'transfert') {
+                // TODO adrien
+                $articles = $articleRepository->findByRefArticleAndStatut($refArticle, [Article::STATUT_ACTIF]);
+            } else {
+                $articles = [];
+            }
+            if (empty($articles)) {
+                $articles[] = [
+                    'id' => '',
+                    'barCode' => 'aucun article disponible',
+                ];
+            }
+
+            $quantity = $refArticle->getQuantiteDisponible();
+            if ($byRef && $demande == 'demande') {
+				$json = $this->templating->render('demande/choiceContent.html.twig', [
+					'maximum' => $quantity
+				]);
+			} else {
+				$json = $this->templating->render('reference_article/newRefArticleByQuantiteArticleContent.html.twig', [
+					'articles' => $articles,
+					'maximum' => $demande === 'transfert' ? null : $quantity
+				]);
+			}
+
+
+        } else {
+            $json = false; //TODO gérer erreur retour
+        }
+
+        return $json;
+    }
+
     public function getCollecteArticleOrNoByRefArticle($refArticle)
     {
+        $parametreRoleRepository = $this->entityManager->getRepository(ParametreRole::class);
+
+        $role = $user->getRole();
+
+        $parametreRepository = $this->entityManager->getRepository(Parametre::class);
+        $param = $parametreRepository->findOneBy(['label' => Parametre::LABEL_AJOUT_QUANTITE]);
+
+        $paramQuantite = $parametreRoleRepository->findOneByRoleAndParam($role, $param);
+
+        // si le paramétrage n'existe pas pour ce rôle, on le crée (valeur par défaut)
+        if (!$paramQuantite) {
+            $paramQuantite = new ParametreRole();
+            $paramQuantite
+                ->setValue($param->getDefaultValue())
+                ->setRole($role)
+                ->setParametre($param);
+            $this->entityManager->persist($paramQuantite);
+            $this->entityManager->flush();
+        }
+        $byRef = $paramQuantite->getValue() == Parametre::VALUE_PAR_REF;
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
             $data = [
                 'modif' => $this->refArticleDataService->getViewEditRefArticle($refArticle, true),
@@ -69,7 +140,9 @@ class ArticleDataService
             ];
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $data = [
-                'selection' => $this->templating->render('collecte/newRefArticleByQuantiteRefContentTemp.html.twig'),
+                'selection' => $this->templating->render('collecte/newRefArticleByQuantiteRefContentTemp.html.twig', [
+                    'roleIsHandlingArticles' => !$byRef
+                ]),
             ];
         } else {
             $data = false; //TODO gérer erreur retour

@@ -11,6 +11,7 @@ use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\TransferRequest;
+use App\Entity\Statut;
 use App\Entity\Utilisateur;
 
 use App\Entity\VisibilityGroup;
@@ -1023,5 +1024,27 @@ class ArticleRepository extends EntityRepository {
             ->getResult();
 
         return !empty($articleIsProcessed);
+    }
+
+    public function getCollectableArticlesForSelect(?string $search, ?int $referenceArticle = null) {
+        $qb = $this->createQueryBuilder("article")
+            ->select("article.id AS id, article.barCode AS text")
+            ->join('article.statut', 'statut')
+            ->andWhere("article.barCode LIKE :search")
+            ->andWhere("article.inactiveSince IS NOT NULL")
+            ->andWhere("article.inactiveSince > :one_month_ago")
+            ->andWhere("statut.code = :inactive")
+            ->setParameter("search", "%$search%")
+            ->setParameter("inactive", Article::STATUT_INACTIF)
+            ->setParameter("one_month_ago", new DateTime("-1 month"));
+
+        if($referenceArticle) {
+            $qb->join("article.articleFournisseur", "article_fournisseur")
+                ->join("article_fournisseur.referenceArticle", "reference_article")
+                ->andWhere("reference_article.id = :reference_article")
+                ->setParameter("reference_article", $referenceArticle);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 }
