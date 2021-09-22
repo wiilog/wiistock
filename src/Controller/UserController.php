@@ -627,4 +627,42 @@ class UserController extends AbstractController
         );
     }
 
+    /**
+     * @Route("/set-columns-order", name="set_columns_order", methods="POST", options={"expose"=true}, condition="request.isXmlHttpRequest()")
+     */
+    public function setColumnsOrder(Request $request, EntityManagerInterface $manager): JsonResponse {
+        $data = $request->request->all();
+
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
+
+        $columnsOrder = $loggedUser->getColumnsOrder();
+        $columnsOrder[$data['page']] = $data['order'];
+
+        $loggedUser->setColumnsOrder($columnsOrder);
+
+        $manager->flush();
+
+        return $this->json([
+            'success' => true
+        ]);
+    }
+
+    /**
+     * @Route("/get-columns-order", name="get_columns_order", methods="POST", options={"expose"=true}, condition="request.isXmlHttpRequest()")
+     */
+    public function getColumnsOrder(Request $request, EntityManagerInterface $manager): JsonResponse {
+        $page = $request->request->get('page');
+
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
+
+        $columnsOrder = $loggedUser->getColumnsOrder();
+
+        return $this->json([
+            'success' => true,
+            'order' => $columnsOrder[$page] ?? []
+        ]);
+    }
+
 }

@@ -196,7 +196,17 @@ function overrideSearch($input, table, callback = null) {
     $input.attr('placeholder', 'Entrée pour valider');
 }
 
-function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, needsColumnShow, needsResize, needsEmplacementSearchOverride, callback, table, $table}) {
+function datatableDrawCallback({
+                                   response,
+                                   needsSearchOverride,
+                                   needsColumnHide,
+                                   needsColumnShow,
+                                   needsResize,
+                                   needsEmplacementSearchOverride,
+                                   callback,
+                                   table,
+                                   $table
+                               }) {
     let $searchInputContainer = $table.parents('.dataTables_wrapper ').find('.dataTables_filter');
     let $searchInput = $searchInputContainer.find('input');
 
@@ -262,10 +272,10 @@ function initDataTable($table, options) {
             tooltips.push({id, text: column.tooltip});
         }
 
-        if(config.order && Array.isArray(config.order)) {
+        if (config.order && Array.isArray(config.order)) {
             const newOrder = [];
-            for(let [name, order] of config.order) {
-                if(name === column.data || name === column.name) {
+            for (let [name, order] of config.order) {
+                if (name === column.data || name === column.name) {
                     name = id;
                 }
 
@@ -300,10 +310,10 @@ function initDataTable($table, options) {
             console.log('An error has been reported by DataTables: ', message, e, $table.attr('id'));
         })
         .DataTable(Object.assign({
-            fixedColumns:   {
+            fixedColumns: {
                 heightMatch: 'auto'
             },
-
+            colReorder: !!config.page,
             autoWidth: true,
             scrollX: true,
             language: {
@@ -317,6 +327,9 @@ function initDataTable($table, options) {
                     response,
                     $table
                 }, drawConfig || {}));
+                if (config.page && config.page !== '') {
+                    getAndApplyOrder(config.page, datatableToReturn);
+                }
             },
             initComplete: () => {
                 let $searchInputContainer = $table.parents('.dataTables_wrapper').find('.dataTables_filter');
@@ -328,6 +341,11 @@ function initDataTable($table, options) {
                 attachDropdownToBodyOnDropdownOpening($table);
             }
         }, config));
+
+    datatableToReturn.on('column-reorder', function () {
+        setOrder(config.page, datatableToReturn.colReorder.order())
+    });
+
     return datatableToReturn;
 }
 
@@ -456,3 +474,16 @@ function attachDropdownToBodyOnDropdownOpening($table) {
     });
 }
 
+function getAndApplyOrder(page, datatable) {
+    $.post(Routing.generate('get_columns_order'), {page})
+        .then((result) => {
+            if (result.order.length > 0) {
+                datatable.colReorder.order(result.order);
+            }
+        });
+}
+
+function setOrder(page, order) {
+    const params = {page, order}
+    $.post(Routing.generate('set_columns_order'), params);
+}
