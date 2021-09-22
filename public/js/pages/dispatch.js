@@ -4,6 +4,7 @@ $(function() {
     initPage();
 
     const filtersContainer = $('.filters-container');
+    const destinationTranslation = $('input[name=destination-translation]').val();
 
     Select2Old.init($('#statut'), 'Statuts');
     Select2Old.init(filtersContainer.find('.filter-select2[name="carriers"]'), 'Transporteurs');
@@ -13,6 +14,7 @@ $(function() {
     Select2Old.user(filtersContainer.find('.ajax-autocomplete-user[name=requesters]'), 'Demandeurs');
     Select2Old.init(filtersContainer.find('.filter-select2[name="multipleTypes"]'), 'Types');
     Select2Old.initFree(filtersContainer.find('.filter-select2[name="commandList"]'), $('#translateCommandNumber').val());
+    Select2Old.location(filtersContainer.find('.ajax-autocomplete-emplacements'), {}, destinationTranslation, 3);
     initDateTimePicker();
 
     // filtres enregistrés en base pour chaque utilisateur

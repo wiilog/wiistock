@@ -146,6 +146,8 @@ function forbiddenPhoneNumberValidator($modal) {
 function togglePackDetails(emptyDetails = false) {
     const $modal = $('#modalPack');
     const packCode = $modal.find('[name="pack"]').val();
+    const prefix = $modal.find(`.pack-code-prefix`).val() || ``;
+
     $modal.find('.pack-details').addClass('d-none');
     $modal.find('.spinner-border').removeClass('d-none');
     $modal.find('.error-msg').empty();
@@ -164,7 +166,7 @@ function togglePackDetails(emptyDetails = false) {
     $commentField.html(null);
 
     if (packCode && !emptyDetails) {
-        $.get(Routing.generate('get_pack_intel', {packCode}))
+        $.get(Routing.generate('get_pack_intel', {packCode: prefix + packCode}))
             .then(({success, pack}) => {
                 if (success) {
                     if (pack.nature) {

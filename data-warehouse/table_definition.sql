@@ -268,6 +268,7 @@ CREATE TABLE dw_acheminement
     nature_colis            varchar(255),
     emplacement_prise       varchar(255),
     emplacement_depose      varchar(255),
+    destination             varchar(255),
     nb_colis                integer,
     statut                  varchar(255),
     operateur               varchar(255),

@@ -49,6 +49,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 				Action::DELETE,
 				Action::EXPORT,
                 Action::LIST_ALL,
+                Action::EMPTY_ROUND,
 			],
 			Menu::QUALI => [
 				Action::DISPLAY_LITI,

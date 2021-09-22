@@ -24,6 +24,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use App\Service\NotificationService;
+use Knp\Snappy\Pdf;
 use WiiCommon\Helper\Stream;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
@@ -203,6 +204,10 @@ class DispatchController extends AbstractController {
             ? ($emplacementRepository->find($post->get('depose')) ?: $type->getDropLocation())
             : $type->getDropLocation();
 
+        $destination = $post->get('destination')
+            ? $emplacementRepository->find($post->get('destination')) ?: $type->getDropLocation()
+            : null;
+
         $comment = $post->get('commentaire');
         $startDateRaw = $post->get('startDate');
         $endDateRaw = $post->get('endDate');
@@ -244,7 +249,8 @@ class DispatchController extends AbstractController {
             ->setLocationFrom($locationTake)
             ->setLocationTo($locationDrop)
             ->setBusinessUnit($businessUnit)
-            ->setNumber($dispatchNumber);
+            ->setNumber($dispatchNumber)
+            ->setDestination($destination);
 
         if(!empty($comment)) {
             $dispatch->setCommentaire($comment);
@@ -395,7 +401,8 @@ class DispatchController extends AbstractController {
             'dispatchTreat' => [
                 'treatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::TREATED])
             ],
-            'printBL' => $printBL
+            'printBL' => $printBL,
+            'prefixPackCodeWithDispatchNumber' => $paramRepository->getOneParamByLabel(ParametrageGlobal::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER)
         ]);
     }
 
@@ -403,9 +410,7 @@ class DispatchController extends AbstractController {
      * @Route("/{dispatch}/etat", name="print_dispatch_state_sheet", options={"expose"=true}, methods="GET|POST")
      * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE})
      */
-    public function printDispatchStateSheet(Dispatch $dispatch,
-                                            PDFGeneratorService $PDFGenerator,
-                                            TranslatorInterface $translator): ?Response {
+    public function printDispatchStateSheet(PDFGeneratorService $generator, TranslatorInterface $translator, Dispatch $dispatch): ?Response {
         if($dispatch->getDispatchPacks()->isEmpty()) {
             return $this->json([
                 "success" => false,
@@ -413,33 +418,9 @@ class DispatchController extends AbstractController {
             ]);
         }
 
-        $packsConfig = $dispatch->getDispatchPacks()
-            ->map(function(DispatchPack $dispatchPack) use ($dispatch, $translator) {
-                return [
-                    'title' => 'Acheminement n°' . $dispatch->getId(),
-                    'code' => $dispatchPack->getPack()->getCode(),
-                    'content' => [
-                        'Date de création' => $dispatch->getCreationDate() ? $dispatch->getCreationDate()->format('d/m/Y H:i:s') : '',
-                        'Date de validation' => $dispatch->getValidationDate() ? $dispatch->getValidationDate()->format('d/m/Y H:i:s') : '',
-                        'Date de traitement' => $dispatch->getTreatmentDate() ? $dispatch->getTreatmentDate()->format('d/m/Y H:i:s') : '',
-                        'Demandeur' => $dispatch->getRequester() ? $dispatch->getRequester()->getUsername() : '',
-                        'Destinataire(s)' => $dispatch->getReceivers() ?
-                            Stream::from($dispatch->getReceivers())
-                            ->map(function (Utilisateur $receiver) {
-                                return $receiver->getUsername();
-                            })
-                            ->join(", ") : '',
-                        $translator->trans('acheminement.Emplacement dépose') => $dispatch->getLocationTo() ? $dispatch->getLocationTo()->getLabel() : '',
-                        $translator->trans('acheminement.Emplacement prise') => $dispatch->getLocationFrom() ? $dispatch->getLocationFrom()->getLabel() : ''
-                    ]
-                ];
-            })
-            ->toArray();
-
-        $fileName = 'Etat_acheminement_' . $dispatch->getId() . '.pdf';
         return new PdfResponse(
-            $PDFGenerator->generatePDFStateSheet($fileName, $packsConfig),
-            $fileName
+            $generator->generatePDFDispatchNote($dispatch),
+            "bon_acheminement_{$dispatch->getNumber()}.pdf"
         );
     }
 
@@ -478,6 +459,10 @@ class DispatchController extends AbstractController {
         $locationDrop = $post->get('depose')
             ? ($emplacementRepository->find($post->get('depose')) ?: $type->getDropLocation())
             : $type->getDropLocation();
+
+        $destination = $post->get('destination')
+            ? $emplacementRepository->find($post->get('destination'))
+            : null;
 
         if(!$locationTake || !$locationDrop) {
             return new JsonResponse([
@@ -534,7 +519,8 @@ class DispatchController extends AbstractController {
             ->setLocationFrom($locationTake)
             ->setLocationTo($locationDrop)
             ->setProjectNumber($projectNumber)
-            ->setCommentaire($post->get('commentaire') ?: '');
+            ->setCommentaire($post->get('commentaire') ?: '')
+            ->setDestination($destination);
 
         $freeFieldService->manageFreeFields($dispatch, $post->all(), $entityManager);
 
@@ -709,12 +695,30 @@ class DispatchController extends AbstractController {
                             Dispatch $dispatch): Response {
         $data = json_decode($request->getContent(), true);
 
-        $packCode = $data['pack'];
+        $packCode = trim($data['pack']);
         $natureId = $data['nature'];
         $quantity = $data['quantity'];
         $comment = $data['comment'];
         $weight = (floatval(str_replace(',', '.', $data['weight'])) ?: null);
         $volume = (floatval(str_replace(',', '.', $data['volume'])) ?: null);
+
+        $globalSettingsRepository = $entityManager->getRepository(ParametrageGlobal::class);
+
+        $prefixPackCodeWithDispatchNumber = $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
+        if($prefixPackCodeWithDispatchNumber) {
+            $packCode = $dispatch->getNumber() . '-' . $packCode;
+        }
+
+        $packMustBeNew = $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::PACK_MUST_BE_NEW);
+        if($packMustBeNew) {
+            $existingPack = $entityManager->getRepository(Pack::class)->findOneBy(['code' => $packCode]);
+            if($existingPack) {
+                return $this->json([
+                    'success' => false,
+                    'msg' => "Le colis <strong>${packCode}</strong> existe déjà en base de données"
+                ]);
+            }
+        }
 
         $alreadyCreated = !$dispatch
             ->getDispatchPacks()
@@ -1023,6 +1027,7 @@ class DispatchController extends AbstractController {
                     'Destinataire',
                     $translator->trans('acheminement.Emplacement prise'),
                     $translator->trans('acheminement.Emplacement dépose'),
+                    $translator->trans('acheminement.Destination'),
                     'Nb ' . $translator->trans('colis.colis'),
                     'Statut',
                     'Urgence',
@@ -1061,6 +1066,7 @@ class DispatchController extends AbstractController {
                     $row[] = $receiversStr;
                     $row[] = $dispatch['locationFrom'] ?? '';
                     $row[] = $dispatch['locationTo'] ?? '';
+                    $row[] = $dispatch['destination'] ?? '';
                     $row[] = $nbPacksByDispatch[$number] ?? '';
                     $row[] = $dispatch['status'] ?? '';
                     $row[] = $dispatch['emergency'] ?? '';
@@ -1552,7 +1558,7 @@ class DispatchController extends AbstractController {
      */
     public function printOverconsumptionBill(Dispatch $dispatch,
                                              PDFGeneratorService $pdfService,
-                                             EntityManagerInterface $entityManager): Response {
+                                                 EntityManagerInterface $entityManager): Response {
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $appLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::LABEL_LOGO);
         $overconsumptionLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::OVERCONSUMPTION_LOGO);
