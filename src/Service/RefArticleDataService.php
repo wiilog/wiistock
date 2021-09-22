@@ -31,6 +31,7 @@ use App\Repository\ReceptionReferenceArticleRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use Google\Service\Transcoder\Input;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -108,12 +109,22 @@ class RefArticleDataService {
         $this->filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
     }
 
-    public function getRefArticleDataByParams($params = null) {
+    public function getRefArticleDataByParams(InputBag $params = null) {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
 
-        $userId = $this->user->getId();
+        /**
+         * @var Utilisateur $currentUser
+         */
+        $currentUser = $this->user;
+        $currentUserSearches = $currentUser->getSearches();
+        if ($params->has('search')) {
+            $currentUserSearches['reference'] = $params->get('search');
+            $currentUser->setSearches($currentUserSearches);
+            $this->entityManager->flush();
+        }
+        $userId = $currentUser->getId();
         $filters = $this->filtreRefRepository->getFieldsAndValuesByUser($userId);
-        $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $params, $this->user);
+        $queryResult = $referenceArticleRepository->findByFiltersAndParams($filters, $params, $currentUser);
         $refs = $queryResult['data'];
         $rows = [];
         foreach($refs as $refArticle) {

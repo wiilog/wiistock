@@ -359,6 +359,11 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
      */
     private Collection $visibilityGroups;
 
+    /**
+     * @ORM\Column(type="array", nullable=true)
+     */
+    private $searches = [];
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -1938,6 +1943,18 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         foreach($visibilityGroups as $visibilityGroup) {
             $this->addVisibilityGroup($visibilityGroup);
         }
+
+        return $this;
+    }
+
+    public function getSearches(): ?array
+    {
+        return $this->searches;
+    }
+
+    public function setSearches(?array $searches): self
+    {
+        $this->searches = $searches;
 
         return $this;
     }
