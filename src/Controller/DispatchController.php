@@ -24,6 +24,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use App\Service\NotificationService;
+use Knp\Snappy\Pdf;
 use WiiCommon\Helper\Stream;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
@@ -409,9 +410,7 @@ class DispatchController extends AbstractController {
      * @Route("/{dispatch}/etat", name="print_dispatch_state_sheet", options={"expose"=true}, methods="GET|POST")
      * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE})
      */
-    public function printDispatchStateSheet(Dispatch $dispatch,
-                                            PDFGeneratorService $PDFGenerator,
-                                            TranslatorInterface $translator): ?Response {
+    public function printDispatchStateSheet(PDFGeneratorService $generator, TranslatorInterface $translator, Dispatch $dispatch): ?Response {
         if($dispatch->getDispatchPacks()->isEmpty()) {
             return $this->json([
                 "success" => false,
@@ -419,33 +418,9 @@ class DispatchController extends AbstractController {
             ]);
         }
 
-        $packsConfig = $dispatch->getDispatchPacks()
-            ->map(function(DispatchPack $dispatchPack) use ($dispatch, $translator) {
-                return [
-                    'title' => 'Acheminement n°' . $dispatch->getId(),
-                    'code' => $dispatchPack->getPack()->getCode(),
-                    'content' => [
-                        'Date de création' => $dispatch->getCreationDate() ? $dispatch->getCreationDate()->format('d/m/Y H:i:s') : '',
-                        'Date de validation' => $dispatch->getValidationDate() ? $dispatch->getValidationDate()->format('d/m/Y H:i:s') : '',
-                        'Date de traitement' => $dispatch->getTreatmentDate() ? $dispatch->getTreatmentDate()->format('d/m/Y H:i:s') : '',
-                        'Demandeur' => $dispatch->getRequester() ? $dispatch->getRequester()->getUsername() : '',
-                        'Destinataire(s)' => $dispatch->getReceivers() ?
-                            Stream::from($dispatch->getReceivers())
-                            ->map(function (Utilisateur $receiver) {
-                                return $receiver->getUsername();
-                            })
-                            ->join(", ") : '',
-                        $translator->trans('acheminement.Emplacement dépose') => $dispatch->getLocationTo() ? $dispatch->getLocationTo()->getLabel() : '',
-                        $translator->trans('acheminement.Emplacement prise') => $dispatch->getLocationFrom() ? $dispatch->getLocationFrom()->getLabel() : ''
-                    ]
-                ];
-            })
-            ->toArray();
-
-        $fileName = 'Etat_acheminement_' . $dispatch->getId() . '.pdf';
         return new PdfResponse(
-            $PDFGenerator->generatePDFStateSheet($fileName, $packsConfig),
-            $fileName
+            $generator->generatePDFDispatchNote($dispatch),
+            "bon_acheminement_{$dispatch->getNumber()}.pdf"
         );
     }
 
@@ -1583,7 +1558,7 @@ class DispatchController extends AbstractController {
      */
     public function printOverconsumptionBill(Dispatch $dispatch,
                                              PDFGeneratorService $pdfService,
-                                             EntityManagerInterface $entityManager): Response {
+                                                 EntityManagerInterface $entityManager): Response {
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $appLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::LABEL_LOGO);
         $overconsumptionLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::OVERCONSUMPTION_LOGO);

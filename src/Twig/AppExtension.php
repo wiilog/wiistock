@@ -6,6 +6,7 @@ use App\Entity\ParametrageGlobal;
 use App\Service\FieldsParamService;
 use App\Service\SpecificService;
 use App\Service\UserService;
+use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use ReflectionClass;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -50,6 +51,7 @@ class AppExtension extends AbstractExtension {
             new TwigFilter('isFieldRequired', [$this, 'isFieldRequiredFunction']),
             new TwigFilter('wordwrap', [$this, 'wordwrap']),
             new TwigFilter('ellipsis', [$this, 'ellipsis']),
+            new TwigFilter("format_helper", [$this, "formatHelper"]),
         ];
     }
 
@@ -125,6 +127,10 @@ class AppExtension extends AbstractExtension {
         } else {
             return $value;
         }
+    }
+
+    public function formatHelper($input, string $formatter, ...$options): string {
+        return FormatHelper::{$formatter}($input, ...$options);
     }
 
     public function class($object): string {

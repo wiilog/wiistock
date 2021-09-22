@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <title>Bon de surconsommation en-tête</title>
+    <meta charset="UTF-8"/>
+    <style>
+        * {
+            font-family: Arial, sans-serif;
+        }
+
+        .page {
+            page-break-before: always;
+        }
+
+        .clear {
+            clear: both;
+        }
+
+        .space-apart > *:first-child {
+            float: left;
+        }
+
+        .space-apart > *:last-child {
+            float: right;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        h2 {
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
+
+        .header img {
+            display: block;
+            max-width: 25%;
+            height: 2cm;
+        }
+
+        .header .qr {
+            display: table;
+            text-align: center;
+            height: 2cm;
+            width: 2cm;
+        }
+
+        .header span {
+            display: block;
+            white-space: nowrap;
+        }
+
+        table.table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid black;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px;
+        }
+
+        .mt-4 {
+            margin-top: 4rem;
+        }
+
+        .no-break {
+            white-space: nowrap;
+        }
+
+        .pack-code {
+            text-align: center;
+            min-width: 3cm;
+        }
+    </style>
+</head>
+<body>
+{% for pack in dispatch.dispatchPacks %}
+    <div class="page">
+        <div class="header space-apart">
+            {% if app_logo %}
+                <img src="{{ 'http://' ~ app.request.httpHost ~ '/uploads/attachements/' ~ app_logo }}"
+                     alt="Logo de l'application"/>
+            {% endif %}
+
+            <div class="qr">
+                {{ printBarcode({
+                    code: dispatch.number,
+                    type: 'qrcode',
+                    format: 'svg',
+                    height: 200,
+                    width: 200,
+                }) | raw }}
+            </div>
+        </div>
+        <div class="space-apart clear">
+            <h1>Bon d'acheminement</h1>
+            <h2>N°{{ dispatch.number }}</h2>
+        </div>
+        <div class="content clear">
+            <table class="table">
+                <tr>
+                    <th>Date de création</th>
+                    <td>{{ dispatch.creationDate | date('d/m/Y H:i:s') }}</td>
+                    <th>Emplacement de prise</th>
+                    <td>{{ dispatch.locationFrom | format_helper('location') }}</td>
+                </tr>
+                <tr>
+                    <th>Date de validation</th>
+                    <td>{{ dispatch.validationDate | date('d/m/Y H:i:s') }}</td>
+                    <th>Emplacement de dépose</th>
+                    <td>{{ dispatch.locationTo | format_helper('location') }}</td>
+                </tr>
+                <tr>
+                    <th>Date de traitement</th>
+                    <td>{{ dispatch.treatmentDate | date('d/m/Y H:i:s') }}</td>
+                    <th>Destination</th>
+                    <td>{{ dispatch.destination | format_helper('location') }}</td>
+                </tr>
+                <tr>
+                    <th>Demandeur</th>
+                    <td>{{ dispatch.requester | format_helper('user') }}</td>
+                    <th></th>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th>Destinataires</th>
+                    <td>{{ dispatch.receivers | format_helper('users') }}</td>
+                    <th></th>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th>Commentaire</th>
+                    <td colspan="3">{{ dispatch.commentaire | striptags | u.truncate(150) | default('N/A') }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <h2 class="mt-4">
+            {{ 'mouvement de traçabilité.Colis' | trans }} - {{ loop.index }}/{{ dispatch.dispatchPacks | length }}
+        </h2>
+        <table class="table">
+            <tr>
+                <td rowspan="4" class="pack-code">
+                    {{ printBarcode({
+                        code: pack.pack.code,
+                        type: 'qrcode',
+                        format: 'svg',
+                        height: 200,
+                        width: 200,
+                    }) | raw }}
+                    <strong class="no-break">{{ pack.pack.code }}</strong>
+                </td>
+                <th>Nature</th>
+                <td>{{ pack.pack.nature.label }}</td>
+                <th>Poids (kg)</th>
+                <td>{{ pack.pack.weight ?? 'N/A' }}</td>
+            </tr>
+            <tr>
+                <th>Quantité à acheminer</th>
+                <td>{{ pack.quantity }}</td>
+                <th>Volume (m3)</th>
+                <td>{{ pack.pack.volume ?? 'N/A' }}</td>
+            </tr>
+            <tr>
+                <th colspan="4">Commentaire</th>
+            </tr>
+            <tr>
+                <td colspan="4">{{  pack.pack.comment | striptags | u.truncate(100) | default('N/A') }}</td>
+            </tr>
+        </table>
+    </div>
+{% endfor %}
+</body>
+</html>
