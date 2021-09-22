@@ -52,8 +52,6 @@
                 </label>
             </div>
         {% endif %}
-        {{ dump(field.fieldCode) }}
-        {{ dump(filteredFields) }}
         {% if field.fieldCode in filteredFields %}
             {% set isCheckedFilterDisplayed = field.displayedFilters ? 'checked' : '' %}
             <div class="form-group col-12">
