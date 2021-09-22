@@ -196,17 +196,7 @@ function overrideSearch($input, table, callback = null) {
     $input.attr('placeholder', 'Entrée pour valider');
 }
 
-function datatableDrawCallback({
-                                   response,
-                                   needsSearchOverride,
-                                   needsColumnHide,
-                                   needsColumnShow,
-                                   needsResize,
-                                   needsEmplacementSearchOverride,
-                                   callback,
-                                   table,
-                                   $table
-                               }) {
+function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, needsColumnShow, needsResize, needsEmplacementSearchOverride, callback, table, $table}) {
     let $searchInputContainer = $table.parents('.dataTables_wrapper ').find('.dataTables_filter');
     let $searchInput = $searchInputContainer.find('input');
 
