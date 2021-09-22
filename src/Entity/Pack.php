@@ -22,6 +22,8 @@ class Pack implements PairedEntity
 
     public const PACK_IS_GROUP = 'PACK_IS_GROUP';
 
+    public const EMPTY_ROUND_PACK = 'passageavide';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

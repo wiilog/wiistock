@@ -162,6 +162,17 @@
                             </div>
                         {% endif %}
 
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DESTINATION') %}
+                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
+                            {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
+                            <div class="form-group">
+                                <label for="prise" title="Destination">{{ 'acheminement.Destination'|trans }}{{ required ? '*' }}</label>
+                                <select name="destination"
+                                        class="form-control data ajax-autocomplete-location d-block {{ required ? 'needed' }} w-100">
+                                </select>
+                            </div>
+                        {% endif %}
+
                         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVER_DISPATCH') %}
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
