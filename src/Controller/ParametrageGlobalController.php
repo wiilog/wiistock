@@ -158,6 +158,8 @@ class ParametrageGlobalController extends AbstractController
                     'overconsumption_logo' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::OVERCONSUMPTION_LOGO),
                     'keepModal' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::KEEP_DISPATCH_PACK_MODAL_OPEN),
                     'openModal' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::OPEN_DISPATCH_ADD_PACK_MODAL_ON_CREATION),
+                    'prefixPackCodeWithDispatchNumber' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER),
+                    'packMustBeNew' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::PACK_MUST_BE_NEW),
                     'preFill' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::PREFILL_DUE_DATE_TODAY),
                     'statuses' => $statusRepository->findByCategorieName(CategorieStatut::DISPATCH),
                     'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]),
@@ -708,15 +710,14 @@ class ParametrageGlobalController extends AbstractController
             $em = $this->getDoctrine()->getManager();
             if($ifExist) {
                 $ifExist->setValue($data['val']);
-                $em->flush();
             } else {
                 $parametrage = new ParametrageGlobal();
                 $parametrage
                     ->setLabel($data['param'])
                     ->setValue($data['val']);
                 $em->persist($parametrage);
-                $em->flush();
             }
+            $em->flush();
             return new JsonResponse(true);
         }
         throw new BadRequestHttpException();
