@@ -439,7 +439,7 @@ class DemandeRepository extends EntityRepository
             ->orderBy('request.date', Criteria::DESC)
             ->setMaxResults(1)
             ->getQuery()
-            ->getSingleResult();
+            ->getOneOrNullResult();
 
 
     }

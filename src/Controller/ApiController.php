@@ -634,7 +634,6 @@ class ApiController extends AbstractFOSRestController
                         $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
                         $preparationsManager->setEntityManager($entityManager);
                     }
-
                     $message = (
                     ($throwable instanceof NegativeQuantityException) ? "Une quantité en stock d\'un article est inférieure à sa quantité prélevée" :
                         (($throwable->getMessage() === PreparationsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION) ? "L'emplacement que vous avez sélectionné n'existe plus." :

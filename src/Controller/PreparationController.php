@@ -87,7 +87,6 @@ class PreparationController extends AbstractController
                 'message' => "La quantité en stock de l'article $barcode est inférieure à la quantité prélevée."
             ]);
         }
-
         $dateEnd = new DateTime('now');
         $livraison = $livraisonsManager->createLivraison($dateEnd, $preparation, $entityManager);
 

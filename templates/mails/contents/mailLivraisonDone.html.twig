@@ -51,19 +51,19 @@
                 </td>
             </tr>
         {% endfor %}
-        {% for article in request.articleLines %}
+        {% for articleLine in request.articleLines %}
             <tr>
                 <td class="td"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ article.articleFournisseur.referenceArticle.reference }}
+                    {{ articleLine.article.articleFournisseur.referenceArticle.reference }}
                 </td>
                 <td class="td"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ article.label }}
+                    {{ articleLine.article.label }}
                 </td>
                 <td class="td"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ article.quantityToPick }}
+                    {{ articleLine.quantityToPick }}
                 </td>
             </tr>
         {% endfor %}

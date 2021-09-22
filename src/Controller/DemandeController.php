@@ -365,7 +365,7 @@ class DemandeController extends AbstractController
                 "Emplacement" => ($article->getEmplacement() ? $article->getEmplacement()->getLabel() : ' '),
                 "quantityToPick" => $line->getQuantityToPick() ?: '',
                 "barcode" => $article->getBarCode() ?? '',
-                "error" => $article->getQuantite() < $line->getQuantityToPick(),
+                "error" => $article->getQuantite() < $line->getQuantityToPick() && $demande->getStatut()->getCode() === Demande::STATUT_BROUILLON,
                 "Actions" => $this->renderView(
                     'demande/datatableLigneArticleRow.html.twig',
                     [

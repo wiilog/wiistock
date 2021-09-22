@@ -13,6 +13,7 @@ use App\Entity\FreeField;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\PrefixeNomDemande;
 use App\Entity\PreparationOrder\Preparation;
@@ -400,15 +401,15 @@ class DemandeLivraisonService
             $articleLines = $demande->getArticleLines();
             /** @var DeliveryRequestArticleLine $articleLine */
             foreach ($articleLines as $articleLine) {
-                $statutArticle = $articleLine->getStatut();
                 $article = $articleLine->getArticle();
+                $statutArticle = $article->getStatut();
                 if (isset($statutArticle)
                     && $statutArticle->getNom() !== Article::STATUT_ACTIF) {
                     $response['success'] = false;
                     $response['nomadMessage'] = 'Erreur de quantité sur l\'article : ' . $articleLine->getBarCode();
                     $response['msg'] = "Un article de votre demande n'est plus disponible. Assurez vous que chacun des articles soit en statut disponible pour valider votre demande.";
                 } else {
-                    $refArticle = $articleLine->getArticleFournisseur()->getReferenceArticle();
+                    $refArticle = $articleLine->getArticle()->getArticleFournisseur()->getReferenceArticle();
                     $totalQuantity = $refArticle->getQuantiteDisponible();
                     $treshHold = ($article->getQuantite() > $totalQuantity)
                         ? $totalQuantity
@@ -489,8 +490,15 @@ class DemandeLivraisonService
         // modification du statut articles => en transit
         $articles = $demande->getArticleLines();
         foreach ($articles as $article) {
-            $article->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
-            $preparation->addArticleLine($article);
+            $article->getArticle()->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
+            $ligneArticlePreparation = new PreparationOrderArticleLine();
+            $ligneArticlePreparation
+                ->setPickedQuantity($article->getPickedQuantity())
+                ->setQuantityToPick($article->getQuantityToPick())
+                ->setArticle($article->getArticle())
+                ->setPreparation($preparation);
+            $entityManager->persist($ligneArticlePreparation);
+            $preparation->addArticleLine($ligneArticlePreparation);
         }
         $lignesArticles = $demande->getReferenceLines();
         $refArticleToUpdateQuantities = [];

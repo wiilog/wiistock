@@ -59,7 +59,7 @@ class InventoryEntryRepository extends EntityRepository
             ->addSelect('MIN(CASE WHEN (
                 referenceStatus.nom = :referenceStatusAvailable
                 AND (
-                    ligneArticles.id IS NULL
+                    preparation_order_reference_lines.id IS NULL
                     OR (
                         preparationStatus.nom != :preparationStatusToTreat
                         AND preparationStatus.nom != :preparationStatusInProgress
@@ -73,8 +73,8 @@ class InventoryEntryRepository extends EntityRepository
             ) THEN 1 ELSE 0 END) AS isTreatable')
             ->join('ie.refArticle', 'ra')
             ->leftJoin('ra.emplacement', 'e')
-            ->leftJoin('ra.ligneArticlePreparations', 'ligneArticles')
-            ->leftJoin('ligneArticles.preparation', 'preparation')
+            ->leftJoin('ra.preparationOrderReferenceLines', 'preparation_order_reference_lines')
+            ->leftJoin('preparation_order_reference_lines.preparation', 'preparation')
             ->leftJoin('preparation.statut', 'preparationStatus')
             ->leftJoin('preparation.livraison', 'livraison')
             ->leftJoin('livraison.statut', 'livraisonStatus')
@@ -114,33 +114,13 @@ class InventoryEntryRepository extends EntityRepository
             ->select('
                 MIN(CASE WHEN
                     (
-                        sub_preparation.id IS NULL
-                        AND (
-                            sub_demande.id IS NULL
-                            OR sub_demandeStatus.nom = :draftRequestStatus
-                        )
-                        AND (
-                            sub_ligneArticle.id IS NULL
-                            OR (
-                                sub_ligneArticle_preparation_status.nom != :preparationStatusToTreat
-                                AND sub_ligneArticle_preparation_status.nom != :preparationStatusInProgress
-                            )
-                        )
-                        AND sub_articleStatus.nom = :articleStatusAvailable
+                        sub_articleStatus.nom = :articleStatusAvailable
                         OR sub_articleStatus.nom = :articleStatusDispute
                     )
                     THEN 1 ELSE 0 END) AS sub_isTreatable
             ')
             ->join('sub_entry.article', 'sub_article')
             ->join('sub_article.statut', 'sub_articleStatus')
-            ->leftJoin('sub_article.demande', 'sub_demande')
-            ->leftJoin('sub_article.preparation', 'sub_preparation')
-            ->leftJoin('sub_demande.statut', 'sub_demandeStatus')
-            ->leftJoin('sub_article.articleFournisseur', 'sub_articleFournisseur')
-            ->leftJoin('sub_articleFournisseur.referenceArticle', 'sub_referenceArticle')
-            ->leftJoin('sub_referenceArticle.ligneArticlePreparations', 'sub_ligneArticle')
-            ->leftJoin('sub_ligneArticle.preparation', 'sub_ligneArticle_preparation')
-            ->leftJoin('sub_ligneArticle_preparation.statut', 'sub_ligneArticle_preparation_status')
             ->where('sub_entry.id = entry.id')
             ->groupBy('sub_entry.id');
 
@@ -162,10 +142,7 @@ class InventoryEntryRepository extends EntityRepository
             ->leftJoin('article.emplacement', 'articleLocation')
             ->andWhere('entry.anomaly = 1')
             ->setParameter('articleStatusAvailable', Article::STATUT_ACTIF)
-            ->setParameter('articleStatusDispute', Article::STATUT_EN_LITIGE)
-            ->setParameter('draftRequestStatus', Demande::STATUT_BROUILLON)
-            ->setParameter('preparationStatusToTreat', Preparation::STATUT_A_TRAITER)
-            ->setParameter('preparationStatusInProgress', Preparation::STATUT_EN_COURS_DE_PREPARATION);
+            ->setParameter('articleStatusDispute', Article::STATUT_EN_LITIGE);
 
         if ($forceValidLocation) {
             $queryBuilder->andWhere('articleLocation IS NOT NULL');

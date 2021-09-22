@@ -702,7 +702,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->join('join_preparationLine.preparation', 'join_preparation')
             ->join('join_preparation.livraison', 'join_delivery')
             ->andWhere('join_delivery.id IN (:deliveryIds) AND join_preparationLine.pickedQuantity > 0')
-            ->setParameter('livraisonsIds', $livraisonsIds, Connection::PARAM_STR_ARRAY)
+            ->setParameter('deliveryIds', $livraisonsIds, Connection::PARAM_STR_ARRAY)
             ->getQuery()
             ->execute();
     }
