@@ -51,6 +51,7 @@
         "symfony/web-link": "^5.2",
         "symfony/webpack-encore-bundle": "^1.8",
         "symfony/yaml": "^5.2",
+        "twig/string-extra": "^3.3",
         "wiilog/common": "dev-master"
     },
     "require-dev": {
