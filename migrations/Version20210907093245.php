@@ -64,13 +64,13 @@ final class Version20210907093245 extends AbstractMigration
             $pickedQuantity = $article['quantite_prelevee'] ?: 'NULL';
             $preparationId = $article['preparation_id'];
             $this->addSql("
-                INSERT INTO delivery_request_article_line (article_id, request_id, quantity, picked_quantity)
+                INSERT INTO delivery_request_article_line (article_id, request_id, quantity_to_pick, picked_quantity)
                 VALUES (${articleId}, ${requestId}, ${quantity}, ${pickedQuantity})
             ");
 
             if ($preparationId) {
                 $this->addSql("
-                    INSERT INTO preparation_order_article_line (article_id, preparation_id, quantity, picked_quantity)
+                    INSERT INTO preparation_order_article_line (article_id, preparation_id, quantity_to_pick, picked_quantity)
                     VALUES (${articleId}, ${preparationId}, ${quantity}, ${pickedQuantity})
                 ");
             }
