@@ -81,6 +81,9 @@ function initTableRefArticle() {
                         return json.data;
                     }
                 },
+                search: {
+                    search: $('#user-search').val()
+                },
                 length: 10,
                 columns: columns,
                 drawConfig: {
@@ -317,19 +320,20 @@ function printReferenceArticleBarCode($button, event) {
 }
 
 function displayActifOrInactif(select, onInit) {
-    let donnees;
-    if (select.is(':checked')) {
-        donnees = 'actif';
-    } else {
-        donnees = 'consommé';
+    if (select.length) {
+        let donnees;
+        if (select.is(':checked')) {
+            donnees = 'actif';
+        } else {
+            donnees = 'consommé';
+        }
+
+        let params = {donnees: donnees};
+        let path = Routing.generate('reference_article_actif_inactif');
+        $.post(path, JSON.stringify(params), function () {
+            if (!onInit) pageTables.ajax.reload();
+        });
     }
-
-    let params = {donnees: donnees};
-    let path = Routing.generate('reference_article_actif_inactif');
-
-    $.post(path, JSON.stringify(params), function () {
-        if (!onInit) pageTables.ajax.reload();
-    });
 }
 
 function initDatatableMovements(referenceArticleId) {

@@ -366,6 +366,11 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
      */
     private $columnsOrder = [];
 
+    /**
+     * @ORM\Column(type="array", nullable=true)
+     */
+    private $searches = [];
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -1957,6 +1962,18 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     public function setColumnsOrder(?array $columnsOrder): self
     {
         $this->columnsOrder = $columnsOrder;
+
+        return $this;
+    }
+
+    public function getSearches(): ?array
+    {
+        return $this->searches;
+    }
+
+    public function setSearches(?array $searches): self
+    {
+        $this->searches = $searches;
 
         return $this;
     }
