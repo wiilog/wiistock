@@ -674,6 +674,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->select('reference_article.reference AS reference')
             ->addSelect('reference_article.typeQuantite AS type_quantite')
             ->addSelect('join_location.label AS location')
+            ->addSelect('reference_article.libelle AS label')
             ->addSelect('join_preparationLine.quantityToPick AS quantity')
             ->addSelect('1 as is_ref')
             ->addSelect('reference_article.barCode AS barCode')

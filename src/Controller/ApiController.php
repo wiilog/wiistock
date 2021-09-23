@@ -1458,7 +1458,6 @@ class ApiController extends AbstractFOSRestController
             $articlesPrepaByRefArticle = $articleRepository->getArticlePrepaForPickingByUser($user);
 
             $articlesPrepa = $this->getArticlesPrepaArrays($preparations);
-
             /// collecte
             $collectes = $ordreCollecteRepository->getMobileCollecte($user);
 
@@ -1579,7 +1578,6 @@ class ApiController extends AbstractFOSRestController
                 return $dispatchPack;
             }, $dispatchPackRepository->getMobilePacksFromDispatches(array_map(fn($dispatch) => $dispatch['id'], $dispatches)));
         }
-
         return [
             'locations' => $emplacementRepository->getLocationsArray(),
             'allowedNatureInLocations' => $allowedNatureInLocations ?? [],
