@@ -43,55 +43,25 @@ class FiltreRefRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function countByChampLibre($cl)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            'SELECT COUNT (f)
-            FROM App\Entity\FiltreRef f
-            WHERE f.champLibre = :cl
-            '
-        )->setParameter('cl', $cl);
-        return $query->getSingleScalarResult();
+    public function findOneByUserAndChampFixe(Utilisateur $user, string $fixedField) {
+
+        return $this->createQueryBuilder('reference_filter')
+            ->where('reference_filter.utilisateur = :user')
+            ->andWhere('reference_filter.champFixe = :fixed_field')
+            ->setParameter('user', $user)
+            ->setParameter('fixed_field', $fixedField)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
-    public function deleteByChampLibre($cl)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            'DELETE
-            FROM App\Entity\FiltreRef f
-            WHERE f.champLibre = :cl
-            '
-        )->setParameter('cl', $cl);
-        return $query->execute();
-    }
+    public function findByUserExceptFixedField(Utilisateur $user, string $fixedField) {
 
-    /**
-     * @param Utilisateur $user
-	 * @param string $champFixe
-     * @return FiltreRef|null
-     */
-    public function findOneByUserAndChampFixe($user, $champFixe) {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT f
-            FROM App\Entity\FiltreRef f
-            WHERE f.utilisateur =:user AND f.champFixe = :cf"
-        )->setParameters(['user' => $user, 'cf' => $champFixe]);
-
-        $result = $query->execute();
-        return $result ? $result[0] : null;
-    }
-
-    public function findByUserExceptChampFixe($user, $champFixe) {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        	/** @lang DQL */
-            "SELECT f
-            FROM App\Entity\FiltreRef f
-            WHERE f.utilisateur =:user AND (f.champFixe != :cf or f.champFixe is null)"
-        )->setParameters(['user' => $user, 'cf' => $champFixe]);
-        return $query->execute();
+        return $this->createQueryBuilder('reference_filter')
+            ->where('reference_filter.utilisateur = :user')
+            ->andWhere('reference_filter.champFixe != :fixed_field OR reference_filter.champFixe IS NULL')
+            ->setParameter('user', $user)
+            ->setParameter('fixed_field', $fixedField)
+            ->getQuery()
+            ->execute();
     }
 }

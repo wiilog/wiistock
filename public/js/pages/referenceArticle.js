@@ -9,6 +9,9 @@ $(function () {
     });
 
     $printTag = $('#printTag');
+
+    updateFilters();
+
     let activeFilter;
     if ($('#filters').find('.filter').length <= 0) {
         $('#noFilters').removeClass('d-none');
@@ -28,7 +31,7 @@ $(function () {
 
 function redirectPaperclipClick(button) {
     const $actionOnClick = button.closest('.referenceRow').find('.action-on-click')
-    $actionOnClick .trigger('click');
+    $actionOnClick.trigger('click');
 }
 
 function initPageModals(table) {
@@ -224,7 +227,7 @@ function displayFilterValue(elem) {
     elem.closest('.modal-body').find('.valueLabel').text(label);
 }
 
-let ajaxPlusDemandeContent = function (button, type) {
+let ajaxPlusDemandeContent = function (button) {
     let plusDemandeContent = $(`.plusDemandeContent`);
     let editChampLibre = $('.editChampLibre');
     let modalFooter = button.closest('.modal').find('.modal-footer');
@@ -272,14 +275,15 @@ function passArgsToModal(button) {
     let path = Routing.generate('article_fournisseur_can_delete', true);
     let params = JSON.stringify({articleFournisseur: $(button).data('value')});
     $.post(path, params, function (response) {
+        const $modalDeleteSupplier = $('#modalDeleteFournisseur');
         if (response) {
-            $('#modalDeleteFournisseur').find('.modal-body').html('Voulez-vous réellement supprimer le lien entre ce<br> fournisseur et cet article ? ');
-            $("#submitDeleteFournisseur").data('value', $(button).data('value'));
-            $("#submitDeleteFournisseur").data('title', $(button).data('title'));
-            $('#modalDeleteFournisseur').find('#submitDeleteFournisseur').removeClass('d-none');
+            $modalDeleteSupplier.find('.modal-body').html('Voulez-vous réellement supprimer le lien entre ce<br> fournisseur et cet article ? ');
+            $modalDeleteSupplier.data('value', $(button).data('value'));
+            $modalDeleteSupplier.data('title', $(button).data('title'));
+            $modalDeleteSupplier.find('#submitDeleteFournisseur').removeClass('d-none');
         } else {
-            $('#modalDeleteFournisseur').find('.modal-body').html('Cet article fournisseur est lié à des articles<br> il est impossible de le supprimer');
-            $('#modalDeleteFournisseur').find('#submitDeleteFournisseur').addClass('d-none');
+            $modalDeleteSupplier.find('.modal-body').html('Cet article fournisseur est lié à des articles<br> il est impossible de le supprimer');
+            $modalDeleteSupplier.find('#submitDeleteFournisseur').addClass('d-none');
         }
     }, 'json');
 }
@@ -379,11 +383,12 @@ function showRowMouvements(button) {
 }
 
 function toggleEmergency($switch) {
+    const $emergencyComment = $('.emergency-comment');
     if ($switch.is(':checked')) {
-        $('.emergency-comment').removeClass('d-none');
+        $emergencyComment.removeClass('d-none');
     } else {
-        $('.emergency-comment').addClass('d-none');
-        $('.emergency-comment').val('');
+        $emergencyComment.addClass('d-none');
+        $emergencyComment.val('');
     }
 }
 
@@ -402,4 +407,17 @@ function updateQuantity(referenceArticleId) {
             }
         }
     });
+}
+
+function updateFilters() {
+    $.get(Routing.generate('update_filters'))
+        .then(({templates}) => {
+            if (templates.length === 0) {
+                $('.printButton').addClass('disabled');
+            } else {
+                templates.forEach(function (template) {
+                    displayNewFilter(template);
+                });
+            }
+        });
 }

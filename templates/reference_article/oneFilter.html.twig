@@ -1,8 +1,8 @@
 <div class="col-auto pb-2">
     <div class="btn filter has-tooltip"
-         title="{{ (filter.champFixe ? filter.champFixe : filter.champLibre.label) | capitalize }} : {{ filter.value }}">
+         title="{{ (filter.fixedField ? filter.fixedField : filter.freeField.label) | capitalize }} : {{ filter.value }}">
         <div class="row align-items-center">
-            {% set fieldLabel = filter.champFixe is not null ? filter.champFixe : filter.champLibre.label %}
+            {% set fieldLabel = filter.fixedField is not null ? filter.fixedField : filter.freeField.label %}
             {% if (filter.value == 'on' or filter.value == '1') %}
                 {% set value = 'oui' %}
             {% elseif (filter.value == '') %}
