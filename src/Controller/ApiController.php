@@ -584,19 +584,22 @@ class ApiController extends AbstractFOSRestController
                         }
 
                         $articlesToKeep = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $nomadUser, $entityManager);
+                        $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
+                        $mouvements = $mouvementRepository->findByPreparation($preparation);
 
-                        foreach ($mouvementsNomade as $mouvementNomade) {
-                            $emplacement = $emplacementRepository->findOneBy(['label' => $mouvementNomade['location']]);
-                            $preparationsManager->createMouvementLivraison(
-                                $mouvementNomade['quantity'],
-                                $nomadUser,
-                                $livraison,
-                                $mouvementNomade['is_ref'],
-                                $mouvementNomade['reference'],
-                                $preparation,
-                                $mouvementNomade['selected_by_article'],
-                                $emplacement
-                            );
+                        foreach ($mouvements as $mouvement) {
+                            if ($mouvement->getType() === MouvementStock::TYPE_TRANSFER) {
+                                $preparationsManager->createMouvementLivraison(
+                                    $mouvement->getQuantity(),
+                                    $nomadUser,
+                                    $livraison,
+                                    !empty($mouvement->getRefArticle()),
+                                    $mouvement->getRefArticle() ?? $mouvement->getArticle(),
+                                    $preparation,
+                                    false,
+                                    $preparation->getEndLocation()
+                                );
+                            }
                         }
 
                         foreach ($totalQuantitiesWithRef as $ref => $quantity) {

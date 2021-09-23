@@ -98,16 +98,18 @@ class PreparationController extends AbstractController
         $entityManager->flush();
 
         foreach ($mouvements as $mouvement) {
-            $preparationsManager->createMouvementLivraison(
-                $mouvement->getQuantity(),
-                $this->getUser(),
-                $livraison,
-                !empty($mouvement->getRefArticle()),
-                $mouvement->getRefArticle() ?? $mouvement->getArticle(),
-                $preparation,
-                false,
-                $locationEndPrepa
-            );
+            if ($mouvement->getType() === MouvementStock::TYPE_TRANSFER) {
+                $preparationsManager->createMouvementLivraison(
+                    $mouvement->getQuantity(),
+                    $this->getUser(),
+                    $livraison,
+                    !empty($mouvement->getRefArticle()),
+                    $mouvement->getRefArticle() ?? $mouvement->getArticle(),
+                    $preparation,
+                    false,
+                    $locationEndPrepa
+                );
+            }
         }
 
         $entityManager->flush();
