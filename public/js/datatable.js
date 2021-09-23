@@ -469,7 +469,7 @@ function attachDropdownToBodyOnDropdownOpening($table) {
 
 function getAndApplyOrder(page, datatable) {
     return new Promise((resolve) => {
-        $.post(Routing.generate('get_columns_order'), {page})
+        $.get(Routing.generate('get_columns_order'), {page})
             .then((result) => {
                 if (result.order.length > 0) {
                     datatable.colReorder.order(result.order);
