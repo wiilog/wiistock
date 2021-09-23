@@ -167,7 +167,7 @@
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
                             <div class="form-group">
                                 <label for="destination" title="Destination">{{ 'acheminement.Destination'|trans }}{{ required ? '*' }}</label>
-                                <input name="destination" class="form-control data {{ required ? 'needed' }} w-100"/>
+                                <input name="destination" class="form-control data {{ required ? 'needed' }} w-100" maxlength="50"/>
                             </div>
                         {% endif %}
 
