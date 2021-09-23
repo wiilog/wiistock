@@ -333,11 +333,13 @@ function initDataTable($table, options) {
                     initCompleteCallback();
                 }
                 attachDropdownToBodyOnDropdownOpening($table);
-                getAndApplyOrder(config, datatableToReturn).then(() => {
-                    datatableToReturn.on('column-reorder', function () {
-                        setOrder(config, datatableToReturn.colReorder.order());
+                if(config.page && config.page !== '') {
+                    getAndApplyOrder(config, datatableToReturn).then(() => {
+                        datatableToReturn.on('column-reorder', function () {
+                            setOrder(config, datatableToReturn.colReorder.order());
+                        });
                     });
-                });
+                }
             }
         }, config));
 
