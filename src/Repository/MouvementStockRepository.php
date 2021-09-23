@@ -455,7 +455,8 @@ class MouvementStockRepository extends EntityRepository
                             ->addOrderBy('articleSort.barCode', $order);
                     } else {
                         $queryBuilder
-                            ->orderBy('stock_movement.' . $column, $order);
+                            ->orderBy('stock_movement.' . $column, $order)
+                            ->addOrderBy('stock_movement.id', $order);
                     }
                 }
             }
