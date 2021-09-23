@@ -24,7 +24,7 @@ $(function() {
             {data: `status`, title: `Statut`},
         ],
     };
-    let visibilityGroupTable = initDataTable($('#tableVisibilityGroup'), groupsTableConfig);
+    let visibilityGroupTable = initDataTable(`tableVisibilityGroup`, groupsTableConfig);
 
     let modalNewVisibilityGroup = $("#modalNewVisibilityGroup");
     let submitNewVisibilityGroup = $("#submitNewVisibilityGroup");

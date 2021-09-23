@@ -55,7 +55,7 @@ table.wii-table {
     }
 }
 
-.modal table.wii-table  {
+.modal table.wii-table {
     td,
     td > *,
     th,
@@ -142,4 +142,17 @@ table.wii-table {
     padding: 3px;
     border-radius: 5px;
     margin: 5px;
+}
+
+table.DTCR_clonedTable.dataTable {
+    position: absolute !important;
+    background-color: rgba(255, 255, 255, 0.7);
+    z-index: 202;
+    width: 150px !important;
+}
+
+div.DTCR_pointer {
+    width: 2px;
+    background-color: #0259c4;
+    z-index: 201
 }
