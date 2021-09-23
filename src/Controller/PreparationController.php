@@ -602,8 +602,8 @@ class PreparationController extends AbstractController
         }
         $barcodeConfigs = array_merge(
             array_map(
-                function (Article $article) use ($articleDataService) {
-                    return $articleDataService->getBarcodeConfig($article);
+                function (PreparationOrderArticleLine $article) use ($articleDataService) {
+                    return $articleDataService->getBarcodeConfig($article->getArticle());
                 },
                 $articles
             ),
