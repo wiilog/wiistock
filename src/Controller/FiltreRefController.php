@@ -3,11 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\CategoryType;
-use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
-use App\Entity\ReferenceArticle;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -20,6 +18,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use WiiCommon\Helper\Stream;
 
 /**
  * Class FiltreRefController
@@ -98,8 +97,8 @@ class FiltreRefController extends AbstractController
 
                 $filterArray = [
                     'id' => $filter->getId(),
-                    'champLibre' => $filter->getChampLibre(),
-                    'champFixe' => $filter->getChampFixe(),
+                    'freeField' => $filter->getChampLibre(),
+                    'fixedField' => $filter->getChampFixe(),
                     'value' => $filter->getValue()
                 ];
 
@@ -198,4 +197,33 @@ class FiltreRefController extends AbstractController
 		}
 		throw new BadRequestHttpException();
 	}
+
+    /**
+     * @Route("/update-filters", name="update_filters", options={"expose"=true}, methods={"GET"}, condition="request.isXmlHttpRequest()")
+     */
+    public function updateFilters(EntityManagerInterface $manager): Response
+    {
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
+
+        $filters = $manager->getRepository(FiltreRef::class)->findByUserExceptFixedField($loggedUser, FiltreRef::FIXED_FIELD_STATUT);
+        $filters = Stream::from($filters)->map(fn(FiltreRef $filter) => [
+            'id' => $filter->getId(),
+            'freeField' => $filter->getChampLibre(),
+            'fixedField' => $filter->getChampFixe(),
+            'value' => $filter->getValue()
+        ])->toArray();
+
+        $templates = [];
+        foreach ($filters as $filter) {
+            $templates[] = [
+                'filterHtml' => $this->renderView('reference_article/oneFilter.html.twig', ['filter' => $filter])
+            ];
+        }
+
+        return new JsonResponse([
+            'success' => true,
+            'templates' => $templates
+        ]);
+    }
 }

@@ -326,7 +326,6 @@ class ReferenceArticleController extends AbstractController
         $filter = $filtreRefRepository->findOneByUserAndChampFixe($user, FiltreRef::FIXED_FIELD_STATUT);
 
         return $this->render('reference_article/index.html.twig', [
-            'filters' => $filtreRefRepository->findByUserExceptChampFixe($this->getUser(), FiltreRef::FIXED_FIELD_STATUT),
             "fields" => $fields,
             "searches" => $user->getRecherche(),
             'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
