@@ -162,6 +162,7 @@ function switchMvtCreationType($input) {
             const $emptyRound = $modal.find('input[name=empty-round]');
             if($input.find(':selected').text().trim() === $emptyRound.val()) {
                 const $packInput = $modal.find('input[name=colis]');
+                $modal.find('input[name=quantity]').closest('div.form-group').addClass('d-none');
                 $packInput.val('passageavide');
                 $packInput.prop('disabled', true);
             }
