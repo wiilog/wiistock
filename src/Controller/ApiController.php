@@ -2205,7 +2205,7 @@ class ApiController extends AbstractFOSRestController
         $user = $this->getUser();
 
         foreach ($emptyRounds as $emptyRound) {
-            $date = new DateTime(trim($emptyRound['date'], '"'));
+            $date = DateTime::createFromFormat("d/m/Y H:i:s", $emptyRound['date']);
 
             $emptyRoundPack = $packRepository->findOneBy(['code' => Pack::EMPTY_ROUND_PACK]);
             $location = $locationRepository->findOneBy(['label' => $emptyRound['location']]);
