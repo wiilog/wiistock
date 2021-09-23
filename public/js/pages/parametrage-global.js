@@ -320,7 +320,7 @@ function ajaxEncodage() {
 
 function editAppearance() {
     const sessionTime = $('input[name="param-session-time"]').val();
-    if(sessionTime > 1440) {
+    if(sessionTime <= 0 || sessionTime > 1440) {
         showBSAlert(`Le temps maximum d'inactivité est de 24 heures ou 1440 minutes`, `danger`);
         return;
     }
