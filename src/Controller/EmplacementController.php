@@ -8,7 +8,7 @@ use App\Entity\Dispatch;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\Collecte;
-use App\Entity\Demande;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Livraison;

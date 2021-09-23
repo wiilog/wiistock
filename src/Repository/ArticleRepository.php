@@ -3,13 +3,15 @@
 namespace App\Repository;
 
 use App\Entity\Article;
-use App\Entity\Demande;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FreeField;
 use App\Entity\IOT\Sensor;
 use App\Entity\OrdreCollecte;
-use App\Entity\Preparation;
+use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
+use App\Entity\TransferRequest;
+use App\Entity\Statut;
 use App\Entity\Utilisateur;
 
 use App\Entity\VisibilityGroup;
@@ -20,7 +22,6 @@ use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 
-use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
 use WiiCommon\Helper\StringHelper;
 
@@ -93,38 +94,6 @@ class ArticleRepository extends EntityRepository {
             "
         )->setParameter('id', $id);
         return $query->getResult();
-    }
-
-    public function findByDemandes($demandes, $needAssoc = false)
-    {
-        $queryBuilder = $this->createQueryBuilder('article')
-            ->select('article');
-
-        if ($needAssoc) {
-            $queryBuilder->addSelect('demande.id AS demandeId');
-        }
-
-        $result = $queryBuilder
-            ->join('article.demande' , 'demande')
-            ->where('article.demande IN (:demandes)')
-            ->setParameter('demandes', $demandes)
-            ->getQuery()
-            ->execute();
-
-        if ($needAssoc) {
-            $result = array_reduce($result, function(array $carry, $current) {
-                $article =  $current[0];
-                $demandeId = $current['demandeId'];
-
-                if (!isset($carry[$demandeId])) {
-                    $carry[$demandeId] = [];
-                }
-
-                $carry[$demandeId][] = $article;
-                return $carry;
-            }, []);
-        }
-        return $result;
     }
 
     public function iterateAll(Utilisateur $user): iterable {
@@ -268,58 +237,20 @@ class ArticleRepository extends EntityRepository {
 		return $queryBuilder->getQuery()->execute();
 	}
 
-    public function getTotalQuantiteFromRefNotInDemand($refArticle, $statut)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            'SELECT SUM(a.quantite)
-			FROM App\Entity\Article a
-			JOIN a.articleFournisseur af
-			JOIN af.referenceArticle ra
-			WHERE a.statut =:statut AND ra = :refArticle AND a.demande is null
-			'
-        )->setParameters([
-            'refArticle' => $refArticle,
-            'statut' => $statut
-        ]);
-
-        return $query->getSingleScalarResult();
-    }
-
-	public function findActifByRefArticleWithoutDemand($refArticle = null, $preparation = null, $demande = null)
+	public function findActiveArticles(ReferenceArticle $referenceArticle): array
 	{
-		return $this->createQueryBuilderActifWithoutDemand($refArticle, $preparation, $demande)
-            ->getQuery()
-            ->execute();
-	}
-
-	private function createQueryBuilderActifWithoutDemand($refArticle = null, $preparation = null, $demande = null): QueryBuilder
-	{
-	    $queryBuilder = $this->createQueryBuilder('article')
+	    return $this->createQueryBuilder('article')
             ->join('article.articleFournisseur', 'articleFournisseur')
             ->join('articleFournisseur.referenceArticle', 'referenceArticle')
-            ->join('article.statut', 'articleStatut')
-            ->leftJoin('article.demande', 'demande')
-            ->leftJoin('demande.statut', 'statutDemande')
-            ->where('articleStatut.nom = :articleActif')
+            ->join('article.statut', 'articleStatus')
+            ->where('articleStatus.nom = :activeStatus')
             ->andWhere('article.quantite IS NOT NULL')
             ->andWhere('article.quantite > 0')
-            ->andWhere('(article.preparation IS NULL OR article.preparation = :prepa OR statutDemande.nom = :delivered)')
-            ->andWhere('(article.demande IS NULL OR article.demande = :dem OR statutDemande.nom = :draft OR statutDemande.nom = :delivered)')
-            ->setParameter('articleActif', Article::STATUT_ACTIF)
-            ->setParameter('prepa', $preparation)
-            ->setParameter('dem', $demande)
-            ->setParameter('delivered', Demande::STATUT_LIVRE)
-            ->setParameter('draft', Demande::STATUT_BROUILLON);
-
-	    if (!empty($refArticle)) {
-            $queryBuilder
-                ->andWhere('referenceArticle = :refArticle')
-                ->setParameter('refArticle', $refArticle);
-        }
-
-	    return $queryBuilder;
-
+            ->andWhere('referenceArticle = :refArticle')
+            ->setParameter('refArticle', $referenceArticle)
+            ->setParameter('activeStatus', Article::STATUT_ACTIF)
+            ->getQuery()
+            ->getResult();
 	}
 
     public function findByParamsAndFilters($params, $filters, Utilisateur $user)
@@ -559,36 +490,31 @@ class ArticleRepository extends EntityRepository {
         return $query->getSingleScalarResult();
     }
 
-    public function getByPreparationsIds($preparationsIds)
+    public function getByPreparationsIds($preparationsIds): array
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT a.reference,
-                         e.label as location,
-                         a.label,
-                         (CASE
-                            WHEN a.quantiteAPrelever IS NULL THEN a.quantite
-                            ELSE a.quantiteAPrelever
-                         END) as quantity,
-                         0 as is_ref,
-                         p.id as id_prepa,
-                         a.barCode,
-                         ra.reference as reference_article_reference
-			FROM App\Entity\Article a
-			LEFT JOIN a.emplacement e
-			JOIN a.preparation p
-			JOIN p.statut s
-			JOIN a.articleFournisseur af
-			JOIN af.referenceArticle ra
-			WHERE p.id IN (:preparationsIds)
-			  AND a.quantite > 0"
-        )->setParameter('preparationsIds', $preparationsIds, Connection::PARAM_STR_ARRAY);
-
-		return $query->execute();
+        return $this->createQueryBuilder('article')
+            ->select('article.reference AS reference')
+            ->addSelect('join_location.label AS location')
+            ->addSelect('article.label AS label')
+            ->addSelect('join_preparationLine.quantityToPick AS quantity')
+            ->addSelect('0 AS is_ref')
+            ->addSelect('join_preparation.id AS id_prepa')
+            ->addSelect('article.barCode AS barCode')
+            ->addSelect('join_referenceArticle.reference AS reference_article_reference')
+            ->leftJoin('article.emplacement', 'join_location')
+            ->join('article.preparationOrderLines', 'join_preparationLine')
+            ->join('join_preparationLine.preparation', 'join_preparation')
+            ->join('article.articleFournisseur', 'join_supplierArticle')
+            ->join('join_supplierArticle.referenceArticle', 'join_referenceArticle')
+            ->andWhere('join_preparation.id IN (:preparationsIds)')
+            ->andWhere('article.quantite > 0')
+            ->setParameter('preparationsIds', $preparationsIds, Connection::PARAM_STR_ARRAY)
+            ->getQuery()
+            ->getResult();
 	}
 
     public function getArticlePrepaForPickingByUser($user, array $preparationIdsFilter = []) {
-        $queryBuilder = $this->createQueryBuilderActifWithoutDemand()
+        $queryBuilder = $this->createQueryBuilder('article')
             ->select('DISTINCT article.reference AS reference')
             ->addSelect('article.label AS label')
             ->addSelect('emplacement.label AS location')
@@ -610,11 +536,18 @@ class ArticleRepository extends EntityRepository {
                     ELSE :null
                 END) AS management_order
             ')
+            ->join('article.articleFournisseur', 'articleFournisseur')
+            ->join('articleFournisseur.referenceArticle', 'referenceArticle')
+            ->join('article.statut', 'articleStatut')
             ->leftJoin('article.emplacement', 'emplacement')
-            ->join('referenceArticle.ligneArticlePreparations', 'ligneArticlePreparation')
-            ->join('ligneArticlePreparation.preparation', 'preparation')
+            ->join('referenceArticle.preparationOrderReferenceLines', 'preparationOrderReferenceLines')
+            ->join('preparationOrderReferenceLines.preparation', 'preparation')
             ->join('preparation.statut', 'statutPreparation')
             ->andWhere('(statutPreparation.nom = :preparationToTreat OR (statutPreparation.nom = :preparationInProgress AND preparation.utilisateur = :preparationOperator))')
+            ->andWhere('articleStatut.nom = :articleActif')
+            ->andWhere('article.quantite IS NOT NULL')
+            ->andWhere('article.quantite > 0')
+            ->setParameter('articleActif', Article::STATUT_ACTIF)
             ->setParameter('preparationToTreat', Preparation::STATUT_A_TRAITER)
             ->setParameter('preparationInProgress', Preparation::STATUT_EN_COURS_DE_PREPARATION)
             ->setParameter('preparationOperator', $user)
@@ -635,20 +568,23 @@ class ArticleRepository extends EntityRepository {
 
     public function getByLivraisonsIds($livraisonsIds)
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT a.reference, e.label as location, a.label, a.quantitePrelevee as quantity, 0 as is_ref, l.id as id_livraison, a.barCode
-			FROM App\Entity\Article a
-			LEFT JOIN a.emplacement e
-			JOIN a.preparation p
-			JOIN p.livraison l
-			JOIN l.statut s
-			WHERE l.id IN (:livraisonsIds)
-			  AND a.quantite > 0"
-        )->setParameter('livraisonsIds', $livraisonsIds, Connection::PARAM_STR_ARRAY);
-
-		return $query->execute();
+        return $this->createQueryBuilder('article')
+            ->select('article.reference AS reference')
+            ->addSelect('join_location.label AS location')
+            ->addSelect('article.label AS label')
+            ->addSelect('join_preparationOrderLines.quantityToPick AS quantity')
+            ->addSelect('0 as is_ref')
+            ->addSelect('join_delivery.id AS id_livraison')
+            ->addSelect('article.barCode AS barCode')
+            ->leftJoin('article.emplacement', 'join_location')
+            ->join('article.preparationOrderLines', 'join_preparationOrderLines')
+            ->join('join_preparationOrderLines.preparation', 'join_preparation')
+            ->join('join_preparation.livraison', 'join_delivery')
+            ->andWhere('join_delivery.id IN (:deliveryIds)')
+            ->andWhere('article.quantite > 0')
+            ->setParameter('deliveryIds', $livraisonsIds, Connection::PARAM_STR_ARRAY)
+            ->getQuery()
+            ->execute();
 	}
 
 	public function getByOrdreCollectesIds($collectesIds)
@@ -1056,5 +992,59 @@ class ArticleRepository extends EntityRepository {
             ->setParameter('location', $location)
             ->getQuery()
             ->getResult();
+    }
+
+    public function isUsedInQuantityChangingProcesses(Article $article): bool {
+        $queryBuilder = $this->createQueryBuilder('article');
+        $exprBuilder = $queryBuilder->expr();
+        $articleIsProcessed = $queryBuilder
+            ->leftJoin('article.deliveryRequestLines', 'deliveryRequestLine')
+            ->leftJoin('deliveryRequestLine.request', 'deliveryRequest')
+            ->leftJoin('deliveryRequest.statut', 'deliveryRequestStatus')
+
+            ->leftJoin('article.transferRequests', 'transferRequest')
+            ->leftJoin('transferRequest.status', 'transferRequestStatus')
+
+            ->leftJoin('article.ordreCollecte', 'collectOrder')
+            ->leftJoin('collectOrder.statut', 'collectOrderStatus')
+
+            ->andWhere('article = :article')
+            ->andWhere($exprBuilder->orX(
+                '(deliveryRequestLine IS NOT NULL AND deliveryRequestStatus.code NOT IN (:deliveryRequestStatus_processed))',
+                '(transferRequest.id IS NOT NULL AND transferRequestStatus.code NOT IN (:transferRequestStatus_processed))',
+                '(collectOrder.id IS NOT NULL AND collectOrderStatus.code NOT IN (:collectOrderStatusStatus_processed))'
+            ))
+
+            ->setParameter('article', $article)
+            ->setParameter('deliveryRequestStatus_processed', [Demande::STATUT_BROUILLON, Demande::STATUT_LIVRE, Demande::STATUT_LIVRE_INCOMPLETE])
+            ->setParameter('transferRequestStatus_processed', [TransferRequest::DRAFT, TransferRequest::TREATED])
+            ->setParameter('collectOrderStatusStatus_processed', [OrdreCollecte::STATUT_TRAITE])
+
+            ->getQuery()
+            ->getResult();
+
+        return !empty($articleIsProcessed);
+    }
+
+    public function getCollectableArticlesForSelect(?string $search, ?int $referenceArticle = null) {
+        $qb = $this->createQueryBuilder("article")
+            ->select("article.id AS id, article.barCode AS text")
+            ->join('article.statut', 'statut')
+            ->andWhere("article.barCode LIKE :search")
+            ->andWhere("article.inactiveSince IS NOT NULL")
+            ->andWhere("article.inactiveSince > :one_month_ago")
+            ->andWhere("statut.code = :inactive")
+            ->setParameter("search", "%$search%")
+            ->setParameter("inactive", Article::STATUT_INACTIF)
+            ->setParameter("one_month_ago", new DateTime("-1 month"));
+
+        if($referenceArticle) {
+            $qb->join("article.articleFournisseur", "article_fournisseur")
+                ->join("article_fournisseur.referenceArticle", "reference_article")
+                ->andWhere("reference_article.id = :reference_article")
+                ->setParameter("reference_article", $referenceArticle);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 }

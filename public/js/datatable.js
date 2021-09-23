@@ -262,10 +262,14 @@ function initDataTable($table, options) {
             tooltips.push({id, text: column.tooltip});
         }
 
-        if(config.order && Array.isArray(config.order)) {
+        if(!column.name) {
+            column.name = column.data;
+        }
+
+        if (config.order && Array.isArray(config.order)) {
             const newOrder = [];
-            for(let [name, order] of config.order) {
-                if(name === column.data || name === column.name) {
+            for (let [name, order] of config.order) {
+                if (name === column.data || name === column.name) {
                     name = id;
                 }
 
@@ -300,10 +304,13 @@ function initDataTable($table, options) {
             console.log('An error has been reported by DataTables: ', message, e, $table.attr('id'));
         })
         .DataTable(Object.assign({
-            fixedColumns:   {
+            fixedColumns: {
                 heightMatch: 'auto'
             },
-
+            colReorder: {
+                enable: !!config.page,
+                realtime: false,
+            },
             autoWidth: true,
             scrollX: true,
             language: {
@@ -326,8 +333,14 @@ function initDataTable($table, options) {
                     initCompleteCallback();
                 }
                 attachDropdownToBodyOnDropdownOpening($table);
+                getAndApplyOrder(config, datatableToReturn).then(() => {
+                    datatableToReturn.on('column-reorder', function () {
+                        setOrder(config, datatableToReturn.colReorder.order());
+                    });
+                });
             }
         }, config));
+
     return datatableToReturn;
 }
 
@@ -456,3 +469,36 @@ function attachDropdownToBodyOnDropdownOpening($table) {
     });
 }
 
+function hash(str, seed = 0) {
+    let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
+    for (let i = 0, ch; i < str.length; i++) {
+        ch = str.charCodeAt(i);
+        h1 = Math.imul(h1 ^ ch, 2654435761);
+        h2 = Math.imul(h2 ^ ch, 1597334677);
+    }
+    h1 = Math.imul(h1 ^ (h1>>>16), 2246822507) ^ Math.imul(h2 ^ (h2>>>13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2>>>16), 2246822507) ^ Math.imul(h1 ^ (h1>>>13), 3266489909);
+    return 4294967296 * (2097151 & h2) + (h1>>>0);
+}
+
+function getAndApplyOrder(config, datatable) {
+    const params = {
+        page: config.page,
+    };
+
+    return $.get(Routing.generate('get_columns_order'), params)
+        .then((result) => {
+            if(result.order.length > 0) {
+                datatable.colReorder.order(result.order);
+            }
+        });
+}
+
+function setOrder(config, order) {
+    const params = {
+        page: config.page,
+        order
+    };
+
+    $.post(Routing.generate('set_columns_order'), params);
+}

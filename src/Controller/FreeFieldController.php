@@ -8,7 +8,7 @@ use App\Entity\CategorieCL;
 use App\Entity\FreeField;
 
 use App\Entity\Collecte;
-use App\Entity\Demande;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Handling;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;

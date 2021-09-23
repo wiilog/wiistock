@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\PreparationOrder;
 
 use App\Entity\Article;
 use App\Entity\FiltreSup;
 use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
-use App\Entity\Preparation;
+use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
@@ -34,19 +34,6 @@ class PreparationRepository extends EntityRepository
 		'Opérateur' => 'user',
 		'Type' => 'type'
 	];
-
-    public function getByDemande($id)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT p
-           FROM App\Entity\Preparation p
-           JOIN p.demande d
-           WHERE d.id = :id "
-        )->setParameter('id', $id);
-
-        return $query->execute();
-    }
 
     /**
      * @param Utilisateur $user
@@ -87,25 +74,6 @@ class PreparationRepository extends EntityRepository
         return $queryBuilder
             ->getQuery()
             ->execute();
-    }
-
-	/**
-	 * @param Utilisateur $user
-	 * @return int
-	 * @throws NonUniqueResultException
-	 * @throws NoResultException
-	 */
-    public function countByUser($user)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(p)
-            FROM App\Entity\Preparation p
-            WHERE p.utilisateur = :user"
-        )->setParameter('user', $user);
-
-        return $query->getSingleScalarResult();
     }
 
 	/**

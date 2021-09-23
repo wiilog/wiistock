@@ -139,10 +139,6 @@ class TransferOrderService {
                 $this->createMovements($context, $item);
                 $item->setEmplacement($locationTo);
             }
-
-            if ($item instanceof Article) {
-                $item->setQuantiteAPrelever(null);
-            }
         }
     }
 

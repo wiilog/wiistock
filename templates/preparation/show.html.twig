@@ -42,18 +42,7 @@
     {% include 'article/modalShowArticle.html.twig' %}
     {% include 'preparation/modalNewSensorPairing.html.twig' %}
 
-    <div id="splittingContent">
-        {% include 'preparation/modalSplitting.html.twig' with
-            {
-                'index' : 0,
-                'reference' : '',
-                'articles' : [],
-                'quantite' : 0,
-                'referenceId' : '',
-                'managementType' : null
-            } %}
-    </div>
-
+    <div id="splittingContent"></div>
 
 {% endblock %}
 

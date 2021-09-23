@@ -4,6 +4,8 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\ArticleFournisseur;
+use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\FreeField;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
@@ -280,10 +282,11 @@ class ArticleController extends AbstractController
             $trackingPack = $article->getTrackingPack();
 
             if ($article->getCollectes()->isEmpty()
+                && $article->getPreparationOrderLines()->isEmpty()
                 && $article->getOrdreCollecte()->isEmpty()
                 && $article->getTransferRequests()->isEmpty()
                 && $article->getInventoryMissions()->isEmpty()
-                && $article->getInventoryEntries()) {
+                && $article->getInventoryEntries()->isEmpty()) {
 
                 if ($trackingPack) {
                     $trackingPack->setArticle(null);
@@ -313,35 +316,14 @@ class ArticleController extends AbstractController
                 }
                 $entityManager->flush();
 
-                // Delete prepa
-                $preparation = $article->getPreparation();
-                if ($preparation) {
-                    $refToUpdate = $preparationsManagerService->managePreRemovePreparation($preparation, $entityManager);
-                    $entityManager->flush();
-                    $entityManager->remove($preparation);
-
-                    // il faut que la preparation soit supprimée avant une maj des articles
-                    $entityManager->flush();
-
-                    foreach ($refToUpdate as $reference) {
-                        $refArticleDataService->updateRefArticleQuantities($entityManager, $reference);
-                    }
-
-                    $entityManager->flush();
+                /** @var DeliveryRequestArticleLine $line */
+                foreach ($article->getDeliveryRequestLines()->toArray() as $line) {
+                    $line->setRequest(null);
+                    $entityManager->remove($line);
                 }
-                // Delete demande
-
-                $demande = $article->getDemande();
-                if ($demande) {
-                    $demandeLivraisonService->managePreRemoveDeliveryRequest($demande, $entityManager);
-                    $entityManager->remove($demande);
-                    $entityManager->flush();
-                }
-
                 $entityManager->remove($article);
                 $entityManager->flush();
 
-                $response['delete'] = $rows;
                 return new JsonResponse([
                     'delete' => $rows,
                     'success' => true,
@@ -390,18 +372,18 @@ class ArticleController extends AbstractController
 
                 $articlesMvtTracaIsEmpty = $article->getTrackingMovements()->isEmpty();
                 $articlesMvtStockIsEmpty = $article->getMouvements()->isEmpty();
-                $articleRequest = $article->getDemande();
-                $articlePrepa = $article->getPreparation();
-                $isNotUsedInAssoc = $articlesMvtTracaIsEmpty && $articlesMvtStockIsEmpty && empty($articleRequest) && empty($articlePrepa);
+                $hasNoDeliveryRequestLines = $article->getDeliveryRequestLines()->isEmpty();
+                $hasNoPreparationOrderLines = $article->getDeliveryRequestLines()->isEmpty();
+                $isNotUsedInAssoc = ($articlesMvtTracaIsEmpty && $articlesMvtStockIsEmpty && $hasNoDeliveryRequestLines && $hasNoPreparationOrderLines);
                 if (($hasRightToDeleteTraca || $articlesMvtTracaIsEmpty)
                     && ($hasRightToDeleteStock || $articlesMvtStockIsEmpty)
-                    && ($hasRightToDeleteRequests || empty($articleRequest))
-                    && ($hasRightToDeleteOrders || empty($articlePrepa))) {
+                    && ($hasRightToDeleteRequests || $hasNoDeliveryRequestLines)
+                    && ($hasRightToDeleteOrders || $hasNoPreparationOrderLines)) {
                     return new JsonResponse([
                         'delete' => $isFromReception || $isNotUsedInAssoc,
                         'html' => $this->renderView('article/modalDeleteArticleRight.html.twig', [
-                            'prepa' => $articlePrepa ? $articlePrepa->getNumero() : null,
-                            'request' => $articleRequest ? $articleRequest->getNumero() : null,
+                            'prepa' => $hasNoPreparationOrderLines ? $hasNoPreparationOrderLines->getNumero() : null,
+                            'request' => $hasNoDeliveryRequestLines ? $hasNoDeliveryRequestLines->getNumero() : null,
                             'mvtStockIsEmpty' => $articlesMvtStockIsEmpty,
                             'mvtTracaIsEmpty' => $articlesMvtTracaIsEmpty,
                             'askQuestion' => $isFromReception
@@ -466,7 +448,7 @@ class ArticleController extends AbstractController
                 $refArticle = $referenceArticleRepository->find($data['referenceArticle']);
             }
             if ($refArticle) {
-                $json = $this->articleDataService->getCollecteArticleOrNoByRefArticle($refArticle);
+                $json = $this->articleDataService->getCollecteArticleOrNoByRefArticle($refArticle, $this->getUser());
             } else {
                 $json = false; //TODO gérer erreur retour
             }
@@ -482,13 +464,15 @@ class ArticleController extends AbstractController
     public function getLivraisonArticlesByRefArticle(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
+            $requestRepository = $entityManager->getRepository(Demande::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $refArticle = $referenceArticleRepository->find($data['refArticle']);
+            $deliveryRequest = $requestRepository->find($data['deliveryRequestId']);
 
-            if ($refArticle) {
+            if ($refArticle && $deliveryRequest) {
                 /** @var Utilisateur $currentUser */
                 $currentUser = $this->getUser();
-                $json = $this->articleDataService->getLivraisonArticlesByRefArticle($refArticle, $currentUser, $data['deliveryRequestId']);
+                $json = $this->articleDataService->getLivraisonArticlesByRefArticle($refArticle, $deliveryRequest, $currentUser);
             } else {
                 $json = false; //TODO gérer erreur retour
             }

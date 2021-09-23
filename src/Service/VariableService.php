@@ -8,7 +8,7 @@ use App\Entity\Dispatch;
 use App\Entity\Handling;
 use App\Entity\Livraison;
 use App\Entity\OrdreCollecte;
-use App\Entity\Preparation;
+use App\Entity\PreparationOrder\Preparation;
 use App\Entity\TransferOrder;
 use App\Helper\FormatHelper;
 use RuntimeException;

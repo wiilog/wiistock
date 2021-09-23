@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import 'select2';
 import {GROUP_WHEN_NEEDED} from "./app";
 
@@ -24,6 +23,7 @@ const ROUTES = {
     user: `ajax_select_user`,
     supplierCode: `ajax_select_supplier_code`,
     supplierLabel: `ajax_select_supplier_label`,
+    collectableArticles: `ajax_select_collectable_articles`,
 }
 
 const INSTANT_SELECT_TYPES = {
@@ -103,7 +103,7 @@ export default class Select2 {
     static includeParams($element, params) {
         if($element.is(`[data-include-params]`)) {
             const selector = $element.data(`include-params`);
-            const closest = $element.data(`[data-include-params-parent]`) || `.modal`;
+            const closest = $element.data(`include-params-parent`) || `.modal`;
             const $fields = $element
                 .closest(closest)
                 .find(selector);

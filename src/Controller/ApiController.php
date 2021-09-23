@@ -15,7 +15,7 @@ use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
 use App\Entity\InventoryEntry;
 use App\Entity\InventoryMission;
-use App\Entity\LigneArticlePreparation;
+use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Livraison;
 use App\Entity\Handling;
 use App\Entity\Menu;
@@ -25,7 +25,7 @@ use App\Entity\TrackingMovement;
 use App\Entity\OrdreCollecte;
 use App\Entity\DispatchPack;
 use App\Entity\Attachment;
-use App\Entity\Preparation;
+use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\TransferOrder;
@@ -561,7 +561,7 @@ class ApiController extends AbstractFOSRestController
 
                         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
                         $articleRepository = $entityManager->getRepository(Article::class);
-                        $ligneArticlePreparationRepository = $entityManager->getRepository(LigneArticlePreparation::class);
+                        $ligneArticlePreparationRepository = $entityManager->getRepository(PreparationOrderReferenceLine::class);
                         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
                         $preparationsManager->setEntityManager($entityManager);
@@ -634,7 +634,6 @@ class ApiController extends AbstractFOSRestController
                         $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
                         $preparationsManager->setEntityManager($entityManager);
                     }
-
                     $message = (
                     ($throwable instanceof NegativeQuantityException) ? "Une quantité en stock d\'un article est inférieure à sa quantité prélevée" :
                         (($throwable->getMessage() === PreparationsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION) ? "L'emplacement que vous avez sélectionné n'existe plus." :
@@ -1459,7 +1458,6 @@ class ApiController extends AbstractFOSRestController
             $articlesPrepaByRefArticle = $articleRepository->getArticlePrepaForPickingByUser($user);
 
             $articlesPrepa = $this->getArticlesPrepaArrays($preparations);
-
             /// collecte
             $collectes = $ordreCollecteRepository->getMobileCollecte($user);
 
@@ -1580,7 +1578,6 @@ class ApiController extends AbstractFOSRestController
                 return $dispatchPack;
             }, $dispatchPackRepository->getMobilePacksFromDispatches(array_map(fn($dispatch) => $dispatch['id'], $dispatches)));
         }
-
         return [
             'locations' => $emplacementRepository->getLocationsArray(),
             'allowedNatureInLocations' => $allowedNatureInLocations ?? [],
@@ -1644,17 +1641,17 @@ class ApiController extends AbstractFOSRestController
     }
 
     /**
-     * @Rest\Post("/api/previous-operator-movements", name="api_previous_operator_movements")
+     * @Rest\Get("/api/previous-operator-movements", name="api_previous_operator_movements")
      * @Wii\RestVersionChecked()
      */
     public function getPreviousOperatorMovements(Request $request, EntityManagerInterface $manager) {
-        $userRepository = $manager->getRepository(TrackingMovement::class);
+        $userRepository = $manager->getRepository(Utilisateur::class);
         $trackingMovementRepository = $manager->getRepository(TrackingMovement::class);
 
-        $user = $userRepository->find($request->query->get("id"));
+        $user = $userRepository->find($request->query->get("operator"));
         $movements = $trackingMovementRepository->getPickingByOperatorAndNotDropped(
             $user,
-            TrackingMovementRepository::MOUVEMENT_TRACA_STOCK
+            TrackingMovementRepository::MOUVEMENT_TRACA_DEFAULT
         );
 
         return $this->json([
@@ -1787,7 +1784,7 @@ class ApiController extends AbstractFOSRestController
                 // we can transfer if reference is active AND it is not linked to any active orders
                 $referenceArticleArray['can_transfer'] = (
                     ($statusReferenceId === $referenceActiveStatusId)
-                    && !$referenceArticle->isUsedInQuantityChangingProcesses()
+                    && !$referenceArticleRepository->isUsedInQuantityChangingProcesses($referenceArticle)
                 );
                 $resData['article'] = $referenceArticleArray;
             } else {

@@ -6,7 +6,7 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\Collecte;
-use App\Entity\Demande;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
@@ -14,7 +14,7 @@ use App\Entity\Menu;
 
 use App\Entity\OrdreCollecte;
 use App\Entity\Pack;
-use App\Entity\Preparation;
+use App\Entity\PreparationOrder\Preparation;
 use App\Service\IOT\DataMonitoringService;
 use App\Service\IOT\PairingService;
 use Doctrine\ORM\EntityManagerInterface;

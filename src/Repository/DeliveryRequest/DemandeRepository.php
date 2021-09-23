@@ -1,13 +1,15 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\DeliveryRequest;
 
+use App\Entity\Article;
 use App\Entity\AverageRequestTime;
-use App\Entity\Demande;
+use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Reception;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use DateTime;
-use Doctrine\DBAL\Connection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -29,19 +31,6 @@ class DemandeRepository extends EntityRepository
         'Numéro' => 'numero',
         'Type' => 'type',
     ];
-
-    public function findByUserAndNotStatus($user, $status)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT d
-            FROM App\Entity\Demande d
-            JOIN d.statut s
-            WHERE s.nom <> :status AND d.utilisateur = :user"
-        )->setParameters(['user' => $user, 'status' => $status]);
-
-        return $query->execute();
-    }
 
     public function findRequestToTreatByUser(?Utilisateur $requester, int $limit) {
         $statuses = [
@@ -100,66 +89,26 @@ class DemandeRepository extends EntityRepository
 
     public function findByStatutAndUser($statut, $user)
     {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT d
-            FROM App\Entity\Demande d
-            WHERE d.statut = :statut AND d.utilisateur = :user"
-        )->setParameters([
-            'statut' => $statut,
-            'user' => $user
-        ]);
-        return $query->execute();
+        return $this->createQueryBuilder('request')
+            ->andWhere('request.statut = :statut AND request.utilisateur = :user')
+            ->setParameters([
+                'statut' => $statut,
+                'user' => $user
+            ])
+            ->getQuery()
+            ->execute();
     }
 
     public function countByEmplacement($emplacementId)
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT COUNT(d)
-            FROM App\Entity\Demande d
-            JOIN d.destination dest
-            WHERE dest.id = :emplacementId"
-        )->setParameter('emplacementId', $emplacementId);
-
-        return $query->getSingleScalarResult();
-    }
-
-    public function countByStatutAndUser($statut, $user)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT COUNT(d)
-            FROM App\Entity\Demande d
-            WHERE d.statut = :statut AND d.utilisateur = :user"
-        )->setParameters([
-            'statut' => $statut,
-            'user' => $user,
-        ]);
-
-        return $query->getSingleScalarResult();
-    }
-
-    public function countByStatut($statut)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT COUNT(d)
-            FROM App\Entity\Demande d
-            WHERE d.statut = :statut "
-        )->setParameter('statut', $statut);
-        return $query->getSingleScalarResult();
-    }
-
-    public function countByStatusesId($listStatusId)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT COUNT(d)
-            FROM App\Entity\Demande d
-            WHERE d.statut in (:listStatus)"
-        )->setParameter('listStatus', $listStatusId, Connection::PARAM_STR_ARRAY);
-        return $query->getSingleScalarResult();
+        return $this->createQueryBuilder('request')
+            ->select('COUNT(request)')
+            ->join('request.destination', 'destination')
+            ->andWhere('destination.id = :emplacementId')
+            ->setMaxResults(1)
+            ->setParameter('emplacementId', $emplacementId)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
 	/**
@@ -171,31 +120,29 @@ class DemandeRepository extends EntityRepository
     {
 		$dateMax = $dateMax->format('Y-m-d H:i:s');
 		$dateMin = $dateMin->format('Y-m-d H:i:s');
-
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            'SELECT d
-            FROM App\Entity\Demande d
-            WHERE d.date BETWEEN :dateMin AND :dateMax'
-        )->setParameters([
-            'dateMin' => $dateMin,
-            'dateMax' => $dateMax
-        ]);
-        return $query->execute();
+        return $this->createQueryBuilder('request')
+            ->andWhere('request.date BETWEEN :dateMin AND :dateMax')
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ])
+            ->getQuery()
+            ->execute();
     }
 
     public function getLastNumeroByPrefixeAndDate($prefixe, $date)
 	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			/** @lang DQL */
-			'SELECT d.numero
-			FROM App\Entity\Demande d
-			WHERE d.numero LIKE :value
-			ORDER BY d.numero DESC'
-		)->setParameter('value', $prefixe . $date . '%');
 
-		$result = $query->execute();
+        $queryBuilder = $this->createQueryBuilder('request')
+            ->select('request.numero')
+            ->andWhere('request.numero LIKE :value')
+            ->orderBy('request.numero', Criteria::DESC)
+            ->setParameter('value', $prefixe . $date . '%');
+
+        $result = $queryBuilder
+            ->getQuery()
+            ->execute();
+
 		return $result ? $result[0]['numero'] : null;
 	}
 
@@ -207,15 +154,13 @@ class DemandeRepository extends EntityRepository
 	 */
 	public function countByUser($user)
 	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-			/** @lang DQL */
-			"SELECT COUNT(d)
-            FROM App\Entity\Demande d
-            WHERE d.utilisateur = :user"
-		)->setParameter('user', $user);
-
-		return $query->getSingleScalarResult();
+        return $this->createQueryBuilder('request')
+            ->select('COUNT(request)')
+            ->andWhere('request.utilisateur = :user')
+            ->setMaxResults(1)
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleScalarResult();
 	}
 
 	public function findByParamsAndFilters($params, $filters, $receptionFilter)
@@ -474,6 +419,29 @@ class DemandeRepository extends EntityRepository
         ");
         $res = $unionQuery->fetchAllAssociative();
         return $res[0]['count'] ?? 0;
+    }
+
+    public function findOneByArticle(Article $article, ?Reception $reception): ?Demande {
+        $queryBuilder = $this->createQueryBuilder('request');
+        $queryBuilder
+            ->join('request.articleLines', 'articleLines')
+            ->join('articleLines.article', 'article')
+            ->andWhere('article = :article')
+            ->setParameter('article', $article);
+        if ($reception) {
+            $queryBuilder
+                ->join('request.reception', 'reception')
+                ->andWhere('reception = :reception')
+                ->setParameter('reception', $reception);
+        }
+
+        return $queryBuilder
+            ->orderBy('request.date', Criteria::DESC)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+
     }
 
 }

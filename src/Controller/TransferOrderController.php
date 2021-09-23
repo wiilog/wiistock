@@ -103,14 +103,13 @@ class TransferOrderController extends AbstractController {
             $reference->setStatut($transitStatusForRefs);
         }
 
+        /** @var Article $article */
         foreach ($transferRequest->getArticles() as $article) {
             if($article->getStatut()->getCode() === Article::STATUT_EN_TRANSIT) {
                 $inTransit["article"][] = $article->getBarCode();
             }
 
-            $article
-                ->setStatut($transitStatusForArticles)
-                ->setQuantiteAPrelever($article->getQuantite());
+            $article->setStatut($transitStatusForArticles);
         }
 
         if(!empty($inTransit)) {

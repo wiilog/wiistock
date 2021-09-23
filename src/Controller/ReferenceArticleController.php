@@ -51,7 +51,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use App\Entity\Demande;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\ArticleFournisseur;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 
@@ -424,7 +424,7 @@ class ReferenceArticleController extends AbstractController
             /** @var ReferenceArticle $refArticle */
             $refArticle = $referenceArticleRepository->find($data['refArticle']);
             if (!($refArticle->getCollecteReferences()->isEmpty())
-                || !($refArticle->getLigneArticles()->isEmpty())
+                || !($refArticle->getDeliveryRequestLines()->isEmpty())
                 || !($refArticle->getReceptionReferenceArticles()->isEmpty())
                 || !($refArticle->getMouvements()->isEmpty())
                 || !($refArticle->getArticlesFournisseur()->isEmpty())
@@ -648,76 +648,6 @@ class ReferenceArticleController extends AbstractController
                 'success' => $success
             ]);
 
-        }
-        throw new BadRequestHttpException();
-    }
-
-    /**
-     * @Route("/ajax-plus-demande-content", name="ajax_plus_demande_content", options={"expose"=true}, methods="GET|POST")
-     */
-    public function ajaxPlusDemandeContent(EntityManagerInterface $entityManager,
-                                           Request $request): Response
-    {
-        if ($data = json_decode($request->getContent(), true)) {
-            $statutRepository = $entityManager->getRepository(Statut::class);
-            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-            $collecteRepository = $entityManager->getRepository(Collecte::class);
-            $demandeRepository = $entityManager->getRepository(Demande::class);
-            $transfersRepository = $entityManager->getRepository(TransferRequest::class);
-
-            $refArticle = $referenceArticleRepository->find($data['id']);
-            if ($refArticle) {
-                $collectes = $collecteRepository->findByStatutLabelAndUser(Collecte::STATUT_BROUILLON, $this->getUser());
-
-                $statutD = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
-                $demandes = $demandeRepository->findByStatutAndUser($statutD, $this->getUser());
-                $transfers = $transfersRepository->findByStatutLabelAndUser(TransferRequest::DRAFT, $this->getUser());
-
-                if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                    if ($refArticle) {
-                        $editChampLibre  = $this->refArticleDataService->getViewEditRefArticle($refArticle, true);
-                    } else {
-                        $editChampLibre = false;
-                    }
-                } else {
-                    //TODO patch temporaire CEA
-					$isCea = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI);
-                    if ($isCea && $refArticle->getStatut()->getNom() === ReferenceArticle::STATUT_INACTIF && $data['demande'] === 'collecte') {
-                        $response = [
-                            'plusContent' => $this->renderView('reference_article/modalPlusDemandeTemp.html.twig', [
-                                'collectes' => $collectes
-                            ]),
-                            'temp' => true
-                        ];
-                        return new JsonResponse($response);
-                    }
-                    //TODO fin de patch temporaire CEA
-                    $editChampLibre = false;
-                }
-
-				$byRef = $this->userService->hasParamQuantityByRef();
-                $articleOrNo  = $this->articleDataService->getArticleOrNoByRefArticle($refArticle, $data['demande'], $byRef);
-
-                $json = [
-                    "success" => true,
-                    'plusContent' => $this->renderView('reference_article/modalPlusDemandeContent.html.twig', [
-                        'articleOrNo' => $articleOrNo,
-                        'collectes' => $collectes,
-                        'demandes' => $demandes,
-                        'transfers' => $transfers,
-                        'demandeType' => $data['demande']
-                    ]),
-                    'editChampLibre' => $editChampLibre,
-					'byRef' => $byRef && ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE)
-				];
-            } else {
-                $json = [
-                    "success" => false,
-                    "msg" => "Cette référence article n'est plus disponible."
-                ];
-            }
-
-            return new JsonResponse($json);
         }
         throw new BadRequestHttpException();
     }
