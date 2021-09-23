@@ -1651,7 +1651,7 @@ class ApiController extends AbstractFOSRestController
         $user = $userRepository->find($request->query->get("operator"));
         $movements = $trackingMovementRepository->getPickingByOperatorAndNotDropped(
             $user,
-            TrackingMovementRepository::MOUVEMENT_TRACA_STOCK
+            TrackingMovementRepository::MOUVEMENT_TRACA_DEFAULT
         );
 
         return $this->json([
