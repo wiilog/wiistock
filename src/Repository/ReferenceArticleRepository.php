@@ -734,6 +734,7 @@ class ReferenceArticleRepository extends EntityRepository {
     {
         return (/** @lang DQL */
             "SELECT ra.reference,
+                    ra.typeQuantite AS quantity_type,
                     e.label as location,
                     ra.libelle as label,
                     ocr.quantite as quantity,
