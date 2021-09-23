@@ -370,6 +370,7 @@ class DemandeController extends AbstractController
                     'demande/datatableLigneArticleRow.html.twig',
                     [
                         'id' => $line->getId(),
+                        'articleId' => $article->getId(),
                         'name' => (ReferenceArticle::TYPE_QUANTITE_ARTICLE),
                         'reference' => ReferenceArticle::TYPE_QUANTITE_REFERENCE,
                         'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
