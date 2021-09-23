@@ -4,6 +4,7 @@ import Chart from 'chart.js';
 import moment from 'moment';
 import 'datatables.net';
 import 'datatables.net-dt/js/dataTables.dataTables';
+import 'datatables.net-colreorder';
 import 'leaflet';
 import 'leaflet.smooth_marker_bouncing';
 import 'leaflet.polyline.snakeanim';

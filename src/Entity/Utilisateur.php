@@ -361,6 +361,11 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
      */
     private Collection $visibilityGroups;
 
+    /**
+     * @ORM\Column(type="json", nullable=true)
+     */
+    private $columnsOrder = [];
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -1940,6 +1945,18 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         foreach($visibilityGroups as $visibilityGroup) {
             $this->addVisibilityGroup($visibilityGroup);
         }
+
+        return $this;
+    }
+
+    public function getColumnsOrder(): ?array
+    {
+        return $this->columnsOrder;
+    }
+
+    public function setColumnsOrder(?array $columnsOrder): self
+    {
+        $this->columnsOrder = $columnsOrder;
 
         return $this;
     }

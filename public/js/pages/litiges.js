@@ -80,6 +80,7 @@ function initDatatableLitiges() {
             needsRowClickAction: true,
             dataToCheck: 'urgence'
         },
+        page: 'dispute'
     };
     tableLitiges = initDataTable('tableLitiges', tableLitigesConfig);
 }
