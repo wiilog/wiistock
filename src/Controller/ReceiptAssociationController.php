@@ -90,7 +90,7 @@ class ReceiptAssociationController extends AbstractController
 
         $existingAssociation = $manager->getRepository(ReceiptAssociation::class)->findOneBy(['receptionNumber' => $reception, 'pack' => null]);
 
-        if($existingAssociation) {
+        if($existingAssociation && !$packs) {
             return $this->json([
                 "success" => false,
                 "msg" => "Une association sans colis avec ce numéro de réception existe déjà"
