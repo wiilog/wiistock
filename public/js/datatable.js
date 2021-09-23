@@ -329,13 +329,11 @@ function initDataTable($table, options) {
                     initCompleteCallback();
                 }
                 attachDropdownToBodyOnDropdownOpening($table);
-                if (config.page && config.page !== '') {
-                    getAndApplyOrder(config.page, datatableToReturn).then(() => {
-                        datatableToReturn.on('column-reorder', function () {
-                            setOrder(config.page, datatableToReturn.colReorder.order());
-                        });
+                getAndApplyOrder(config, datatableToReturn).then(() => {
+                    datatableToReturn.on('column-reorder', function () {
+                        setOrder(config, datatableToReturn.colReorder.order());
                     });
-                }
+                });
             }
         }, config));
 
@@ -467,19 +465,36 @@ function attachDropdownToBodyOnDropdownOpening($table) {
     });
 }
 
-function getAndApplyOrder(page, datatable) {
-    return new Promise((resolve) => {
-        $.get(Routing.generate('get_columns_order'), {page})
-            .then((result) => {
-                if (result.order.length > 0) {
-                    datatable.colReorder.order(result.order);
-                }
-                resolve();
-            });
-    });
+function hash(str, seed = 0) {
+    let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
+    for (let i = 0, ch; i < str.length; i++) {
+        ch = str.charCodeAt(i);
+        h1 = Math.imul(h1 ^ ch, 2654435761);
+        h2 = Math.imul(h2 ^ ch, 1597334677);
+    }
+    h1 = Math.imul(h1 ^ (h1>>>16), 2246822507) ^ Math.imul(h2 ^ (h2>>>13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2>>>16), 2246822507) ^ Math.imul(h1 ^ (h1>>>13), 3266489909);
+    return 4294967296 * (2097151 & h2) + (h1>>>0);
 }
 
-function setOrder(page, order) {
-    const params = {page, order}
+function getAndApplyOrder(config, datatable) {
+    const params = {
+        page: config.page,
+    };
+
+    return $.get(Routing.generate('get_columns_order'), params)
+        .then((result) => {
+            if(result.order.length > 0) {
+                datatable.colReorder.order(result.order);
+            }
+        });
+}
+
+function setOrder(config, order) {
+    const params = {
+        page: config.page,
+        order
+    };
+
     $.post(Routing.generate('set_columns_order'), params);
 }
