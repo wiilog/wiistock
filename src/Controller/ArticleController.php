@@ -165,7 +165,6 @@ class ArticleController extends AbstractController
 
     /**
      * @Route("/voir", name="article_show", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function editApi(Request $request,
                             ArticleDataService $articleDataService,
