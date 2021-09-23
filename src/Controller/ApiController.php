@@ -1644,14 +1644,14 @@ class ApiController extends AbstractFOSRestController
     }
 
     /**
-     * @Rest\Post("/api/previous-operator-movements", name="api_previous_operator_movements")
+     * @Rest\Get("/api/previous-operator-movements", name="api_previous_operator_movements")
      * @Wii\RestVersionChecked()
      */
     public function getPreviousOperatorMovements(Request $request, EntityManagerInterface $manager) {
-        $userRepository = $manager->getRepository(TrackingMovement::class);
+        $userRepository = $manager->getRepository(Utilisateur::class);
         $trackingMovementRepository = $manager->getRepository(TrackingMovement::class);
 
-        $user = $userRepository->find($request->query->get("id"));
+        $user = $userRepository->find($request->query->get("operator"));
         $movements = $trackingMovementRepository->getPickingByOperatorAndNotDropped(
             $user,
             TrackingMovementRepository::MOUVEMENT_TRACA_STOCK
