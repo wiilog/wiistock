@@ -43,7 +43,7 @@ class TransporteurRepository extends EntityRepository
      * @throws Exception
      */
     public function getDailyArrivalCarriersLabel(array $filterIds = []) {
-        $now = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $now = new DateTime('now');
         $beginDayDate = clone $now;
         $beginDayDate->setTime(0, 0, 0);
         $endDayDate = clone $now;

@@ -3,10 +3,10 @@
 namespace App\Repository\IOT;
 
 use App\Entity\IOT\Pairing;
+use App\Entity\IOT\SensorWrapper;
 use App\Helper\QueryCounter;
 use App\Entity\IOT\Sensor;
 use DateTime;
-use DateTimeZone;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -20,16 +20,15 @@ use WiiCommon\Helper\Stream;
  */
 class PairingRepository extends EntityRepository
 {
-    public function findByParams($params, Sensor $sensor)
+    public function findByParams($params, SensorWrapper $wrapper)
     {
 
         $qb = $this->createQueryBuilder("sensors_pairing")
             ->leftJoin('sensors_pairing.sensorWrapper', 'sensor_wrapper')
-            ->leftJoin('sensor_wrapper.sensor', 'sensor')
-            ->where('sensor = :sensor')
-            ->andWhere("sensors_pairing.end IS NULL OR sensors_pairing.end > :now")
-            ->setParameter('sensor', $sensor)
-            ->setParameter("now", new DateTime("now", new DateTimeZone('Europe/Paris')));
+            ->where('sensor_wrapper = :sensor_wrapper')
+            ->andWhere("(sensors_pairing.end IS NULL OR sensors_pairing.end > :now)")
+            ->setParameter('sensor_wrapper', $wrapper)
+            ->setParameter("now", new DateTime("now"));
 
         $total = QueryCounter::count($qb, "sensors_pairing");
 
@@ -120,6 +119,15 @@ class PairingRepository extends EntityRepository
             ->setParameter('actionType', Sensor::ACTION)
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    public function findExpiredActive() {
+        return $this->createQueryBuilder("pairing")
+            ->andWhere("pairing.active = 1")
+            ->andWhere("pairing.end IS NOT NULL AND pairing.end < :now")
+            ->setParameter("now", new DateTime("now", new \DateTimeZone("Europe/Paris")))
+            ->getQuery()
+            ->getResult();
     }
 
     public function findByParamsAndFilters(InputBag $filters) {

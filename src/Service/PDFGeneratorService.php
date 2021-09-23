@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Dispatch;
+use App\Entity\ParametrageGlobal;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
@@ -111,45 +112,6 @@ class PDFGeneratorService {
         );
     }
 
-    /**
-     * @param string $title
-     * @param array $sheetConfigs Array of ['title' => string, 'code' => string, 'content' => assoc_array]
-     * @return string
-     * @throws LoaderError
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
-    public function generatePDFStateSheet(string $title, array $sheetConfigs): string {
-        $barcodeConfig = $this->globalParamService->getDimensionAndTypeBarcodeArray(true);
-
-        $isCode128 = $barcodeConfig['isCode128'];
-
-        return $this->PDFGenerator->getOutputFromHtml(
-            $this->templating->render('prints/state-sheet-template.html.twig', [
-                'title' => $title,
-                'sheetConfigs' => $sheetConfigs,
-
-                'barcodeType' => $isCode128 ? 'c128' : 'qrcode',
-                'barcodeWidth' => $isCode128 ? 1 : 48,
-                'barcodeHeight' => 48
-            ]),
-            [
-                'page-size' => "A4",
-                'encoding' => 'UTF-8'
-            ]
-        );
-    }
-
-    /**
-     * @param string $title
-     * @param string|null $logo
-     * @param Dispatch $dispatch
-     * @return PdfResponse The PDF response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
     public function generatePDFWaybill(string $title, ?string $logo, Dispatch $dispatch): string {
         $fileName = uniqid() . '.pdf';
 
@@ -169,15 +131,6 @@ class PDFGeneratorService {
         return $fileName;
     }
 
-    /**
-     * @param string $title
-     * @param string|null $logo
-     * @param Dispatch $dispatch
-     * @return Response The PDF response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
     public function generatePDFDeliveryNote(string $title,
                                             ?string $logo,
                                             Dispatch $dispatch): string {
@@ -199,24 +152,15 @@ class PDFGeneratorService {
         return $fileName;
     }
 
-    /**
-     * @param Dispatch $dispatch
-     * @param string|null $appLogo
-     * @param string|null $overconsumptionLogo
-     * @return Response The PDF response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
     public function generatePDFOverconsumption(Dispatch $dispatch, ?string $appLogo, ?string $overconsumptionLogo): string {
         $content = $this->templating->render("prints/overconsumption-template.html.twig", [
             "dispatch" => $dispatch
         ]);
 
         $header = $this->templating->render("prints/overconsumption-template-header.html.twig", [
-            "app_logo" => $appLogo ? $appLogo : '',
-            "overconsumption_logo" => $overconsumptionLogo ? $overconsumptionLogo : '',
-            "commandNumber" => $dispatch->getCommandNumber() ?? ''
+            "app_logo" => $appLogo ?? "",
+            "overconsumption_logo" => $overconsumptionLogo ?? "",
+            "commandNumber" => $dispatch->getCommandNumber() ?? ""
         ]);
 
         $footer = $this->templating->render("prints/overconsumption-template-footer.html.twig");
@@ -228,6 +172,23 @@ class PDFGeneratorService {
             "encoding" => "UTF-8",
             "header-html" => $header,
             "footer-html" => $footer
+        ]);
+    }
+
+    public function generatePDFDispatchNote(Dispatch $dispatch): string {
+        $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
+        $appLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::LABEL_LOGO);
+
+        $content = $this->templating->render("prints/dispatch-note-template.html.twig", [
+            "app_logo" => $appLogo ?? "",
+            "dispatch" => $dispatch,
+        ]);
+
+        return $this->PDFGenerator->getOutputFromHtml($content, [
+            "page-size" => "A4",
+            "orientation" => "portrait",
+            "enable-local-file-access" => true,
+            "encoding" => "UTF-8",
         ]);
     }
 

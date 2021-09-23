@@ -7,6 +7,7 @@ use App\Entity\Article;
 use App\Entity\FiltreSup;
 use App\Entity\Litige;
 use App\Entity\Utilisateur;
+use Symfony\Component\HttpFoundation\Request;
 use WiiCommon\Helper\Stream;
 use App\Repository\LitigeRepository;
 use Exception;
@@ -25,6 +26,9 @@ class LitigeService {
     public const CATEGORY_RECEPTION = 'une réception';
     public const PUT_LINE_ARRIVAL = 'arrival';
     public const PUT_LINE_RECEPTION = 'reception';
+
+    /** @Required */
+    public AttachmentService $attachmentService;
 
     /**
      * @var Twig_Environment
@@ -324,6 +328,20 @@ class LitigeService {
                 $this->CSVExportService->putLine($handle, $row);
             }
         }
+    }
+
+
+
+    public function createDisputeAttachments(Litige                 $dispute,
+                                              Request                $request,
+                                              EntityManagerInterface $entityManager): void {
+        $attachments = $this->attachmentService->createAttachements($request->files);
+        foreach($attachments as $attachment) {
+            $entityManager->persist($attachment);
+            $dispute->addAttachment($attachment);
+        }
+        $entityManager->persist($dispute);
+        $entityManager->flush();
     }
 
 }

@@ -7,12 +7,17 @@ namespace App\Service\IOT;
 use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;
+use App\Entity\Notification;
+use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Service\MailerService;
+use App\Service\NotificationService;
 use App\Service\VariableService;
+use DateTime;
+use Doctrine\ORM\EntityManagerInterface;
 use Ovh\Api;
 use Symfony\Component\HttpKernel\KernelInterface;
-use function GuzzleHttp\json_decode;
+
 
 class AlertService
 {
@@ -23,10 +28,13 @@ class AlertService
     /** @Required */
     public MailerService $mailerService;
 
+    /** @Required  */
+    public NotificationService $notificationService;
+
     /** @Required */
     public KernelInterface $kernel;
 
-    public function trigger(AlertTemplate $template, SensorMessage $message)
+    public function trigger(AlertTemplate $template, SensorMessage $message, EntityManagerInterface $entityManager)
     {
         $config = $template->getConfig();
 
@@ -74,6 +82,36 @@ class AlertService
                 $content = '<img height="50px" width="50px" src="' . $data . '"><br>' . $content;
             }
             return $this->mailerService->sendMail($config["subject"], $content, explode(",", $config["receivers"]));
+        } else if ($template->getType() == AlertTemplate::PUSH) {
+            $src = null;
+            if (isset($config['image']) && !empty($config['image'])) {
+                $src = $_SERVER['APP_URL'] . '/uploads/attachements/' . $config['image'];
+            }
+            $emitted = new Notification();
+            $emitted
+                ->setTemplate($template)
+                ->setContent($content)
+                ->setSource($sensorWrapper->getName())
+                ->setTriggered(new DateTime('now', new \DateTimeZone("Europe/Paris")));
+            $usersRepository = $entityManager->getRepository(Utilisateur::class);
+            $users = $usersRepository->findBy([
+                'status' => true
+            ]);
+            $entityManager->persist($emitted);
+            foreach ($users as $user) {
+                $user
+                    ->addUnreadNotification($emitted);
+            }
+            $entityManager->flush();
+            $this->notificationService->send('notifications', 'Alerte', $content, [
+                'image' => $src
+            ], $src);
+            $this->notificationService->send('notifications-web', 'Alerte', $content, [
+                'title' => 'Alerte',
+                'content' => $content,
+                'image' => $src
+            ], $src, true);
+            return true;
         }
     }
 }

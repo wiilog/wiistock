@@ -13,6 +13,7 @@ let tableUserConfig = {
         { "data": "Dropzone", 'title': 'Drop zone' },
         { "data": "Dernière connexion", 'title': 'Dernière connexion' },
         { "data": "role", 'title': 'Rôle' },
+        { "data": "visibilityGroup", 'title': 'Groupes de visibilité' },
     ],
     rowConfig: {
         needsRowClickAction: true
@@ -37,7 +38,7 @@ let pathDeleteUser = Routing.generate('user_delete', true);
 InitModal(modalDeleteUser, submitDeleteUser, pathDeleteUser, {tables: [tableUser]});
 
 $(function() {
-    $('.select2').select2();
+    $('.select2-old').select2();
     Select2Old.location($('.ajax-autocomplete-location-edit'));
 })
 
@@ -58,6 +59,12 @@ function editRowUser(button) {
         if (data.dropzone) {
             let newOption = new Option(data.dropzone.text, data.dropzone.id, true, true);
             modal.find('#dropzone').append(newOption).trigger('change');
+        }
+        if (data.visibilityGroups && modal.find('#visibility-group').find('option').length === 0) {
+            data.visibilityGroups.forEach((vg) => {
+                let newOption = new Option(vg.text, vg.id, true, true);
+                modal.find('#visibility-group').append(newOption).trigger('change');
+            });
         }
     }, 'json');
 

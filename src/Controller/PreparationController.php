@@ -21,15 +21,13 @@ use App\Exceptions\NegativeQuantityException;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\LivraisonsManagerService;
+use App\Service\NotificationService;
 use App\Service\PDFGeneratorService;
 use App\Service\PreparationsManagerService;
 use App\Service\RefArticleDataService;
-use App\Service\SpecificService;
-use App\Service\UserService;
 use DateTime;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
-use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -40,9 +38,6 @@ use App\Service\ArticleDataService;
 use App\Entity\Demande;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 use WiiCommon\Helper\Stream;
 
 /**
@@ -51,33 +46,15 @@ use WiiCommon\Helper\Stream;
 class PreparationController extends AbstractController
 {
     /**
-     * @var UserService
-     */
-    private $userService;
-
-    /**
-     * @var ArticleDataService
-     */
-    private $articleDataService;
-
-    /**
-     * @var SpecificService
-     */
-    private $specificService;
-
-    /**
      * @var PreparationsManagerService
      */
-    private $preparationsManagerService;
+    private PreparationsManagerService $preparationsManagerService;
 
-    public function __construct(PreparationsManagerService $preparationsManagerService,
-                                SpecificService $specificService,
-                                ArticleDataService $articleDataService,
-                                UserService $userService)
+    /** @Required */
+    public NotificationService $notificationService;
+
+    public function __construct(PreparationsManagerService $preparationsManagerService)
     {
-        $this->userService = $userService;
-        $this->articleDataService = $articleDataService;
-        $this->specificService = $specificService;
         $this->preparationsManagerService = $preparationsManagerService;
     }
 
@@ -110,9 +87,9 @@ class PreparationController extends AbstractController
             ]);
         }
 
-        $dateEnd = new DateTime('now', new \DateTimeZone('Europe/Paris'));
-        $livraison = $livraisonsManager->createLivraison($dateEnd, $preparation);
-        $entityManager->persist($livraison);
+        $dateEnd = new DateTime('now');
+        $livraison = $livraisonsManager->createLivraison($dateEnd, $preparation, $entityManager);
+
         $preparationsManager->treatPreparation($preparation, $this->getUser(), $locationEndPrepa, $articlesNotPicked);
         $preparationsManager->closePreparationMouvement($preparation, $dateEnd, $locationEndPrepa);
 
@@ -134,7 +111,9 @@ class PreparationController extends AbstractController
         }
 
         $entityManager->flush();
-
+        if($livraison->getDemande()->getType()->isNotificationsEnabled()) {
+            $this->notificationService->toTreat($livraison);
+        }
         $preparationsManager->updateRefArticlesQuantities($preparation);
 
         return new JsonResponse([
@@ -285,7 +264,6 @@ class PreparationController extends AbstractController
             'livraison' => $preparation->getLivraison(),
             'preparation' => $preparation,
             'isPrepaEditable' => $preparationStatus === Preparation::STATUT_A_TRAITER || ($preparationStatus == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser()),
-            'articles' => $articleRepository->getIdRefLabelAndQuantity(),
             'headerConfig' => [
                 ['label' => 'Numéro', 'value' => $preparation->getNumero()],
                 ['label' => 'Statut', 'value' => $preparation->getStatut() ? ucfirst($preparation->getStatut()->getNom()) : ''],
@@ -529,12 +507,6 @@ class PreparationController extends AbstractController
 
     /**
      * @Route("/csv", name="get_preparations_csv", options={"expose"=true}, methods={"GET"})
-     * @param Request $request
-     * @param PreparationsManagerService $preparationsManager
-     * @param CSVExportService $CSVExportService
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     * @throws Exception
      */
     public function getPreparationCSV(Request $request,
                                       PreparationsManagerService $preparationsManager,
@@ -566,7 +538,7 @@ class PreparationController extends AbstractController
                 'quantité à collecter',
                 'code-barre'
             ];
-            $nowStr = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+            $nowStr = new DateTime('now');
 
             return $CSVExportService->streamResponse(
                 function ($output) use ($preparationIterator, $CSVExportService, $preparationsManager) {
@@ -583,24 +555,19 @@ class PreparationController extends AbstractController
     }
 
     /**
+     * @Route("/{preparation}/check-etiquette", name="count_bar_codes", options={"expose"=true})
+     */
+    public function countBarcode(Preparation $preparation): Response {
+        return $this->json($preparation->getArticles()->count() > 0 || $preparation->getLigneArticlePreparations()->count() > 0);
+    }
+
+    /**
      * @Route("/{preparation}/etiquettes", name="preparation_bar_codes_print", options={"expose"=true})
-     *
-     * @param Preparation $preparation
-     * @param RefArticleDataService $refArticleDataService
-     * @param ArticleDataService $articleDataService
-     * @param PDFGeneratorService $PDFGeneratorService
-     *
-     * @return Response
-     *
-     * @throws LoaderError
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
      */
     public function getBarCodes(Preparation $preparation,
                                 RefArticleDataService $refArticleDataService,
                                 ArticleDataService $articleDataService,
-                                PDFGeneratorService $PDFGeneratorService): Response
+                                PDFGeneratorService $PDFGeneratorService): ?Response
     {
         $articles = $preparation->getArticles()->toArray();
         $lignesArticle = $preparation->getLigneArticlePreparations()->toArray();

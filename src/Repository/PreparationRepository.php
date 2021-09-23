@@ -4,8 +4,8 @@ namespace App\Repository;
 
 use App\Entity\Article;
 use App\Entity\FiltreSup;
+use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
-use App\Entity\Pack;
 use App\Entity\Preparation;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
@@ -60,14 +60,15 @@ class PreparationRepository extends EntityRepository
             ->select('p.id')
             ->addSelect('p.numero as number')
             ->addSelect('dest.label as destination')
-            ->addSelect('user.username as requester')
+            ->addSelect('(CASE WHEN triggeringSensorWrapper.id IS NOT NULL THEN triggeringSensorWrapper.name ELSE user.username END) as requester')
             ->addSelect('t.label as type')
             ->addSelect('d.commentaire as comment')
             ->join('p.statut', 's')
             ->join('p.demande', 'd')
             ->join('d.destination', 'dest')
             ->join('d.type', 't')
-            ->join('d.utilisateur', 'user')
+            ->leftJoin('d.utilisateur', 'user')
+            ->leftJoin('d.triggeringSensorWrapper', 'triggeringSensorWrapper')
             ->andWhere('(s.nom = :toTreatStatusLabel OR (s.nom = :inProgressStatusLabel AND p.utilisateur = :user))')
             ->andWhere('t.id IN (:type)')
             ->setParameters([
@@ -377,11 +378,13 @@ class PreparationRepository extends EntityRepository
         $entityManager = $this->getEntityManager();
         $createQueryBuilder = function () use ($entityManager) {
             return $entityManager->createQueryBuilder()
-                ->from(Pack::class, 'article')
+                ->from(Article::class, 'article')
                 ->select('pairing.id AS pairingId')
                 ->addSelect('sensorWrapper.name AS name')
-                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
+                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND (pairing.end IS NULL OR pairing.end > NOW()) THEN 1 ELSE 0 END) AS active')
                 ->addSelect('preparation.numero AS entity')
+                ->addSelect("'" . Sensor::PREPARATION . "' AS entityType")
+                ->addSelect('preparation.id AS entityId')
                 ->join('article.sensorMessages', 'sensorMessage')
                 ->join('sensorMessage.pairings', 'pairing')
                 ->join('pairing.preparationOrder', 'preparation')
@@ -407,8 +410,10 @@ class PreparationRepository extends EntityRepository
             '/AS \w+_1/' => 'AS name',
             '/AS \w+_2/' => 'AS active',
             '/AS \w+_3/' => 'AS entity',
-            '/AS \w+_4/' => 'AS date',
-            '/AS \w+_5/' => 'AS type',
+            '/AS \w+_4/' => 'AS entityType',
+            '/AS \w+_5/' => 'AS entityId',
+            '/AS \w+_6/' => 'AS date',
+            '/AS \w+_7/' => 'AS type',
             '/\?/' => $article->getId(),
         ];
 

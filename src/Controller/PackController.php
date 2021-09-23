@@ -107,6 +107,8 @@ class PackController extends AbstractController
                 $csvHeader
             );
         }
+
+        throw new BadRequestHttpException();
     }
 
     /**

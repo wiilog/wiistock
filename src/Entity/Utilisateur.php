@@ -4,6 +4,7 @@ namespace App\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\EquatableInterface;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -16,7 +17,7 @@ use App\Entity\IOT\SensorWrapper;
  * @UniqueEntity(fields="email", message="Cette adresse email est déjà utilisée.")
  * @UniqueEntity(fields="username", message="Ce nom d'utilisateur est déjà utilisé.")
  */
-class Utilisateur implements UserInterface, EquatableInterface
+class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenticatedUserInterface
 {
 	const COL_VISIBLE_ARTICLES_DEFAULT = ["actions", "label", "reference", "articleReference", "type", "quantity", "location"];
     const COL_VISIBLE_REF_DEFAULT = ["actions", "label", "reference", "type", "quantity", "location"];
@@ -25,6 +26,8 @@ class Utilisateur implements UserInterface, EquatableInterface
     const COL_VISIBLE_TRACKING_MOVEMENT_DEFAULT = ["origin", "date", "colis", "reference", "label", "quantity", "location", "type", "operateur", "group"];
     const COL_VISIBLE_LIT_DEFAULT = ["type", "arrivalNumber", "receptionNumber", "buyers", "numCommandeBl", "command", "provider", "references", "lastHistorique", "creationDate", "updateDate", "status", "actions"];
 	const SEARCH_DEFAULT = ["label", "reference"];
+    const COL_VISIBLE_RECEPTION_DEFAULT = ["actions", "Date", "number", "dateAttendue", "DateFin", "orderNumber", "receiver", "Fournisseur", "Statut", "Commentaire", "deliveries", "storageLocation"];
+
 
     /**
      * @ORM\Id()
@@ -245,6 +248,11 @@ class Utilisateur implements UserInterface, EquatableInterface
     /**
      * @ORM\Column(type="json", nullable=true)
      */
+    private $columnsVisibleForReception;
+
+    /**
+     * @ORM\Column(type="json", nullable=true)
+     */
     private $columnsVisibleForDispatch;
 
     /**
@@ -341,6 +349,16 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private Collection $sensorWrappers;
 
+    /**
+     * @ORM\ManyToMany(targetEntity=Notification::class, mappedBy="users")
+     */
+    private $unreadNotifications;
+
+    /**
+     * @ORM\ManyToMany(targetEntity=VisibilityGroup::class, mappedBy="users")
+     */
+    private Collection $visibilityGroups;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -381,6 +399,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->columnsVisibleForDispatch = Utilisateur::COL_VISIBLE_DISPATCH_DEFAULT;
         $this->columnsVisibleForLitige = Utilisateur::COL_VISIBLE_LIT_DEFAULT;
         $this->columnsVisibleForTrackingMovement = Utilisateur::COL_VISIBLE_TRACKING_MOVEMENT_DEFAULT;
+        $this->columnsVisibleForReception = Utilisateur::COL_VISIBLE_RECEPTION_DEFAULT;
         $this->recherche = Utilisateur::SEARCH_DEFAULT;
         $this->rechercheForArticle = Utilisateur::SEARCH_DEFAULT;
         $this->roles = ['USER']; // évite bug -> champ roles ne doit pas être vide
@@ -389,6 +408,9 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->purchaseRequestBuyers = new ArrayCollection();
         $this->purchaseRequestRequesters = new ArrayCollection();
         $this->sensorWrappers = new ArrayCollection();
+        $this->unreadNotifications = new ArrayCollection();
+        $this->visibilityGroups = new ArrayCollection();
+
     }
 
     public function getId()
@@ -422,6 +444,18 @@ class Utilisateur implements UserInterface, EquatableInterface
             [$this->email],
             $secondaryEmails
         );
+    }
+
+    public function getColumnsVisibleForReception()
+    {
+        return $this->columnsVisibleForReception;
+    }
+
+    public function setColumnsVisibleForReception($columnsVisibleForReception): self
+    {
+        $this->columnsVisibleForReception = $columnsVisibleForReception;
+
+        return $this;
     }
 
     public function getPassword(): ?string
@@ -1836,4 +1870,76 @@ class Utilisateur implements UserInterface, EquatableInterface
 
         return $this;
     }
+
+    /**
+     * @return Collection|Notification[]
+     */
+    public function getUnreadNotifications(): Collection
+    {
+        return $this->unreadNotifications;
+    }
+
+    public function clearNotifications()
+    {
+        foreach ($this->getUnreadNotifications() as $notification) {
+            $this->removeUnreadNotification($notification);
+        }
+    }
+
+    public function addUnreadNotification(Notification $unreadNotification): self
+    {
+        if (!$this->unreadNotifications->contains($unreadNotification)) {
+            $this->unreadNotifications[] = $unreadNotification;
+            $unreadNotification->addUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUnreadNotification(Notification $unreadNotification): self
+    {
+        if ($this->unreadNotifications->removeElement($unreadNotification)) {
+            $unreadNotification->removeUser($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|VisibilityGroup[]
+     */
+    public function getVisibilityGroups(): Collection {
+        return $this->visibilityGroups;
+    }
+
+    public function addVisibilityGroup(VisibilityGroup $visibilityGroup): self {
+        if (!$this->visibilityGroups->contains($visibilityGroup)) {
+            $this->visibilityGroups[] = $visibilityGroup;
+            $visibilityGroup->addUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeVisibilityGroup(VisibilityGroup $visibilityGroup): self {
+        if ($this->visibilityGroups->removeElement($visibilityGroup)) {
+            $visibilityGroup->removeUser($this);
+        }
+
+        return $this;
+    }
+
+    public function setVisibilityGroups(?array $visibilityGroups): self {
+        foreach($this->getVisibilityGroups()->toArray() as $visibilityGroup) {
+            $this->removeVisibilityGroup($visibilityGroup);
+        }
+
+        $this->visibilityGroups = new ArrayCollection();
+        foreach($visibilityGroups as $visibilityGroup) {
+            $this->addVisibilityGroup($visibilityGroup);
+        }
+
+        return $this;
+    }
+
 }

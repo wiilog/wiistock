@@ -11,7 +11,6 @@ use App\Entity\IOT\SensorWrapper;
 use App\Entity\IOT\TriggerAction;
 use App\Entity\Menu;
 use App\Entity\Action;
-use App\Helper\FormatHelper;
 use App\Service\TriggerActionService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -77,7 +76,6 @@ class TriggerActionController extends AbstractController
                 $sensorWrapper = null;
             }
             if ($sensorWrapper && $sensorWrapper->getSensor()->getProfile()->getMaxTriggers() > $sensorWrapper->getTriggerActions()->count()) {
-
                 if ($data['templateType'] === TriggerAction::REQUEST) {
                     $name = $data['templates'];
                     $requestTemplate = $requestTemplateRepository->findOneBy(["id" => $name]);
@@ -267,7 +265,6 @@ class TriggerActionController extends AbstractController
         } else {
             $templates = $requestTemplateRepository->getTemplateForSelect();
         }
-
         return $this->json([
             "results" => $templates
         ]);

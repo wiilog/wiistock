@@ -97,7 +97,9 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 'Business unit' => 'Business unit',
                 'Numéro de projet' => 'Numéro de projet',
                 "Une autre demande d'acheminement est en cours de création, veuillez réessayer" => "Une autre demande d'acheminement est en cours de création, veuillez réessayer",
-                "Garder la modale d'ajout de colis ouverte à l'enregistrement" => "Garder la modale d'ajout de colis ouverte à l'enregistrement"
+                "Garder la modale d'ajout de colis ouverte à l'enregistrement" => "Garder la modale d'ajout de colis ouverte à l'enregistrement",
+                "Ouvrir la modale d'ajout de colis à l'ajout de la demande d'acheminement" => "Ouvrir la modale d'ajout de colis à l'ajout de la demande d'acheminement",
+                "Destination" => "Destination"
             ],
             'réception' => [
                 'réceptions' => 'réceptions',

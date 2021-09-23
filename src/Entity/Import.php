@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use DateTime as WiiDateTime;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -23,13 +24,15 @@ class Import
 	const ENTITY_FOU = 'FOU';
     const ENTITY_ART_FOU = 'ART_FOU';
     const ENTITY_RECEPTION = 'RECEP';
+    const ENTITY_USER = 'USER';
 
     const ENTITY_LABEL = [
         self::ENTITY_ART=>"Articles",
-        self::ENTITY_REF=>"Références",
-        self::ENTITY_FOU=>"Fournisseurs",
-        self::ENTITY_RECEPTION=>"Réceptions",
-        self::ENTITY_ART_FOU=>"Articles fournisseurs",
+        self::ENTITY_REF => "Références",
+        self::ENTITY_FOU => "Fournisseurs",
+        self::ENTITY_RECEPTION => "Réceptions",
+        self::ENTITY_ART_FOU => "Articles fournisseurs",
+        self::ENTITY_USER => "Utilisateurs",
     ];
 
 	const FIELDS_NEEDED = [
@@ -59,6 +62,12 @@ class Import
             'expectedDate',
             'quantity',
             'reference',
+        ],
+        self::ENTITY_USER => [
+            'role',
+            'username',
+            'email',
+            'status',
         ]
     ];
 
@@ -68,10 +77,12 @@ class Import
         self::ENTITY_FOU => 'codeReference',
         self::ENTITY_REF => 'reference',
         self::ENTITY_RECEPTION => null,
+        self::ENTITY_USER => null,
     ];
 
 	const FIELDS_ENTITY = [
-	    'storageLocation' => 'Emplacement de stockage',
+        'storageLocation' => 'Emplacement de stockage',
+        'visibilityGroups' => 'Groupes de visibilité',
         'reference' => 'référence',
         'barCode' => 'code barre',
         'quantite' => 'quantité',
@@ -105,7 +116,23 @@ class Import
         'managers' => 'Gestionnaire(s)',
         'orderDate' => 'date commande (jj/mm/AAAA)',
         'expectedDate' => 'date attendue (jj/mm/AAAA)',
-        'buyer' => 'Acheteur'
+        'buyer' => 'Acheteur',
+
+
+        'role' => 'Rôle',
+        'username' => 'Nom d\'utilisateur',
+        'email' => 'Email',
+        'secondaryEmail' => 'Email 2',
+        'lastEmail' => 'Email 3',
+        'phone' => 'Numéro de téléphone',
+        'mobileLoginKey' => 'Clé de connexion nomade',
+        'address' => 'Adresse',
+        'deliveryTypes' => 'Types de livraison',
+        'dispatchTypes' => 'Types d\'acheminement',
+        'handlingTypes' => 'Types de services',
+        'dropzone' => 'Dropzone',
+        'visibilityGroup' => 'Groupes de visibilité',
+        'status' => 'Statut',
 	];
 
 	public CONST IMPORT_FIELDS_TO_FIELDS_PARAM = [
@@ -207,7 +234,7 @@ class Import
     private $mouvements;
 
     public function __construct() {
-        $this->createdAt = new DateTime();
+        $this->createdAt = new WiiDateTime();
         $this->mouvements = new ArrayCollection();
         $this->forced = false;
         $this->flash = false;

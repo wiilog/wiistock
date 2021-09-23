@@ -4,17 +4,17 @@
 
 {% block page_content %}
     <div class="m-4 wii-page-card">
-        {% if hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::CREATE')) %}
-            <div class="row wii-page-card-header">
-                <div class="col-auto ml-auto">
+        <div class="row wii-page-card-header">
+            <div class="col-auto ml-auto">
+                {% if hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::CREATE')) %}
                     <div class="btn btn-primary btn-ripple"
                          data-toggle='modal'
                          data-target='#modalNewSensorWrapper'>
                         <span class="fa fa-plus mr-2"></span>Provisionner un capteur
                     </div>
-                </div>
+                {% endif %}
             </div>
-        {% endif %}
+        </div>
         <div class="row">
             <div class="col-12">
                 <table id="tableSensorWrapper" class="table w-100"></table>

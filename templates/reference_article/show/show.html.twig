@@ -1,0 +1,287 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Stock | Référence | Article de référence{% endblock %}
+{% block titleLink path('reference_article_index') %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('reference-article') }}
+{% endblock %}
+
+{% block page_content %}
+    <div class="ra-container d-flex justify-content-center align-content-center">
+        <div class="row ra-column">
+            <div class="col-12 col-md-6">
+                <div class="ra-header d-flex flex-column" style="border-color: {{ referenceArticle.type.color }}">
+                    <div class="ra-type" style="background-color: {{ referenceArticle.type.color }}">{{ referenceArticle.type.label }}</div>
+                    <div class="d-flex header-wrapper">
+                        <div class="image-container-show" style="background-image: url('{{ referenceArticle.image
+                        ? (app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ referenceArticle.image.fileName)
+                        : asset('svg/reference_article/product.svg') }}');
+                            background-color: {{ referenceArticle.image ? '#FFFFFF' : "#F5F5F7" }};
+                            background-size: {{ referenceArticle.image ? 'cover' : '50%' }}">
+                        </div>
+                        <div class="specifications">
+                            <div><strong class="ref">Ref : {{ referenceArticle.reference }}</strong></div>
+                            <div><strong>{{ referenceArticle.libelle }}</strong></div>
+                            <div class="d-flex align-content-center my-3">
+                                <img src="{{ asset('svg/reference_article/stock.svg') }}" alt="Icône stock" class="mr-2" width="15px">
+                                <span class="ra-field-text">Quantité disponible <strong>{{ referenceArticle.quantiteDisponible }}</strong></span>
+                            </div>
+                            <div class="d-flex align-content-center">
+                            <span class="ra-small-text mr-3">
+                                Référence {{ referenceArticle.statut == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') ? 'active' : 'inactive' }}
+                            </span>
+                                <div class="d-flex align-content-center">
+                                    <img src="{{ asset('svg/reference_article/' ~ (referenceArticle.needsMobileSync
+                                        ? 'mobile-sync-on.svg'
+                                        : 'mobile-sync-off.svg')) }}"
+                                         alt="Icône synchronisation nomade"
+                                         width="10px">
+                                    <span class="ra-small-text ml-2">Synchronisation nomade
+                                        <sup><img src="{{ asset('svg/reference_article/information.svg') }}"
+                                                  alt="Icône information"
+                                                  width="10px"
+                                                  class="has-tooltip"
+                                                  title="Permet de sélectionner la référence lors de la création d'une demande de livraison sur l'application mobile">
+                                        </sup>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ra-box mt-3">
+                    <div class="header ra-title">Informations</div>
+                    <div class="content">
+                        <div class="d-flex">
+                            <div class="col-6 d-flex">
+                                <img src="{{ asset('svg/reference_article/manager.svg') }}" alt="Icône utilisateur" width="20px">
+                                <div class="box-item ml-3">
+                                    {% set plural = referenceArticle.managers | length > 1 ? 's' : '' %}
+                                    <span class="ra-field-name">Gestionnaire{{ plural }}</span>
+                                    <span class="ra-body-text">{{ referenceArticle.managers is not empty
+                                        ? referenceArticle.managers | map(m => m.username) | join(', ')
+                                        : '-' }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col-6 d-flex">
+                                <img src="{{ asset('svg/reference_article/manager.svg') }}" alt="Icône utilisateur" width="20px">
+                                <div class="box-item ml-3">
+                                    <span class="ra-field-name">Acheteur</span>
+                                    <span class="ra-body-text">{{ referenceArticle.buyer ? referenceArticle.buyer.username : '-' }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex mt-4">
+                            <div class="col-6 d-flex">
+                                <img src="{{ asset('svg/reference_article/warehouse.svg') }}" alt="Icône catégorie d'inventaire" width="20px">
+                                <div class="box-item ml-3">
+                                    <span class="ra-field-name">Catégorie d'inventaire</span>
+                                    <span class="ra-body-text">{{ referenceArticle.category ? referenceArticle.category.label : '-' }}</span>
+                                </div>
+                            </div>
+                            <div class="col-6 d-flex">
+                                <img src="{{ asset('svg/reference_article/calendar.svg') }}" alt="Icône calendrier" width="20px">
+                                <div class="box-item ml-3">
+                                    <span class="ra-field-name">Date de dernier inventaire</span>
+                                    <span class="ra-body-text">{{ lastInventoryDate }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex mt-4 ml-3">
+                            <span class="ra-field-name mr-2">Groupe de visibilité</span> <span
+                                class="ra-body-text"> {{ referenceArticle.visibilityGroup ? referenceArticle.visibilityGroup.label }}</span>
+                        </div>
+                        <div class="my-4 ml-3">
+                            {% set plural = referenceArticle.attachments | length > 1 ? 's' : '' %}
+                            <span class="ra-subtitle">Pièce{{ plural }} jointe{{ plural }}</span>
+                            <div class="d-flex flex-wrap">
+                                {% set url = app.request is not null ? app.request.getSchemeAndHttpHost() : app_url %}
+                                {% if referenceArticle.attachments | length > 0 %}
+                                    {% for attachment in referenceArticle.attachments %}
+                                        <div class="attachment-item show {{ loop.index % 2 != 0 ? 'mr-3' }}">
+                                            <img src="{{ asset('svg/reference_article/file.svg') }}" alt="Icône fichier" width="13px" class="mr-2">
+                                            <a target="_blank" class="ra-small-text has-tooltip"
+                                               href="{{ url ~ attachment.fullPath }}"
+                                               download="{{ attachment.originalName }}"
+                                               title="{{ attachment.originalName }}">
+                                                {{ attachment.originalName }}
+                                            </a>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="d-flex mt-2">
+                                        <span class="ra-small-text">Cette référence n'a aucune pièce jointe</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="content comment-container">
+                        <div class="ml-3">
+                            <span class="ra-subtitle">Commentaire</span>
+                            <div class="mt-2">{{ referenceArticle.commentaire and referenceArticle.commentaire != '<p><br></p>'
+                                ? referenceArticle.commentaire | raw
+                                : '-' }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6">
+                <div class="ra-box">
+                    <div class="header ra-title">Gestion quantité</div>
+                    <div class="content">
+                        <div class="d-flex">
+                            <div class="col-6 d-flex">
+                                {% set isReferenceManagementQuantity = referenceArticle.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_REFERENCE') %}
+                                <img src="{{ asset('svg/reference_article/' ~ (isReferenceManagementQuantity ? 'pack.svg' : 'article.svg')) }}"
+                                     alt="Icône colis" width="20px">
+                                <span class="ra-field-name ml-3">
+                                    Quantité gérée à {{ isReferenceManagementQuantity ? 'la référence' : 'l\'article' }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="d-flex mt-4">
+                            {% if isReferenceManagementQuantity %}
+                                <div class="col-4 d-flex">
+                                    <img src="{{ asset('svg/reference_article/location.svg') }}" alt="Icône emplacement" width="20px">
+                                    <div class="box-item ml-3">
+                                        <span class="ra-field-name">Emplacement</span>
+                                        <span
+                                            class="ra-body-text">{{ referenceArticle.emplacement ? referenceArticle.emplacement.label : '-' }}</span>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            <div class="col-{{ isReferenceManagementQuantity ? '8' : '6' }} d-flex">
+                                <img src="{{ asset('svg/reference_article/stock.svg') }}" alt="Icône stock" width="20px">
+                                <div class="box-item ml-3">
+                                    <span class="ra-field-name">Quantité en stock</span>
+                                    <span class="ra-body-text">{{ referenceArticle.quantiteStock ?? 0 }}</span>
+                                </div>
+                            </div>
+                            {% if not isReferenceManagementQuantity %}
+                                <div class="col-6 d-flex">
+                                    <img src="{{ asset('svg/reference_article/stock-management.svg') }}" alt="Icône gestion de stock" width="20px">
+                                    <div class="box-item ml-3">
+                                        <span class="ra-field-name">Gestion de stock</span>
+                                        <span
+                                            class="ra-body-text">{{ referenceArticle.stockManagement != '' ? referenceArticle.stockManagement : '-' }}</span>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="d-flex mt-4">
+                            {% if isReferenceManagementQuantity %}
+                                <div class="col-4 d-flex">
+                                    <img src="{{ asset('svg/reference_article/price.svg') }}" alt="Icône prix" width="15px">
+                                    <div class="box-item ml-3">
+                                        <span class="ra-field-name">Prix unitaire (€)</span>
+                                        <span class="ra-body-text">{{ referenceArticle.prixUnitaire ?? '-' }}</span>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            <div class="col-{{ isReferenceManagementQuantity ? '4' : '6' }} d-flex">
+                                <img src="{{ asset('svg/reference_article/alert-threshold.svg') }}" alt="Icône seuil d'alerte" width="20px">
+                                <div class="box-item ml-3">
+                                    <span class="ra-field-name">Seuil d'alerte</span>
+                                    <span class="ra-body-text">{{ referenceArticle.limitWarning ?? '-' }}</span>
+                                </div>
+                            </div>
+                            <div class="col-{{ isReferenceManagementQuantity ? '4' : '6' }} d-flex">
+                                <img src="{{ asset('svg/reference_article/security-threshold.svg') }}" alt="Icône seuil de sécurité" width="20px">
+                                <div class="box-item ml-3">
+                                    <span class="ra-field-name">Seuil de sécurité</span>
+                                    <span class="ra-body-text">{{ referenceArticle.limitSecurity ?? '-' }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% if referenceArticle.isUrgent %}
+                        <div class="d-flex align-items-center urgent-container">
+                            <img src="{{ asset('svg/reference_article/urgent.svg') }}" alt="Icône référence urgente" width="25px">
+                            <div class="d-flex flex-column ml-3">
+                                <span class="ra-field-name">Référence urgente</span>
+                                <div class="ra-body-text">{{ referenceArticle.emergencyComment | raw }}</div>
+                            </div>
+                        </div>
+                    {% endif %}
+                    <div class="ra-dropdown {{ not referenceArticle.isUrgent ? 'mt-3' : 'border-0' }}">
+                        <label for="touch">
+                            {% set plural = referenceArticle.articlesFournisseur | length > 1 ? 's' : '' %}
+                            <span class="ra-subtitle dropdown-wrapper">Fournisseur{{ plural }}</span>
+                        </label>
+                        <input type="checkbox" id="touch">
+                        <ul class="slide">
+                            {% for providerArticle in providerArticles %}
+                                <li class="mb-3">
+                                    <div class="provider-label">
+                                        <span class="ra-field-name ml-3">{{ providerArticle['providerName'] ?? '-' }}</span>&nbsp;-&nbsp;
+                                        <span class="ra-body-text">{{ providerArticle['providerCode'] ?? '-' }}</span>
+                                    </div>
+                                    <div class="d-flex mt-3">
+                                        <div class="col-{{ not isReferenceManagementQuantity ? '4' : '6' }} d-flex flex-column">
+                                            <span class="ra-field-name">Ref article fournisseur</span>
+                                            <span class="ra-body-text">{{ providerArticle['reference'] ?? '-' }}</span>
+                                        </div>
+                                        <div class="col-{{ not isReferenceManagementQuantity ? '4' : '6' }} d-flex flex-column">
+                                            <span class="ra-field-name">Label</span>
+                                            <span class="ra-body-text">{{ providerArticle['label'] ?? '-' }}</span>
+                                        </div>
+                                        {% if not isReferenceManagementQuantity %}
+                                            <div class="col-4 d-flex flex-column">
+                                                <span class="ra-field-name">Quantité article</span>
+                                                <span class="ra-body-text">{{ providerArticle['quantity'] ?? '-' }}</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                <div class="ra-box mt-3">
+                    {% set plural = freeFields | length > 1 ? 's' : '' %}
+                    <div class="header ra-title">Champ{{ plural }} libre{{ plural }}</div>
+                    {% if referenceArticle.freeFields | length > 0 %}
+                        <div class="content d-flex flex-wrap">
+                            {% for freeField in freeFields %}
+                                {% set value = referenceArticle.freeFields[freeField.id] ?? (freeField.defaultValue ?? '') %}
+                                <div class="col-6 box-item mb-3">
+                                    <span class="ra-field-name">{{ freeField.label }}</span>
+                                    {% if freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATE') %}
+                                        <span class="ra-body-text">{{ value | date('d/m/Y') }}</span>
+                                    {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATETIME') %}
+                                        <span class="ra-body-text">{{ value | replace({'/': '-'}) | date('d/m/Y H:i') }}</span>
+                                    {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_BOOL') %}
+                                        <span class="ra-body-text">{{ value == 1 ? 'Oui' : 'Non' }}</span>
+                                    {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_LIST_MULTIPLE') %}
+                                        {% set values = value | split(';') | join(', ') %}
+                                        <span class="ra-body-text">{{ values }}</span>
+                                    {% else %}
+                                        <span class="ra-body-text">{{ value }}</span>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="content ml-3">
+                            <span class="ra-small-text">Cette référence n'a aucun champ libre</span>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="d-flex justify-content-end mt-4">
+                    <a href="{{ path('reference_article_edit_page', {'reference': referenceArticle.id, 'from': 'show'}) }}" class="btn btn-success">Modifier</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('reference-article') }}
+    <script src="{{ asset('js/pages/referenceArticle.js') }}?v={{ web_version }}"></script>
+{% endblock %}

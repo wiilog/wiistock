@@ -30,13 +30,17 @@ use App\Entity\Preparation;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Helper\FormatHelper;
+use App\Repository\ArticleRepository;
 use App\Repository\PackRepository;
 use App\Repository\StatutRepository;
 use App\Service\DemandeLivraisonService;
+use App\Service\MailerService;
+use App\Service\NotificationService;
 use App\Service\UniqueNumberService;
-use DateTime;
 use DateTimeZone;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Twig\Environment as Twig_Environment;
 
 class IOTService
 {
@@ -82,10 +86,22 @@ class IOTService
     /** @Required */
     public AlertService $alertService;
 
+    /** @Required */
+    public NotificationService $notificationService;
+
+    /** @Required */
+    public MailerService $mailerService;
+
+    /** @Required */
+    public Twig_Environment $templating;
+
     public function onMessageReceived(array $frame, EntityManagerInterface $entityManager) {
         if (isset(self::PROFILE_TO_TYPE[$frame['profile']])) {
             $message = $this->parseAndCreateMessage($frame, $entityManager);
-            $this->linkWithSubEntities($message, $entityManager->getRepository(Pack::class));
+            $this->linkWithSubEntities($message,
+                $entityManager->getRepository(Pack::class),
+                $entityManager->getRepository(Article::class),
+            );
             $entityManager->flush();
             $this->treatTriggers($message, $entityManager);
             $entityManager->flush();
@@ -125,19 +141,19 @@ class IOTService
         $needsTrigger = $temperatureTresholdType === 'lower' ?
             $temperatureTreshold >= $messageTemperature
             : $temperatureTreshold <= $messageTemperature;
-        $triggerAction->setLastTrigger(new \DateTime('now', new \DateTimeZone('Europe/Paris')));
+        $triggerAction->setLastTrigger(new DateTime('now'));
         if ($needsTrigger) {
             if ($triggerAction->getRequestTemplate()) {
                 $this->treatRequestTemplateTriggerType($triggerAction->getRequestTemplate(), $entityManager, $wrapper);
             } else if ($triggerAction->getAlertTemplate()) {
-                $this->treatAlertTemplateTriggerType($triggerAction->getAlertTemplate(), $sensorMessage);
+                $this->treatAlertTemplateTriggerType($triggerAction->getAlertTemplate(), $sensorMessage, $entityManager);
             }
         }
     }
 
     private function treatActionTrigger(SensorWrapper $wrapper, TriggerAction $triggerAction, SensorMessage $sensorMessage, EntityManagerInterface $entityManager) {
         $needsTrigger = $sensorMessage->getEvent() === self::ACS_EVENT;
-        if ($sensorMessage->getSensor()->getProfile()->getName() === IOTService::SYMES_ACTION_MULTI) {
+        if ($needsTrigger && $sensorMessage->getSensor()->getProfile()->getName() === IOTService::SYMES_ACTION_MULTI) {
             $button = intval(substr($sensorMessage->getContent(), 7, 1)); //EVENT (2)
             $config = $triggerAction->getConfig();
             $wanted = intval($config['buttonIndex']);
@@ -147,7 +163,7 @@ class IOTService
             if ($triggerAction->getRequestTemplate()) {
                 $this->treatRequestTemplateTriggerType($triggerAction->getRequestTemplate(), $entityManager, $wrapper);
             } else if ($triggerAction->getAlertTemplate()) {
-                $this->treatAlertTemplateTriggerType($triggerAction->getAlertTemplate(), $sensorMessage);
+                $this->treatAlertTemplateTriggerType($triggerAction->getAlertTemplate(), $sensorMessage, $entityManager);
             }
         }
     }
@@ -186,7 +202,7 @@ class IOTService
                                                 SensorWrapper $sensorWrapper,
                                                 HandlingRequestTemplate $requestTemplate): Handling {
         $handling = new Handling();
-        $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now');
         $handlingNumber = $this->uniqueNumberService->createUniqueNumber($entityManager, Handling::PREFIX_NUMBER, Handling::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 
         $desiredDate = clone $date;
@@ -218,7 +234,7 @@ class IOTService
                                                 DeliveryRequestTemplate $requestTemplate): Demande {
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
         $numero = $this->demandeLivraisonService->generateNumeroForNewDL($entityManager);
-        $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now');
 
         $request = new Demande();
         $request
@@ -247,7 +263,7 @@ class IOTService
                                                 EntityManagerInterface $entityManager,
                                                 SensorWrapper $wrapper,
                                                 CollectRequestTemplate $requestTemplate): Collecte {
-        $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now');
         $numero = 'C-' . $date->format('YmdHis');
         $status = $statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_BROUILLON);
 
@@ -275,8 +291,12 @@ class IOTService
             $entityManager->persist($ligneArticle);
             $request->addCollecteReference($ligneArticle);
         }
-        $this->cleanCreateCollectOrder($statutRepository, $request, $entityManager);
+        $ordreCollecte = $this->cleanCreateCollectOrder($statutRepository, $request, $entityManager);
         $entityManager->flush();
+
+        if ($ordreCollecte->getDemandeCollecte()->getType()->isNotificationsEnabled()) {
+            $this->notificationService->toTreat($ordreCollecte);
+        }
         return $request;
     }
 
@@ -285,7 +305,7 @@ class IOTService
         $statut = $statutRepository
             ->findOneByCategorieNameAndStatutCode(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_A_TRAITER);
         $ordreCollecte = new OrdreCollecte();
-        $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now');
         $ordreCollecte
             ->setDate($date)
             ->setNumero('C-' . $date->format('YmdHis'))
@@ -306,16 +326,19 @@ class IOTService
 
         $entityManager->persist($ordreCollecte);
 
+
         // on modifie statut + date validation de la demande
         $demandeCollecte
             ->setStatut(
                 $statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_A_TRAITER)
             )
             ->setValidationDate($date);
+
+        return $ordreCollecte;
     }
 
-    private function treatAlertTemplateTriggerType(AlertTemplate $template, SensorMessage $message) {
-        $this->alertService->trigger($template, $message);
+    private function treatAlertTemplateTriggerType(AlertTemplate $template, SensorMessage $message, EntityManagerInterface $entityManager) {
+        $this->alertService->trigger($template, $message, $entityManager);
     }
 
     private function parseAndCreateMessage(array $message, EntityManagerInterface $entityManager): SensorMessage
@@ -359,13 +382,25 @@ class IOTService
         }
 
         $newBattery = $this->extractBatteryLevelFromMessage($message);
+        $wrapper = $device->getAvailableSensorWrapper();
         if ($newBattery > -1) {
             $device->setBattery($newBattery);
+            if ($newBattery < 10 && $wrapper && $wrapper->getManager()) {
+                $this->mailerService->sendMail(
+                    'FOLLOW GT // Batterie capteur faible',
+                    $this->templating->render('mails/contents/iot/mailLowBattery.html.twig', [
+                        'sensorCode' => $device->getCode(),
+                        'sensorName' => $wrapper->getName(),
+                    ]),
+                    $wrapper->getManager()
+                );
+            }
         }
         $entityManager->flush();
 
-        $messageDate = new \DateTime($message['timestamp'], new \DateTimeZone("UTC"));
-        $messageDate->setTimezone(new \DateTimeZone('Europe/Paris'));
+        $messageDate = new DateTime($message['timestamp'], new DateTimeZone("UTC"));
+        $messageDate->setTimezone(new DateTimeZone('Europe/Paris'));
+
         $received = new SensorMessage();
         $received
             ->setPayload($message)
@@ -379,19 +414,23 @@ class IOTService
         return $received;
     }
 
-    public function linkWithSubEntities(SensorMessage $sensorMessage, PackRepository $packRepository) {
+    public function linkWithSubEntities(SensorMessage $sensorMessage, PackRepository $packRepository, ArticleRepository $articleRepository) {
         $sensor = $sensorMessage->getSensor();
         $wrapper = $sensor->getAvailableSensorWrapper();
-
         if ($wrapper) {
             foreach ($wrapper->getPairings() as $pairing) {
                 if ($pairing->isActive()) {
+                    if($pairing->getEnd() && $pairing->getEnd() < new DateTime()) {
+                        $pairing->setActive(false);
+                        continue;
+                    }
+
                     $pairing->addSensorMessage($sensorMessage);
                     $entity = $pairing->getEntity();
                     if ($entity instanceof LocationGroup) {
-                        $this->treatAddMessageLocationGroup($entity, $sensorMessage, $packRepository);
+                        $this->treatAddMessageLocationGroup($entity, $sensorMessage, $articleRepository, $packRepository);
                     } else if ($entity instanceof Emplacement) {
-                        $this->treatAddMessageLocation($entity, $sensorMessage, $packRepository);
+                        $this->treatAddMessageLocation($entity, $sensorMessage, $articleRepository, $packRepository);
                     } else if ($entity instanceof Pack) {
                         $this->treatAddMessagePack($entity, $sensorMessage);
                     } else if ($entity instanceof Article) {
@@ -406,14 +445,20 @@ class IOTService
         }
     }
 
-    private function treatAddMessageLocationGroup(LocationGroup $locationGroup, SensorMessage $sensorMessage, PackRepository $packRepository) {
+    private function treatAddMessageLocationGroup(LocationGroup $locationGroup,
+                                                  SensorMessage $sensorMessage,
+                                                  ArticleRepository $articleRepository,
+                                                  PackRepository $packRepository) {
         $locationGroup->addSensorMessage($sensorMessage);
         foreach ($locationGroup->getLocations() as $location) {
-            $this->treatAddMessageLocation($location, $sensorMessage, $packRepository);
+            $this->treatAddMessageLocation($location, $sensorMessage, $articleRepository, $packRepository);
         }
     }
 
-    private function treatAddMessageLocation(Emplacement $location, SensorMessage $sensorMessage, PackRepository $packRepository) {
+    private function treatAddMessageLocation(Emplacement $location,
+                                             SensorMessage $sensorMessage,
+                                             ArticleRepository $articleRepository,
+                                             PackRepository $packRepository) {
         $location->addSensorMessage($sensorMessage);
         $packs = $packRepository->getCurrentPackOnLocations(
             [$location->getId()],
@@ -422,6 +467,13 @@ class IOTService
                 'field' => 'colis'
             ]
         );
+
+        $articles = $articleRepository->findArticlesOnLocation($location);
+
+        foreach ($articles as $article) {
+            $this->treatAddMessageArticle($article, $sensorMessage);
+        }
+
         foreach ($packs as $pack) {
             $this->treatAddMessagePack($pack, $sensorMessage);
         }
@@ -466,7 +518,8 @@ class IOTService
             case IOTService::SYMES_ACTION_MULTI:
             case IOTService::SYMES_ACTION_SINGLE:
                 if (isset($config['payload_cleartext'])) {
-                    $event = hexdec(substr($config['payload_cleartext'], 0, 2)) >> 5;
+                    $value = hexdec(substr($config['payload_cleartext'], 0, 2));
+                    $event =  $value & ~($value >> 3 << 3);
                     return $event === 0 ? self::ACS_PRESENCE : (self::ACS_EVENT . " (" . $event . ")");
                 }
                 break;
@@ -512,7 +565,8 @@ class IOTService
             case IOTService::SYMES_ACTION_SINGLE:
             case IOTService::SYMES_ACTION_MULTI:
                 if (isset($config['payload_cleartext'])) {
-                    $event = hexdec(substr($config['payload_cleartext'], 0 , 2)) >> 5;
+                    $value = hexdec(substr($config['payload_cleartext'], 0, 2));
+                    $event =  $value & ~($value >> 3 << 3);
                     return $event === 0 ? self::ACS_PRESENCE : self::ACS_EVENT;
                 }
                 break;
@@ -537,7 +591,8 @@ class IOTService
                 break;
             case IOTService::SYMES_ACTION_MULTI:
             case IOTService::SYMES_ACTION_SINGLE:
-                $level = hexdec(substr($config['payload_cleartext'], 22, 2));
+                $tensionBites = substr($config['payload_cleartext'], 20, 2);
+                $level = hexdec($tensionBites) >> 1;
                 $minVoltage = 2400;
                 $maxVoltage = 3700;
                 $incertitudeLevel = 10;
@@ -581,4 +636,5 @@ class IOTService
         ];
         return $association[$code] ?? null;
     }
+
 }

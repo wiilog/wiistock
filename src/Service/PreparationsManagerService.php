@@ -20,7 +20,6 @@ use App\Exceptions\NegativeQuantityException;
 use App\Repository\ArticleRepository;
 use App\Repository\StatutRepository;
 use DateTime;
-use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\Routing\RouterInterface;
@@ -58,6 +57,9 @@ class PreparationsManagerService
      */
     private $security;
     private $CSVExportService;
+
+    /** @Required */
+    public NotificationService $notificationService;
 
     public function __construct(Security $security,
                                 CSVExportService $CSVExportService,
@@ -177,7 +179,7 @@ class PreparationsManagerService
         }
 
         $newPreparation = new Preparation();
-        $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now');
         $number = $this->generateNumber($date, $entityManager);
         $newPreparation
             ->setNumero($number)
@@ -220,6 +222,10 @@ class PreparationsManagerService
         $entityManager->persist($newPreparation);
         $entityManager->flush();
 
+        if ($newPreparation->getDemande()->getType()->isNotificationsEnabled()) {
+            $this->notificationService->toTreat($newPreparation);
+        }
+
         return $newPreparation;
     }
 
@@ -251,7 +257,7 @@ class PreparationsManagerService
         if ($isRef) {
             $refArticle = ($article instanceof ReferenceArticle)
                 ? $article
-                : $referenceArticleRepository->findOneByReference($article);
+                : $referenceArticleRepository->findOneBy(['reference' => $article]);
             if ($refArticle) {
                 /** @var MouvementStock $preparationMovement */
                 $preparationMovement = $preparation->getReferenceArticleMovement($refArticle);
@@ -301,7 +307,7 @@ class PreparationsManagerService
 
         if ($mouvement['is_ref']) {
             // cas ref par ref
-            $refArticle = $referenceArticleRepository->findOneByReference($mouvement['reference']);
+            $refArticle = $referenceArticleRepository->findOneBy(['reference' => $mouvement['reference']]);
             if ($refArticle) {
                 $ligneArticle = $ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $preparation);
                 $ligneArticle->setQuantitePrelevee($mouvement['quantity']);
@@ -663,7 +669,7 @@ class PreparationsManagerService
 
     public function createPairing(SensorWrapper $sensorWrapper, Preparation $preparation){
         $pairing = new Pairing();
-        $start =  new DateTime("now", new DateTimeZone("Europe/Paris"));
+        $start =  new DateTime("now");
         $pairing
             ->setStart($start)
             ->setSensorWrapper($sensorWrapper)

@@ -162,6 +162,17 @@
                             </div>
                         {% endif %}
 
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DESTINATION') %}
+                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
+                            {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
+                            <div class="form-group">
+                                <label for="prise" title="Destination">{{ 'acheminement.Destination'|trans }}{{ required ? '*' }}</label>
+                                <select name="destination"
+                                        class="form-control data ajax-autocomplete-location d-block {{ required ? 'needed' }} w-100">
+                                </select>
+                            </div>
+                        {% endif %}
+
                         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVER_DISPATCH') %}
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
@@ -205,15 +216,17 @@
                                     <span class="input-group-text w-50px">Du</span>
                                 </div>
                                 <input type="date"
-                                       class="form-control data {{ required ? 'needed' }}"
+                                       class="form-control data {{ required ? 'needed' }} needs-default"
                                        name="startDate"
                                        title="Date d'échéance min"
+                                       data-init="{{ preFill ? "now"|date('Y-m-d') }}"
                                        placeholder="jj/mm/aaaa"/>
                                 <div class="input-group-prepend">
                                     <span class="input-group-text w-50px">Au</span>
                                 </div>
                                 <input type="date"
-                                       class="form-control data {{ required ? 'needed' }}"
+                                       data-init="{{ preFill ? "now"|date('Y-m-d') }}"
+                                       class="form-control data {{ required ? 'needed' }} needs-default"
                                        name="endDate"
                                        title="Date d'échéance max"
                                        placeholder="jj/mm/aaaa"/>

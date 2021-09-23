@@ -11,12 +11,17 @@
                 <div class="row">
                     <div class="mb-3 form-group col-12">
                         <label for="category">Catégorie*</label>
-                        <select name="category" id="frequencies" class="data form-control needed" onchange="typeSelectChange($(this), $('#modalNewType'))">
-                            <option placeholder="" disabled value="" selected></option>
+                        <select name="category" id="frequencies" class="data form-control needed"
+                                onchange="typeSelectChange($(this), $('#modalNewType'))">
+                            <option disabled value="" selected></option>
                             {% for category in categories %}
                                 <option value="{{ category.id }}"
+                                        data-category="{{ category.label }}"
                                         data-needs-default-locations="{{ category.label == constant('App\\Entity\\CategoryType::DEMANDE_DISPATCH') }}"
-                                        data-needs-send-mail="{{ category.label == constant('App\\Entity\\CategoryType::DEMANDE_LIVRAISON') }}">
+                                        data-needs-send-mail="{{ category.label == constant('App\\Entity\\CategoryType::DEMANDE_LIVRAISON') }}"
+                                        data-enable-notifications="{{ category.label in constant('App\\Entity\\NotificationTemplate::NOTIFICATIONS_TYPES') }}"
+                                        data-notifications-emergencies="{{ category.label in constant('App\\Entity\\NotificationTemplate::NOTIFICATIONS_EMERGENCIES') }}"
+                                        data-color-picker="{{ category.label == constant('App\\Entity\\CategoryType::ARTICLE') }}">
                                     {{ category.label }}
                                 </option>
                             {% endfor %}
@@ -34,6 +39,17 @@
                     <div class="form-group col-12">
                         <label for="label">Description</label>
                         <input type="text" class="data form-control" name="description">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-12 d-none color-picker">
+                        <label for="color">Couleur</label>
+                        <input type="color" class="data form-control lite-picker" name="color" list="presetColors" value="{{ constant('App\\Entity\\Type::DEFAULT_COLOR') }}">
+                        <datalist id="presetColors">
+                            {% for color in constant('App\\Entity\\Type::PRESET_COLORS') %}
+                                <option>{{ color }}</option>
+                            {% endfor %}
+                        </datalist>
                     </div>
                 </div>
                 <div class="row">
@@ -57,6 +73,50 @@
                         <label for="depose">Emplacement de dépose par défaut</label>
                         <select name="depose" class="form-control data ajax-autocomplete-location d-block location-prise w-100" id="depose">
                         </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12 form-group d-none enable-notifications">
+                        <label>Activer les notifications ?</label>
+                        <label class="switch">
+                            <input class="checkbox enable-notifications" type="checkbox"  name="notificationsEnabled" onchange="onNotificationsChange($(this))">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 form-group d-none notifications-emergencies">
+                        <label>Activer les notifications seulement si urgence ?</label>
+                        <label class="switch">
+                            <input class="checkbox" type="checkbox"
+                                   name="emergenciesNotificationEnabled"
+                                   onchange="onNotificationsEmergenciesChange($(this))">
+                            <span class="slider round"></span>
+                        </label>
+                        <label class="ml-3 mt-3 notifications-emergencies-select d-none">
+                            Pour les valeurs<br>
+                            <select class="form-control data w-218px"
+                                    name="notificationsEmergencies"
+                                    data-custom-label="Valeur d'urgence pour les notifications"
+                                    data-s2
+                                    data-no-empty-option
+                                    multiple>
+                                {% for emergency in dispatchEmergencies %}
+                                    <option value="{{ emergency }}"
+                                            data-category="{{ constant('App\\Entity\\CategoryType::DEMANDE_DISPATCH') }}">
+                                        {{ emergency }}
+                                    </option>
+                                {% endfor %}
+
+                                {% for emergency in handlingEmergencies %}
+                                    <option value="{{ emergency }}"
+                                            data-category="{{ constant('App\\Entity\\CategoryType::DEMANDE_HANDLING') }}">
+                                        {{ emergency }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </label>
                     </div>
                 </div>
             </div>

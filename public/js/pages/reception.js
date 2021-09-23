@@ -1,9 +1,12 @@
 //initialisation editeur de texte une seule fois
 let editorNewReceptionAlreadyDone = false;
 let onFlyFormOpened = {};
-let tableReception;
+let receptionsTable;
 
 $(function () {
+
+    // RECEPTION
+    initTableReception();
     $('.select2').select2();
     initDateTimePicker();
     Select2Old.init($('#statut'), 'Statuts');
@@ -11,45 +14,6 @@ $(function () {
     initOnTheFlyCopies($('.copyOnTheFly'));
     Select2Old.user($('.filters .ajax-autocomplete-user'), 'Destinataire(s)');
 
-    // RECEPTION
-    let pathTableReception = Routing.generate('reception_api', true);
-    let tableReceptionConfig = {
-        serverSide: true,
-        processing: true,
-        order: [['Date', "desc"]],
-        ajax: {
-            "url": pathTableReception,
-            "type": "POST",
-            'data': {
-                'purchaseRequestFilter': $('#purchaseRequest').val()
-            }
-        },
-        drawConfig: {
-            needsSearchOverride: true,
-            needsColumnHide: true,
-        },
-        columns: [
-            {"data": 'Actions', 'name': 'actions', 'title': '', className: 'noVis', orderable: false},
-            {"data": 'Date', 'name': 'date', 'title': 'Date création'},
-            {"data": 'number', 'name': 'number', 'title': 'réception.n° de réception', translated: true},
-            {"data": 'dateAttendue', 'name': 'dateAttendue', 'title': 'Date attendue'},
-            {"data": 'DateFin', 'name': 'dateFin', 'title': 'Date fin'},
-            {"data": 'orderNumber', 'name': 'orderNumber', 'title': 'Numéro commande'},
-            {"data": 'receiver', 'name': 'receiver', 'title': 'Destinataire(s)', orderable: false},
-            {"data": 'Fournisseur', 'name': 'fournisseur', 'title': 'Fournisseur'},
-            {"data": 'Statut', 'name': 'statut', 'title': 'Statut'},
-            {"data": 'storageLocation', 'name': 'storageLocation', 'title': 'Emplacement de stockage'},
-            {"data": 'Commentaire', 'name': 'commentaire', 'title': 'Commentaire'},
-            {"data": 'emergency', 'name': 'emergency', 'title': 'urgence', visible: false},
-        ],
-        rowConfig: {
-            needsColor: true,
-            color: 'danger',
-            needsRowClickAction: true,
-            dataToCheck: 'emergency'
-        }
-    };
-    tableReception = initDataTable('tableReception_id', tableReceptionConfig);
 
     let $modalReceptionNew = $("#modalNewReception");
     let $submitNewReception = $("#submitReceptionButton");
@@ -103,4 +67,45 @@ function initReceptionLocation() {
         let option = new Option(dataReceptionLocation.text, dataReceptionLocation.id, true, true);
         $receptionLocationSelect.append(option).trigger('change');
     }
+}
+
+function initTableReception() {
+    let pathReception = Routing.generate('reception_api', true);
+    return $
+        .post(Routing.generate('reception_api_columns'))
+        .then((columns) => {
+            let tableReceptionConfig = {
+                serverSide: true,
+                processing: true,
+                order: [['Date', "desc"]],
+                ajax: {
+                    "url": pathReception,
+                    "type": "POST",
+                    'data': {
+                        'purchaseRequestFilter': $('#purchaseRequest').val()
+                    }
+                },
+                columns,
+                drawConfig: {
+                    needsSearchOverride: true,
+                    needsColumnHide: true,
+                },
+                rowConfig: {
+                    needsColor: true,
+                    color: 'danger',
+                    needsRowClickAction: true,
+                    dataToCheck: 'emergency'
+                },
+                hideColumnConfig: {
+                    columns,
+                    tableFilter: 'tableReception_id'
+                },
+            };
+
+            receptionsTable = initDataTable('tableReception_id', tableReceptionConfig);
+            receptionsTable.on('responsive-resize', function () {
+                resizeTable(receptionsTable);
+            });
+            return receptionsTable;
+        });
 }

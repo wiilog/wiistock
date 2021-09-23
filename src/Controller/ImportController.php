@@ -133,13 +133,51 @@ class ImportController extends AbstractController
                         Import::ENTITY_REF => ReferenceArticle::class,
                         Import::ENTITY_FOU => Fournisseur::class,
                         Import::ENTITY_ART_FOU => ArticleFournisseur::class,
-                        Import::ENTITY_RECEPTION => Reception::class
+                        Import::ENTITY_RECEPTION => Reception::class,
+                        Import::ENTITY_USER => Utilisateur::class
                     ];
                     $attributes = $entityManager->getClassMetadata($entityCodeToClass[$entity]);
 
-                    $fieldsToHide = ['id', 'barCode', 'reference', 'conform', 'quantiteAPrelever', 'quantitePrelevee',
-                        'dateEmergencyTriggered', 'isUrgent', 'quantiteDisponible', 'freeFields', 'urgentArticles',
-                        'quantiteReservee', 'dateAttendue', 'dateFinReception', 'dateCommande', 'number', 'date', 'emergencyTriggered', 'cleanedComment'];
+                    $fieldsToHide = [
+                        'id',
+                        'barCode',
+                        'reference',
+                        'conform',
+                        'quantiteAPrelever',
+                        'quantitePrelevee',
+                        'dateEmergencyTriggered',
+                        'isUrgent',
+                        'quantiteDisponible',
+                        'freeFields',
+                        'urgentArticles',
+                        'quantiteReservee',
+                        'dateAttendue',
+                        'dateFinReception',
+                        'dateCommande',
+                        'number',
+                        'date',
+                        'emergencyTriggered',
+                        'cleanedComment',
+                        'apiKey',
+                        'columnsVisibleForArrivage',
+                        'columnsVisibleForArticle',
+                        'columnsVisibleForDispatch',
+                        'columnsVisibleForLitige',
+                        'columnsVisibleForReception',
+                        'columnsVisibleForTrackingMovement',
+                        'columnVisible',
+                        'lastLogin',
+                        'pageLengthForArrivage',
+                        'password',
+                        'savedDispatchDeliveryNoteData',
+                        'savedDispatchWaybillData',
+                        'secondaryEmails',
+                        'token',
+                        'rechercheForArticle',
+                        'recherche',
+                        'roles',
+                    ];
+
                     $fieldNames = array_diff($attributes->getFieldNames(), $fieldsToHide);
                     switch ($entity) {
                         case Import::ENTITY_ART:
@@ -149,7 +187,7 @@ class ImportController extends AbstractController
                             break;
                         case Import::ENTITY_REF:
                             $categoryCL = CategorieCL::REFERENCE_ARTICLE;
-                            $fieldsToAdd = ['type', 'emplacement', 'catégorie d\'inventaire', 'statut', 'reference', 'managers', 'buyer'];
+                            $fieldsToAdd = ['type', 'emplacement', 'catégorie d\'inventaire', 'statut', 'reference', 'managers', 'buyer', 'visibilityGroups'];
                             $fieldNames = array_merge($fieldNames, $fieldsToAdd);
                             break;
                         case Import::ENTITY_ART_FOU:
@@ -158,6 +196,10 @@ class ImportController extends AbstractController
                             break;
                         case Import::ENTITY_RECEPTION:
                             $fieldsToAdd = ['anomalie', 'fournisseur', 'transporteur', 'référence', 'location','storageLocation', 'quantité à recevoir', 'orderDate', 'expectedDate'];
+                            $fieldNames = array_merge($fieldNames, $fieldsToAdd);
+                            break;
+                        case Import::ENTITY_USER:
+                            $fieldsToAdd = ['role', 'secondaryEmail', 'lastEmail', 'phone', 'mobileLoginKey', 'address', 'deliveryTypes', 'dispatchTypes', 'handlingTypes', 'dropzone', 'visibilityGroup'];
                             $fieldNames = array_merge($fieldNames, $fieldsToAdd);
                             break;
                     }

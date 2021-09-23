@@ -43,6 +43,18 @@ class Type
     const LABEL_DELIVERY = 'livraison';
     const LABEL_COLLECT = 'collecte';
 
+    const PRESET_COLORS = [
+        '#D76433',
+        '#D7B633',
+        '#A5D733',
+        '#33D7D1',
+        '#33A5D7',
+        '#3353D7',
+        '#6433D7',
+        '#D73353',
+    ];
+
+    const DEFAULT_COLOR = '#3353D7';
 
 	/**
      * @ORM\Id()
@@ -157,6 +169,16 @@ class Type
     private $averageRequestTime;
 
     /**
+     * @ORM\Column(type="boolean", options={"default": 0})
+     */
+    private ?bool $notificationsEnabled;
+
+    /**
+     * @ORM\Column(type="json", nullable=true)
+     */
+    private ?array $notificationsEmergencies = [];
+
+    /**
      * @ORM\OneToMany(targetEntity=RequestTemplate::class, mappedBy="type")
      */
     private Collection $requestTemplates;
@@ -170,6 +192,11 @@ class Type
      * @ORM\OneToMany(targetEntity="App\Entity\IOT\Sensor", mappedBy="type")
      */
     private Collection $sensors;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private ?string $color = null;
 
     public function __construct()
     {
@@ -756,6 +783,43 @@ class Type
         return $this;
     }
 
+    public function isNotificationsEnabled(): ?bool
+    {
+        return $this->notificationsEnabled;
+    }
+
+    public function setNotificationsEnabled(bool $notificationsEnabled): self
+    {
+        $this->notificationsEnabled = $notificationsEnabled;
+
+        return $this;
+    }
+
+    public function getNotificationsEmergencies(): ?array
+    {
+        return $this->notificationsEmergencies;
+    }
+
+    public function isNotificationsEmergency(?string $emergency): bool {
+        return (
+            $emergency
+            && (
+                $this->notificationsEnabled
+                || (
+                    !empty($this->notificationsEmergencies)
+                    && in_array($emergency, $this->notificationsEmergencies)
+                )
+            )
+        );
+    }
+
+    public function setNotificationsEmergencies(?array $notificationsEmergencies): self
+    {
+        $this->notificationsEmergencies = $notificationsEmergencies;
+
+        return $this;
+    }
+
     /**
      * @return Collection|RequestTemplate[]
      */
@@ -841,6 +905,18 @@ class Type
                 $sensor->setType(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getColor(): ?string
+    {
+        return $this->color;
+    }
+
+    public function setColor(string $color): self
+    {
+        $this->color = $color;
 
         return $this;
     }

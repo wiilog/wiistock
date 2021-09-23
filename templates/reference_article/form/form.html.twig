@@ -1,0 +1,515 @@
+{% macro supplier_article_line(reference, line, editable = false, index = 0) %}
+    <div class="ligneFournisseurArticle"
+         data-multiple-key="frl"
+         data-multiple-object-index="{{ index }}">
+        <div class="row">
+            <div class="form-group col-md-6 col-12">
+                <label class="ra-field-name">Nom fournisseur*</label>
+                <select class="form-control w-100 {{ editable ? 'data needed' }}" {{ not editable ? 'disabled readonly' }} data-s2="supplierLabel"
+                        onchange="loadAndDisplayLabels($(this))"
+                        name="fournisseurLabel">
+                    {% if line and line.fournisseur %}
+                        <option value="{{ line.fournisseur.id }}">{{ line.fournisseur.nom }}</option>
+                    {% endif %}
+                </select>
+            </div>
+            <div class="form-group col-md-6 col-12">
+                <label class="ra-field-name">Code fournisseur*</label>
+                <select class="form-control w-100 {{ editable ? 'data needed' }}" {{ not editable ? 'disabled readonly' }} data-s2="supplierCode"
+                        onchange="loadAndDisplayInfos($(this))"
+                        name="fournisseur">
+                    {% if line and line.fournisseur %}
+                        <option value="{{ line.fournisseur.id }}">{{ line.fournisseur.codeReference }}</option>
+                    {% endif %}
+                </select>
+            </div>
+            <div class="form-group col-md-6 col-12 {{ not reference.id ? 'd-none newContent' }}">
+                <label class="ra-field-name">Ref article fournisseur*</label>
+                <input class="form-control data w-100 {{ editable ? 'data needed' }}" {{ not editable ? 'disabled readonly' }} type="text"
+                       name="referenceFournisseur" value="{{ line ? line.reference }}">
+            </div>
+            <div class="form-group col-md-6 col-12 {{ not reference.id ? 'd-none newContent' }}">
+                <label class="ra-field-name">Libellé*</label>
+                <input class="form-control w-100 {{ editable ? 'data needed' }}" {{ not editable ? 'disabled readonly' }} type="text"
+                       name="labelFournisseur" value="{{ line ? line.label }}">
+            </div>
+        </div>
+        {% if index > 0 %}
+            <span class="delete-supplier-article">Supprimer l'article fournisseur</span>
+        {% endif %}
+        <hr>
+    </div>
+{% endmacro %}
+
+{% macro visibility_group_input(reference) %}
+    <div class="col-12 col-md-6 mt-3">
+        <label for="visibility-group" class="ra-field-name">Groupe de visibilité
+            <select name="visibility-group" class="form-control data" data-s2="visibilityGroup">
+                {% if reference.visibilityGroup %}
+                    <option value="{{ reference.visibilityGroup.id }}" selected>{{ reference.visibilityGroup.label }}</option>
+                {% endif %}
+            </select>
+        </label>
+    </div>
+{% endmacro %}
+
+{% import _self as macros %}
+
+{% set editable = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
+{% set disabled = editable ? '' : 'disabled' %}
+{% set isReferenceManagementQuantity = reference.id and reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_REFERENCE') %}
+<div class="d-flex justify-content-center align-items-center" style="margin-bottom: 50px;">
+    <div class="row ra-form ra-column">
+        <div class="col-12 col-md-6">
+            <div class="ra-box">
+                {% if reference.id %}
+                    <div class="d-flex justify-content-center align-items-center type-container ra-type"
+                         style="background-color: {{ reference.type.color }};">
+                        {{ reference.type.label }}
+                    </div>
+                {% endif %}
+                <div class="content d-flex" style="border: {{ reference.id ? '1px solid' ~ reference.type.color }}">
+                    <div class="col-5">
+                        <div class="image-container"
+                             style="background-image: url({{ reference.image
+                             ? (app.request.scheme ~ '://' ~ app.request.httpHost ~ '/uploads/attachements/' ~ reference.image.fileName)
+                             : asset('svg/reference_article/product.svg') }});
+                                 background-color: {{ reference.image ? "#FFFFFF" : "#F5F5F7" }};
+                                 background-size: {{ reference.image ? 'cover' : '50%' }}">
+                            <span class="edit-button"></span>
+                            <div class="col-12 d-flex align-items-center justify-content-end mt-3">
+                                <div class="buttons mt-2">
+                                    <button class="btn btn-primary edit-image">
+                                        <i class='fas fa-pencil-alt'></i>
+                                    </button>
+                                    <button class="btn btn-danger delete-image">
+                                        <i class='fas fa-trash'></i>
+                                    </button>
+                                </div>
+                                <input type="file" name="image" class="data-file" id="upload-article-reference-image"
+                                       accept="image/png, image/jpeg, image/jpg"
+                                       hidden>
+                            </div>
+                        </div>
+                        <div class="ra-small-text">
+                            Importer une photo <br>de ce produit (max 10mo)
+                        </div>
+                    </div>
+                    <div class="col-7">
+                        <label class="ra-field-name">
+                            Référence*
+                            <input type="text" name="reference" class="form-control data needed" placeholder="Référence"
+                                   value="{{ reference.reference }}">
+                        </label>
+                        <label class="mt-3 ra-field-name">
+                            Libellé*
+                            <input type="text" name="libelle" class="form-control data needed" placeholder="Libellé" value="{{ reference.libelle }}">
+                        </label>
+                        {% if not reference.id %}
+                            <label class="mt-3 ra-field-name">
+                                Type*
+                                <select name="type"
+                                        data-s2 data-placeholder="Choisissez un type"
+                                        class="form-control data d-block type needed"
+                                        onchange="typeChoice($(this), $(this).closest('.ra-form').find('.free-fields-container')); toggleRequiredChampsLibres($(this),'create', $(this).closest('.ra-form').find('.free-fields-container'))">
+                                    {% for type in types %}
+                                        <option value="{{ type.id }}">
+                                            {{ type.label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+                        {% endif %}
+                        <label class="mt-3 ra-field-name">
+                            Statut*
+                        </label>
+                        <div class="wii-switch needed" data-title="Statut">
+                            <input type="radio" name="statut" value="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}" content="Actif"
+                                {{ reference.statut and reference.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') ? 'checked' }}>
+                            <input type="radio" name="statut" value="{{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') }}"
+                                   content="Inactif"
+                                {{ reference.statut and reference.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') ? 'checked' }}>
+                        </div>
+
+                        <label class="with-checkbox">
+                            <input type="checkbox" name="mobileSync" class="checkbox data" {{ reference.needsMobileSync ? 'checked' }}>
+                            Synchronisation nomade
+                            <sup>
+                                <img src="{{ asset('svg/reference_article/information.svg') }}"
+                                     alt="Icône information"
+                                     width="10px"
+                                     class="has-tooltip"
+                                     title="Permet de sélectionner la référence lors de la création d'une demande de livraison sur l'application mobile">
+                            </sup>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="ra-box">
+                <div class="header ra-title">Informations</div>
+                <div class="content">
+                    <div class="row">
+                        <div class="col-12 col-md-6">
+                            <label>
+                                    <span class="icon ra-field-name">
+                                        <img src="{{ asset('svg/reference_article/manager.svg') }}" class="icon" alt="Image gestionnaire">
+                                        Gestionnaires
+                                    </span>
+                                <select name="managers" class="form-control data w-100" data-s2="user"
+                                        data-placeholder="Sélectionnez des gestionnaires" multiple>
+                                    {% for manager in reference.managers %}
+                                    <option value="{{ manager.id }}" selected>{{ manager.username }}</option>
+                                    {% endfor %}>
+                                </select>
+                            </label>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label>
+                                    <span class="icon ra-field-name">
+                                        <img src="{{ asset('svg/reference_article/manager.svg') }}" class="icon" alt="Image acheteur">
+                                        Acheteur
+                                    </span>
+                                <select name="buyer" class="form-control data w-100" data-s2="user"
+                                        data-placeholder="Sélectionnez un utilisateur">
+                                    {% if reference.buyer %}
+                                    <option value="{{ reference.buyer.id }}" selected>{{ reference.buyer.username }}</option>
+                                    {% endif %}>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12 col-md-6 mt-3">
+                            <label>
+                                    <span class="icon ra-field-name">
+                                        <img src="{{ asset('svg/reference_article/warehouse.svg') }}" class="icon" alt="Image entrepôt">
+                                        Catégorie d'inventaire
+                                    </span>
+                                {% if editable %}
+                                    <select name="categorie" data-s2 class="form-control data {{ disabled }}">
+                                        {% for category in categories %}
+                                            <option value="{{ category.id }}"
+                                                {{ reference.category and reference.category.id == category.id ? 'selected' }}>
+                                                {{ category.label }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                {% else %}
+                                    <input class="form-control" type="text"
+                                           value="{{ reference.category ? reference.category.label }}" {{ disabled }}>
+                                {% endif %}
+                            </label>
+                        </div>
+                        {% if reference.id %}
+                            <div class="col-12 col-md-6 mt-3 d-flex flex-column justify-content-around">
+                                <span class="icon ra-field-name"><img src="{{ asset('svg/reference_article/calendar.svg') }}" class="icon" alt="Image calendrier">
+                                    Date de dernier inventaire</span>
+                                <span class="ra-field-text">
+                                    {{ lastInventoryDate is defined and lastInventoryDate is not null and lastInventoryDate != '' ? lastInventoryDate : '-' }}
+                                </span>
+                            </div>
+                        {% else %}
+                            {{ macros.visibility_group_input(reference) }}
+                        {% endif %}
+                    </div>
+                    {% if reference.id %}
+                        <div class="row">
+                            {{ macros.visibility_group_input(reference) }}
+                        </div>
+                    {% endif %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            {% include 'attachment/attachment.html.twig' with {
+                                'isNew' : not reference.id,
+                                'button': 'Parcourir vos fichiers',
+                                'attachments': reference.attachments,
+                                'editAttachments': hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')),
+                                'fieldNameClass': 'ra-field-name',
+                            } %}
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <label class="ra-field-name">Nomenclature</label>
+                            <input class="form-control data" name="commentaire" type="hidden" value="{{ reference.commentaire }}">
+                            <div class="form-control editor-container comment" onload="initEditor('.editor-container')">
+                                {{ reference.commentaire | raw }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <div class="ra-box">
+                <div class="header ra-title">Gestion quantité</div>
+                <div class="content">
+                    {% if reference.id %}
+                        <div class="row no-gutters">
+                            <div class="col-auto">
+                                <img src="{{ asset('svg/reference_article/' ~ (isReferenceManagementQuantity ? 'pack.svg' : 'article.svg')) }}"
+                                     alt="Icône colis" width="20px">
+                            </div>
+                            <div class="col-auto">
+                                <span class="ra-field-name ml-3">
+                                    Quantité gérée à {{ isReferenceManagementQuantity ? 'la référence' : 'l\'article' }}
+                                </span>
+                            </div>
+                        </div>
+                        <input type="radio" name="type_quantite"
+                               class="type_quantite"
+                               hidden
+                               value="{{ isReferenceManagementQuantity ? "reference" : "article" }}"
+                               content="{{ isReferenceManagementQuantity ? "Référence" : "Article" }}"
+                               data-title="{{ isReferenceManagementQuantity ? "reference" : "article" }}"
+                               onclick="toggleRequiredChampsFixes($(this), '.ra-form'); updateQuantityDisplay($(this), '.ra-form', true)" checked>
+                    {% else %}
+                        <label class="ra-field-name">
+                            Gestion quantité*
+                        </label>
+                        <div class="wii-switch needed" data-title="Statut">
+                            <input type="radio" name="type_quantite" value="reference" content="Référence" data-title="reference"
+                                {{ reference.id ? 'class="type_quantite" disabled' : 'class="type_quantite data"' }}
+                                   onclick="toggleRequiredChampsFixes($(this), '.ra-form'); updateQuantityDisplay($(this), '.ra-form', true)"
+                                {{ not reference.typeQuantite or reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_REFERENCE') ? 'checked' }}>
+                            <input type="radio" name="type_quantite" value="article" content="Article" data-title="article"
+                                {{ reference.id ? 'class="type_quantite" disabled' : 'class="type_quantite data"' }}
+                                   onclick="toggleRequiredChampsFixes($(this), '.ra-form'); updateQuantityDisplay($(this), '.ra-form', true)"
+                                {{ reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_ARTICLE') ? 'checked' }}>
+                        </div>
+                    {% endif %}
+
+                    <div class="reference-form">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="row">
+                                    {% if reference.id %}
+                                        <div class="col-12 col-md-4 reference mt-3">
+                                            <div class="d-flex">
+                                                <img src="{{ asset('svg/reference_article/location.svg') }}" class="icon" alt="Image emplacement" width="20px">
+                                                <label class="box-item ml-3">
+                                                    <span class="ra-field-name">Emplacement</span>
+                                                    <span class="ra-body-text">
+                                                        {% if reference.emplacement %}
+                                                            {{ reference.emplacement.label }}
+                                                        {% endif %}
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-4 mt-3 d-flex">
+                                            <img src="{{ asset('svg/reference_article/stock.svg') }}" alt="Icône stock" width="20px">
+                                            <label class="box-item ml-3">
+                                                <span class="ra-field-name">Quantité en stock</span>
+                                                <span class="ra-body-text">{{ reference.quantiteStock ?? 0 }}</span>
+                                            </label>
+                                        </div>
+                                    {% else %}
+                                        <div class="col-12 col-md-4 reference mt-3">
+                                            <label>
+                                                <span class="icon ra-field-name">
+                                                    <img src="{{ asset('svg/reference_article/location.svg') }}" class="icon" alt="Image emplacement">
+                                                    Emplacement*
+                                                </span>
+                                                <select name="emplacement" id="emplacement" class="form-control w-100 data needed"
+                                                        data-s2="location" data-placeholder="Sélectionnez un emplacement">
+                                                </select>
+                                            </label>
+                                        </div>
+                                        <div class="col-12 col-md-4 mt-3">
+                                            <label>
+                                                <span class="icon ra-field-name">
+                                                    <img src="{{ asset('svg/reference_article/stock.svg') }}" class="icon" alt="Image quantité">
+                                                    Quantité*
+                                                </span>
+                                                <div class="increase-decrease-field">
+                                                    <button class="decrease"></button>
+                                                    <input type="number" data-no-arrow
+                                                           id="quantite"
+                                                           name="quantite"
+                                                           class="form-control data needed"
+                                                           min="0">
+                                                    <button class="increase"></button>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    {% endif %}
+                                    <div class="col"></div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-4 reference mt-3">
+                                <label>
+                                    <span class="icon ra-field-name">
+                                        <img src="{{ asset('svg/reference_article/euro.svg') }}" class="icon" alt="Image euro">
+                                        Prix unitaire (€)
+                                    </span>
+                                    <input type="number" name="prix" class="form-control w-100 data" value="{{ reference.prixUnitaire }}">
+                                </label>
+                            </div>
+                            <div class="col-12 col-md-4 article mt-3">
+                                <label>
+                                        <span class="icon ra-field-name">
+                                            <img src="{{ asset('svg/reference_article/stock-management.svg') }}" class="icon"
+                                                 alt="Image gestion de stock">
+                                            Gestion de stock
+                                        </span>
+                                    <select name="stockManagement" data-s2 data-placeholder="Sélectionnez une gestion de stock"
+                                            class="form-control data">
+                                        {% for value in stockManagement %}
+                                            <option value="{{ value }}" {{ reference.stockManagement == value ? 'selected' }}>
+                                                {{ value }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </label>
+                            </div>
+                            <div class="col-12 col-md-4 mt-3">
+                                <label>
+                                    <span class="icon ra-field-name">
+                                        <img src="{{ asset('svg/reference_article/threshold.svg') }}" class="icon" alt="Image seuil d'alerte">
+                                        Seuil d'alerte
+                                    </span>
+                                    <div class="increase-decrease-field">
+                                        <button class="decrease"></button>
+                                        <input type="number" data-no-arrow
+                                               name="limitWarning" class="form-control data"
+                                               value="{{ reference.limitWarning ?? 0 }}" min="0">
+                                        <button class="increase"></button>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="col-12 col-md-4 mt-3">
+                                <label>
+                                    <span class="icon ra-field-name">
+                                        <img src="{{ asset('svg/reference_article/threshold_red.svg') }}" class="icon"
+                                             alt="Image seuil de sécurité">
+                                        Seuil de sécurité
+                                    </span>
+                                    <div class="increase-decrease-field">
+                                        <button class="decrease"></button>
+                                        <input type="number" data-no-arrow
+                                               name="limitSecurity" class="form-control data"
+                                               value="{{ reference.limitSecurity ?? 0 }}" min="0">
+                                        <button class="increase"></button>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="row">
+                                    <div class="form-group col-12 col-md-4 mt-3">
+                                        <div class="article d-none">
+                                            <label class="with-checkbox">
+                                                <input type="checkbox" name="urgence" class="checkbox data"
+                                                       onchange="toggleEmergency($(this))" {{ reference.isUrgent ? 'checked' }}>
+                                                Urgence
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-12 col-md-8">
+                                        <label class="emergency-comment d-none">
+                                            <span class="ra-field-name">Commentaire de l'urgence</span>
+                                            <input class="form-control data" type="text" name="emergency-comment-input"
+                                                   value="{{ reference.emergencyComment }}">
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="ra-box">
+                <div class="header ra-title">Fournisseurs</div>
+                <div class="content">
+                    <div class="supplier-articles">
+                        {% if reference.id %}
+                            {% for index, supplierArticle in reference.articlesFournisseur %}
+                                <div class="supplier-container"
+                                     data-multiple-key="frl"
+                                     data-multiple-object-index="{{ index }}">
+                                    <div class="provider-label">
+                                        <span
+                                            class="ra-field-name ml-3">{{ supplierArticle.fournisseur ? supplierArticle.fournisseur.nom : '-' }}</span>&nbsp;-&nbsp;
+                                        <span
+                                            class="ra-body-text">{{ supplierArticle.fournisseur ? supplierArticle.fournisseur.codeReference : '-' }}</span>
+                                    </div>
+                                    <div class="d-flex supplier-article-container">
+                                        <div class="col-5 d-flex flex-column justify-content-center">
+                                            <span class="ra-field-name">Ref article fournisseur</span>
+                                            <span class="ra-body-text">{{ supplierArticle.reference ?? '-' }}</span>
+                                        </div>
+                                        <div class="col-5 d-flex flex-column justify-content-center">
+                                            <span class="ra-field-name">Label</span>
+                                            <span class="ra-body-text">{{ supplierArticle.label ?? '-' }}</span>
+                                        </div>
+                                        {% if supplierArticle.articles.empty %}
+                                            <div class="col-2 d-flex justify-content-end align-items-start">
+                                                <div class="delete-button-container pointer"
+                                                     data-id="{{ supplierArticle.id }}">
+                                                    <img src="{{ asset('svg/reference_article/delete.svg') }}" alt="Icône supprimer" width="18px">
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            {{ macros.supplier_article_line(reference, null, true) }}
+                        {% endif %}
+                    </div>
+                    <div class="d-flex justify-content-end add-supplier-article mt-3">
+                        <button class="btn btn-primary"><i class="fa fa-plus mr-2"></i>Ajouter un article fournisseur</button>
+                    </div>
+                </div>
+            </div>
+            <div class="ra-box">
+                <div class="header ra-title">Champs libres</div>
+                <div class="content free-fields-container">
+                    {% if reference.id %}
+                        {% include 'free_field/freeFieldsViewing.html.twig' with {
+                            freeFields: freeFieldsGroupedByTypes[reference.type.id] is defined ? freeFieldsGroupedByTypes[reference.type.id] : [],
+                            freeFieldValues: reference.freeFields,
+                            colType: 'col-md-6 col-12',
+                            requiredType: 'requiredEdit',
+                            actionType: 'edit',
+                            fieldNameClass: 'ra-field-name'
+                        } %}
+                    {% else %}
+                        {% for type in freeFieldTypes %}
+                            <div class="d-none"
+                                 data-type="{{ type.typeId }}">
+                                {% include 'free_field/freeFieldsViewing.html.twig' with {
+                                    freeFields: type.champsLibres,
+                                    freeFieldValues: [],
+                                    colType: 'col-md-6 col-12',
+                                    requiredType: 'requiredCreate',
+                                    actionType: 'new',
+                                    disabledNeeded: true
+                                } %}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="save-buttons">
+                <button class="btn btn-secondary" onclick="history.back()">Annuler</button>
+                <button class="btn btn-success ml-2 save data"
+                        data-submit="{{ submit_url }}"
+                        value="{{ reference.id }}"
+                        name="idRefArticle">
+                    Enregistrer
+                </button>
+            </div>
+        </div>
+        <input type="hidden" class="no-clear" id="default-image" value="{{ asset('svg/reference_article/product.svg') }}">
+        <input type="hidden" class="no-clear data" name="suppliers-to-remove" id="suppliers-to-remove" value="">
+    </div>
+
+</div>
+
+<template id="supplier-article-template">
+    {{ macros.supplier_article_line(reference, null, true, 'index') }}
+</template>

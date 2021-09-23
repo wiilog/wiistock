@@ -34,7 +34,7 @@ class InventoryMissionRepository extends EntityRepository
      */
     public function getCurrentMissionRefNotTreated()
 	{
-		$now = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+		$now = new DateTime('now');
 		$queryBuilder = $this->createQueryBuilder('inventoryMission');
 		$exprBuilder = $queryBuilder->expr();
 
@@ -66,7 +66,7 @@ class InventoryMissionRepository extends EntityRepository
      */
 	public function getCurrentMissionArticlesNotTreated()
 	{
-		$now = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+		$now = new DateTime('now');
 
         $queryBuilder = $this->createQueryBuilder('inventoryMission');
         $exprBuilder = $queryBuilder->expr();

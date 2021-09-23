@@ -68,6 +68,7 @@ function loadEncoursDatatable($table) {
                 "data": {id: tableId}
             },
             columns: [
+                {"data": 'linkedArrival', 'name': 'linkedArrival', 'className': 'noVis', orderable : false},
                 {"data": 'colis', 'name': 'colis', 'title': 'Colis'},
                 {"data": 'date', 'name': 'date', 'title': 'Date de dépose'},
                 {"data": 'delay', 'name': 'delay', 'title': 'Délai', render: (milliseconds, type) => renderMillisecondsToDelay(milliseconds, type)},
@@ -76,7 +77,8 @@ function loadEncoursDatatable($table) {
             rowConfig: {
                 needsColor: true,
                 color: 'danger',
-                dataToCheck: 'late'
+                dataToCheck: 'late',
+                needsRowClickAction: true,
             },
             domConfig: {
                 removeInfo: true,

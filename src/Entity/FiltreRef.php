@@ -9,11 +9,12 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class FiltreRef
 {
-    const CHAMP_FIXE_REF_ART_FOURN = 'référence article fournisseur';
-    const CHAMP_FIXE_STATUT = 'status';
-    const CHAMP_FIXE_MANAGERS = 'Gestionnaire(s)';
-    const CHAMP_FIXE_PROVIDER_CODE = 'Code fournisseur';
-    const CHAMP_FIXE_PROVIDER_LABEL = 'Nom fournisseur';
+    const FIXED_FIELD_REF_ART_FOURN = 'référence article fournisseur';
+    const FIXED_FIELD_STATUT = 'status';
+    const FIXED_FIELD_MANAGERS = 'Gestionnaire(s)';
+    const FIXED_FIELD_VISIBILITY_GROUP = 'Groupe de visibilité';
+    const FIXED_FIELD_PROVIDER_CODE = 'Code fournisseur';
+    const FIXED_FIELD_PROVIDER_LABEL = 'Nom fournisseur';
 
     /**
      * @ORM\Id()
@@ -43,13 +44,6 @@ class FiltreRef
      * @ORM\JoinColumn(nullable=false)
      */
     private $utilisateur;
-
-	//TODO filtres et/ou
-//	/**
-//	 * @ORM\Column(type="string", length=8, nullable=true)
-//	 */
-//    private $operator;
-
 
     public function getId(): ?int
     {

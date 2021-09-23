@@ -26,18 +26,8 @@ class AlertTemplateController extends AbstractController
 {
 
     /**
-     * @Route("/liste", name="alert_template_index")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_ALERT_TEMPLATE})
-     */
-    public function index(): Response {
-        return $this->render('alert_template/index.html.twig', [
-            'templateTypes' => AlertTemplate::TEMPLATE_TYPES
-        ]);
-    }
-
-    /**
      * @Route("/api", name="alert_template_api", options={"expose"=true}, methods={"POST|GET"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_ALERT_TEMPLATE})
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_NOTIFICATIONS})
      */
     public function api(Request $request,
                         AlertTemplateService $alertTemplateService): Response {
@@ -62,6 +52,10 @@ class AlertTemplateController extends AbstractController
                     'msg' => "Le modèle d'alerte <strong>${name}</strong> est lié à un ou plusieurs actionneurs, veuillez les supprimer avant."
                 ]);
             }
+            foreach ($alertTemplate->getNotifications() as $notification) {
+                $notification->setTemplate(null);
+            }
+            $entityManager->flush();
             $entityManager->remove($alertTemplate);
 
             $entityManager->flush();
@@ -131,6 +125,21 @@ class AlertTemplateController extends AbstractController
             $config = [
                 'receivers' => PostHelper::string($post, 'receivers'),
                 'content' => PostHelper::string($post, 'content'),
+            ];
+        } else if ($type === AlertTemplate::PUSH) {
+
+            $hasFile = $request->files->has('image');
+            $fileName = [];
+            $originalName = '';
+            if($request->files->has('image')) {
+                $file = $request->files->get('image');
+                $originalName = $file->getClientOriginalName();
+                $fileName = $attachmentService->saveFile($file);
+            }
+
+            $config = [
+                'content' => PostHelper::string($post, 'content'),
+                'image' => $hasFile ? $fileName[$originalName] : ''
             ];
         }
 
@@ -225,6 +234,21 @@ class AlertTemplateController extends AbstractController
                 'receivers' => PostHelper::string($post, 'receivers'),
                 'content' => PostHelper::string($post, 'content'),
             ];
+        } else if ($alertTemplate->getType() === AlertTemplate::PUSH) {
+
+            $hasFile = $request->files->has('image');
+            $fileName = [];
+            $originalName = '';
+            if($request->files->has('image')) {
+                $file = $request->files->get('image');
+                $originalName = $file->getClientOriginalName();
+                $fileName = $attachmentService->saveFile($file);
+            }
+
+            $config = [
+                'content' => PostHelper::string($post, 'content'),
+                'image' => $hasFile ? $fileName[$originalName] : ''
+            ];
         }
 
         $alertTemplate->setConfig($config);
@@ -240,7 +264,7 @@ class AlertTemplateController extends AbstractController
     }
 
     /**
-     * @Route("/toggle-template", name="toggle_template", options={"expose"=true}, methods={"GET"})
+     * @Route("/toggle-template", name="alert_template_toggle_template", options={"expose"=true}, methods={"GET"})
      */
     public function toggleTemplate(Request $request) {
         $query = $request->query;
@@ -248,11 +272,11 @@ class AlertTemplateController extends AbstractController
 
         $html = '';
         if($type === AlertTemplate::SMS) {
-            $html = $this->renderView('alert_template/templates/sms.html.twig', [
-                ''
-            ]);
+            $html = $this->renderView('alert_template/templates/sms.html.twig');
         } else if ($type === AlertTemplate::MAIL) {
             $html = $this->renderView('alert_template/templates/mail.html.twig');
+        } else if ($type === AlertTemplate::PUSH) {
+            $html = $this->renderView('alert_template/templates/push.html.twig');
         }
 
         return $this->json($html);

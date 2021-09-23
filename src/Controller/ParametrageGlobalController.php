@@ -10,9 +10,6 @@ use App\Entity\CategoryType;
 use App\Entity\FreeField;
 use App\Entity\DaysWorked;
 use App\Entity\DimensionsEtiquettes;
-use App\Entity\Emplacement;
-use App\Entity\LocationCluster;
-use App\Entity\LocationClusterRecord;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
 use App\Entity\PrefixeNomDemande;
@@ -161,6 +158,9 @@ class ParametrageGlobalController extends AbstractController
                     'overconsumption_logo' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::OVERCONSUMPTION_LOGO),
                     'keepModal' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::KEEP_DISPATCH_PACK_MODAL_OPEN),
                     'openModal' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::OPEN_DISPATCH_ADD_PACK_MODAL_ON_CREATION),
+                    'prefixPackCodeWithDispatchNumber' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER),
+                    'packMustBeNew' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::PACK_MUST_BE_NEW),
+                    'preFill' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::PREFILL_DUE_DATE_TODAY),
                     'statuses' => $statusRepository->findByCategorieName(CategorieStatut::DISPATCH),
                     'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]),
                     'expectedDateColors' => [
@@ -710,15 +710,14 @@ class ParametrageGlobalController extends AbstractController
             $em = $this->getDoctrine()->getManager();
             if($ifExist) {
                 $ifExist->setValue($data['val']);
-                $em->flush();
             } else {
                 $parametrage = new ParametrageGlobal();
                 $parametrage
                     ->setLabel($data['param'])
                     ->setValue($data['val']);
                 $em->persist($parametrage);
-                $em->flush();
             }
+            $em->flush();
             return new JsonResponse(true);
         }
         throw new BadRequestHttpException();
@@ -811,9 +810,11 @@ class ParametrageGlobalController extends AbstractController
 
         if($request->files->has("website-logo")) {
             $logo = $request->files->get("website-logo");
-
-            $fileName = $attachmentService->saveFile($logo, AttachmentService::WEBSITE_LOGO);
+            $fileName = $attachmentService->saveFile($logo);
             $setting = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::WEBSITE_LOGO]);
+            if($parametrageGlobalRepository->getUnusedLogo($setting, $entityManager)){
+                unlink($setting->getValue());
+            }
             if(!$setting) {
                 $setting = new ParametrageGlobal();
                 $setting->setLabel(ParametrageGlobal::WEBSITE_LOGO);
@@ -829,8 +830,11 @@ class ParametrageGlobalController extends AbstractController
         if($request->files->has("email-logo")) {
             $logo = $request->files->get("email-logo");
 
-            $fileName = $attachmentService->saveFile($logo, AttachmentService::EMAIL_LOGO);
+            $fileName = $attachmentService->saveFile($logo);
             $setting = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::EMAIL_LOGO]);
+            if($parametrageGlobalRepository->getUnusedLogo($setting, $entityManager)){
+                unlink($setting->getValue());
+            }
             if(!$setting) {
                 $setting = new ParametrageGlobal();
                 $setting->setLabel(ParametrageGlobal::EMAIL_LOGO);
@@ -846,8 +850,11 @@ class ParametrageGlobalController extends AbstractController
         if($request->files->has("mobile-logo-login")) {
             $logo = $request->files->get("mobile-logo-login");
 
-            $fileName = $attachmentService->saveFile($logo, AttachmentService::MOBILE_LOGO_LOGIN);
+            $fileName = $attachmentService->saveFile($logo);
             $setting = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::MOBILE_LOGO_LOGIN]);
+            if($parametrageGlobalRepository->getUnusedLogo($setting, $entityManager)){
+                unlink($setting->getValue());
+            }
             if(!$setting) {
                 $setting = new ParametrageGlobal();
                 $setting->setLabel(ParametrageGlobal::MOBILE_LOGO_LOGIN);
@@ -863,8 +870,11 @@ class ParametrageGlobalController extends AbstractController
         if($request->files->has("mobile-logo-header")) {
             $logo = $request->files->get("mobile-logo-header");
 
-            $fileName = $attachmentService->saveFile($logo, AttachmentService::MOBILE_LOGO_HEADER);
+            $fileName = $attachmentService->saveFile($logo);
             $setting = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::MOBILE_LOGO_HEADER]);
+            if($parametrageGlobalRepository->getUnusedLogo($setting, $entityManager)){
+                unlink($setting->getValue());
+            }
             if(!$setting) {
                 $setting = new ParametrageGlobal();
                 $setting->setLabel(ParametrageGlobal::MOBILE_LOGO_HEADER);

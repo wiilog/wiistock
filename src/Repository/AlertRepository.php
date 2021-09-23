@@ -5,12 +5,14 @@ namespace App\Repository;
 use App\Entity\Alert;
 use App\Entity\Article;
 use App\Entity\ReferenceArticle;
+use App\Entity\Utilisateur;
+use App\Entity\VisibilityGroup;
 use App\Helper\QueryCounter;
 use DateTime;
-use DateTimeZone;
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\EntityRepository;
-use function Doctrine\ORM\QueryBuilder;
+use Symfony\Component\HttpFoundation\InputBag;
+use WiiCommon\Helper\Stream;
 
 /**
  * @method Alert|null find($id, $lockMode = null, $lockVersion = null)
@@ -44,46 +46,74 @@ class AlertRepository extends EntityRepository {
             ->getResult();
     }
 
-    public function getAlertDataByParams($params, $filters) {
-        $qb = $this->createQueryBuilder("a")
+    public function getAlertDataByParams(InputBag $params, array $filters, Utilisateur $user) {
+        $queryBuilder = $this->createQueryBuilder("a");
+        $exprBuilder = $queryBuilder->expr();
+
+        $queryBuilder
             ->leftJoin("a.reference", "reference")
             ->leftJoin("a.article", "article");
+        $visibilityGroup = $user->getVisibilityGroups();
+        if (!$visibilityGroup->isEmpty()) {
+            $queryBuilder
+                ->leftJoin('article.articleFournisseur', 'join_article_supplierArticle')
+                ->leftJoin('join_article_supplierArticle.referenceArticle', 'join_article_reference')
+                ->leftJoin('reference.visibilityGroup', 'visibility_group')
+                ->leftJoin('join_article_reference.visibilityGroup', 'join_article_reference_visibility_group')
+                ->andWhere($exprBuilder->orX(
+                    'visibility_group.id IN (:userVisibilityGroups)',
+                    'join_article_reference_visibility_group.id IN (:userVisibilityGroups)',
+                ))
+                ->setParameter('userVisibilityGroups', Stream::from(
+                    $visibilityGroup->toArray()
+                )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
+        }
 
-        $total = QueryCounter::count($qb, "a");
+        $total = QueryCounter::count($queryBuilder, "a");
 
         foreach($filters as $filter) {
             switch ($filter['field']) {
                 case 'dateMin':
-                    $qb->andWhere('a.date >= :dateMin')
+                    $queryBuilder->andWhere('a.date >= :dateMin')
                         ->setParameter('dateMin', $filter['value']. ' 00:00:00');
                     break;
                 case 'dateMax':
-                    $qb->andWhere('a.date <= :dateMax')
+                    $queryBuilder->andWhere('a.date <= :dateMax')
                         ->setParameter('dateMax', $filter['value']. ' 23:59:59');
                     break;
-                case 'type':
-                    $qb
-                        ->join('reference.type', 't3')
-                        ->andWhere('t3.label LIKE :type')
-                        ->setParameter('type', $filter['value']);
+                case 'multipleTypes':
+                    $types = explode(',', $filter['value']);
+                    $types = Stream::from($types)
+                        ->map(fn(string $type) => strtok($type, ':'))
+                        ->toArray();
+                    $queryBuilder
+                        ->leftJoin('reference.type', 'filter_multipleTypes_reference_type')
+                        ->leftJoin('article.articleFournisseur', 'filter_multipleTypes_article_supplierArticle')
+                        ->leftJoin('filter_multipleTypes_article_supplierArticle.referenceArticle', 'filter_multipleTypes_article_reference')
+                        ->leftJoin('filter_multipleTypes_article_reference.type', 'filter_multipleTypes_article_type')
+                        ->andWhere($exprBuilder->orX(
+                            'filter_multipleTypes_reference_type.id IN (:filter_multipleTypes_value)',
+                            'filter_multipleTypes_article_type.id IN (:filter_multipleTypes_value)'
+                        ))
+                        ->setParameter('filter_multipleTypes_value', $types);
                     break;
                 case 'alert':
                     $value = Alert::TYPE_LABELS_IDS[$filter['value']];
-                    $qb->andWhere('a.type = :alert')
+                    $queryBuilder->andWhere('a.type = :alert')
                         ->setParameter('alert', $value);
                     break;
                 case 'utilisateurs':
                     $value = explode(',', $filter['value']);
 
-                    $or = $qb->expr()->orX();
+                    $or = $queryBuilder->expr()->orX();
                     foreach($value as $user) {
                         $id = explode(":", $user)[0];
                         $or->add(":user_$id MEMBER OF reference.managers");
                         $or->add(":user_$id MEMBER OF articlera.managers");
-                        $qb->setParameter("user_$id", $id);
+                        $queryBuilder->setParameter("user_$id", $id);
                     }
 
-                    $qb->andWhere($or)
+                    $queryBuilder->andWhere($or)
                         ->leftJoin("article.articleFournisseur", "articleaf")
                         ->leftJoin("articleaf.referenceArticle", "articlera");
                     break;
@@ -95,8 +125,8 @@ class AlertRepository extends EntityRepository {
             if(!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if(!empty($search)) {
-                    $qb
-                        ->andWhere($qb->expr()->orX(
+                    $queryBuilder
+                        ->andWhere($queryBuilder->expr()->orX(
                             'reference.reference LIKE :value',
                             'reference.libelle LIKE :value',
                             'article.reference LIKE :value',
@@ -106,8 +136,6 @@ class AlertRepository extends EntityRepository {
                 }
             }
 
-            $countFiltered = QueryCounter::count($qb, "a");
-
             if(!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
                 if(!empty($order)) {
@@ -115,50 +143,52 @@ class AlertRepository extends EntityRepository {
 
                     switch($column) {
                         case "label":
-                            $qb->addSelect("COALESCE(article.label, reference.libelle) AS HIDDEN label")
+                            $queryBuilder->addSelect("COALESCE(article.label, reference.libelle) AS HIDDEN label")
                                 ->orderBy("label", $order);
                             break;
                         case "reference":
-                            $qb->addSelect("COALESCE(article.reference, reference.reference) AS HIDDEN stref")
+                            $queryBuilder->addSelect("COALESCE(article.reference, reference.reference) AS HIDDEN stref")
                                 ->orderBy("stref", $order);
                             break;
                         case "code":
-                            $qb->addSelect("COALESCE(article.barCode, reference.barCode) AS HIDDEN code")
+                            $queryBuilder->addSelect("COALESCE(article.barCode, reference.barCode) AS HIDDEN code")
                                 ->orderBy("code", $order);
                             break;
                         case "quantity":
-                            $qb->orderBy('quantity', $order);
+                            $queryBuilder->orderBy('quantity', $order);
                             break;
                         case "quantityType":
-                            $qb->orderBy("reference.typeQuantite", $order);
+                            $queryBuilder->orderBy("reference.typeQuantite", $order);
                             break;
                         case "securityThreshold":
-                            $qb->orderBy('reference.limitSecurity', $order);
+                            $queryBuilder->orderBy('reference.limitSecurity', $order);
                             break;
                         case "warningThreshold":
-                            $qb->orderBy('reference.limitWarning', $order);
+                            $queryBuilder->orderBy('reference.limitWarning', $order);
                             break;
                         case "expiry":
-                            $qb->orderBy('article.expiryDate', $order);
+                            $queryBuilder->orderBy('article.expiryDate', $order);
                             break;
                         default:
-                            $qb->orderBy('a.' . $column, $order);
+                            $queryBuilder->orderBy('a.' . $column, $order);
                             break;
                     }
                 }
             }
         }
 
-        $qb->groupBy('a.id')
+        $queryBuilder->groupBy('a.id')
             ->addSelect('COALESCE(reference.quantiteDisponible, article.quantite) AS quantity');
 
+        $countFiltered = QueryCounter::count($queryBuilder, "a");
+
         if(!empty($params)) {
-            if(!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if(!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+            if(!empty($params->get('start'))) $queryBuilder->setFirstResult($params->get('start'));
+            if(!empty($params->get('length'))) $queryBuilder->setMaxResults($params->get('length'));
         }
 
         return [
-            'data' => $qb->getQuery()->getResult(AbstractQuery::HYDRATE_OBJECT),
+            'data' => $queryBuilder->getQuery()->getResult(AbstractQuery::HYDRATE_OBJECT),
             'count' => $countFiltered,
             'total' => $total
         ];
@@ -171,19 +201,47 @@ class AlertRepository extends EntityRepository {
             ->getSingleScalarResult();
     }
 
-    public function countAllActive(): int {
-        return $this->createQueryBuilder("alert")
+    public function countAllActiveByParams(array $params): int {
+        $qb = $this->createQueryBuilder("alert")
             ->select("COUNT(alert)")
             ->leftJoin("alert.reference","reference")
             ->leftJoin("reference.statut","refStatus")
             ->where("reference IS NULL OR refStatus.nom = :active")
-            ->setParameter("active", ReferenceArticle::STATUT_ACTIF)
+            ->setParameter("active", ReferenceArticle::STATUT_ACTIF);
+
+        if (isset($params['managers']) && !empty($params['managers'])) {
+            $qb
+                ->join('reference.managers', 'managers')
+                ->andWhere('managers.id IN (:managers)')
+                ->setParameter('managers', $params['managers']);
+        }
+
+        if (isset($params['referenceTypes']) && !empty($params['referenceTypes'])) {
+            $qb
+                ->join('reference.type', 'type')
+                ->andWhere('type.id IN (:referenceTypes)')
+                ->setParameter('referenceTypes', $params['referenceTypes']);
+        }
+
+        if (isset($params['user'])) {
+            $user = $params['user'];
+            $visibilityGroup = $user->getVisibilityGroups();
+            if (!$visibilityGroup->isEmpty()) {
+                $qb
+                    ->leftJoin('reference.visibilityGroup', 'visibility_group')
+                    ->andWhere('visibility_group.id IN (:userVisibilityGroups)')
+                    ->setParameter('userVisibilityGroups', Stream::from(
+                        $visibilityGroup->toArray()
+                    )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
+            }
+        }
+        return $qb
             ->getQuery()
             ->getSingleScalarResult();
     }
 
     public function findNoLongerExpired() {
-        $since = new DateTime("now", new DateTimeZone("Europe/Paris"));
+        $since = new DateTime("now");
 
         $qb = $this->createQueryBuilder("a");
 
@@ -217,18 +275,53 @@ class AlertRepository extends EntityRepository {
             ->getResult();
     }
 
-    public function iterateBetween(DateTime $start, DateTime $end) {
+    /**
+     * @param string[] $statusCodeFilter
+     */
+    public function iterateBetween(DateTime $start,
+                                   DateTime $end,
+                                   Utilisateur $user,
+                                   array $statusCodeFilter = []): iterable {
         $qb = $this->createQueryBuilder('alert');
         $exprBuilder = $qb->expr();
-        $iterator = $this->createQueryBuilder('alert')
-            ->where($exprBuilder->between('alert.date',':start',':end'))
+        $queryBuilder = $this->createQueryBuilder('alert');
+        $queryBuilder
+            ->leftJoin('alert.reference', 'join_reference')
+            ->leftJoin('alert.article', 'join_article')
+            ->leftJoin('join_article.articleFournisseur', 'join_article_supplierArticle')
+            ->leftJoin('join_article_supplierArticle.referenceArticle', 'join_article_reference')
+            ->andWhere($exprBuilder->between('alert.date',':start',':end'))
             ->setParameter('start', $start)
-            ->setParameter('end', $end)
-            ->getQuery()
-            ->iterate();
-        foreach($iterator as $item) {
-            yield array_pop($item);
+            ->setParameter('end', $end);
+
+        $visibilityGroup = $user->getVisibilityGroups();
+        if (!$visibilityGroup->isEmpty()) {
+            $queryBuilder
+                ->leftJoin('join_reference.visibilityGroup', 'visibility_group')
+                ->leftJoin('join_article_reference.visibilityGroup', 'join_article_reference_visibility_group')
+                ->andWhere($exprBuilder->orX(
+                    'visibility_group.id IN (:userVisibilityGroups)',
+                    'join_article_reference_visibility_group.id IN (:userVisibilityGroups)',
+                ))
+                ->setParameter('userVisibilityGroups', Stream::from(
+                    $visibilityGroup->toArray()
+                )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
         }
+
+        if (!empty($statusCodeFilter)) {
+            $queryBuilder
+                ->leftJoin('join_reference.statut', 'join_reference_status')
+                ->leftJoin('join_article_reference.statut', 'join_article_reference_status')
+                ->andWhere($exprBuilder->orX(
+                    'join_reference_status.code IN (:statusCodes)',
+                    'join_article_reference_status.code IN (:statusCodes)'
+                ))
+                ->setParameter('statusCodes', $statusCodeFilter);
+        }
+
+        return $queryBuilder
+            ->getQuery()
+            ->toIterable();
     }
 
 }

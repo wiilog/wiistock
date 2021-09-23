@@ -12,7 +12,6 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
-use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment as Twig_Environment;
 
 use Doctrine\ORM\EntityManagerInterface;
@@ -22,48 +21,28 @@ use Twig\Error\SyntaxError;
 
 class MouvementStockService
 {
-    /**
-     * @var Twig_Environment
-     */
-    private $templating;
+    /** @Required */
+    public Twig_Environment $templating;
+
+    /** @Required */
+    public EntityManagerInterface $entityManager;
 
     /**
-     * @var RouterInterface
-     */
-    private $router;
-
-    private $entityManager;
-
-    private $trackingMovementService;
-
-    public function __construct(RouterInterface $router,
-                                EntityManagerInterface $entityManager,
-                                TrackingMovementService $mouvementTracaService,
-                                Twig_Environment $templating)
-    {
-
-        $this->templating = $templating;
-        $this->entityManager = $entityManager;
-        $this->router = $router;
-        $this->trackingMovementService = $mouvementTracaService;
-    }
-
-    /**
-     * @param Utilisateur $utilisateur
+     * @param Utilisateur $user
      * @param array|null $params
      * @return array
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function getDataForDatatable(Utilisateur $utilisateur, $params = null)
+    public function getDataForDatatable(Utilisateur $user, $params = null)
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $mouvementStockRepository = $this->entityManager->getRepository(MouvementStock::class);
 
-		$filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MVT_STOCK, $utilisateur);
+		$filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MVT_STOCK, $user);
 
-		$queryResult = $mouvementStockRepository->findByParamsAndFilters($params, $filters);
+		$queryResult = $mouvementStockRepository->findByParamsAndFilters($params, $filters, $user);
 
 		$mouvements = $queryResult['data'];
 
@@ -201,13 +180,6 @@ class MouvementStockService
         return $newMouvement;
     }
 
-    /**
-     * @param MouvementStock $mouvementStock
-     * @param DateTime $date
-     * @param Emplacement|null $locationTo
-     * @param bools|false $needsTracing
-     * @throws \Exception
-     */
     public function finishMouvementStock(MouvementStock $mouvementStock,
                                          DateTime $date,
                                          ?Emplacement $locationTo): void {

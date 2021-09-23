@@ -11,6 +11,7 @@ const ROUTES = {
     pack: `ajax_select_packs`,
     sensor: `ajax_select_sensors`,
     sensorWrapper: `ajax_select_sensor_wrappers`,
+    sensorWrapperForPairings: `ajax_select_sensor_wrappers_for_pairings`,
     reference: `ajax_select_references`,
     packWithoutPairing: `ajax_select_packs_without_pairing`,
     articleWithoutPairing: `ajax_select_articles_without_pairing`,
@@ -19,6 +20,10 @@ const ROUTES = {
     sensorCodeWithoutPairing: `ajax_select_sensors_code_without_pairing`,
     triggerSensorWithoutPairing: `ajax_select_trigger_sensors_without_pairing`,
     triggerSensorCodeWithoutPairing: `ajax_select_trigger_sensors_code_without_pairing`,
+    visibilityGroup: `ajax_select_visibility_group`,
+    user: `ajax_select_user`,
+    supplierCode: `ajax_select_supplier_code`,
+    supplierLabel: `ajax_select_supplier_label`,
 }
 
 const INSTANT_SELECT_TYPES = {
@@ -35,8 +40,10 @@ const INSTANT_SELECT_TYPES = {
 export default class Select2 {
     static init($element) {
         const type = $element.data(`s2`);
-        if(!$element.find(`option[selected]`).exists() && !type &&
-            !$element.is(`[data-no-empty-option]`) && !$element.is(`[data-editable]`)) {
+        if(!$element.find(`option[selected]`).exists()
+            && !type
+            && !$element.is(`[data-no-empty-option]`)
+            && !$element.is(`[data-editable]`)) {
             $element.prepend(`<option selected>`);
         }
 
@@ -115,7 +122,9 @@ export default class Select2 {
     }
 }
 
-$(document).ready(() => $(`[data-s2]`).each((id, elem) => Select2.init($(elem))));
+$(document).ready(() => $(`[data-s2]`).each((id, elem) => {
+    Select2.init($(elem))
+}));
 $(document).arrive(`[data-s2]`, function() {
     Select2.init($(this));
 });

@@ -18,6 +18,7 @@ class TrackingMovement extends FreeFieldEntity
     const TYPE_GROUP = 'groupage';
     const TYPE_PRISE_DEPOSE = 'prises et deposes';
     const TYPE_UNGROUP = 'dégroupage';
+    const TYPE_EMPTY_ROUND = 'passage à vide';
 
     /**
      * @ORM\Id()

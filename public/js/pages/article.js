@@ -149,7 +149,6 @@ function ajaxGetFournisseurByRefArticle(select) {
         let path = Routing.generate('ajax_fournisseur_by_refarticle', true)
         let params = JSON.stringify(json);
         $.post(path, params).then((data) => {
-            console.log(data);
             if (!data) {
                 $('.error-msg').html('Vous ne pouvez par créer d\'article quand la quantité est gérée à la référence.');
             } else {

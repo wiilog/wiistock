@@ -47,12 +47,20 @@
                     </a>
                 {% endif %}
                 {% if hasRightDeleteOrdre %}
-                    <a href="" onclick="deleteRow($(this), $('#modalDeleteOrdreCollecte'), $('#submitDeleteOrdreCollecte'))"
-                       data-id='{{ collecte.id }}' data-target='#modalDeleteOrdreCollecte' data-toggle='modal'
-                       class="dropdown-item">
-                        <i class='fas fa-trash mr-2'></i>
-                        Supprimer
-                    </a>
+                    {% if collecte.activePairing %}
+                        <button class="dropdown-item disabled"
+                                style="pointer-events: initial"
+                                disabled title="La collecte est associée à un capteur, il faut d'abord la dissocier de son capteur">
+                            <i class="fa fa-trash mr-2"></i>Supprimer
+                        </button>
+                    {% else %}
+                        <a href="" onclick="deleteRow($(this), $('#modalDeleteOrdreCollecte'), $('#submitDeleteOrdreCollecte'))"
+                           data-id='{{ collecte.id }}' data-target='#modalDeleteOrdreCollecte' data-toggle='modal'
+                           class="dropdown-item">
+                            <i class='fas fa-trash mr-2'></i>
+                            Supprimer
+                        </a>
+                    {% endif %}
                 {% endif %}
                 {% if hasRightPairingOrder and hasRightFinish and collecte.pairings|filter(p=>p.active)|length==0  and collecte.demandeCollecte.stock %}
                     <a class="dropdown-item pointer"

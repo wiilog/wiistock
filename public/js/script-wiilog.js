@@ -28,7 +28,7 @@ const PAGE_DISPATCHES = 'acheminement';
 const PAGE_STATUS = 'status';
 const PAGE_EMPLACEMENT = 'emplacement';
 const PAGE_URGENCES = 'urgences';
-
+const PAGE_NOTIFICATIONS = 'notifications';
 const STATUT_ACTIF = 'disponible';
 const STATUT_INACTIF = 'consommé';
 const STATUT_EN_TRANSIT = 'en transit';
@@ -42,6 +42,8 @@ const AUTO_HIDE_DEFAULT_DELAY = 2000;
 // set max date for pickers
 const MAX_DATETIME_HTML_INPUT = '2100-12-31T23:59';
 const MAX_DATE_HTML_INPUT = '2100-12-31';
+
+const TEAM_SIZE = 10;
 
 $(function () {
     $(document).on('hide.bs.modal', function () {
@@ -60,7 +62,42 @@ $(function () {
     // Override Symfony Form content
     $('.form-error-icon').text('Erreur');
     $('.removeRequired, .form-group, label').removeClass('required');
+
+    registerNotificationChannel();
+    registerEasterEgg();
 });
+
+function registerNotificationChannel() {
+    FCM.getToken({vapidKey: "BAtT1Leq2TOoLNyai0HAk5Fv3Tcqk0ps0wEGBwbT8TmHbXNCRU_jOLyvEm4_mc7-nb7XubnEZs-7VkB-ix8FX9A"}).then((token) => {
+        $.post(Routing.generate('register_topic', {token}), function() {
+            FCM.onMessage((payload) => {
+                const $notificationModal = $('.notification-modal');
+                const $countFigure = $(`.header-icon.notifications`).find('.icon-figure');
+                if (payload.data.image && payload.data.image !== "") {
+                    $notificationModal.find('.notification-image').attr('src', payload.data.image);
+                    $notificationModal.find('.notification-image').display();
+                } else {
+                    $notificationModal.find('.notification-image').display(true);
+                }
+                $notificationModal.find('.notification-title').text(payload.data.title);
+                $notificationModal.find('.notification-content').text(payload.data.content);
+                $notificationModal.fadeIn(200);
+                let figure = Number.parseInt($countFigure.text()) || 0;
+                figure += 1;
+                $countFigure.text(figure);
+                $countFigure.display();
+            });
+        })
+    });
+}
+
+function clickNotification(event) {
+    if ($(event.target).prop("tagName") === $('.notification-modal').find('.close').find('span').prop("tagName")) {
+        event.stopPropagation();
+        return;
+    }
+    window.location.href = Routing.generate('notifications_index', true);
+}
 
 function openQueryModal(query = null, event) {
     if (event) {
@@ -120,7 +157,7 @@ function showRow(button, path, modal) {
  * @param {Document} button
  * @param {string} path le chemin pris pour envoyer les données.
  * @param {Document} modal la modalde modification
- * @param {Document} submit le bouton de validation du form pour le edit
+ * @param {Document|string} submit le bouton de validation du form pour le edit
  *
  * @param editorToInit
  * @param editor
@@ -141,8 +178,15 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
     modal.find(submit).attr('value', id);
 
     $.post(path, JSON.stringify(json), function (resp) {
-        const $modalBody = modal.find('.modal-body');
+        let $modalBody;
+        if(modal.find('.to-replace').exists()) {
+            $modalBody = modal.find('.to-replace');
+        } else {
+            $modalBody = modal.find('.modal-body');
+        }
+
         $modalBody.html(resp);
+
         modal.find('.select2').select2();
         Select2Old.initFree(modal.find('.select2-free'));
         Select2Old.provider(modal.find('.ajax-autocomplete-fournisseur-edit'));
@@ -229,32 +273,6 @@ function toggleRequestType($switch) {
     }, 'json');
 }
 
-function initEditorInModal(modal) {
-    initEditor(modal + ' .editor-container');
-}
-
-function initEditor(div) {
-    // protection pour éviter erreur console si l'élément n'existe pas dans le DOM
-    if ($(div).length) {
-        return new Quill(div, {
-            modules: {
-                toolbar: [
-                    [{header: [1, 2, 3, false]}],
-                    ['bold', 'italic', 'underline', 'image'],
-                    [{'list': 'ordered'}, {'list': 'bullet'}]
-                ]
-            },
-            formats: [
-                'header',
-                'bold', 'italic', 'underline', 'strike', 'blockquote',
-                'list', 'bullet', 'indent', 'link', 'image'
-            ],
-            theme: 'snow'
-        });
-    }
-    return null;
-}
-
 //FONCTION REFARTICLE
 
 function typeChoice($select, $freeFieldsContainer = null) {
@@ -269,13 +287,12 @@ function typeChoice($select, $freeFieldsContainer = null) {
     }
 }
 
-function updateQuantityDisplay($elem) {
-    let $modalBody = $elem.closest('.modal-body');
+function updateQuantityDisplay($elem, parent = '.modal-body') {
+    let $modalBody = $elem.closest(parent);
     const $reference = $modalBody.find('.reference');
     const $article = $modalBody.find('.article');
     const $allArticle = $modalBody.find('.article, .emergency-comment');
     let typeQuantite = $modalBody.find('.type_quantite').val();
-
     if (typeQuantite == 'reference') {
         $allArticle.addClass('d-none');
         $reference.removeClass('d-none');
@@ -1131,5 +1148,19 @@ function updateImagePreview(preview, upload, $title = null, $delete = null, $cal
                 showBSAlert('La taille du fichier est supérieure à 10 mo.', 'danger')
             }
         }
+    })
+}
+
+function registerEasterEgg() {
+    let count = 0;
+    const $modalEasterEgg = $('#modalEasterEgg');
+    $('.do-not-click-me-several-times').click(() => {
+        count += 1;
+        if (count === TEAM_SIZE) {
+            $modalEasterEgg.modal('show');
+        }
+    });
+    $modalEasterEgg.on('hidden.bs.modal', () => {
+        count = 0;
     })
 }

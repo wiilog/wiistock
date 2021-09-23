@@ -2,12 +2,8 @@
 
 namespace App\Repository;
 
-use App\Entity\Article;
 use App\Entity\AverageRequestTime;
 use App\Entity\Collecte;
-use App\Entity\LocationGroup;
-use App\Entity\OrdreCollecte;
-use App\Entity\Pack;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
@@ -307,7 +303,7 @@ class CollecteRepository extends EntityRepository
             return $this->createQueryBuilder('collectRequest')
                 ->select('pairing.id AS pairingId')
                 ->addSelect('sensorWrapper.name AS name')
-                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
+                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND (pairing.end IS NULL OR pairing.end > NOW()) THEN 1 ELSE 0 END) AS active')
                 ->addSelect('collectOrder.numero AS orderNumber')
                 ->join('collectRequest.ordreCollecte', 'collectOrder')
                 ->join('collectOrder.pairings', 'pairing')

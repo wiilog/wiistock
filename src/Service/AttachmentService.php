@@ -67,6 +67,8 @@ class AttachmentService {
             mkdir($this->attachmentDirectory, 0777);
         }
 
+
+
         $filename = ($wantedName ?? uniqid()) . '.' . strtolower($file->getClientOriginalExtension()) ?? '';
         $file->move($this->attachmentDirectory, $filename);
         return [$file->getClientOriginalName() => $filename];
@@ -144,7 +146,7 @@ class AttachmentService {
         return $this->createAttachment($filename, $relativePath);
     }
 
-    private function createAttachment(string $fileName, string $fullPath): Attachment {
+    public function createAttachment(string $fileName, string $fullPath): Attachment {
         $attachment = new Attachment();
         $attachment
             ->setOriginalName($fileName)

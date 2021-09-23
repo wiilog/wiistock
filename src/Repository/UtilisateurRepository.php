@@ -24,6 +24,16 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         'Rôle' => 'role',
     ];
 
+    public function getForSelect(?string $term) {
+        return $this->createQueryBuilder("user")
+            ->select("user.id AS id, user.username AS text")
+            ->andWhere("user.username LIKE :term")
+            ->andWhere('user.status = true')
+            ->setParameter("term", "%$term%")
+            ->getQuery()
+            ->getArrayResult();
+    }
+
     public function getIdAndLibelleBySearch($search)
     {
         return $this->createQueryBuilder('u')
@@ -130,6 +140,11 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
                                 ->leftJoin('a.role', 'a_order')
                                 ->orderBy('a_order.label', $order);
                             break;
+                        case 'visibilityGroup':
+                            $qb
+                                ->leftJoin('a.visibilityGroups', 'order_visibility_group')
+                                ->orderBy('order_visibility_group.label', $order);
+                            break;
                         default:
                             $qb->orderBy('a.' . self::DtToDbLabels[$column], $order);
                     }
@@ -141,7 +156,13 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
                 if (!empty($search)) {
                     $qb
                         ->leftJoin('a.dropzone', 'd_search')
-                        ->andWhere('a.username LIKE :value OR a.email LIKE :value OR d_search.label LIKE :value')
+                        ->leftJoin('a.visibilityGroups', 'search_visibility_group')
+                        ->andWhere(
+                            'a.username LIKE :value'
+                            . ' OR a.email LIKE :value'
+                            . ' OR d_search.label LIKE :value'
+                            . ' OR search_visibility_group.label LIKE :value'
+                        )
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
@@ -241,6 +262,12 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
             $acc[$referenceArticleId] .= $attachment['username'];
             return $acc;
         }, []);
+    }
+
+    public function iterateAll(): iterable {
+        return $this->createQueryBuilder('user')
+            ->getQuery()
+            ->toIterable();
     }
 
 }

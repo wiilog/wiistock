@@ -43,7 +43,6 @@ use App\Service\UserService;
 use App\Service\MailerService;
 use App\Service\FreeFieldService;
 use DateTime;
-use DateTimeZone;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
@@ -211,7 +210,7 @@ class ArrivageController extends AbstractController
         $typeRepository = $entityManager->getRepository(Type::class);
         $sendMail = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL);
 
-        $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now');
         $counter = $arrivageRepository->countByDate($date) + 1;
         $suffix = $counter < 10 ? ("0" . $counter) : $counter;
         $numeroArrivage = $date->format('ymdHis') . '-' . $suffix;
@@ -398,7 +397,7 @@ class ArrivageController extends AbstractController
     }
 
     /**
-     * @Route("/{arrival}/urgent", name="patch_arrivage_urgent", options={"expose"=true}, methods="PATCH", condition="request.isXmlHttpRequest() && '%client%' == constant('\\App\\Service\\SpecificService::CLIENT_SAFRAN_ED')")
+     * @Route("/{arrival}/urgent", name="patch_arrivage_urgent", options={"expose"=true}, methods="PATCH", condition="request.isXmlHttpRequest() && ('%client%' == constant('\\App\\Service\\SpecificService::CLIENT_SAFRAN_ED') || '%client%' == constant('\\App\\Service\\SpecificService::CLIENT_SAFRAN_NS'))")
      * @Entity("arrival", expr="repository.find(arrival) ?: repository.findOneBy({'numeroArrivage': arrival})")
      */
     public function patchUrgentArrival(Arrivage $arrival,
@@ -450,7 +449,7 @@ class ArrivageController extends AbstractController
         if (isset($location)) {
             /** @var Utilisateur $user */
             $user = $this->getUser();
-            $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+            $now = new DateTime('now');
             foreach ($arrival->getPacks() as $pack) {
                 $trackingMovementService->persistTrackingForArrivalPack(
                     $entityManager,
@@ -487,7 +486,8 @@ class ArrivageController extends AbstractController
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
 
         $post = $request->request;
-        $isSEDCurrentClient = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED);
+        $isSEDCurrentClient = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)
+            || $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_NS);
 
         $arrivage = $arrivageRepository->find($post->get('id'));
 
@@ -758,6 +758,7 @@ class ArrivageController extends AbstractController
         $natureRepository = $entityManager->getRepository(Nature::class);
         $usersRepository = $entityManager->getRepository(Utilisateur::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $acheteursNames = [];
         foreach ($arrivage->getAcheteurs() as $user) {
             $acheteursNames[] = $user->getUsername();
@@ -784,7 +785,8 @@ class ArrivageController extends AbstractController
             'fieldsParam' => $fieldsParam,
             'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage),
             'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
-            'modalNewDispatchConfig' => $dispatchService->getNewDispatchConfig($statutRepository, $champLibreRepository, $fieldsParamRepository, $types, $arrivage)
+            'modalNewDispatchConfig' => $dispatchService->getNewDispatchConfig($statutRepository,
+                $champLibreRepository, $fieldsParamRepository, $parametrageGlobalRepository, $types, $arrivage)
         ]);
     }
 
@@ -806,7 +808,7 @@ class ArrivageController extends AbstractController
         $packRepository = $entityManager->getRepository(Pack::class);
         $usersRepository = $entityManager->getRepository(Utilisateur::class);
 
-        $now = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $now = new DateTime('now');
 
         $disputeNumber = $uniqueNumberService->createUniqueNumber($entityManager, Litige::DISPUTE_ARRIVAL_PREFIX, Litige::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 

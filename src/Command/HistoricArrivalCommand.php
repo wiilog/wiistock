@@ -10,6 +10,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use DateTime;
 
 class HistoricArrivalCommand extends Command
 {
@@ -35,9 +36,9 @@ class HistoricArrivalCommand extends Command
         $arrivageRepository = $this->entityManager->getRepository(Arrivage::class);
         $arrivalHistoryRepository = $this->entityManager->getRepository(ArrivalHistory::class);
 
-        $todayStart = new \DateTime("now", new \DateTimeZone("Europe/Paris"));
+        $todayStart = new DateTime("now");
         $todayStart->setTime(0, 0);
-        $todayEnd = new \DateTime("now", new \DateTimeZone("Europe/Paris"));
+        $todayEnd = new DateTime("now");
         $todayEnd->setTime(23, 59);
         $arrivagesToday = $arrivageRepository->findByDates($todayStart, $todayEnd);
         $arrivageWithoutLitiges = array_filter(

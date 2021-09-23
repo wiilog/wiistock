@@ -102,6 +102,9 @@
     "egulias/email-validator": {
         "version": "2.1.25"
     },
+    "firebase/php-jwt": {
+        "version": "v5.4.0"
+    },
     "friendsofphp/proxy-manager-lts": {
         "version": "v1.0.3"
     },
@@ -128,6 +131,24 @@
         "files": [
             "./config/packages/fos_rest.yaml"
         ]
+    },
+    "google/apiclient": {
+        "version": "2.0",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "master",
+            "version": "2.0",
+            "ref": "49c5d7a66d863d28513979bf0666dc77599100c0"
+        },
+        "files": [
+            "./config/packages/google_apiclient.yaml"
+        ]
+    },
+    "google/apiclient-services": {
+        "version": "v0.202.0"
+    },
+    "google/auth": {
+        "version": "v1.16.0"
     },
     "guzzlehttp/guzzle": {
         "version": "7.3.0"
@@ -156,12 +177,6 @@
     "laminas/laminas-code": {
         "version": "4.0.0"
     },
-    "laminas/laminas-eventmanager": {
-        "version": "3.3.0"
-    },
-    "laminas/laminas-zendframework-bridge": {
-        "version": "1.1.1"
-    },
     "monolog/monolog": {
         "version": "2.2.0"
     },
@@ -189,6 +204,12 @@
     "ovh/ovh": {
         "version": "v3.0.0"
     },
+    "paragonie/constant_time_encoding": {
+        "version": "v2.4.0"
+    },
+    "paragonie/random_compat": {
+        "version": "v9.99.100"
+    },
     "phar-io/manifest": {
         "version": "2.0.1"
     },
@@ -206,6 +227,9 @@
     },
     "phpdocumentor/type-resolver": {
         "version": "1.4.0"
+    },
+    "phpseclib/phpseclib": {
+        "version": "3.0.9"
     },
     "phpspec/prophecy": {
         "version": "1.13.0"
@@ -249,6 +273,9 @@
         "version": "1.0.0"
     },
     "psr/http-client": {
+        "version": "1.0.1"
+    },
+    "psr/http-factory": {
         "version": "1.0.1"
     },
     "psr/http-message": {
@@ -732,6 +759,9 @@
     },
     "twig/extra-bundle": {
         "version": "v3.2.1"
+    },
+    "twig/string-extra": {
+        "version": "v3.3.3"
     },
     "twig/twig": {
         "version": "v3.2.1"

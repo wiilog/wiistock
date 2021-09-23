@@ -1,0 +1,9 @@
+{% if arrivalId is defined and arrivalId %}
+    <div>
+        <a class="action-on-click has-tooltip"
+           href="{{ path('arrivage_show', {'id': arrivalId }) }}"
+           title="Aller vers l'arrivage">
+            <i class="fas fa-external-link-alt mr-2"></i>
+        </a>
+    </div>
+{% endif %}

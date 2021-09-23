@@ -33,11 +33,10 @@
                         </div>
                     {% endif %}
                     {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
-                    <!-- TODO: export des transferts -->
-                    <div class="btn btn-primary btn-ripple"
-                         onclick="saveExportFile('transfer_order_export')">
-                        <span class="fa fa-file-csv mr-2"></span>Exporter au format CSV
-                    </div>
+                        <div class="btn btn-primary btn-ripple"
+                             onclick="saveExportFile('transfer_order_export')">
+                            <span class="fa fa-file-csv mr-2"></span>Exporter au format CSV
+                        </div>
                     {% endif %}
                 </div>
             </div>
@@ -53,5 +52,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/transfer/order/sensor-wrapper-index.js') }}?v={{ web_version }}"></script>
+    <script src="{{ asset('js/pages/transfer/order/index.js') }}?v={{ web_version }}"></script>
 {% endblock %}

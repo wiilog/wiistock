@@ -3,9 +3,11 @@
 namespace App\Repository;
 
 use App\Entity\Emplacement;
+use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\Pack;
 use App\Helper\FormatHelper;
+use DateTimeInterface;
 use WiiCommon\Helper\Stream;
 use DateTime;
 use Doctrine\DBAL\Connection;
@@ -302,6 +304,7 @@ class PackRepository extends EntityRepository
         $queryBuilder
             ->select($isCount ? $queryBuilderExpr->count($field) : $field)
             ->leftJoin('colis.nature', 'nature')
+            ->leftJoin('colis.arrivage', 'pack_arrival')
             ->join('colis.lastDrop', 'lastDrop')
             ->join('lastDrop.emplacement', 'emplacement')
             ->where('colis.groupIteration IS NULL');
@@ -413,7 +416,7 @@ class PackRepository extends EntityRepository
                 ->getResult()
         )
             ->map(function($pack) {
-                $pack['date'] = isset($pack['date']) ? FormatHelper::datetime($pack['date']) : null;
+                $pack['date'] = isset($pack['date']) ? $pack['date']->format(DateTimeInterface::ATOM) : null;
                 return $pack;
             })
             ->toArray();
@@ -436,8 +439,10 @@ class PackRepository extends EntityRepository
             return $this->createQueryBuilder('pack')
                 ->select('pairing.id AS pairingId')
                 ->addSelect('sensorWrapper.name AS name')
-                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND pairing.end IS NULL THEN 1 ELSE 0 END) AS active')
+                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND (pairing.end IS NULL OR pairing.end > NOW()) THEN 1 ELSE 0 END) AS active')
                 ->addSelect('pack.code AS entity')
+                ->addSelect("'" . Sensor::PACK . "' AS entityType")
+                ->addSelect('pack.id AS entityId')
                 ->join('pack.pairings', 'pairing')
                 ->join('pairing.sensorWrapper', 'sensorWrapper')
                 ->where('pack = :pack');
@@ -460,8 +465,10 @@ class PackRepository extends EntityRepository
             '/AS \w+_1/' => 'AS name',
             '/AS \w+_2/' => 'AS active',
             '/AS \w+_3/' => 'AS entity',
-            '/AS \w+_4/' => 'AS date',
-            '/AS \w+_5/' => 'AS type',
+            '/AS \w+_4/' => 'AS entityType',
+            '/AS \w+_5/' => 'AS entityId',
+            '/AS \w+_6/' => 'AS date',
+            '/AS \w+_7/' => 'AS type',
             '/\?/' => $pack->getId(),
         ];
 

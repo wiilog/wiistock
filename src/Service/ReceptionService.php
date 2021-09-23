@@ -19,7 +19,6 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
-use DateTimeZone;
 use InvalidArgumentException;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
@@ -62,6 +61,9 @@ class ReceptionService
 
     /** @Required  */
     public GlobalParamService $globalParamService;
+
+    /** @Required  */
+    public VisibleColumnService $visibleColumnService;
 
 
     public function getDataForDatatable(Utilisateur $user, $params = null, $purchaseRequestFilter = null)
@@ -126,7 +128,7 @@ class ReceptionService
         $type = $typeRepository->findOneByCategoryLabel(CategoryType::RECEPTION);
 
         $reception = new Reception();
-        $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now');
 
         $numero = $this->uniqueNumberService->createUniqueNumber($entityManager, Reception::PREFIX_NUMBER, Reception::class, UniqueNumberService::DATE_COUNTER_FORMAT_RECEPTION);
 
@@ -213,28 +215,28 @@ class ReceptionService
         // Date commande provenant des imports de réception
         if ($fromImport && isset($data['orderDate'])) {
             $this->formService->validateDate($data['orderDate'], self::INVALID_ORDER_DATE);
-            $orderDate = DateTime::createFromFormat('d/m/Y', $data['orderDate'] ?: '', new DateTimeZone("Europe/Paris")) ?: null;
+            $orderDate = DateTime::createFromFormat('d/m/Y', $data['orderDate'] ?: '') ?: null;
             $reception->setDateCommande($orderDate);
         }
         // Date commande pour création d'une réception standard
         else {
             $reception->setDateCommande(
                 !empty($data['dateCommande'])
-                    ? new DateTime(str_replace('/', '-', $data['dateCommande']), new DateTimeZone("Europe/Paris"))
+                    ? new DateTime(str_replace('/', '-', $data['dateCommande']))
                     : null);
         }
 
         // Date attendue provenant des imports de réception
         if ($fromImport && isset($data['expectedDate'])) {
             $this->formService->validateDate($data['expectedDate'], self::INVALID_ORDER_DATE);
-            $expectedDate = DateTime::createFromFormat('d/m/Y', $data['expectedDate'] ?: '', new DateTimeZone("Europe/Paris")) ?: null;
+            $expectedDate = DateTime::createFromFormat('d/m/Y', $data['expectedDate'] ?: '') ?: null;
             $reception->setDateAttendue($expectedDate);
         }
         // Date attendue pour création d'une réception standard
         else {
             $reception->setDateAttendue(
                 !empty($data['dateAttendue'])
-                    ? new DateTime(str_replace('/', '-', $data['dateAttendue']), new DateTimeZone("Europe/Paris"))
+                    ? new DateTime(str_replace('/', '-', $data['dateAttendue']))
                     : null);
         }
 
@@ -266,11 +268,37 @@ class ReceptionService
             "orderNumber" => $reception->getOrderNumber() ?: "",
             "storageLocation" => FormatHelper::location($reception->getStorageLocation()),
             "emergency" => $reception->isManualUrgent() || $reception->hasUrgentArticles(),
+            "deliveries" => $this->templating->render('reception/delivery_types.html.twig', [
+                'deliveries' => $reception->getDemandes()
+            ]),
             'Actions' => $this->templating->render(
                 'reception/datatableReceptionRow.html.twig',
                 ['reception' => $reception]
             ),
         ];
+    }
+
+    public function getColumnVisibleConfig(EntityManagerInterface $entityManager,
+                                           Utilisateur $currentUser): array {
+
+        $columnsVisible = $currentUser->getColumnsVisibleForReception();
+        $columns = [
+            ['name' => "Actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true],
+            ["title" => "Date création", "name" => "Date", 'searchable' => true],
+            ["title" => "réception.n° de réception", "name" => "number", 'searchable' => true, 'translated' => true],
+            ["title" => "Date attendue", "name" => "dateAttendue", 'searchable' => true],
+            ["title" => "Date fin", "name" => "DateFin", 'searchable' => true],
+            ["title" => "Numéro commande", "name" => "orderNumber", 'searchable' => true],
+            ["title" => "Destinataire(s)", "name" => "receiver", 'searchable' => true],
+            ["title" => "Fournisseur", "name" => "Fournisseur", 'searchable' => true],
+            ["title" => "Statut", "name" => "Statut", 'searchable' => true],
+            ["title" => "Emplacement de stockage", "name" => "storageLocation", 'searchable' => true],
+            ["title" => "Commentaire", "name" => "Commentaire", 'searchable' => true],
+            ["title" => "Type(s) de demande(s) de livraison liée(s)", "name" => "deliveries", 'searchable' => false, 'orderable' => false],
+            ["title" => "Urgence", "name" => "emergency", 'searchable' => false, 'orderable' => false, 'alwaysVisible' => true, 'class' => 'noVis', 'visible' => false],
+        ];
+
+        return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
     }
 
     public function createHeaderDetailsConfig(Reception $reception): array {
@@ -391,21 +419,27 @@ class ReceptionService
 
     public function getAlreadySavedReception(array &$collection, ?string $orderNumber, ?string $expectedDate, callable $onAdd = null): ?Reception {
         $reception = null;
-        foreach($collection as $receptionIntel) {
+        $receptionRepository = $this->entityManager->getRepository(Reception::class);
+
+        foreach($collection as &$receptionIntel) {
             if ($orderNumber === $receptionIntel['orderNumber']
                 && $expectedDate === $receptionIntel['expectedDate']) {
                 $reception = $receptionIntel['reception'];
+                $isPersistedReception = $this->entityManager->getUnitOfWork()->isInIdentityMap($reception);
+                if (!$isPersistedReception) {
+                    $reception = $receptionRepository->find($reception->getId());
+                    $receptionIntel['reception'] = $reception;
+                }
                 break;
             }
         }
 
         if (!$reception) {
-            $receptionRepository = $this->entityManager->getRepository(Reception::class);
             $receptions = $receptionRepository->findBy(
                 [
                     'orderNumber' => $orderNumber,
                     'dateAttendue' => $expectedDate
-                        ? DateTime::createFromFormat('d/m/Y', $expectedDate, new DateTimeZone("Europe/Paris")) ?: null
+                        ? DateTime::createFromFormat('d/m/Y', $expectedDate) ?: null
                         : null
                 ],
                 [

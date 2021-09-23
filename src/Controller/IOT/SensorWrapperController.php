@@ -7,6 +7,7 @@ use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
+use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\Menu;
@@ -16,8 +17,8 @@ use App\Helper\PostHelper;
 
 use App\Service\FreeFieldService;
 use App\Service\IOT\PairingService;
-use App\Service\IOT\AlertTemplateService;
 use App\Service\IOT\SensorWrapperService;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -69,8 +70,7 @@ class SensorWrapperController extends AbstractController
      * @Route("/supprimer", name="sensor_wrapper_delete", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::IOT, Action::DELETE})
      */
-    public function delete(Request $request,
-                           EntityManagerInterface $entityManager): Response {
+    public function delete(Request $request, EntityManagerInterface $entityManager): Response {
 
         if($data = json_decode($request->getContent(), true)) {
             $sensorWrapperRepository = $entityManager->getRepository(SensorWrapper::class);
@@ -79,7 +79,15 @@ class SensorWrapperController extends AbstractController
             $name = $sensorWrapper->getName();
 
             $sensorWrapper->setDeleted(true);
-
+            $activePairings = $sensorWrapper->getPairings()->filter(fn(Pairing $pairing) => $pairing->isActive());
+            foreach ($activePairings as $pairing) {
+                $pairing
+                    ->setActive(false)
+                    ->setEnd(new DateTime('now'));
+            }
+            foreach ($sensorWrapper->getTriggerActions() as $action) {
+                $entityManager->remove($action);
+            }
             $entityManager->flush();
 
             return $this->json([
@@ -233,7 +241,7 @@ class SensorWrapperController extends AbstractController
         $sensorId = $request->query->get('sensor');
         $sensorRepository = $entityManager->getRepository(SensorWrapper::class);
         $sensorWrapper = $sensorRepository->find($sensorId);
-        $data = $pairingService->getDataForDatatable($sensorWrapper->getSensor(), $request->request);
+        $data = $pairingService->getDataForDatatable($sensorWrapper, $request->request);
         return $this->json($data);
     }
 

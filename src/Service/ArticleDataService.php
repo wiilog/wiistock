@@ -24,7 +24,6 @@ use App\Entity\Utilisateur;
 use App\Entity\CategorieCL;
 use WiiCommon\Helper\Stream;
 use DateTime;
-use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
@@ -299,7 +298,7 @@ class ArticleDataService
         if (!isset($statut)) {
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
         }
-        $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now');
         $formattedDate = $date->format('ym');
 
         $refArticle = $referenceArticleRepository->find($data['refArticle']);
@@ -346,7 +345,7 @@ class ArticleDataService
             ->setArticleFournisseur($articleFournisseurRepository->find($data['articleFournisseur']))
             ->setType($type)
             ->setBarCode($this->generateBarCode())
-            ->setStockEntryDate(new DateTime("now", new DateTimeZone("Europe/Paris")));
+            ->setStockEntryDate(new DateTime("now"));
 
         if (isset($data['batch'])) {
             $toInsert->setBatch($data['batch']);
@@ -370,21 +369,6 @@ class ArticleDataService
         }
 
         return $toInsert;
-    }
-
-    public function getDataForDatatable($params, $user)
-    {
-        return $this->getArticleDataByParams($params, $user);
-    }
-
-    public function getDataForDatatableByReceptionLigne($ligne, $user)
-    {
-        if ($ligne) {
-            $data = $this->getArticleDataByReceptionLigne($ligne);
-        } else {
-            $data = $this->getArticleDataByParams(null, $user);
-        }
-        return $data;
     }
 
     public function getArticleDataByReceptionLigne(ReceptionReferenceArticle $ligne)

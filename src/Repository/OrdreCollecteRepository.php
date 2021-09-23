@@ -3,12 +3,13 @@
 namespace App\Repository;
 
 use App\Entity\Article;
+use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\OrdreCollecte;
-use App\Entity\Pack;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use DateTime;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -57,13 +58,14 @@ class OrdreCollecteRepository extends EntityRepository
 	 */
 	public function getMobileCollecte(Utilisateur $user)
 	{
-        $queryBuilder = $this->createOrdreCollecteQueryBuilder()
-            ->andWhere('s.nom = :statutLabel')
-            ->andWhere('oc.utilisateur IS NULL OR oc.utilisateur = :user')
+        $queryBuilder = $this->createCollectOrderQueryBuilder()
+            ->andWhere('orderStatus.nom = :statutLabel')
+            ->andWhere('collectOrder.utilisateur IS NULL OR collectOrder.utilisateur = :user')
             ->setParameters([
                 'statutLabel' => OrdreCollecte::STATUT_A_TRAITER,
                 'user' => $user,
-            ]);
+            ])
+            ->orderBy('collectOrder.date', Criteria::ASC);
 		return $queryBuilder->getQuery()->execute();
 	}
 
@@ -73,27 +75,28 @@ class OrdreCollecteRepository extends EntityRepository
 	 */
 	public function getById($ordreCollecteId)
 	{
-		$queryBuilder = $this->createOrdreCollecteQueryBuilder()
-            ->andWhere('oc.id = :id')
+		$queryBuilder = $this->createCollectOrderQueryBuilder()
+            ->andWhere('collectOrder.id = :id')
             ->setParameter('id', $ordreCollecteId);
 		$result = $queryBuilder->getQuery()->execute();
 		return !empty($result) ? $result[0] : null;
 	}
 
-	private function createOrdreCollecteQueryBuilder(): QueryBuilder  {
-	    return $this->createQueryBuilder('oc')
-            ->select('oc.id')
-            ->addSelect('oc.numero as number')
-            ->addSelect('pc.label as location_from')
-            ->addSelect('dc.stockOrDestruct as forStock')
-            ->addSelect('demandeur.username as requester')
-            ->addSelect('typeDemandeCollecte.label as type')
-            ->addSelect('dc.commentaire as comment')
-            ->leftJoin('oc.demandeCollecte', 'dc')
-            ->leftJoin('dc.demandeur', 'demandeur')
-            ->leftJoin('dc.pointCollecte', 'pc')
-            ->leftJoin('oc.statut', 's')
-            ->leftJoin('dc.type', 'typeDemandeCollecte');
+	private function createCollectOrderQueryBuilder(): QueryBuilder  {
+	    return $this->createQueryBuilder('collectOrder')
+            ->select('collectOrder.id')
+            ->addSelect('collectOrder.numero as number')
+            ->addSelect('collectLocation.label as location_from')
+            ->addSelect('collectRequest.stockOrDestruct as forStock')
+            ->addSelect('(CASE WHEN triggeringSensorWrapper.id IS NOT NULL THEN triggeringSensorWrapper.name ELSE join_requester.username END) as requester')
+            ->addSelect('collectType.label as type')
+            ->addSelect('collectRequest.commentaire as comment')
+            ->leftJoin('collectOrder.demandeCollecte', 'collectRequest')
+            ->leftJoin('collectRequest.demandeur', 'join_requester')
+            ->leftJoin('collectRequest.pointCollecte', 'collectLocation')
+            ->leftJoin('collectOrder.statut', 'orderStatus')
+            ->leftJoin('collectRequest.triggeringSensorWrapper', 'triggeringSensorWrapper')
+            ->leftJoin('collectRequest.type', 'collectType');
 	}
 
     /**
@@ -315,4 +318,65 @@ class OrdreCollecteRepository extends EntityRepository
             return null;
         }
     }
+
+    /**
+     * @param LocationGroup $locationGroup
+     * @return string
+     */
+    public function createArticleSensorPairingDataQueryUnion(Article $article): string {
+        $entityManager = $this->getEntityManager();
+        $createQueryBuilder = function () use ($entityManager) {
+            return $entityManager->createQueryBuilder()
+                ->from(Article::class, 'article')
+                ->select('pairing.id AS pairingId')
+                ->addSelect('sensorWrapper.name AS name')
+                ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND (pairing.end IS NULL OR pairing.end > NOW()) THEN 1 ELSE 0 END) AS active')
+                ->addSelect('collectOrder.numero AS entity')
+                ->addSelect("'" . Sensor::COLLECT_ORDER . "' AS entityType")
+                ->addSelect("collectOrder.id AS entityId")
+                ->join('article.sensorMessages', 'sensorMessage')
+                ->join('sensorMessage.pairings', 'pairing')
+                ->join('pairing.collectOrder', 'collectOrder')
+                ->join('pairing.sensorWrapper', 'sensorWrapper')
+                ->where('article = :article')
+                ->andWhere('pairing.article IS NULL');
+        };
+
+        $startQueryBuilder = $createQueryBuilder();
+        $startQueryBuilder
+            ->addSelect("pairing.start AS date")
+            ->addSelect("'start' AS type")
+            ->andWhere('pairing.start IS NOT NULL');
+
+        $endQueryBuilder = $createQueryBuilder();
+        $endQueryBuilder
+            ->addSelect("pairing.end AS date")
+            ->addSelect("'end' AS type")
+            ->andWhere('pairing.end IS NOT NULL');
+
+        $sqlAliases = [
+            '/AS \w+_0/' => 'AS pairingId',
+            '/AS \w+_1/' => 'AS name',
+            '/AS \w+_2/' => 'AS active',
+            '/AS \w+_3/' => 'AS entity',
+            '/AS \w+_4/' => 'AS entityType',
+            '/AS \w+_5/' => 'AS entityId',
+            '/AS \w+_6/' => 'AS date',
+            '/AS \w+_7/' => 'AS type',
+            '/\?/' => $article->getId(),
+        ];
+
+        $startSQL = $startQueryBuilder->getQuery()->getSQL();
+        $startSQL = StringHelper::multiplePregReplace($sqlAliases, $startSQL);
+
+        $endSQL = $endQueryBuilder->getQuery()->getSQL();
+        $endSQL = StringHelper::multiplePregReplace($sqlAliases, $endSQL);
+
+        return "
+            ($startSQL)
+            UNION
+            ($endSQL)
+        ";
+    }
+
 }

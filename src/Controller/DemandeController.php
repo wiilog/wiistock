@@ -19,12 +19,10 @@ use App\Entity\Article;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Helper\FormatHelper;
 use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
 use App\Service\GlobalParamService;
 use App\Service\RefArticleDataService;
-use App\Service\UserService;
 use App\Service\DemandeLivraisonService;
 use App\Service\FreeFieldService;
 use DateTime;
@@ -37,6 +35,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Throwable;
+use App\Helper\FormatHelper;
 
 
 /**
@@ -44,37 +43,6 @@ use Throwable;
  */
 class DemandeController extends AbstractController
 {
-
-    /**
-     * @var UserService
-     */
-    private $userService;
-
-    /**
-     * @var RefArticleDataService
-     */
-    private $refArticleDataService;
-
-    /**
-     * @var ArticleDataService
-     */
-    private $articleDataService;
-
-    /**
-     * @var DemandeLivraisonService
-     */
-    private $demandeLivraisonService;
-
-    public function __construct(UserService $userService,
-                                RefArticleDataService $refArticleDataService,
-                                ArticleDataService $articleDataService,
-                                DemandeLivraisonService $demandeLivraisonService)
-    {
-        $this->userService = $userService;
-        $this->refArticleDataService = $refArticleDataService;
-        $this->articleDataService = $articleDataService;
-        $this->demandeLivraisonService = $demandeLivraisonService;
-    }
 
     /**
      * @Route("/compareStock", name="compare_stock", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
@@ -217,10 +185,13 @@ class DemandeController extends AbstractController
      * @Route("/creer", name="demande_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
-    public function new(Request $request, EntityManagerInterface $entityManager, FreeFieldService $champLibreService): Response
+    public function new(Request $request,
+                        EntityManagerInterface $entityManager,
+                        DemandeLivraisonService $demandeLivraisonService,
+                        FreeFieldService $champLibreService): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
-            $demande = $this->demandeLivraisonService->newDemande($data, $entityManager, $champLibreService);
+            $demande = $demandeLivraisonService->newDemande($data, $entityManager, $champLibreService);
 
             if ($demande instanceof Demande) {
                 $entityManager->persist($demande);
@@ -324,12 +295,13 @@ class DemandeController extends AbstractController
      * @Route("/api", options={"expose"=true}, name="demande_api", methods={"POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR}, mode=HasPermission::IN_JSON)
      */
-    public function api(Request $request): Response
+    public function api(Request $request,
+                        DemandeLivraisonService $demandeLivraisonService): Response
     {
         // cas d'un filtre statut depuis page d'accueil
         $filterStatus = $request->request->get('filterStatus');
         $filterReception = $request->request->get('filterReception');
-        $data = $this->demandeLivraisonService->getDataForDatatable($request->request, $filterStatus, $filterReception);
+        $data = $demandeLivraisonService->getDataForDatatable($request->request, $filterStatus, $filterReception);
 
         return new JsonResponse($data);
     }
@@ -343,12 +315,10 @@ class DemandeController extends AbstractController
                          Demande $demande): Response {
 
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
         return $this->render('demande/show.html.twig', [
             'demande' => $demande,
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
-            'references' => $referenceArticleRepository->getIdAndLibelle(),
             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
             'finished' => ($demande->getStatut()->getNom() === Demande::STATUT_A_TRAITER),
             'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande),
@@ -373,6 +343,8 @@ class DemandeController extends AbstractController
                 "Emplacement" => ($ligneArticle->getReference()->getEmplacement() ? $ligneArticle->getReference()->getEmplacement()->getLabel() : ' '),
                 "Quantité à prélever" => $ligneArticle->getQuantite() ?? '',
                 "barcode" => $ligneArticle->getReference() ? $ligneArticle->getReference()->getBarCode() : '',
+                "error" => $ligneArticle->getReference()->getQuantiteDisponible() < $ligneArticle->getQuantite()
+                    && $demande->getStatut()->getCode() === Demande::STATUT_BROUILLON,
                 "Actions" => $this->renderView(
                     'demande/datatableLigneArticleRow.html.twig',
                     [
@@ -394,6 +366,7 @@ class DemandeController extends AbstractController
                 "Emplacement" => ($article->getEmplacement() ? $article->getEmplacement()->getLabel() : ' '),
                 "Quantité à prélever" => ($article->getQuantiteAPrelever() ? $article->getQuantiteAPrelever() : ''),
                 "barcode" => $article->getBarCode() ?? '',
+                "error" => $article->getQuantite() < $article->getQuantiteAPrelever(),
                 "Actions" => $this->renderView(
                     'demande/datatableLigneArticleRow.html.twig',
                     [
@@ -414,7 +387,11 @@ class DemandeController extends AbstractController
      * @Route("/ajouter-article", name="demande_add_article", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function addArticle(Request $request, EntityManagerInterface $entityManager, FreeFieldService $champLibreService): Response
+    public function addArticle(Request $request,
+                               EntityManagerInterface $entityManager,
+                               ArticleDataService $articleDataService,
+                               RefArticleDataService $refArticleDataService,
+                               FreeFieldService $champLibreService): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -425,7 +402,7 @@ class DemandeController extends AbstractController
 
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
-            $resp = $this->refArticleDataService->addRefToDemand(
+            $resp = $refArticleDataService->addRefToDemand(
                 $data,
                 $referenceArticle,
                 $currentUser,
@@ -435,7 +412,7 @@ class DemandeController extends AbstractController
                 $champLibreService
             );
             if ($resp === 'article') {
-                $this->articleDataService->editArticle($data);
+                $articleDataService->editArticle($data);
                 $resp = true;
             }
             $entityManager->flush();
@@ -690,7 +667,7 @@ class DemandeController extends AbstractController
         return [
             FormatHelper::deliveryRequester($demande),
             $demande->getStatut()->getNom(),
-            $demande->getDestination()->getLabel(),
+            FormatHelper::location($demande->getDestination()),
             strip_tags($demande->getCommentaire()),
             isset($requestCreationDate) ? $requestCreationDate->format('d/m/Y H:i:s') : '',
             isset($firstDatePrepa) ? $firstDatePrepa->format('d/m/Y H:i:s') : '',

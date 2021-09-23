@@ -150,7 +150,7 @@ class FreeFieldController extends AbstractController {
 
 			if (in_array($champLibre->getTypage(), [FreeField::TYPE_LIST, FreeField::TYPE_LIST_MULTIPLE])) {
 			    $elements = Stream::from(explode(';', $data['elem']))
-                    ->filter(fn ($elem) => $elem)
+                    ->filter()
                     ->unique()
                     ->values();
 				$champLibre->setElements($elements);
@@ -239,7 +239,7 @@ class FreeFieldController extends AbstractController {
 
         if (in_array($champLibre->getTypage(), [FreeField::TYPE_LIST, FreeField::TYPE_LIST_MULTIPLE])) {
             $elements = Stream::from(explode(';', $data['elem']))
-                ->filter(fn($elem) => $elem)
+                ->filter()
                 ->unique()
                 ->values();
             $champLibre->setElements($elements);

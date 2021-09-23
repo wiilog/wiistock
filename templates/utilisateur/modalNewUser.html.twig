@@ -59,7 +59,7 @@
                 <div class="form-group col-12">
                     <label>Types de livraison</label>
                     <select name="deliveryTypes"
-                            class="form-control select2 data w-100"
+                            class="form-control select2 data w-100 select2-old"
                             multiple="multiple"
                             title="Types de livraison">
                         {% for type in deliveryTypes %}
@@ -70,7 +70,7 @@
                 <div class="form-group col-12">
                     <label title="type d'acheminement">{{ 'acheminement.type d\'acheminement'|trans }}</label>
                     <select name="dispatchTypes"
-                            class="form-control select2 data w-100"
+                            class="form-control select2 data w-100 select2-old"
                             multiple="multiple"
                             title="Types d'{{ 'acheminement.acheminement'|trans }}">
                         {% for type in dispatchTypes %}
@@ -81,7 +81,7 @@
                 <div class="form-group col-12">
                     <label title="Types de service">{{ 'services.Types de service'|trans }}</label>
                     <select name="handlingTypes"
-                            class="form-control data select2 w-100"
+                            class="form-control data select2 w-100 select2-old"
                             multiple="multiple"
                             title="{{ 'services.Types de service'|trans }}">
                         {% for type in handlingTypes %}
@@ -91,7 +91,12 @@
                 </div>
                 <div class="col-12 form-group">
                     <label for="dropzone">Dropzone</label>
-                    <select name="dropzone" class="form-control data ajax-autocomplete-location-edit w-100">
+                    <select name="dropzone" class="form-control data ajax-autocomplete-location-edit w-100 select2-old">
+                    </select>
+                </div>
+                <div class="col-12 form-group w-100">
+                    <label for="visibility-group">Groupes de visibilité</label>
+                    <select name="visibility-group" class="form-control data" data-s2="visibilityGroup" multiple>
                     </select>
                 </div>
             </div>

@@ -82,7 +82,8 @@ class UrgencesController extends AbstractController
 
         $response = [];
 
-        $isSEDCurrentClient = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED);
+        $isSEDCurrentClient = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)
+            || $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_NS);
 
         $sameUrgentCounter = $urgenceRepository->countUrgenceMatching(
             $urgence->getDateStart(),
@@ -163,7 +164,8 @@ class UrgencesController extends AbstractController
         $response = [];
 
         if ($urgence) {
-            $isSEDCurrentClient = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED);
+            $isSEDCurrentClient = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)
+                || $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_NS);
 
             $urgenceService->updateUrgence($urgence, $data);
             $sameUrgentCounter = $urgenceRepository->countUrgenceMatching(
@@ -256,7 +258,7 @@ class UrgencesController extends AbstractController
                 "Numero d'arrivage",
                 'Date de creation',
             ];
-            $nowStr = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+            $nowStr = new DateTime('now');
 
             return $CSVExportService->streamResponse(
                 function ($output) use ($urgenceIterator, $CSVExportService) {

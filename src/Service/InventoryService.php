@@ -57,7 +57,8 @@ class InventoryService
         $quantitiesAreEqual = true;
 
 		if ($isRef) {
-			$refOrArt = $referenceArticleRepository->findOneBy(['barCode' => $barCode]) ?: $referenceArticleRepository->findOneByReference($barCode);
+			$refOrArt = $referenceArticleRepository->findOneBy(['barCode' => $barCode])
+                ?: $referenceArticleRepository->findOneBy(['reference' => $barCode]);
 			$quantity = $refOrArt->getQuantiteStock();
 		} else {
 		    /** @var Article $refOrArt */
@@ -80,7 +81,7 @@ class InventoryService
 			$mvt = new MouvementStock();
 			$mvt
 				->setUser($user)
-				->setDate(new \DateTime('now'))
+				->setDate(new DateTime('now'))
 				->setComment($comment)
 				->setQuantity(abs($diff));
 

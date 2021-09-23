@@ -3,33 +3,25 @@
 
 namespace App\Service;
 
-use App\Entity\CategoryType;
 use App\Entity\DimensionsEtiquettes;
 use App\Entity\Emplacement;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Type;
-use App\Repository\CategoryTypeRepository;
-use App\Repository\EmplacementRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
 
 Class GlobalParamService
 {
-	private $kernel;
-	private $translationService;
-    private $em;
 
-    public function __construct(EntityManagerInterface $em,
-                                KernelInterface $kernel,
-                                TranslationService $translationService) {
-        $this->kernel = $kernel;
-        $this->translationService = $translationService;
-        $this->em = $em;
-    }
+    /** @Required */
+	public KernelInterface $kernel;
+
+	/** @Required */
+    public EntityManagerInterface $entityManager;
 
 	public function getDimensionAndTypeBarcodeArray(bool $includeNullDimensions = true) {
-        $dimensionsEtiquettesRepository = $this->em->getRepository(DimensionsEtiquettes::class);
-        $parametrageGlobalRepository = $this->em->getRepository(ParametrageGlobal::class);
+        $dimensionsEtiquettesRepository = $this->entityManager->getRepository(DimensionsEtiquettes::class);
+        $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
 
 		$dimension = $dimensionsEtiquettesRepository->findOneDimension();
 		$response = [];
@@ -51,30 +43,9 @@ Class GlobalParamService
 		return $response;
 	}
 
-	public function treatTypeCreationOrEdition(Type $type, CategoryTypeRepository $categoryTypeRepository, EmplacementRepository $emplacementRepository, array $data) {
-        $category = $categoryTypeRepository->find($data['category']);
-
-        $isDispatch = ($category->getLabel() === CategoryType::DEMANDE_DISPATCH);
-
-        $type
-            ->setLabel($data['label'])
-            ->setSendMail($data["sendMail"] ?? false)
-            ->setCategory($category)
-            ->setDescription($data['description']);
-
-        if ($isDispatch) {
-            $dropLocation = $data["depose"] ? $emplacementRepository->find($data["depose"]) : null;
-            $pickLocation = $data["prise"] ? $emplacementRepository->find($data["prise"]) : null;
-
-            $type
-                ->setDropLocation($dropLocation)
-                ->setPickLocation($pickLocation);
-        }
-    }
-
 	public function getParamLocation(string $label) {
-        $parametrageGlobalRepository = $this->em->getRepository(ParametrageGlobal::class);
-        $emplacementRepository = $this->em->getRepository(Emplacement::class);
+        $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
+        $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
 
         $locationId = $parametrageGlobalRepository->getOneParamByLabel($label);
 
@@ -97,7 +68,7 @@ Class GlobalParamService
         $scssFile = $projectDir . '/assets/scss/_customFont.scss';
 
         if(!$font) {
-            $parametrageGlobalRepository = $this->em->getRepository(ParametrageGlobal::class);
+            $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
             $param = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::FONT_FAMILY]);
             $font = $param ? $param->getValue() : ParametrageGlobal::DEFAULT_FONT_FAMILY;
         } else {

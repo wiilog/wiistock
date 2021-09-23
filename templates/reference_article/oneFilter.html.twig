@@ -1,9 +1,12 @@
 <div class="col-auto pb-2">
-    <div class="btn filter has-tooltip" title="{{ (filter.champFixe ? filter.champFixe : filter.champLibre.label) | capitalize }} : {{ filter.value }}">
+    <div class="btn filter has-tooltip"
+         title="{{ (filter.champFixe ? filter.champFixe : filter.champLibre.label) | capitalize }} : {{ filter.value }}">
         <div class="row align-items-center">
             {% set fieldLabel = filter.champFixe is not null ? filter.champFixe : filter.champLibre.label %}
             {% if (filter.value == 'on' or filter.value == '1') %}
                 {% set value = 'oui' %}
+            {% elseif (filter.value == '') %}
+                {% set value = 'non' %}
             {% elseif (filter.value == '') %}
                 {% set value = 'non' %}
             {% else %}
@@ -12,10 +15,12 @@
             <div class="col">
                 <span class="bold">{{ fieldLabel|capitalize }} : {{ value }}</span>
             </div>
-            <div class="col-auto">
-                <i class="fas fa-times pointer"
-                   onclick="removeFilter($(this), {{ filter.id }})"></i>
-            </div>
+            {% if removable ?? true %}
+                <div class="col-auto">
+                    <i class="fas fa-times pointer"
+                       onclick="removeFilter($(this), {{ filter.id }})"></i>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>

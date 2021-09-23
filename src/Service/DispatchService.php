@@ -11,15 +11,16 @@ use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
+use App\Entity\ParametrageGlobal;
 use App\Entity\TrackingMovement;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Repository\FreeFieldRepository;
 use App\Repository\FieldsParamRepository;
+use App\Repository\ParametrageGlobalRepository;
 use App\Repository\StatutRepository;
 use DateTime;
-use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -131,6 +132,7 @@ class DispatchService {
             'receivers' => $receiversUsernames ?? '',
             'locationFrom' => $dispatch->getLocationFrom() ? $dispatch->getLocationFrom()->getLabel() : '',
             'locationTo' => $dispatch->getLocationTo() ? $dispatch->getLocationTo()->getLabel() : '',
+            'destination' => $dispatch->getDestination() ? $dispatch->getDestination()->getLabel() : '',
             'nbPacks' => $dispatch->getDispatchPacks()->count(),
             'type' => $dispatch->getType() ? $dispatch->getType()->getLabel() : '',
             'status' => $dispatch->getStatut() ? $dispatch->getStatut()->getNom() : '',
@@ -157,6 +159,7 @@ class DispatchService {
     public function getNewDispatchConfig(StatutRepository $statutRepository,
                                          FreeFieldRepository $champLibreRepository,
                                          FieldsParamRepository $fieldsParamRepository,
+                                         ParametrageGlobalRepository $parametrageGlobalRepository,
                                          array $types,
                                          ?Arrivage $arrival = null) {
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
@@ -166,6 +169,7 @@ class DispatchService {
             'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
             'fieldsParam' => $fieldsParam,
             'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY),
+            'preFill' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::PREFILL_DUE_DATE_TODAY),
             'typeChampsLibres' => array_map(function(Type $type) use ($champLibreRepository) {
                 $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);
                 return [
@@ -348,7 +352,7 @@ class DispatchService {
         $date = null;
         foreach (['Y-m-d', 'd/m/Y'] as $format) {
             $date = (!empty($dateStr) && empty($date))
-                ? DateTime::createFromFormat($format, $dateStr, new DateTimeZone("Europe/Paris"))
+                ? DateTime::createFromFormat($format, $dateStr)
                 : $date;
         }
         return $date ?: null;
@@ -440,7 +444,7 @@ class DispatchService {
         $dispatchPacks = $dispatch->getDispatchPacks();
         $takingLocation = $dispatch->getLocationFrom();
         $dropLocation = $dispatch->getLocationTo();
-        $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now');
 
         $dispatch
             ->setStatut($treatedStatus)
@@ -511,6 +515,7 @@ class DispatchService {
             ['title' => 'Destinataires', 'name' => 'receivers','orderable' => false],
             ['title' => 'acheminement.Emplacement prise', 'name' => 'locationFrom', 'translated' => true],
             ['title' => 'acheminement.Emplacement dépose', 'name' => 'locationTo', 'translated' => true],
+            ['title' => 'acheminement.Destination', 'name' => 'destination', 'translated' => true],
             ['title' => 'acheminement.Nb colis', 'name' => 'nbPacks', 'translated' => true, 'orderable' => false],
             ['title' => 'Statut', 'name' => 'status'],
             ['title' => 'Urgence', 'name' => 'emergency'],

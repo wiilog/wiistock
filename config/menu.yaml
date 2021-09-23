@@ -183,6 +183,7 @@ parameters:
         -   label: 'IoT.IoT'
             isTranslation: true
             icon: 'iot'
+            title: 'IoT'
             sub:
                 -   label: 'Capteurs'
                     path: 'sensor_wrapper_index'
@@ -218,6 +219,11 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::PARAM
                         action: App\Entity\Action::DISPLAY_UTIL
+                -   label: 'Groupes de visibilité'
+                    path: 'visibility_group_index'
+                    rights:
+                        menu: App\Entity\Menu::PARAM
+                        action: App\Entity\Action::DISPLAY_VISIBILITY_GROUPS
                 -   label: 'Dashboards'
                     title: Dashboards
                     path: 'dashboard_settings'
@@ -261,11 +267,11 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::PARAM
                         action: App\Entity\Action::DISPLAY_REQUEST_TEMPLATE
-                -   label: "Modèles d'alertes"
-                    path: 'alert_template_index'
+                -   label: 'Modèles de notifications'
+                    path: 'notification_template_index'
                     rights:
                         menu: App\Entity\Menu::PARAM
-                        action: App\Entity\Action::DISPLAY_ALERT_TEMPLATE
+                        action: App\Entity\Action::DISPLAY_NOTIFICATIONS
                 -   label: 'Import et mise à jour'
                     path: 'import_index'
                     rights:

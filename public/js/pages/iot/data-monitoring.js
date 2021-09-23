@@ -1,9 +1,8 @@
+let noMapData = true;
+let noChartData = true;
+const $errorContainer = $('.no-monitoring-data');
 $(document).ready(() => {
-    $(`[data-map]`).each((i, elem) => initMap(elem));
-    $(`[data-chart]`).each((i, elem) => initLineChart(elem));
-
-    $(document).arrive(`[data-map]`, elem => initMap(elem));
-    $(document).arrive(`[data-chart]`, elem => initLineChart(elem));
+    initData();
 
     const $timelineContainer = $('.timeline-container');
     if ($timelineContainer.exists()) {
@@ -23,15 +22,69 @@ $(document).ready(() => {
         const urlEditPairingEnd = Routing.generate('pairing_edit_end', {});
         InitModal(modalEditPairingEnd, submitEditPairingEnd, urlEditPairingEnd, {
             success: response => {
+                if(!$(response.selector).exists()) {
+                    $(`.pairing-dates-content`).append(`
+                        <br/><br/>
+                        <span class="pairing-date-prefix">Fin le : </span><br/>
+                        <span class="date-prefix pairing-end-date-${response.id}"></span>
+                    `);
+                }
+
                 $(response.selector).text(response.date);
             }
         });
     }
 });
 
+function initMapCall(callback) {
+    const $maps = $(`[data-map]`);
+    if ($maps.length > 0) {
+        $maps.each((i, elem) => initMap(elem, callback));
+    } else {
+        callback();
+    }
+}
+
+function initChartCall(callback) {
+    const $charts = $(`[data-chart]`);
+    if ($charts.length > 0) {
+        $charts.each((i, elem) => initLineChart(elem, callback));
+    } else {
+        callback();
+    }
+}
+
+function noMonitoringData() {
+    $errorContainer.empty();
+    const $emptyResult = $(`<div/>`, {
+        class: `d-flex flex-column align-items-center`,
+        html: [
+            $(`<p/>`, {
+                class: `h4`,
+                text: 'Aucune donnée'
+            }),
+            $(`<i/>`, {
+                class: `fas fa-frown fa-4x`
+            })
+        ]
+    });
+
+    $errorContainer.removeClass('d-none');
+    $errorContainer.append($emptyResult).hide().fadeIn(600);
+}
+
+function initData() {
+   initMapCall(() => {
+       initChartCall(() => {
+           if (noChartData && noMapData) {
+               noMonitoringData();
+           }
+       });
+   });
+}
+
 function filter() {
-    $(`[data-map]`).each((i, elem) => initMap(elem));
-    $(`[data-chart]`).each((i, elem) => initLineChart(elem));
+    initData();
 }
 
 function unpair(pairing) {
@@ -50,8 +103,9 @@ function getFiltersValue() {
 }
 
 let previousMap = null;
-function initMap(element) {
+function initMap(element, callback) {
     const $element = $(element);
+    $errorContainer.addClass('d-none');
 
     $.get($element.data(`fetch-url`), getFiltersValue(), function (response) {
         if(previousMap) {
@@ -62,12 +116,13 @@ function initMap(element) {
         let map = Leaflet.map(element).setView([44.831598, -0.577096], 13);
         previousMap = map;
 
-        Leaflet
-            .tileLayer(
-                'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                { attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}
-            )
-            .addTo(map);
+        Leaflet.tileLayer('https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.png', {
+            maxZoom: 20,
+            attribution:
+                '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>,' +
+                ' &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> ' +
+                '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
+        }).addTo(map);
 
         let sensors = Object.keys(response);
         let index = 0;
@@ -76,7 +131,8 @@ function initMap(element) {
 
         const responseValues = Object.values(response);
         // hide the map if there are no sensors
-        $element.closest('.wii-page-card').toggle(responseValues.length > 0);
+        $element.closest('.wii-page-card').toggle(true);
+        noMapData = false;
         if(responseValues.length > 0) {
             responseValues.forEach(((date) => {
                 Object.values(date).forEach((coordinates) => {
@@ -122,12 +178,19 @@ function initMap(element) {
                     }, 200 * index);
                 });
             });
+
+            callback();
+        } else {
+            noMapData = true;
+            callback();
+            $element.closest('.wii-page-card').toggle(false);
         }
     });
 }
 
-function initLineChart(element) {
+function initLineChart(element, callback) {
     const $element = $(element);
+    $errorContainer.addClass('d-none');
 
     $.get($element.data(`fetch-url`), getFiltersValue(), function (response) {
         let data = {
@@ -139,8 +202,8 @@ function initLineChart(element) {
         let datasets = {};
 
         // hide the chart if there are no sensors
-        $element.closest('.wii-page-card').toggle(sensors.length > 0);
-
+        $element.closest('.wii-page-card').toggle(true);
+        noChartData = false;
         sensorDates.forEach((date) => {
             data.labels.push(date);
             sensors.forEach((sensor) => {
@@ -178,6 +241,11 @@ function initLineChart(element) {
                 }
             }
         });
+        $element.closest('.wii-page-card').toggle(sensors.length > 0);
+        if (sensors.length === 0) {
+            noChartData = true;
+            callback();
+        }
     });
 }
 
@@ -210,35 +278,30 @@ function initTimeline($timelineContainer, showMore = false) {
                 }
 
                 const timeline = data || [];
-                let lastGroup;
-                let lastTitle;
-                const $timeline = timeline.map(({title, titleHref, active, group, datePrefix, date}, index) => {
-                    const displayGroup = lastGroup !== group;
-                    lastGroup = group;
-
-                    const hideTitle = lastTitle === title;
-                    lastTitle = title;
-
-                    const lastClass = (isEnd && (timeline.length - 1) === index) ? 'last-timeline-cell' : '';
+                const $timeline = timeline.map(({title, titleHref, active, group, groupHref, datePrefix, date}, index) => {
+                    const lastClass = (isEnd && index === 0) ? 'last-timeline-cell' : '';
                     const activeClass = active ? 'timeline-cell-active' : '';
-                    const withoutTitleClass = !displayGroup && hideTitle ? 'timeline-cell-without-title' : '';
                     const largeTimelineCellClass = !isGrouped ? 'timeline-cell-large' : '';
+                    const groupAsLink = (group && groupHref);
 
                     return $('<div/>', {
                         class: 'timeline-row',
                         html: [
                             isGrouped
-                                ? $('<div/>', {
+                                ? $(!groupAsLink ? '<div/>' : '<a/>', {
                                     class: `timeline-cell timeline-cell-left ${lastClass}`,
-                                    ...(displayGroup && group
+                                    ...(group
                                         ? { text: group }
+                                        : {}),
+                                    ...(groupAsLink
+                                        ? { href: groupHref }
                                         : {})
                                 })
                                 : undefined,
                             $('<div/>', {
-                                class: `timeline-cell timeline-cell-right ${lastClass} ${activeClass} ${withoutTitleClass} ${largeTimelineCellClass}`,
+                                class: `timeline-cell timeline-cell-right ${lastClass} ${activeClass} ${largeTimelineCellClass}`,
                                 html: [
-                                    ...(!hideTitle && title
+                                    ...(title
                                         ? [
                                             (active && titleHref)
                                                 ? `<a href="${titleHref}" class="timeline-cell-title">${title}</a>`
@@ -252,13 +315,16 @@ function initTimeline($timelineContainer, showMore = false) {
                                             `<br/>`
                                         ]
                                         : []),
-                                    `<span class="pairing-date">${date}</span>`
+                                    ...(date
+                                        ? [`<span class="pairing-date">${date}</span>`]
+                                        : []),
+
                                 ]
                             })
                         ]
                     })
                 });
-                $timelineContainer.append($timeline);
+                $timelineContainer.prepend($timeline);
 
                 if (firstLoading) {
                     $timelineContainer
@@ -266,10 +332,10 @@ function initTimeline($timelineContainer, showMore = false) {
                         .removeClass('py-5');
                 }
 
-                if (!isEnd) {
-                    $timelineContainer.append(
+                if (!isEnd && timeline.length > 0) {
+                    $timelineContainer.prepend(
                         $('<div/>', {
-                            class: 'timeline-row timeline-show-more-button-container justify-content-center pt-4',
+                            class: 'timeline-row timeline-show-more-button-container justify-content-center pb-4',
                             html: $('<button/>', {
                                 class: 'btn btn-outline-info timeline-show-more-button',
                                 text: 'Voir plus',

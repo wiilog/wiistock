@@ -242,6 +242,16 @@ class ReferenceArticle extends FreeFieldEntity
      */
     private $requestTemplateLines;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=VisibilityGroup::class, inversedBy="articleReferences")
+     */
+    private ?VisibilityGroup $visibilityGroup = null;
+
+    /**
+     * @ORM\OneToOne(targetEntity=Attachment::class, inversedBy="referenceArticle", cascade={"persist", "remove"})
+     */
+    private $image;
+
     public function __construct()
     {
         $this->ligneArticles = new ArrayCollection();
@@ -1095,12 +1105,12 @@ class ReferenceArticle extends FreeFieldEntity
         return $this->typeQuantite === self::TYPE_QUANTITE_REFERENCE
             ? []
             : Stream::from($this->articlesFournisseur)
-            ->map(function(ArticleFournisseur $articleFournisseur) {
-                return $articleFournisseur->getArticles()->toArray();
-            })
-            ->flatten()
-            ->unique()
-            ->toArray();
+                ->map(function(ArticleFournisseur $articleFournisseur) {
+                    return $articleFournisseur->getArticles()->toArray();
+                })
+                ->flatten()
+                ->unique()
+                ->toArray();
     }
 
 
@@ -1138,6 +1148,43 @@ class ReferenceArticle extends FreeFieldEntity
             if ($requestTemplateLine->getReference() === $this) {
                 $requestTemplateLine->setReference(null);
             }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return VisibilityGroup
+     */
+    public function getVisibilityGroup(): ?VisibilityGroup {
+        return $this->visibilityGroup;
+    }
+
+    public function setVisibilityGroup(?VisibilityGroup $visibilityGroup): self {
+        if($this->visibilityGroup && $this->visibilityGroup !== $visibilityGroup) {
+            $this->visibilityGroup->removeArticleReference($this);
+        }
+        $this->visibilityGroup = $visibilityGroup;
+        if($visibilityGroup) {
+            $visibilityGroup->addArticleReference($this);
+        }
+        return $this;
+    }
+
+    public function getImage(): ?Attachment
+    {
+        return $this->image;
+    }
+
+    public function setImage(?Attachment $image): self {
+        if($this->image && $this->image->getReferenceArticle() !== $this) {
+            $oldImage = $this->image;
+            $this->image = null;
+            $oldImage->setReferenceArticle(null);
+        }
+        $this->image = $image;
+        if($this->image && $this->image->getReferenceArticle() !== $this) {
+            $this->image->setReferenceArticle($this);
         }
 
         return $this;

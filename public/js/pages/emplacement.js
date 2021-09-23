@@ -135,9 +135,8 @@ function switchGroups() {
         InitModal($modalNewEmplacement, $submitNewEmplacement, urlNewEmplacement, {tables: [groupsTable]});
 
         const modalDeleteEmplacement = $('#modalDeleteLocationGroup');
-        const submitDeleteEmplacement = $('#submitDeleteLocationGroup');
         const urlDeleteEmplacement = Routing.generate('location_group_delete', true);
-        InitModal(modalDeleteEmplacement, submitDeleteEmplacement, urlDeleteEmplacement, {tables: [groupsTable]});
+        InitModal(modalDeleteEmplacement, '#submitDeleteLocationGroup', urlDeleteEmplacement, {tables: [groupsTable]});
 
         const $modalModifyEmplacement = $('#modalEditLocationGroup');
         const $submitModifyEmplacement = $('#submitEditLocationGroup');
@@ -152,14 +151,6 @@ function switchGroups() {
     $(`.groupsTableContainer, [data-target="#modalNewLocationGroup"]`).removeClass('d-none');
     $(`#locationsTable_filter`).parent().hide();
     $(`#groupsTable_filter`).parent().show();
-}
-
-function toExport() {
-    if(selectedTab === TAB_LOCATIONS) {
-        saveExportFile(`export_locations`);
-    } else {
-        saveExportFile(`export_groups`);
-    }
 }
 
 function checkAndDeleteRowEmplacement(icon) {

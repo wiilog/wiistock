@@ -14,11 +14,48 @@ use App\Entity\Pack;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Entity\VisibilityGroup;
 use DateTime;
 use DateTimeInterface;
+use Doctrine\Common\Collections\Collection;
 use WiiCommon\Helper\Stream;
 
 class FormatHelper {
+
+    public const ENGLISH_WEEK_DAYS = [
+        1 => "Monday",
+        2 => "Tuesday",
+        3 => "Wednesday",
+        4 => "Thursday",
+        5 => "Friday",
+        6 => "Saturday",
+        7 => "Sunday",
+    ];
+
+    public const WEEK_DAYS = [
+        1 => "Lundi",
+        2 => "Mardi",
+        3 => "Mercredi",
+        4 => "Jeudi",
+        5 => "Vendredi",
+        6 => "Samedi",
+        7 => "Dimanche",
+    ];
+
+    public const MONTHS = [
+        1 => "Janvier",
+        2 => "Février",
+        3 => "Mars",
+        4 => "Avril",
+        5 => "Mai",
+        6 => "Juin",
+        7 => "Juillet",
+        8 => "Août",
+        9 => "Septembre",
+        10 => "Octobre",
+        11 => "Novembre",
+        12 => "Décembre",
+    ];
 
     public static function parseDatetime(?string $date, array $expectedFormats = ["Y-m-d H:i:s", "d/m/Y H:i:s", "Y-m-d H:i", "d/m/Y H:i"]): ?DateTimeInterface {
         foreach($expectedFormats as $format) {
@@ -88,6 +125,10 @@ class FormatHelper {
         return $nature ? $nature->getLabel() : $else;
     }
 
+    public static function visibilityGroup(?VisibilityGroup $visibilityGroup, $else = "") {
+        return $visibilityGroup ? $visibilityGroup->getLabel() : $else;
+    }
+
     public static function entity($entities, string $field, string $separator = ", ") {
         return Stream::from($entities)
             ->filter(function($entity) use ($field) {
@@ -121,6 +162,20 @@ class FormatHelper {
 
     public static function datetime(?DateTimeInterface $date, $else = "", $addAt = false) {
         return $date ? $date->format($addAt ? "d/m/Y à H:i" : "d/m/Y H:i") : $else;
+    }
+
+    public static function longDate(?DateTimeInterface $date, bool $short = false, $else = "-"): ?string {
+        return $date
+            ? (($short
+                ? substr(self::WEEK_DAYS[$date->format("w")], 0, 3)
+                : self::WEEK_DAYS[$date->format("w")])
+                    . " "
+                    . $date->format("d")
+                    . " "
+                    . strtolower(self::MONTHS[$date->format("n")])
+                    . " "
+                    . $date->format("Y"))
+            : $else;
     }
 
     public static function time(?DateTimeInterface $date, $else = "") {

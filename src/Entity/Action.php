@@ -17,11 +17,6 @@ class Action {
     const DELETE = 'supprimer';
     const EXPORT = 'exporter';
 
-    // menu accueil
-    const DISPLAY_INDI = 'afficher indicateurs';
-    const DISPLAY_INDIC_INV_REFERENCE = 'afficher indicateur fiabilité par réference';
-    const DISPLAY_INDIC_INV_MONETAIRE = 'afficher indicateur fiabilité monétaire';
-
     // menu traça
     const DISPLAY_ARRI = 'afficher arrivages';
     const DISPLAY_MOUV = 'afficher mouvements';
@@ -35,6 +30,7 @@ class Action {
     const DELETE_PACK = 'supprimer colis';
     const EDIT_ARRI = 'modifier arrivage';
     const DELETE_ARRI = 'supprimer arrivage';
+    const EMPTY_ROUND = 'autoriser la sélection du Passage à vide';
 
     // menu qualité
     const DISPLAY_LITI = 'afficher litiges';
@@ -104,6 +100,7 @@ class Action {
     const DISPLAY_GLOB = 'afficher paramétrage global';
     const DISPLAY_ROLE = 'afficher rôles';
     const DISPLAY_UTIL = 'afficher utilisateurs';
+    const DISPLAY_VISIBILITY_GROUPS = 'afficher groupes de visibilité';
     const DISPLAY_DASHBOARDS = 'afficher dashboards';
     const DISPLAY_EXPO = 'afficher exports';
     const DISPLAY_TYPE = 'afficher types';
@@ -111,7 +108,7 @@ class Action {
     const DISPLAY_NATU_COLI = 'afficher nature colis';
     const DISPLAY_CF = 'afficher champs fixes';
     const DISPLAY_REQUEST_TEMPLATE = 'afficher modèles de demandes';
-    const DISPLAY_ALERT_TEMPLATE = 'afficher modèles d\'alertes';
+    const DISPLAY_NOTIFICATIONS = 'afficher modèles de notifications';
     const DISPLAY_IMPORT = 'afficher import et mise à jour';
 
     // menu nomade
@@ -120,6 +117,7 @@ class Action {
     const MODULE_ACCESS_GROUP = 'Accès Groupage';
     const MODULE_ACCESS_UNGROUP = 'Accès Dégroupage';
     const MODULE_ACCESS_HAND = 'Accès Demande';
+    const MODULE_NOTIFICATIONS = 'Activer les notifications';
     const DEMO_MODE = 'Mode découverte';
 
     /**

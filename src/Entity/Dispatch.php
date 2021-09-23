@@ -73,143 +73,143 @@ class Dispatch extends FreeFieldEntity
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private int $id;
 
     /**
      * @ORM\Column(type="datetime")
      */
-    private $creationDate;
+    private ?DateTime $creationDate = null;
 
     /**
      * @ORM\Column(type="text", nullable=true)
      */
-    private $carrierTrackingNumber;
+    private ?string $carrierTrackingNumber = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $commandNumber;
+    private ?string $commandNumber = null;
 
     /**
      * @ORM\Column(type="text", nullable=true)
      */
-    private $commentaire;
+    private ?string $commentaire = null;
 
     /**
      * @ORM\Column(type="string", nullable=true)
      */
-    private $emergency;
+    private ?string $emergency = null;
 
     /**
-     * @var DateTime|null
      * @ORM\Column(type="date", nullable=true)
      */
-    private $startDate;
+    private ?DateTime $startDate = null;
 
     /**
-     * @var DateTime|null
      * @ORM\Column(type="date", nullable=true)
      */
-    private $endDate;
+    private ?DateTime $endDate = null;
 
     /**
-     * @var string|null
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $projectNumber;
+    private ?string $projectNumber = null;
 
     /**
-     * @var string|null
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $businessUnit;
+    private ?string $businessUnit = null;
 
     /**
-     * @var Utilisateur|null
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="treatedDispatches")
      */
-    private $treatedBy;
+    private ?Utilisateur $treatedBy = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="dispatches")
      * @ORM\JoinColumn(nullable=false)
      */
-    private $statut;
+    private ?Statut $statut = null;
 
     /**
      * @ORM\OneToMany(targetEntity="Attachment", mappedBy="dispatch")
      */
-    private $attachements;
+    private Collection $attachements;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="dispatchesFrom")
      */
-    private $locationFrom;
+    private ?Emplacement $locationFrom = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="dispatchesTo")
      */
-    private $locationTo;
+    private ?Emplacement $locationTo = null;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\DispatchPack", mappedBy="dispatch", orphanRemoval=true)
      */
-    private $dispatchPacks;
+    private Collection $dispatchPacks;
 
     /**
      * @ORM\OneToMany(targetEntity=TrackingMovement::class, mappedBy="dispatch")
      */
-    private $trackingMovements;
+    private Collection $trackingMovements;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="dispatches")
      */
-    private $type;
+    private ?Type $type = null;
 
     /**
      * @ORM\Column(type="string", length=255, unique=true)
      */
-    private $number;
+    private ?string $number = null;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private $validationDate;
+    private ?DateTime $validationDate = null;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private $treatmentDate;
+    private ?DateTime $treatmentDate = null;
 
     /**
      * @var array|null
      * @ORM\Column(type="json", nullable=true)
      */
-    private $waybillData;
+    private ?array $waybillData;
 
     /**
      * @var array|null
      * @ORM\Column(type="json", nullable=true)
      */
-    private $deliveryNoteData;
+    private ?array $deliveryNoteData;
 
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\Utilisateur", inversedBy="receivedDispatches")
      * @ORM\JoinTable(name="dispatch_receiver")
      */
-    private $receivers;
+    private ?Collection $receivers;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="requestedDispatches")
      * @ORM\JoinColumn(nullable=false)
      */
-    private $requester;
+    private ?Utilisateur $requester = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Transporteur", inversedBy="dispatches")
      * @ORM\JoinColumn(nullable=true)
      */
-    private $carrier;
+    private ?Transporteur $carrier = null;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Emplacement::class, inversedBy="dispatches")
+     */
+    private ?Emplacement $destination = null;
 
     public function __construct()
     {
@@ -225,12 +225,12 @@ class Dispatch extends FreeFieldEntity
         return $this->id;
     }
 
-    public function getCreationDate(): ?\DateTimeInterface
+    public function getCreationDate(): ?DateTime
     {
         return $this->creationDate;
     }
 
-    public function setCreationDate(\DateTimeInterface $date): self
+    public function setCreationDate(DateTime $date): self
     {
         $this->creationDate = $date;
 
@@ -496,20 +496,20 @@ class Dispatch extends FreeFieldEntity
         return $this;
     }
 
-    public function getValidationDate(): ?\DateTimeInterface {
+    public function getValidationDate(): ?DateTime {
         return $this->validationDate;
     }
 
-    public function setValidationDate(?\DateTimeInterface $validationDate): self {
+    public function setValidationDate(?DateTime $validationDate): self {
         $this->validationDate = $validationDate;
         return $this;
     }
 
-    public function getTreatmentDate(): ?\DateTimeInterface {
+    public function getTreatmentDate(): ?DateTime {
         return $this->treatmentDate;
     }
 
-    public function setTreatmentDate(?\DateTimeInterface $treatmentDate): self {
+    public function setTreatmentDate(?DateTime $treatmentDate): self {
         $this->treatmentDate = $treatmentDate;
         return $this;
     }
@@ -606,6 +606,23 @@ class Dispatch extends FreeFieldEntity
      */
     public function setDeliveryNoteData(array $deliveryNoteData): self {
         $this->deliveryNoteData = $deliveryNoteData;
+        return $this;
+    }
+
+    public function getDestination(): ?Emplacement
+    {
+        return $this->destination;
+    }
+
+    public function setDestination(?Emplacement $destination): self {
+        if($this->destination && $this->destination !== $destination) {
+            $this->destination->removeDispatch($this);
+        }
+        $this->destination = $destination;
+        if($destination) {
+            $destination->addDispatch($this);
+        }
+
         return $this;
     }
 

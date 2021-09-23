@@ -33,6 +33,7 @@ use App\Entity\Translation;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
+use App\Service\NotificationService;
 use WiiCommon\Helper\Stream;
 
 use App\Exceptions\ArticleNotAvailableException;
@@ -62,7 +63,6 @@ use App\Service\UserService;
 use App\Service\FreeFieldService;
 
 use DateTimeInterface;
-use DateTimeZone;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -86,6 +86,9 @@ class ApiController extends AbstractFOSRestController
 
     /** @var Utilisateur|null */
     private $user;
+
+    /** @Required */
+    public NotificationService $notificationService;
 
     public function getUser(): Utilisateur
     {
@@ -118,10 +121,37 @@ class ApiController extends AbstractFOSRestController
             $loggedUser->setApiKey($apiKey);
             $entityManager->flush();
 
+            $rights = $this->getMenuRights($loggedUser, $userService);
+            $channels = Stream::from($rights)
+                ->filter(fn($val, $key) => $val && in_array($key, ["stock", "tracking", "group", "ungroup", "demande", "notifications"]))
+                ->takeKeys()
+                ->map(fn($right) => $_SERVER["APP_INSTANCE"] . "-" . $right)
+                ->toArray();
+
+            if (in_array($_SERVER["APP_INSTANCE"] . "-stock" , $channels)) {
+                Stream::from($loggedUser->getDeliveryTypes())
+                    ->each(function(Type $deliveryType) use (&$channels) {
+                        $channels[] = $_SERVER["APP_INSTANCE"] . "-stock-delivery-" . $deliveryType->getId();
+                    });
+            }
+            if (in_array($_SERVER["APP_INSTANCE"] . "-tracking" , $channels)) {
+                Stream::from($loggedUser->getDispatchTypes())
+                    ->each(function(Type $dispatchType) use (&$channels) {
+                        $channels[] = $_SERVER["APP_INSTANCE"] . "-tracking-dispatch-" . $dispatchType->getId();
+                    });
+            }
+            if (in_array($_SERVER["APP_INSTANCE"] . "-demande" , $channels)) {
+                Stream::from($loggedUser->getHandlingTypes())
+                    ->each(function(Type $handlingType) use (&$channels) {
+                        $channels[] = $_SERVER["APP_INSTANCE"] . "-demande-handling-" . $handlingType->getId();
+                    });
+            }
+
             $data['success'] = true;
             $data['data'] = [
                 'apiKey' => $apiKey,
-                'rights' => $this->getMenuRights($loggedUser, $userService),
+                'notificationChannels' => $channels,
+                'rights' => $rights,
                 'username' => $loggedUser->getUsername(),
                 'userId' => $loggedUser->getId()
             ];
@@ -227,7 +257,7 @@ class ApiController extends AbstractFOSRestController
 
                         $dateArray = explode('_', $mvt['date']);
 
-                        $date = DateTime::createFromFormat(DateTimeInterface::ATOM, $dateArray[0], new DateTimeZone('Europe/Paris'));
+                        $date = DateTime::createFromFormat(DateTimeInterface::ATOM, $dateArray[0]);
 
                         // set mouvement de stock
                         if ($mvt['fromStock'] ?? false) {
@@ -538,7 +568,6 @@ class ApiController extends AbstractFOSRestController
                         $mouvementsNomade = $preparationArray['mouvements'];
                         $totalQuantitiesWithRef = [];
                         $livraison = $livraisonsManager->createLivraison($dateEnd, $preparation, $entityManager);
-                        $entityManager->persist($livraison);
 
                         foreach ($mouvementsNomade as $mouvementNomade) {
                             if (!$mouvementNomade['is_ref'] && $mouvementNomade['selected_by_article']) {
@@ -570,7 +599,7 @@ class ApiController extends AbstractFOSRestController
                         }
 
                         foreach ($totalQuantitiesWithRef as $ref => $quantity) {
-                            $refArticle = $referenceArticleRepository->findOneByReference($ref);
+                            $refArticle = $referenceArticleRepository->findOneBy(['reference' => $ref]);
                             $ligneArticle = $ligneArticlePreparationRepository->findOneByRefArticleAndDemande($refArticle, $preparation->getDemande());
                             $preparationsManager->deleteLigneRefOrNot($ligneArticle);
                         }
@@ -588,7 +617,9 @@ class ApiController extends AbstractFOSRestController
                         }
 
                         $entityManager->flush();
-
+                        if($livraison->getDemande()->getType()->isNotificationsEnabled()) {
+                            $this->notificationService->toTreat($livraison);
+                        }
                         $preparationsManager->updateRefArticlesQuantities($preparation, $entityManager);
                     });
 
@@ -776,7 +807,7 @@ class ApiController extends AbstractFOSRestController
                 && $newStatus) {
                 if ($newStatus->isTreated()) {
                     $handling
-                        ->setValidationDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
+                        ->setValidationDate(new DateTime('now'));
                 }
                 $handling->setTreatedByHandling($nomadUser);
             }
@@ -911,7 +942,7 @@ class ApiController extends AbstractFOSRestController
                     'code' => $movement['ref_article'],
                     'location' => $movement['ref_emplacement'],
                     'nature_id' => $movement['nature_id'],
-                    'date' => new DateTime($date ?? 'now', new DateTimeZone('Europe/Paris')),
+                    'date' => new DateTime($date ?? 'now'),
                     'type' => $movement['type']
                 ];
             })
@@ -1000,7 +1031,7 @@ class ApiController extends AbstractFOSRestController
                     }
 
                     $res['finishedMovements'] = Stream::from($res['finishedMovements'])
-                        ->filter(fn($code) => $code)
+                        ->filter()
                         ->unique()
                         ->values();
                 }
@@ -1062,7 +1093,7 @@ class ApiController extends AbstractFOSRestController
                     $ordreCollecteService
                 ) {
                     $ordreCollecteService->setEntityManager($entityManager);
-                    $date = DateTime::createFromFormat(DateTimeInterface::ATOM, $collecteArray['date_end'], new DateTimeZone('Europe/Paris'));
+                    $date = DateTime::createFromFormat(DateTimeInterface::ATOM, $collecteArray['date_end']);
 
                     $newCollecte = $ordreCollecteService->finishCollecte($collecte, $nomadUser, $date, $collecteArray['mouvements'], true);
                     $entityManager->flush();
@@ -1612,6 +1643,26 @@ class ApiController extends AbstractFOSRestController
         ]);
     }
 
+    /**
+     * @Rest\Post("/api/previous-operator-movements", name="api_previous_operator_movements")
+     * @Wii\RestVersionChecked()
+     */
+    public function getPreviousOperatorMovements(Request $request, EntityManagerInterface $manager) {
+        $userRepository = $manager->getRepository(TrackingMovement::class);
+        $trackingMovementRepository = $manager->getRepository(TrackingMovement::class);
+
+        $user = $userRepository->find($request->query->get("id"));
+        $movements = $trackingMovementRepository->getPickingByOperatorAndNotDropped(
+            $user,
+            TrackingMovementRepository::MOUVEMENT_TRACA_STOCK
+        );
+
+        return $this->json([
+            "success" => true,
+            "movements" => $movements,
+        ]);
+    }
+
     private function apiKeyGenerator()
     {
         return md5(microtime() . rand());
@@ -1946,7 +1997,7 @@ class ApiController extends AbstractFOSRestController
                     $pack,
                     null,
                     $this->getUser(),
-                    $groupDate,
+                    DateTime::createFromFormat("d/m/Y H:i:s", $data["date"]),
                     true,
                     true,
                     TrackingMovement::TYPE_GROUP,
@@ -2142,21 +2193,63 @@ class ApiController extends AbstractFOSRestController
         );
     }
 
+    /**
+     * @Rest\Post("/api/empty-round", name="api_empty_round", methods={"POST"}, condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function emptyRound(Request $request, TrackingMovementService $trackingMovementService, EntityManagerInterface $manager): JsonResponse {
+        $emptyRounds = $request->request->get('params')
+            ? json_decode($request->request->get('params'), true)
+            : [$request->request->all()];
+
+        $packRepository = $manager->getRepository(Pack::class);
+        $locationRepository = $manager->getRepository(Emplacement::class);
+        $user = $this->getUser();
+
+        foreach ($emptyRounds as $emptyRound) {
+            $date = new DateTime(trim($emptyRound['date'], '"'));
+
+            $emptyRoundPack = $packRepository->findOneBy(['code' => Pack::EMPTY_ROUND_PACK]);
+            $location = $locationRepository->findOneBy(['label' => $emptyRound['location']]);
+
+            $trackingMovement = $trackingMovementService->createTrackingMovement(
+                $emptyRoundPack,
+                $location,
+                $user,
+                $date,
+                true,
+                true,
+                TrackingMovement::TYPE_EMPTY_ROUND,
+                ['commentaire' => $emptyRound['comment']]
+            );
+
+            $manager->persist($trackingMovement);
+        }
+        $manager->flush();
+
+        return $this->json([
+            "success" => true
+        ]);
+    }
+
     private function getMenuRights($user, UserService $userService)
     {
         return [
             'demoMode' => $userService->hasRightFunction(Menu::NOMADE, Action::DEMO_MODE, $user),
+            'notifications' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_NOTIFICATIONS, $user),
             'stock' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_STOCK, $user),
             'tracking' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_TRACA, $user),
             'group' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_GROUP, $user),
             'ungroup' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_UNGROUP, $user),
             'demande' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_HAND, $user),
-            'inventoryManager' => $userService->hasRightFunction(Menu::STOCK, Action::INVENTORY_MANAGER, $user)
+            'inventoryManager' => $userService->hasRightFunction(Menu::STOCK, Action::INVENTORY_MANAGER, $user),
+            'emptyRound' => $userService->hasRightFunction(Menu::TRACA, Action::EMPTY_ROUND, $user)
         ];
     }
 
     private function expectedDateColor(?DateTime $date, array $colors): ?string {
-        $nowStr = (new DateTime('now', new DateTimeZone('Europe/Paris')))->format('Y-m-d');
+        $nowStr = (new DateTime('now'))->format('Y-m-d');
         $dateStr = !empty($date) ? $date->format('Y-m-d') : null;
         $color = null;
         if ($dateStr) {

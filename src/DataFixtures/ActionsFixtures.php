@@ -49,6 +49,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 				Action::DELETE,
 				Action::EXPORT,
                 Action::LIST_ALL,
+                Action::EMPTY_ROUND,
 			],
 			Menu::QUALI => [
 				Action::DISPLAY_LITI,
@@ -127,6 +128,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 				Action::DISPLAY_GLOB,
 				Action::DISPLAY_ROLE,
 				Action::DISPLAY_UTIL,
+				Action::DISPLAY_VISIBILITY_GROUPS,
 				Action::DISPLAY_DASHBOARDS,
 				Action::DISPLAY_EXPO,
 				Action::DISPLAY_TYPE,
@@ -135,10 +137,10 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 				Action::DISPLAY_NATU_COLI,
 				Action::DISPLAY_CF,
 				Action::DISPLAY_REQUEST_TEMPLATE,
-				Action::DISPLAY_ALERT_TEMPLATE,
+                Action::DISPLAY_NOTIFICATIONS,
+                Action::DISPLAY_IMPORT,
 				Action::EDIT,
 				Action::DELETE,
-				Action::DISPLAY_IMPORT
 			],
             Menu::NOMADE => [
                 Action::MODULE_ACCESS_STOCK,
@@ -146,6 +148,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
                 Action::MODULE_ACCESS_GROUP,
                 Action::MODULE_ACCESS_UNGROUP,
                 Action::MODULE_ACCESS_HAND,
+                Action::MODULE_NOTIFICATIONS,
                 Action::DEMO_MODE
             ]
 		];

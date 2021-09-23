@@ -7,8 +7,8 @@
     {% endif %}
     <a target="_blank"
        href="{{ attachment.fullPath is defined and attachment.fullPath is not null ? attachment.fullPath : '/uploads/attachements/' ~ attachment.fileName }}"
-       download="{{ attachment.originalName }}">
-        <i class="fa fa-file mr-2"></i>{{ attachment.originalName }}
+       download="{{ attachment.originalName }}" class="has-tooltip" title="{{ attachment.originalName }}">
+        <i class="fa fa-file-pdf mr-2"></i>{{ attachment.originalName }}
     </a>
     {% if canRemove is not defined or canRemove %}
         <i class="fa fa-times red pointer"

@@ -4,7 +4,6 @@ namespace App\Service;
 
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
-use App\Entity\Collecte;
 use App\Entity\Emplacement;
 use App\Entity\IOT\CollectRequestTemplate;
 use App\Entity\IOT\DeliveryRequestTemplate;
@@ -129,6 +128,15 @@ class RequestTemplateService {
         } else {
             throw new RuntimeException("Unsupported type");
         }
+
+        $header[] = [
+            "label" => "Commentaire",
+            "value" => $requestTemplate->getComment(),
+            "isRaw" => true,
+            "colClass" => "col-sm-6 col-12",
+            "isScrollable" => true,
+            "isNeededNotEmpty" => true
+        ];
 
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->manager,

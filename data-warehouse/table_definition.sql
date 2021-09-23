@@ -156,7 +156,8 @@ CREATE TABLE dw_reference_article
     gestionnaires              text,
     statut                     varchar(255),
     date_dernier_inventaire    timestamp(0),
-    synchronisation_nomade     varchar(3)
+    synchronisation_nomade     varchar(3),
+    groupe_visibilite          varchar(255)
 );
 
 CREATE TABLE dw_service
@@ -267,6 +268,7 @@ CREATE TABLE dw_acheminement
     nature_colis            varchar(255),
     emplacement_prise       varchar(255),
     emplacement_depose      varchar(255),
+    destination             varchar(255),
     nb_colis                integer,
     statut                  varchar(255),
     operateur               varchar(255),

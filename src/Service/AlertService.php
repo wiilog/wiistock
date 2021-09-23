@@ -11,12 +11,7 @@ use App\Entity\ReferenceArticle;
 use WiiCommon\Helper\Stream;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
-use Exception;
 use Twig\Environment;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 
 class AlertService {
 
@@ -28,13 +23,8 @@ class AlertService {
         $this->templating = $templating;
     }
 
-    /**
-     * @param EntityManagerInterface $manager
-     * @throws NonUniqueResultException
-     * @throws Exception
-     */
     public function generateAlerts(EntityManagerInterface $manager) {
-        $now = new DateTime("now", new \DateTimeZone("Europe/Paris"));
+        $now = new DateTime("now");
         $parametrage = $manager->getRepository(ParametrageGlobal::class);
 
         $expiry = $parametrage->getOneParamByLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY);
@@ -87,11 +77,6 @@ class AlertService {
         $manager->flush();
     }
 
-    /**
-     * @param ReferenceArticle $reference
-     * @param EntityManagerInterface $entityManager
-     * @throws NonUniqueResultException
-     */
     public function sendThresholdMails(ReferenceArticle $reference, EntityManagerInterface $entityManager) {
         $freeField = $entityManager->getRepository(FreeField::class)
             ->findOneByLabel(FreeField::MACHINE_PDT_FREE_FIELD);
@@ -113,14 +98,6 @@ class AlertService {
         $this->mailer->sendMail("FOLLOW GT // $type atteint", $content, $reference->getManagers()->toArray());
     }
 
-    /**
-     * @param $manager
-     * @param $articles
-     * @param $delay
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
     public function sendExpiryMails($manager, $articles, $delay) {
         if(!is_array($articles)) {
             $articles = [$articles];
@@ -141,15 +118,17 @@ class AlertService {
                                  Alert $alert) {
         $serializedAlert = $alert->serialize();
 
+        /** @var ReferenceArticle $reference */
+        /** @var Article $article */
         [$reference, $article] = $alert->getLinkedArticles();
 
-        if($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI)) {
+        if ($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI)) {
             $freeFieldRepository = $entityManager->getRepository(FreeField::class);
             $freeFieldMachinePDT = $freeFieldRepository->findOneBy(['label' => 'Machine PDT']);
 
-            if(($article || $reference)) {
+            if (($article || $reference)) {
                 $freeFields = $reference->getFreeFields();
-                if($freeFieldMachinePDT
+                if ($freeFieldMachinePDT
                     && $freeFields
                     && array_key_exists($freeFieldMachinePDT->getId(), $freeFields)
                     && $freeFields[(string)$freeFieldMachinePDT->getId()]) {
@@ -162,9 +141,9 @@ class AlertService {
                     ? [$article->getArticleFournisseur()]
                     : $reference->getArticlesFournisseur()->toArray();
 
-                if(!empty($supplierArticles)) {
+                if (!empty($supplierArticles)) {
                     /** @var ArticleFournisseur $supplierArticle */
-                    foreach($supplierArticles as $supplierArticle) {
+                    foreach ($supplierArticles as $supplierArticle) {
                         $supplier = $supplierArticle->getFournisseur();
                         $row = array_merge(array_values($serializedAlert), [
                             $supplier->getNom(),
@@ -182,7 +161,8 @@ class AlertService {
                     $CSVExportService->putLine($output, $row);
                 }
             }
-        } else {
+        }
+        else {
             $CSVExportService->putLine($output, $serializedAlert);
         }
     }

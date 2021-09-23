@@ -6,7 +6,6 @@ namespace App\Service;
 use App\Entity\Wiilock;
 use DateTime;
 use DateTimeInterface;
-use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 
 
@@ -30,7 +29,7 @@ Class WiilockService
         $dashboardLock->setValue($lock);
 
         if (!$lock) {
-            $dashboardLock->setUpdateDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
+            $dashboardLock->setUpdateDate(new DateTime('now'));
         }
     }
 

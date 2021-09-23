@@ -3,11 +3,14 @@
 namespace App\Controller;
 
 use App\Entity\CategoryType;
+use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
+use App\Entity\ReferenceArticle;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Entity\VisibilityGroup;
 use App\Service\RefArticleDataService;
 use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -79,7 +82,12 @@ class FiltreRefController extends AbstractController
 
                 // champ Value
                 if (isset($data['value'])) {
-                    $filter->setValue(is_array($data['value']) ? implode(",", $data['value']) : $data['value']);
+                    if ($filter->getChampFixe() === FiltreRef::FIXED_FIELD_VISIBILITY_GROUP) {
+                        $value = implode(',', json_decode($data['value']));
+                    } else {
+                        $value = is_array($data['value']) ? implode(",", $data['value']) : $data['value'];
+                    }
+                    $filter->setValue($value);
                 }
 
                 // champ Utilisateur
@@ -107,6 +115,8 @@ class FiltreRefController extends AbstractController
             }
             return new JsonResponse($result);
         }
+
+        throw new BadRequestHttpException();
     }
 
     /**
@@ -143,25 +153,33 @@ class FiltreRefController extends AbstractController
 	{
 		if ($data = json_decode($request->getContent(), true)) {
 
-            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
 			$value = $data['value'];
 			$multiple = false;
 			if ($value === 'location') {
-				$emplacements = $emplacementRepository->findBy(['isActive' => true],['label'=> 'ASC']);
+                $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+                $emplacements = $emplacementRepository->findBy(['isActive' => true],['label'=> 'ASC']);
 				$options = [];
 				foreach ($emplacements as $emplacement) {
 					$options[] = $emplacement->getLabel();
 				}
 			} else if ($value === 'type') {
-				$types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE], 'asc');
+                $typeRepository = $entityManager->getRepository(Type::class);
+                $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE], 'asc');
 				$options = [];
 				foreach ($types as $type) {
 					$options[] = $type->getLabel();
 				}
+			} else if ($value === 'visibilityGroups' || $value === 'visibilityGroup') {
+                $multiple = true;
+                $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
+                $visibilityGroups = $visibilityGroupRepository->findBy(["active" => true], ["label" => "asc"]);
+				$options = [];
+				foreach ($visibilityGroups as $visibilityGroup) {
+					$options[] = $visibilityGroup->getLabel();
+				}
 			} else {
+                $champLibreRepository = $entityManager->getRepository(FreeField::class);
                 $freeFieldId = $visibleColumnService->extractFreeFieldId($value);
                 $options = [];
                 if (!empty($freeFieldId)) {

@@ -19,6 +19,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use App\Helper\FormatHelper;
+use App\Service\NotificationService;
 use WiiCommon\Helper\Stream;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
@@ -30,7 +31,6 @@ use App\Service\UserService;
 use App\Service\HandlingService;
 
 use DateTime;
-use DateTimeZone;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -135,7 +135,8 @@ class HandlingController extends AbstractController
                         FreeFieldService $freeFieldService,
                         AttachmentService $attachmentService,
                         TranslatorInterface $translator,
-                        UniqueNumberService $uniqueNumberService): Response
+                        UniqueNumberService $uniqueNumberService,
+                        NotificationService $notificationService): Response
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -145,7 +146,7 @@ class HandlingController extends AbstractController
         $post = $request->request;
 
         $handling = new Handling();
-        $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now');
 
         $status = $statutRepository->find($post->get('status'));
         $type = $typeRepository->find($post->get('type'));
@@ -221,6 +222,12 @@ class HandlingController extends AbstractController
         $viewHoursOnExpectedDate = !$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME);
         $handlingService->sendEmailsAccordingToStatus($entityManager, $handling, $viewHoursOnExpectedDate, !$status->isTreated());
 
+        if (($handling->getStatus()->getState() == Statut::NOT_TREATED)
+            && $handling->getType()
+            && ($handling->getType()->isNotificationsEnabled() || $handling->getType()->isNotificationsEmergency($handling->getEmergency()))) {
+            $notificationService->toTreat($handling);
+        }
+
         return new JsonResponse([
             'success' => true,
             'msg' => $translator->trans("services.La demande de service {numéro} a bien été créée", [
@@ -290,7 +297,9 @@ class HandlingController extends AbstractController
                          FreeFieldService $freeFieldService,
                          TranslatorInterface $translator,
                          AttachmentService $attachmentService,
-                         HandlingService $handlingService): Response {
+                         HandlingService $handlingService,
+                         NotificationService $notificationService): Response
+    {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $handlingRepository = $entityManager->getRepository(Handling::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
@@ -299,7 +308,7 @@ class HandlingController extends AbstractController
 
         $handling = $handlingRepository->find($post->get('id'));
 
-        $date = (new DateTime('now', new DateTimeZone('Europe/Paris')));
+        $date = (new DateTime('now'));
         $desiredDateStr = $post->get('desired-date');
         $desiredDate = $desiredDateStr ? FormatHelper::parseDatetime($desiredDateStr) : null;
 
@@ -326,7 +335,16 @@ class HandlingController extends AbstractController
 
         if (!$oldStatus || !$oldStatus->isTreated()) {
             $newStatus = $statutRepository->find($post->get('status'));
-            $handling->setStatus($newStatus);
+
+            if($newStatus) {
+                $handling->setStatus($newStatus);
+
+                if (($newStatus->getState() == Statut::NOT_TREATED)
+                    && $handling->getType()
+                    && ($handling->getType()->isNotificationsEnabled() || $handling->getType()->isNotificationsEmergency($handling->getEmergency()))) {
+                    $notificationService->toTreat($handling);
+                }
+            }
         }
         else {
             $newStatus = null;

@@ -154,7 +154,7 @@ class Entity {
     public function addExample(Example $example): self {
         if (!$this->examples->contains($example)) {
             $this->examples[] = $example;
-            $example->addClient($this);
+            $example->addEntity($this);
         }
 
         return $this;
@@ -162,7 +162,7 @@ class Entity {
 
     public function removeExample(Example $example): self {
         if ($this->examples->removeElement($example)) {
-            $example->removeClient($this);
+            $example->removeEntity($this);
         }
 
         return $this;

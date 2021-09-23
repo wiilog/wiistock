@@ -529,3 +529,61 @@ label.required:after {
         background-color: $white;
     }
 }
+
+.form-control.phone-number::placeholder {
+    color: #bbb;
+    opacity: 1;
+}
+
+.variables-list .highlighted-variable, .editor-container .highlighted-variable {
+    color: #00a3ff;
+}
+
+.phone-example {
+    background: url("../img/phone.svg") no-repeat;
+    background-size: 350px 350px;
+    width: 350px;
+    height: 350px;
+
+    .notification {
+        position: absolute;
+        top: 195px;
+        left: 46px;
+        width: 285px;
+        height: 60px;
+        overflow: hidden;
+        font-size: 10px;
+        line-height: 12px;
+        color: black;
+    }
+}
+
+.thick-line {
+    border-width: 2px;
+    border-color: $lightGrey;
+}
+
+.spinning-cookie {
+    background-image: url("../../public/svg/cookie.svg");
+    width: 150px;
+    height: 150px;
+    animation-name: spin;
+    animation-duration: 5000ms;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+
+    &.small-cookie {
+        width: 30px;
+        height: 30px;
+        cursor: pointer;
+    }
+}
+
+@keyframes spin {
+    from {
+        transform:rotate(0deg);
+    }
+    to {
+        transform:rotate(360deg);
+    }
+}

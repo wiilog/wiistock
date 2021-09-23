@@ -1,0 +1,21 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Stock | Référence | Créer un article de référence{% endblock %}
+{% block titleLink path('reference_article_index') %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('reference-article') }}
+{% endblock %}
+
+{% block page_content %}
+    {% include 'reference_article/form/form.html.twig' with {reference: new_reference} %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('reference-article') }}
+
+    <script src="{{ asset('js/pages/form-reference-article.js') }}?v={{ web_version }}"></script>
+    <script src="{{ asset('js/pages/referenceArticle.js') }}?v={{ web_version }}"></script>
+{% endblock %}

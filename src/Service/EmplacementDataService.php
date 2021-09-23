@@ -12,9 +12,6 @@ use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 
 use Twig\Environment as Twig_Environment;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 
 class EmplacementDataService {
 
@@ -91,9 +88,9 @@ class EmplacementDataService {
         $groupLastMessage = $linkedGroup ? $linkedGroup->getLastMessage() : null;
         $locationLastMessage = $emplacement->getLastMessage();
 
-        $sensorCode = $groupLastMessage
+        $sensorCode = $groupLastMessage && $groupLastMessage->getSensor()->getAvailableSensorWrapper()
             ? $groupLastMessage->getSensor()->getAvailableSensorWrapper()->getName()
-            : ($locationLastMessage
+            : ($locationLastMessage && $locationLastMessage->getSensor()->getAvailableSensorWrapper()
                 ? $locationLastMessage->getSensor()->getAvailableSensorWrapper()->getName()
                 : null);
 

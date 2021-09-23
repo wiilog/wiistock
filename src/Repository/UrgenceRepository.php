@@ -7,7 +7,6 @@ use App\Entity\Fournisseur;
 use App\Entity\Urgence;
 use App\Helper\QueryCounter;
 use DateTime;
-use DateTimeZone;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -133,12 +132,12 @@ class UrgenceRepository extends EntityRepository {
             ->select('COUNT(urgence)')
             ->where('urgence.dateStart < :now')
             ->andWhere('urgence.lastArrival IS NULL')
-            ->setParameter('now', new DateTime('now', new DateTimeZone('Europe/Paris')));
+            ->setParameter('now', new DateTime('now'));
 
         if ($daily) {
-            $todayEvening = new DateTime('now', new DateTimeZone('Europe/Paris'));
+            $todayEvening = new DateTime('now');
             $todayEvening->setTime(23, 59, 59, 59);
-            $todayMorning = new DateTime('now', new DateTimeZone('Europe/Paris'));
+            $todayMorning = new DateTime('now');
             $todayMorning->setTime(0, 0, 0, 1);
             $queryBuilder
                 ->andWhere('urgence.dateEnd < :todayEvening')

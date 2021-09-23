@@ -4,9 +4,13 @@ namespace App\Repository;
 
 use App\Entity\ArticleFournisseur;
 use App\Entity\ReferenceArticle;
+use App\Entity\Utilisateur;
+use App\Entity\VisibilityGroup;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Symfony\Component\HttpFoundation\InputBag;
+use WiiCommon\Helper\Stream;
 
 /**
  * @method ArticleFournisseur|null find($id, $lockMode = null, $lockVersion = null)
@@ -120,16 +124,23 @@ class ArticleFournisseurRepository extends EntityRepository
         return $query->getResult();
     }
 
-    public function findByParams($params = null)
+    public function findByParams(?InputBag $params, Utilisateur $user)
     {
-        $em = $this->getEntityManager();
-        $qb = $em->createQueryBuilder();
-
+        $queryBuilder = $this->createQueryBuilder('supplier_article');
+        $visibilityGroup = $user->getVisibilityGroups();
+        if (!$visibilityGroup->isEmpty()) {
+            $queryBuilder
+                ->join('supplier_article.referenceArticle', 'join_referenceArticle')
+                ->join('join_referenceArticle.visibilityGroup', 'visibility_group')
+                ->andWhere('visibility_group.id IN (:userVisibilityGroups)')
+                ->setParameter('userVisibilityGroups', Stream::from(
+                    $visibilityGroup->toArray()
+                )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
+        }
         $countTotal = $this->countAll();
 
-        $qb
-            ->select('af')
-            ->from('App\Entity\ArticleFournisseur', 'af');
+        $queryBuilder
+            ->select('supplier_article');
 
         // prise en compte des paramètres issus du datatable
         if (!empty($params)) {
@@ -140,44 +151,44 @@ class ArticleFournisseurRepository extends EntityRepository
                 {
                     $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
                     if ($column === 'fournisseur') {
-                        $qb
-                            ->leftJoin('af.fournisseur', 'f')
+                        $queryBuilder
+                            ->leftJoin('supplier_article.fournisseur', 'f')
                             ->orderBy('f.nom', $order);
                     } else if ($column === 'art_ref') {
-                        $qb
-                            ->leftJoin('af.referenceArticle', 'ra')
+                        $queryBuilder
+                            ->leftJoin('supplier_article.referenceArticle', 'ra')
                             ->orderBy('ra.libelle', $order);
                     } else if ($column === 'label') {
-                        $qb
-                            ->orderBy('af.label', $order);
+                        $queryBuilder
+                            ->orderBy('supplier_article.label', $order);
                     } else {
-                        $qb
-                            ->orderBy('af.' . $column, $order);
+                        $queryBuilder
+                            ->orderBy('supplier_article.' . $column, $order);
                     }
                 }
             }
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
-                    $qb
-                        ->leftJoin('af.fournisseur', 'f2')
-                        ->leftJoin('af.referenceArticle', 'ra2')
-                        ->andWhere('f2.nom LIKE :value OR af.reference LIKE :value OR ra2.libelle LIKE :value OR af.label LIKE :value OR ra2.reference LIKE :value')
+                    $queryBuilder
+                        ->leftJoin('supplier_article.fournisseur', 'f2')
+                        ->leftJoin('supplier_article.referenceArticle', 'ra2')
+                        ->andWhere('f2.nom LIKE :value OR supplier_article.reference LIKE :value OR ra2.libelle LIKE :value OR supplier_article.label LIKE :value OR ra2.reference LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
-            $qb->select('count(af)');
-            $countQuery = (int) $qb->getQuery()->getSingleScalarResult();
+            $queryBuilder->select('count(supplier_article)');
+            $countQuery = (int) $queryBuilder->getQuery()->getSingleScalarResult();
         } else {
             $countQuery = $countTotal;
         }
-        $qb
-            ->select('af');
+        $queryBuilder
+            ->select('supplier_article');
         if ($params) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+            if (!empty($params->get('start'))) $queryBuilder->setFirstResult($params->get('start'));
+            if (!empty($params->get('length'))) $queryBuilder->setMaxResults($params->get('length'));
         }
-        $query = $qb->getQuery();
+        $query = $queryBuilder->getQuery();
         return [
             'data' => $query ? $query->getResult() : null,
             'count' => $countQuery,

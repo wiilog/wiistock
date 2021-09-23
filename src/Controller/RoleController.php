@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
-use App\Entity\Emplacement;
 use App\Entity\Menu;
 use App\Entity\Parametre;
 use App\Entity\ParametreRole;

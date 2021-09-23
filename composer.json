@@ -15,6 +15,7 @@
         "doctrine/doctrine-fixtures-bundle": "^3.4",
         "friendsofsymfony/jsrouting-bundle": "^2.7",
         "friendsofsymfony/rest-bundle": "^3.0",
+        "google/apiclient": "^2.10",
         "knplabs/knp-snappy-bundle": "^1.8",
         "nelmio/cors-bundle": "^2.1",
         "nikitospush/barcode-bundle": "^3.0",
@@ -50,6 +51,7 @@
         "symfony/web-link": "^5.2",
         "symfony/webpack-encore-bundle": "^1.8",
         "symfony/yaml": "^5.2",
+        "twig/string-extra": "^3.3",
         "wiilog/common": "dev-master"
     },
     "require-dev": {
@@ -97,7 +99,7 @@
     },
     "extra": {
         "symfony": {
-            "allow-contrib": false,
+            "allow-contrib": "true",
             "require": "^5.2"
         }
     },

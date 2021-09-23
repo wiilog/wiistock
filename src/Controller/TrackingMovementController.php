@@ -27,11 +27,9 @@ use App\Service\TrackingMovementService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 
-use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -50,6 +48,11 @@ class TrackingMovementController extends AbstractController
      * @var AttachmentService
      */
     private $attachmentService;
+
+    /**
+     * @Required
+     */
+    public UserService $userService;
 
     public function __construct(AttachmentService $attachmentService)
     {
@@ -175,7 +178,7 @@ class TrackingMovementController extends AbstractController
             ]);
         }
 
-        $date = new DateTime($post->get('datetime') ?: 'now', new DateTimeZone('Europe/Paris'));
+        $date = new DateTime($post->get('datetime') ?: 'now');
         $fromNomade = false;
         $fileBag = $request->files->count() > 0 ? $request->files : null;
 
@@ -559,7 +562,8 @@ class TrackingMovementController extends AbstractController
             $templateDirectory = 'mouvement_traca';
 
             if ($typeId === 'fromStart') {
-                $currentClient = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED);
+                $currentClient = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED) ||
+                    $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_NS);
                 $fileToRender = "$templateDirectory/" . (
                     $currentClient
                         ? 'newMassMvtTraca.html.twig'

@@ -36,7 +36,6 @@ use App\Helper\FormatHelper;
 use App\Helper\QueryCounter;
 use WiiCommon\Helper\Stream;
 use DateTime;
-use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -301,7 +300,7 @@ class DashboardService {
                                        Dashboard\Component $component): void {
         $config = $component->getConfig();
         $handlingRepository = $entityManager->getRepository(Handling::class);
-        $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
+        $now = new DateTime("now");
         $nowMorning = clone $now;
         $nowMorning->setTime(0, 0, 0, 0);
         $nowEvening = clone $now;
@@ -378,9 +377,8 @@ class DashboardService {
     public function persistActiveReferenceAlerts(EntityManagerInterface $entityManager,
                                                  Dashboard\Component $component): void {
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
-
         $alertRepository = $entityManager->getRepository(Alert::class);
-        $count = $alertRepository->countAllActive();
+        $count = $alertRepository->countAllActiveByParams($component->getConfig());
 
         $meter
             ->setCount($count ?? 0);
@@ -1048,7 +1046,7 @@ class DashboardService {
         if (!empty($workedDaysLabels)) {
             while (count($daysToReturn) < $nbDaysToReturn) {
                 $operator = $period === self::DAILY_PERIOD_PREVIOUS_DAYS ? '-' : '+';
-                $dateToCheck = new DateTime("now " . $operator . " $dayIndex days", new DateTimeZone('Europe/Paris'));
+                $dateToCheck = new DateTime("now " . $operator . " $dayIndex days");
 
                 if (!$this->enCoursService->isDayInArray($dateToCheck, $workFreeDays)) {
                     $dateDayLabel = strtolower($dateToCheck->format('l'));

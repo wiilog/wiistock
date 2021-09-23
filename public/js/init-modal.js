@@ -8,7 +8,7 @@ let droppedFiles = [];
  * Init form validation modal.
  *
  * @param {jQuery} $modal jQuery element of the modal
- * @param {jQuery} $submit jQuery element of the submit button
+ * @param {jQuery}|string submit jQuery element of the submit button
  * @param {string} path url to call on submit
  * @param {{confirmMessage: function|undefined, tables: undefined|Array<jQuery>, keepModal: undefined|boolean, keepForm: undefined|boolean, success: undefined|function, clearOnClose: undefined|boolean, validator: undefined|function}} options Object containing some option.
  *   - tables is an array of datatable
@@ -19,7 +19,7 @@ let droppedFiles = [];
  *   - validator function which calculate custom form validation
  *   - confirmMessage Function which return promise throwing when form can be submited
  */
-function InitModal($modal, $submit, path, options = {}) {
+function InitModal($modal, submit, path, options = {}) {
     if(options.clearOnClose) {
         $modal.on('hidden.bs.modal', function () {
             clearModal($modal);
@@ -31,11 +31,13 @@ function InitModal($modal, $submit, path, options = {}) {
         $('[data-toggle="popover"]').popover("hide");
     });
 
-    $submit.click(function () {
-        if ($submit.hasClass(LOADING_CLASS)) {
+    const onclick = function () {
+        const $button = $(this);
+
+        if ($button.hasClass(LOADING_CLASS)) {
             showBSAlert('L\'opération est en cours de traitement', 'warning');
         } else {
-            SubmitAction($modal, $submit, path, options)
+            SubmitAction($modal, $button, path, options)
                 .then((data) => {
                     if (data && data.success && options && options.success) {
                         options.success(data);
@@ -43,7 +45,14 @@ function InitModal($modal, $submit, path, options = {}) {
                 })
                 .catch(() => {});
         }
-    });
+    };
+
+    //if it's a string, find the button in the modal
+    if(typeof submit === 'string') {
+        $modal.on(`click`, submit, onclick);
+    } else {
+        submit.on(`click`, onclick);
+    }
 }
 
 /**
@@ -83,6 +92,7 @@ function SubmitAction($modal,
  *   - keepForm true if we do not clear form
  *   - keepModal true if we do not close form
  *   - validator function which calculate custom form validation
+ *   - onSuccess called on success
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery} $submit jQuery element of the submit button
  * @param {string} path
@@ -90,7 +100,7 @@ function SubmitAction($modal,
 function processSubmitAction($modal,
                              $submit,
                              path,
-                             {tables, keepModal, keepForm, validator, headerCallback} = {}) {
+                             {tables, keepModal, keepForm, validator, onSuccess, headerCallback} = {}) {
     const isAttachmentForm = $modal.find('input[name="isAttachmentForm"]').val() === '1';
     const {success, errorMessages, $isInvalidElements, data} = ProcessForm($modal, isAttachmentForm, validator);
     if (success) {
@@ -119,6 +129,10 @@ function processSubmitAction($modal,
                     });
                 }
                 else {
+                    if(onSuccess) {
+                        onSuccess(data);
+                    }
+
                     const res = treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, headerCallback);
                     if (!res) {
                         return;
@@ -169,7 +183,6 @@ function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, hea
     if (data.nextModal) {
         $modal.find('.modal-body').html(data.nextModal);
     }
-
     if (tables) {
         tables.forEach((table) => {
             table.ajax.reload(null, false);
@@ -303,7 +316,10 @@ function processInputsForm($modal, data, isAttachmentForm) {
         const $input = $(this);
         const name = $input.attr('name');
 
-        const $formGroupLabel = $input.closest('.form-group').find('label');
+        let $formGroupLabel = $input.closest('.form-group').find('label');
+        if (!$formGroupLabel.exists()) {
+            $formGroupLabel = $input.closest('label').find('.ra-field-name');
+        }
         const $editorContainer = $input.siblings('.ql-container');
         const $qlEditor = $editorContainer.length > 0
             ? $editorContainer.find('.ql-editor')
@@ -314,21 +330,27 @@ function processInputsForm($modal, data, isAttachmentForm) {
             : $input.val();
         val = (val && typeof val.trim === 'function') ? val.trim() : val;
 
+        const customLabel = $input.data('custom-label');
         // Fix bug when we write <label>Label<select>...</select></label
         // the label variable had text options
-        const dirtyLabel = $formGroupLabel
-            .clone()    //clone the element
-            .children() //select all the children
-            .remove()   //remove all the children
-            .end()      //again go back to selected element
-            .text();
+        const dirtyLabel = (
+            customLabel
+            || $formGroupLabel
+                .clone()    //clone the element
+                .children() //select all the children
+                .remove()   //remove all the children
+                .end()      //again go back to selected element
+                .text()
+        );
 
         // on enlève l'éventuelle * du nom du label
         const label = (dirtyLabel || '')
             .replace(/\*/g, '')
             .replace(/\n/g, ' ')
             .trim();
-
+        if (name === 'quantity') {
+            console.log(label)
+        }
         // validation données obligatoires
         if ($input.hasClass('needed')
             && $input.is(':disabled') === false
@@ -348,7 +370,7 @@ function processInputsForm($modal, data, isAttachmentForm) {
         }
         else if ($input.hasClass('is-barcode')
             && !isBarcodeValid($input)) {
-            errorMessages.push(`Le champ ${label} doit contenir au maximum 21 caractères (lettres ou chiffres uniquement).`);
+            errorMessages.push(`Le champ ${label} doit contenir au maximum 21 caractères, lettres ou chiffres uniquement, pas d’accent.`);
             $isInvalidElements.push($input, $input.parent());
         }
         // validation valeur des inputs de type password
@@ -722,10 +744,15 @@ function displayAttachements(files, $dropFrame, isMultiple = true) {
 
             let reader = new FileReader();
             reader.addEventListener('load', function () {
+                let icon = `fa-file`;
+                if($fileBag.is(`[data-icon]`)) {
+                    icon = $fileBag.data(`icon`);
+                }
+
                 $fileBag.append(`
                     <p class="attachement" value="` + withoutExtension(fileName) + `">
-                        <a target="_blank" href="` + reader.result + `">
-                            <i class="fa fa-file mr-2"></i>` + fileName + `
+                        <a target="_blank" href="` + reader.result + `" class="has-tooltip" title="${fileName}">
+                            <i class="fa ${icon} mr-2"></i>` + fileName + `
                         </a>
                         <i class="fa fa-times red pointer" onclick="removeAttachment($(this))"></i>
                     </p>`);
@@ -787,7 +814,7 @@ function dragLeaveDiv(event, div) {
 }
 
 function openFileExplorer(span) {
-    span.closest('.modal').find('.fileInput').trigger('click');
+    span.siblings('.fileInput').trigger('click');
 }
 
 function saveDroppedFiles(event, $div) {

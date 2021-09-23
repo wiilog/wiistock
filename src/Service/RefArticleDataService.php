@@ -4,11 +4,14 @@ namespace App\Service;
 
 use App\Entity\Action;
 use App\Entity\Alert;
+use App\Entity\Article;
+use App\Entity\ArticleFournisseur;
+use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
-use App\Entity\FreeField;
 use App\Entity\Demande;
 use App\Entity\FiltreRef;
 use App\Entity\FiltreSup;
+use App\Entity\FreeField;
 use App\Entity\InventoryCategory;
 use App\Entity\LigneArticle;
 use App\Entity\LigneArticlePreparation;
@@ -20,23 +23,21 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Entity\CategorieCL;
-use App\Entity\ArticleFournisseur;
+use App\Entity\VisibilityGroup;
 use App\Helper\FormatHelper;
 use App\Repository\PurchaseRequestLineRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
-use WiiCommon\Helper\Stream;
-use App\Repository\FiltreRefRepository;
+
 use DateTime;
-use DateTimeZone;
-use RuntimeException;
-use Twig\Environment as Twig_Environment;
+use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use RuntimeException;
+use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Doctrine\ORM\EntityManagerInterface;
-use App\Entity\Article;
+use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\Stream;
 
 class RefArticleDataService {
 
@@ -63,62 +64,48 @@ class RefArticleDataService {
         ["title" => "Gestion de stock", "name" => "stockManagement", "type" => "text", "searchable" => true],
         ["title" => "Gestionnaire(s)", "name" => "managers", "orderable" => false, "type" => "text"],
         ["title" => "Commentaire", "name" => "comment", "type" => "text", "orderable" => false],
-        ["title" => "Commentaire d'urgence", "name" => "emergencyComment", "type" => "text", "orderable" => false]
+        ["title" => "Commentaire d'urgence", "name" => "emergencyComment", "type" => "text", "orderable" => false],
+        ["title" => FiltreRef::FIXED_FIELD_VISIBILITY_GROUP, "name" => "visibilityGroups", "type" => "list multiple", "orderable" => true],
     ];
 
-    /**
-     * @var FiltreRefRepository
-     */
     private $filtreRefRepository;
 
-    /**
-     * @var Twig_Environment
-     */
-    private $templating;
+    /** @Required */
+    public Twig_Environment $templating;
 
-    /**
-     * @var UserService
-     */
-    private $userService;
+    /** @Required */
+    public UserService $userService;
 
     /**
      * @var object|string
      */
     private $user;
 
-    private $entityManager;
+    /** @Required */
+    public EntityManagerInterface $entityManager;
 
-    /**
-     * @var RouterInterface
-     */
-    private $router;
-    private $freeFieldService;
-    private $articleFournisseurService;
-    private $alertService;
-    private $visibleColumnService;
-    private $attachmentService;
+    /** @Required */
+    public RouterInterface $router;
 
-    public function __construct(RouterInterface $router,
-                                UserService $userService,
-                                FreeFieldService $champLibreService,
-                                EntityManagerInterface $entityManager,
-                                Twig_Environment $templating,
-                                VisibleColumnService $visibleColumnService,
-                                TokenStorageInterface $tokenStorage,
-                                ArticleFournisseurService $articleFournisseurService,
-                                AlertService $alertService,
-                                AttachmentService $attachmentService) {
-        $this->filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
-        $this->freeFieldService = $champLibreService;
-        $this->templating = $templating;
+    /** @Required */
+    public FreeFieldService $freeFieldService;
+
+    /** @Required */
+    public ArticleFournisseurService $articleFournisseurService;
+
+    /** @Required */
+    public AlertService $alertService;
+
+    /** @Required */
+    public VisibleColumnService $visibleColumnService;
+
+    /** @Required */
+    public AttachmentService $attachmentService;
+
+    public function __construct(TokenStorageInterface $tokenStorage,
+                                EntityManagerInterface $entityManager) {
         $this->user = $tokenStorage->getToken() ? $tokenStorage->getToken()->getUser() : null;
-        $this->entityManager = $entityManager;
-        $this->userService = $userService;
-        $this->router = $router;
-        $this->articleFournisseurService = $articleFournisseurService;
-        $this->alertService = $alertService;
-        $this->visibleColumnService = $visibleColumnService;
-        $this->attachmentService = $attachmentService;
+        $this->filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
     }
 
     public function getRefArticleDataByParams($params = null) {
@@ -228,7 +215,7 @@ class RefArticleDataService {
         ]);
     }
 
-    public function editRefArticle($refArticle,
+    public function editRefArticle(ReferenceArticle $refArticle,
                                    $data,
                                    Utilisateur $user,
                                    FreeFieldService $champLibreService,
@@ -240,31 +227,43 @@ class RefArticleDataService {
         $statutRepository = $this->entityManager->getRepository(Statut::class);
         $inventoryCategoryRepository = $this->entityManager->getRepository(InventoryCategory::class);
         $userRepository = $this->entityManager->getRepository(Utilisateur::class);
+        $visibilityGroupRepository = $this->entityManager->getRepository(VisibilityGroup::class);
 
         //modification champsFixes
         $entityManager = $this->entityManager;
         $category = $inventoryCategoryRepository->find($data['categorie']);
         $price = max(0, $data['prix']);
         if(isset($data['reference'])) $refArticle->setReference($data['reference']);
+
+        if (isset($data['suppliers-to-remove']) && $data['suppliers-to-remove'] !== "") {
+            $suppliers = $this->entityManager->getRepository(ArticleFournisseur::class)->findBy(['id' => explode(',', $data['suppliers-to-remove'])]);
+            foreach ($suppliers as $supplier) {
+                $refArticle->removeArticleFournisseur($supplier);
+            }
+        }
+
         if(isset($data['frl'])) {
             $supplierReferenceLines = json_decode($data['frl'], true);
             foreach($supplierReferenceLines as $supplierReferenceLine) {
                 $referenceArticleFournisseur = $supplierReferenceLine['referenceFournisseur'];
+                $existingSupplierArticle = $entityManager->getRepository(ArticleFournisseur::class)->findOneBy(['reference' => $referenceArticleFournisseur]);
 
-                try {
-                    $supplierArticle = $this->articleFournisseurService->createArticleFournisseur([
-                        'fournisseur' => $supplierReferenceLine['fournisseur'],
-                        'article-reference' => $refArticle,
-                        'label' => $supplierReferenceLine['labelFournisseur'],
-                        'reference' => $referenceArticleFournisseur
-                    ]);
+                if(!isset($existingSupplierArticle)) {
+                    try {
+                        $supplierArticle = $this->articleFournisseurService->createArticleFournisseur([
+                            'fournisseur' => $supplierReferenceLine['fournisseur'],
+                            'article-reference' => $refArticle,
+                            'label' => $supplierReferenceLine['labelFournisseur'],
+                            'reference' => $referenceArticleFournisseur
+                        ]);
 
-                    $entityManager->persist($supplierArticle);
-                } catch(Exception $exception) {
-                    if($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
-                        $response['success'] = false;
-                        $response['msg'] = "La référence '$referenceArticleFournisseur' existe déjà pour un article fournisseur.";
-                        return $response;
+                        $entityManager->persist($supplierArticle);
+                    } catch (Exception $exception) {
+                        if ($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
+                            $response['success'] = false;
+                            $response['msg'] = "La référence '$referenceArticleFournisseur' existe déjà pour un article fournisseur.";
+                            return $response;
+                        }
                     }
                 }
             }
@@ -324,12 +323,15 @@ class RefArticleDataService {
 
 
         $refArticle->getManagers()->clear();
-
-        $managers = $data['managers'] && is_string($data["managers"]) ? explode(',', $data['managers']) : $data["managers"];
-        if (!empty($managers)) {
+        if (!empty($data["managers"])) {
+            $managers = is_string($data["managers"]) ? explode(',', $data['managers']) : $data["managers"];
             foreach ($managers as $manager) {
                 $refArticle->addManager($userRepository->find($manager));
             }
+        }
+        $entityManager->flush();
+        if (isset($data["visibility-group"]) && $data["visibility-group"] !== 'null') {
+            $refArticle->setVisibilityGroup($data['visibility-group'] ? $visibilityGroupRepository->find(intval($data['visibility-group'])) : null);
         }
 
         $entityManager->flush();
@@ -337,6 +339,14 @@ class RefArticleDataService {
 
         $champLibreService->manageFreeFields($refArticle, $data, $entityManager);
         if(isset($request)) {
+            if($request->files->has('image')) {
+                $file = $request->files->get('image');
+                $attachments = $this->attachmentService->createAttachements([$file]);
+                $entityManager->persist($attachments[0]);
+
+                $refArticle->setImage($attachments[0]);
+                $request->files->remove('image');
+            }
             $this->attachmentService->manageAttachments($entityManager, $refArticle, $request->files);
         }
         $entityManager->flush();
@@ -344,6 +354,9 @@ class RefArticleDataService {
         $rows = $this->dataRowRefArticle($refArticle);
         $response['success'] = true;
         $response['id'] = $refArticle->getId();
+        $response['data'] = [
+            "id" => $refArticle->getId(),
+        ];
         $response['edit'] = $rows;
         return $response;
     }
@@ -371,7 +384,6 @@ class RefArticleDataService {
 
         $row = [
             "id" => $refArticle->getId(),
-            "attachments" => $attachments ?? "",
             "label" => $refArticle->getLibelle() ?? "Non défini",
             "reference" => $refArticle->getReference() ?? "Non défini",
             "quantityType" => $refArticle->getTypeQuantite() ?? "Non défini",
@@ -381,6 +393,7 @@ class RefArticleDataService {
             "stockQuantity" => $refArticle->getQuantiteStock() ?? 0,
             "buyer" => $refArticle->getBuyer() ? $refArticle->getBuyer()->getUsername() : '',
             "emergencyComment" => $refArticle->getEmergencyComment(),
+            "visibilityGroups" => FormatHelper::visibilityGroup($refArticle->getVisibilityGroup()),
             "barCode" => $refArticle->getBarCode() ?? "Non défini",
             "comment" => $refArticle->getCommentaire(),
             "status" => FormatHelper::status($refArticle->getStatut()),
@@ -485,7 +498,7 @@ class RefArticleDataService {
     public function generateBarCode($counter = null) {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
 
-        $now = new \DateTime('now');
+        $now = new DateTime('now');
         $dateCode = $now->format('ym');
 
         if(!isset($counter)) {
@@ -497,13 +510,25 @@ class RefArticleDataService {
         return ReferenceArticle::BARCODE_PREFIX . $dateCode . $counter;
     }
 
-    public function getAlerteDataByParams($params, $user) {
+    public function getAlerteDataByParams(InputBag $params, Utilisateur $user) {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $alertRepository = $this->entityManager->getRepository(Alert::class);
-
-        $filtresAlerte = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ALERTE, $user);
-
-        $results = $alertRepository->getAlertDataByParams($params, $filtresAlerte);
+        if ($params->has('managers') && !empty($params->get('managers')) ||
+            $params->has('referenceTypes') && !empty($params->get('referenceTypes'))) {
+            $filters = [
+                [
+                    'field' => 'multipleTypes',
+                    'value' => $params->get('referenceTypes')
+                ],
+                [
+                    'field' => 'utilisateurs',
+                    'value' => $params->get('managers')
+                ]
+            ];
+        } else {
+            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ALERTE, $this->user);
+        }
+        $results = $alertRepository->getAlertDataByParams($params, $filters, $user);
         $alerts = $results['data'];
 
         $rows = [];
@@ -542,11 +567,10 @@ class RefArticleDataService {
             $code = $entity->getBarCode();
             $label = $entity->getLabel();
             $expiry = $entity->getExpiryDate() ? $entity->getExpiryDate()->format("d/m/Y H:i") : "Non défini";
-            $managers = $referenceArticle
-                ? Stream::from($referenceArticle->getManagers())
-                    ->map(fn (Utilisateur $utilisateur) => $utilisateur->getUsername())
-                    ->toArray()
-                : [];
+            $quantityType = $referenceArticle->getTypeQuantite();
+            $managers = Stream::from($referenceArticle->getManagers())
+                ->map(fn (Utilisateur $user) => $user->getUsername())
+                ->toArray();
             $managers = count($managers) > 0 ? implode(",", $managers) : 'Non défini';
         } else {
             throw new RuntimeException("Invalid alert");
@@ -648,7 +672,7 @@ class RefArticleDataService {
                 $entityManager->remove($alert);
             }
         } else {
-            $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
+            $now = new DateTime("now");
             $alertRepository = $entityManager->getRepository(Alert::class);
 
             if($reference->getLimitSecurity() !== null && $reference->getLimitSecurity() >= $reference->getQuantiteStock()) {
@@ -702,7 +726,21 @@ class RefArticleDataService {
         $categorieCL = $categorieCLRepository->findOneBy(['label' => CategorieCL::REFERENCE_ARTICLE]);
         $freeFields = $freeFieldRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, $categorieCL);
 
-        return $this->visibleColumnService->getArrayConfig(self::REF_ARTICLE_FIELDS, $freeFields, $currentUser->getColumnVisible());
+        $fields = self::REF_ARTICLE_FIELDS;
+        if(!$currentUser->getVisibilityGroups()->isEmpty()) {
+            $visibilityGroupsIndex = null;
+            foreach($fields as $index => $field) {
+                if($field["name"] === "visibilityGroups") {
+                    $visibilityGroupsIndex = $index;
+                    break;
+                }
+            }
+
+            if($visibilityGroupsIndex) {
+                array_splice($fields, $visibilityGroupsIndex, 1);
+            }
+        }
+        return $this->visibleColumnService->getArrayConfig($fields, $freeFields, $currentUser->getColumnVisible());
     }
 
     public function getFieldTitle(string $fieldName): ?string {

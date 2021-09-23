@@ -75,6 +75,11 @@ class Attachment
      */
     private $handling;
 
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\ReferenceArticle", mappedBy="image")
+     */
+    private $referenceArticle;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -196,6 +201,18 @@ class Attachment
     public function setImportCsv(?Import $importCsv): self
     {
         $this->importCsv = $importCsv;
+
+        return $this;
+    }
+
+    public function getReferenceArticle(): ?ReferenceArticle
+    {
+        return $this->referenceArticle;
+    }
+
+    public function setReferenceArticle(?ReferenceArticle $referenceArticle): self
+    {
+        $this->referenceArticle = $referenceArticle;
 
         return $this;
     }

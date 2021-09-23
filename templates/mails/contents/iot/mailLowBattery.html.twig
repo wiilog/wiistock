@@ -1,0 +1,7 @@
+{% extends 'mails/template.html.twig' %}
+
+{% block content %}
+    <p>Bonjour,</p>
+    <p>La batterie de votre capteur {{ sensorName }} code {{ sensorCode }} vient de passer en dessous de 10%</p>
+    <p>Pensez à changer prochainement sa pile.</p>
+{% endblock %}

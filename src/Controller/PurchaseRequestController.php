@@ -23,7 +23,6 @@ use DateTime;
 use App\Service\CSVExportService;
 use App\Service\UserService;
 
-use DateTimeZone;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Iterator;
@@ -108,7 +107,7 @@ class PurchaseRequestController extends AbstractController
         $dateTimeMax = DateTime::createFromFormat("Y-m-d H:i:s", $dateMax . " 23:59:59");
 
         if(isset($dateTimeMin, $dateTimeMax)) {
-            $now = new DateTime("now", new DateTimeZone("Europe/Paris"));
+            $now = new DateTime("now");
 
             $purchaseRequestRepository = $entityManager->getRepository(PurchaseRequest::class);
             $purchaseRequestLineRepository = $entityManager->getRepository(PurchaseRequestLine::class);
@@ -401,11 +400,11 @@ class PurchaseRequestController extends AbstractController
             }
 
             if(isset($data['orderDate']) && $data['expectedDate']){
-                $orderDate = DateTime::createFromFormat('d/m/Y H:i', $data['orderDate'], new DateTimeZone("Europe/Paris")) ?: null;
+                $orderDate = DateTime::createFromFormat('d/m/Y H:i', $data['orderDate']) ?: null;
             }
 
             if(isset($data['expectedDate']) && $data['expectedDate']){
-                $expectedDate = DateTime::createFromFormat('d/m/Y', $data['expectedDate'], new DateTimeZone("Europe/Paris")) ?: null;
+                $expectedDate = DateTime::createFromFormat('d/m/Y', $data['expectedDate']) ?: null;
             }
 
             $purchaseRequestLine
@@ -546,7 +545,7 @@ class PurchaseRequestController extends AbstractController
 
         $purchaseRequest
             ->setStatus($inProgressStatus)
-            ->setConsiderationDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
+            ->setConsiderationDate(new DateTime('now'));
 
         $entityManager->flush();
         $purchaseRequestService->sendMailsAccordingToStatus($purchaseRequest);
@@ -627,7 +626,7 @@ class PurchaseRequestController extends AbstractController
 
         $purchaseRequest
             ->setStatus($treatedStatus)
-            ->setProcessingDate(new DateTime('now', new DateTimeZone('Europe/Paris')));
+            ->setProcessingDate(new DateTime('now'));
         $entityManager->flush();
         $purchaseRequestService->sendMailsAccordingToStatus($purchaseRequest);
 
@@ -650,7 +649,7 @@ class PurchaseRequestController extends AbstractController
         if ($data = json_decode($request->getContent(), true)) {
             $statusRepository = $entityManager->getRepository(Statut::class);
 
-            $validationDate = new DateTime("now", new DateTimeZone("Europe/Paris"));
+            $validationDate = new DateTime("now");
             $status = $statusRepository->find($data['status']);
             if (!$status) {
                 return $this->json([

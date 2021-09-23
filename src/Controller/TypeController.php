@@ -6,12 +6,12 @@ namespace App\Controller;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategoryType;
-use App\Entity\Emplacement;
+use App\Entity\FieldsParam;
 use App\Entity\Menu;
 use App\Entity\Statut;
 use App\Entity\Type;
+use App\Service\TypeService;
 use WiiCommon\Helper\Stream;
-use App\Service\GlobalParamService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -39,8 +39,14 @@ class TypeController extends AbstractController
         $categories = $categoryTypeRepository->findBy([], ['label' => 'ASC']);
         $categories = Stream::from($categories)->filter(fn(CategoryType $category) => $category->getLabel() !== CategoryType::SENSOR);
 
-        return $this->render('types/index.html.twig', [
-            'categories' => $categories,
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $dispatchEmergencies = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY);
+        $handlingEmergencies = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY);
+
+        return $this->render("types/index.html.twig", [
+            "categories" => $categories,
+            "dispatchEmergencies" => $dispatchEmergencies,
+            "handlingEmergencies" => $handlingEmergencies,
         ]);
     }
 
@@ -57,6 +63,16 @@ class TypeController extends AbstractController
         foreach ($types as $type) {
             $url['edit'] = $this->generateUrl('types_api_edit', ['id' => $type->getId()]);
 
+            if(!empty($type->getNotificationsEmergencies())) {
+                $notifications = "Activées si urgence";
+            }
+            else if ($type->isNotificationsEnabled()) {
+                $notifications = "Activées";
+            }
+             else {
+                $notifications = "Désactivées";
+            }
+
             $rows[] = [
                 'Label' => $type->getLabel(),
                 'Categorie' => $type->getCategory() ? $type->getCategory()->getLabel() : '',
@@ -64,6 +80,7 @@ class TypeController extends AbstractController
                 'sendMail' => $type->getCategory() && ($type->getCategory()->getLabel() === CategoryType::DEMANDE_LIVRAISON)
                     ? ($type->getSendMail() ? 'Oui' : 'Non')
                     : '',
+                'notifications' => $notifications,
                 'Actions' => $this->renderView('types/datatableTypeRow.html.twig', [
                     'url' => $url,
                     'typeId' => $type->getId(),
@@ -80,23 +97,20 @@ class TypeController extends AbstractController
      * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request,
-                        GlobalParamService $globalParamService,
+                        TypeService $typeService,
                         EntityManagerInterface $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getManager();
 
             $typeRepository = $entityManager->getRepository(Type::class);
-            $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
-            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
             // on vérifie que le label n'est pas déjà utilisé
             $labelExist = $typeRepository->countByLabelAndCategory($data['label'], $data['category']);
 
-
             if (!$labelExist) {
                 $type = new Type();
 
-                $globalParamService->treatTypeCreationOrEdition($type, $categoryTypeRepository, $emplacementRepository, $data);
+                $typeService->editType($type, $entityManager, $data);
 
                 $em->persist($type);
                 $em->flush();
@@ -129,12 +143,16 @@ class TypeController extends AbstractController
             $categories = $categoryTypeRepository->findBy([], ['label' => 'ASC']);
             $categories = Stream::from($categories)->filter(fn(CategoryType $category) => $category->getLabel() !== CategoryType::SENSOR);
 
-            $json = $this->renderView('types/modalEditTypeContent.html.twig', [
-                'type' => $type,
-                'categories' => $categories
-            ]);
+            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+            $dispatchEmergencies = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY);
+            $handlingEmergencies = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY);
 
-            return new JsonResponse($json);
+            return $this->json($this->renderView('types/modalEditTypeContent.html.twig', [
+                "type" => $type,
+                "categories" => $categories,
+                "dispatchEmergencies" => $dispatchEmergencies,
+                "handlingEmergencies" => $handlingEmergencies,
+            ]));
         }
         throw new BadRequestHttpException();
     }
@@ -144,13 +162,11 @@ class TypeController extends AbstractController
      * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function edit(Request $request,
-                         GlobalParamService $globalParamService,
+                         TypeService $typeService,
                          EntityManagerInterface $entityManager): Response {
 
         if ($data = json_decode($request->getContent(), true)) {
-            $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
             $typeRepository = $entityManager->getRepository(Type::class);
-            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
             $type = $typeRepository->find($data['type']);
             $typeLabel = $type->getLabel();
@@ -159,7 +175,7 @@ class TypeController extends AbstractController
             $labelExist = $typeRepository->countByLabelDiff($data['label'], $typeLabel, $data['category']);
 
             if (!$labelExist) {
-                $globalParamService->treatTypeCreationOrEdition($type, $categoryTypeRepository, $emplacementRepository, $data);
+                $typeService->editType($type, $entityManager, $data);
 
                 $entityManager->persist($type);
                 $entityManager->flush();

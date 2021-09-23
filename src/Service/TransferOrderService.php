@@ -16,10 +16,8 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use WiiCommon\Helper\Stream;
 use DateTime;
-use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use Exception;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Twig\Environment as Twig_Environment;
@@ -34,6 +32,9 @@ class TransferOrderService {
     private $mouvementTracaService;
     private $mouvementStockService;
     private $uniqueNumberService;
+
+    /** @Required */
+    public NotificationService $notificationService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 UniqueNumberService $uniqueNumberService,
@@ -240,17 +241,10 @@ class TransferOrderService {
         ];
     }
 
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @param Statut|null $status
-     * @param TransferRequest|null $request
-     * @return TransferOrder
-     * @throws Exception
-     */
     public function createTransferOrder(EntityManagerInterface $entityManager,
                                         ?Statut $status,
                                         ?TransferRequest $request): TransferOrder {
-        $now =  new DateTime("now", new DateTimeZone("Europe/Paris"));
+        $now =  new DateTime("now");
 
         $transferOrderNumber = $this->uniqueNumberService->createUniqueNumber($entityManager, TransferOrder::NUMBER_PREFIX, TransferOrder::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 

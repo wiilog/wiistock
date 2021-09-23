@@ -36,6 +36,7 @@
                                            data-id="{{ app.user.id }}"/>
                                 </div>
                                 <div class="form-group col-12">
+                                    {% set hasEmptyRoundRight = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EMPTY_ROUND')) %}
                                     <label for="type">Action*</label>
                                     <select class="form-control data needed w-100"
                                             id="type"
@@ -44,7 +45,9 @@
                                         <option disabled selected></option>
                                         {% for statut in statuts %}
                                             {% if statut.nom != constant('App\\Entity\\TrackingMovement::TYPE_UNGROUP') %}
-                                                <option value="{{ statut.id }}">{{ statut.nom }}</option>
+                                                <option class="{{ statut.nom == constant('App\\Entity\\TrackingMovement::TYPE_EMPTY_ROUND')
+                                                and not hasEmptyRoundRight ? 'd-none' }}" value="{{ statut.id }}">{{ statut.nom }}
+                                                </option>
                                             {% endif %}
                                         {% endfor %}
                                     </select>
@@ -82,6 +85,8 @@
                         actionType: 'new'
                     } %}
                 </div>
+
+                <input type="hidden" name="empty-round" value="{{ constant('App\\Entity\\TrackingMovement::TYPE_EMPTY_ROUND') }}">
             </div>
             <div class="error-msg"></div>
             <div class="modal-footer">

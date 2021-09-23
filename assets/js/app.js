@@ -15,6 +15,9 @@ import Quill from 'quill/dist/quill.js';
 import Toolbar from 'quill/modules/toolbar';
 import Snow from 'quill/themes/snow';
 import 'arrive';
+import firebase from "firebase/app";
+import "firebase/messaging";
+import "./utils";
 
 import BrowserSupport from './support';
 import Wiistock from './general';
@@ -36,6 +39,7 @@ importRouting();
 importChart();
 importLeaflet();
 importIntlTelInput();
+importFirebase();
 
 ///////////////// Functions
 
@@ -56,6 +60,23 @@ function importJquery() {
 
 function importIntlTelInput() {
     global.intlTelInput = intlTelInput;
+}
+
+function importFirebase() {
+    const firebaseConfig = {
+        apiKey: "AIzaSyArpJAngzyhm_XHmYRc-r1dRzauQfL1y50",
+        authDomain: "follow-gt.firebaseapp.com",
+        projectId: "follow-gt",
+        storageBucket: "follow-gt.appspot.com",
+        messagingSenderId: "217220633913",
+        appId: "1:217220633913:web:ec324be7663f1ba1e704e8",
+        measurementId: "G-YR5FK3KFQT"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    const FCM = firebase.messaging();
+    global.FCM = FCM;
 }
 
 function importLeaflet() {
@@ -126,6 +147,14 @@ jQuery.fn.keymap = function(callable, grouping = NO_GROUPING) {
 
 jQuery.deepCopy = function(object) {
     return object !== undefined ? JSON.parse(JSON.stringify(object)) : object;
+};
+
+jQuery.fn.display = function(hide = false) {
+    this.removeClass('d-none');
+    if (hide) {
+        this.addClass('d-none');
+    }
+    return this;
 };
 
 jQuery.mobileCheck = function() {

@@ -9,7 +9,6 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\CollecteReference;
-use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\Menu;
 use App\Entity\OrdreCollecte;
@@ -21,13 +20,13 @@ use App\Entity\Utilisateur;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
+use App\Service\NotificationService;
 use App\Service\OrdreCollecteService;
 use App\Service\PDFGeneratorService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
 
 use DateTime;
-use DateTimeZone;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -43,7 +42,6 @@ use Throwable;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
-use WiiCommon\Helper\Stream;
 
 
 /**
@@ -109,7 +107,7 @@ class OrdreCollecteController extends AbstractController
         $rows = $request->request->get('rows');
         if (!empty($rows) && ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER)) {
 
-            $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+            $date = new DateTime('now');
 
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
@@ -201,14 +199,14 @@ class OrdreCollecteController extends AbstractController
      * @Route("/creer/{id}", name="ordre_collecte_new", options={"expose"=true}, methods={"GET","POST"} )
      * @HasPermission({Menu::ORDRE, Action::CREATE})
      */
-    public function new(Collecte $demandeCollecte, EntityManagerInterface $entityManager): Response
+    public function new(Collecte $demandeCollecte, EntityManagerInterface $entityManager, NotificationService $notificationService): Response
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         // on crée l'ordre de collecte
         $statut = $statutRepository
             ->findOneByCategorieNameAndStatutCode(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_A_TRAITER);
         $ordreCollecte = new OrdreCollecte();
-        $date = new DateTime('now', new DateTimeZone('Europe/Paris'));
+        $date = new DateTime('now');
         $ordreCollecte
             ->setDate($date)
             ->setNumero('C-' . $date->format('YmdHis'))
@@ -238,6 +236,9 @@ class OrdreCollecteController extends AbstractController
 
         try {
             $entityManager->flush();
+            if ($ordreCollecte->getDemandeCollecte()->getType()->isNotificationsEnabled()) {
+                $notificationService->toTreat($ordreCollecte);
+            }
         }
         /** @noinspection PhpRedundantCatchClauseInspection */
         catch (UniqueConstraintViolationException $e) {

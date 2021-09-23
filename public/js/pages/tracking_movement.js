@@ -158,6 +158,13 @@ function switchMvtCreationType($input) {
             $modal.find('.more-body-new-mvt-traca').removeClass('d-none');
             Select2Old.location($modal.find('.ajax-autocomplete-location'));
             Select2Old.initFree($modal.find('.select2-free'));
+
+            const $emptyRound = $modal.find('input[name=empty-round]');
+            if($input.find(':selected').text().trim() === $emptyRound.val()) {
+                const $packInput = $modal.find('input[name=colis]');
+                $packInput.val('passageavide');
+                $packInput.prop('disabled', true);
+            }
         }
     });
 }

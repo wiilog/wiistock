@@ -9,7 +9,6 @@ use App\Entity\Emplacement;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
-use App\Entity\Livraison;
 use App\Entity\LocationGroup;
 use App\Entity\OrdreCollecte;
 use App\Entity\Pack;
@@ -203,7 +202,7 @@ class DataMonitoringService
     {
         $config["left_pane"][] = [
             "type" => "entity",
-            "icon" => "iot-collect-order",
+            "icon" => "iot-collect-request",
             "title" => $collect->getNumero(),
             "header" => $header,
             "hideActions" => $header,
@@ -218,7 +217,7 @@ class DataMonitoringService
     {
         $config["left_pane"][] = [
             "type" => "entity",
-            "icon" => "iot-collect-order",
+            "icon" => "iot-collect-request",
             "title" => $collect->getNumero(),
             "header" => $header,
             "hideActions" => $header,
@@ -324,7 +323,8 @@ class DataMonitoringService
         return [
             'data' => Stream::from($pairingData)
                 ->filterMap(fn(array $dataRow) => $this->getTimelineDataRow($dataRow, $entity, $router))
-                ->toArray(),
+                ->reverse()
+                ->values(),
             'isEnd' => $pairingDataCount <= ($start + $count),
             'isGrouped' => (
                 ($entity instanceof Demande)
@@ -368,34 +368,39 @@ class DataMonitoringService
 
         $subtitlePrefix = [
             'start' => 'Associé le : ',
-            'end' => $date > new DateTime() ? "Fin le : " : "Dissocié le : ",
+            'end' => ($date && $date > new DateTime()) ? "Fin le : " : "Dissocié le : ",
         ];
 
-        if ($date) {
-            $row = [
-                'titleHref' => $pairingId
-                    ? $routerInterface->generate('pairing_show', ['pairing' => $pairingId])
-                    : null,
-                'title' => $dataRow['name'] ?? null,
-                'datePrefix' => $subtitlePrefix[$type] ?? null,
-                'date' => $date->format('d/m/Y à H:i'),
-                'active' => ($dataRow['active'] ?? '0') === '1'
-            ];
+        $row = [
+            'titleHref' => $pairingId
+                ? $routerInterface->generate('pairing_show', ['pairing' => $pairingId])
+                : null,
+            'title' => $dataRow['name'] ?? null,
+            'datePrefix' => $subtitlePrefix[$type] ?? null,
+            'date' => $date ? $date->format('d/m/Y à H:i') : null,
+            'active' => ($dataRow['active'] ?? '0') === '1'
+        ];
 
-            if ($entity instanceof Demande) {
-                $row['group'] = ($type === 'startOrder' || ($type === 'end' && !empty($dataRow['deliveryNumber'])))
-                    ? $dataRow['deliveryNumber']
-                    : $dataRow['preparationNumber'];
-            } else if ($entity instanceof Emplacement
-                || $entity instanceof Pack) {
-                $row['group'] = $dataRow['entity'];
-            } else if ($entity instanceof Collecte) {
-                $row['group'] = $dataRow['orderNumber'];
-            }
-
-            return $row;
-        } else {
-            return null;
+        if ($entity instanceof Demande) {
+            $row['group'] = ($type === 'startOrder' || ($type === 'end' && !empty($dataRow['deliveryNumber'])))
+                ? $dataRow['deliveryNumber']
+                : $dataRow['preparationNumber'];
+        } else if ($entity instanceof Emplacement
+            || $entity instanceof Pack) {
+            $row['group'] = $dataRow['entity'];
+        } else if ($entity instanceof Collecte) {
+            $row['group'] = $dataRow['orderNumber'];
         }
+
+        if (isset($dataRow['entityType'])
+            && isset($dataRow['entityId'])
+            && $dataRow['entityType'] !== IOTService::getEntityCodeFromEntity($entity)) {
+            $row['groupHref'] = $this->router->generate('show_data_history', [
+                'id' => $dataRow['entityId'],
+                'type' => $dataRow['entityType']
+            ]);
+        }
+
+        return $row;
     }
 }

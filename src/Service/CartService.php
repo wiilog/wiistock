@@ -108,9 +108,11 @@ class CartService {
 
         $draft = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_LIVRAISON, Demande::STATUT_BROUILLON);
         $refs = Stream::from($cart->getReferences())
-            ->map(function(ReferenceArticle $referenceArticle) {
+            ->map(function (ReferenceArticle $referenceArticle) {
                 return [
-                    'articles' => $referenceArticle->getAssociatedArticles(),
+                    'articles' => Stream::from($referenceArticle->getAssociatedArticles())
+                        ->filter(fn(Article $article) => $article->getStatut()->getCode() === Article::STATUT_ACTIF && $article->getQuantite() > 0)
+                        ->toArray(),
                     'reference' => $referenceArticle->getReference(),
                 ];
             })->toArray();
@@ -137,7 +139,9 @@ class CartService {
         $refs = Stream::from($cart->getReferences())
             ->map(function(ReferenceArticle $referenceArticle) {
                 return [
-                    'articles' => $referenceArticle->getAssociatedArticles(),
+                    'articles' => Stream::from($referenceArticle->getAssociatedArticles())
+                        ->filter(fn(Article $article) => $article->getStatut()->getCode() === Article::STATUT_ACTIF && $article->getQuantite() > 0)
+                        ->toArray(),
                     'reference' => $referenceArticle->getReference(),
                 ];
             })->toArray();
@@ -199,7 +203,7 @@ class CartService {
         if ($collect) {
             $request = $collectRepository->find(intval($collect));
         } else {
-            $date = new DateTime('now', new \DateTimeZone('Europe/Paris'));
+            $date = new DateTime('now');
             $request = new Collecte();
             $request
                 ->setDemandeur($utilisateur)
@@ -215,7 +219,7 @@ class CartService {
         foreach ($data as $key => $datum) {
             if (str_starts_with($key, 'reference')) {
                 $index = intval(substr($key, 9));
-                $reference = $referenceRepository->findOneByReference($datum);
+                $reference = $referenceRepository->findOneBy(['reference' => $datum]);
                 $quantityToDeliver = $data['quantity' . $index] ?? null;
                 $collecteReference = new CollecteReference();
                 $collecteReference
@@ -250,7 +254,7 @@ class CartService {
                         $index = $match[3];
                         $associatedPurchaseRequest = $data['purchase-' . $buyerID] ?: ($requestsByBuyer[$buyerID] ?? null);
                         $wantedQuantity = intval($data['quantity-' . $buyerID . '-' . $index]);
-                        $reference = $referenceArticleRepository->findOneByReference($datum);
+                        $reference = $referenceArticleRepository->findOneBy(['reference' => $datum]);
 
                         if ($associatedPurchaseRequest) {
                             $request = $associatedPurchaseRequest instanceof PurchaseRequest
@@ -308,7 +312,7 @@ class CartService {
                 ->setNumero($demandeLivraisonService->generateNumeroForNewDL($entityManager))
                 ->setUtilisateur($utilisateur)
                 ->setFilled(false)
-                ->setDate(new \DateTime('now', new \DateTimeZone('Europe/Paris')))
+                ->setDate(new DateTime('now'))
                 ->setStatut($draft);
             $entityManager->persist($request);
             $entityManager->flush();
@@ -317,7 +321,7 @@ class CartService {
         foreach ($data as $key => $datum) {
             if (str_starts_with($key, 'reference')) {
                 $index = intval(substr($key, 9));
-                $reference = $referenceRepository->findOneByReference($datum);
+                $reference = $referenceRepository->findOneBy(['reference' => $datum]);
                 $quantityToDeliver = $data['quantity' . $index] ?? null;
                 $data['quantity-to-pick'] = $quantityToDeliver;
                 $refArticleDataService->addRefToDemand($data, $reference, $utilisateur, false, $entityManager, $request, null, false, true);
@@ -366,7 +370,7 @@ class CartService {
                 ->setRequester($utilisateur)
                 ->setFilled(false)
                 ->setType($type)
-                ->setCreationDate(new \DateTime('now', new \DateTimeZone('Europe/Paris')))
+                ->setCreationDate(new DateTime('now'))
                 ->setStatus($draft);
             $entityManager->persist($request);
             $entityManager->flush();
@@ -374,7 +378,7 @@ class CartService {
 
         foreach ($data as $key => $datum) {
             if (str_starts_with($key, 'reference')) {
-                $reference = $referenceRepository->findOneByReference($datum);
+                $reference = $referenceRepository->findOneBy(['reference' => $datum]);
                 $request->addReference($reference);
             } else if (str_starts_with($key, 'article')) {
                 $article = $articleRepository->find($datum);

@@ -12,9 +12,13 @@
     </select>
 </div>
 
-<div class="template-container row">
+<div class="row template-container">
     {% if alert_template.type == constant('App\\Entity\\IOT\\AlertTemplate::MAIL') %}
         {% include('alert_template/templates/mail.html.twig') with {
+            config: alert_template.config
+        } %}
+    {% elseif alert_template.type == constant('App\\Entity\\IOT\\AlertTemplate::PUSH') %}
+        {% include('alert_template/templates/push.html.twig') with {
             config: alert_template.config
         } %}
     {% elseif alert_template.type == constant('App\\Entity\\IOT\\AlertTemplate::SMS') %}

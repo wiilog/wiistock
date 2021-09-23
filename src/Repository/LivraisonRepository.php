@@ -7,6 +7,7 @@ use App\Entity\Livraison;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
+use Doctrine\Common\Collections\Criteria;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -53,7 +54,7 @@ class LivraisonRepository extends EntityRepository
             ->addSelect('delivery_order.numero AS number')
             ->addSelect('destination.label as location')
             ->addSelect('join_type.label as type')
-            ->addSelect('user.username as requester')
+            ->addSelect('(CASE WHEN triggeringSensorWrapper.id IS NOT NULL THEN triggeringSensorWrapper.name ELSE user.username END) as requester')
             ->addSelect('join_preparationLocation.label AS preparationLocation')
             ->addSelect('request.commentaire AS comment')
             ->join('delivery_order.statut', 'status')
@@ -61,11 +62,13 @@ class LivraisonRepository extends EntityRepository
             ->join('preparation.demande', 'request')
             ->join('request.destination', 'destination')
             ->join('request.type', 'join_type')
-            ->join('request.utilisateur', 'user')
+            ->leftJoin('request.utilisateur', 'user')
+            ->leftJoin('request.triggeringSensorWrapper', 'triggeringSensorWrapper')
             ->join('preparation.endLocation', 'join_preparationLocation')
             ->where('status.nom = :statusLabel')
             ->andWhere('(delivery_order.utilisateur IS NULL OR delivery_order.utilisateur = :user)')
             ->andWhere('join_type.id IN (:typeIds)')
+            ->orderBy('delivery_order.date', Criteria::ASC)
             ->setParameters([
                 'statusLabel' => Livraison::STATUT_A_TRAITER,
                 'user' => $user,
