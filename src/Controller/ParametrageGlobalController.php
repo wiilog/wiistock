@@ -894,6 +894,13 @@ class ParametrageGlobalController extends AbstractController
         }
 
         if($request->request->has("max_session_time")) {
+            if($request->request->getInt("max_session_time") > 1440) {
+                return $this->json([
+                    "success" => false,
+                    "msg" => "Le temps maximum d'inactivité est de 24h ou 1440 minutes",
+                ]);
+            }
+
             $parametrageGlobal = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::MAX_SESSION_TIME]);
             $parametrageGlobal->setValue($request->request->get("max_session_time"));
         }

@@ -319,11 +319,17 @@ function ajaxEncodage() {
 }
 
 function editAppearance() {
+    const sessionTime = $('input[name="param-session-time"]').val();
+    if(sessionTime > 1440) {
+        showBSAlert(`Le temps maximum d'inactivité est de 24 heures ou 1440 minutes`, `danger`);
+        return;
+    }
+
     let path = Routing.generate('edit_appearance', true);
 
     let data = new FormData();
     data.append("font-family", $('select[name="param-font-family"]').val());
-    data.append("max_session_time", $('input[name="param-session-time"]').val());
+    data.append("max_session_time", sessionTime);
 
     const $websiteLogo = $('#upload-website-logo');
     if ($websiteLogo[0].files && $websiteLogo[0].files[0]) {
