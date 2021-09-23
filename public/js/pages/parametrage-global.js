@@ -319,6 +319,11 @@ function ajaxEncodage() {
 }
 
 function editAppearance() {
+    if($('input[name="param-session-time"]').val()) {
+        showBSAlert(`Le temps maximum d'inactivité est de 24 heures ou 1440 minutes`, `danger`);
+        return;
+    }
+
     let path = Routing.generate('edit_appearance', true);
 
     let data = new FormData();
