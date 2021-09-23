@@ -1495,7 +1495,6 @@ class ApiController extends AbstractFOSRestController
             $articlesPrepaByRefArticle = $articleRepository->getArticlePrepaForPickingByUser($user);
 
             $articlesPrepa = $this->getArticlesPrepaArrays($preparations);
-
             /// collecte
             $collectes = $ordreCollecteRepository->getMobileCollecte($user);
 
@@ -1616,7 +1615,6 @@ class ApiController extends AbstractFOSRestController
                 return $dispatchPack;
             }, $dispatchPackRepository->getMobilePacksFromDispatches(array_map(fn($dispatch) => $dispatch['id'], $dispatches)));
         }
-
         return [
             'locations' => $emplacementRepository->getLocationsArray(),
             'allowedNatureInLocations' => $allowedNatureInLocations ?? [],
@@ -1690,7 +1688,7 @@ class ApiController extends AbstractFOSRestController
         $user = $userRepository->find($request->query->get("operator"));
         $movements = $trackingMovementRepository->getPickingByOperatorAndNotDropped(
             $user,
-            TrackingMovementRepository::MOUVEMENT_TRACA_STOCK
+            TrackingMovementRepository::MOUVEMENT_TRACA_DEFAULT
         );
 
         return $this->json([
@@ -2267,7 +2265,7 @@ class ApiController extends AbstractFOSRestController
         $user = $this->getUser();
 
         foreach ($emptyRounds as $emptyRound) {
-            $date = new DateTime(trim($emptyRound['date'], '"'));
+            $date = DateTime::createFromFormat("d/m/Y H:i:s", $emptyRound['date']);
 
             $emptyRoundPack = $packRepository->findOneBy(['code' => Pack::EMPTY_ROUND_PACK]);
             $location = $locationRepository->findOneBy(['label' => $emptyRound['location']]);

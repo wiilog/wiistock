@@ -185,7 +185,8 @@ body {
 .ra-dropdown {
     background-color: #FFFFFF;
     border-top: 1px solid #CBCBCB;
-    border-radius: 5px;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
 
     .dropdown-wrapper {
         padding : 15px;

@@ -14,6 +14,7 @@ class ParametrageGlobal
     const DEFAULT_EMAIL_LOGO_VALUE = '/img/gtlogistics.jpg';
     const DEFAULT_MOBILE_LOGO_LOGIN_VALUE = '/img/mobile_logo_login.svg';
     const DEFAULT_MOBILE_LOGO_HEADER_VALUE = '/img/mobile_logo_header.svg';
+    const MAX_SESSION_TIME = 'MAX_SESSION_TIME';
 
 	// arrivages
     const REDIRECT_AFTER_NEW_ARRIVAL = 'REDIRECT AFTER NEW ARRIVAL';

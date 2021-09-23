@@ -44,7 +44,6 @@ class FiltreSupController extends AbstractController
                 'expectedDate' => FiltreSup::FIELD_DATE_EXPECTED,
                 'type' => FiltreSup::FIELD_TYPE,
                 'emergency' => FiltreSup::FIELD_EMERGENCY,
-                'arrivage_string' => FiltreSup::FIELD_ARRIVAGE_STRING,
                 'reception_string' => FiltreSup::FIELD_RECEPTION_STRING,
                 'litigeOrigin' => FiltreSup::FIELD_LITIGE_ORIGIN,
                 'commande' => FiltreSup::FIELD_COMMANDE,
@@ -54,7 +53,8 @@ class FiltreSupController extends AbstractController
                 'frozen' => FiltreSup::FIELD_FROZEN,
                 'statusEntity' => FiltreSup::FIELD_STATUS_ENTITY,
                 'alert' => FiltreSup::FIELD_ALERT,
-                'subject' => FiltreSup::FIELD_SUBJECT
+                'subject' => FiltreSup::FIELD_SUBJECT,
+                'destination' => FiltreSup::FIELD_DESTINATION,
             ];
 
             foreach ($filterLabels as $filterLabel => $filterName) {

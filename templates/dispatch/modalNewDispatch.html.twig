@@ -166,10 +166,8 @@
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
                             <div class="form-group">
-                                <label for="prise" title="Destination">{{ 'acheminement.Destination'|trans }}{{ required ? '*' }}</label>
-                                <select name="destination"
-                                        class="form-control data ajax-autocomplete-location d-block {{ required ? 'needed' }} w-100">
-                                </select>
+                                <label for="destination" title="Destination">{{ 'acheminement.Destination'|trans }}{{ required ? '*' }}</label>
+                                <input name="destination" class="form-control data {{ required ? 'needed' }} w-100" maxlength="50"/>
                             </div>
                         {% endif %}
 

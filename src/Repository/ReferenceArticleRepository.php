@@ -418,15 +418,15 @@ class ReferenceArticleRepository extends EntityRepository {
         }
 
         // prise en compte des paramètres issus du datatable
-        if (!empty($params) && !empty($params->get('search'))) {
-            $searchValue = is_string($params->get('search')) ? $params->get('search') : $params->get('search')['value'];
+        $search = isset($user->getSearches()['reference']) ? $user->getSearches()['reference']['value'] : '';
+        if (!empty($search)) {
+            $searchValue = is_string($search) ? $search : $search['value'];
             if (!empty($searchValue)) {
                 $date = DateTime::createFromFormat('d/m/Y', $searchValue);
                 $date = $date ? $date->format('Y-m-d') : null;
                 $search = "%$searchValue%";
                 $ids = [];
                 $query = [];
-
                 foreach ($user->getRecherche() as $key => $searchField) {
                     $searchField = self::DtToDbLabels[$searchField] ?? $searchField;
                     switch ($searchField) {
@@ -674,6 +674,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->select('reference_article.reference AS reference')
             ->addSelect('reference_article.typeQuantite AS type_quantite')
             ->addSelect('join_location.label AS location')
+            ->addSelect('reference_article.libelle AS label')
             ->addSelect('join_preparationLine.quantityToPick AS quantity')
             ->addSelect('1 as is_ref')
             ->addSelect('reference_article.barCode AS barCode')

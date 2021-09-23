@@ -3,9 +3,9 @@
 {% block title %}Traçabilité | Association BR{% endblock %}
 
 {% block page_filter %}
-    {% include 'filters/filtersReceptionTraca.html.twig' with {
-        'page' : 'PAGE_RCPT_TRACA',
-        'tableSelector' : '#tableRecepts'
+    {% include 'filters/filtersReceiptAssociation.html.twig' with {
+        page : 'PAGE_RECEIPT_ASSOCIATION',
+        tableSelector : '#receiptAssociationTable'
     } %}
 {% endblock %}
 {% block page_content %}
@@ -18,8 +18,8 @@
                     <div class="btn-group">
                         {% if hasRightCreate %}
                             <button type="button"
-                                    class="btn btn-primary btn-ripple {{ hasRightExport ? 'split-button' }}"
-                                    data-target='#modalNewAssociation'
+                                    class="btn btn-primary btn-ripple receipt-association-new {{ hasRightExport ? 'split-button' }}"
+                                    data-target='#modalNewReceiptAssociation'
                                     data-toggle='modal'>
                                 <span class="fa fa-bullseye mr-2"></span>
                                 Association / BR
@@ -36,7 +36,7 @@
 
                             <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
                                 <div class="dropdown-item pointer"
-                                     onclick="saveExportFile('get_tracking_reception_csv')">
+                                     onclick="saveExportFile('get_receipt_associations_csv')">
                                     <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
                                 </div>
                             </div>
@@ -48,13 +48,14 @@
 
         <div class="row">
             <div class="col-12">
-                <table id="tableRecepts" class="table w-100"></table>
+                <table id="receiptAssociationTable" class="table w-100"></table>
             </div>
         </div>
     </div>
+    <audio id="beep" src="{{ asset('audio/beep.mp3') }}" type="audio/mp3"></audio>
 
-    {% include "reception_traca/modalDeleteRecepTraca.html.twig" %}
-    {% include "reception_traca/association.html.twig" %}
+    {% include "receipt_association/modal/delete.html.twig" %}
+    {% include "receipt_association/modal/new.html.twig" %}
 {% endblock %}
 
 {% block javascripts %}

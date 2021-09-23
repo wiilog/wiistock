@@ -316,7 +316,7 @@
                                                 </select>
                                             </label>
                                         </div>
-                                        <div class="col-12 col-md-4 mt-3">
+                                        <div class="col-12 col-md-4 reference mt-3">
                                             <label>
                                                 <span class="icon ra-field-name">
                                                     <img src="{{ asset('svg/reference_article/stock.svg') }}" class="icon" alt="Image quantité">
@@ -344,7 +344,7 @@
                                         <img src="{{ asset('svg/reference_article/euro.svg') }}" class="icon" alt="Image euro">
                                         Prix unitaire (€)
                                     </span>
-                                    <input type="number" name="prix" class="form-control w-100 data" value="{{ reference.prixUnitaire }}">
+                                    <input type="number" name="prix" class="form-control w-100 data" value="{{ reference.prixUnitaire }}" min="0">
                                 </label>
                             </div>
                             <div class="col-12 col-md-4 article mt-3">

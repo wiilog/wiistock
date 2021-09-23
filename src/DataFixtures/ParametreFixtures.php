@@ -59,6 +59,9 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface {
 
         $dimensionEtiquette = $dimensionEtiquetteRepository->findOneDimension();
         $globalParameterLabels = [
+            ParametrageGlobal::MAX_SESSION_TIME => [
+                'default' => 30,
+            ],
             ParametrageGlobal::CREATE_DL_AFTER_RECEPTION => [
                 'default' => false,
                 SpecificService::CLIENT_COLLINS_SOA => true,

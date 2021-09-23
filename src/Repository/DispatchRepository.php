@@ -99,10 +99,10 @@ class DispatchRepository extends EntityRepository
                     $qb->andWhere('dispatch.creationDate <= :filter_dateMax_value')
                         ->setParameter('filter_dateMax_value', $filter['value'] . ' 23:59:59');
                     break;
-                case 'emplacement':
-                    $qb->join('dispatch.destination', 'filter_destination')
-                        ->andWhere('filter_destination.id = :filter_destination_value')
-                        ->setParameter("filter_destination_value", $filter['value']);
+                case 'destination':
+                    $qb->andWhere('dispatch.destination LIKE :filter_destination_value')
+                        ->setParameter("filter_destination_value", '%' . $filter['value'] . '%');
+                    break;
             }
         }
         if (!empty($params)) {
@@ -122,7 +122,8 @@ class DispatchRepository extends EntityRepository
                             'search_locationFrom.label LIKE :search_value',
                             'search_locationTo.label LIKE :search_value',
                             'search_statut.nom LIKE :search_value',
-                            'dispatch.freeFields LIKE :search_value'
+                            'dispatch.freeFields LIKE :search_value',
+                            'dispatch.destination LIKE :search_value'
                         ) . ')')
                         ->leftJoin('dispatch.locationFrom', 'search_locationFrom')
                         ->leftJoin('dispatch.locationTo', 'search_locationTo')
@@ -248,14 +249,13 @@ class DispatchRepository extends EntityRepository
             ->addSelect('dispatch.emergency AS emergency')
             ->addSelect('locationFrom.label AS locationFromLabel')
             ->addSelect('locationTo.label AS locationToLabel')
-            ->addSelect('join_destination.label AS destination')
+            ->addSelect('dispatch.destination AS destination')
             ->addSelect('type.label AS typeLabel')
             ->addSelect('type.id AS typeId')
             ->addSelect('status.nom AS statusLabel')
             ->join('dispatch.requester', 'dispatch_requester')
             ->leftJoin('dispatch.locationFrom', 'locationFrom')
             ->leftJoin('dispatch.locationTo', 'locationTo')
-            ->leftJoin('dispatch.destination', 'join_destination')
             ->join('dispatch.type', 'type')
             ->join('dispatch.statut', 'status')
             ->where('status.needsMobileSync = true')
@@ -310,7 +310,7 @@ class DispatchRepository extends EntityRepository
             ->addSelect('join_requester.username AS requester')
             ->addSelect('join_locationFrom.label AS locationFrom')
             ->addSelect('join_locationTo.label AS locationTo')
-            ->addSelect('join_destination.label AS destination')
+            ->addSelect('dispatch.destination AS destination')
             ->addSelect('join_dispatchPack.quantity AS dispatchQuantity')
             ->addSelect('join_dispatchPack_pack.code AS packCode')
             ->addSelect('join_dispatchPack_nature.label AS packNatureLabel')
@@ -336,7 +336,6 @@ class DispatchRepository extends EntityRepository
             ->leftJoin('dispatch.treatedBy', 'join_treatedBy')
             ->leftJoin('dispatch.locationFrom', 'join_locationFrom')
             ->leftJoin('dispatch.locationTo', 'join_locationTo')
-            ->leftJoin('dispatch.destination', 'join_destination')
             ->leftJoin('dispatch.statut', 'join_status')
 
             ->andWhere('dispatch.creationDate BETWEEN :dateMin AND :dateMax')

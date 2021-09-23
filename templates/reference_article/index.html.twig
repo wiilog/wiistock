@@ -66,6 +66,7 @@
 
             <div class="col-auto">
                 <div class="btn-group">
+                    <input hidden id="user-search" value="{{ app.user.searches ? app.user.searches['reference'] ? app.user.searches['reference']['value'] }}">
                     {% if hasRightToCreate %}
                         <button type="button" class="btn btn-primary split-button btn-ripple"
                                 onclick="window.location.href = Routing.generate('reference_article_new_page', {}, true)">

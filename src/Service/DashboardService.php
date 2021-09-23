@@ -22,8 +22,8 @@ use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
 use App\Entity\LatePack;
 use App\Entity\Nature;
+use App\Entity\ReceiptAssociation;
 use App\Entity\PreparationOrder\Preparation;
-use App\Entity\ReceptionTraca;
 use App\Entity\ReferenceArticle;
 use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
@@ -73,7 +73,7 @@ class DashboardService {
     }
 
     public function getWeekAssoc($firstDay, $lastDay, $beforeAfter) {
-        $receptionTracaRepository = $this->entityManager->getRepository(ReceptionTraca::class);
+        $receiptAssociationRepository = $this->entityManager->getRepository(ReceiptAssociation::class);
 
         if ($beforeAfter == 'after') {
             $firstDay = date("d/m/Y", strtotime(str_replace("/", "-", $firstDay) . ' +7 days'));
@@ -98,8 +98,8 @@ class DashboardService {
             $rows[$dayCounterKey] = 0;
         }
 
-        $receptionTracas = $receptionTracaRepository->countByDays($firstDay, $lastDay);
-        foreach ($receptionTracas as $qttPerDay) {
+        $receiptAssociations = $receiptAssociationRepository->countByDays($firstDay, $lastDay);
+        foreach ($receiptAssociations as $qttPerDay) {
             $dayCounterKey = $counterKeyToString($qttPerDay['date']->format($keyFormat));
             $rows[$dayCounterKey] += $qttPerDay['count'];
         }

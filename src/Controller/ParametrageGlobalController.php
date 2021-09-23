@@ -29,11 +29,15 @@ use App\Service\UserService;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -188,6 +192,7 @@ class ParametrageGlobalController extends AbstractController
                 'email_logo' => ($emailLogo && file_exists(getcwd() . "/" . $emailLogo) ? $emailLogo : ParametrageGlobal::DEFAULT_EMAIL_LOGO_VALUE),
                 'mobile_logo_header' => ($mobileLogoHeader && file_exists(getcwd() . "/" . $mobileLogoHeader) ? $mobileLogoHeader : ParametrageGlobal::DEFAULT_MOBILE_LOGO_HEADER_VALUE),
                 'mobile_logo_login' => ($mobileLogoLogin && file_exists(getcwd() . "/" . $mobileLogoLogin) ? $mobileLogoLogin : ParametrageGlobal::DEFAULT_MOBILE_LOGO_LOGIN_VALUE),
+                'max_session_time' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MAX_SESSION_TIME),
                 'redirectMvtTraca' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT),
                 'workFreeDays' => $workFreeDays,
                 'wantsRecipient' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_LABEL),
@@ -801,6 +806,7 @@ class ParametrageGlobalController extends AbstractController
      * @Route("/appearance", name="edit_appearance", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      */
     public function editAppearance(Request $request,
+                                   KernelInterface $kernel,
                                    EntityManagerInterface $entityManager,
                                    AttachmentService $attachmentService,
                                    GlobalParamService $globalParamService): Response {
@@ -887,6 +893,11 @@ class ParametrageGlobalController extends AbstractController
             $setting->setValue(ParametrageGlobal::DEFAULT_MOBILE_LOGO_HEADER_VALUE);
         }
 
+        if($request->request->has("max_session_time")) {
+            $parametrageGlobal = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::MAX_SESSION_TIME]);
+            $parametrageGlobal->setValue($request->request->get("max_session_time"));
+        }
+
         if($request->request->has("font-family")) {
             $parametrageGlobal = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::FONT_FAMILY]);
             if(!$parametrageGlobal) {
@@ -909,6 +920,9 @@ class ParametrageGlobalController extends AbstractController
         }
 
         $entityManager->flush();
+
+        $globalParamService->generateSessionConfig();
+        $globalParamService->cacheClear();
 
         return $this->json([
             "success" => true

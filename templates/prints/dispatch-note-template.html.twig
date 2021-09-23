@@ -64,6 +64,13 @@
         th, td {
             text-align: left;
             padding: 12px;
+            min-width: 100px;
+        }
+
+        .always-break {
+            word-wrap: break-word;
+            word-break: break-all;
+            white-space: pre-wrap;
         }
 
         .mt-4 {
@@ -76,7 +83,7 @@
 
         .pack-code {
             text-align: center;
-            min-width: 3cm;
+            min-width: 2.5cm;
         }
     </style>
 </head>
@@ -107,19 +114,19 @@
             <table class="table">
                 <tr>
                     <th>Date de création</th>
-                    <td>{{ dispatch.creationDate | date('d/m/Y H:i') }}</td>
+                    <td>{{ dispatch.creationDate ? (dispatch.creationDate | date('d/m/Y H:i')) }}</td>
                     <th>Emplacement de prise</th>
                     <td>{{ dispatch.locationFrom | format_helper('location') }}</td>
                 </tr>
                 <tr>
                     <th>Date de validation</th>
-                    <td>{{ dispatch.validationDate | date('d/m/Y H:i') }}</td>
+                    <td>{{ dispatch.validationDate ? (dispatch.validationDate | date('d/m/Y H:i')) }}</td>
                     <th>Emplacement de dépose</th>
                     <td>{{ dispatch.locationTo | format_helper('location') }}</td>
                 </tr>
                 <tr>
                     <th>Date de traitement</th>
-                    <td>{{ dispatch.treatmentDate | date('d/m/Y H:i') }}</td>
+                    <td>{{ dispatch.treatmentDate ? (dispatch.treatmentDate | date('d/m/Y H:i')) }}</td>
                     <th>Destination</th>
                     <td>{{ dispatch.destination | format_helper('location') }}</td>
                 </tr>
@@ -137,7 +144,7 @@
                 </tr>
                 <tr>
                     <th>Commentaire</th>
-                    <td colspan="3">{{ dispatch.commentaire | striptags | u.truncate(150) | default('N/A') }}</td>
+                    <td colspan="3" class="always-break">{{ dispatch.commentaire | striptags | u.truncate(150) }}</td>
                 </tr>
             </table>
         </div>
@@ -160,19 +167,19 @@
                 <th>Nature</th>
                 <td>{{ pack.pack.nature.label }}</td>
                 <th>Poids (kg)</th>
-                <td>{{ pack.pack.weight ?? 'N/A' }}</td>
+                <td>{{ pack.pack.weight }}</td>
             </tr>
             <tr>
                 <th>Quantité à acheminer</th>
                 <td>{{ pack.quantity }}</td>
                 <th>Volume (m3)</th>
-                <td>{{ pack.pack.volume ?? 'N/A' }}</td>
+                <td>{{ pack.pack.volume }}</td>
             </tr>
             <tr>
                 <th colspan="4">Commentaire</th>
             </tr>
             <tr>
-                <td colspan="4">{{  pack.pack.comment | striptags | u.truncate(100) | default('N/A') }}</td>
+                <td colspan="4" class="always-break">{{ pack.pack.comment | striptags | u.truncate(100) }}</td>
             </tr>
         </table>
     </div>

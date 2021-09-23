@@ -323,6 +323,7 @@ function editAppearance() {
 
     let data = new FormData();
     data.append("font-family", $('select[name="param-font-family"]').val());
+    data.append("max_session_time", $('input[name="param-session-time"]').val());
 
     const $websiteLogo = $('#upload-website-logo');
     if ($websiteLogo[0].files && $websiteLogo[0].files[0]) {
