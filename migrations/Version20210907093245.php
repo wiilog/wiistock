@@ -19,33 +19,40 @@ final class Version20210907093245 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE ligne_article RENAME TO delivery_request_reference_line;');
-        $this->addSql('ALTER TABLE delivery_request_reference_line RENAME COLUMN demande_id TO request_id;');
-        $this->addSql('ALTER TABLE delivery_request_reference_line RENAME COLUMN quantite TO quantity;');
-        $this->addSql('ALTER TABLE delivery_request_reference_line RENAME COLUMN quantite_prelevee TO picked_quantity;');
+        if ($schema->hasTable('delivery_request_article_line')) {
+            $this->addSql('ALTER TABLE delivery_request_reference_line RENAME COLUMN quantity TO quantity_to_pick;');
+            $this->addSql('ALTER TABLE delivery_request_article_line RENAME COLUMN quantity TO quantity_to_pick;');
+            $this->addSql('ALTER TABLE preparation_order_reference_line RENAME COLUMN quantity TO quantity_to_pick;');
+            $this->addSql('ALTER TABLE preparation_order_article_line RENAME COLUMN quantity TO quantity_to_pick;');
+        }
+        else {
+            // this up() migration is auto-generated, please modify it to your needs
+            $this->addSql('ALTER TABLE ligne_article RENAME TO delivery_request_reference_line;');
+            $this->addSql('ALTER TABLE delivery_request_reference_line RENAME COLUMN demande_id TO request_id;');
+            $this->addSql('ALTER TABLE delivery_request_reference_line RENAME COLUMN quantite TO quantity_to_pick;');
+            $this->addSql('ALTER TABLE delivery_request_reference_line RENAME COLUMN quantite_prelevee TO picked_quantity;');
 
-        $this->addSql('ALTER TABLE ligne_article_preparation RENAME TO preparation_order_reference_line;');
-        $this->addSql('ALTER TABLE preparation_order_reference_line RENAME COLUMN quantite TO quantity;');
-        $this->addSql('ALTER TABLE preparation_order_reference_line RENAME COLUMN quantite_prelevee TO picked_quantity;');
+            $this->addSql('ALTER TABLE ligne_article_preparation RENAME TO preparation_order_reference_line;');
+            $this->addSql('ALTER TABLE preparation_order_reference_line RENAME COLUMN quantite TO quantity_to_pick;');
+            $this->addSql('ALTER TABLE preparation_order_reference_line RENAME COLUMN quantite_prelevee TO picked_quantity;');
 
-        $this->addSql('CREATE TABLE delivery_request_article_line (
+            $this->addSql('CREATE TABLE delivery_request_article_line (
                             id INT AUTO_INCREMENT NOT NULL,
                             article_id INT DEFAULT NULL,
                             request_id INT DEFAULT NULL,
-                            quantity INT DEFAULT NULL,
+                            quantity_to_pick INT DEFAULT NULL,
                             picked_quantity INT DEFAULT NULL,
                             PRIMARY KEY(id)
                        )');
-        $this->addSql('CREATE TABLE preparation_order_article_line (
+            $this->addSql('CREATE TABLE preparation_order_article_line (
                             id INT AUTO_INCREMENT NOT NULL,
                             article_id INT DEFAULT NULL,
                             preparation_id INT DEFAULT NULL,
-                            quantity INT DEFAULT NULL,
+                            quantity_to_pick INT DEFAULT NULL,
                             picked_quantity INT DEFAULT NULL,
                             PRIMARY KEY(id)
                        )');
-
+        }
         $articles = $this->connection->iterateAssociative('
             SELECT id AS article_id,
                    demande_id,
