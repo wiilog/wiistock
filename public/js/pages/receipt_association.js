@@ -47,7 +47,14 @@ function initModals(tableReceiptAssociation) {
     let modalNewReceiptAssociation = $(`#modalNewReceiptAssociation`);
     let submitNewReceiptAssociation = $(`#submitNewReceiptAssociation`);
     let urlNewReceiptAssociation = Routing.generate(`receipt_association_new`, true);
-    InitModal(modalNewReceiptAssociation, submitNewReceiptAssociation, urlNewReceiptAssociation, {tables: [tableReceiptAssociation]});
+    InitModal(modalNewReceiptAssociation, submitNewReceiptAssociation, urlNewReceiptAssociation, {
+        tables: [tableReceiptAssociation],
+        keepModal: true,
+        clearOnClose: true,
+        success: () => {
+            $('#beep')[0].play();
+        }
+    });
 
     let modalDeleteReceiptAssociation = $(`#modalDeleteReceiptAssociation`);
     let submitDeleteReceiptAssociation = $(`#submitDeleteReceiptAssociation`);

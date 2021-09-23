@@ -96,20 +96,17 @@ class ReceiptAssociationService
     }
 
     public function persistReceiptAssociation(EntityManagerInterface $manager,
-                                              array $packs,
+                                              ?Pack $pack,
                                               string $reception,
                                               Utilisateur $user) {
         $now = new DateTime('now');
 
-        foreach ($packs as $pack) {
-            $receiptAssociation = new ReceiptAssociation();
-            $receiptAssociation
-                ->setReceptionNumber($reception)
-                ->setUser($user)
-                ->setCreationDate($now)
-                ->setPack($pack);
+        $receiptAssociation = (new ReceiptAssociation())
+            ->setReceptionNumber($reception)
+            ->setUser($user)
+            ->setCreationDate($now)
+            ->setPack($pack);
 
-            $manager->persist($receiptAssociation);
-        }
+        $manager->persist($receiptAssociation);
     }
 }

@@ -25,16 +25,11 @@ use Throwable;
 class ReceiptAssociationController extends AbstractController
 {
 
-    private $userService;
+    /** @required */
+    public UserService $userService;
 
-    private $receiptAssociationService;
-
-    public function __construct(UserService $userService,
-                                ReceiptAssociationService $receiptAssociationService)
-    {
-        $this->userService = $userService;
-        $this->receiptAssociationService = $receiptAssociationService;
-    }
+    /** @required */
+    public ReceiptAssociationService $receiptAssociationService;
 
     /**
      * @Route("/", name="receipt_association_index", methods={"GET"})
@@ -82,44 +77,43 @@ class ReceiptAssociationController extends AbstractController
     }
 
     /**
-     * @Route("/creer", name="receipt_association_new", options={"expose"=true}, methods={"GET","POST"})
+     * @Route("/creer", name="receipt_association_new", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::CREATE})
      */
     public function new(Request $request,
                         EntityManagerInterface $manager,
                         ReceiptAssociationService $receiptAssociationService): Response
     {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        $data = json_decode($request->getContent(), true);
+        $packs = $data['packs'] ?? null;
+        $reception = $data['receptionNumber'] ?? null;
 
-            $packs = isset($data['packs']) ? $data['packs'] : null;
-            $reception = isset($data['receptionNumber']) ? $data['receptionNumber'] : null;
+        $existingAssociation = $manager->getRepository(ReceiptAssociation::class)->findOneBy(['receptionNumber' => $reception, 'pack' => null]);
 
-            if(!$packs) {
-                return $this->json([
-                    "success" => false,
-                    "msg" => "Merci de renseigner au moins un colis pour faire l'association"
-                ]);
-            } else if(!$reception) {
-                return $this->json([
-                    "success" => false,
-                    "msg" => "Merci de renseigner un numéro de réception pour faire l'association"
-                ]);
+        if($existingAssociation) {
+            return $this->json([
+                "success" => false,
+                "msg" => "Une association sans colis avec ce numéro de réception existe déjà"
+            ]);
+        } else {
+            $user = $this->userService->getUser();
+
+            $packs = $manager->getRepository(Pack::class)->findBy(['id' => $packs]);
+
+            if(!empty($packs)) {
+                foreach ($packs as $pack) {
+                    $receiptAssociationService->persistReceiptAssociation($manager, $pack, $reception, $user);
+                }
             } else {
-                $user = $this->userService->getUser();
-
-                $packs = $manager->getRepository(Pack::class)->findBy(['id' => $packs]);
-
-                $receiptAssociationService->persistReceiptAssociation($manager, $packs, $reception, $user);
-
-                $manager->flush();
-                return $this->json([
-                    "success" => true,
-                    "msg" => "L'association BR a bien été créée"
-                ]);
+                $receiptAssociationService->persistReceiptAssociation($manager, null, $reception, $user);
             }
-        }
 
-        throw new BadRequestHttpException();
+            $manager->flush();
+            return $this->json([
+                "success" => true,
+                "msg" => "L'association BR a bien été créée"
+            ]);
+        }
     }
 
     /**
