@@ -64,11 +64,13 @@
         th, td {
             text-align: left;
             padding: 12px;
-            min-width: 120px;
-            white-space: pre-wrap;
+            min-width: 100px;
+        }
+
+        .always-break {
             word-wrap: break-word;
             word-break: break-all;
-            white-space: normal;
+            white-space: pre-wrap;
         }
 
         .mt-4 {
@@ -142,7 +144,7 @@
                 </tr>
                 <tr>
                     <th>Commentaire</th>
-                    <td colspan="3">{{ dispatch.commentaire | striptags | u.truncate(150) }}</td>
+                    <td colspan="3" class="always-break">{{ dispatch.commentaire | striptags | u.truncate(150) }}</td>
                 </tr>
             </table>
         </div>
@@ -177,7 +179,7 @@
                 <th colspan="4">Commentaire</th>
             </tr>
             <tr>
-                <td colspan="4">{{ pack.pack.comment | striptags | u.truncate(100) }}</td>
+                <td colspan="4" class="always-break">{{ pack.pack.comment | striptags | u.truncate(100) }}</td>
             </tr>
         </table>
     </div>
