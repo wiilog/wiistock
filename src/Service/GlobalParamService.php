@@ -8,7 +8,11 @@ use App\Entity\Emplacement;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Type;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Component\Yaml\Yaml;
 
 Class GlobalParamService
 {
@@ -77,6 +81,36 @@ Class GlobalParamService
 
 		file_put_contents($scssFile, "\$mainFont: \"$font\";");
 	}
+
+    public function generateSessionConfig(int $sessionLifetime = null) {
+        if(!$sessionLifetime) {
+            $sessionLifetime = $this->entityManager->getRepository(ParametrageGlobal::class)
+                ->getOneParamByLabel(ParametrageGlobal::MAX_SESSION_TIME);
+        }
+
+        $generated = "{$this->kernel->getProjectDir()}/config/generated.yaml";
+        $config = [
+            "parameters" => [
+                "session_lifetime" => $sessionLifetime * 60,
+            ],
+        ];
+
+        file_put_contents($generated, Yaml::dump($config));
+    }
+
+    public function cacheClear() {
+        $env = $this->kernel->getEnvironment();
+        $application = new Application($this->kernel);
+        $application->setAutoExit(false);
+
+        $input = new ArrayInput([
+            "command" => "cache:warmup",
+            "--env" => $env,
+        ]);
+
+        $output = new BufferedOutput();
+        $application->run($input, $output);
+    }
 
 	public function getDefaultDeliveryLocationsByType(EntityManagerInterface $entityManager): array {
 
