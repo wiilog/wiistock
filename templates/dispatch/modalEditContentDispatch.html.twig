@@ -71,11 +71,7 @@
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
         <div class="form-group col-md-4 col-12">
             <label for="destination" title="Destination">{{ 'acheminement.Destination'|trans }}{{ required ? '*' }}</label>
-            <select name="destination" class="form-control data ajax-autocomplete-location-edit d-block {{ required ? 'needed' }}">
-                {% if dispatch.destination %}
-                    <option value="{{ dispatch.destination.id }}">{{ dispatch.destination.label }}</option>
-                {% endif %}
-            </select>
+            <input name="destination" class="form-control data {{ required ? 'needed' }}" value="{{ dispatch.destination }}"/>
         </div>
     {% endif %}
 

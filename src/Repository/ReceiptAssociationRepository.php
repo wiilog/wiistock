@@ -54,7 +54,6 @@ class ReceiptAssociationRepository extends EntityRepository
                         ->setParameter('value', $value);
                     break;
                 case 'reception_string':
-                    dump('test');
                     $qb
                         ->andWhere('receipt_association.receptionNumber LIKE :value')
                         ->setParameter('value', '%' . $filter['value'] . '%');

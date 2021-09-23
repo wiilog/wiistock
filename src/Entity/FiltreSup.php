@@ -51,6 +51,7 @@ class FiltreSup
 	const PAGE_DEM_LIVRAISON = 'dlivraison';
     const PAGE_HAND = 'handling';
     const FIELD_SUBJECT = 'subject';
+    const FIELD_DESTINATION = 'destination';
     const PAGE_RECEPTION = 'reception';
 	const PAGE_ORDRE_COLLECTE = 'ocollecte';
 	const PAGE_ORDRE_LIVRAISON = 'olivraison';
