@@ -54,6 +54,7 @@ class FiltreSupController extends AbstractController
                 'statusEntity' => FiltreSup::FIELD_STATUS_ENTITY,
                 'alert' => FiltreSup::FIELD_ALERT,
                 'subject' => FiltreSup::FIELD_SUBJECT,
+                'destination' => FiltreSup::FIELD_DESTINATION,
             ];
 
             foreach ($filterLabels as $filterLabel => $filterName) {

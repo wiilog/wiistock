@@ -207,9 +207,9 @@ class Dispatch extends FreeFieldEntity
     private ?Transporteur $carrier = null;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Emplacement::class, inversedBy="dispatches")
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private ?Emplacement $destination = null;
+    private ?string $destination = null;
 
     public function __construct()
     {
@@ -609,19 +609,14 @@ class Dispatch extends FreeFieldEntity
         return $this;
     }
 
-    public function getDestination(): ?Emplacement
+    public function getDestination(): ?string
     {
         return $this->destination;
     }
 
-    public function setDestination(?Emplacement $destination): self {
-        if($this->destination && $this->destination !== $destination) {
-            $this->destination->removeDispatch($this);
-        }
+    public function setDestination(?string $destination): self
+    {
         $this->destination = $destination;
-        if($destination) {
-            $destination->addDispatch($this);
-        }
 
         return $this;
     }

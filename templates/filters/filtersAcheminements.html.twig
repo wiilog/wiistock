@@ -25,6 +25,6 @@
     {% endif %}
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DESTINATION') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
-        {% include 'filters/filter_item/filterLocation.html.twig' %}
+        {% include 'filters/filter_item/filterDestination.html.twig' %}
     {% endif %}
 {% endblock %}
