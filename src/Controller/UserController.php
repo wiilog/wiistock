@@ -649,9 +649,9 @@ class UserController extends AbstractController
     }
 
     /**
-     * @Route("/get-columns-order", name="get_columns_order", methods="POST", options={"expose"=true}, condition="request.isXmlHttpRequest()")
+     * @Route("/get-columns-order", name="get_columns_order", methods="GET", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      */
-    public function getColumnsOrder(Request $request, EntityManagerInterface $manager): JsonResponse {
+    public function getColumnsOrder(Request $request): JsonResponse {
         $page = $request->request->get('page');
 
         /** @var Utilisateur $loggedUser */
