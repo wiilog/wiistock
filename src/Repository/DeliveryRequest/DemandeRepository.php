@@ -446,17 +446,19 @@ class DemandeRepository extends EntityRepository
     }
 
     public function getRequestersForReceptionExport() {
-        $qb = $this->createQueryBuilder("d")
+        $qb = $this->createQueryBuilder("request")
             ->select("requester.username AS username")
-            ->addSelect("d.reception AS reception")
-            ->addSelect("dral.article AS article")
-            ->leftJoin("d.articleLines", "dral")
-            ->leftJoin("d.utilisateur", "requester")
+            ->addSelect("reception.id AS reception_id")
+            ->addSelect("article.id AS article_id")
+            ->leftJoin("request.articleLines", "dral")
+            ->leftJoin("request.utilisateur", "requester")
+            ->leftJoin("request.reception", "reception")
+            ->leftJoin("dral.article", "article")
             ->getQuery()
             ->getResult();
 
         return Stream::from($qb)
-            ->keymap(fn(array $data) => [$data["reception"] ."-". $data["article"], $data["username"]])
+            ->keymap(fn(array $data) => [$data["reception_id"] ."-". $data["article_id"], $data["username"]])
             ->toArray();
     }
 
