@@ -1026,23 +1026,27 @@ class ArticleRepository extends EntityRepository {
         return !empty($articleIsProcessed);
     }
 
-    private function getCollectableArticlesQueryBuilder(?ReferenceArticle $referenceArticle = null): QueryBuilder {
-        $qb = $this->createQueryBuilder("article")
+    private function getCollectableArticlesQueryBuilder(?ReferenceArticle $referenceArticle, bool $lastMonthOutput = true): QueryBuilder {
+        $queryBuilder = $this->createQueryBuilder("article")
             ->join('article.statut', 'statut')
             ->andWhere("article.inactiveSince IS NOT NULL")
-            ->andWhere("article.inactiveSince > :one_month_ago")
             ->andWhere("statut.code = :inactive")
-            ->setParameter("inactive", Article::STATUT_INACTIF)
-            ->setParameter("one_month_ago", new DateTime("-1 month"));
+            ->setParameter("inactive", Article::STATUT_INACTIF);
+
+        if ($lastMonthOutput) {
+            $queryBuilder
+                ->andWhere("article.inactiveSince > :one_month_ago")
+                ->setParameter("one_month_ago", new DateTime("-1 month"));
+        }
 
         if($referenceArticle) {
-            $qb->join("article.articleFournisseur", "article_fournisseur")
+            $queryBuilder->join("article.articleFournisseur", "article_fournisseur")
                 ->join("article_fournisseur.referenceArticle", "reference_article")
                 ->andWhere("reference_article = :reference_article")
                 ->setParameter("reference_article", $referenceArticle);
         }
 
-        return $qb;
+        return $queryBuilder;
     }
 
     public function getCollectableArticlesForSelect(?string $search, ?ReferenceArticle $referenceArticle = null): array {
@@ -1058,8 +1062,8 @@ class ArticleRepository extends EntityRepository {
         return $qb->getQuery()->getResult();
     }
 
-    public function getCollectableMobileArticles(ReferenceArticle $referenceArticle): array {
-        $qb = $this->getCollectableArticlesQueryBuilder($referenceArticle)
+    public function getCollectableMobileArticles(ReferenceArticle $referenceArticle, ?string $barcode): array {
+        $queryBuilder = $this->getCollectableArticlesQueryBuilder($referenceArticle, empty($barcode))
             ->select('reference_article.reference AS reference')
             ->addSelect('reference_article.libelle AS reference_label')
             ->addSelect('article.label AS label')
@@ -1068,6 +1072,12 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('0 AS is_ref')
             ->leftJoin('article.emplacement', 'join_location');
 
-        return $qb->getQuery()->getResult();
+        if ($barcode) {
+            $queryBuilder
+                ->andWhere('article.barCode = :barcode')
+                ->setParameter('barcode', $barcode);
+        }
+
+        return $queryBuilder->getQuery()->getResult();
     }
 }

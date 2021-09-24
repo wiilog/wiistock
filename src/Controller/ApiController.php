@@ -1080,7 +1080,7 @@ class ApiController extends AbstractFOSRestController
         // on termine les collectes
         foreach ($collectes as $collecteArray) {
             $collecte = $ordreCollecteRepository->find($collecteArray['id']);
-//            try {
+            try {
                 $entityManager->transactional(function ()
                 use (
                     $entityManager,
@@ -1126,8 +1126,6 @@ class ApiController extends AbstractFOSRestController
                                                 break;
                                             }
                                         }
-
-
                                     }
                                 }
                             }
@@ -1184,39 +1182,39 @@ class ApiController extends AbstractFOSRestController
                         );
                     }
                 });
-//            } catch (Throwable $throwable) {
-//                // we create a new entity manager because transactional() can call close() on it if transaction failed
-//                if (!$entityManager->isOpen()) {
-//                    $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
-//                    $ordreCollecteService->setEntityManager($entityManager);
-//
-//                    $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
-//                    $articleRepository = $entityManager->getRepository(Article::class);
-//                    $refArticlesRepository = $entityManager->getRepository(ReferenceArticle::class);
-//                    $ordreCollecteRepository = $entityManager->getRepository(OrdreCollecte::class);
-//                    $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-//                }
-//
-//                $user = $collecte->getUtilisateur() ? $collecte->getUtilisateur()->getUsername() : '';
-//
-//                $message = (
-//                ($throwable instanceof ArticleNotAvailableException) ? ("Une référence de la collecte n'est pas active, vérifiez les transferts de stock en cours associés à celle-ci.") :
-//                    (($throwable->getMessage() === OrdreCollecteService::COLLECTE_ALREADY_BEGUN) ? ("La collecte " . $collecte->getNumero() . " a déjà été effectuée (par " . $user . ").") :
-//                        (($throwable->getMessage() === OrdreCollecteService::COLLECTE_MOUVEMENTS_EMPTY) ? ("La collecte " . $collecte->getNumero() . " ne contient aucun article.") :
-//                            false))
-//                );
-//
-//                if (!$message) {
-//                    $exceptionLoggerService->sendLog($throwable, $request);
-//                }
-//
-//                $resData['errors'][] = [
-//                    'numero_collecte' => $collecte->getNumero(),
-//                    'id_collecte' => $collecte->getId(),
-//
-//                    'message' => $message ?: 'Une erreur est survenue'
-//                ];
-//            }
+            } catch (Throwable $throwable) {
+                // we create a new entity manager because transactional() can call close() on it if transaction failed
+                if (!$entityManager->isOpen()) {
+                    $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
+                    $ordreCollecteService->setEntityManager($entityManager);
+
+                    $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
+                    $articleRepository = $entityManager->getRepository(Article::class);
+                    $refArticlesRepository = $entityManager->getRepository(ReferenceArticle::class);
+                    $ordreCollecteRepository = $entityManager->getRepository(OrdreCollecte::class);
+                    $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+                }
+
+                $user = $collecte->getUtilisateur() ? $collecte->getUtilisateur()->getUsername() : '';
+
+                $message = (
+                ($throwable instanceof ArticleNotAvailableException) ? ("Une référence de la collecte n'est pas active, vérifiez les transferts de stock en cours associés à celle-ci.") :
+                    (($throwable->getMessage() === OrdreCollecteService::COLLECTE_ALREADY_BEGUN) ? ("La collecte " . $collecte->getNumero() . " a déjà été effectuée (par " . $user . ").") :
+                        (($throwable->getMessage() === OrdreCollecteService::COLLECTE_MOUVEMENTS_EMPTY) ? ("La collecte " . $collecte->getNumero() . " ne contient aucun article.") :
+                            false))
+                );
+
+                if (!$message) {
+                    $exceptionLoggerService->sendLog($throwable, $request);
+                }
+
+                $resData['errors'][] = [
+                    'numero_collecte' => $collecte->getNumero(),
+                    'id_collecte' => $collecte->getId(),
+
+                    'message' => $message ?: 'Une erreur est survenue'
+                ];
+            }
         }
 
         return new JsonResponse($resData, $statusCode);
@@ -2086,12 +2084,13 @@ class ApiController extends AbstractFOSRestController
         $articleRepository = $entityManager->getRepository(Article::class);
 
         $reference = $request->query->get('reference');
+        $barcode = $request->query->get('barcode');
 
         /** @var ReferenceArticle $referenceArticle */
         $referenceArticle = $referenceArticleRepository->findOneBy(['reference' => $reference]);
 
         if ($referenceArticle) {
-            return $this->json(['articles' => $articleRepository->getCollectableMobileArticles($referenceArticle)]);
+            return $this->json(['articles' => $articleRepository->getCollectableMobileArticles($referenceArticle, $barcode)]);
         }
         else {
             throw new NotFoundHttpException();
