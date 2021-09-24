@@ -1620,7 +1620,7 @@ class ReceptionController extends AbstractController {
                         if($reception['articleId']) {
                             $row = $this->serializeReception($reception);
 
-                            $row[] = $requesters[$reception['id'] ."-". $reception['articleId']] ?: '';
+                            $row[] = $requesters[$reception['id'] ."-". $reception['articleId']] ?? "";
                             $row[] = $reception['articleReference'] ?: '';
                             $row[] = $reception['articleLabel'] ?: '';
                             $row[] = $reception['articleQuantity'] ?: '';
