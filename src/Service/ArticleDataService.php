@@ -392,11 +392,8 @@ class ArticleDataService
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
 
         $url['edit'] = $this->router->generate('demande_article_edit', ['id' => $article->getId()]);
-        if ($this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
-            $status = $article->getStatut() ? $article->getStatut()->getNom() : 'Non défini';
-        } else {
-            $status = '';
-        }
+        $status = $article->getStatut() ? $article->getStatut()->getNom() : 'Non défini';
+
 
         $supplierArticle = $article->getArticleFournisseur();
         $referenceArticle = $supplierArticle ? $supplierArticle->getReferenceArticle() : null;

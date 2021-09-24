@@ -61,6 +61,9 @@ class OrdreCollecteService
 	/** @Required */
 	public NotificationService $notificationService;
 
+    /** @Required */
+    public DemandeCollecteService $demandeCollecteService;
+
     public function __construct(RouterInterface $router,
                                 TokenStorageInterface $tokenStorage,
                                 MailerService $mailerService,
@@ -136,29 +139,39 @@ class OrdreCollecteService
 		// on construit la liste des lignes à transférer vers une nouvelle collecte
 		$rowsToRemove = [];
 		$listOrdreCollecteReference = $ordreCollecte->getOrdreCollecteReferences();
+		$articlesToAdd = [];
 		foreach ($listOrdreCollecteReference as $ordreCollecteReference) {
-		    /** @var ReferenceArticle $refArticle */
-			$refArticle = $ordreCollecteReference->getReferenceArticle();
+            /** @var ReferenceArticle $refArticle */
+            $refArticle = $ordreCollecteReference->getReferenceArticle();
 
-			if ($refArticle->getStatut()->getId() !== $statusActiveReference->getId()) {
+            if ($refArticle->getStatut()->getId() !== $statusActiveReference->getId()) {
                 throw new ArticleNotAvailableException();
             }
-
             $barCode = $refArticle->getBarCode();
-			if (!isset($mouvmentByBarcode[$barCode])) {
-				$rowsToRemove[] = [
-					'id' => $refArticle->getId(),
-					'isRef' => 1
-				];
-			}
-			else {
+
+            if (!isset($mouvmentByBarcode[$barCode])) {
+                $rowsToRemove[] = [
+                    'id' => $refArticle->getId(),
+                    'isRef' => 1
+                ];
+            } else {
                 $quantity = $mouvmentByBarcode[$barCode]['quantity'];
-                $oldQuantity = $ordreCollecteReference->getQuantite();
-                if($quantity > 0 && $quantity < $oldQuantity) {
-                    $ordreCollecteReference->setQuantite($quantity);
+                if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE && $quantity > 0) {
+                    $articleData = [];
+                    $articleData['quantity-to-pick'] = $mouvmentByBarcode[$barCode]['quantity'];
+                    $insertedArticle = $this->demandeCollecteService->persistArticleInDemand($articleData, $refArticle, $demandeCollecte);
+                    $this->entityManager->persist($insertedArticle);
+                    $articlesToAdd[] = $insertedArticle;
+                    $this->entityManager->remove($ordreCollecteReference);
+                } else {
+                    $oldQuantity = $ordreCollecteReference->getQuantite();
+                    if ($quantity > 0 && $quantity < $oldQuantity) {
+                        $ordreCollecteReference->setQuantite($quantity);
+                    }
                 }
             }
-		}
+        }
+
 
 		$listArticles = $ordreCollecte->getArticles();
 		foreach ($listArticles as $article) {
@@ -177,7 +190,11 @@ class OrdreCollecteService
                 }
             }
 		}
-
+        foreach ($articlesToAdd as $article) {
+            $ordreCollecte->addArticle($article);
+            $demandeCollecte->removeArticle($article);
+        }
+        $this->entityManager->flush();
         $this->removeArticlesFromCollecte($rowsToRemove, $ordreCollecte, $em);
 
 		// on modifie le statut de l'ordre de collecte
@@ -185,6 +202,7 @@ class OrdreCollecteService
 			->setUtilisateur($user)
 			->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_TRAITE))
 			->setTreatingDate($date);
+
 
 		// on modifie la quantité des articles de référence liés à la collecte
 		$collecteReferences = $ordreCollecteReferenceRepository->findByOrdreCollecte($ordreCollecte);
@@ -239,6 +257,19 @@ class OrdreCollecteService
                     );
                 }
             }
+        }
+        foreach ($articlesToAdd as $article) {
+            $article->setStockEntryDate($date);
+            $this->persistMouvementsFromStock(
+                $user,
+                $article,
+                $date,
+                $demandeCollecte->getPointCollecte(),
+                $article->getEmplacement(),
+                $article->getQuantite(),
+                $ordreCollecte,
+                $fromNomade
+            );
         }
 		$this->entityManager->flush();
 
@@ -411,7 +442,6 @@ class OrdreCollecteService
         $demandeCollecte = $ordreCollecte->getDemandeCollecte();
         $statutRepository = $entityManager->getRepository(Statut::class);
         $dateNow = new DateTime('now');
-
         // cas de collecte partielle
         if (!empty($articlesToRemove)) {
             $statutRepository = $entityManager->getRepository(Statut::class);

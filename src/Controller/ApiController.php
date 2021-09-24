@@ -1070,7 +1070,10 @@ class ApiController extends AbstractFOSRestController
         $resData = ['success' => [], 'errors' => [], 'data' => []];
 
         $collectes = json_decode($request->request->get('collectes'), true);
-
+        if (!$collectes) {
+            $jsonData = json_decode($request->getContent(), true);
+            $collectes = $jsonData['collectes'];
+        }
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $refArticlesRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -1131,7 +1134,6 @@ class ApiController extends AbstractFOSRestController
                             }
                         }
                     }
-
                     $newCollecte = $ordreCollecteService->finishCollecte($collecte, $nomadUser, $date, $collecteArray['mouvements'], true);
                     $entityManager->flush();
 
