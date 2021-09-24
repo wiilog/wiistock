@@ -276,10 +276,11 @@ function passArgsToModal(button) {
     let params = JSON.stringify({articleFournisseur: $(button).data('value')});
     $.post(path, params, function (response) {
         const $modalDeleteSupplier = $('#modalDeleteFournisseur');
+        const $submitDeleteSupplier = $("#submitDeleteFournisseur");
         if (response) {
             $modalDeleteSupplier.find('.modal-body').html('Voulez-vous réellement supprimer le lien entre ce<br> fournisseur et cet article ? ');
-            $modalDeleteSupplier.data('value', $(button).data('value'));
-            $modalDeleteSupplier.data('title', $(button).data('title'));
+            $submitDeleteSupplier.data('value', $(button).data('value'));
+            $submitDeleteSupplier.data('title', $(button).data('title'));
             $modalDeleteSupplier.find('#submitDeleteFournisseur').removeClass('d-none');
         } else {
             $modalDeleteSupplier.find('.modal-body').html('Cet article fournisseur est lié à des articles<br> il est impossible de le supprimer');
