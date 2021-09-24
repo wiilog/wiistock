@@ -90,7 +90,7 @@ class ReceptionRepository extends EntityRepository
      */
     public function getByDates(DateTime $dateMin, DateTime $dateMax) {
         $queryBuilder = $this->createQueryBuilder('reception')
-            ->select('reception.id')
+            ->select('reception.id AS id')
             ->addSelect('article.id AS articleId')
             ->addSelect('referenceArticle.id AS referenceArticleId')
             ->addSelect('reception.number')
@@ -118,7 +118,6 @@ class ReceptionRepository extends EntityRepository
             ->addSelect('reception.manualUrgent AS receptionEmergency')
             ->addSelect('reception.urgentArticles AS referenceEmergency')
             ->addSelect('join_storageLocation.label AS storageLocation')
-            ->addSelect('join_request_user.username AS requesterUsername')
 
             ->where('reception.date BETWEEN :dateMin AND :dateMax')
 
@@ -133,9 +132,6 @@ class ReceptionRepository extends EntityRepository
             ->leftJoin('article.type', 'articleType')
             ->leftJoin('article.articleFournisseur', 'articleFournisseur')
             ->leftJoin('articleFournisseur.referenceArticle', 'articleReferenceArticle')
-            ->leftJoin('article.deliveryRequestLines', 'join_request_lines')
-            ->leftJoin(Demande::class, 'd', Join::WITH, 'join_request_lines.request MEMBER OF reception.demandes AND join_request_lines.article = article')
-            ->leftJoin('d.utilisateur', 'join_request_user')
 
             ->setParameters([
                 'dateMin' => $dateMin,

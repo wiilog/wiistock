@@ -1580,7 +1580,10 @@ class ReceptionController extends AbstractController {
 
         if(isset($dateTimeMin) && isset($dateTimeMax)) {
             $receptionRepository = $entityManager->getRepository(Reception::class);
+            $deliveryRequestRepository = $entityManager->getRepository(Demande::class);
             $receptions = $receptionRepository->getByDates($dateTimeMin, $dateTimeMax);
+
+            $requesters = $deliveryRequestRepository->getRequestersForReceptionExport();
 
             $csvHeader = [
                 $translator->trans('réception.n° de réception'),
@@ -1611,13 +1614,13 @@ class ReceptionController extends AbstractController {
                 "export-" . str_replace(["/", "\\"], "-", $translator->trans('réception.réception')) . "-" . $nowStr  . ".csv",
                 $receptions,
                 $csvHeader,
-                function($reception) use (&$addedRefs) {
+                function($reception) use (&$addedRefs, $requesters) {
                     $rows = [];
                     if($reception['articleId'] || $reception['referenceArticleId']) {
                         if($reception['articleId']) {
                             $row = $this->serializeReception($reception);
 
-                            $row[] = $reception['requesterUsername'] ?: '';
+                            $row[] = $requesters[$reception['id'] ."-". $reception['articleId']] ?: '';
                             $row[] = $reception['articleReference'] ?: '';
                             $row[] = $reception['articleLabel'] ?: '';
                             $row[] = $reception['articleQuantity'] ?: '';
