@@ -1070,7 +1070,9 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('article.barCode AS barcode')
             ->addSelect('join_location.label AS location')
             ->addSelect('0 AS is_ref')
-            ->leftJoin('article.emplacement', 'join_location');
+            ->leftJoin('article.emplacement', 'join_location')
+            ->andWhere("article.inactiveSince > :one_month_ago")
+            ->setParameter("one_month_ago", new DateTime("-1 month"));
 
         if ($barcode) {
             $queryBuilder

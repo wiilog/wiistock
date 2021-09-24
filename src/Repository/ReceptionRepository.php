@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Reception;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
@@ -9,6 +10,7 @@ use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\Query\Expr\Join;
 use WiiCommon\Helper\Stream;
 
 /**
@@ -131,8 +133,9 @@ class ReceptionRepository extends EntityRepository
             ->leftJoin('article.type', 'articleType')
             ->leftJoin('article.articleFournisseur', 'articleFournisseur')
             ->leftJoin('articleFournisseur.referenceArticle', 'articleReferenceArticle')
-            ->leftJoin('article.demande', 'join_request')
-            ->leftJoin('join_request.utilisateur', 'join_request_user')
+            ->leftJoin('article.deliveryRequestLines', 'join_request_lines')
+            ->leftJoin(Demande::class, 'd', Join::WITH, 'join_request_lines.request MEMBER OF reception.demandes AND join_request_lines.article = article')
+            ->leftJoin('d.utilisateur', 'join_request_user')
 
             ->setParameters([
                 'dateMin' => $dateMin,
