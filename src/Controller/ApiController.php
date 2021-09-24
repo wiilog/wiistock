@@ -569,7 +569,7 @@ class ApiController extends AbstractFOSRestController
                         $mouvementsNomade = $preparationArray['mouvements'];
                         $totalQuantitiesWithRef = [];
                         $livraison = $livraisonsManager->createLivraison($dateEnd, $preparation, $entityManager);
-
+                        $emplacementPrepa = $emplacementRepository->findOneBy(['label' => $preparationArray['emplacement']]);
                         foreach ($mouvementsNomade as $mouvementNomade) {
                             if (!$mouvementNomade['is_ref'] && $mouvementNomade['selected_by_article']) {
                                 /** @var Article $article */
@@ -597,7 +597,7 @@ class ApiController extends AbstractFOSRestController
                                     $mouvement->getRefArticle() ?? $mouvement->getArticle(),
                                     $preparation,
                                     false,
-                                    $preparation->getEndLocation()
+                                    $emplacementPrepa
                                 );
                             }
                         }
@@ -607,7 +607,7 @@ class ApiController extends AbstractFOSRestController
                             $ligneArticle = $ligneArticlePreparationRepository->findOneByRefArticleAndDemande($refArticle, $preparation->getDemande());
                             $preparationsManager->deleteLigneRefOrNot($ligneArticle);
                         }
-                        $emplacementPrepa = $emplacementRepository->findOneBy(['label' => $preparationArray['emplacement']]);
+
                         $insertedPreparation = $preparationsManager->treatPreparation($preparation, $nomadUser, $emplacementPrepa, $articlesToKeep, $entityManager);
 
                         if ($insertedPreparation) {
