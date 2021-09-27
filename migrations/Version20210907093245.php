@@ -24,8 +24,7 @@ final class Version20210907093245 extends AbstractMigration
             $this->addSql('ALTER TABLE delivery_request_article_line RENAME COLUMN quantity TO quantity_to_pick;');
             $this->addSql('ALTER TABLE preparation_order_reference_line RENAME COLUMN quantity TO quantity_to_pick;');
             $this->addSql('ALTER TABLE preparation_order_article_line RENAME COLUMN quantity TO quantity_to_pick;');
-        }
-        else {
+        } else {
             // this up() migration is auto-generated, please modify it to your needs
             $this->addSql('ALTER TABLE ligne_article RENAME TO delivery_request_reference_line;');
             $this->addSql('ALTER TABLE delivery_request_reference_line RENAME COLUMN demande_id TO request_id;');
@@ -61,7 +60,7 @@ final class Version20210907093245 extends AbstractMigration
                    quantite,
                    preparation_id AS preparation_id
             FROM article
-            WHERE demande_id IS NOT NULL AND quantite_aprelever IS NOT NULL AND quantite_aprelever > 0
+            WHERE (demande_id IS NOT NULL OR preparation_id IS NOT NULL) AND quantite_aprelever IS NOT NULL AND quantite_aprelever > 0
         ');
 
         foreach ($articles as $article) {
@@ -70,11 +69,12 @@ final class Version20210907093245 extends AbstractMigration
             $quantity = $article['quantite_aprelever'];
             $pickedQuantity = $article['quantite_prelevee'] ?: 'NULL';
             $preparationId = $article['preparation_id'];
-            $this->addSql("
-                INSERT INTO delivery_request_article_line (article_id, request_id, quantity_to_pick, picked_quantity)
-                VALUES (${articleId}, ${requestId}, ${quantity}, ${pickedQuantity})
-            ");
-
+            if ($requestId) {
+                $this->addSql("
+                    INSERT INTO delivery_request_article_line (article_id, request_id, quantity_to_pick, picked_quantity)
+                    VALUES (${articleId}, ${requestId}, ${quantity}, ${pickedQuantity})
+                ");
+            }
             if ($preparationId) {
                 $this->addSql("
                     INSERT INTO preparation_order_article_line (article_id, preparation_id, quantity_to_pick, picked_quantity)
