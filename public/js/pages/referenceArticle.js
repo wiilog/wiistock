@@ -87,6 +87,7 @@ function initTableRefArticle() {
                 search: {
                     search: $('#user-search').val()
                 },
+                displayStart: $('#user-index').val() ? Number.parseInt($('#user-index').val()) : 0,
                 length: 10,
                 columns: columns,
                 drawConfig: {

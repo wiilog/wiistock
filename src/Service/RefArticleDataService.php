@@ -118,9 +118,17 @@ class RefArticleDataService {
          */
         $currentUser = $this->user;
         $currentUserSearches = $currentUser->getSearches();
+        $currentUserIndexes = $currentUser->getPageIndexes();
         if ($params->has('search')) {
             $currentUserSearches['reference'] = $params->get('search');
             $currentUser->setSearches($currentUserSearches);
+            $this->entityManager->flush();
+        }
+        if ($params->has('start') && $params->has('length')) {
+            $currentUserIndexes['reference'] =
+                intval(intval($params->get('start')) / intval($params->get('length')))
+                * intval($params->get('length'));
+            $currentUser->setPageIndexes($currentUserIndexes);
             $this->entityManager->flush();
         }
         $userId = $currentUser->getId();

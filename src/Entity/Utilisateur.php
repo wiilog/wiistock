@@ -371,6 +371,11 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
      */
     private $searches = [];
 
+    /**
+     * @ORM\Column(type="array", nullable=true)
+     */
+    private $pageIndexes = [];
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -1974,6 +1979,18 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     public function setSearches(?array $searches): self
     {
         $this->searches = $searches;
+
+        return $this;
+    }
+
+    public function getPageIndexes(): ?array
+    {
+        return $this->pageIndexes;
+    }
+
+    public function setPageIndexes(?array $pagesIndexes): self
+    {
+        $this->pageIndexes = $pagesIndexes;
 
         return $this;
     }
