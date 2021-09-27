@@ -121,13 +121,15 @@ class LocationCluster {
      */
     public function getLocationClusterRecord(Pack $pack): ?LocationClusterRecord {
         $matchingRecord = null;
-        /** @var LocationClusterRecord $record */
-        foreach ($this->locationClusterRecords as $record) {
-            $recordPack = $record->getPack();
-            if ($recordPack
-                && $pack->getId() === $recordPack->getId()) {
-                $matchingRecord = $record;
-                break;
+        if ($pack->getId()) {
+            /** @var LocationClusterRecord $record */
+            foreach ($this->locationClusterRecords as $record) {
+                $recordPack = $record->getPack();
+                if ($recordPack
+                    && $pack->getId() === $recordPack->getId()) {
+                    $matchingRecord = $record;
+                    break;
+                }
             }
         }
         return $matchingRecord;
