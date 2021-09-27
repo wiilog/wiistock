@@ -287,11 +287,6 @@ class TransferRequest implements Serializable {
         return $this;
     }
 
-    public function needsToBeProcessed(): bool {
-        $status = $this->getStatus();
-        return $status && $status->getNom() === TransferRequest::TO_TREAT;
-    }
-
     public function serialize(): array {
         return [
             'number' => $this->getNumber(),

@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\IOT\CollectRequestTemplate;
 use App\Entity\IOT\DeliveryRequestTemplate;
 use App\Entity\IOT\PairedEntity;
@@ -46,7 +47,7 @@ class Emplacement implements PairedEntity
     private Collection $livraisons;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Demande", mappedBy="destination")
+     * @ORM\OneToMany(targetEntity="App\Entity\DeliveryRequest\Demande", mappedBy="destination")
      */
     private Collection $demandes;
 
@@ -158,11 +159,6 @@ class Emplacement implements PairedEntity
      */
     private ?LocationGroup $locationGroup = null;
 
-    /**
-     * @ORM\OneToMany(targetEntity=Dispatch::class, mappedBy="destination")
-     */
-    private Collection $dispatches;
-
     public function __construct() {
         $this->clusters = new ArrayCollection();
         $this->articles = new ArrayCollection();
@@ -185,7 +181,6 @@ class Emplacement implements PairedEntity
         $this->deliveryRequestTemplates = new ArrayCollection();
         $this->collectRequestTemplates = new ArrayCollection();
         $this->sensorMessages = new ArrayCollection();
-        $this->dispatches = new ArrayCollection();
     }
 
     public function getId(): ? int
@@ -857,32 +852,6 @@ class Emplacement implements PairedEntity
             // set the owning side to null (unless already changed)
             if ($collectRequestTemplate->getCollectPoint() === $this) {
                 $collectRequestTemplate->setCollectPoint(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function getDispatches(): Collection
-    {
-        return $this->dispatches;
-    }
-
-    public function addDispatch(Dispatch $dispatch): self
-    {
-        if (!$this->dispatches->contains($dispatch)) {
-            $this->dispatches[] = $dispatch;
-            $dispatch->setDestination($this);
-        }
-
-        return $this;
-    }
-
-    public function removeDispatch(Dispatch $dispatch): self
-    {
-        if ($this->dispatches->removeElement($dispatch)) {
-            if ($dispatch->getDestination() === $this) {
-                $dispatch->setDestination(null);
             }
         }
 

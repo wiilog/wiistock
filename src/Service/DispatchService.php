@@ -132,7 +132,7 @@ class DispatchService {
             'receivers' => $receiversUsernames ?? '',
             'locationFrom' => $dispatch->getLocationFrom() ? $dispatch->getLocationFrom()->getLabel() : '',
             'locationTo' => $dispatch->getLocationTo() ? $dispatch->getLocationTo()->getLabel() : '',
-            'destination' => $dispatch->getDestination() ? $dispatch->getDestination()->getLabel() : '',
+            'destination' => $dispatch->getDestination() ?? '',
             'nbPacks' => $dispatch->getDispatchPacks()->count(),
             'type' => $dispatch->getType() ? $dispatch->getType()->getLabel() : '',
             'status' => $dispatch->getStatut() ? $dispatch->getStatut()->getNom() : '',

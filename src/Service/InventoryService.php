@@ -70,11 +70,15 @@ class InventoryService
 
 		if ($diff != 0) {
 		    $statusRequired = $isRef ? [ReferenceArticle::STATUT_ACTIF] : [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE];
-            if (!in_array($refOrArt->getStatut()->getNom(), $statusRequired)) {
+            if (!in_array($refOrArt->getStatut()->getCode(), $statusRequired)) {
                 throw new ArticleNotAvailableException();
             }
 
-            if ($refOrArt->isInRequestsInProgress()) {
+            $reference = $refOrArt instanceof ReferenceArticle
+                ? $refOrArt
+                : $refOrArt->getReferenceArticle();
+
+            if ($reference && $reference->isInRequestsInProgress()) {
                 throw new RequestNeedToBeProcessedException();
             }
 

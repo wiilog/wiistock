@@ -162,6 +162,7 @@ function switchMvtCreationType($input) {
             const $emptyRound = $modal.find('input[name=empty-round]');
             if($input.find(':selected').text().trim() === $emptyRound.val()) {
                 const $packInput = $modal.find('input[name=colis]');
+                $modal.find('input[name=quantity]').closest('div.form-group').addClass('d-none');
                 $packInput.val('passageavide');
                 $packInput.prop('disabled', true);
             }
@@ -170,7 +171,7 @@ function switchMvtCreationType($input) {
 }
 
 /**
- * Used in mouvement_traca/index.html.twig
+ * Used in mouvement_association/index.html.twig
  */
 function clearURL() {
     window.history.pushState({}, document.title, `${window.location.pathname}`);

@@ -5,13 +5,13 @@ namespace App\Service;
 use App\Entity\Arrivage;
 use App\Entity\Dispatch;
 use App\Entity\Collecte;
-use App\Entity\Demande;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Livraison;
 use App\Entity\Handling;
 use App\Entity\OrdreCollecte;
 use App\Entity\Parametre;
 use App\Entity\ParametreRole;
-use App\Entity\Preparation;
+use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Reception;
 use App\Entity\Utilisateur;
 
@@ -159,7 +159,7 @@ class UserService
         $isUsedInDeliveryOrders = $livraisonRepository->countByUser($user) > 0;
         $isUsedInCollectOrders = $ordreCollecteRepository->countByUser($user) > 0;
         $isUsedInHandlings = $handlingRepository->countByUser($user) > 0;
-        $isUsedInPreparationOrders = $preparationRepository->countByUser($user) > 0;
+        $isUsedInPreparationOrders = $preparationRepository->count(['utilisateur' => $user]) > 0;
         $isUsedInReceptions = $receptionRepository->countByUser($user) > 0;
         $isUsedInDispatches = $dispatchRepository->countByUser($user) > 0;
         $isUsedInArrivals = $arrivageRepository->countByUser($user) > 0;

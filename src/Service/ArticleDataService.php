@@ -6,8 +6,9 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategoryType;
+use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\FreeField;
-use App\Entity\Demande;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
@@ -59,57 +60,28 @@ class ArticleDataService
         $this->visibleColumnService = $visibleColumnService;
     }
 
-    public function getArticleOrNoByRefArticle($refArticle, $demande, $byRef)
+    public function getCollecteArticleOrNoByRefArticle($refArticle, Utilisateur $user)
     {
-        if ($demande === 'livraison') {
-            $demande = 'demande';
+        $parametreRoleRepository = $this->entityManager->getRepository(ParametreRole::class);
+
+        $role = $user->getRole();
+
+        $parametreRepository = $this->entityManager->getRepository(Parametre::class);
+        $param = $parametreRepository->findOneBy(['label' => Parametre::LABEL_AJOUT_QUANTITE]);
+
+        $paramQuantite = $parametreRoleRepository->findOneByRoleAndParam($role, $param);
+
+        // si le paramétrage n'existe pas pour ce rôle, on le crée (valeur par défaut)
+        if (!$paramQuantite) {
+            $paramQuantite = new ParametreRole();
+            $paramQuantite
+                ->setValue($param->getDefaultValue())
+                ->setRole($role)
+                ->setParametre($param);
+            $this->entityManager->persist($paramQuantite);
+            $this->entityManager->flush();
         }
-
-        if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-            $json = $this->templating->render('reference_article/newRefArticleByQuantiteRefContent.html.twig', [
-                'maximum' => $demande === 'demande' ? $refArticle->getQuantiteDisponible() : null,
-                'needsQuantity' => $demande !== 'transfert'
-            ]);
-        } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-            $articleRepository = $this->entityManager->getRepository(Article::class);
-            if ($demande === 'collecte') {
-                $articles = $articleRepository->findByRefArticleAndStatut($refArticle, [Article::STATUT_INACTIF]);
-            } else if ($demande === 'demande') {
-                $articles = $articleRepository->findActifByRefArticleWithoutDemand($refArticle);
-            } else if ($demande === 'transfert') {
-                $articles = $articleRepository->findByRefArticleAndStatut($refArticle, [Article::STATUT_ACTIF]);
-            } else {
-                $articles = [];
-            }
-            if (empty($articles)) {
-                $articles[] = [
-                    'id' => '',
-                    'barCode' => 'aucun article disponible',
-                ];
-            }
-
-            $quantity = $refArticle->getQuantiteDisponible();
-            if ($byRef && $demande == 'demande') {
-				$json = $this->templating->render('demande/choiceContent.html.twig', [
-					'maximum' => $quantity
-				]);
-			} else {
-				$json = $this->templating->render('reference_article/newRefArticleByQuantiteArticleContent.html.twig', [
-					'articles' => $articles,
-					'maximum' => $demande === 'transfert' ? null : $quantity
-				]);
-			}
-
-
-        } else {
-            $json = false; //TODO gérer erreur retour
-        }
-
-        return $json;
-    }
-
-    public function getCollecteArticleOrNoByRefArticle($refArticle)
-    {
+        $byRef = $paramQuantite->getValue() == Parametre::VALUE_PAR_REF;
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
             $data = [
                 'modif' => $this->refArticleDataService->getViewEditRefArticle($refArticle, true),
@@ -117,7 +89,9 @@ class ArticleDataService
             ];
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $data = [
-                'selection' => $this->templating->render('collecte/newRefArticleByQuantiteRefContentTemp.html.twig'),
+                'selection' => $this->templating->render('collecte/newRefArticleByQuantiteRefContentTemp.html.twig', [
+                    'roleIsHandlingArticles' => !$byRef
+                ]),
             ];
         } else {
             $data = false; //TODO gérer erreur retour
@@ -126,7 +100,7 @@ class ArticleDataService
         return $data;
     }
 
-    public function getLivraisonArticlesByRefArticle(ReferenceArticle $refArticle, Utilisateur $user, ?int $deliveryRequestId)
+    public function getLivraisonArticlesByRefArticle(ReferenceArticle $refArticle, Demande $request, Utilisateur $user)
     {
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
             $data = [
@@ -139,7 +113,7 @@ class ArticleDataService
             $articleRepository = $this->entityManager->getRepository(Article::class);
             $parametreRoleRepository = $this->entityManager->getRepository(ParametreRole::class);
 
-            $articles = $articleRepository->findActifByRefArticleWithoutDemand($refArticle);
+            $articles = $articleRepository->findActiveArticles($refArticle);
             $role = $user->getRole();
 
             $parametreRepository = $this->entityManager->getRepository(Parametre::class);
@@ -190,12 +164,18 @@ class ArticleDataService
                             return 0;
                         })->toArray();
                 }
+
+                $articleIdsInRequest = $request->getArticleLines()
+                    ->map(fn (DeliveryRequestArticleLine $line) => $line->getArticle()->getId())
+                    ->toArray();
+
                 $data = [
                     'selection' => $this->templating->render('demande/newRefArticleByQuantiteArticleContent.html.twig', [
                         'articles' => $articles,
                         'preselect' => isset($management),
                         'maximum' => $availableQuantity,
-                        'deliveryRequestId' => $deliveryRequestId
+                        'deliveryRequest' => $request,
+                        'articleIdsInRequest' => $articleIdsInRequest
                     ])
                 ];
             }
@@ -286,7 +266,7 @@ class ArticleDataService
         }
     }
 
-    public function newArticle($data, EntityManagerInterface $entityManager, Demande $demande = null) {
+    public function newArticle($data, EntityManagerInterface $entityManager) {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
@@ -356,17 +336,6 @@ class ArticleDataService
         }
         $entityManager->persist($toInsert);
         $this->freeFieldService->manageFreeFields($toInsert, $data, $entityManager);
-        // optionnel : ajout dans une demande
-        if ($demande) {
-            $demande->addArticle($toInsert);
-            $toInsert->setQuantiteAPrelever($toInsert->getQuantite());
-
-            if (count($demande->getPreparations()) > 0) {
-                $toInsert->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
-                $toInsert->setQuantitePrelevee($toInsert->getQuantite());
-                $demande->getPreparations()[0]->addArticle($toInsert);
-            }
-        }
 
         return $toInsert;
     }
@@ -415,6 +384,7 @@ class ArticleDataService
     public function dataRowArticle(Article $article, Reception $reception = null)
     {
         $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
+        $deliveryRequestRepository = $this->entityManager->getRepository(Demande::class);
         $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
         $categorieCL = $categorieCLRepository->findOneBy(['label' => CategorieCL::ARTICLE]);
 
@@ -422,11 +392,8 @@ class ArticleDataService
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
 
         $url['edit'] = $this->router->generate('demande_article_edit', ['id' => $article->getId()]);
-        if ($this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
-            $status = $article->getStatut() ? $article->getStatut()->getNom() : 'Non défini';
-        } else {
-            $status = '';
-        }
+        $status = $article->getStatut() ? $article->getStatut()->getNom() : 'Non défini';
+
 
         $supplierArticle = $article->getArticleFournisseur();
         $referenceArticle = $supplierArticle ? $supplierArticle->getReferenceArticle() : null;
@@ -434,6 +401,8 @@ class ArticleDataService
         $lastMessage = $article->getLastMessage();
         $sensorCode = ($lastMessage && $lastMessage->getSensor() && $lastMessage->getSensor()->getAvailableSensorWrapper()) ? $lastMessage->getSensor()->getAvailableSensorWrapper()->getName() : null;
         $hasPairing = !$article->getSensorMessages()->isEmpty() || !$article->getPairings()->isEmpty();
+
+        $lastDeliveryRequest = $deliveryRequestRepository->findOneByArticle($article, $reception);
 
         $row = [
             "id" => $article->getId() ?? "Non défini",
@@ -454,7 +423,7 @@ class ArticleDataService
             "actions" => $this->templating->render('article/datatableArticleRow.html.twig', [
                 'url' => $url,
                 'articleId' => $article->getId(),
-                'demandeId' => $article->getDemande() ? $article->getDemande()->getId() : null,
+                'demandeId' => $lastDeliveryRequest ? $lastDeliveryRequest->getId() : null,
                 'articleFilter' => $article->getBarCode(),
                 'fromReception' => isset($reception),
                 'receptionId' => $reception ? $reception->getId() : null,
@@ -494,6 +463,7 @@ class ArticleDataService
 
     public function getBarcodeConfig(Article $article, Reception $reception = null): array {
         $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
+        $deliveryRequestRepository = $this->entityManager->getRepository(Demande::class);
 
         if (!isset($this->wantCLOnLabel)
             && !isset($this->clWantedOnLabel)
@@ -550,7 +520,8 @@ class ArticleDataService
             $location = $reception->getStorageLocation() ? $reception->getStorageLocation()->getLabel() : '';
         }
         else if (isset($reception) && $wantDestinationLocation) {
-            $location = $article->getDemande() ? $article->getDemande()->getDestination()->getLabel() : '';
+            $lastDeliveryRequest = $deliveryRequestRepository->findOneByArticle($article, $reception);
+            $location = $lastDeliveryRequest ? $lastDeliveryRequest->getDestination()->getLabel() : '';
         }
         else if ($wantsRecipientDropzone
                 && $articleReceptionRecipient

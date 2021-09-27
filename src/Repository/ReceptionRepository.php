@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Reception;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
@@ -9,6 +10,7 @@ use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\Query\Expr\Join;
 use WiiCommon\Helper\Stream;
 
 /**
@@ -88,7 +90,7 @@ class ReceptionRepository extends EntityRepository
      */
     public function getByDates(DateTime $dateMin, DateTime $dateMax) {
         $queryBuilder = $this->createQueryBuilder('reception')
-            ->select('reception.id')
+            ->select('reception.id AS id')
             ->addSelect('article.id AS articleId')
             ->addSelect('referenceArticle.id AS referenceArticleId')
             ->addSelect('reception.number')
@@ -116,7 +118,6 @@ class ReceptionRepository extends EntityRepository
             ->addSelect('reception.manualUrgent AS receptionEmergency')
             ->addSelect('reception.urgentArticles AS referenceEmergency')
             ->addSelect('join_storageLocation.label AS storageLocation')
-            ->addSelect('join_request_user.username AS requesterUsername')
 
             ->where('reception.date BETWEEN :dateMin AND :dateMax')
 
@@ -131,8 +132,6 @@ class ReceptionRepository extends EntityRepository
             ->leftJoin('article.type', 'articleType')
             ->leftJoin('article.articleFournisseur', 'articleFournisseur')
             ->leftJoin('articleFournisseur.referenceArticle', 'articleReferenceArticle')
-            ->leftJoin('article.demande', 'join_request')
-            ->leftJoin('join_request.utilisateur', 'join_request_user')
 
             ->setParameters([
                 'dateMin' => $dateMin,

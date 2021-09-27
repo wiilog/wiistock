@@ -20,10 +20,6 @@
                             }
                         } %}
                     {% endif %}
-
-                    {% for filter in filters %}
-                        {% include 'reference_article/oneFilter.html.twig' %}
-                    {% endfor %}
                 </div>
             </div>
             <div class="col-auto">
@@ -66,6 +62,8 @@
 
             <div class="col-auto">
                 <div class="btn-group">
+                    <input hidden id="user-search" value="{{ app.user.searches ? app.user.searches['reference'] ? app.user.searches['reference']['value'] }}">
+                    <input hidden id="user-index" value="{{ app.user.pageIndexes ? app.user.pageIndexes['reference'] ? app.user.pageIndexes['reference'] }}">
                     {% if hasRightToCreate %}
                         <button type="button" class="btn btn-primary split-button btn-ripple"
                                 onclick="window.location.href = Routing.generate('reference_article_new_page', {}, true)">
@@ -76,7 +74,7 @@
                              title="Veuillez faire une recherche ou renseigner un filtre pour imprimer."
                              data-toggle="tooltip">
                             <button type="button"
-                                    class="btn btn-primary split-button btn-ripple printButton {{ filters | length > 0 ? '' : 'btn-disabled' }}"
+                                    class="btn btn-primary split-button btn-ripple printButton"
                                     id="printTag"
                                     onclick="printReferenceArticleBarCode($(this), event)">
                                 <span class="fa fa-print mr-2"></span>Impression des étiquettes
@@ -92,7 +90,7 @@
                     </button>
                     <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
                         {% if hasRightToCreate and hasRightToExport %}
-                            <div class="dropdown-item has-tooltip {{ filters | length > 0 ? 'pointer' : 'disabled user-select-none' }}"
+                            <div class="dropdown-item has-tooltip printButton"
                                  id="printTag"
                                  tabindex="0"
                                  title="Veuillez faire une recherche ou renseigner un filtre pour imprimer."
@@ -142,7 +140,6 @@
     {% include "reference_article/modalShowRefArticle.html.twig" %}
     {% include "reference_article/modalNewFilter.html.twig" %}
 
-    {% include "reference_article/modalPlusDemande.html.twig" %}
     {% include "reference_article/modalConfirmDeleteBox.html.twig" %}
 
     {% include "reference_article/modalShowMouvements.html.twig" %}

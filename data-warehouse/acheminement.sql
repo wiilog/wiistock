@@ -17,7 +17,7 @@ SELECT dispatch.id                                        AS id,
        nature.label                                       AS nature_colis,
        emplacement_prise.label                            AS emplacement_prise,
        emplacement_depose.label                           AS emplacement_depose,
-       destination.label                                  AS destination,
+       dispatch.destination                               AS destination,
        (SELECT COUNT(dispatch_pack_count.id)
         FROM dispatch AS sub_dispatch
                  LEFT JOIN dispatch_pack AS dispatch_pack_count ON sub_dispatch.id = dispatch_pack_count.dispatch_id
@@ -49,7 +49,6 @@ FROM dispatch
          LEFT JOIN utilisateur AS treate_par ON dispatch.treated_by_id = treate_par.id
          LEFT JOIN emplacement AS emplacement_prise ON dispatch.location_from_id = emplacement_prise.id
          LEFT JOIN emplacement AS emplacement_depose ON dispatch.location_to_id = emplacement_depose.id
-         LEFT JOIN emplacement AS destination ON dispatch.destination_id = destination.id
          LEFT JOIN statut ON dispatch.statut_id = statut.id
          LEFT JOIN transporteur ON dispatch.carrier_id = transporteur.id
          LEFT JOIN dispatch_pack ON dispatch.id = dispatch_pack.dispatch_id

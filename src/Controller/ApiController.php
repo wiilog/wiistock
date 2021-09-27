@@ -15,7 +15,7 @@ use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
 use App\Entity\InventoryEntry;
 use App\Entity\InventoryMission;
-use App\Entity\LigneArticlePreparation;
+use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Livraison;
 use App\Entity\Handling;
 use App\Entity\Menu;
@@ -25,7 +25,7 @@ use App\Entity\TrackingMovement;
 use App\Entity\OrdreCollecte;
 use App\Entity\DispatchPack;
 use App\Entity\Attachment;
-use App\Entity\Preparation;
+use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\TransferOrder;
@@ -34,6 +34,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use App\Service\NotificationService;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use WiiCommon\Helper\Stream;
 
 use App\Exceptions\ArticleNotAvailableException;
@@ -561,14 +562,14 @@ class ApiController extends AbstractFOSRestController
 
                         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
                         $articleRepository = $entityManager->getRepository(Article::class);
-                        $ligneArticlePreparationRepository = $entityManager->getRepository(LigneArticlePreparation::class);
+                        $ligneArticlePreparationRepository = $entityManager->getRepository(PreparationOrderReferenceLine::class);
                         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
                         $preparationsManager->setEntityManager($entityManager);
                         $mouvementsNomade = $preparationArray['mouvements'];
                         $totalQuantitiesWithRef = [];
                         $livraison = $livraisonsManager->createLivraison($dateEnd, $preparation, $entityManager);
-
+                        $emplacementPrepa = $emplacementRepository->findOneBy(['label' => $preparationArray['emplacement']]);
                         foreach ($mouvementsNomade as $mouvementNomade) {
                             if (!$mouvementNomade['is_ref'] && $mouvementNomade['selected_by_article']) {
                                 /** @var Article $article */
@@ -583,19 +584,22 @@ class ApiController extends AbstractFOSRestController
                         }
 
                         $articlesToKeep = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $nomadUser, $entityManager);
+                        $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
+                        $mouvements = $mouvementRepository->findByPreparation($preparation);
 
-                        foreach ($mouvementsNomade as $mouvementNomade) {
-                            $emplacement = $emplacementRepository->findOneBy(['label' => $mouvementNomade['location']]);
-                            $preparationsManager->createMouvementLivraison(
-                                $mouvementNomade['quantity'],
-                                $nomadUser,
-                                $livraison,
-                                $mouvementNomade['is_ref'],
-                                $mouvementNomade['reference'],
-                                $preparation,
-                                $mouvementNomade['selected_by_article'],
-                                $emplacement
-                            );
+                        foreach ($mouvements as $mouvement) {
+                            if ($mouvement->getType() === MouvementStock::TYPE_TRANSFER) {
+                                $preparationsManager->createMouvementLivraison(
+                                    $mouvement->getQuantity(),
+                                    $nomadUser,
+                                    $livraison,
+                                    !empty($mouvement->getRefArticle()),
+                                    $mouvement->getRefArticle() ?? $mouvement->getArticle(),
+                                    $preparation,
+                                    false,
+                                    $emplacementPrepa
+                                );
+                            }
                         }
 
                         foreach ($totalQuantitiesWithRef as $ref => $quantity) {
@@ -603,7 +607,7 @@ class ApiController extends AbstractFOSRestController
                             $ligneArticle = $ligneArticlePreparationRepository->findOneByRefArticleAndDemande($refArticle, $preparation->getDemande());
                             $preparationsManager->deleteLigneRefOrNot($ligneArticle);
                         }
-                        $emplacementPrepa = $emplacementRepository->findOneBy(['label' => $preparationArray['emplacement']]);
+
                         $insertedPreparation = $preparationsManager->treatPreparation($preparation, $nomadUser, $emplacementPrepa, $articlesToKeep, $entityManager);
 
                         if ($insertedPreparation) {
@@ -634,7 +638,6 @@ class ApiController extends AbstractFOSRestController
                         $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
                         $preparationsManager->setEntityManager($entityManager);
                     }
-
                     $message = (
                     ($throwable instanceof NegativeQuantityException) ? "Une quantité en stock d\'un article est inférieure à sa quantité prélevée" :
                         (($throwable->getMessage() === PreparationsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION) ? "L'emplacement que vous avez sélectionné n'existe plus." :
@@ -1067,7 +1070,10 @@ class ApiController extends AbstractFOSRestController
         $resData = ['success' => [], 'errors' => [], 'data' => []];
 
         $collectes = json_decode($request->request->get('collectes'), true);
-
+        if (!$collectes) {
+            $jsonData = json_decode($request->getContent(), true);
+            $collectes = $jsonData['collectes'];
+        }
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $refArticlesRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -1095,6 +1101,39 @@ class ApiController extends AbstractFOSRestController
                     $ordreCollecteService->setEntityManager($entityManager);
                     $date = DateTime::createFromFormat(DateTimeInterface::ATOM, $collecteArray['date_end']);
 
+                    foreach ($collecteArray['mouvements'] as $collectMovement) {
+                        if ($collectMovement['is_ref'] == 0) {
+                            $barcode = $collectMovement['barcode'];
+                            $pickedQuantity = $collectMovement['quantity'];
+                            if ($barcode) {
+                                $isInCollect = !$collecte
+                                    ->getArticles()
+                                    ->filter(fn(Article $article) => $article->getBarCode() === $barcode)
+                                    ->isEmpty();
+
+                                if (!$isInCollect) {
+                                    /** @var Article $article */
+                                    $article = $articleRepository->findOneBy(['barCode' => $barcode]);
+                                    if ($article) {
+                                        $article->setQuantite($pickedQuantity);
+                                        $collecte->addArticle($article);
+
+                                        $referenceArticle = $article->getArticleFournisseur()->getReferenceArticle();
+                                        foreach ($collecte->getOrdreCollecteReferences() as $ordreCollecteReference) {
+                                            if ($ordreCollecteReference->getReferenceArticle() === $referenceArticle) {
+                                                $ordreCollecteReference->setQuantite($ordreCollecteReference->getQuantite() - $pickedQuantity);
+                                                if ($ordreCollecteReference->getQuantite() === 0) {
+                                                    $collecte->removeOrdreCollecteReference($ordreCollecteReference);
+                                                    $entityManager->remove($ordreCollecteReference);
+                                                }
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                     $newCollecte = $ordreCollecteService->finishCollecte($collecte, $nomadUser, $date, $collecteArray['mouvements'], true);
                     $entityManager->flush();
 
@@ -1459,7 +1498,6 @@ class ApiController extends AbstractFOSRestController
             $articlesPrepaByRefArticle = $articleRepository->getArticlePrepaForPickingByUser($user);
 
             $articlesPrepa = $this->getArticlesPrepaArrays($preparations);
-
             /// collecte
             $collectes = $ordreCollecteRepository->getMobileCollecte($user);
 
@@ -1580,7 +1618,6 @@ class ApiController extends AbstractFOSRestController
                 return $dispatchPack;
             }, $dispatchPackRepository->getMobilePacksFromDispatches(array_map(fn($dispatch) => $dispatch['id'], $dispatches)));
         }
-
         return [
             'locations' => $emplacementRepository->getLocationsArray(),
             'allowedNatureInLocations' => $allowedNatureInLocations ?? [],
@@ -1787,7 +1824,7 @@ class ApiController extends AbstractFOSRestController
                 // we can transfer if reference is active AND it is not linked to any active orders
                 $referenceArticleArray['can_transfer'] = (
                     ($statusReferenceId === $referenceActiveStatusId)
-                    && !$referenceArticle->isUsedInQuantityChangingProcesses()
+                    && !$referenceArticleRepository->isUsedInQuantityChangingProcesses($referenceArticle)
                 );
                 $resData['article'] = $referenceArticleArray;
             } else {
@@ -2039,6 +2076,30 @@ class ApiController extends AbstractFOSRestController
     }
 
     /**
+     * @Rest\Get("/api/collectable-articles", name="api_get_collectableçarticle", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function getCollectableArticles(Request                $request,
+                                           EntityManagerInterface $entityManager): Response {
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
+
+        $reference = $request->query->get('reference');
+        $barcode = $request->query->get('barcode');
+
+        /** @var ReferenceArticle $referenceArticle */
+        $referenceArticle = $referenceArticleRepository->findOneBy(['reference' => $reference]);
+
+        if ($referenceArticle) {
+            return $this->json(['articles' => $articleRepository->getCollectableMobileArticles($referenceArticle, $barcode)]);
+        }
+        else {
+            throw new NotFoundHttpException();
+        }
+    }
+
+    /**
      * @Rest\Get("/api/server-images", name="api_images", condition="request.isXmlHttpRequest()")
      * @Wii\RestVersionChecked()
      */
@@ -2208,7 +2269,7 @@ class ApiController extends AbstractFOSRestController
         $user = $this->getUser();
 
         foreach ($emptyRounds as $emptyRound) {
-            $date = new DateTime(trim($emptyRound['date'], '"'));
+            $date = DateTime::createFromFormat("d/m/Y H:i:s", $emptyRound['date']);
 
             $emptyRoundPack = $packRepository->findOneBy(['code' => Pack::EMPTY_ROUND_PACK]);
             $location = $locationRepository->findOneBy(['label' => $emptyRound['location']]);

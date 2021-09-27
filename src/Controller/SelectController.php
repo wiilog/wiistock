@@ -116,6 +116,17 @@ class SelectController extends AbstractController {
     }
 
     /**
+     * @Route("/select/colis", name="ajax_select_packs", options={"expose": true})
+     */
+    public function packs(Request $request, EntityManagerInterface $manager): Response {
+        $results = $manager->getRepository(Pack::class)->getForSelect($request->query->get("term"));
+        return $this->json([
+            "results" => $results,
+        ]);
+    }
+
+
+    /**
      * @Route("/select/capteurs-bruts", name="ajax_select_sensors", options={"expose": true})
      */
     public function sensors(Request $request, EntityManagerInterface $manager): Response {
@@ -288,6 +299,20 @@ class SelectController extends AbstractController {
         $fournisseurs = $fournisseurRepository->getIdAndLabelseBySearch($search);
         return $this->json([
             'results' => $fournisseurs
+        ]);
+    }
+
+    /**
+     * @Route("/select/articles-collectables", name="ajax_select_collectable_articles", options={"expose"=true})
+     */
+    public function collectableArticles(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $search = $request->query->get('term');
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $articles = $articleRepository->getCollectableArticlesForSelect($search);
+
+        return $this->json([
+            "results" => $articles
         ]);
     }
 }

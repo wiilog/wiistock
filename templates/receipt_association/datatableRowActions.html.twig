@@ -1,0 +1,14 @@
+<div class="d-flex">
+    <div class="dropdown dropright {{ not hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DELETE')) ? 'd-none' }}">
+        {% include 'datatable/dotsRow.html.twig' %}
+        <div class="dropdown-menu dropdown-follow-gt pointer">
+            <div data-id='{{ receipt_association.id }}'
+                 data-target='#modalDeleteReceiptAssociation'
+                 data-toggle='modal'
+                 class='dropdown-item'
+                 onclick="deleteRow($(this), $('#modalDeleteReceiptAssociation'), $('#submitDeleteReceiptAssociation'))">
+                <i class='fas fa-trash mr-2'></i>Supprimer
+            </div>
+        </div>
+    </div>
+</div>

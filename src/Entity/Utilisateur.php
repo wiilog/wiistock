@@ -1,6 +1,8 @@
 <?php
 namespace App\Entity;
 
+use App\Entity\DeliveryRequest\Demande;
+use App\Entity\PreparationOrder\Preparation;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -95,7 +97,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
      */
     private $receptions;
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Demande", mappedBy="utilisateur")
+     * @ORM\OneToMany(targetEntity="App\Entity\DeliveryRequest\Demande", mappedBy="utilisateur")
      */
     private $demandes;
     /**
@@ -103,7 +105,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
      */
     private $collectes;
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Preparation", mappedBy="utilisateur")
+     * @ORM\OneToMany(targetEntity="App\Entity\PreparationOrder\Preparation", mappedBy="utilisateur")
      */
     private $preparations;
 
@@ -226,7 +228,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     private $litigeHistorics;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\ReceptionTraca", mappedBy="user")
+     * @ORM\OneToMany(targetEntity="App\Entity\ReceiptAssociation", mappedBy="user")
      */
     private $receptionsTraca;
 
@@ -363,6 +365,16 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
      * @ORM\Column(type="json", nullable=true)
      */
     private $columnsOrder = [];
+
+    /**
+     * @ORM\Column(type="array", nullable=true)
+     */
+    private $searches = [];
+
+    /**
+     * @ORM\Column(type="array", nullable=true)
+     */
+    private $pageIndexes = [];
 
     public function __construct()
     {
@@ -1368,14 +1380,14 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     }
 
     /**
-     * @return Collection|ReceptionTraca[]
+     * @return Collection|ReceiptAssociation[]
      */
     public function getReceptionsTraca(): Collection
     {
         return $this->receptionsTraca;
     }
 
-    public function addReceptionsTraca(ReceptionTraca $receptionsTraca): self
+    public function addReceptionsTraca(ReceiptAssociation $receptionsTraca): self
     {
         if (!$this->receptionsTraca->contains($receptionsTraca)) {
             $this->receptionsTraca[] = $receptionsTraca;
@@ -1385,7 +1397,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
-    public function removeReceptionsTraca(ReceptionTraca $receptionsTraca): self
+    public function removeReceptionsTraca(ReceiptAssociation $receptionsTraca): self
     {
         if ($this->receptionsTraca->contains($receptionsTraca)) {
             $this->receptionsTraca->removeElement($receptionsTraca);
@@ -1955,6 +1967,30 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     public function setColumnsOrder(?array $columnsOrder): self
     {
         $this->columnsOrder = $columnsOrder;
+
+        return $this;
+    }
+
+    public function getSearches(): ?array
+    {
+        return $this->searches;
+    }
+
+    public function setSearches(?array $searches): self
+    {
+        $this->searches = $searches;
+
+        return $this;
+    }
+
+    public function getPageIndexes(): ?array
+    {
+        return $this->pageIndexes;
+    }
+
+    public function setPageIndexes(?array $pagesIndexes): self
+    {
+        $this->pageIndexes = $pagesIndexes;
 
         return $this;
     }

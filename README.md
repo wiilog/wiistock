@@ -2,6 +2,10 @@
 
 ## Installing
 
+Créer le fichier `config/generated.yaml` avec le contenu suivant
+```json
+{"parameters": {"session_lifetime": 1440}}
+```
 To do
 
 ## Security checker

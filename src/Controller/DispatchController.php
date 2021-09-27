@@ -204,9 +204,7 @@ class DispatchController extends AbstractController {
             ? ($emplacementRepository->find($post->get('depose')) ?: $type->getDropLocation())
             : $type->getDropLocation();
 
-        $destination = $post->get('destination')
-            ? $emplacementRepository->find($post->get('destination')) ?: $type->getDropLocation()
-            : null;
+        $destination = $post->get('destination');
 
         $comment = $post->get('commentaire');
         $startDateRaw = $post->get('startDate');
@@ -460,9 +458,7 @@ class DispatchController extends AbstractController {
             ? ($emplacementRepository->find($post->get('depose')) ?: $type->getDropLocation())
             : $type->getDropLocation();
 
-        $destination = $post->get('destination')
-            ? $emplacementRepository->find($post->get('destination'))
-            : null;
+        $destination = $post->get('destination');
 
         if(!$locationTake || !$locationDrop) {
             return new JsonResponse([
