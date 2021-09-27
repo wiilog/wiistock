@@ -228,15 +228,6 @@ class SecuriteController extends AbstractController {
     }
 
     /**
-     * @Route("/attente_validation", name="attente_validation")
-     */
-    public function attente_validation() {
-        return $this->render('securite/attente_validation.html.twig', [
-            //            'controller_name' => 'SecuriteController',
-        ]);
-    }
-
-    /**
      * @Route("/acces-refuse", name="access_denied")
      */
     public function access_denied() {
