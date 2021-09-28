@@ -9,7 +9,8 @@ framework:
     # Remove or comment this section to explicitly disable session support.
     session:
         handler_id: ~
-        cookie_lifetime: 604800
+        cookie_lifetime: '%session_lifetime%'
+        gc_maxlifetime: '%session_lifetime%'
 
     #esi: true
     #fragments: true
