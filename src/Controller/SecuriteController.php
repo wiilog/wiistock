@@ -170,64 +170,6 @@ class SecuriteController extends AbstractController {
     }
 
     /**
-     * @Route("/check_last_login", name="check_last_login")
-     */
-    public function checkLastLogin(EntityManagerInterface $em) {
-        /** @var Utilisateur $user */
-        $user = $this->getUser();
-
-        if(!$user) {
-            throw new UsernameNotFoundException(
-                sprintf('L\'utilisateur n\'existe pas.')
-            );
-        } elseif($user->getStatus() === false) {
-            throw new UsernameNotFoundException(
-                sprintf('Le compte est inactif')
-            );
-        }
-        $user->setLastLogin(new Datetime(''));
-
-        // remplit champ columnVisiblesForArticle si vide
-        if(empty($user->getColumnsVisibleForArticle())) {
-            $user->setColumnsVisibleForArticle(Utilisateur::COL_VISIBLE_ARTICLES_DEFAULT);
-        }
-        // remplit champ columnVisibles si vide
-        if(empty($user->getColumnVisible())) {
-            $user->setColumnVisible(Utilisateur::COL_VISIBLE_REF_DEFAULT);
-        }
-
-        if(empty($user->getColumnsVisibleForArrivage())) {
-            $user->setColumnsVisibleForArrivage(Utilisateur::COL_VISIBLE_ARR_DEFAULT);
-        }
-
-        if(empty($user->getColumnsVisibleForDispatch())) {
-            $user->setColumnsVisibleForDispatch(Utilisateur::COL_VISIBLE_DISPATCH_DEFAULT);
-        }
-
-        if(empty($user->getColumnsVisibleForTrackingMovement())) {
-            $user->setColumnsVisibleForTrackingMovement(Utilisateur::COL_VISIBLE_TRACKING_MOVEMENT_DEFAULT);
-        }
-
-        // remplit champ columnVisibles si vide
-        if(empty($user->getColumnsVisibleForLitige())) {
-            $user->setColumnsVisibleForLitige(Utilisateur::COL_VISIBLE_LIT_DEFAULT);
-        }
-
-        // remplit champ recherche rapide si vide
-        if(empty($user->getRecherche())) {
-            $user->setRecherche(Utilisateur::SEARCH_DEFAULT);
-        }
-        // remplit champ recherche rapide article si vide
-        if(empty($user->getRechercheForArticle())) {
-            $user->setRechercheForArticle(Utilisateur::SEARCH_DEFAULT);
-        }
-
-        $em->flush();
-
-        return $this->redirectToRoute('accueil');
-    }
-
-    /**
      * @Route("/acces-refuse", name="access_denied")
      */
     public function access_denied() {
