@@ -624,6 +624,7 @@ class DispatchController extends AbstractController {
                     $dispatch->removeTrackingMovement($trackingMovement);
                 }
             }
+            $entityManager->flush();
             $entityManager->remove($dispatch);
             $entityManager->flush();
 

@@ -118,7 +118,6 @@ class StatutRepository extends EntityRepository {
 
         $queryBuilder
             ->setParameter("categorieName", $categorieName);
-
         return $queryBuilder
             ->getQuery()
             ->execute();

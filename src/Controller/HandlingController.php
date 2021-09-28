@@ -445,7 +445,7 @@ class HandlingController extends AbstractController
                     $entityManager->remove($attachment);
                 }
             }
-
+            $entityManager->flush();
             $entityManager->remove($handling);
             $entityManager->flush();
 
