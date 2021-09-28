@@ -252,7 +252,7 @@
                                 <div class="col-6 box-item mb-3">
                                     <span class="ra-field-name">{{ freeField.label }}</span>
                                     {% if freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATE') %}
-                                        <span class="ra-body-text">{{ value | date('d/m/Y') }}</span>
+                                        <span class="ra-body-text">{{ value | replace({'/': '-'}) | date('d/m/Y') }}</span>
                                     {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATETIME') %}
                                         <span class="ra-body-text">{{ value | replace({'/': '-'}) | date('d/m/Y H:i') }}</span>
                                     {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_BOOL') %}
