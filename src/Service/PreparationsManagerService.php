@@ -297,10 +297,11 @@ class PreparationsManagerService
         }
     }
 
-    public function deleteLigneRefOrNot(?PreparationOrderReferenceLine $ligne)
+    public function deleteLigneRefOrNot(?PreparationOrderReferenceLine $ligne, Preparation $preparation, EntityManagerInterface $entityManager)
     {
-        if ($ligne && $ligne->getQuantityToPick() === 0) {
-            $this->entityManager->remove($ligne);
+        if ($ligne && empty($ligne->getQuantityToPick())) {
+            $preparation->removeReferenceLine($ligne);
+            $entityManager->remove($ligne);
         }
     }
 

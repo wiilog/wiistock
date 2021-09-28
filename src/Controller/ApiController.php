@@ -604,8 +604,8 @@ class ApiController extends AbstractFOSRestController
 
                         foreach ($totalQuantitiesWithRef as $ref => $quantity) {
                             $refArticle = $referenceArticleRepository->findOneBy(['reference' => $ref]);
-                            $ligneArticle = $ligneArticlePreparationRepository->findOneByRefArticleAndDemande($refArticle, $preparation->getDemande());
-                            $preparationsManager->deleteLigneRefOrNot($ligneArticle);
+                            $ligneArticle = $ligneArticlePreparationRepository->findOneByRefArticleAndDemande($refArticle, $preparation);
+                            $preparationsManager->deleteLigneRefOrNot($ligneArticle, $preparation, $entityManager);
                         }
 
                         $insertedPreparation = $preparationsManager->treatPreparation($preparation, $nomadUser, $emplacementPrepa, $articlesToKeep, $entityManager);

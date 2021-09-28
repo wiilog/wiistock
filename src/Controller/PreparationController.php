@@ -410,7 +410,7 @@ class PreparationController extends AbstractController
                         }
                     }
                 }
-                $this->preparationsManagerService->deleteLigneRefOrNot($ligneArticle);
+                $this->preparationsManagerService->deleteLigneRefOrNot($ligneArticle, $preparation, $entityManager);
                 $entityManager->flush();
                 $resp = ['success' => true];
             } else {
