@@ -55,7 +55,7 @@
         <div class="form-group col-4">
             <label for="numeroCommandeList" title="Numéro de commande">{{ 'arrivage.Numéro de commande'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' : ''}}</label>
             <select id="numeroCommandeList"
-                    class="form-control input-sm data select2-free w-100 {{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? 'needed' : '' }}"
+                    class="form-control input-sm data select2-free w-100 {{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? 'needed' : '' }}"
                     name="numeroCommandeList" multiple="multiple">
                 {% for numeroCommande in arrivage.numeroCommandeList %}
                     <option value="{{ numeroCommande }}" selected>{{ numeroCommande }}</option>
