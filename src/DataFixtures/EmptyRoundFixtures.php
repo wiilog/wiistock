@@ -15,13 +15,17 @@ class EmptyRoundFixtures extends Fixture implements FixtureGroupInterface
     {
         $output = new ConsoleOutput();
 
-        $pack = (new Pack())
-            ->setCode('passageavide');
+        $existingPack = $manager->getRepository(Pack::class)->findOneBy(['code' => Pack::EMPTY_ROUND_PACK]);
 
-        $manager->persist($pack);
-        $output->writeln('Création du colis passageavide');
+        if(!$existingPack) {
+            $pack = (new Pack())
+                ->setCode('passageavide');
 
-        $manager->flush();
+            $manager->persist($pack);
+            $output->writeln('Création du colis passageavide');
+
+            $manager->flush();
+        }
     }
 
     public static function getGroups():array {
