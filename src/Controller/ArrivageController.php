@@ -621,28 +621,6 @@ class ArrivageController extends AbstractController
     }
 
     /**
-     * @Route("/ajoute-commentaire", name="add_comment", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
-    public function addComment(Request $request,
-                               EntityManagerInterface $entityManager): Response
-    {
-        if ($data = json_decode($request->getContent(), true)) {
-            $response = '';
-
-            // spécifique SAFRAN CERAMICS ajout de commentaire
-            $isSafran = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_CS);
-            if ($isSafran) {
-                $typeRepository = $entityManager->getRepository(Type::class);
-                $type = $typeRepository->find($data['typeLitigeId']);
-                $response = $type->getDescription();
-            }
-
-            return new JsonResponse($response);
-        }
-        throw new BadRequestHttpException();
-    }
-
-    /**
      * @Route("/lister-colis", name="arrivage_list_colis_api", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      */
     public function listColisByArrivage(Request $request,
