@@ -1026,7 +1026,7 @@ class ReferenceArticle extends FreeFieldEntity
     {
         if (!$this->carts->contains($cart)) {
             $this->carts[] = $cart;
-            $cart->addRefArticle($this);
+            $cart->addReference($this);
         }
 
         return $this;

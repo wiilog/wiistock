@@ -115,24 +115,14 @@ class Alert {
                 : ($this->getArticle()
                     ? $this->getArticle()->getQuantite()
                     : '' )),
-            'typeQuantity' => $reference->getTypeQuantite()
-                ? $reference->getTypeQuantite()
-                : '',
-            'limitWarning' => $reference
-                ? $reference->getLimitWarning()
-                : '',
-            'limitSecurity' => $reference
-                ? $reference->getLimitSecurity()
-                : '',
+            'typeQuantity' => $reference->getTypeQuantite() ?: '',
+            'limitWarning' => $reference->getLimitWarning(),
+            'limitSecurity' => $reference->getLimitSecurity(),
             'expiryDate' => $article
                 ? FormatHelper::date($article->getExpiryDate())
                 : '',
-            'managers' => $reference
-                ? FormatHelper::users($reference->getManagers())
-                : "",
-            'visibilityGroups' => Stream::from($reference->getVisibilityGroups())
-                ->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getLabel())
-                ->join(' / ')
+            'managers' => FormatHelper::users($reference->getManagers()),
+            'visibilityGroups' => FormatHelper::visibilityGroup($reference->getVisibilityGroup())
         ];
     }
 

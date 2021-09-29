@@ -371,18 +371,23 @@ class ArticleController extends AbstractController
 
                 $articlesMvtTracaIsEmpty = $article->getTrackingMovements()->isEmpty();
                 $articlesMvtStockIsEmpty = $article->getMouvements()->isEmpty();
-                $hasNoDeliveryRequestLines = $article->getDeliveryRequestLines()->isEmpty();
-                $hasNoPreparationOrderLines = $article->getDeliveryRequestLines()->isEmpty();
-                $isNotUsedInAssoc = ($articlesMvtTracaIsEmpty && $articlesMvtStockIsEmpty && $hasNoDeliveryRequestLines && $hasNoPreparationOrderLines);
+                $deliveryRequestLines = $article->getDeliveryRequestLines();
+                $preparationOrderLines = $article->getPreparationOrderLines();
+
+                $lastDeliveryRequest = $deliveryRequestLines->last();
+                $lastPreparationOrderLines = $preparationOrderLines->last();
+
+                $isNotUsedInAssoc = ($articlesMvtTracaIsEmpty && $articlesMvtStockIsEmpty && $lastDeliveryRequest && $lastPreparationOrderLines);
+
                 if (($hasRightToDeleteTraca || $articlesMvtTracaIsEmpty)
                     && ($hasRightToDeleteStock || $articlesMvtStockIsEmpty)
-                    && ($hasRightToDeleteRequests || $hasNoDeliveryRequestLines)
-                    && ($hasRightToDeleteOrders || $hasNoPreparationOrderLines)) {
+                    && ($hasRightToDeleteRequests || $lastDeliveryRequest)
+                    && ($hasRightToDeleteOrders || $lastPreparationOrderLines)) {
                     return new JsonResponse([
                         'delete' => $isFromReception || $isNotUsedInAssoc,
                         'html' => $this->renderView('article/modalDeleteArticleRight.html.twig', [
-                            'prepa' => $hasNoPreparationOrderLines ? $hasNoPreparationOrderLines->getNumero() : null,
-                            'request' => $hasNoDeliveryRequestLines ? $hasNoDeliveryRequestLines->getNumero() : null,
+                            'prepa' => $lastPreparationOrderLines ? $lastPreparationOrderLines->getNumero() : null,
+                            'request' => $lastDeliveryRequest ? $lastDeliveryRequest->getNumero() : null,
                             'mvtStockIsEmpty' => $articlesMvtStockIsEmpty,
                             'mvtTracaIsEmpty' => $articlesMvtTracaIsEmpty,
                             'askQuestion' => $isFromReception
