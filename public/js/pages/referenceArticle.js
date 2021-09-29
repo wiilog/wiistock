@@ -228,15 +228,6 @@ function displayFilterValue(elem) {
     elem.closest('.modal-body').find('.valueLabel').text(label);
 }
 
-let ajaxPlusDemandeContent = function (button) {
-    let plusDemandeContent = $(`.plusDemandeContent`);
-    let editChampLibre = $('.editChampLibre');
-    let modalFooter = button.closest('.modal').find('.modal-footer');
-    plusDemandeContent.html('');
-    editChampLibre.html('');
-    modalFooter.addClass('d-none');
-}
-
 let ajaxEditArticle = function ($select) {
     const selectVal = $select.val();
     if (selectVal) {
