@@ -233,47 +233,6 @@ function toggleRadioButton($button) {
     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
 }
 
-function toggleRequestType($switch) {
-    let type = $switch.val();
-
-    let path = Routing.generate('demande', true);
-    let demande = $('#demande');
-    let params = JSON.stringify({demande, typeDemande: type});
-    let boutonNouvelleDemande = $switch.closest('.modal').find('.boutonCreationDemande');
-
-    $.post(path, params, function (data) {
-        if(!data.success) {
-            $('.error-msg').html(data.msg);
-            boutonNouvelleDemande.removeClass('d-none');
-            let pathIndex;
-            if (type === 'livraison') {
-                pathIndex = Routing.generate('demande_index', false);
-            } else if (type === 'collecte') {
-                pathIndex = Routing.generate('collecte_index', false);
-            } else if (type === 'transfert') {
-                pathIndex = Routing.generate('transfer_request_index', false);
-            }
-
-            boutonNouvelleDemande.find('#creationDemande').html(
-                "<a href=\'" + pathIndex + "\'>Nouvelle demande de " + type + "</a>"
-            );
-
-            $switch.closest('.modal').find('.plusDemandeContent').addClass('d-none');
-            $switch.closest('.modal').find('.editChampLibre').addClass('d-none');
-            $switch.closest('.modal').find('#submitPlusDemande').addClass('d-none');
-            $switch.closest('.modal').find('#submitPlusDemandeAndRedirect').addClass('d-none');
-        } else {
-            ajaxPlusDemandeContent($switch, type);
-            $switch.closest('.modal').find('.boutonCreationDemande').addClass('d-none');
-            $switch.closest('.modal').find('.plusDemandeContent').removeClass('d-none');
-            $switch.closest('.modal').find('.editChampLibre').removeClass('d-none');
-            $switch.closest('.modal').find('#submitPlusDemande').removeClass('d-none');
-            $switch.closest('.modal').find('#submitPlusDemandeAndRedirect').removeClass('d-none');
-            $switch.closest('.modal').find('.error-msg').html('');
-        }
-    }, 'json');
-}
-
 //FONCTION REFARTICLE
 
 function typeChoice($select, $freeFieldsContainer = null) {
