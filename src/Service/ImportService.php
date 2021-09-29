@@ -15,11 +15,13 @@ use App\Entity\Import;
 use App\Entity\InventoryCategory;
 use App\Entity\MouvementStock;
 use App\Entity\ParametrageGlobal;
+use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\Attachment;
 use App\Entity\ReferenceArticle;
 use App\Entity\Role;
 use App\Entity\Statut;
+use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -77,6 +79,10 @@ class ImportService
 
     /** @Required */
     public UserService $userService;
+
+    /** @Required */
+    public FormService $formService;
+
 
     private Import $currentImport;
     private EntityManagerInterface $em;
@@ -826,8 +832,7 @@ class ImportService
         if (!$reception) {
             try {
                 $reception = $this->receptionService->createAndPersistReception($this->em, $user, $data, true);
-            }
-            catch(InvalidArgumentException $exception) {
+            } catch (InvalidArgumentException $exception) {
                 switch ($exception->getMessage()) {
                     case ReceptionService::INVALID_EXPECTED_DATE:
                         $this->throwError('La date attendue n\'est pas au bon format (dd/mm/yyyy)');
@@ -851,15 +856,107 @@ class ImportService
                         throw $exception;
                 }
             }
+
             $this->receptionService->setAlreadySavedReception($receptionsWithCommand, $data['orderNumber'], $data['expectedDate'], $reception);
         }
+        $locationRepository = $this->em->getRepository(Emplacement::class);
 
-        if(!empty($data['référence'])) {
+        if (!empty($data['fournisseur'])) {
+            $fournisseurRepository = $this->em->getRepository(Fournisseur::class);
+            $fournisseur = $fournisseurRepository->findOneBy(['codeReference' => $data['fournisseur']]);
+            if (!isset($fournisseur)) {
+                $this->throwError('Le fournisseur n\'existe pas.');
+            }
+            $reception
+                ->setFournisseur($fournisseur);
+        }
+
+        if (!empty($data['location'])) {
+            $location = $locationRepository->findOneBy(['label' => $data['location']]);
+            if (!isset($location)) {
+                $this->throwError('L\'emplacement n\'existe pas.');
+            }
+            $reception
+                ->setLocation($location);
+        }
+
+        if (!empty($data['storageLocation'])) {
+
+            $storageLocation = $locationRepository->findOneBy(['label' => $data['storageLocation']]);
+            if (!isset($storageLocation)) {
+                $this->throwError('L\'emplacement de stockage n\'existe pas.');
+            }
+
+            $reception
+                ->setStorageLocation($storageLocation);
+        }
+
+        if (!empty($data['transporteur'])) {
+            $transporteurRepository = $this->em->getRepository(Transporteur::class);
+            $transporteur = $transporteurRepository->findOneBy(['code' => $data['transporteur']]);
+            if (!isset($transporteur)) {
+                $this->throwError('Le transporteur n\'existe pas.');
+            }
+            $reception
+                ->setTransporteur($transporteur);
+        }
+
+        if (!empty($data['commentaire'])) {
+            $reception->setCommentaire($data['commentaire']);
+        }
+
+        if (!empty($data['anomalie'])) {
+            $anomaly = (
+                isset($data['anomalie'])
+                && (
+                    filter_var($data['anomalie'], FILTER_VALIDATE_BOOLEAN)
+                    || in_array($data['anomalie'], ['oui', 'Oui', 'OUI'])
+                )
+            );
+            if ($anomaly || $reception->getStatut()->getCode() === Reception::STATUT_ANOMALIE) {
+                $statusCode = $anomaly
+                    ? Reception::STATUT_ANOMALIE
+                    : Reception::STATUT_EN_ATTENTE;
+
+                $statutRepository = $this->em->getRepository(Statut::class);
+
+                $status = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
+                $reception->setStatut($status);
+            }
+        }
+
+        if (!empty($data['manualUrgent'])) {
+            $reception->setManualUrgent(
+                isset($data['manualUrgent'])
+                && (
+                    filter_var($data['manualUrgent'], FILTER_VALIDATE_BOOLEAN)
+                    || in_array($data['manualUrgent'], ['oui', 'Oui', 'OUI'])
+                )
+            );
+        }
+
+        if (!empty($data['orderDate'])) {
+            $this->formService->validateDate($data['orderDate'], ReceptionService::INVALID_ORDER_DATE);
+            $orderDate = DateTime::createFromFormat('d/m/Y', $data['orderDate'] ?: '') ?: null;
+            $reception->setDateCommande($orderDate);
+        }
+
+        if (!empty($data['référence'])) {
+            $receptionRefArticle = new ReceptionReferenceArticle();
             $refArt = $refArtRepository->findOneBy(['reference' => $data['référence']]);
+            if ($refArt) {
+                if (!empty($data['anomalie'])) {
+                    $anomaly = (
+                        isset($data['anomalie'])
+                        && (
+                            filter_var($data['anomalie'], FILTER_VALIDATE_BOOLEAN)
+                            || in_array($data['anomalie'], ['oui', 'Oui', 'OUI'])
+                        )
+                    );
+                    $receptionRefArticle->setAnomalie($anomaly ? 1 : 0);
+                }
 
-            if($refArt) {
-                if(isset($data['quantité à recevoir'])) {
-                    $receptionRefArticle = new ReceptionReferenceArticle();
+                if (isset($data['quantité à recevoir'])) {
                     $receptionRefArticle
                         ->setReception($reception)
                         ->setReferenceArticle($refArt)
@@ -870,8 +967,7 @@ class ImportService
                 } else {
                     $this->throwError('La quantité à recevoir doit être renseignée.');
                 }
-            }
-            else {
+            } else {
                 $this->throwError('La référence article n\'existe pas.');
             }
         }
