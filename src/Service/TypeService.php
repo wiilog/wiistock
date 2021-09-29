@@ -24,10 +24,10 @@ class TypeService {
 
         $type
             ->setLabel($data['label'])
-            ->setSendMail($data["sendMail"] ?? false)
+            ->setSendMail(filter_var($data["sendMail"] ?? false, FILTER_VALIDATE_BOOLEAN))
             ->setCategory($category)
             ->setDescription($data['description'])
-            ->setNotificationsEnabled($data["notificationsEnabled"] ?? false)
+            ->setNotificationsEnabled(filter_var($data["notificationsEnabled"] ?? false, FILTER_VALIDATE_BOOLEAN))
             ->setNotificationsEmergencies($data["notificationsEmergencies"] ?? []);
 
         if ($isDispatch) {
