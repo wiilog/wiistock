@@ -101,3 +101,7 @@ services:
             $mobileVersion: '%nomade_versions%'
         tags:
             - { name: 'kernel.event_listener', event: 'kernel.controller_arguments', method: 'onRequest' }
+
+    App\EventListener\LoginListener:
+        tags:
+            - { name: 'kernel.event_listener', event: 'security.interactive_login' }
