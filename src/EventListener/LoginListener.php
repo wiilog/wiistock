@@ -8,12 +8,8 @@ use App\Entity\Utilisateur;
 
 class LoginListener
 {
-    private $em;
-
-    public function __construct(EntityManagerInterface $em)
-    {
-        $this->em = $em;
-    }
+    /** @Required */
+    public EntityManagerInterface $entityManager;
 
     public function onSecurityInteractiveLogin(InteractiveLoginEvent $event)
     {
@@ -25,7 +21,7 @@ class LoginListener
         $user->setLastLogin(new \DateTime());
 
 // Persist the data to database.
-        $this->em->persist($user);
-        $this->em->flush();
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
     }
 }
