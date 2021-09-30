@@ -405,23 +405,13 @@ class CollecteController extends AbstractController
             $freeFieldsGroupedByTypes = [];
 
 			foreach ($listTypes as $type) {
-				$champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_COLLECTE);
-				$champsLibresArray = [];
-				foreach ($champsLibres as $champLibre) {
-					$champsLibresArray[] = [
-						'id' => $champLibre->getId(),
-						'label' => $champLibre->getLabel(),
-						'typage' => $champLibre->getTypage(),
-						'elements' => ($champLibre->getElements() ? $champLibre->getElements() : ''),
-						'defaultValue' => $champLibre->getDefaultValue(),
-					];
-				}
+				$collectFreeFields = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_COLLECTE);
 				$typeChampLibre[] = [
 					'typeLabel' => $type->getLabel(),
 					'typeId' => $type->getId(),
-					'champsLibres' => $champsLibresArray,
+					'champsLibres' => $collectFreeFields,
 				];
-                $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
+                $freeFieldsGroupedByTypes[$type->getId()] = $collectFreeFields;
 			}
 
             $json = $this->renderView('collecte/modalEditCollecteContent.html.twig', [

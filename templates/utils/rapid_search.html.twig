@@ -16,19 +16,26 @@
                         <th class="text-center">Actions</th>
                     </tr>
                     </thead>
-                    {% for field in fieldsSearch|sort((a,b) => a.title <=> b.title) %}
+                    {% set orderedFields = fieldsSearch|sort((a,b) => (
+                        ((a.displayedTitle is defined) ? a.displayedTitle : a.title)
+                        <=> ((b.displayedTitle is defined) ? b.displayedTitle : b.title)
+                    )) %}
+                    {% for field in orderedFields %}
                         {% if field.name != 'actions' %}
+                            {% set label = ((field.displayedTitle is defined)
+                                ? field.displayedTitle
+                                : field.title) %}
                             {% set title = (
                                 (field.title is defined and field.title is not empty) ? field.title :
                                 ((field.hiddenTitle is defined and field.hiddenTitle is not empty) ? field.hiddenTitle)
                             ) %}
                             <tr class="toggle-search pointer">
-                                <td>{{ title }}</td>
+                                <td>{{ label }}</td>
                                 <td>
                                     <div class="form-check d-flex align-items-center justify-content-center">
                                         <input type="checkbox" class="form-check-input"
                                                name="{{ field.name }}" {{ field.name in searches ? 'checked' }}
-                                               title="{{ title }}">
+                                               title="{{ label }}">
                                     </div>
                                 </td>
                             </tr>
@@ -44,8 +51,12 @@
                     {% for search in searches %}
                         {% set field = fieldsSearch | filter(f => f.name == search) | first %}
                         {% if field %}
+                            {% set label = ((field.displayedTitle is defined)
+                                ? field.displayedTitle
+                                : field.title)
+                            %}
                             <tr>
-                                <td data-name="{{ search }}">{{ field.title }}</td>
+                                <td data-name="{{ search }}">{{ label }}</td>
                             </tr>
                         {% endif %}
                     {% endfor %}

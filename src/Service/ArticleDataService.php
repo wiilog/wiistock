@@ -195,25 +195,12 @@ class ArticleDataService
         $typeArticle = $refArticle->getType();
         $typeArticleLabel = $typeArticle->getLabel();
 
-		$champsLibresComplet = $champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
-        $champsLibres = [];
-        foreach ($champsLibresComplet as $champLibre) {
-
-            $champsLibres[] = [
-                'id' => $champLibre->getId(),
-                'label' => $champLibre->getLabel(),
-                'typage' => $champLibre->getTypage(),
-                'requiredCreate' => $champLibre->getRequiredCreate(),
-                'requiredEdit' => $champLibre->getRequiredEdit(),
-                'elements' => ($champLibre->getElements() ? $champLibre->getElements() : ''),
-                'defaultValue' => $champLibre->getDefaultValue()
-            ];
-        }
+		$articleFreeFields = $champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
 
         return $this->templating->render('article/modalArticleContent.html.twig', [
             'typeChampsLibres' => [
                 'type' => $typeArticleLabel,
-                'champsLibres' => $champsLibres,
+                'champsLibres' => $articleFreeFields,
             ],
             'typeArticle' => $typeArticleLabel,
             'typeArticleId' => $typeArticle->getId(),

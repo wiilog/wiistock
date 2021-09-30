@@ -86,23 +86,13 @@ class DemandeController extends AbstractController
 
             $freeFieldsGroupedByTypes = [];
             foreach ($listTypes as $type) {
-                $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
-                $champsLibresArray = [];
-                foreach ($champsLibres as $champLibre) {
-                    $champsLibresArray[] = [
-                        'id' => $champLibre->getId(),
-                        'label' => $champLibre->getLabel(),
-                        'typage' => $champLibre->getTypage(),
-                        'elements' => ($champLibre->getElements() ? $champLibre->getElements() : ''),
-                        'defaultValue' => $champLibre->getDefaultValue(),
-                    ];
-                }
+                $deliveryRequestFreeFields = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
                 $typeChampLibre[] = [
                     'typeLabel' => $type->getLabel(),
                     'typeId' => $type->getId(),
-                    'champsLibres' => $champsLibresArray,
+                    'champsLibres' => $deliveryRequestFreeFields,
                 ];
-                $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
+                $freeFieldsGroupedByTypes[$type->getId()] = $deliveryRequestFreeFields;
             }
 
             return $this->json($this->renderView('demande/modalEditDemandeContent.html.twig', [

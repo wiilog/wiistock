@@ -217,7 +217,7 @@ class FreeField implements Serializable {
 
     public function getElements(): ?array
     {
-        return $this->elements;
+        return $this->elements ?: [];
     }
 
     public function setElements(?array $elements): self
