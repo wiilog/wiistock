@@ -1314,6 +1314,7 @@ class ImportService
                     if (!$visibilityGroup) {
                         $this->throwError('Le groupe de visibilité ' . $label . ' n\'existe pas.');
                     }
+                    return $visibilityGroup;
                 })
                 ->toArray();
             foreach($visibilityGroups as $visibilityGroup) {
