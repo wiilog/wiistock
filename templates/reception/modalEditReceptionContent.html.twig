@@ -170,11 +170,13 @@
             </label>
         </div>
     {% endif %}
-    {% if fieldsParam|isFieldRequired('anomalie', 'displayedFormsCreate') %}
+    {% if fieldsParam|isFieldRequired('anomalie', 'displayedFormsEdit') %}
         <div class="form-group col-3 pt-4">
-            <label>Anomalie</label>
+            <label>Anomalie{{ fieldsParam|isFieldRequired('anomalie', 'mustToModify') ? '*' : '' }}</label>
             <label class="switch">
-                <input class="checkbox" type="checkbox" name="anomalie">
+                <input class="checkbox"
+                    {{ fieldsParam|isFieldRequired('anomalie', 'mustToModify') ? 'needed' : '' }}
+                       type="checkbox" name="anomalie" {{ reception.statut.code === constant('App\\Entity\\Reception::STATUT_ANOMALIE') ? 'checked': ''}}>
                 <span class="slider round"></span>
             </label>
         </div>
