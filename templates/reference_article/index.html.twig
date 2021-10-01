@@ -15,7 +15,7 @@
                         {% include 'reference_article/oneFilter.html.twig' with {
                             removable: false,
                             filter: {
-                                champFixe: 'Groupe de visibilité',
+                                fixedField: 'Groupe de visibilité',
                                 value: app.user.visibilityGroups | map(vg => vg.label) | join(','),
                             }
                         } %}
