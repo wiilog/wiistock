@@ -6,12 +6,13 @@ use App\Entity\Article;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FreeField;
+use App\Entity\InventoryFrequency;
+use App\Entity\InventoryMission;
 use App\Entity\IOT\Sensor;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\TransferRequest;
-use App\Entity\Statut;
 use App\Entity\Utilisateur;
 
 use App\Entity\VisibilityGroup;
@@ -1082,4 +1083,52 @@ class ArticleRepository extends EntityRepository {
 
         return $queryBuilder->getQuery()->getResult();
     }
+
+    /**
+     * @return ReferenceArticle[]
+     */
+    public function iterateArticlesToInventory(InventoryFrequency $frequency,
+                                               InventoryMission $inventoryMission): iterable
+    {
+        $queryBuilder = $this->createQueryBuilder('article');
+        $exprBuilder = $queryBuilder->expr();
+        $queryBuilder
+            ->select('article')
+            ->distinct()
+            ->join('article.articleFournisseur', 'supplierArticle')
+            ->join('supplierArticle.referenceArticle', 'referenceArticle')
+            ->join('referenceArticle.category', 'category')
+            ->join('referenceArticle.statut', 'referenceArticle_status')
+            ->join('article.statut', 'article_status')
+            ->join('category.frequency', 'frequency')
+            ->leftJoin('article.inventoryMissions', 'inventoryMission')
+            ->andWhere($exprBuilder->orX(
+                'inventoryMission.id IS NULL',
+                $exprBuilder->andX(
+                    ':startDate < inventoryMission.startPrevDate',
+                    ':endDate < inventoryMission.startPrevDate'
+                ),
+                $exprBuilder->andX(
+                    ':startDate > inventoryMission.endPrevDate',
+                    ':endDate > inventoryMission.endPrevDate'
+                )
+            ))
+            ->andWhere('frequency = :frequency')
+            ->andWhere('referenceArticle_status.code = :referenceArticle_status')
+            ->andWhere('article_status.code IN (:article_status)')
+            ->andWhere('article.dateLastInventory IS NOT NULL')
+            ->andWhere('TIMESTAMPDIFF(MONTH, article.dateLastInventory, NOW()) >= frequency.nbMonths')
+            ->setParameters([
+                'frequency' => $frequency,
+                'referenceArticle_status' => ReferenceArticle::STATUT_ACTIF,
+                'article_status' => [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE],
+                'startDate' => $inventoryMission->getStartPrevDate(),
+                'endDate' => $inventoryMission->getEndPrevDate()
+            ]);
+
+        return $queryBuilder
+            ->getQuery()
+            ->toIterable();
+    }
+
 }

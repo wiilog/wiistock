@@ -74,49 +74,35 @@ class MissionCommand extends Command
         foreach ($frequencies as $frequency) {
         	// récupération des réf et articles à inventorier (fonction date dernier inventaire)
             $nbMonths = $frequency->getNbMonths();
+            $referencesToInventory = $referenceArticleRepository->iterateReferencesToInventory($frequency, $mission);
+            $articlesToInventory = $articleRepository->iterateArticlesToInventory($frequency, $mission);
 
-            /** @var ReferenceArticle[] $refArticles */
-            $refArticles = $referenceArticleRepository->findByFrequencyOrderedByLocation($frequency);
+            $treated = 0;
 
-            $refsAndArtToInv = [];
-            foreach ($refArticles as $refArticle) {
-            	if ($refArticle->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-					$refDate = $refArticle->getDateLastInventory();
-					if ($refDate) {
-						$diff = date_diff($refDate, $now)->format('%m');
-						if ($diff >= $nbMonths) {
-							$refsAndArtToInv[] = $refArticle;
-						}
-					}
-				} else {
-            		/** @var Article[] $articles */
-            		$articles = $articleRepository->findByRefArticleAndStatut(
-            		    $refArticle,
-                        [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE],
-                        ReferenceArticle::STATUT_ACTIF
-                    );
-
-            		foreach ($articles as $article) {
-   						$artDate = $article->getDateLastInventory();
-   						if ($artDate) {
-   							$diff = date_diff($artDate, $now)->format('%m');
-   							if ($diff >= $nbMonths) {
-   								$refsAndArtToInv[] = $article;
-							}
-						}
-					}
-				}
+            foreach ($referencesToInventory as $reference) {
+                $reference->addInventoryMission($mission);
+                $treated++;
+                if ($treated >= 500) {
+                    $treated = 0;
+                    $this->entityManager->flush();
+                }
             }
 
-            foreach ($refsAndArtToInv as $refOrArt) {
-                /** @var ReferenceArticle|Article $refOrArt */
-				$alreadyInMission = $this->inventoryService->isInMissionInSamePeriod($refOrArt, $mission, $refOrArt instanceof ReferenceArticle);
+            $treated = 0;
+            $this->entityManager->flush();
 
-				if (!$alreadyInMission) {
-					$refOrArt->addInventoryMission($mission);
-					$this->entityManager->flush();
-				}
+            /** @var Article $article */
+            foreach ($articlesToInventory as $article) {
+                $article->addInventoryMission($mission);
+                $treated++;
+                if ($treated >= 500) {
+                    $treated = 0;
+                    $this->entityManager->flush();
+                }
             }
+
+            $treated = 0;
+            $this->entityManager->flush();
 
 			// lissage des réf et articles jamais inventoriés
 			$nbRefAndArtToInv = $referenceArticleRepository->countActiveByFrequencyWithoutDateInventory($frequency);
@@ -143,8 +129,8 @@ class MissionCommand extends Command
 			}
 
 			$this->entityManager->flush();
-            return 0;
 		}
+            return 0;
 
     }
 }
