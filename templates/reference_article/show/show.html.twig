@@ -252,13 +252,15 @@
                                 <div class="col-6 box-item mb-3">
                                     <span class="ra-field-name">{{ freeField.label }}</span>
                                     {% if freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATE') %}
-                                        <span class="ra-body-text">{{ value | date('d/m/Y') }}</span>
+                                        <span class="ra-body-text">{{ value | replace({'/': '-'}) | date('d/m/Y') }}</span>
                                     {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATETIME') %}
                                         <span class="ra-body-text">{{ value | replace({'/': '-'}) | date('d/m/Y H:i') }}</span>
                                     {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_BOOL') %}
                                         <span class="ra-body-text">{{ value == 1 ? 'Oui' : 'Non' }}</span>
                                     {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_LIST_MULTIPLE') %}
-                                        {% set values = value | split(';') | join(', ') %}
+                                        {% set entityValuesArray = value|split(';') %}
+                                        {% set valids = freeField.elements | filter(element => element in entityValuesArray) %}
+                                        {% set values = valids | join (', ') %}
                                         <span class="ra-body-text">{{ values }}</span>
                                     {% else %}
                                         <span class="ra-body-text">{{ value }}</span>
