@@ -225,6 +225,16 @@ class ApiController extends AbstractFOSRestController
 
         $mustReloadLocation = false;
 
+
+        $uniqueIds = Stream::from($mouvementsNomade)
+            ->filterMap(fn(array $movement) => $movement['date'])
+            ->toArray();
+        $alreadySavedMovements = !empty($uniqueIds)
+            ? Stream::from($trackingMovementRepository->findBy(['uniqueIdForMobile' => $uniqueIds]))
+                ->keymap(fn(TrackingMovement $trackingMovement) => [$trackingMovement->getUniqueIdForMobile(), $trackingMovement])
+                ->toArray()
+            : [];
+
         foreach ($mouvementsNomade as $index => $mvt) {
             $invalidLocationTo = '';
             try {
@@ -252,10 +262,11 @@ class ApiController extends AbstractFOSRestController
                     $trackingTypes,
                     $locationDataService,
                     $arrivageDataService,
-                    &$mustReloadLocation
+                    &$mustReloadLocation,
+                    $alreadySavedMovements
                 ) {
 
-                    $mouvementTraca1 = $trackingMovementRepository->findOneByUniqueIdForMobile($mvt['date']);
+                    $mouvementTraca1 = $alreadySavedMovements[$mvt['date']] ?? null;
                     if (!isset($mouvementTraca1)) {
                         $options = [
                             'uniqueIdForMobile' => $mvt['date'],
@@ -345,7 +356,7 @@ class ApiController extends AbstractFOSRestController
             }
         }
 
-        $trackingMovementService->clearTrackingMovement($entityManager, $mouvementsNomade, $finishMouvementTraca);
+        $trackingMovementService->clearTrackingMovement($mouvementsNomade, $finishMouvementTraca, $alreadySavedMovements);
         $entityManager->flush();
 
         $s = $numberOfRowsInserted > 1 ? 's' : '';
@@ -406,6 +417,15 @@ class ApiController extends AbstractFOSRestController
 
         $mustReloadLocation = false;
 
+        $uniqueIds = Stream::from($mouvementsNomade)
+            ->filterMap(fn(array $movement) => $movement['date'])
+            ->toArray();
+        $alreadySavedMovements = !empty($uniqueIds)
+            ? Stream::from($trackingMovementRepository->findBy(['uniqueIdForMobile' => $uniqueIds]))
+                ->keymap(fn(TrackingMovement $trackingMovement) => [$trackingMovement->getUniqueIdForMobile(), $trackingMovement])
+                ->toArray()
+            : [];
+
         foreach ($mouvementsNomade as $index => $mvt) {
             $invalidLocationTo = '';
             try {
@@ -430,10 +450,11 @@ class ApiController extends AbstractFOSRestController
                     $trackingMovementRepository,
                     $trackingTypes,
                     $locationDataService,
-                    &$mustReloadLocation
+                    &$mustReloadLocation,
+                    $alreadySavedMovements
                 ) {
 
-                    $mouvementTraca1 = $trackingMovementRepository->findOneByUniqueIdForMobile($mvt['date']);
+                    $mouvementTraca1 = $alreadySavedMovements[$mvt['date']] ?? null;
                     if (!isset($mouvementTraca1)) {
                         $options = [
                             'uniqueIdForMobile' => $mvt['date'],
@@ -509,7 +530,7 @@ class ApiController extends AbstractFOSRestController
             }
         }
 
-        $trackingMovementService->clearTrackingMovement($entityManager, $mouvementsNomade, $finishMouvementTraca);
+        $trackingMovementService->clearTrackingMovement($mouvementsNomade, $finishMouvementTraca, $alreadySavedMovements);
         $entityManager->flush();
 
         $s = $numberOfRowsInserted > 1 ? 's' : '';

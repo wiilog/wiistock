@@ -820,15 +820,13 @@ class TrackingMovementService
         return $options;
     }
 
-    public function clearTrackingMovement(EntityManagerInterface $entityManager,
-                                          array $trackingMovements,
-                                          array $finishMouvementTraca): void {
-        $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
-
+    public function clearTrackingMovement(array $trackingMovements,
+                                          array $finishMouvementTraca,
+                                          array $alreadySavedMovements): void {
         // Pour tous les mouvement de prise envoyés, on les marques en fini si un mouvement de dépose a été donné
         foreach ($trackingMovements as $mvt) {
             /** @var TrackingMovement $mouvementTracaPriseToFinish */
-            $mouvementTracaPriseToFinish = $trackingMovementRepository->findOneByUniqueIdForMobile($mvt['date']);
+            $mouvementTracaPriseToFinish = $alreadySavedMovements[$mvt['date']] ?? null;
 
             if (isset($mouvementTracaPriseToFinish)) {
                 $trackingPack = $mouvementTracaPriseToFinish->getPack();
