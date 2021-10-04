@@ -776,12 +776,14 @@ class ArticleRepository extends EntityRepository {
         return $query->getSingleScalarResult();
     }
 
-	public function findArticleByBarCodeAndLocation(string $barCode, string $location) {
+	public function findOneByBarCodeAndLocation(string $barCode, string $location): ?Article {
         $queryBuilder = $this
             ->createQueryBuilderByBarCodeAndLocation($barCode, $location)
-            ->addSelect('article');
+            ->setMaxResults(1);
 
-        return $queryBuilder->getQuery()->execute();
+        return $queryBuilder
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
 	public function getOneArticleByBarCodeAndLocation(string $barCode, string $location) {

@@ -1002,13 +1002,16 @@ class ReferenceArticleRepository extends EntityRepository {
         return !empty($result) ? $result[0] : null;
     }
 
-    public function findReferenceByBarCodeAndLocation(string $barCode, string $location)
+    public function findOneByBarCodeAndLocation(string $barCode, string $location): ?ReferenceArticle
     {
         $queryBuilder = $this
             ->createQueryBuilderByBarCodeAndLocation($barCode, $location)
-            ->select('referenceArticle');
+            ->select('referenceArticle')
+            ->setMaxResults(1);
 
-        return $queryBuilder->getQuery()->execute();
+        return $queryBuilder
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
     private function createQueryBuilderByBarCodeAndLocation(string $barCode, string $location, bool $onlyActive = true): QueryBuilder

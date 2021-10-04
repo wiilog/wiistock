@@ -11,6 +11,7 @@ use App\Entity\FreeField;
 use App\Entity\Dispatch;
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterRecord;
+use App\Entity\MouvementStock;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Emplacement;
@@ -21,6 +22,8 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use Symfony\Component\HttpFoundation\FileBag;
+use Symfony\Component\HttpFoundation\ParameterBag;
 use WiiCommon\Helper\Stream;
 use App\Repository\TrackingMovementRepository;
 use DateTime;
@@ -42,6 +45,11 @@ class TrackingMovementService
     private $locationClusterService;
     private $visibleColumnService;
     private $groupService;
+
+    /** @Required */
+    public MouvementStockService $stockMovementService;
+
+    private array $stockStatuses = [];
 
     public function __construct(EntityManagerInterface $entityManager,
                                 LocationClusterService $locationClusterService,
@@ -700,5 +708,139 @@ class TrackingMovementService
             }
         }
         return null;
+    }
+
+    public function treatStockMovement(EntityManagerInterface $entityManager,
+                                       string                 $trackingType,
+                                       array                  $movement,
+                                       Utilisateur            $nomadUser,
+                                       Emplacement            $location,
+                                       $date): array {
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
+        $options = [];
+
+        if ($trackingType === TrackingMovement::TYPE_PRISE) {
+            $article = $articleRepository->findOneByBarCodeAndLocation($movement['ref_article'], $movement['ref_emplacement']);
+            if (!isset($article)) {
+                $article = $referenceArticleRepository->findOneByBarCodeAndLocation($movement['ref_article'], $movement['ref_emplacement']);
+            }
+
+            if (isset($article)) {
+                $quantiteMouvement = ($article instanceof Article)
+                    ? $article->getQuantite()
+                    : $article->getQuantiteStock(); // ($article instanceof ReferenceArticle)
+
+                $newMouvement = $this->stockMovementService->createMouvementStock($nomadUser, $location, $quantiteMouvement, $article, MouvementStock::TYPE_TRANSFER);
+                $options['mouvementStock'] = $newMouvement;
+                $options['quantity'] = $newMouvement->getQuantity();
+                $entityManager->persist($newMouvement);
+
+                if ($article instanceof Article) {
+                    $status = $this->stockStatuses['transitArticleStatus']
+                        ?? $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT);
+                    $this->stockStatuses['transitArticleStatus'] = $status;
+                }
+                else {
+                    $status = $this->stockStatuses['inactiveReferenceStatus']
+                        ?? $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_INACTIF);
+                    $this->stockStatuses['inactiveReferenceStatus'] = $status;
+                }
+
+                $article->setStatut($status);
+            }
+        }
+        else { // MouvementTraca::TYPE_DEPOSE
+            $mouvementTracaPrises = $trackingMovementRepository->findLastTakingNotFinished($movement['ref_article']);
+            /** @var TrackingMovement|null $mouvementTracaPrise */
+            $mouvementTracaPrise = count($mouvementTracaPrises) > 0 ? $mouvementTracaPrises[0] : null;
+            if (isset($mouvementTracaPrise)) {
+                $mouvementStockPrise = $mouvementTracaPrise->getMouvementStock();
+                $article = $mouvementStockPrise->getArticle()
+                    ?: $mouvementStockPrise->getRefArticle();
+
+                $collecteOrder = $mouvementStockPrise->getCollecteOrder();
+                if (isset($collecteOrder)
+                    && ($article instanceof ReferenceArticle)
+                    && $article->getEmplacement()
+                    && ($article->getEmplacement()->getId() !== $location->getId())) {
+                    $options['invalidLocationTo'] = $article->getEmplacement()->getLabel();
+                    return $options;
+                } else {
+                    $options['mouvementStock'] = $mouvementStockPrise;
+                    $options['quantity'] = $mouvementStockPrise->getQuantity();
+                    $this->stockMovementService->finishMouvementStock($mouvementStockPrise, $date, $location);
+
+                    if ($article instanceof Article) {
+                        $status = $this->stockStatuses['activeArticleStatus']
+                            ?? $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
+                        $this->stockStatuses['activeArticleStatus'] = $status;
+                    }
+                    else {
+                        $status = $this->stockStatuses['activeReferenceStatus']
+                            ?? $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF);
+                        $this->stockStatuses['activeReferenceStatus'] = $status;
+                    }
+
+                    $article
+                        ->setStatut($status)
+                        ->setEmplacement($location);
+
+                    // we update quantity if it's reference article from collecte
+                    if (isset($collecteOrder) && ($article instanceof ReferenceArticle)) {
+                        $article->setQuantiteStock(($article->getQuantiteStock() ?? 0) + $mouvementStockPrise->getQuantity());
+                    }
+                }
+            }
+        }
+
+        return $options;
+    }
+
+    public function treatTrackingData(array $movement, FileBag $files, int $index): array {
+        $options = [];
+        if (!empty($movement['comment'])) {
+            $options['commentaire'] = $movement['comment'];
+        }
+
+        $signatureFile = $files->get("signature_$index");
+        $photoFile = $files->get("photo_$index");
+        if (!empty($signatureFile) || !empty($photoFile)) {
+            $options['fileBag'] = [];
+            if (!empty($signatureFile)) {
+                $options['fileBag'][] = $signatureFile;
+            }
+
+            if (!empty($photoFile)) {
+                $options['fileBag'][] = $photoFile;
+            }
+        }
+        return $options;
+    }
+
+    public function clearTrackingMovement(EntityManagerInterface $entityManager,
+                                          array $trackingMovements,
+                                          array $finishMouvementTraca): void {
+        $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
+
+        // Pour tous les mouvement de prise envoyés, on les marques en fini si un mouvement de dépose a été donné
+        foreach ($trackingMovements as $mvt) {
+            /** @var TrackingMovement $mouvementTracaPriseToFinish */
+            $mouvementTracaPriseToFinish = $trackingMovementRepository->findOneByUniqueIdForMobile($mvt['date']);
+
+            if (isset($mouvementTracaPriseToFinish)) {
+                $trackingPack = $mouvementTracaPriseToFinish->getPack();
+                if ($trackingPack) {
+                    $packCode = $trackingPack->getCode();
+                    if (($mouvementTracaPriseToFinish->getType()->getNom() === TrackingMovement::TYPE_PRISE) &&
+                        in_array($packCode, $finishMouvementTraca) &&
+                        !$mouvementTracaPriseToFinish->isFinished()) {
+                        $mouvementTracaPriseToFinish->setFinished((bool)$mvt['finished']);
+                    }
+                }
+            }
+        }
     }
 }
