@@ -808,24 +808,44 @@ class ReferenceArticleRepository extends EntityRepository {
     /**
      * @return ReferenceArticle[]
      */
-    public function findByFrequencyOrderedByLocation(InventoryFrequency $frequency): array
+    public function iterateReferencesToInventory(InventoryFrequency $frequency, InventoryMission $inventoryMission): iterable
     {
-        $queryBuilder = $this->createQueryBuilder('referenceArticle')
+        $queryBuilder = $this->createQueryBuilder('referenceArticle');
+        $exprBuilder = $queryBuilder->expr();
+        $queryBuilder
             ->select('referenceArticle')
+            ->distinct()
             ->join('referenceArticle.category', 'category')
             ->join('referenceArticle.statut', 'status')
-            ->leftJoin('referenceArticle.emplacement', 'location')
-            ->where('category.frequency = :frequency')
-            ->orderBy('location.label')
+            ->join('category.frequency', 'frequency')
+            ->leftJoin('referenceArticle.inventoryMissions', 'inventoryMission')
+            ->andWhere($exprBuilder->orX(
+                'inventoryMission.id IS NULL',
+                $exprBuilder->andX(
+                    ':startDate < inventoryMission.startPrevDate',
+                    ':endDate < inventoryMission.startPrevDate'
+                ),
+                $exprBuilder->andX(
+                    ':startDate > inventoryMission.endPrevDate',
+                    ':endDate > inventoryMission.endPrevDate'
+                )
+            ))
+            ->andWhere('frequency = :frequency')
             ->andWhere('status.nom = :status')
+            ->andWhere('referenceArticle.typeQuantite = :quantityType_reference')
+            ->andWhere('referenceArticle.dateLastInventory IS NOT NULL')
+            ->andWhere('TIMESTAMPDIFF(MONTH, referenceArticle.dateLastInventory, NOW()) >= frequency.nbMonths')
             ->setParameters([
                 'frequency' => $frequency,
-                'status' => ReferenceArticle::STATUT_ACTIF
+                'status' => ReferenceArticle::STATUT_ACTIF,
+                'quantityType_reference' => ReferenceArticle::TYPE_QUANTITE_REFERENCE,
+                'startDate' => $inventoryMission->getStartPrevDate(),
+                'endDate' => $inventoryMission->getEndPrevDate()
             ]);
 
         return $queryBuilder
             ->getQuery()
-            ->execute();
+            ->toIterable();
     }
 
     public function countActiveByFrequencyWithoutDateInventory(InventoryFrequency $frequency)

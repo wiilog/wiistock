@@ -37,6 +37,7 @@ doctrine:
                 CAST: DoctrineExtensions\Query\Mysql\Cast
                 DATE_FORMAT: DoctrineExtensions\Query\Mysql\DateFormat
                 UNIX_TIMESTAMP: DoctrineExtensions\Query\Mysql\UnixTimestamp
+                TIMESTAMPDIFF: DoctrineExtensions\Query\Mysql\TimestampDiff
                 FIELD: DoctrineExtensions\Query\Mysql\Field
                 GROUP_CONCAT: DoctrineExtensions\Query\Mysql\GroupConcat
                 REGEXP: DoctrineExtensions\Query\Mysql\Regexp
