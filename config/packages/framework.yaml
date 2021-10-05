@@ -12,6 +12,8 @@ framework:
         save_path: '%kernel.project_dir%/var/sessions/%kernel.environment%'
         cookie_lifetime: 604800
         gc_maxlifetime: '%session_lifetime%'
+        gc_probability: 1
+        gc_divisor: 1
 
     #esi: true
     #fragments: true
