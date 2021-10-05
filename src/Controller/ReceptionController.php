@@ -1868,7 +1868,12 @@ class ReceptionController extends AbstractController {
                     /** @var Preparation $preparation */
                     $preparation = $demande->getPreparations()->first();
                     if ($preparation) {
-                        $preparationArticleLine = $preparationsManagerService->createArticleLine($article, $preparation, $article->getQuantite());
+                        $preparationArticleLine = $preparationsManagerService->createArticleLine(
+                            $article,
+                            $preparation,
+                            $article->getQuantite(),
+                            $preparation->getStatut()->getCode() === Preparation::STATUT_PREPARE ? $article->getQuantite() : 0
+                        );
                         $entityManager->persist($preparationArticleLine);
 
                         $article->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
