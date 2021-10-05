@@ -7,6 +7,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
+use Symfony\Component\HttpFoundation\InputBag;
 
 /**
  * @method Utilisateur|null find($id, $lockMode = null, $lockVersion = null)
@@ -109,7 +110,7 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
             ->execute();
     }
 
-    public function findByParams($params = null)
+    public function findByParams(InputBag $params)
     {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
@@ -118,53 +119,50 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
             ->select('a')
             ->from('App\Entity\Utilisateur', 'a');
 
-        // prise en compte des paramètres issus du datatable
-        if (!empty($params)) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
-            if (!empty($params->get('order'))) {
-                $order = $params->get('order')[0]['dir'];
+        if (!empty($params->get('order'))) {
+            $order = $params->get('order')[0]['dir'];
 
-                if (!empty($order)) {
-                    $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
+            if (!empty($order)) {
+                $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
 
-                    switch ($column) {
-                        case 'Dropzone':
-                            $qb
-                                ->leftJoin('a.dropzone', 'd_order')
-                                ->orderBy('d_order.label', $order);
-                            break;
-                        case 'role':
-                            $qb
-                                ->leftJoin('a.role', 'a_order')
-                                ->orderBy('a_order.label', $order);
-                            break;
-                        case 'visibilityGroup':
-                            $qb
-                                ->leftJoin('a.visibilityGroups', 'order_visibility_group')
-                                ->orderBy('order_visibility_group.label', $order);
-                            break;
-                        default:
-                            $qb->orderBy('a.' . self::DtToDbLabels[$column], $order);
-                    }
+                switch ($column) {
+                    case 'Dropzone':
+                        $qb
+                            ->leftJoin('a.dropzone', 'd_order')
+                            ->orderBy('d_order.label', $order);
+                        break;
+                    case 'role':
+                        $qb
+                            ->leftJoin('a.role', 'a_order')
+                            ->orderBy('a_order.label', $order);
+                        break;
+                    case 'visibilityGroup':
+                        $qb
+                            ->leftJoin('a.visibilityGroups', 'order_visibility_group')
+                            ->orderBy('order_visibility_group.label', $order);
+                        break;
+                    default:
+                        $qb->orderBy('a.' . self::DtToDbLabels[$column], $order);
                 }
             }
+        }
 
-            if (!empty($params->get('search'))) {
-                $search = $params->get('search')['value'];
-                if (!empty($search)) {
-                    $qb
-                        ->leftJoin('a.dropzone', 'd_search')
-                        ->leftJoin('a.visibilityGroups', 'search_visibility_group')
-                        ->andWhere(
-                            'a.username LIKE :value'
-                            . ' OR a.email LIKE :value'
-                            . ' OR d_search.label LIKE :value'
-                            . ' OR search_visibility_group.label LIKE :value'
-                        )
-                        ->setParameter('value', '%' . $search . '%');
-                }
+        if (!empty($params->get('search'))) {
+            $search = $params->get('search')['value'];
+            if (!empty($search)) {
+                $qb
+                    ->leftJoin('a.dropzone', 'd_search')
+                    ->leftJoin('a.visibilityGroups', 'search_visibility_group')
+                    ->andWhere(
+                        'a.username LIKE :value'
+                        . ' OR a.email LIKE :value'
+                        . ' OR d_search.label LIKE :value'
+                        . ' OR search_visibility_group.label LIKE :value'
+                    )
+                    ->setParameter('value', '%' . $search . '%');
             }
         }
 

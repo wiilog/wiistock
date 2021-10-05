@@ -6,6 +6,7 @@ use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
 use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
+use Symfony\Component\HttpFoundation\InputBag;
 
 /**
  * @method SensorWrapper|null find($id, $lockMode = null, $lockVersion = null)
@@ -16,7 +17,7 @@ use Doctrine\ORM\EntityRepository;
 class SensorWrapperRepository extends EntityRepository
 {
 
-    public function findByParams($params) {
+    public function findByParams(InputBag $params) {
 
         $qb = $this->createQueryBuilder("sensor_wrapper")
             ->andWhere('sensor_wrapper.deleted = false');
@@ -99,10 +100,8 @@ class SensorWrapperRepository extends EntityRepository
 
         $countFiltered = QueryCounter::count($qb, 'sensor_wrapper');
 
-        if ($params) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-        }
+        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
         return [
             'data' => $qb->getQuery()->getResult(),

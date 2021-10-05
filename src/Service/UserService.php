@@ -17,6 +17,7 @@ use App\Entity\Utilisateur;
 
 use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\InputBag;
 use Twig\Environment as Twig_Environment;
 use Symfony\Component\Security\Core\Security;
 use Twig\Error\LoaderError;
@@ -71,24 +72,7 @@ class UserService
         return isset($this->roleService->getPermissions($user ?: $this->user)[$key]);
     }
 
-    public function getDataForDatatable($params = null)
-    {
-        $utilisateurRepository = $this->entityManager->getRepository(Utilisateur::class);
-
-        $data = $this->getUtilisateurDataByParams($params);
-        $data['recordsTotal'] = (int) $utilisateurRepository->countAll();
-        $data['recordsFiltered'] = $data['recordsTotal'];
-        return $data;
-    }
-
-	/**
-	 * @param null $params
-	 * @return array
-	 * @throws LoaderError
-	 * @throws RuntimeError
-	 * @throws SyntaxError
-	 */
-    public function getUtilisateurDataByParams($params = null)
+    public function getDataForDatatable(InputBag $params)
     {
         $utilisateurRepository = $this->entityManager->getRepository(Utilisateur::class);
         $utilisateurs = $utilisateurRepository->findByParams($params);
@@ -97,7 +81,13 @@ class UserService
         foreach ($utilisateurs as $utilisateur) {
             $rows[] = $this->dataRowUser($utilisateur);
         }
-        return ['data' => $rows];
+        $countAll = (int) $utilisateurRepository->countAll();
+
+        return [
+            'data' => $rows,
+            'recordsTotal' => $countAll,
+            'recordsFiltered' => $countAll,
+        ];
     }
 
     public function dataRowUser(Utilisateur $user): array

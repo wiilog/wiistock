@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Import;
 use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
+use Symfony\Component\HttpFoundation\InputBag;
 
 /**
  * @method Import|null find($id, $lockMode = null, $lockVersion = null)
@@ -14,7 +15,7 @@ use Doctrine\ORM\EntityRepository;
  */
 class ImportRepository extends EntityRepository
 {
-	public function findByParamsAndFilters($params, $filters)
+	public function findByParamsAndFilters(InputBag $params, $filters)
 	{
 		$qb = $this->createQueryBuilder('i')
             ->join('i.status', 's')
@@ -97,10 +98,8 @@ class ImportRepository extends EntityRepository
 		// compte éléments filtrés
 		$countFiltered = QueryCounter::count($qb, 'i');
 
-		if ($params) {
-			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-		}
+        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
 		$query = $qb->getQuery();
 

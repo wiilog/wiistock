@@ -22,6 +22,7 @@ use App\Repository\ParametrageGlobalRepository;
 use App\Repository\StatutRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -77,7 +78,7 @@ class DispatchService {
         $this->visibleColumnService = $visibleColumnService;
     }
 
-    public function getDataForDatatable($params = null) {
+    public function getDataForDatatable(InputBag $params) {
 
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $dispatchRepository = $this->entityManager->getRepository(Dispatch::class);

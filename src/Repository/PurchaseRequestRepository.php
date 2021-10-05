@@ -7,6 +7,7 @@ use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
+use Symfony\Component\HttpFoundation\InputBag;
 
 /**
  * @method PurchaseRequest|null find($id, $lockMode = null, $lockVersion = null)
@@ -39,7 +40,7 @@ class PurchaseRequestRepository extends EntityRepository
         return $result ? $result[0]['number'] : null;
     }
 
-    public function findByParamsAndFilters($params, $filters) {
+    public function findByParamsAndFilters(InputBag $params, $filters) {
 
         $qb = $this->createQueryBuilder("purchase_request");
         $total = QueryCounter::count($qb, "purchase_request");
@@ -140,10 +141,8 @@ class PurchaseRequestRepository extends EntityRepository
         // compte éléments filtrés
         $countFiltered = QueryCounter::count($qb, 'purchase_request');
 
-        if ($params) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-        }
+        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
         return [
             'data' => $qb->getQuery()->getResult(),

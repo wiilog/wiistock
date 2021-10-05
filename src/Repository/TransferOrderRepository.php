@@ -10,6 +10,7 @@ use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Symfony\Component\HttpFoundation\InputBag;
 
 /**
  * @method TransferOrder|null find($id, $lockMode = null, $lockVersion = null)
@@ -19,7 +20,7 @@ use Doctrine\ORM\NoResultException;
  */
 class TransferOrderRepository extends EntityRepository {
 
-    public function findByParamsAndFilters($params, $filters, $receptionFilter) {
+    public function findByParamsAndFilters(InputBag $params, $filters, $receptionFilter) {
         $qb = $this->createQueryBuilder("transfer_order");
         $total =  QueryCounter::count($qb, "transfer_order");
 
@@ -145,10 +146,8 @@ class TransferOrderRepository extends EntityRepository {
         // compte éléments filtrés
         $countFiltered =  QueryCounter::count($qb, 'transfer_order');
 
-        if ($params) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-        }
+        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
         return [
             'data' => $qb->getQuery()->getResult(),

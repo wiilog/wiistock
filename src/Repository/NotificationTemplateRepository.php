@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\NotificationTemplate;
 use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
+use Symfony\Component\HttpFoundation\InputBag;
 
 /**
  * @method NotificationTemplate|null find($id, $lockMode = null, $lockVersion = null)
@@ -23,7 +24,7 @@ class NotificationTemplateRepository extends EntityRepository
             ->getSingleResult();
     }
 
-    public function findByParams($params) {
+    public function findByParams(InputBag $params) {
         $qb = $this->createQueryBuilder("notification_template");
         $total = QueryCounter::count($qb, "notification_template");
 
@@ -42,10 +43,8 @@ class NotificationTemplateRepository extends EntityRepository
 
         $countFiltered = QueryCounter::count($qb, "notification_template");
 
-        if ($params) {
-            if (!empty($params->get("start"))) $qb->setFirstResult($params->get("start"));
-            if (!empty($params->get("length"))) $qb->setMaxResults($params->get("length"));
-        }
+        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
         return [
             "data" => $qb->getQuery()->getResult(),

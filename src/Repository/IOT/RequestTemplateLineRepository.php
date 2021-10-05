@@ -7,7 +7,7 @@ use App\Entity\IOT\DeliveryRequestTemplate;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\RequestTemplateLine;
 use Doctrine\ORM\EntityRepository;
-use Symfony\Component\HttpFoundation\ParameterBag;
+use Symfony\Component\HttpFoundation\InputBag;
 
 /**
  * @method RequestTemplateLine|null find($id, $lockMode = null, $lockVersion = null)
@@ -17,7 +17,8 @@ use Symfony\Component\HttpFoundation\ParameterBag;
  */
 class RequestTemplateLineRepository extends EntityRepository {
 
-    public function findByParams(RequestTemplate $requestTemplate, ParameterBag $params) {
+    public function findByParams(RequestTemplate $requestTemplate,
+                                 InputBag $params) {
         $qb = $this->createQueryBuilder("line");
 
         if ($requestTemplate instanceof DeliveryRequestTemplate) {
@@ -66,10 +67,8 @@ class RequestTemplateLineRepository extends EntityRepository {
             }
         }
 
-        if (!empty($params)) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-        }
+        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
         return $qb->getQuery()->getResult();
     }

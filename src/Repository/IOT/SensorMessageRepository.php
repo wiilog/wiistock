@@ -6,6 +6,7 @@ use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;
 use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
+use Symfony\Component\HttpFoundation\InputBag;
 
 /**
  * @method SensorMessage|null find($id, $lockMode = null, $lockVersion = null)
@@ -16,7 +17,7 @@ use Doctrine\ORM\EntityRepository;
 class SensorMessageRepository extends EntityRepository
 {
 
-    public function findByParamsAndFilters($params, Sensor $sensor):array {
+    public function findByParamsAndFilters(InputBag $params, Sensor $sensor):array {
 
         $qb = $this->createQueryBuilder("sensor_message")
             ->leftJoin('sensor_message.sensor', 'sensor')
@@ -57,10 +58,8 @@ class SensorMessageRepository extends EntityRepository
         // counts filtered items
         $countFiltered = QueryCounter::count($qb, 'sensor_message');
 
-        if ($params) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-        }
+        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
         return [
             'data' => $qb->getQuery()->getResult(),

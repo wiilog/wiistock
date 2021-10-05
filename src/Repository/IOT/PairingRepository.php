@@ -20,7 +20,7 @@ use WiiCommon\Helper\Stream;
  */
 class PairingRepository extends EntityRepository
 {
-    public function findByParams($params, SensorWrapper $wrapper)
+    public function findByParams(InputBag $params, SensorWrapper $wrapper)
     {
 
         $qb = $this->createQueryBuilder("sensors_pairing")
@@ -95,10 +95,8 @@ class PairingRepository extends EntityRepository
 
         $countFiltered = QueryCounter::count($qb, 'sensors_pairing');
 
-        if ($params) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-        }
+        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
         return [
             'data' => $qb->getQuery()->getResult(),

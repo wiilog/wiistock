@@ -6,6 +6,7 @@ use App\Entity\ReceiptAssociation;
 use App\Helper\QueryCounter;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
+use Symfony\Component\HttpFoundation\InputBag;
 
 /**
  * @method ReceiptAssociation|null find($id, $lockMode = null, $lockVersion = null)
@@ -31,7 +32,7 @@ class ReceiptAssociationRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function findByParamsAndFilters($params, $filters)
+    public function findByParamsAndFilters(InputBag $params, $filters)
     {
         $qb = $this->createQueryBuilder("receipt_association");
 
@@ -130,10 +131,8 @@ class ReceiptAssociationRepository extends EntityRepository
         // compte éléments filtrés
         $countFiltered = QueryCounter::count($qb, 'receipt_association');
 
-        if ($params) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-        }
+        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
         $query = $qb->getQuery();
 

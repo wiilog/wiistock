@@ -183,8 +183,8 @@ class AlertRepository extends EntityRepository {
         $countFiltered = QueryCounter::count($queryBuilder, "a");
 
         if(!empty($params)) {
-            if(!empty($params->get('start'))) $queryBuilder->setFirstResult($params->get('start'));
-            if(!empty($params->get('length'))) $queryBuilder->setMaxResults($params->get('length'));
+            if ($params->getInt('start')) $queryBuilder->setFirstResult($params->getInt('start'));
+            if ($params->getInt('length')) $queryBuilder->setMaxResults($params->getInt('length'));
         }
 
         return [

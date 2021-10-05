@@ -8,6 +8,7 @@ use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\Pack;
 use Doctrine\ORM\EntityRepository;
+use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\StringHelper;
 
 /**
@@ -130,7 +131,7 @@ class EmplacementRepository extends EntityRepository
         return $qb->getQuery()->getResult();
     }
 
-    public function findByParamsAndExcludeInactive($params = null, $excludeInactive = false)
+    public function findByParamsAndExcludeInactive(InputBag $params = null, $excludeInactive = false)
     {
         $countTotal = $this->countAll();
 
@@ -175,10 +176,10 @@ class EmplacementRepository extends EntityRepository
 
         $qb
             ->select('e');
-        if ($params) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-        }
+
+        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
+
         $query = $qb->getQuery();
         return [
             'data' => $query ? $query->getResult() : null,

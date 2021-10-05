@@ -23,6 +23,7 @@ use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Entity\CategorieCL;
+use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -338,7 +339,7 @@ class ArticleDataService
         return ['data' => $rows];
     }
 
-    public function getArticleDataByParams($params, Utilisateur $user) {
+    public function getArticleDataByParams(InputBag $params, Utilisateur $user) {
         $articleRepository = $this->entityManager->getRepository(Article::class);
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
 

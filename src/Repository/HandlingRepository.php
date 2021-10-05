@@ -6,6 +6,7 @@ use App\Entity\AverageRequestTime;
 use App\Entity\Handling;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
@@ -167,7 +168,7 @@ class HandlingRepository extends EntityRepository
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-	public function findByParamAndFilters($params, $filters)
+	public function findByParamAndFilters(InputBag $params, $filters)
     {
         $qb = $this->createQueryBuilder('handling');
 
@@ -291,10 +292,8 @@ class HandlingRepository extends EntityRepository
             ->getQuery()
             ->getSingleScalarResult();
 
-		if ($params) {
-			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-		}
+        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
 		$query = $qb
             ->select('handling')

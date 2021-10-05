@@ -467,10 +467,9 @@ class MouvementStockRepository extends EntityRepository
         $countFiltered = $queryBuilder->getQuery()->getSingleScalarResult();
         $queryBuilder
             ->select('stock_movement');
-        if ($params) {
-            if (!empty($params->get('start'))) $queryBuilder->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $queryBuilder->setMaxResults($params->get('length'));
-        }
+
+        if ($params->getInt('start')) $queryBuilder->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $queryBuilder->setMaxResults($params->getInt('length'));
 
         $query = $queryBuilder->getQuery();
 

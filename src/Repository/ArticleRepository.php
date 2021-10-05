@@ -17,6 +17,7 @@ use App\Entity\Utilisateur;
 
 use App\Entity\VisibilityGroup;
 use App\Helper\QueryCounter;
+use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 use App\Service\VisibleColumnService;
 use DateTime;
@@ -254,7 +255,7 @@ class ArticleRepository extends EntityRepository {
             ->getResult();
 	}
 
-    public function findByParamsAndFilters($params, $filters, Utilisateur $user)
+    public function findByParamsAndFilters(InputBag $params, $filters, Utilisateur $user)
     {
         $queryBuilder = $this->createQueryBuilder("a");
 
@@ -454,8 +455,8 @@ class ArticleRepository extends EntityRepository {
                 }
             }
 
-            if (!empty($params->get('start'))) $queryBuilder->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $queryBuilder->setMaxResults($params->get('length'));
+            if ($params->getInt('start')) $queryBuilder->setFirstResult($params->getInt('start'));
+            if ($params->getInt('length')) $queryBuilder->setMaxResults($params->getInt('length'));
         }
         $query = $queryBuilder->getQuery();
 
@@ -737,7 +738,7 @@ class ArticleRepository extends EntityRepository {
             ]);
 
         if ($limit) {
-            $queryBuilder->setMaxResults($limit);
+            $queryBuilder->setMaxResults((int) $limit);
         }
 
         return $queryBuilder

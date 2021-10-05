@@ -124,7 +124,7 @@ class ArticleFournisseurRepository extends EntityRepository
         return $query->getResult();
     }
 
-    public function findByParams(?InputBag $params, Utilisateur $user)
+    public function findByParams(InputBag $params, Utilisateur $user)
     {
         $queryBuilder = $this->createQueryBuilder('supplier_article');
         $visibilityGroup = $user->getVisibilityGroups();
@@ -184,10 +184,10 @@ class ArticleFournisseurRepository extends EntityRepository
         }
         $queryBuilder
             ->select('supplier_article');
-        if ($params) {
-            if (!empty($params->get('start'))) $queryBuilder->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $queryBuilder->setMaxResults($params->get('length'));
-        }
+
+        if ($params->getInt('start')) $queryBuilder->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $queryBuilder->setMaxResults($params->getInt('length'));
+
         $query = $queryBuilder->getQuery();
         return [
             'data' => $query ? $query->getResult() : null,

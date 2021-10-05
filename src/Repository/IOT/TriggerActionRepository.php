@@ -5,6 +5,7 @@ namespace App\Repository\IOT;
 use App\Entity\IOT\TriggerAction;
 use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
+use Symfony\Component\HttpFoundation\InputBag;
 
 /**
  * @method TriggerAction|null find($id, $lockMode = null, $lockVersion = null)
@@ -15,9 +16,8 @@ use Doctrine\ORM\EntityRepository;
 class TriggerActionRepository extends EntityRepository
 {
 
-    public function findByParamsAndFilters($params)
+    public function findByParamsAndFilters(InputBag $params)
     {
-
         $qb = $this->createQueryBuilder("trigger_action");
         $total = QueryCounter::count($qb, "trigger_action");
 
@@ -61,10 +61,8 @@ class TriggerActionRepository extends EntityRepository
         // compte éléments filtrés
         $countFiltered = QueryCounter::count($qb, 'trigger_action');
 
-        if ($params) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-        }
+        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
         return [
             'data' => $qb->getQuery()->getResult(),

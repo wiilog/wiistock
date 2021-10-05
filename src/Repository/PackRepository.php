@@ -8,6 +8,7 @@ use App\Entity\LocationGroup;
 use App\Entity\Pack;
 use App\Helper\FormatHelper;
 use DateTimeInterface;
+use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 use DateTime;
 use Doctrine\DBAL\Connection;
@@ -142,7 +143,7 @@ class PackRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
-    public function findByParamsAndFilters($params, $filters, string $mode)
+    public function findByParamsAndFilters(InputBag $params, $filters, string $mode)
     {
         $queryBuilder = $this->createQueryBuilder('pack');
 
@@ -276,10 +277,8 @@ class PackRepository extends EntityRepository
         $queryBuilder
             ->select('pack');
 
-        if ($params) {
-            if (!empty($params->get('start'))) $queryBuilder->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $queryBuilder->setMaxResults($params->get('length'));
-        }
+        if ($params->getInt('start')) $queryBuilder->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $queryBuilder->setMaxResults($params->getInt('length'));
 
         $query = $queryBuilder->getQuery();
         return [
@@ -342,11 +341,11 @@ class PackRepository extends EntityRepository
         }
 
         if ($start) {
-            $queryBuilder->setFirstResult($start);
+            $queryBuilder->setFirstResult((int) $start);
         }
 
         if ($limit) {
-            $queryBuilder->setMaxResults($limit);
+            $queryBuilder->setMaxResults((int) $limit);
         }
 
         if ($isCount) {

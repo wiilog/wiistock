@@ -13,6 +13,7 @@ use App\Entity\ParametrageGlobal;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -63,7 +64,7 @@ class ArrivageDataService
         $this->visibleColumnService = $visibleColumnService;
     }
 
-    public function getDataForDatatable($params, $userId)
+    public function getDataForDatatable(InputBag $params, $userId)
     {
         $arrivalRepository = $this->entityManager->getRepository(Arrivage::class);
         $supFilterRepository = $this->entityManager->getRepository(FiltreSup::class);
