@@ -735,7 +735,7 @@ class Article extends FreeFieldEntity implements PairedEntity
     public function isExpired(): ?bool
     {
         if($this->getExpiryDate()) {
-            $now = new WiiDateTime("now");
+            $now = new DateTime("now");
 
             return $now >= $this->getExpiryDate();
         } else {

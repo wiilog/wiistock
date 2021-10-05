@@ -38,7 +38,7 @@ class ImportCommand extends Command
 
     protected function configure()
     {
-        $this->setDescription('This command executes planified imports.');
+        $this->setDescription('This command executes planified in next 30 minutes imports.');
     }
 
     /**
