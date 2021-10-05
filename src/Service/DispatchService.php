@@ -319,7 +319,11 @@ class DispatchService {
             [
                 'label' => 'Date de traitement',
                 'value' => $treatmentDate ? $treatmentDate->format('d/m/Y H:i:s') : ''
-            ]
+            ],
+            [
+                'label' => 'Destination',
+                'value' => $dispatch->getDestination() ? $dispatch->getDestination() : ''
+            ],
         ];
         $configFiltered = $this->fieldsParamService->filterHeaderConfig($config, FieldsParam::ENTITY_CODE_DISPATCH);
         return array_merge(
