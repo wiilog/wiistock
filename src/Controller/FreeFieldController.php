@@ -123,13 +123,13 @@ class FreeFieldController extends AbstractController {
     public function new(Request $request, EntityManagerInterface $entityManager): Response {
         $data = json_decode($request->getContent(), true);
 
-        $champLibreRepository = $entityManager->getRepository(FreeField::class);
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
 		// on vérifie que le nom du champ libre n'est pas déjà utilisé
-		$champLibreExist = $champLibreRepository->countByLabel($data['label']);
-		if (!$champLibreExist) {
+		$existingFreeFields = $freeFieldRepository->countByLabel($data['label']);
+		if (!$existingFreeFields) {
 			$type = $typeRepository->find($data['type']);
 			$champLibre = new FreeField();
 			$champLibre
@@ -181,7 +181,8 @@ class FreeFieldController extends AbstractController {
                 'success' => true,
                 'msg' => 'Le champ libre <strong>' . $data['label'] . '</strong> a bien été créé.'
             ]);
-		} else {
+		}
+        else {
 			return new JsonResponse([
 			    'success' => false,
                 'msg' => 'Le champ libre <strong>' . $data['label'] . '</strong> existe déjà, veuillez définir un autre nom.'
@@ -220,31 +221,40 @@ class FreeFieldController extends AbstractController {
     public function edit(Request $request, EntityManagerInterface $entityManager): Response {
         $data = json_decode($request->getContent(), true);
 
-        $champLibreRepository = $entityManager->getRepository(FreeField::class);
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
-		$champLibre = $champLibreRepository->find($data['champLibre']);
+		$freeField = $freeFieldRepository->find($data['champLibre']);
 
         if(isset($data['categorieCL'])) {
             $categorieCL = $categorieCLRepository->find($data['categorieCL']);
-            $champLibre->setCategorieCL($categorieCL);
+            $freeField->setCategorieCL($categorieCL);
         }
 
-        $champLibre
+        $alreadyExisting = $freeFieldRepository->findOneBy(['label' => $data['label']]);
+
+        if ($alreadyExisting && $freeField->getId() !== $alreadyExisting->getId()) {
+            return $this->json([
+                'success' => false,
+                'msg' => 'Ce libellé est déjà utilisé.'
+            ]);
+        }
+
+        $freeField
             ->setLabel($data['label'])
             ->setRequiredCreate($data['displayedCreate'] ? $data['requiredCreate'] : false)
             ->setRequiredEdit($data['requiredEdit'])
             ->setDisplayedCreate($data['displayedCreate'])
             ->setTypage($data['typage']);
 
-        if (in_array($champLibre->getTypage(), [FreeField::TYPE_LIST, FreeField::TYPE_LIST_MULTIPLE])) {
+        if (in_array($freeField->getTypage(), [FreeField::TYPE_LIST, FreeField::TYPE_LIST_MULTIPLE])) {
             $elements = Stream::from(explode(';', $data['elem']))
                 ->filter()
                 ->unique()
                 ->values();
-            $champLibre->setElements($elements);
+            $freeField->setElements($elements);
 
-            if ($champLibre->getTypage() == FreeField::TYPE_LIST
+            if ($freeField->getTypage() == FreeField::TYPE_LIST
                 && isset($data['valeur'])
                 && $data['valeur'] !== "") {
                 if (!in_array($data['valeur'], $elements)) {
@@ -253,13 +263,13 @@ class FreeFieldController extends AbstractController {
                         'msg' => 'La valeur par défaut saisie doit être présente dans les éléments saisis.'
                     ]);
                 }
-                $champLibre->setDefaultValue($data['valeur']);
+                $freeField->setDefaultValue($data['valeur']);
             }
             else {
-                $champLibre->setDefaultValue(null);
+                $freeField->setDefaultValue(null);
             }
 		} else {
-			$champLibre
+			$freeField
 				->setElements(null)
 				->setDefaultValue($data['typage'] === FreeField::TYPE_BOOL && $data['valeur'] == -1 ? null : $data['valeur']);
 		}
