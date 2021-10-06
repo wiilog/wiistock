@@ -29,8 +29,8 @@ class FieldsParamService
         return array_filter($config, function ($fieldConfig) use ($fieldsParam) {
             return (
                 !isset($fieldConfig['show'])
-                || $this->isFieldRequired($fieldsParam, $fieldConfig['show']['fieldName'], 'displayedFormsCreate')
-                || $this->isFieldRequired($fieldsParam, $fieldConfig['show']['fieldName'], 'displayedFormsEdit')
+                || $this->isFieldRequired($fieldsParam, $fieldConfig['show']['fieldName'], 'displayedCreate')
+                || $this->isFieldRequired($fieldsParam, $fieldConfig['show']['fieldName'], 'displayedEdit')
             );
         });
     }

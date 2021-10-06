@@ -331,8 +331,8 @@ class DispatchService {
         return array_merge(
             $configFiltered,
             $freeFieldArray,
-            ($this->fieldsParamService->isFieldRequired($fieldsParam, 'comment', 'displayedFormsCreate')
-                || $this->fieldsParamService->isFieldRequired($fieldsParam, 'comment', 'displayedFormsEdit'))
+            ($this->fieldsParamService->isFieldRequired($fieldsParam, 'comment', 'displayedCreate')
+                || $this->fieldsParamService->isFieldRequired($fieldsParam, 'comment', 'displayedEdit'))
                 ? [[
                 'label' => 'Commentaire',
                 'value' => $comment ?: '',
@@ -342,8 +342,8 @@ class DispatchService {
                 'isNeededNotEmpty' => true
             ]]
                 : [],
-            ($this->fieldsParamService->isFieldRequired($fieldsParam, 'attachments', 'displayedFormsCreate')
-                || $this->fieldsParamService->isFieldRequired($fieldsParam, 'attachments', 'displayedFormsEdit'))
+            ($this->fieldsParamService->isFieldRequired($fieldsParam, 'attachments', 'displayedCreate')
+                || $this->fieldsParamService->isFieldRequired($fieldsParam, 'attachments', 'displayedEdit'))
                 ? [[
                 'label' => 'Pièces jointes',
                 'value' => $attachments->toArray(),

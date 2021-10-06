@@ -17,8 +17,8 @@
         <strong>{{ handling.requester ? handling.requester.username }}</strong>
     </div>
     {% set fieldCodeReceiversHandling = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVERS_HANDLING') %}
-    {% if (fieldsParam|isFieldRequired(fieldCodeReceiversHandling, 'displayedFormsCreate')
-        or fieldsParam|isFieldRequired(fieldCodeReceiversHandling, 'displayedFormsEdit')
+    {% if (fieldsParam|isFieldRequired(fieldCodeReceiversHandling, 'displayedCreate')
+        or fieldsParam|isFieldRequired(fieldCodeReceiversHandling, 'displayedEdit')
         or fieldsParam|isFieldRequired(fieldCodeReceiversHandling, 'displayedFilters')) %}
         <div>
             Destinataire(s) :

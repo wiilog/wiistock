@@ -67,11 +67,11 @@ class FieldsParamController extends AbstractController
             $rows[] =
                 [
                     'fieldCode' => $field->getFieldLabel(),
-                    'displayedFormsCreate' => $field->isDisplayedFormsCreate() ? 'oui' : 'non',
-                    'displayedFormsEdit' => $field->isDisplayedFormsEdit() ? 'oui' : 'non',
+                    'displayedCreate' => $field->isDisplayedCreate() ? 'oui' : 'non',
+                    'displayedEdit' => $field->isDisplayedEdit() ? 'oui' : 'non',
                     'displayedFilters' => (in_array($field->getFieldCode(), $this->filteredFields) && $field->isDisplayedFilters()) ? 'oui' : 'non',
-                    'mustCreate' => $field->getMustToCreate() ? 'oui' : 'non',
-                    'mustEdit' => $field->getMustToModify() ? 'oui' : 'non',
+                    'mustCreate' => $field->getRequiredCreate() ? 'oui' : 'non',
+                    'mustEdit' => $field->getRequiredEdit() ? 'oui' : 'non',
                     'Actions' => $this->renderView('fields_param/datatableFieldsRow.html.twig', [
                         'url' => $url,
                         'fieldId' => $field->getId(),
@@ -119,12 +119,12 @@ class FieldsParamController extends AbstractController
 
             if (!$field->getFieldRequiredHidden()) {
                 $field
-                    ->setMustToModify($data['mustToModify'])
-                    ->setMustToCreate($data['mustToCreate']);
+                    ->setRequiredEdit($data['requiredEdit'])
+                    ->setRequiredCreate($data['requiredCreate']);
             }
-            $field->setDisplayedFormsCreate($data['displayed-forms-create'] ?? true);
-            $field->setDisplayedFormsEdit($data['displayed-forms-edit'] ?? true);
-            $field->setDisplayedFilters($data['displayed-filters'] ?? true);
+            $field->setDisplayedCreate($data['displayedCreate'] ?? true);
+            $field->setDisplayedEdit($data['displayedEdit'] ?? true);
+            $field->setDisplayedFilters($data['displayedFilters'] ?? true);
 
             if($field->getElements() !== null) {
                 if(isset($data['elements-text'])) {

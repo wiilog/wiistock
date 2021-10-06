@@ -15,39 +15,39 @@
             <input type="text" class="form-control" name="fieldCode" required="" value="{{ field.fieldLabel }}" disabled>
         </div>
 
-        {% set isCheckedFormCreateDisplayed = field.displayedFormsCreate ? 'checked' : '' %}
+        {% set isCheckedFormCreateDisplayed = field.displayedCreate ? 'checked' : '' %}
         <div class="form-group col-12">
             <label>Affiché dans formulaires de création ?</label>
             <label class="switch">
-                <input class="checkbox data" type="checkbox" name="displayed-forms-create" {{ isCheckedFormCreateDisplayed }} onchange="switchDisplay($(this))">
+                <input class="checkbox data" type="checkbox" name="displayedCreate" {{ isCheckedFormCreateDisplayed }} onchange="switchDisplay($(this))">
                 <span class="slider round"></span>
             </label>
         </div>
 
-        {% set isCheckedFormEditDisplayed = field.displayedFormsEdit ? 'checked' : '' %}
+        {% set isCheckedFormEditDisplayed = field.displayedEdit ? 'checked' : '' %}
         <div class="form-group col-12">
             <label>Affiché dans formulaires de modification ?</label>
             <label class="switch">
-                <input class="checkbox data" type="checkbox" name="displayed-forms-edit" {{ isCheckedFormEditDisplayed }} onchange="switchDisplay($(this))">
+                <input class="checkbox data" type="checkbox" name="displayedEdit" {{ isCheckedFormEditDisplayed }} onchange="switchDisplay($(this))">
                 <span class="slider round"></span>
             </label>
         </div>
 
         {% if not field.fieldRequiredHidden %}
-            {% set isCheckedCreate = field.mustToCreate ? 'checked' : '' %}
+            {% set isCheckedCreate = field.requiredCreate ? 'checked' : '' %}
             <div class="form-group col-12">
                 <label>Obligatoire à la création ?</label>
                 <label class="switch">
-                    <input class="checkbox data" type="checkbox" name="mustToCreate" {{ isCheckedCreate }} onchange="switchDisplayByMust($(this))">
+                    <input class="checkbox data" type="checkbox" name="requiredCreate" {{ isCheckedCreate }} onchange="switchDisplayByMust($(this))">
                     <span class="slider round"></span>
                 </label>
             </div>
 
-            {% set isCheckedModify = field.mustToModify ? 'checked' : '' %}
+            {% set isCheckedModify = field.requiredEdit ? 'checked' : '' %}
             <div class="form-group col-12">
                 <label>Obligatoire à la modification ?</label>
                 <label class="switch">
-                    <input class="checkbox data" type="checkbox" name="mustToModify" {{ isCheckedModify }} onchange="switchDisplayByMust($(this))">
+                    <input class="checkbox data" type="checkbox" name="requiredEdit" {{ isCheckedModify }} onchange="switchDisplayByMust($(this))">
                     <span class="slider round"></span>
                 </label>
             </div>
@@ -57,7 +57,7 @@
             <div class="form-group col-12">
                 <label>Afficher dans les filtres ?</label>
                 <label class="switch">
-                    <input class="checkbox data" type="checkbox" name="displayed-filters" {{ isCheckedFilterDisplayed }}>
+                    <input class="checkbox data" type="checkbox" name="displayedFilters" {{ isCheckedFilterDisplayed }}>
                     <span class="slider round"></span>
                 </label>
             </div>

@@ -64,8 +64,8 @@
     </div>
 
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
-        {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
+        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-6 col-12">
             <label>Urgence{{ required ? '*' }}</label>
             <div class="w-100">
@@ -104,44 +104,44 @@
 {#</div>#}
 
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOADING_ZONE') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group col-md-6 col-12">
-            <label for="source">Chargement{{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' : '' }}</label>
-            <input class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? 'needed' : '' }} input"
+            <label for="source">Chargement{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : '' }}</label>
+            <input class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'needed' : '' }} input"
                    value="{{ handling.source }}"
                    name="source">
         </div>
     {% endif %}
 
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_UNLOADING_ZONE') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group col-md-6 col-12">
-            <label for="destination">Déchargement{{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' : '' }}</label>
-            <input class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? 'needed' : '' }} input"
+            <label for="destination">Déchargement{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : '' }}</label>
+            <input class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'needed' : '' }} input"
                    value="{{ handling.destination }}"
                    name="destination">
         </div>
     {% endif %}
 
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set carriedOutOperationCount = handling.carriedOutOperationCount is null ? '' : handling.carriedOutOperationCount %}
         <div class="form-group col-md-6 col-12">
-            <label for="carriedOutOperationCount">{{ 'services.Nombre d\'opération(s) réalisée(s)'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' }}</label>
+            <label for="carriedOutOperationCount">{{ 'services.Nombre d\'opération(s) réalisée(s)'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' }}</label>
             <input type="number"
                    min="0"
-                   class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? 'needed' }} input"
+                   class="form-control data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'needed' }} input"
                    value="{{ carriedOutOperationCount }}"
                    name="carriedOutOperationCount">
         </div>
     {% endif %}
 
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVERS_HANDLING') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group col-4">
-            <label>Destinataires{{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? '*' }}</label>
+            <label>Destinataires{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' }}</label>
             <select name="receivers"
-                    class="form-control data ajax-autocomplete-user-edit w-100 {{ fieldsParam|isFieldRequired(fieldCode, 'mustToModify') ? 'needed'}}"
+                    class="form-control data ajax-autocomplete-user-edit w-100 {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'needed'}}"
                     multiple>
                 {% if receivers is not empty %}
                     {% for receiver in receivers %}

@@ -520,8 +520,8 @@ class HandlingController extends AbstractController
 
             $csvHeader = array_merge(
                 $csvHeaderBase,
-                ($receiversParameters['displayedFormsCreate'] ?? false
-                    || $receiversParameters['displayedFormsEdit'] ?? false
+                ($receiversParameters['displayedCreate'] ?? false
+                    || $receiversParameters['displayedEdit'] ?? false
                     ||  $receiversParameters['displayedFilters'] ?? false)
                     ? ['destinataire(s)']
                     : [],

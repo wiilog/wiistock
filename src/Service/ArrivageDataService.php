@@ -414,8 +414,8 @@ class ArrivageDataService
         return array_merge(
             $configFiltered,
             $freeFieldArray,
-            $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedFormsCreate')
-            || $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedFormsEdit')
+            $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedCreate')
+            || $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedEdit')
                 ? [[
                 'label' => 'Commentaire',
                 'value' => $comment ?: '',
@@ -425,8 +425,8 @@ class ArrivageDataService
                 'isNeededNotEmpty' => true
             ]]
                 : [],
-                $this->fieldsParamService->isFieldRequired($fieldsParam, 'pj', 'displayedFormsCreate')
-                || $this->fieldsParamService->isFieldRequired($fieldsParam, 'pj', 'displayedFormsEdit')
+                $this->fieldsParamService->isFieldRequired($fieldsParam, 'pj', 'displayedCreate')
+                || $this->fieldsParamService->isFieldRequired($fieldsParam, 'pj', 'displayedEdit')
                 ? [[
                     'label' => 'Pièces jointes',
                     'value' => $attachments->toArray(),
@@ -472,8 +472,8 @@ class ArrivageDataService
 
         $arrivalFieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
 
-        if ($this->fieldsParamService->isFieldRequired($arrivalFieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedFormsCreate')
-            || $this->fieldsParamService->isFieldRequired($arrivalFieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedFormsEdit')) {
+        if ($this->fieldsParamService->isFieldRequired($arrivalFieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedCreate')
+            || $this->fieldsParamService->isFieldRequired($arrivalFieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedEdit')) {
             $columns[] = ['title' => 'Emplacement de dépose', 'name' => 'dropLocation'];
         }
         return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
@@ -541,8 +541,8 @@ class ArrivageDataService
             $arrival['projectNumber'] ?: '',
             $arrival['businessUnit'] ?: '',
         ];
-        if ($this->fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedFormsCreate')
-            || $this->fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedFormsEdit')) {
+        if ($this->fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedCreate')
+            || $this->fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedEdit')) {
             $line[] = $arrival['dropLocation'] ?: '';
         }
 

@@ -278,7 +278,7 @@ class ImportController extends AbstractController
                                     'fieldCode' => $fieldParamCode,
                                     'entityCode' => FieldsParam::ENTITY_CODE_RECEPTION,
                                 ]);
-                                if ($fieldParam && $fieldParam->getMustToCreate()) {
+                                if ($fieldParam && $fieldParam->getRequiredCreate()) {
                                     $fieldsNeeded[] = $field;
                                 }
                             }

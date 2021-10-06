@@ -16,8 +16,8 @@
     {% set fieldCodeReceiversHandling = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVERS_HANDLING') %}
     <input type="hidden"
            id="showReceiversColumn"
-           value="{{ (fieldsParam|isFieldRequired(fieldCodeReceiversHandling, 'displayedFormsCreate')
-                     or fieldsParam|isFieldRequired(fieldCodeReceiversHandling, 'displayedFormsEdit')
+           value="{{ (fieldsParam|isFieldRequired(fieldCodeReceiversHandling, 'displayedCreate')
+                     or fieldsParam|isFieldRequired(fieldCodeReceiversHandling, 'displayedEdit')
                      or fieldsParam|isFieldRequired(fieldCodeReceiversHandling, 'displayedFilters')) ? 1 : 0 }}"/>
 
     <input type="hidden"
