@@ -140,7 +140,7 @@ class DispatchService {
             'emergency' => $dispatch->getEmergency() ?? '',
             'treatedBy' => $dispatch->getTreatedBy() ? $dispatch->getTreatedBy()->getUsername() : '',
             'treatmentDate' => $dispatch->getTreatmentDate() ? $dispatch->getTreatmentDate()->format('d/m/Y H:i:s') : '',
-            'actions' => $this->templating->render('dispatch/datatableDispatchRow.html.twig', [
+            'actions' => $this->templating->render('dispatch/list/actions.html.twig', [
                 'dispatch' => $dispatch,
                 'url' => $url
             ]),
