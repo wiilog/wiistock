@@ -176,7 +176,7 @@
             <label class="switch">
                 <input class="checkbox"
                     {{ fieldsParam|isFieldRequired('anomalie', 'mustToModify') ? 'needed' : '' }}
-                       type="checkbox" name="anomalie" {{ reception.statut.code === constant('App\\Entity\\Reception::STATUT_ANOMALIE') ? 'checked': ''}}>
+                       type="checkbox" name="anomalie" {{ reception.statut.code == constant('App\\Entity\\Reception::STATUT_ANOMALIE') ? 'checked': ''}}>
                 <span class="slider round"></span>
             </label>
         </div>
