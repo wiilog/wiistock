@@ -323,7 +323,8 @@ class DispatchService {
             ],
             [
                 'label' => 'Destination',
-                'value' => $dispatch->getDestination() ? $dispatch->getDestination() : ''
+                'value' => $dispatch->getDestination() ?: '',
+                'show' => ['fieldName' => FieldsParam::FIELD_CODE_DESTINATION]
             ],
         ];
         $configFiltered = $this->fieldsParamService->filterHeaderConfig($config, FieldsParam::ENTITY_CODE_DISPATCH);
