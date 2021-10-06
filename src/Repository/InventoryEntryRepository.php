@@ -12,6 +12,7 @@ use App\Helper\QueryCounter;
 use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
+use Symfony\Component\HttpFoundation\InputBag;
 
 /**
  * @method InventoryEntry|null find($id, $lockMode = null, $lockVersion = null)
@@ -165,7 +166,7 @@ class InventoryEntryRepository extends EntityRepository
      * @param bool $anomalyMode
      * @return array
      */
-	public function findByParamsAndFilters($params, $filters, $anomalyMode = false)
+	public function findByParamsAndFilters(InputBag $params, $filters, $anomalyMode = false)
 	{
         $countTotalResult = $this->createQueryBuilder('ie')
             ->select('COUNT(ie.id) AS count')
@@ -297,10 +298,8 @@ class InventoryEntryRepository extends EntityRepository
 		// compte éléments filtrés
 		$countFiltered = QueryCounter::count($qb, 'ie');
 
-		if ($params) {
-			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-		}
+        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
 		return [
 			'data' => $qb->getQuery()->getResult(),

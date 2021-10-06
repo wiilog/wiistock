@@ -13,6 +13,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
+use Symfony\Component\HttpFoundation\InputBag;
 
 /**
  * @method Livraison|null find($id, $lockMode = null, $lockVersion = null)
@@ -105,7 +106,7 @@ class LivraisonRepository extends EntityRepository
 	 * @return array
 	 * @throws Exception
 	 */
-	public function findByParamsAndFilters($params, $filters)
+	public function findByParamsAndFilters(InputBag $params, $filters)
 	{
 		$qb = $this->createQueryBuilder("livraison")
             ->join('livraison.preparation', 'preparation')
@@ -203,10 +204,8 @@ class LivraisonRepository extends EntityRepository
 		// compte éléments filtrés
 		$countFiltered = QueryCounter::count($qb, 'livraison');
 
-		if ($params) {
-			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-		}
+        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
 		return [
 			'data' => $qb->getQuery()->getResult(),

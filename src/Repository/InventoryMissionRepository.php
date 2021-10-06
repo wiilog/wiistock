@@ -14,6 +14,7 @@ use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 use Exception;
+use Symfony\Component\HttpFoundation\InputBag;
 
 /**
  * @method InventoryMission|null find($id, $lockMode = null, $lockVersion = null)
@@ -153,7 +154,7 @@ class InventoryMissionRepository extends EntityRepository
 	 * @param array $filters
 	 * @return array
 	 */
-    public function findRefByMissionAndParamsAndFilters($mission, $params = null, $filters = [])
+    public function findRefByMissionAndParamsAndFilters($mission, InputBag $params = null, $filters = [])
     {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
@@ -202,8 +203,8 @@ class InventoryMissionRepository extends EntityRepository
                 $countQuery = QueryCounter::count($qb, 'ra');
             }
 
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+            if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
+            if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
         }
 
         $query = $qb->getQuery();
@@ -221,7 +222,7 @@ class InventoryMissionRepository extends EntityRepository
 	 * @param array $filters
 	 * @return array
 	 */
-    public function findArtByMissionAndParamsAndFilters($mission, $params = null, $filters = [])
+    public function findArtByMissionAndParamsAndFilters($mission, InputBag $params = null, $filters = [])
     {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
@@ -271,8 +272,8 @@ class InventoryMissionRepository extends EntityRepository
                 $countQuery = QueryCounter::count($qb, 'a');
             }
 
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+            if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
+            if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
         }
 
         $query = $qb->getQuery();
@@ -291,7 +292,7 @@ class InventoryMissionRepository extends EntityRepository
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function findMissionsByParamsAndFilters($params, $filters)
+    public function findMissionsByParamsAndFilters(InputBag $params, $filters)
 	{
 		$qb = $this->createQueryBuilder("im");
 
@@ -345,10 +346,8 @@ class InventoryMissionRepository extends EntityRepository
 		// compte éléments filtrés
 		$countFiltered = QueryCounter::count($qb, 'im');
 
-		if ($params) {
-			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-		}
+        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
 		$query = $qb->getQuery();
 

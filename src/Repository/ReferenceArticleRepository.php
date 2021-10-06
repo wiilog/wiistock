@@ -16,6 +16,7 @@ use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Helper\QueryCounter;
+use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 use App\Service\VisibleColumnService;
 use DateTime;
@@ -237,7 +238,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->execute();
     }
 
-    public function findByFiltersAndParams($filters, $params, Utilisateur $user)
+    public function findByFiltersAndParams($filters, InputBag $params, Utilisateur $user)
     {
         $em = $this->getEntityManager();
         $index = 0;
@@ -607,12 +608,8 @@ class ReferenceArticleRepository extends EntityRepository {
             }
         }
 
-        if (!empty($params) && !empty($params->get('start'))) {
-            $queryBuilder->setFirstResult($params->get('start'));
-        }
-        if (!empty($params) && !empty($params->get('length'))) {
-            $queryBuilder->setMaxResults($params->get('length'));
-        }
+        if ($params->getInt('start')) $queryBuilder->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $queryBuilder->setMaxResults($params->getInt('length'));
 
         $queryBuilder
             ->select('ra')

@@ -15,6 +15,7 @@ use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
 use Generator;
+use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\StringHelper;
 
 /**
@@ -106,7 +107,7 @@ class OrdreCollecteRepository extends EntityRepository
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function findByParamsAndFilters($params, $filters)
+    public function findByParamsAndFilters(InputBag $params, $filters)
     {
         $qb = $this->createQueryBuilder('oc');
 
@@ -224,10 +225,8 @@ class OrdreCollecteRepository extends EntityRepository
 
         $qb->select('oc');
 
-		if ($params) {
-			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-		}
+        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
 		$query = $qb->getQuery();
 

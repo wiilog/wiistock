@@ -8,6 +8,7 @@ use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 use App\Service\VisibleColumnService;
 use DateTime;
@@ -24,7 +25,7 @@ use Doctrine\ORM\Query\Expr\Join;
  */
 class DispatchRepository extends EntityRepository
 {
-    public function findByParamAndFilters($params, $filters) {
+    public function findByParamAndFilters(InputBag $params, $filters) {
         $qb = $this->createQueryBuilder('dispatch');
         $exprBuilder = $qb->expr();
 
@@ -183,10 +184,8 @@ class DispatchRepository extends EntityRepository
 
         $qb->select('dispatch');
 
-        if ($params) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-        }
+        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
         $query = $qb->getQuery();
 

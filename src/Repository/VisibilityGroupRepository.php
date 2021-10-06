@@ -65,8 +65,8 @@ class VisibilityGroupRepository extends EntityRepository {
 
         $countFiltered = QueryCounter::count($queryBuilder, "visibility_group");
 
-        if (!$params->has('start')) $queryBuilder->setFirstResult($params->get('start'));
-        if (!$params->has('length')) $queryBuilder->setMaxResults($params->get('length'));
+        if ($params->getInt('start')) $queryBuilder->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $queryBuilder->setMaxResults($params->getInt('length'));
 
         $query = $queryBuilder->getQuery();
         return [

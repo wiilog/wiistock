@@ -6,6 +6,7 @@ use App\Entity\Notification;
 use App\Helper\QueryCounter;
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\EntityRepository;
+use Symfony\Component\HttpFoundation\InputBag;
 
 /**
  * @method Notification|null find($id, $lockMode = null, $lockVersion = null)
@@ -15,7 +16,7 @@ use Doctrine\ORM\EntityRepository;
  */
 class NotificationRepository extends EntityRepository {
 
-    public function getByParams($params, $filters) {
+    public function getByParams(InputBag $params, $filters) {
         $qb = $this->createQueryBuilder("n")
             ->addOrderBy('n.triggered', 'DESC');
 
@@ -52,10 +53,8 @@ class NotificationRepository extends EntityRepository {
             $countFiltered = QueryCounter::count($qb, "n");
         }
 
-        if(!empty($params)) {
-            if(!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if(!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-        }
+        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
         return [
             'data' => $qb->getQuery()->getResult(AbstractQuery::HYDRATE_OBJECT),

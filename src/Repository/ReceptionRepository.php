@@ -11,6 +11,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Expr\Join;
+use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 
 /**
@@ -143,7 +144,7 @@ class ReceptionRepository extends EntityRepository
             ->getResult();
     }
 
-    public function findByParamAndFilters($params, $filters)
+    public function findByParamAndFilters(InputBag $params, $filters)
     {
         $qb = $this->createQueryBuilder("r");
 
@@ -276,10 +277,8 @@ class ReceptionRepository extends EntityRepository
         // compte éléments filtrés
         $countFiltered = QueryCounter::count($qb, 'r');
 
-        if ($params) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-        }
+        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
         $query = $qb->getQuery();
 

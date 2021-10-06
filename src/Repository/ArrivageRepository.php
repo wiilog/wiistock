@@ -15,6 +15,7 @@ use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
 use Exception;
+use Symfony\Component\HttpFoundation\InputBag;
 
 /**
  * @method Arrivage|null find($id, $lockMode = null, $lockVersion = null)
@@ -285,7 +286,7 @@ class ArrivageRepository extends EntityRepository
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function findByParamsAndFilters($params, $filters, $userId)
+    public function findByParamsAndFilters(InputBag $params, $filters, $userId)
     {
         $qb = $this->createQueryBuilder("a");
 
@@ -481,8 +482,8 @@ class ArrivageRepository extends EntityRepository
         }
 
         if (!empty($params)) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+            if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
+            if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
         }
 
         return [

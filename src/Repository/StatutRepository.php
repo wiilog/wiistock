@@ -7,6 +7,7 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
+use Symfony\Component\HttpFoundation\InputBag;
 
 /**
  * @method Statut|null find($id, $lockMode = null, $lockVersion = null)
@@ -280,7 +281,7 @@ class StatutRepository extends EntityRepository {
             ->getSingleScalarResult();
     }
 
-    public function findByParamsAndFilters($params, $filters) {
+    public function findByParamsAndFilters(InputBag $params, $filters) {
         $qb = $this->createQueryBuilder('status');
         $exprBuilder = $qb->expr();
 
@@ -356,10 +357,8 @@ class StatutRepository extends EntityRepository {
         $qb
             ->select('status');
 
-        if ($params) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-        }
+        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
         $query = $qb->getQuery();
 

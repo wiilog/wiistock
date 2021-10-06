@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Fournisseur;
 use App\Helper\QueryCounter;
+use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 use Doctrine\ORM\EntityRepository;
 
@@ -102,7 +103,7 @@ class FournisseurRepository extends EntityRepository
         return $qb->getQuery()->getResult();
     }
 
-    public function getByParams($params = null)
+    public function getByParams(InputBag $params = null)
     {
         $qb = $this->createQueryBuilder('supplier');
 
@@ -130,10 +131,8 @@ class FournisseurRepository extends EntityRepository
 
         $countFiltered = QueryCounter::count($qb, 'supplier');
 
-        if (!empty($params)) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
-        }
+        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
         $query = $qb
             ->select('supplier')
