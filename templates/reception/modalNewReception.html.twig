@@ -10,11 +10,11 @@
             </div>
             <div class="modal-body modal-input container-fluid">
                 <div class='row'>
-                    {% if fieldsParam|isFieldRequired('dateCommande', 'displayedFormsCreate') %}
+                    {% if fieldsParam|isFieldRequired('dateCommande', 'displayedCreate') %}
                         <div class="form-group col-6">
-                            <label for="dateCommande">Date commande{{ fieldsParam|isFieldRequired('dateCommande', 'mustToCreate') ? '*' : '' }}</label>
+                            <label for="dateCommande">Date commande{{ fieldsParam|isFieldRequired('dateCommande', 'requiredCreate') ? '*' : '' }}</label>
                             <input type="text"
-                                   class="form-control cursor-default data {{ fieldsParam|isFieldRequired('dateCommande', 'mustToCreate') ? 'needed' : '' }}"
+                                   class="form-control cursor-default data {{ fieldsParam|isFieldRequired('dateCommande', 'requiredCreate') ? 'needed' : '' }}"
                                    name="dateCommande"
                                    id="dateCommande"
                                    required="true"
@@ -23,11 +23,11 @@
                         </div>
                     {% endif %}
 
-                    {% if fieldsParam|isFieldRequired('dateAttendue', 'displayedFormsCreate') %}
+                    {% if fieldsParam|isFieldRequired('dateAttendue', 'displayedCreate') %}
                         <div class="form-group col-6">
-                            <label for="dateAttendue">Date attendue{{ fieldsParam|isFieldRequired('dateAttendue', 'mustToCreate') ? '*' : '' }}</label>
+                            <label for="dateAttendue">Date attendue{{ fieldsParam|isFieldRequired('dateAttendue', 'requiredCreate') ? '*' : '' }}</label>
                             <input type="text"
-                                   class="form-control cursor-default data {{ fieldsParam|isFieldRequired('dateAttendue', 'mustToCreate') ? 'needed' : '' }}"
+                                   class="form-control cursor-default data {{ fieldsParam|isFieldRequired('dateAttendue', 'requiredCreate') ? 'needed' : '' }}"
                                    name="dateAttendue"
                                    id="dateAttendue"
                                    required="true"
@@ -38,19 +38,19 @@
                 </div>
 
                 <div class="row">
-                    {% if fieldsParam|isFieldRequired('numCommande', 'displayedFormsCreate') %}
+                    {% if fieldsParam|isFieldRequired('numCommande', 'displayedCreate') %}
                         <div class="form-group col-6">
-                            <label>Numéro de commande{{ fieldsParam|isFieldRequired('numCommande', 'mustToCreate') ? '*' : '' }}</label>
+                            <label>Numéro de commande{{ fieldsParam|isFieldRequired('numCommande', 'requiredCreate') ? '*' : '' }}</label>
                             <input type="text"
-                                   class="form-control data {{ fieldsParam|isFieldRequired('numCommande', 'mustToCreate') ? 'needed' : '' }}"
+                                   class="form-control data {{ fieldsParam|isFieldRequired('numCommande', 'requiredCreate') ? 'needed' : '' }}"
                                    name="orderNumber">
                         </div>
                     {% endif %}
 
-                    {% if fieldsParam|isFieldRequired('emplacement', 'displayedFormsCreate') %}
+                    {% if fieldsParam|isFieldRequired('emplacement', 'displayedCreate') %}
                         <div class="form-group col-6 w-100">
-                            <label>Emplacement{{ fieldsParam|isFieldRequired('emplacement', 'mustToCreate') ? '*' : '' }}</label>
-                            <select class="ajax-autocomplete-location data form-control {{ fieldsParam|isFieldRequired('emplacement', 'mustToCreate') ? 'needed' : '' }}" name="location"
+                            <label>Emplacement{{ fieldsParam|isFieldRequired('emplacement', 'requiredCreate') ? '*' : '' }}</label>
+                            <select class="ajax-autocomplete-location data form-control {{ fieldsParam|isFieldRequired('emplacement', 'requiredCreate') ? 'needed' : '' }}" name="location"
                                     id="receptionLocation">
                             </select>
                             <input hidden id="receptionLocationValue" data-id="{{ receptionLocation ? receptionLocation.id }}" data-text="{{ receptionLocation ? receptionLocation.text }}">
@@ -59,14 +59,14 @@
                 </div>
 
                 <div class="row fly-form">
-                    {% if fieldsParam|isFieldRequired('fournisseur', 'displayedFormsCreate') %}
+                    {% if fieldsParam|isFieldRequired('fournisseur', 'displayedCreate') %}
                         <div class="col-md-6 col-12">
                             <div class="row">
                                 <div class="form-group w-100 col">
                                     <label
-                                        for="fournisseurs">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? '*' : '' }}</label>
+                                        for="fournisseurs">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'requiredCreate') ? '*' : '' }}</label>
                                     <select
-                                        class="form-control ajax-autocomplete-fournisseur data {{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? 'needed' : '' }}"
+                                        class="form-control ajax-autocomplete-fournisseur data {{ fieldsParam|isFieldRequired('fournisseur', 'requiredCreate') ? 'needed' : '' }}"
                                         name="fournisseur" id="fournisseur">
                                     </select>
                                 </div>
@@ -81,14 +81,14 @@
                         </div>
                     {% endif %}
 
-                    {% if fieldsParam|isFieldRequired('transporteur', 'displayedFormsCreate') %}
+                    {% if fieldsParam|isFieldRequired('transporteur', 'displayedCreate') %}
                         <div class="col-md-6 col-12">
                             <div class="row">
                                 <div class="form-group w-100 col">
                                     <label
-                                        for="transporteur">Transporteur{{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? '*' : '' }}</label>
+                                        for="transporteur">Transporteur{{ fieldsParam|isFieldRequired('transporteur', 'requiredCreate') ? '*' : '' }}</label>
                                     <select
-                                        class="form-control data ajax-autocomplete-transporteur {{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? 'needed' : '' }}"
+                                        class="form-control data ajax-autocomplete-transporteur {{ fieldsParam|isFieldRequired('transporteur', 'requiredCreate') ? 'needed' : '' }}"
                                         name="transporteur" id="transporteur">
                                     </select>
                                 </div>
@@ -146,15 +146,15 @@
                 {% endif %}
 
                 <div class="row">
-                    {% if fieldsParam|isFieldRequired('storageLocation', 'displayedFormsCreate') %}
+                    {% if fieldsParam|isFieldRequired('storageLocation', 'displayedCreate') %}
                         <div class="form-group col-6 w-100">
-                            <label>Emplacement de stockage{{ fieldsParam|isFieldRequired('storageLocation', 'mustToCreate') ? '*' : '' }}</label>
-                            <select class="ajax-autocomplete-location data form-control {{ fieldsParam|isFieldRequired('emplacement', 'mustToCreate') ? 'needed' : '' }}"
+                            <label>Emplacement de stockage{{ fieldsParam|isFieldRequired('storageLocation', 'requiredCreate') ? '*' : '' }}</label>
+                            <select class="ajax-autocomplete-location data form-control {{ fieldsParam|isFieldRequired('emplacement', 'requiredCreate') ? 'needed' : '' }}"
                                     name="storageLocation">
                             </select>
                         </div>
                     {% endif %}
-                    {% if fieldsParam|isFieldRequired('anomalie', 'displayedFormsCreate') %}
+                    {% if fieldsParam|isFieldRequired('anomalie', 'displayedCreate') %}
                         <div class="form-group col-3 pt-4">
                             <label>Anomalie</label>
                             <label class="switch">
@@ -163,11 +163,11 @@
                             </label>
                         </div>
                     {% endif %}
-                    {% if fieldsParam|isFieldRequired('manualUrgent', 'displayedFormsCreate') %}
+                    {% if fieldsParam|isFieldRequired('manualUrgent', 'displayedCreate') %}
                         <div class="form-group col-3 mt-4">
-                            <label>Urgence ?{{ fieldsParam|isFieldRequired('manualUrgent', 'mustToCreate') ? '*' : '' }}</label>
+                            <label>Urgence ?{{ fieldsParam|isFieldRequired('manualUrgent', 'requiredCreate') ? '*' : '' }}</label>
                             <label class="switch">
-                                <input class="checkbox {{ fieldsParam|isFieldRequired('manualUrgent', 'mustToCreate') ? 'needed' : '' }}"
+                                <input class="checkbox {{ fieldsParam|isFieldRequired('manualUrgent', 'requiredCreate') ? 'needed' : '' }}"
                                        type="checkbox"
                                        name="manualUrgent">
                                 <span class="slider round"></span>
@@ -177,22 +177,22 @@
                 </div>
 
                 <div class="row">
-                    {% if fieldsParam|isFieldRequired('commentaire', 'displayedFormsCreate') %}
+                    {% if fieldsParam|isFieldRequired('commentaire', 'displayedCreate') %}
                         <div class="form-group col-8">
-                            <label>Commentaire{{ fieldsParam|isFieldRequired('commentaire', 'mustToCreate') ? '*' : '' }}</label>
+                            <label>Commentaire{{ fieldsParam|isFieldRequired('commentaire', 'requiredCreate') ? '*' : '' }}</label>
                             <input id='commentaire'
-                                   class="form-control data {{ fieldsParam|isFieldRequired('commentaire', 'mustToCreate') ? 'needed' : '' }}"
+                                   class="form-control data {{ fieldsParam|isFieldRequired('commentaire', 'requiredCreate') ? 'needed' : '' }}"
                                    name="commentaire" type="hidden">
                             <div class="editor-container" id='editor-container'></div>
                         </div>
                     {% endif %}
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_ATTACHMENTS') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-4">
                             <div>
                                 {% include 'attachment/attachment.html.twig' with {
                                     'isNew': true,
-                                    'required': fieldsParam|isFieldRequired(fieldCode, 'mustToCreate')
+                                    'required': fieldsParam|isFieldRequired(fieldCode, 'requiredCreate')
                                 } %}
                             </div>
                         </div>

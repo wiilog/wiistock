@@ -15,13 +15,13 @@ class FieldsParamRepository extends EntityRepository
 {
     /**
      * @param $entity
-     * @return array [fieldCode => ['mustToCreate' => boolean, 'mustToModify' => boolean, 'displayedFormsCreate' => boolean, 'displayedFormsEdit' => boolean, 'displayedFilters' => boolean]]
+     * @return array [fieldCode => ['requiredCreate' => boolean, 'requiredEdit' => boolean, 'displayedCreate' => boolean, 'displayedEdit' => boolean, 'displayedFilters' => boolean]]
      */
     function getByEntity($entity): array {
         $em = $this->getEntityManager();
         $query = $em
             ->createQuery(
-                "SELECT f.fieldCode, f.fieldLabel, f.mustToCreate, f.mustToModify, f.displayedFormsCreate, f.displayedFormsEdit, f.displayedFilters
+                "SELECT f.fieldCode, f.fieldLabel, f.requiredCreate, f.requiredEdit, f.displayedCreate, f.displayedEdit, f.displayedFilters
                 FROM App\Entity\FieldsParam f
                 WHERE f.entityCode = :entity"
             )
@@ -31,10 +31,10 @@ class FieldsParamRepository extends EntityRepository
             $result,
             function (array $acc, $field) {
                 $acc[$field['fieldCode']] = [
-                    'mustToCreate' => $field['mustToCreate'],
-                    'mustToModify' => $field['mustToModify'],
-                    'displayedFormsCreate' => $field['displayedFormsCreate'],
-                    'displayedFormsEdit' => $field['displayedFormsEdit'],
+                    'requiredCreate' => $field['requiredCreate'],
+                    'requiredEdit' => $field['requiredEdit'],
+                    'displayedCreate' => $field['displayedCreate'],
+                    'displayedEdit' => $field['displayedEdit'],
                     'displayedFilters' => $field['displayedFilters']
                 ];
                 return $acc;
@@ -52,7 +52,7 @@ class FieldsParamRepository extends EntityRepository
             ->createQuery(
                 "SELECT f.fieldCode
                 FROM App\Entity\FieldsParam f
-                WHERE f.entityCode = :entity AND f.displayedFormsCreate = 0 AND f.displayedFormsEdit = 0"
+                WHERE f.entityCode = :entity AND f.displayedCreate = 0 AND f.displayedEdit = 0"
             )
             ->setParameter('entity', $entity);
 

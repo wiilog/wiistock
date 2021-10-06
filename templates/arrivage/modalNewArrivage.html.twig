@@ -14,12 +14,12 @@
             </div>
             <div class="modal-body modal-input container-fluid">
                 <div class="row fly-form">
-                    {% if fieldsParam|isFieldRequired('fournisseur', 'displayedFormsCreate') %}
+                    {% if fieldsParam|isFieldRequired('fournisseur', 'displayedCreate') %}
                         <div class="form-group col w-100">
                             <label
-                                for="fournisseur">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? '*' : '' }}</label>
+                                for="fournisseur">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'requiredCreate') ? '*' : '' }}</label>
                             <select
-                                class="no-clear form-control input-sm data select2 ajax-autocomplete-fournisseur {{ fieldsParam|isFieldRequired('fournisseur', 'mustToCreate') ? 'needed' : '' }}"
+                                class="no-clear form-control input-sm data select2 ajax-autocomplete-fournisseur {{ fieldsParam|isFieldRequired('fournisseur', 'requiredCreate') ? 'needed' : '' }}"
                                 name="fournisseur"
                                 id="fournisseur">
                                 <option selected disabled>&nbsp;</option>
@@ -37,12 +37,12 @@
                             </div>
                         {% endif %}
                     {% endif %}
-                    {% if fieldsParam|isFieldRequired('transporteur', 'displayedFormsCreate') %}
+                    {% if fieldsParam|isFieldRequired('transporteur', 'displayedCreate') %}
                         <div class="form-group col w-100">
                             <label
-                                for="transporteur">Transporteur{{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? '*' : '' }}</label>
+                                for="transporteur">Transporteur{{ fieldsParam|isFieldRequired('transporteur', 'requiredCreate') ? '*' : '' }}</label>
                             <select
-                                class="no-clear form-control input-sm data select2 ajax-autocomplete-transporteur {{ fieldsParam|isFieldRequired('transporteur', 'mustToCreate') ? 'needed' : '' }}"
+                                class="no-clear form-control input-sm data select2 ajax-autocomplete-transporteur {{ fieldsParam|isFieldRequired('transporteur', 'requiredCreate') ? 'needed' : '' }}"
                                 name="transporteur" id="transporteur">
                                 <option selected disabled>&nbsp;</option>
                                 {% for carrier in carriers %}
@@ -59,12 +59,12 @@
                             </div>
                         {% endif %}
                     {% endif %}
-                    {% if fieldsParam|isFieldRequired('chauffeur', 'displayedFormsCreate') %}
+                    {% if fieldsParam|isFieldRequired('chauffeur', 'displayedCreate') %}
                         <div class="form-group col w-100">
                             <label
-                                for="chauffeur">Chauffeur{{ fieldsParam|isFieldRequired('chauffeur', 'mustToCreate') ? '*' : '' }}</label>
+                                for="chauffeur">Chauffeur{{ fieldsParam|isFieldRequired('chauffeur', 'requiredCreate') ? '*' : '' }}</label>
                             <select
-                                class="form-control input-sm data select2 ajax-autocomplete-chauffeur {{ fieldsParam|isFieldRequired('chauffeur', 'mustToCreate') ? 'needed' : '' }}"
+                                class="form-control input-sm data select2 ajax-autocomplete-chauffeur {{ fieldsParam|isFieldRequired('chauffeur', 'requiredCreate') ? 'needed' : '' }}"
                                 name="chauffeur"
                                 id="chauffeur">
                                 <option selected disabled>&nbsp;</option>
@@ -86,7 +86,7 @@
                 {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
                     <div class="row align-items-start">
                         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROVIDER_ARRIVAGE') %}
-                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
+                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                             <div class="col fly-form">
                                 <div class="row">
                                     <div class="form-group col invisible" id="fournisseurDisplay">
@@ -108,7 +108,7 @@
                             </div>
                         {% endif %}
                         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_ARRIVAGE') %}
-                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
+                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                             <div class="col fly-form">
                                 <div class="row">
                                     <div class="form-group col invisible" id="transporteurDisplay">
@@ -132,7 +132,7 @@
                         {% endif %}
 
                         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CHAUFFEUR_ARRIVAGE') %}
-                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
+                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                             <div class="col fly-form">
                                 <div class="row">
                                     <div class="form-group col-10 invisible" id="chauffeurDisplay">
@@ -162,23 +162,23 @@
                 {% endif %}
                 <div class="row">
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-4">
                             <label for="noTracking">N° tracking
-                                transporteur{{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? '*' : '' }}</label>
+                                transporteur{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}</label>
                             <input type="text" id="noTracking"
-                                   class="form-control input-sm data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? 'needed' : '' }}"
+                                   class="form-control input-sm data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? 'needed' : '' }}"
                                    name="noTracking" maxlength="64">
                         </div>
                     {% endif %}
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_NUM_COMMANDE_ARRIVAGE') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-4">
                             <label for="numeroCommandeList" title="Numéro de commande">
-                                {{ 'arrivage.Numéro de commande'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? '*' : '' }}
+                                {{ 'arrivage.Numéro de commande'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}
                             </label>
                             <select id="numeroCommandeList"
-                                    class="form-control input-sm data select2-free w-100 {{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? 'needed' : '' }}"
+                                    class="form-control input-sm data select2-free w-100 {{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? 'needed' : '' }}"
                                     name="numeroCommandeList" multiple="multiple">
                             </select>
                         </div>
@@ -232,13 +232,13 @@
                         </div>
                     </div>
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group w-100 col-4">
                             <label for="destination">
-                                Emplacement de dépose{{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? '*' : '' }}
+                                Emplacement de dépose{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}
                             </label>
                             <select name="dropLocation"
-                                    class="form-control data ajax-autocomplete-location no-clear d-block {{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? 'needed' : '' }}">
+                                    class="form-control data ajax-autocomplete-location no-clear d-block {{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? 'needed' : '' }}">
                                 {% if defaultLocation is defined and defaultLocation != null %}
                                     <option value="{{ defaultLocation.id }}" selected>{{ defaultLocation.label }}</option>
                                 {% endif %}
@@ -249,16 +249,16 @@
 
                 <div class="row">
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_TARGET_ARRIVAGE') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="col-4">
                             <div class="row">
-                                {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
+                                {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                                     <div class="form-group col-12 w-100">
                                         <label title="destinatire" for="destinataire">
-                                            {{ 'arrivage.destinataire'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? '*' : '' }}
+                                            {{ 'arrivage.destinataire'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}
                                         </label>
                                         <select
-                                            class="form-control input-sm data ajax-autocomplete-user {{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? 'needed' : '' }} ajax-autocomplete"
+                                            class="form-control input-sm data ajax-autocomplete-user {{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? 'needed' : '' }} ajax-autocomplete"
                                             name="destinataire"
                                             id="destinataire">
                                             <option selected disabled>&nbsp;</option>
@@ -273,13 +273,13 @@
                     {% endif %}
 
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUYERS_ARRIVAGE') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group w-100 col-4">
                             <label title="acheteurs" for="acheteurs">
-                                {{ 'arrivage.acheteurs'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? '*' : '' }}
+                                {{ 'arrivage.acheteurs'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}
                             </label>
                             <select name="acheteurs" id="acheteurs" multiple="multiple"
-                                    class="form-control input-sm ajax-autocomplete-user data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? 'needed' : '' }} ajax-autocomplete">
+                                    class="form-control input-sm ajax-autocomplete-user data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? 'needed' : '' }} ajax-autocomplete">
                                 <option selected disabled>&nbsp;</option>
                                 {% for user in users %}
                                     <option value="{{ user.id }}">{{ user.username }}</option>
@@ -290,7 +290,7 @@
 
                     {% set checked = (autoPrint ? 'checked' : '') %}
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PRINT_ARRIVAGE') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-2">
                             <label title="arrivage">Imprimer {{ 'arrivage.arrivage'|trans }}</label>
                             <label class="switch d-block-switch mt-2">
@@ -349,21 +349,21 @@
                 </div>
                 <div class="row">
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT_NUMBER') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-4">
-                            <label for="noProject">Numéro de projet{{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? '*' : '' }}</label>
+                            <label for="noProject">Numéro de projet{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}</label>
                             <input type="text"
-                                   class="form-control input-sm data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? 'needed' : '' }}"
+                                   class="form-control input-sm data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? 'needed' : '' }}"
                                    name="noProject" maxlength="64">
                         </div>
                     {% endif %}
 
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-4">
-                            <label for="chauffeur">Business Unit{{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? '*' : '' }}</label>
+                            <label for="chauffeur">Business Unit{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}</label>
                             <select
-                                class="needs-default form-control input-sm data {{ fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') ? 'needed' : '' }}"
+                                class="needs-default form-control input-sm data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? 'needed' : '' }}"
                                 name="businessUnit">
                                 <option value=""></option>
                                 {% for business in businessUnits %}
@@ -375,7 +375,7 @@
                 </div>
                 <div class="row">
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-2">
                             <label>{{ 'arrivage.douane'|trans }}</label>
                             <label class="switch d-block-switch mt-2">
@@ -385,7 +385,7 @@
                         </div>
                     {% endif %}
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-2">
                             <label>{{ 'arrivage.congelé'|trans }}</label>
                             <label class="switch d-block-switch mt-2">
@@ -416,8 +416,8 @@
 
                 <div class="row">
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_COMMENTAIRE_ARRIVAGE') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
-                        {% set commentNeeded = fieldsParam|isFieldRequired(fieldCode, 'mustToCreate') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                        {% set commentNeeded = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                         <div class="form-group col-8 h-fit-content">
                             <label for="commentaire">Commentaire{{ commentNeeded ? '*' }}</label>
                             <input id="commentaire"
@@ -427,12 +427,12 @@
                         </div>
                     {% endif %}
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PJ_ARRIVAGE') %}
-                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsCreate') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-4">
                             <div>
                                 {% include 'attachment/attachment.html.twig' with {
                                     'isNew': true,
-                                    'required': fieldsParam|isFieldRequired(fieldCode, 'mustToCreate')
+                                    'required': fieldsParam|isFieldRequired(fieldCode, 'requiredCreate')
                                 } %}
                             </div>
                         </div>

@@ -1,9 +1,9 @@
 {% if not request_template.id %}
-    {% set nf_display = 'displayedFormsCreate' %}
-    {% set nf_required = 'mustToCreate' %}
+    {% set nf_display = 'displayedCreate' %}
+    {% set nf_required = 'requiredCreate' %}
 {% else %}
-    {% set nf_display = 'displayedFormsEdit' %}
-    {% set nf_required = 'mustToModify' %}
+    {% set nf_display = 'displayedEdit' %}
+    {% set nf_required = 'requiredEdit' %}
 {% endif %}
 
 <div class="form-group">

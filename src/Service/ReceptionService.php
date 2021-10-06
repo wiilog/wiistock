@@ -394,8 +394,8 @@ class ReceptionService
         return array_merge(
             $configFiltered,
             $freeFieldArray,
-            ($this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedFormsCreate')
-                || $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedFormsEdit'))
+            ($this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedCreate')
+                || $this->fieldsParamService->isFieldRequired($fieldsParam, 'commentaire', 'displayedEdit'))
                 ? [[
                 'label' => 'Commentaire',
                 'value' => $comment ?: '',
@@ -405,8 +405,8 @@ class ReceptionService
                 'isNeededNotEmpty' => true
             ]]
                 : [],
-            $this->fieldsParamService->isFieldRequired($fieldsParam, 'attachment', 'displayedFormsCreate')
-            || $this->fieldsParamService->isFieldRequired($fieldsParam, 'attachment', 'displayedFormsEdit')
+            $this->fieldsParamService->isFieldRequired($fieldsParam, 'attachment', 'displayedCreate')
+            || $this->fieldsParamService->isFieldRequired($fieldsParam, 'attachment', 'displayedEdit')
                 ? [[
                 'label' => 'Pièces jointes',
                 'value' => $attachments->toArray(),

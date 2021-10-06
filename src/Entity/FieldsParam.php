@@ -134,22 +134,22 @@ class FieldsParam
     /**
      * @ORM\Column(type="boolean", nullable=true)
      */
-    private $mustToCreate;
+    private $requiredCreate;
 
     /**
      * @ORM\Column(type="boolean", nullable=true)
      */
-    private $mustToModify;
+    private $requiredEdit;
 
     /**
      * @ORM\Column(type="boolean", nullable=true)
      */
-    private $displayedFormsCreate;
+    private $displayedCreate;
 
     /**
      * @ORM\Column(type="boolean", nullable=true)
      */
-    private $displayedFormsEdit;
+    private $displayedEdit;
 
     /**
      * @ORM\Column(type="boolean", nullable=true)
@@ -195,26 +195,26 @@ class FieldsParam
         return $this;
     }
 
-    public function getMustToCreate(): ?bool
+    public function getRequiredCreate(): ?bool
     {
-        return $this->mustToCreate;
+        return $this->requiredCreate;
     }
 
-    public function setMustToCreate(?bool $mustToCreate): self
+    public function setRequiredCreate(?bool $requiredCreate): self
     {
-        $this->mustToCreate = $mustToCreate;
+        $this->requiredCreate = $requiredCreate;
 
         return $this;
     }
 
-    public function getMustToModify(): ?bool
+    public function getRequiredEdit(): ?bool
     {
-        return $this->mustToModify;
+        return $this->requiredEdit;
     }
 
-    public function setMustToModify(?bool $mustToModify): self
+    public function setRequiredEdit(?bool $requiredEdit): self
     {
-        $this->mustToModify = $mustToModify;
+        $this->requiredEdit = $requiredEdit;
 
         return $this;
     }
@@ -231,21 +231,21 @@ class FieldsParam
         return $this;
     }
 
-    public function isDisplayedFormsCreate(): ?bool {
-        return $this->displayedFormsCreate;
+    public function isDisplayedCreate(): ?bool {
+        return $this->displayedCreate;
     }
 
-    public function setDisplayedFormsCreate(?bool $displayedFormsCreate): self {
-        $this->displayedFormsCreate = $displayedFormsCreate;
+    public function setDisplayedCreate(?bool $displayedCreate): self {
+        $this->displayedCreate = $displayedCreate;
         return $this;
     }
 
-    public function isDisplayedFormsEdit(): ?bool {
-        return $this->displayedFormsEdit;
+    public function isDisplayedEdit(): ?bool {
+        return $this->displayedEdit;
     }
 
-    public function setDisplayedFormsEdit(?bool $displayedFormsEdit): self {
-        $this->displayedFormsEdit = $displayedFormsEdit;
+    public function setDisplayedEdit(?bool $displayedEdit): self {
+        $this->displayedEdit = $displayedEdit;
         return $this;
     }
 

@@ -39,8 +39,8 @@
 
 
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOCATION_PICK') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
-        {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
+        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-4 col-12">
             <label for="prise" title="Emplacement de prise">{{ 'acheminement.Emplacement prise'|trans }}{{ required ? '*' }}</label>
             <select name="prise" class="form-control data ajax-autocomplete-location-edit d-block {{ required ? 'needed' }} location-prise"
@@ -53,8 +53,8 @@
     {% endif %}
 
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOCATION_DROP') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
-        {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
+        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-4 col-12">
             <label for="depose" title="Emplacement de dépose">{{ 'acheminement.Emplacement dépose'|trans }}{{ required ? '*' }}</label>
             <select name="depose" class="form-control data ajax-autocomplete-location-edit {{ required ? 'needed' }} location-depose"
@@ -67,8 +67,8 @@
     {% endif %}
 
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DESTINATION') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
-        {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
+        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-4 col-12">
             <label for="destination" title="Destination">{{ 'acheminement.Destination'|trans }}{{ required ? '*' }}</label>
             <input name="destination" class="form-control data {{ required ? 'needed' }}" value="{{ dispatch.destination }}" maxlength="50"/>
@@ -76,8 +76,8 @@
     {% endif %}
 
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
-        {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
+        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-4 col-12">
             <label>Urgence{{ required ? '*' }}</label>
             <div class="w-100">
@@ -101,8 +101,8 @@
     {% if not isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_EMERSON'))
         or hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::SHOW_CARRIER_FIELD')) %}
         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_DISPATCH') %}
-        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
-            {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
+            {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
             <div class="form-group col-md-4 col-12">
                 <label title="Transporteur">{{ 'acheminement.Transporteur'|trans }}{{ required ? '*' }}</label>
                 <select class="form-control data ajax-autocomplete-transporteur-edit w-100 {{ required ? 'needed' }}"
@@ -117,8 +117,8 @@
     {% endif %}
 
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
-        {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
+        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-4 col-12">
             <label title="Numéro de tracking transporteur">{{ 'acheminement.Numéro de tracking transporteur'|trans }}{{ required ? '*' }}</label>
             <input class="form-control data {{ required ? 'needed' }}"
@@ -129,8 +129,8 @@
     {% endif %}
 
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVER_DISPATCH') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
-        {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
+        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-4 col-12">
             <label for="destinataire">Destinataire(s){{ required ? '*' }}</label>
             <select class="destinataire form-control data ajax-autocomplete-user-edit w-100 {{ required ? 'needed' }}"
@@ -144,8 +144,8 @@
     {% endif %}
 
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
-        {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
+        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-4 col-12">
             <label title="Numéro de commande">{{ 'acheminement.Numéro de commande'|trans }}{{ required ? '*' }}</label>
             <input class="form-control data {{ required ? 'needed' }}"
@@ -156,8 +156,8 @@
     {% endif %}
 
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT_NUMBER') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
-        {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
+        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-4 col-12">
             <label for="project" title="Numéro de projet">{{ 'acheminement.Numéro de projet'|trans }}{{ required ? '*' }}</label>
             <input class="form-control data {{ required ? 'needed' }}"
@@ -168,8 +168,8 @@
     {% endif %}
 
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
-        {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
+        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-4 col-12">
             <label title="Business unit">{{ 'acheminement.Business unit'|trans }}{{ required ? '*' }}</label>
             <select name="businessUnit"
@@ -189,8 +189,8 @@
     {% endif %}
 
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DEADLINE_DISPATCH') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
-        {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
+        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-8 col-12">
             <label>Echéance{{ required ? '*' }}</label>
             <div class="input-group w-100">
@@ -231,8 +231,8 @@
     </div>
 
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_COMMENT_DISPATCH') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
-        {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
+        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col">
             <label for="commentaire">Commentaire{{ required ? '*' }}</label>
             <input id='commentaire'
@@ -249,8 +249,8 @@
     {% endif %}
 
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_ATTACHMENTS_DISPATCH') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFormsEdit') %}
-        {% set required = fieldsParam|isFieldRequired(fieldCode, 'mustToModify') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
+        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-md-4 col-12">
             {% include 'attachment/attachment.html.twig' with {
                 'isNew': false,
