@@ -41,10 +41,10 @@ function displayErrorFields() {
 }
 
 function switchDisplay($checkbox) {
-    if ($checkbox.attr('name') === 'displayed-forms-create'
+    if ($checkbox.attr('name') === 'displayedCreate'
         && !$checkbox.prop('checked')) {
         $('.checkbox[name="requiredCreate"]').prop('checked', false);
-    } else if ($checkbox.attr('name') === 'displayed-forms-edit'
+    } else if ($checkbox.attr('name') === 'displayedEdit'
         && !$checkbox.prop('checked')) {
         $('.checkbox[name="requiredEdit"]').prop('checked', false);
     }
@@ -53,9 +53,9 @@ function switchDisplay($checkbox) {
 function switchDisplayByMust($checkbox) {
     if ($checkbox.attr('name') === 'requiredCreate'
         && $checkbox.prop('checked')) {
-        $('.checkbox[name="displayed-forms-create"]').prop('checked', true);
+        $('.checkbox[name="displayedCreate"]').prop('checked', true);
     } else if ($checkbox.attr('name') === 'requiredEdit'
         && $checkbox.prop('checked')) {
-        $('.checkbox[name="displayed-forms-edit"]').prop('checked', true);
+        $('.checkbox[name="displayedEdit"]').prop('checked', true);
     }
 }

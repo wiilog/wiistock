@@ -19,7 +19,7 @@
         <div class="form-group col-12">
             <label>Affiché dans formulaires de création ?</label>
             <label class="switch">
-                <input class="checkbox data" type="checkbox" name="displayed-forms-create" {{ isCheckedFormCreateDisplayed }} onchange="switchDisplay($(this))">
+                <input class="checkbox data" type="checkbox" name="displayedCreate" {{ isCheckedFormCreateDisplayed }} onchange="switchDisplay($(this))">
                 <span class="slider round"></span>
             </label>
         </div>
@@ -28,7 +28,7 @@
         <div class="form-group col-12">
             <label>Affiché dans formulaires de modification ?</label>
             <label class="switch">
-                <input class="checkbox data" type="checkbox" name="displayed-forms-edit" {{ isCheckedFormEditDisplayed }} onchange="switchDisplay($(this))">
+                <input class="checkbox data" type="checkbox" name="displayedEdit" {{ isCheckedFormEditDisplayed }} onchange="switchDisplay($(this))">
                 <span class="slider round"></span>
             </label>
         </div>
@@ -57,7 +57,7 @@
             <div class="form-group col-12">
                 <label>Afficher dans les filtres ?</label>
                 <label class="switch">
-                    <input class="checkbox data" type="checkbox" name="displayed-filters" {{ isCheckedFilterDisplayed }}>
+                    <input class="checkbox data" type="checkbox" name="displayedFilters" {{ isCheckedFilterDisplayed }}>
                     <span class="slider round"></span>
                 </label>
             </div>

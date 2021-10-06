@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\FieldsParam;
 use Doctrine\ORM\EntityRepository;
+use WiiCommon\Helper\Stream;
 
 /**
  * @method FieldsParam|null find($id, $lockMode = null, $lockVersion = null)
@@ -13,33 +14,23 @@ use Doctrine\ORM\EntityRepository;
  */
 class FieldsParamRepository extends EntityRepository
 {
-    /**
-     * @param $entity
-     * @return array [fieldCode => ['requiredCreate' => boolean, 'requiredEdit' => boolean, 'displayedCreate' => boolean, 'displayedEdit' => boolean, 'displayedFilters' => boolean]]
-     */
-    function getByEntity($entity): array {
-        $em = $this->getEntityManager();
-        $query = $em
-            ->createQuery(
-                "SELECT f.fieldCode, f.fieldLabel, f.requiredCreate, f.requiredEdit, f.displayedCreate, f.displayedEdit, f.displayedFilters
-                FROM App\Entity\FieldsParam f
-                WHERE f.entityCode = :entity"
-            )
-            ->setParameter('entity', $entity);
-        $result = $query->execute();
-        return array_reduce(
-            $result,
-            function (array $acc, $field) {
-                $acc[$field['fieldCode']] = [
-                    'requiredCreate' => $field['requiredCreate'],
-                    'requiredEdit' => $field['requiredEdit'],
-                    'displayedCreate' => $field['displayedCreate'],
-                    'displayedEdit' => $field['displayedEdit'],
-                    'displayedFilters' => $field['displayedFilters']
-                ];
-                return $acc;
-            },
-            []);
+
+    function getByEntity(string $entity): array {
+        $fields = $this->createQueryBuilder("fieldsParam")
+            ->andWhere("fieldsParam.entityCode = :entity")
+            ->setParameter("entity", $entity)
+            ->getQuery()
+            ->getResult();
+
+        return Stream::from($fields)
+            ->keymap(fn(FieldsParam $field) => [$field->getFieldCode(), [
+                "requiredCreate" => $field->getRequiredCreate(),
+                "requiredEdit" => $field->getRequiredEdit(),
+                "displayedCreate" => $field->isDisplayedCreate(),
+                "displayedEdit" =>$field->isDisplayedEdit(),
+                "displayedFilters" => $field->isDisplayedFilters(),
+            ]])
+            ->toArray();
     }
 
     /**

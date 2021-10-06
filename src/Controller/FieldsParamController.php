@@ -122,9 +122,9 @@ class FieldsParamController extends AbstractController
                     ->setRequiredEdit($data['requiredEdit'])
                     ->setRequiredCreate($data['requiredCreate']);
             }
-            $field->setDisplayedCreate($data['displayed-forms-create'] ?? true);
-            $field->setDisplayedEdit($data['displayed-forms-edit'] ?? true);
-            $field->setDisplayedFilters($data['displayed-filters'] ?? true);
+            $field->setDisplayedCreate($data['displayedCreate'] ?? true);
+            $field->setDisplayedEdit($data['displayedEdit'] ?? true);
+            $field->setDisplayedFilters($data['displayedFilters'] ?? true);
 
             if($field->getElements() !== null) {
                 if(isset($data['elements-text'])) {
