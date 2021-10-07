@@ -52,3 +52,7 @@ $wiiStockTextColors: (
     lightGrey: #d0d9e0,
     darkWhite: #f5f7f6
 );
+
+@import "~bootstrap/scss/functions";
+@import "~bootstrap/scss/variables";
+@import "~bootstrap/scss/mixins";

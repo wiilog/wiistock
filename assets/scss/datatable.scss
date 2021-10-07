@@ -75,9 +75,9 @@ table.wii-table {
 
 .wii-page-card {
     border-radius: 10px;
-    padding: 20px;
+    padding: $spacer;
     background-color: white;
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
 
     .wii-page-card-header {
         margin-bottom: 0.75rem;

@@ -1,3 +1,5 @@
+@import "variables";
+
 .filter {
     background-color: white !important;
     color: $greyDark !important;
@@ -76,7 +78,7 @@
 }
 
 .no-filter {
-    color: ghostwhite;
+    color: $black;
     font-style: italic;
 }
 
@@ -85,6 +87,7 @@
     background-color: white;
     padding: 6.5px;
     width: 260px !important;
+    border: 1px solid #ced4da;
 }
 
 .w-50px {

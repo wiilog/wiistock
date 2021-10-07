@@ -9,9 +9,9 @@
                 subtitle: block('subtitle') is defined ? block('subtitle'),
                 titleLink: block('titleLink') is defined ? block('titleLink')
             } %}
-            {% block page_filter %}{% endblock %}
         </div>
         <div class="container-fluid {% block pageContainerClass '' %}">
+            {% block page_filter %}{% endblock %}
             {% block page_content %}{% endblock %}
 
             {% include 'utils/modal-alert/modal-alert.html.twig' %}
