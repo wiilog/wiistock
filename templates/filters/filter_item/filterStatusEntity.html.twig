@@ -1,7 +1,7 @@
 <div class="col-auto m-1 pr-0">
     {% if categories is defined %}
         {% for category in categories %}
-            <button class="btn btn-primary btn-ripple filter-tab minw-105px" data-id="{{ category.id }}">
+            <button class="btn btn-primary filter-tab minw-105px" data-id="{{ category.id }}">
                 {{ category.nom }}
             </button>
         {% endfor %}

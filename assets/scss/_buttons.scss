@@ -1,29 +1,9 @@
+@import "variables";
+
 @mixin setColorLoader ($color) {
     border-top-color: $color !important;
     border-bottom-color: $color !important;
     border-left-color: $color !important;
-}
-
-// boutons de type Ajouter, Modifier...
-// + boutons de type Valider, Enregistrer
-.btn-primary,
-.btn-primary.dropdown-toggle{
-    &:hover,
-    &:focus:not(.pairing-button),
-    &:active:not(.pairing-button),
-    &:disabled {
-        background-color: $blueButton !important;
-        color: $white !important;
-        border-color: $blueButton !important;
-
-        &:active:not(:disabled) {
-            box-shadow: 0 0 0 0.2rem rgba($blueButton, .3) !important;
-        }
-
-        .spinner-border {
-            @include setColorLoader($white);
-        }
-    }
 }
 
 .btn-action {
@@ -51,55 +31,6 @@
     pointer-events: none;
 }
 
-button:focus {
-    outline: 0 !important;
-}
-
-.btn-ripple {
-    display: inline-block;
-    position: relative;
-    overflow: hidden;
-    transition: all ease-in-out 0.5s;
-    box-shadow: 0.5px 0.5px 3px black;
-
-    &:hover {
-        background-color: $blueButton;
-        color: $white !important;
-        border-color: $blueButton;
-    }
-
-    &:focus {
-        background-color: $blueButton;
-        color: $white !important;
-        border-color: $blueButton;
-        box-shadow: 0.5px 0.5px 3px black;
-    }
-}
-
-.btn-ripple::after {
-    content: "";
-    display: block;
-    position: absolute;
-    top: 0;
-    left: 25%;
-    height: 100%;
-    width: 50%;
-    background-color: $white;
-    border-radius: 50%;
-    opacity: 0;
-    pointer-events: none;
-    transition: all ease-in-out 0.8s;
-    transform: scale(5, 5);
-}
-
-.btn-ripple:active::after {
-    padding: 0;
-    margin: 0;
-    opacity: 0.3;
-    transition: 0s;
-    transform: scale(0, 0);
-}
-
 .btn-menu-label {
     text-decoration: none !important;
 
@@ -111,4 +42,18 @@ button:focus {
 
 .nav-pills .nav-link.active {
     color: white !important;
+}
+
+.dropdown-toggle::after {
+    display: none;
+}
+
+.btn-outline-primary {
+    .wii-icon {
+        background-color: $primary;
+    }
+    &:hover .wii-icon,
+    &:active .wii-icon {
+        background-color: $white !important;
+    }
 }

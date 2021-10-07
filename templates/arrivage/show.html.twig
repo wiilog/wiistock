@@ -36,7 +36,7 @@
                                     <button type="button"
                                             data-toggle="modal"
                                             data-target="#modalAddColis"
-                                            class="btn btn-primary btn-ripple {{ hasRightEdit ? 'split-button' }}"
+                                            class="btn btn-primary {{ hasRightEdit ? 'split-button' }}"
                                             id="btnModalAddColis">
                                         <span class="fa fa-plus mr-2"></span>Ajouter <span title="colis">{{ 'arrivage.colis'|trans }}</span>
                                     </button>
@@ -45,7 +45,7 @@
                                 {% if hasRightExport %}
                                     {% if hasRightEdit %}
                                         <button type="button"
-                                                class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                                                class="btn btn-primary dropdown-toggle dropdown-toggle-split"
                                                 data-toggle="dropdown"
                                                 aria-haspopup="true"
                                                 aria-expanded="false">
@@ -60,7 +60,7 @@
                                         </div>
                                     {% else %}
                                         <a id="printColisBtn"
-                                           class="btn btn-primary btn-ripple"
+                                           class="btn btn-primary"
                                            href="{{ path('print_arrivage_bar_codes', {arrivage: arrivage.id, printArrivage: 1, printColis: 1}) }}">
                                             <span class="fa fa-print mr-2"></span>Imprimer <span title="colis">{{ 'arrivage.colis'|trans }}</span>
                                         </a>
@@ -89,7 +89,7 @@
                                             data-id='{{ arrivage.id }}'
                                             data-target='#modalNewLitige'
                                             data-toggle='modal'
-                                            class="btn btn-primary btn-ripple"
+                                            class="btn btn-primary"
                                             onclick="openNewLitigeModal($(this))">
                                         <i class="fa fa-plus mr-2"></i>
                                         Nouveau litige

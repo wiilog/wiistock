@@ -17,7 +17,7 @@
                         <button type="button"
                                 data-toggle="modal"
                                 data-target="#modalNewMvtStock"
-                                class="btn btn-primary split-button btn-ripple"
+                                class="btn btn-primary split-button"
                                 onclick="clearModal('#modalNewMvtStock'), resetNewModal($('#modalNewMvtStock'))">
                             <span class="fa fa-plus mr-2"></span>
                             Nouveau mouvement
@@ -25,7 +25,7 @@
                     {% endif %}
                     {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EXPORT')) %}
                         <button type="button"
-                                class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                                class="btn btn-primary dropdown-toggle dropdown-toggle-split"
                                 data-toggle="dropdown"
                                 aria-haspopup="true"
                                 aria-expanded="false">

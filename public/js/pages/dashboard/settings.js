@@ -413,7 +413,7 @@ function renderDashboardPagination() {
 
     if (mode === MODE_EDIT) {
         $(`.dashboard-pagination`).append(`
-            <button class="btn btn-primary btn-ripple mx-1"
+            <button class="btn btn-primary mx-1"
                     data-toggle="modal"
                     data-target="#add-dashboard-modal">
                 <span class="fa fa-plus mr-2"></span> Ajouter un dashboard

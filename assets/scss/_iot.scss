@@ -8,10 +8,10 @@
     &.first-association-pane-item {
         border-radius: 10px;
         background-color: #F2F3F7;
-        color: $info;
+        color: $primary;
 
         .wii-icon {
-            background-color: $info;
+            background-color: $primary;
         }
     }
 
@@ -20,18 +20,6 @@
         width: 20px;
         height: 20px;
         background-color: black;
-    }
-
-    .btn-outline-info {
-        .wii-icon {
-            background-color: $info;
-        }
-
-        &:hover {
-            .wii-icon {
-                background-color: $white !important;
-            }
-        }
     }
 
     .association-pane-item {

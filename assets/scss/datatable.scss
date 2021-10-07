@@ -1,18 +1,24 @@
+@import "variables";
+
 .dataTables_wrapper .dataTables_paginate .paginate_button {
     @extend .btn;
     @extend .btn-sm;
-    color: $blueGT !important;
+    color: $primary !important;
 
     &.current {
-        background: $blueGT !important;
-        border-color: $blueGT !important;
-        color: #fff !important;
+        background: $primary !important;
+        border-color: $primary !important;
+        color: $white !important;
+
+        &:hover {
+            color: $white !important;
+        }
     }
 
-    &:hover {
-        background: $lightGrey !important;
-        border-color: $lightGrey !important;
-        color: #1a1a1a !important;
+    &:hover,&:active {
+        color: $white !important;
+        background: darken($primary, 7.5%) !important;
+        border: 1px solid darken($primary, 7.5%) !important;
     }
 }
 

@@ -2,7 +2,7 @@
     {% if sensorTypes is defined %}
         {% for sensorType, index in sensorTypes %}
             <div class="col-auto m-1 {{ loop.last ? 'mr-3' }}">
-                <button class="btn btn-primary btn-ripple d-flex justify-content-center filter-tab minw-105px pairing-button sensor-types"
+                <button class="btn btn-primary d-flex justify-content-center filter-tab minw-105px pairing-button sensor-types"
                         data-id="{{ index }}">
                     <span class="wii-icon wii-icon-{{ index }} mr-2"></span>
                     {{ sensorType }}
@@ -14,7 +14,7 @@
     {% if categories is defined %}
         {% for category, index in categories %}
             <div class="col-auto m-1">
-                <button class="btn btn-primary btn-ripple filter-tab d-flex justify-content-center minw-105px pairing-button categories"
+                <button class="btn btn-primary filter-tab d-flex justify-content-center minw-105px pairing-button categories"
                         data-id="{{ index }}">
                     <span class="wii-icon wii-icon-iot-{{ index }} mr-2"></span>
                     {{ category }}

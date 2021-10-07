@@ -29,7 +29,7 @@
                             {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
                                 <div class="col-auto">
                                     <button type="button"
-                                            class="btn btn-primary split-button btn-ripple"
+                                            class="btn btn-primary split-button"
                                             onclick="saveExportFile('ongoing_pack_csv', false, { emplacement: {{ emplacement.id }} })">
                                         <i class="fa fa-file-csv mr-2" style="padding: 0 2px"></i>
                                         Exporter au format CSV

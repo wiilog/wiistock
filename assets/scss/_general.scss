@@ -341,7 +341,8 @@ select.is-invalid {
 }
 
 .bg-primary-followgt {
-    background-image: linear-gradient(15.7deg, $backgroundBodyColorLight, $backgroundBodyColorDark);
+    background: rgb(46,84,146);
+    background: linear-gradient(90deg, rgba(46,84,146,1) 28%, rgba(27,20,100,1) 64%);
 }
 
 .dataTables_processing {
@@ -586,4 +587,57 @@ label.required:after {
     to {
         transform:rotate(360deg);
     }
+}
+
+$blue: #3353D7;
+$grey: #CBCBCB;
+
+.wii-title {
+    color: $blue;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.wii-subtitle {
+    color: #666666;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.wii-field-name {
+    color: #000000;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.wii-field-text {
+    color: #000000;
+    font-size: 16px;
+    font-weight: normal;
+}
+
+.wii-body-text {
+    color: #000000;
+    font-size: 13px;
+    font-weight: normal;
+}
+
+.wii-type {
+    color: #FFFFFF;
+    font-size: 16px;
+    text-transform: uppercase;
+    font-weight: bold;
+    height: 20px;
+    text-align: center;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+}
+
+.wii-small-text {
+    color: #666666;
+    font-size: 12px;
+}
+.wii-medium-text {
+    color: #666666;
+    font-size: 14px;
 }

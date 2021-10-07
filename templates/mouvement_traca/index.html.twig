@@ -27,7 +27,7 @@
                             <button type="button"
                                     data-toggle="modal"
                                     data-target="#modalNewMvtTraca"
-                                    class="btn btn-primary btn-ripple {{ hasRightExport ? 'split-button' }}"
+                                    class="btn btn-primary {{ hasRightExport ? 'split-button' }}"
                                     data-backdrop="static"
                                     data-keyboard="false"
                                     onclick="clearModal('#modalNewMvtTraca'), resetNewModal($('#modalNewMvtTraca'))">
@@ -36,13 +36,13 @@
                             </button>
                         {% elseif hasRightExport %}
                             <button type="button"
-                                    class="btn btn-primary btn-ripple"
+                                    class="btn btn-primary"
                                     onclick="saveExportFile('get_mouvements_traca_csv')">
                                 <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
                             </button>
                         {% else %}
                             <button type="button"
-                                    class="btn btn-primary btn-ripple"
+                                    class="btn btn-primary"
                                     data-toggle="modal"
                                     data-target="#modalColumnVisible">
                                 <i class="fa fa-cog mr-2"></i>
@@ -51,7 +51,7 @@
                         {% endif %}
 
                         <button type="button"
-                                class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                                class="btn btn-primary dropdown-toggle dropdown-toggle-split"
                                 data-toggle="dropdown"
                                 aria-haspopup="true"
                                 aria-expanded="false">

@@ -263,52 +263,6 @@ body {
     }
 }
 
-.ra-title {
-    color: $blue;
-    font-size: 18px;
-    font-weight: bold;
-}
-
-.ra-subtitle {
-    color: #666666;
-    font-size: 14px;
-    font-weight: bold;
-}
-
-.ra-field-name {
-    color: #000000;
-    font-size: 14px;
-    font-weight: bold;
-}
-
-.ra-field-text {
-    color: #000000;
-    font-size: 16px;
-    font-weight: normal;
-}
-
-.ra-body-text {
-    color: #000000;
-    font-size: 13px;
-    font-weight: normal;
-}
-
-.ra-type {
-    color: #FFFFFF;
-    font-size: 16px;
-    text-transform: uppercase;
-    font-weight: bold;
-    height: 20px;
-    text-align: center;
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
-}
-
-.ra-small-text {
-    color: #666666;
-    font-size: 12px;
-}
-
 span.icon {
     display: flex;
     align-items: center;

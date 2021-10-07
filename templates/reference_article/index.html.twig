@@ -23,7 +23,7 @@
                 </div>
             </div>
             <div class="col-auto">
-                <button type="button" class="btn btn-primary btn-ripple mb-2" data-toggle="modal" data-target="#modalNewFilter">
+                <button type="button" class="btn btn-primary mb-2" data-toggle="modal" data-target="#modalNewFilter">
                     <i class="fas fa-filter mr-2"></i>Ajouter un filtre
                 </button>
             </div>
@@ -65,7 +65,7 @@
                     <input hidden id="user-search" value="{{ app.user.searches ? app.user.searches['reference'] ? app.user.searches['reference']['value'] }}">
                     <input hidden id="user-index" value="{{ app.user.pageIndexes ? app.user.pageIndexes['reference'] ? app.user.pageIndexes['reference'] }}">
                     {% if hasRightToCreate %}
-                        <button type="button" class="btn btn-primary split-button btn-ripple"
+                        <button type="button" class="btn btn-primary split-button"
                                 onclick="window.location.href = Routing.generate('reference_article_new_page', {}, true)">
                             <span class="fa fa-plus mr-2"></span>Nouvel article de référence
                         </button>
@@ -74,7 +74,7 @@
                              title="Veuillez faire une recherche ou renseigner un filtre pour imprimer."
                              data-toggle="tooltip">
                             <button type="button"
-                                    class="btn btn-primary split-button btn-ripple printButton"
+                                    class="btn btn-primary split-button printButton"
                                     id="printTag"
                                     onclick="printReferenceArticleBarCode($(this), event)">
                                 <span class="fa fa-print mr-2"></span>Impression des étiquettes
@@ -82,7 +82,7 @@
                         </div>
                     {% endif %}
                     <button type="button"
-                            class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                            class="btn btn-primary dropdown-toggle dropdown-toggle-split"
                             data-toggle="dropdown"
                             aria-haspopup="true"
                             aria-expanded="false">

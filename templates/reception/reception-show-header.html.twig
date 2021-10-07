@@ -22,11 +22,11 @@
                     data-target='#modalNewLigneReception'
                     data-toggle='modal'
                     onclick="openModalLigneReception($(this))"
-                    class="btn btn-primary btn-ripple split-button" title="réception">
+                    class="btn btn-primary split-button" title="réception">
                 {{ 'réception.réception'|trans }}
             </button>
             <button type="button"
-                    class="btn btn-primary btn-ripple {{ dropdownNeedsToBeDisplayed ? 'split-button' }}"
+                    class="btn btn-primary {{ dropdownNeedsToBeDisplayed ? 'split-button' }}"
                     onclick="finishReception({{ reception.id }}, false,$(this))"
                     id="finishReceptionButton">
                 Fin <span title="réception">{{ 'réception.réception'|trans }}</span>
@@ -34,7 +34,7 @@
         {% endif %}
         {% if dropdownNeedsToBeDisplayed %}
         <button type="button"
-                class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                class="btn btn-primary dropdown-toggle dropdown-toggle-split"
                 data-toggle="dropdown"
                 aria-haspopup="true"
                 aria-expanded="false">

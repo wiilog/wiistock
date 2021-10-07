@@ -19,11 +19,11 @@
             <div class="col-auto ml-auto">
                 {% if purchaseRequestFilter is defined and purchaseRequestFilter is not null and purchaseRequestFilter != 0 %}
                 <div class="btn-group">
-                    <div class="btn btn-primary btn-ripple split-button">
+                    <div class="btn btn-primary split-button">
                         <a href="{{ path('reception_index') }}">Voir toutes les réceptions</a>
                     </div>
                     <button type="button"
-                            class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                            class="btn btn-primary dropdown-toggle dropdown-toggle-split"
                             data-toggle="dropdown"
                             aria-haspopup="true"
                             aria-expanded="false">
@@ -43,12 +43,12 @@
                         <button type="button"
                                 data-toggle="modal"
                                 data-target="#modalNewReception"
-                                class="btn btn-primary btn-ripple split-button"
+                                class="btn btn-primary split-button"
                                 onclick="clearModal('#modalNewReception'); initNewReceptionEditor('#modalNewReception'); initReceptionLocation();">
                             <span class="fa fa-plus mr-2"></span><span title="nouvelle réception">{{ 'réception.nouvelle réception'|trans }}</span>
                         </button>
                         <button type="button"
-                                class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                                class="btn btn-primary dropdown-toggle dropdown-toggle-split"
                                 data-toggle="dropdown"
                                 aria-haspopup="true"
                                 aria-expanded="false">
@@ -69,13 +69,13 @@
                         {% if hasRightCreate %}
                             <div data-toggle="modal"
                                  data-target="#modalNewReception"
-                                 class="btn btn-primary btn-ripple split-button"
+                                 class="btn btn-primary split-button"
                                  onclick="clearModal('#modalNewReception'); initNewReceptionEditor('#modalNewReception'); initReceptionLocation();">
                                 <span class="fa fa-plus mr-2"></span><span
                                     title="nouvelle réception">{{ 'réception.nouvelle réception'|trans }}</span>
                             </div>
                             <button type="button"
-                                    class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                                    class="btn btn-primary dropdown-toggle dropdown-toggle-split"
                                     data-toggle="dropdown"
                                     aria-haspopup="true"
                                     aria-expanded="false">
@@ -91,11 +91,11 @@
                             </div>
                         {% endif %}
                         {% if hasRightExport %}
-                            <div class="btn btn-primary btn-ripple" onclick="saveExportFile('get_receptions_csv')">
+                            <div class="btn btn-primary" onclick="saveExportFile('get_receptions_csv')">
                                 <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
                             </div>
                             <button type="button"
-                                    class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                                    class="btn btn-primary dropdown-toggle dropdown-toggle-split"
                                     data-toggle="dropdown"
                                     aria-haspopup="true"
                                     aria-expanded="false">
@@ -113,7 +113,7 @@
                             <button type="button"
                                     data-toggle="modal"
                                     data-target="#modalColumnVisible"
-                                    class="btn btn-primary btn-ripple">
+                                    class="btn btn-primary">
                                 <i class="fa fa-cog mr-2"></i>Gestion des colonnes
                             </button>
                         {% endif %}

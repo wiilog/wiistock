@@ -23,11 +23,11 @@
             <div class="col-auto ml-auto">
                 {% if receptionFilter is defined and receptionFilter is not null and receptionFilter != 0 %}
                     <div class="btn-group">
-                        <div class="btn btn-primary btn-ripple split-button">
+                        <div class="btn btn-primary split-button">
                             <a href="{{ path('demande_index') }}">Voir toutes les demandes</a>
                         </div>
                         <button type="button"
-                                class="btn btn-primary btn-ripple dropdown-toggle dropdown-toggle-split"
+                                class="btn btn-primary dropdown-toggle dropdown-toggle-split"
                                 data-toggle="dropdown"
                                 aria-haspopup="true"
                                 aria-expanded="false">
@@ -43,7 +43,7 @@
                     </div>
                 {% else %}
                     {% if hasRightExport %}
-                        <div class="btn btn-primary btn-ripple"
+                        <div class="btn btn-primary"
                              onclick="saveExportFile('get_demandes_csv')">
                             <span class="fa fa-file-csv mr-2"></span>Exporter au format CSV
                         </div>

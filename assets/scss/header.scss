@@ -1,3 +1,5 @@
+@import "variables";
+
 .d-flex .main-header {
     flex: 1;
 }
@@ -82,7 +84,7 @@
                     &:hover,
                     &:focus,
                     &.active {
-                        @extend .bg-primary-followgt;
+                        background: $primary !important;
 
                         .label, .arrow-container {
                             color: $white;
