@@ -71,7 +71,10 @@ function initTableRefArticle() {
     let url = Routing.generate('ref_article_api', true);
     return $
         .post(Routing.generate('ref_article_api_columns'))
-        .then(function (columns) {
+        .then(function (data) {
+            const columns = data.columns;
+            const search = data.search;
+            const index = data.index;
             let tableRefArticleConfig = {
                 processing: true,
                 serverSide: true,
@@ -85,9 +88,9 @@ function initTableRefArticle() {
                     }
                 },
                 search: {
-                    search: $('#user-search').val()
+                    search
                 },
-                displayStart: $('#user-index').val() ? Number.parseInt($('#user-index').val()) : 0,
+                displayStart: index,
                 length: 10,
                 columns: columns,
                 drawConfig: {

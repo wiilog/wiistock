@@ -92,7 +92,11 @@ class ReferenceArticleController extends AbstractController
                 return !isset($column['hiddenColumn']) || !$column['hiddenColumn'];
             })
             ->values();
-        return $this->json(($fields));
+        return $this->json([
+            'columns' => $fields,
+            'search' =>  $currentUser->getSearches()['reference']['value'] ?? "",
+            'index' =>  $currentUser->getPageIndexes() && $currentUser->getPageIndexes()['reference'] ? intval($currentUser->getPageIndexes()['reference']) : 0,
+        ]);
     }
 
     /**
