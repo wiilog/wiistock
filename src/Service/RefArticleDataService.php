@@ -586,6 +586,7 @@ class RefArticleDataService {
             $reference = $referenceArticle ? $referenceArticle->getReference() : null;
             $code = $entity->getBarCode();
             $label = $entity->getLabel();
+            $quantity = $entity->getQuantite();
             $expiry = $entity->getExpiryDate() ? $entity->getExpiryDate()->format("d/m/Y H:i") : "Non défini";
             $quantityType = $referenceArticle->getTypeQuantite();
             $managers = Stream::from($referenceArticle->getManagers())
@@ -611,7 +612,7 @@ class RefArticleDataService {
             "reference" => $reference ?? "Non défini",
             "code" => $code ?? "Non défini",
             "label" => $label ?? "Non défini",
-            "quantity" => $quantity ?? "0",
+            "quantity" => $quantity ?? "Non définie",
             "quantityType" => ucfirst($quantityType ?? "Non défini"),
             "securityThreshold" => $security ?? "Non défini",
             "warningThreshold" => $warning ?? "Non défini",
