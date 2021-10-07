@@ -318,7 +318,7 @@ function processInputsForm($modal, data, isAttachmentForm) {
 
         let $formGroupLabel = $input.closest('.form-group').find('label');
         if (!$formGroupLabel.exists()) {
-            $formGroupLabel = $input.closest('label').find('.ra-field-name');
+            $formGroupLabel = $input.closest('label').find('.wii-field-name');
         }
         const $editorContainer = $input.siblings('.ql-container');
         const $qlEditor = $editorContainer.length > 0

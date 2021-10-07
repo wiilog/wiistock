@@ -4,7 +4,7 @@
          data-multiple-object-index="{{ index }}">
         <div class="row">
             <div class="form-group col-md-6 col-12">
-                <label class="ra-field-name">Nom fournisseur*</label>
+                <label class="wii-field-name">Nom fournisseur*</label>
                 <select class="form-control w-100 {{ editable ? 'data needed' }}" {{ not editable ? 'disabled readonly' }} data-s2="supplierLabel"
                         onchange="loadAndDisplayLabels($(this))"
                         name="fournisseurLabel">
@@ -14,7 +14,7 @@
                 </select>
             </div>
             <div class="form-group col-md-6 col-12">
-                <label class="ra-field-name">Code fournisseur*</label>
+                <label class="wii-field-name">Code fournisseur*</label>
                 <select class="form-control w-100 {{ editable ? 'data needed' }}" {{ not editable ? 'disabled readonly' }} data-s2="supplierCode"
                         onchange="loadAndDisplayInfos($(this))"
                         name="fournisseur">
@@ -24,12 +24,12 @@
                 </select>
             </div>
             <div class="form-group col-md-6 col-12 {{ not reference.id ? 'd-none newContent' }}">
-                <label class="ra-field-name">Ref article fournisseur*</label>
+                <label class="wii-field-name">Ref article fournisseur*</label>
                 <input class="form-control data w-100 {{ editable ? 'data needed' }}" {{ not editable ? 'disabled readonly' }} type="text"
                        name="referenceFournisseur" value="{{ line ? line.reference }}">
             </div>
             <div class="form-group col-md-6 col-12 {{ not reference.id ? 'd-none newContent' }}">
-                <label class="ra-field-name">Libellé*</label>
+                <label class="wii-field-name">Libellé*</label>
                 <input class="form-control w-100 {{ editable ? 'data needed' }}" {{ not editable ? 'disabled readonly' }} type="text"
                        name="labelFournisseur" value="{{ line ? line.label }}">
             </div>
@@ -43,7 +43,7 @@
 
 {% macro visibility_group_input(reference) %}
     <div class="col-12 col-md-6 mt-3">
-        <label for="visibility-group" class="ra-field-name">Groupe de visibilité
+        <label for="visibility-group" class="wii-field-name">Groupe de visibilité
             <select name="visibility-group" class="form-control data" data-s2="visibilityGroup">
                 {% if reference.visibilityGroup %}
                     <option value="{{ reference.visibilityGroup.id }}" selected>{{ reference.visibilityGroup.label }}</option>
@@ -63,7 +63,7 @@
         <div class="col-12 col-md-6">
             <div class="ra-box">
                 {% if reference.id %}
-                    <div class="d-flex justify-content-center align-items-center type-container ra-type"
+                    <div class="d-flex justify-content-center align-items-center type-container wii-type"
                          style="background-color: {{ reference.type.color }};">
                         {{ reference.type.label }}
                     </div>
@@ -91,22 +91,22 @@
                                        hidden>
                             </div>
                         </div>
-                        <div class="ra-small-text">
+                        <div class="wii-small-text">
                             Importer une photo <br>de ce produit (max 10mo)
                         </div>
                     </div>
                     <div class="col-md-7 col-12">
-                        <label class="ra-field-name">
+                        <label class="wii-field-name">
                             Référence*
                             <input type="text" name="reference" class="form-control data needed" placeholder="Référence"
                                    value="{{ reference.reference }}">
                         </label>
-                        <label class="mt-3 ra-field-name">
+                        <label class="mt-3 wii-field-name">
                             Libellé*
                             <input type="text" name="libelle" class="form-control data needed" placeholder="Libellé" value="{{ reference.libelle }}">
                         </label>
                         {% if not reference.id %}
-                            <label class="mt-3 ra-field-name">
+                            <label class="mt-3 wii-field-name">
                                 Type*
                                 <select name="type"
                                         data-s2 data-placeholder="Choisissez un type"
@@ -120,7 +120,7 @@
                                 </select>
                             </label>
                         {% endif %}
-                        <label class="mt-3 ra-field-name">
+                        <label class="mt-3 wii-field-name">
                             Statut*
                         </label>
                         <div class="wii-switch needed" data-title="Statut">
@@ -146,12 +146,12 @@
                 </div>
             </div>
             <div class="ra-box">
-                <div class="header ra-title">Informations</div>
+                <div class="header wii-title">Informations</div>
                 <div class="content">
                     <div class="row">
                         <div class="col-12 col-md-6">
                             <label>
-                                    <span class="icon ra-field-name">
+                                    <span class="icon wii-field-name">
                                         <img src="{{ asset('svg/reference_article/manager.svg') }}" class="icon" alt="Image gestionnaire">
                                         Gestionnaires
                                     </span>
@@ -165,7 +165,7 @@
                         </div>
                         <div class="col-12 col-md-6">
                             <label>
-                                    <span class="icon ra-field-name">
+                                    <span class="icon wii-field-name">
                                         <img src="{{ asset('svg/reference_article/manager.svg') }}" class="icon" alt="Image acheteur">
                                         Acheteur
                                     </span>
@@ -181,7 +181,7 @@
                     <div class="row">
                         <div class="col-12 col-md-6 mt-3">
                             <label>
-                                    <span class="icon ra-field-name">
+                                    <span class="icon wii-field-name">
                                         <img src="{{ asset('svg/reference_article/warehouse.svg') }}" class="icon" alt="Image entrepôt">
                                         Catégorie d'inventaire
                                     </span>
@@ -202,9 +202,9 @@
                         </div>
                         {% if reference.id %}
                             <div class="col-12 col-md-6 mt-3 d-flex flex-column justify-content-around">
-                                <span class="icon ra-field-name"><img src="{{ asset('svg/reference_article/calendar.svg') }}" class="icon" alt="Image calendrier">
+                                <span class="icon wii-field-name"><img src="{{ asset('svg/reference_article/calendar.svg') }}" class="icon" alt="Image calendrier">
                                     Date de dernier inventaire</span>
-                                <span class="ra-field-text">
+                                <span class="wii-field-text">
                                     {{ lastInventoryDate is defined and lastInventoryDate is not null and lastInventoryDate != '' ? lastInventoryDate : '-' }}
                                 </span>
                             </div>
@@ -224,13 +224,13 @@
                                 'button': 'Parcourir vos fichiers',
                                 'attachments': reference.attachments,
                                 'editAttachments': hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')),
-                                'fieldNameClass': 'ra-field-name',
+                                'fieldNameClass': 'wii-field-name',
                             } %}
                         </div>
                     </div>
                     <div class="row mt-3">
                         <div class="col-12">
-                            <label class="ra-field-name">Nomenclature</label>
+                            <label class="wii-field-name">Nomenclature</label>
                             <input class="form-control data" name="commentaire" type="hidden" value="{{ reference.commentaire }}">
                             <div class="form-control editor-container comment" onload="initEditor('.editor-container')">
                                 {{ reference.commentaire | raw }}
@@ -242,7 +242,7 @@
         </div>
         <div class="col-12 col-md-6">
             <div class="ra-box">
-                <div class="header ra-title">Gestion quantité</div>
+                <div class="header wii-title">Gestion quantité</div>
                 <div class="content">
                     {% if reference.id %}
                         <div class="row no-gutters">
@@ -251,7 +251,7 @@
                                      alt="Icône colis" width="20px">
                             </div>
                             <div class="col-auto">
-                                <span class="ra-field-name ml-3">
+                                <span class="wii-field-name ml-3">
                                     Quantité gérée à {{ isReferenceManagementQuantity ? 'la référence' : 'l\'article' }}
                                 </span>
                             </div>
@@ -264,7 +264,7 @@
                                data-title="{{ isReferenceManagementQuantity ? "reference" : "article" }}"
                                onclick="toggleRequiredChampsFixes($(this), '.ra-form'); updateQuantityDisplay($(this), '.ra-form', true)" checked>
                     {% else %}
-                        <label class="ra-field-name">
+                        <label class="wii-field-name">
                             Gestion quantité*
                         </label>
                         <div class="wii-switch needed" data-title="Statut">
@@ -288,8 +288,8 @@
                                             <div class="d-flex">
                                                 <img src="{{ asset('svg/reference_article/location.svg') }}" class="icon" alt="Image emplacement" width="20px">
                                                 <label class="box-item ml-3">
-                                                    <span class="ra-field-name">Emplacement</span>
-                                                    <span class="ra-body-text">
+                                                    <span class="wii-field-name">Emplacement</span>
+                                                    <span class="wii-body-text">
                                                         {% if reference.emplacement %}
                                                             {{ reference.emplacement.label }}
                                                         {% endif %}
@@ -300,14 +300,14 @@
                                         <div class="col-12 col-md-4 mt-3 d-flex">
                                             <img src="{{ asset('svg/reference_article/stock.svg') }}" alt="Icône stock" width="20px">
                                             <label class="box-item ml-3">
-                                                <span class="ra-field-name">Quantité en stock</span>
-                                                <span class="ra-body-text">{{ reference.quantiteStock ?? 0 }}</span>
+                                                <span class="wii-field-name">Quantité en stock</span>
+                                                <span class="wii-body-text">{{ reference.quantiteStock ?? 0 }}</span>
                                             </label>
                                         </div>
                                     {% else %}
                                         <div class="col-12 col-md-4 reference mt-3">
                                             <label>
-                                                <span class="icon ra-field-name">
+                                                <span class="icon wii-field-name">
                                                     <img src="{{ asset('svg/reference_article/location.svg') }}" class="icon" alt="Image emplacement">
                                                     Emplacement*
                                                 </span>
@@ -318,7 +318,7 @@
                                         </div>
                                         <div class="col-12 col-md-4 reference mt-3">
                                             <label>
-                                                <span class="icon ra-field-name">
+                                                <span class="icon wii-field-name">
                                                     <img src="{{ asset('svg/reference_article/stock.svg') }}" class="icon" alt="Image quantité">
                                                     Quantité*
                                                 </span>
@@ -340,7 +340,7 @@
 
                             <div class="col-12 col-md-4 reference mt-3">
                                 <label>
-                                    <span class="icon ra-field-name">
+                                    <span class="icon wii-field-name">
                                         <img src="{{ asset('svg/reference_article/euro.svg') }}" class="icon" alt="Image euro">
                                         Prix unitaire (€)
                                     </span>
@@ -349,7 +349,7 @@
                             </div>
                             <div class="col-12 col-md-4 article mt-3">
                                 <label>
-                                        <span class="icon ra-field-name">
+                                        <span class="icon wii-field-name">
                                             <img src="{{ asset('svg/reference_article/stock-management.svg') }}" class="icon"
                                                  alt="Image gestion de stock">
                                             Gestion de stock
@@ -366,7 +366,7 @@
                             </div>
                             <div class="col-12 col-md-4 mt-3">
                                 <label>
-                                    <span class="icon ra-field-name">
+                                    <span class="icon wii-field-name">
                                         <img src="{{ asset('svg/reference_article/threshold.svg') }}" class="icon" alt="Image seuil d'alerte">
                                         Seuil d'alerte
                                     </span>
@@ -381,7 +381,7 @@
                             </div>
                             <div class="col-12 col-md-4 mt-3">
                                 <label>
-                                    <span class="icon ra-field-name">
+                                    <span class="icon wii-field-name">
                                         <img src="{{ asset('svg/reference_article/threshold_red.svg') }}" class="icon"
                                              alt="Image seuil de sécurité">
                                         Seuil de sécurité
@@ -409,7 +409,7 @@
                                     </div>
                                     <div class="form-group col-12 col-md-8">
                                         <label class="emergency-comment d-none">
-                                            <span class="ra-field-name">Commentaire de l'urgence</span>
+                                            <span class="wii-field-name">Commentaire de l'urgence</span>
                                             <input class="form-control data" type="text" name="emergency-comment-input"
                                                    value="{{ reference.emergencyComment }}">
                                         </label>
@@ -421,7 +421,7 @@
                 </div>
             </div>
             <div class="ra-box">
-                <div class="header ra-title">Fournisseurs</div>
+                <div class="header wii-title">Fournisseurs</div>
                 <div class="content">
                     <div class="supplier-articles">
                         {% if reference.id %}
@@ -431,18 +431,18 @@
                                      data-multiple-object-index="{{ index }}">
                                     <div class="provider-label">
                                         <span
-                                            class="ra-field-name ml-3">{{ supplierArticle.fournisseur ? supplierArticle.fournisseur.nom : '-' }}</span>&nbsp;-&nbsp;
+                                            class="wii-field-name ml-3">{{ supplierArticle.fournisseur ? supplierArticle.fournisseur.nom : '-' }}</span>&nbsp;-&nbsp;
                                         <span
-                                            class="ra-body-text">{{ supplierArticle.fournisseur ? supplierArticle.fournisseur.codeReference : '-' }}</span>
+                                            class="wii-body-text">{{ supplierArticle.fournisseur ? supplierArticle.fournisseur.codeReference : '-' }}</span>
                                     </div>
                                     <div class="d-flex supplier-article-container">
                                         <div class="col-5 d-flex flex-column justify-content-center">
-                                            <span class="ra-field-name">Ref article fournisseur</span>
-                                            <span class="ra-body-text">{{ supplierArticle.reference ?? '-' }}</span>
+                                            <span class="wii-field-name">Ref article fournisseur</span>
+                                            <span class="wii-body-text">{{ supplierArticle.reference ?? '-' }}</span>
                                         </div>
                                         <div class="col-5 d-flex flex-column justify-content-center">
-                                            <span class="ra-field-name">Label</span>
-                                            <span class="ra-body-text">{{ supplierArticle.label ?? '-' }}</span>
+                                            <span class="wii-field-name">Label</span>
+                                            <span class="wii-body-text">{{ supplierArticle.label ?? '-' }}</span>
                                         </div>
                                         {% if supplierArticle.articles.empty %}
                                             <div class="col-2 d-flex justify-content-end align-items-start">
@@ -465,7 +465,7 @@
                 </div>
             </div>
             <div class="ra-box">
-                <div class="header ra-title">Champs libres</div>
+                <div class="header wii-title">Champs libres</div>
                 <div class="content free-fields-container">
                     {% if reference.id %}
                         {% include 'free_field/freeFieldsViewing.html.twig' with {
@@ -474,7 +474,7 @@
                             colType: 'col-md-6 col-12',
                             requiredType: 'requiredEdit',
                             actionType: 'edit',
-                            fieldNameClass: 'ra-field-name'
+                            fieldNameClass: 'wii-field-name'
                         } %}
                     {% else %}
                         {% for type in freeFieldTypes %}

@@ -1,3 +1,5 @@
+@import "variables";
+
 *, *::after, *::before {
     box-sizing: border-box;
     margin: 0;
@@ -267,7 +269,7 @@ a {
 
 //  reprise du form-control.is-invalid de bootstrap
 .is-invalid {
-    border-color: #dc3545 !important;
+    border: 2px solid #dc3545 !important;
     background-repeat: no-repeat;
     background-position: center right calc(2.25rem / 4);
     background-size: calc(2.25rem / 2) calc(2.25rem / 2);
