@@ -426,6 +426,9 @@ class RefArticleDataService {
             'supplierCode' => implode(",", $providerCodes),
             "lastInventory" => FormatHelper::date($refArticle->getDateLastInventory()),
             "stockManagement" => $refArticle->getStockManagement(),
+            'referenceSupplierArticle' => Stream::from($refArticle->getArticlesFournisseur())
+                ->map(fn(ArticleFournisseur $articleFournisseur) => $articleFournisseur->getReference())
+                ->join(', '),
             "managers" => Stream::from($refArticle->getManagers())
                 ->map(function(Utilisateur $manager) {
                     return $manager->getUsername() ?: '';

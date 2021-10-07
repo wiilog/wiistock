@@ -69,7 +69,7 @@
                     </div>
                 {% endif %}
                 <div class="content d-flex" style="border: {{ reference.id ? '1px solid' ~ reference.type.color }}">
-                    <div class="col-5">
+                    <div class="col-md-5 col-12">
                         <div class="image-container"
                              style="background-image: url({{ reference.image
                              ? (app.request.scheme ~ '://' ~ app.request.httpHost ~ '/uploads/attachements/' ~ reference.image.fileName)
@@ -95,7 +95,7 @@
                             Importer une photo <br>de ce produit (max 10mo)
                         </div>
                     </div>
-                    <div class="col-7">
+                    <div class="col-md-7 col-12">
                         <label class="ra-field-name">
                             Référence*
                             <input type="text" name="reference" class="form-control data needed" placeholder="Référence"
