@@ -123,7 +123,10 @@ class RefArticleDataService {
             $currentUserSearches['reference'] = $params->get('search');
             $currentUser->setSearches($currentUserSearches);
             $this->entityManager->flush();
+        } else {
+            $currentUser->setSearches(null);
         }
+
         if ($params->has('start') && $params->has('length')) {
             $currentUserIndexes['reference'] =
                 intval(intval($params->get('start')) / intval($params->get('length')))
