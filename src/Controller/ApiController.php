@@ -33,6 +33,8 @@ use App\Entity\Translation;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
+use App\Service\ArrivageDataService;
+use App\Service\EmplacementDataService;
 use App\Service\NotificationService;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use WiiCommon\Helper\Stream;
@@ -178,19 +180,21 @@ class ApiController extends AbstractFOSRestController
     }
 
     /**
-     * @Rest\Post("/api/mouvements-traca", name="api-post-mouvements-traca", condition="request.isXmlHttpRequest()")
+     * @Rest\Post("/api/tracking-movements", name="api-post-tracking-movements", condition="request.isXmlHttpRequest()")
      * @Rest\View()
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function postTrackingMovement(Request $request,
-                                         MailerService $mailerService,
-                                         MouvementStockService $mouvementStockService,
-                                         TrackingMovementService $trackingMovementService,
-                                         ExceptionLoggerService $exceptionLoggerService,
-                                         FreeFieldService $freeFieldService,
-                                         AttachmentService $attachmentService,
-                                         EntityManagerInterface $entityManager)
+    public function postTrackingMovements(Request $request,
+                                          MailerService $mailerService,
+                                          ArrivageDataService $arrivageDataService,
+                                          EmplacementDataService $locationDataService,
+                                          MouvementStockService $mouvementStockService,
+                                          TrackingMovementService $trackingMovementService,
+                                          ExceptionLoggerService $exceptionLoggerService,
+                                          FreeFieldService $freeFieldService,
+                                          AttachmentService $attachmentService,
+                                          EntityManagerInterface $entityManager)
     {
         $successData = [];
         $response = new Response();
@@ -208,6 +212,28 @@ class ApiController extends AbstractFOSRestController
         ];
 
         $emptyGroups = [];
+
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
+        $packRepository = $entityManager->getRepository(Pack::class);
+
+        $trackingTypes = [
+            TrackingMovement::TYPE_PRISE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE),
+            TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE)
+        ];
+
+        $mustReloadLocation = false;
+
+
+        $uniqueIds = Stream::from($mouvementsNomade)
+            ->filterMap(fn(array $movement) => $movement['date'])
+            ->toArray();
+        $alreadySavedMovements = !empty($uniqueIds)
+            ? Stream::from($trackingMovementRepository->findBy(['uniqueIdForMobile' => $uniqueIds]))
+                ->keymap(fn(TrackingMovement $trackingMovement) => [$trackingMovement->getUniqueIdForMobile(), $trackingMovement])
+                ->toArray()
+            : [];
 
         foreach ($mouvementsNomade as $index => $mvt) {
             $invalidLocationTo = '';
@@ -228,128 +254,36 @@ class ApiController extends AbstractFOSRestController
                     $entityManager,
                     $exceptionLoggerService,
                     $trackingMovementService,
-                    $emptyGroups
+                    $emptyGroups,
+                    $emplacementRepository,
+                    $statutRepository,
+                    $trackingMovementRepository,
+                    $packRepository,
+                    $trackingTypes,
+                    $locationDataService,
+                    $arrivageDataService,
+                    &$mustReloadLocation,
+                    $alreadySavedMovements
                 ) {
-                    $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-                    $articleRepository = $entityManager->getRepository(Article::class);
-                    $statutRepository = $entityManager->getRepository(Statut::class);
-                    $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
-                    $packRepository = $entityManager->getRepository(Pack::class);
 
-                    $mouvementTraca1 = $trackingMovementRepository->findOneByUniqueIdForMobile($mvt['date']);
+                    $mouvementTraca1 = $alreadySavedMovements[$mvt['date']] ?? null;
                     if (!isset($mouvementTraca1)) {
                         $options = [
-                            'commentaire' => null,
-                            'mouvementStock' => null,
-                            'fileBag' => null,
-                            'from' => null,
                             'uniqueIdForMobile' => $mvt['date'],
                             'entityManager' => $entityManager,
                         ];
-                        $location = $emplacementRepository->findOneBy(['label' => $mvt['ref_emplacement']]);
-                        $type = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, $mvt['type']);
-
-                        // création de l'emplacement s'il n'existe pas
-                        if (!$location) {
-                            $location = new Emplacement();
-                            $location->setLabel($mvt['ref_emplacement']);
-                            $entityManager->persist($location);
-                        }
+                        $type = $trackingTypes[$mvt['type']];
+                        $location = $locationDataService->findOrPersistWithCache($entityManager, $mvt['ref_emplacement'], $mustReloadLocation);
 
                         $dateArray = explode('_', $mvt['date']);
 
                         $date = DateTime::createFromFormat(DateTimeInterface::ATOM, $dateArray[0]);
 
-                        // set mouvement de stock
-                        if ($mvt['fromStock'] ?? false) {
-                            if ($type->getNom() === TrackingMovement::TYPE_PRISE) {
-                                $articles = $articleRepository->findArticleByBarCodeAndLocation($mvt['ref_article'], $mvt['ref_emplacement']);
-                                /** @var Article|null $article */
-                                $article = count($articles) > 0 ? $articles[0] : null;
-                                if (!isset($article)) {
-                                    $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-                                    $references = $referenceArticleRepository->findReferenceByBarCodeAndLocation($mvt['ref_article'], $mvt['ref_emplacement']);
-                                    /** @var ReferenceArticle|null $article */
-                                    $article = count($references) > 0 ? $references[0] : null;
-                                }
+                        $options['natureId'] = $mvt['nature_id'] ?? null;
+                        $options['quantity'] = $mvt['quantity'] ?? null;
 
-                                if (isset($article)) {
-                                    $quantiteMouvement = ($article instanceof Article)
-                                        ? $article->getQuantite()
-                                        : $article->getQuantiteStock(); // ($article instanceof ReferenceArticle)
+                        $options += $trackingMovementService->treatTrackingData($mvt, $request->files, $index);
 
-                                    $newMouvement = $mouvementStockService->createMouvementStock($nomadUser, $location, $quantiteMouvement, $article, MouvementStock::TYPE_TRANSFER);
-                                    $options['mouvementStock'] = $newMouvement;
-                                    $options['quantity'] = $newMouvement->getQuantity();
-                                    $entityManager->persist($newMouvement);
-
-                                    $configStatus = ($article instanceof Article)
-                                        ? [Article::CATEGORIE, Article::STATUT_EN_TRANSIT]
-                                        : [ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_INACTIF];
-
-                                    $status = $statutRepository->findOneByCategorieNameAndStatutCode($configStatus[0], $configStatus[1]);
-                                    $article->setStatut($status);
-                                }
-                            }
-                            else { // MouvementTraca::TYPE_DEPOSE
-                                $mouvementTracaPrises = $trackingMovementRepository->findLastTakingNotFinished($mvt['ref_article']);
-                                /** @var TrackingMovement|null $mouvementTracaPrise */
-                                $mouvementTracaPrise = count($mouvementTracaPrises) > 0 ? $mouvementTracaPrises[0] : null;
-                                if (isset($mouvementTracaPrise)) {
-                                    $mouvementStockPrise = $mouvementTracaPrise->getMouvementStock();
-                                    $article = $mouvementStockPrise->getArticle()
-                                        ?: $mouvementStockPrise->getRefArticle();
-
-                                    $collecteOrder = $mouvementStockPrise->getCollecteOrder();
-                                    if (isset($collecteOrder)
-                                        && ($article instanceof ReferenceArticle)
-                                        && $article->getEmplacement()
-                                        && ($article->getEmplacement()->getId() !== $location->getId())) {
-                                        $invalidLocationTo = ($article->getEmplacement() ? $article->getEmplacement()->getLabel() : '');
-                                        throw new Exception(TrackingMovementService::INVALID_LOCATION_TO);
-                                    } else {
-                                        $options['mouvementStock'] = $mouvementStockPrise;
-                                        $options['quantity'] = $mouvementStockPrise->getQuantity();
-                                        $mouvementStockService->finishMouvementStock($mouvementStockPrise, $date, $location);
-
-                                        $configStatus = ($article instanceof Article)
-                                            ? [Article::CATEGORIE, Article::STATUT_ACTIF]
-                                            : [ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF];
-
-                                        $status = $statutRepository->findOneByCategorieNameAndStatutCode($configStatus[0], $configStatus[1]);
-                                        $article
-                                            ->setStatut($status)
-                                            ->setEmplacement($location);
-
-                                        // we update quantity if it's reference article from collecte
-                                        if (isset($collecteOrder) && ($article instanceof ReferenceArticle)) {
-                                            $article->setQuantiteStock(($article->getQuantiteStock() ?? 0) + $mouvementStockPrise->getQuantity());
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        else {
-                            $options['natureId'] = $mvt['nature_id'] ?? null;
-                            $options['quantity'] = $mvt['quantity'] ?? null;
-                        }
-
-                        if (!empty($mvt['comment'])) {
-                            $options['commentaire'] = $mvt['comment'];
-                        }
-
-                        $signatureFile = $request->files->get("signature_$index");
-                        $photoFile = $request->files->get("photo_$index");
-                        if (!empty($signatureFile) || !empty($photoFile)) {
-                            $options['fileBag'] = [];
-                            if (!empty($signatureFile)) {
-                                $options['fileBag'][] = $signatureFile;
-                            }
-
-                            if (!empty($photoFile)) {
-                                $options['fileBag'][] = $photoFile;
-                            }
-                        }
                         $createdMvt = $trackingMovementService->createTrackingMovement(
                             $mvt['ref_article'],
                             $location,
@@ -376,8 +310,7 @@ class ApiController extends AbstractFOSRestController
                         $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
                         $entityManager->persist($createdMvt);
                         $numberOfRowsInserted++;
-                        if ((!isset($mvt['fromStock']) || !$mvt['fromStock'])
-                            && $mvt['freeFields']) {
+                        if ($mvt['freeFields']) {
                             $givenFreeFields = json_decode($mvt['freeFields'], true);
                             $smartFreeFields = array_reduce(
                                 array_keys($givenFreeFields),
@@ -395,38 +328,7 @@ class ApiController extends AbstractFOSRestController
                         }
 
                         // envoi de mail si c'est une dépose + le colis existe + l'emplacement est un point de livraison
-                        if ($location) {
-                            $isDepose = ($mvt['type'] === TrackingMovement::TYPE_DEPOSE);
-                            $colis = $packRepository->findOneBy(['code' => $mvt['ref_article']]);
-
-                            if ($isDepose
-                                && $colis
-                                && $colis->getArrivage()
-                                && $location->getIsDeliveryPoint()) {
-                                $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-                                $fournisseur = $fournisseurRepository->findOneByColis($colis);
-                                $arrivage = $colis->getArrivage();
-                                $destinataire = $arrivage->getDestinataire();
-                                if ($destinataire) {
-                                    $mailerService->sendMail(
-                                        'FOLLOW GT // Dépose effectuée',
-                                        $this->renderView(
-                                            'mails/contents/mailDeposeTraca.html.twig',
-                                            [
-                                                'title' => 'Votre colis a été livré.',
-                                                'colis' => $colis->getCode(),
-                                                'emplacement' => $location,
-                                                'fournisseur' => $fournisseur ? $fournisseur->getNom() : '',
-                                                'date' => $date,
-                                                'operateur' => $nomadUser->getUsername(),
-                                                'pjs' => $arrivage->getAttachments()
-                                            ]
-                                        ),
-                                        $destinataire
-                                    );
-                                }
-                            }
-                        }
+                        $arrivageDataService->sendMailForDeliveredPack($entityManager, $location, $associatedPack, $nomadUser, $type->getNom(), $date);
 
                         if ($type->getNom() === TrackingMovement::TYPE_DEPOSE) {
                             $finishMouvementTraca[] = $mvt['ref_article'];
@@ -439,7 +341,8 @@ class ApiController extends AbstractFOSRestController
                     $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
                     $entityManager->clear();
                     $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-                    $nomadUser = $utilisateurRepository->findOneByApiKey($request->request->get("apiKey"));
+                    $nomadUser = $utilisateurRepository->find($nomadUser->getId());
+                    $mustReloadLocation = true;
                 }
 
                 if ($throwable->getMessage() === TrackingMovementService::INVALID_LOCATION_TO) {
@@ -453,24 +356,181 @@ class ApiController extends AbstractFOSRestController
             }
         }
 
-        $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
-        // Pour tous les mouvement de prise envoyés, on les marques en fini si un mouvement de dépose a été donné
-        foreach ($mouvementsNomade as $mvt) {
-            /** @var TrackingMovement $mouvementTracaPriseToFinish */
-            $mouvementTracaPriseToFinish = $trackingMovementRepository->findOneByUniqueIdForMobile($mvt['date']);
+        $trackingMovementService->clearTrackingMovement($mouvementsNomade, $finishMouvementTraca, $alreadySavedMovements);
+        $entityManager->flush();
 
-            if (isset($mouvementTracaPriseToFinish)) {
-                $trackingPack = $mouvementTracaPriseToFinish->getPack();
-                if ($trackingPack) {
-                    $packCode = $trackingPack->getCode();
-                    if (($mouvementTracaPriseToFinish->getType()->getNom() === TrackingMovement::TYPE_PRISE) &&
-                        in_array($packCode, $finishMouvementTraca) &&
-                        !$mouvementTracaPriseToFinish->isFinished()) {
-                        $mouvementTracaPriseToFinish->setFinished((bool)$mvt['finished']);
+        $s = $numberOfRowsInserted > 1 ? 's' : '';
+        $successData['success'] = true;
+        $successData['data']['status'] = ($numberOfRowsInserted === 0)
+            ? 'Aucun mouvement à synchroniser.'
+            : ($numberOfRowsInserted . ' mouvement' . $s . ' synchronisé' . $s);
+        $successData['data']['movementCounter'] = $numberOfRowsInserted;
+
+        if (!empty($emptyGroups)) {
+            $successData['data']['emptyGroups'] = $emptyGroups;
+        }
+
+        $response->setContent(json_encode($successData));
+        return $response;
+    }
+
+    /**
+     * @Rest\Post("/api/stock-movements", name="api-post-stock-movements", condition="request.isXmlHttpRequest()")
+     * @Rest\View()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function postStockMovements(Request                 $request,
+                                       EmplacementDataService  $locationDataService,
+                                       MouvementStockService   $mouvementStockService,
+                                       ExceptionLoggerService  $exceptionLoggerService,
+                                       TrackingMovementService $trackingMovementService,
+                                       FreeFieldService        $freeFieldService,
+                                       AttachmentService       $attachmentService,
+                                       EntityManagerInterface  $entityManager)
+    {
+        $successData = [];
+        $response = new Response();
+        $response->headers->set('Content-Type', 'application/json');
+        $response->headers->set('Access-Control-Allow-Origin', '*');
+        $response->headers->set('Access-Control-Allow-Methods', 'POST');
+
+        $nomadUser = $this->getUser();
+
+        $numberOfRowsInserted = 0;
+        $mouvementsNomade = json_decode($request->request->get('mouvements'), true);
+        $finishMouvementTraca = [];
+        $successData['data'] = [
+            'errors' => []
+        ];
+
+        $emptyGroups = [];
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
+
+        $trackingTypes = [
+            TrackingMovement::TYPE_PRISE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE),
+            TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE)
+        ];
+
+        $mustReloadLocation = false;
+
+        $uniqueIds = Stream::from($mouvementsNomade)
+            ->filterMap(fn(array $movement) => $movement['date'])
+            ->toArray();
+        $alreadySavedMovements = !empty($uniqueIds)
+            ? Stream::from($trackingMovementRepository->findBy(['uniqueIdForMobile' => $uniqueIds]))
+                ->keymap(fn(TrackingMovement $trackingMovement) => [$trackingMovement->getUniqueIdForMobile(), $trackingMovement])
+                ->toArray()
+            : [];
+
+        foreach ($mouvementsNomade as $index => $mvt) {
+            $invalidLocationTo = '';
+            try {
+                $entityManager->transactional(function ()
+                use (
+                    $freeFieldService,
+                    $mouvementStockService,
+                    &$numberOfRowsInserted,
+                    $mvt,
+                    $nomadUser,
+                    $request,
+                    $attachmentService,
+                    $index,
+                    &$invalidLocationTo,
+                    &$finishMouvementTraca,
+                    $entityManager,
+                    $trackingMovementService,
+                    $emptyGroups,
+                    $emplacementRepository,
+                    $articleRepository,
+                    $statutRepository,
+                    $trackingMovementRepository,
+                    $trackingTypes,
+                    $locationDataService,
+                    &$mustReloadLocation,
+                    $alreadySavedMovements
+                ) {
+
+                    $mouvementTraca1 = $alreadySavedMovements[$mvt['date']] ?? null;
+                    if (!isset($mouvementTraca1)) {
+                        $options = [
+                            'uniqueIdForMobile' => $mvt['date'],
+                            'entityManager' => $entityManager,
+                        ];
+                        /** @var Statut $type */
+                        $type = $trackingTypes[$mvt['type']];
+                        $location = $locationDataService->findOrPersistWithCache($entityManager, $mvt['ref_emplacement'], $mustReloadLocation);
+
+                        $dateArray = explode('_', $mvt['date']);
+
+                        $date = DateTime::createFromFormat(DateTimeInterface::ATOM, $dateArray[0]);
+
+                        $options += $trackingMovementService->treatStockMovement($entityManager, $type->getNom(), $mvt, $nomadUser, $location, $date);
+                        if ($options['invalidLocationTo'] ?? null) {
+                            $invalidLocationTo = $options['invalidLocationTo'];
+                            throw new Exception(TrackingMovementService::INVALID_LOCATION_TO);
+                        }
+
+                        $options += $trackingMovementService->treatTrackingData($mvt, $request->files, $index);
+
+                        $createdMvt = $trackingMovementService->createTrackingMovement(
+                            $mvt['ref_article'],
+                            $location,
+                            $nomadUser,
+                            $date,
+                            true,
+                            $mvt['finished'],
+                            $type,
+                            $options,
+                        );
+                        $associatedPack = $createdMvt->getPack();
+
+                        if ($associatedPack) {
+                            $associatedGroup = $associatedPack->getParent();
+
+                            if ($associatedGroup) {
+                                $associatedGroup->removeChild($associatedPack);
+                                if ($associatedGroup->getChildren()->isEmpty()) {
+                                    $emptyGroups[] = $associatedGroup->getCode();
+                                }
+                            }
+                        }
+
+                        $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
+                        $entityManager->persist($createdMvt);
+                        $numberOfRowsInserted++;
+
+                        if ($type->getNom() === TrackingMovement::TYPE_DEPOSE) {
+                            $finishMouvementTraca[] = $mvt['ref_article'];
+                        }
                     }
+                });
+            } catch (Throwable $throwable) {
+                if (!$entityManager->isOpen()) {
+                    /** @var EntityManagerInterface $entityManager */
+                    $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
+                    $entityManager->clear();
+                    $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+                    $nomadUser = $utilisateurRepository->find($nomadUser->getId());
+                    $mustReloadLocation = true;
+                }
+
+                if ($throwable->getMessage() === TrackingMovementService::INVALID_LOCATION_TO) {
+                    $successData['data']['errors'][$mvt['ref_article']] = ($mvt['ref_article'] . " doit être déposé sur l'emplacement \"$invalidLocationTo\"");
+                } else if ($throwable->getMessage() === Pack::PACK_IS_GROUP) {
+                    $successData['data']['errors'][$mvt['ref_article']] = 'Le colis scanné est un groupe';
+                } else {
+                    $exceptionLoggerService->sendLog($throwable, $request);
+                    $successData['data']['errors'][$mvt['ref_article']] = 'Une erreur s\'est produite lors de l\'enregistrement de ' . $mvt['ref_article'];
+                    throw $throwable;
                 }
             }
         }
+
+        $trackingMovementService->clearTrackingMovement($mouvementsNomade, $finishMouvementTraca, $alreadySavedMovements);
         $entityManager->flush();
 
         $s = $numberOfRowsInserted > 1 ? 's' : '';

@@ -6,10 +6,13 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
+use App\Entity\Fournisseur;
 use App\Entity\FreeField;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
+use App\Entity\Pack;
 use App\Entity\ParametrageGlobal;
+use App\Entity\TrackingMovement;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
@@ -558,5 +561,39 @@ class ArrivageDataService
         }
 
         $csvService->putLine($handle, $line);
+    }
+
+    public function sendMailForDeliveredPack(EntityManagerInterface $entityManager,
+                                             Emplacement $location,
+                                             Pack $pack,
+                                             Utilisateur $nomadUser,
+                                             string $trackingType,
+                                             $date): void {
+        if ($trackingType === TrackingMovement::TYPE_DEPOSE
+            && $pack->getArrivage()
+            && $location->getIsDeliveryPoint()) {
+            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+            $fournisseur = $fournisseurRepository->findOneByColis($pack);
+            $arrivage = $pack->getArrivage();
+            $destinataire = $arrivage->getDestinataire();
+            if ($destinataire) {
+                $this->mailerService->sendMail(
+                    'FOLLOW GT // Dépose effectuée',
+                    $this->templating->render(
+                        'mails/contents/mailDeposeTraca.html.twig',
+                        [
+                            'title' => 'Votre colis a été livré.',
+                            'colis' => $pack->getCode(),
+                            'emplacement' => $location,
+                            'fournisseur' => $fournisseur ? $fournisseur->getNom() : '',
+                            'date' => $date,
+                            'operateur' => $nomadUser->getUsername(),
+                            'pjs' => $arrivage->getAttachments()
+                        ]
+                    ),
+                    $destinataire
+                );
+            }
+        }
     }
 }
