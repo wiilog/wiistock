@@ -17,8 +17,8 @@
 
     &:hover,&:active {
         color: $white !important;
-        background: darken($primary, 7.5%) !important;
-        border: 1px solid darken($primary, 7.5%) !important;
+        background: $darkenPrimary !important;
+        border: 1px solid $darkenPrimary !important;
     }
 }
 

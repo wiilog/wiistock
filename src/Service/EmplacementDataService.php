@@ -16,30 +16,20 @@ use Twig\Environment as Twig_Environment;
 class EmplacementDataService {
 
     const PAGE_EMPLACEMENT = 'emplacement';
-    /**
-     * @var Twig_Environment
-     */
-    private $templating;
 
-    /**
-     * @var RouterInterface
-     */
-    private $router;
+    /** @Required */
+    public Twig_Environment $templating;
 
-    private $security;
+    /** @Required */
+    public RouterInterface $router;
 
-    private $entityManager;
+    /** @Required */
+    public Security $security;
 
-    public function __construct(RouterInterface $router,
-                                EntityManagerInterface $entityManager,
-                                Twig_Environment $templating,
-                                Security $security) {
+    /** @Required */
+    public EntityManagerInterface $entityManager;
 
-        $this->templating = $templating;
-        $this->entityManager = $entityManager;
-        $this->router = $router;
-        $this->security = $security;
-    }
+    private array $labeledCacheLocations = [];
 
     public function getEmplacementDataByParams($params = null) {
         $user = $this->security->getUser();
@@ -117,6 +107,32 @@ class EmplacementDataService {
                 'hasPairing' => $hasPairing
             ]),
         ];
+    }
+
+    public function findOrPersistWithCache(EntityManagerInterface $entityManager,
+                                           string $label,
+                                           bool &$mustReload): Emplacement {
+
+        if ($mustReload) {
+            $mustReload = false;
+            $this->labeledCacheLocations = [];
+        }
+
+        if (isset($this->labeledCacheLocations[$label])) {
+            $location = $this->labeledCacheLocations[$label];
+        }
+        else {
+            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+            $location = $emplacementRepository->findOneBy(['label' => $label]);
+        }
+
+        if (!$location) {
+            $location = new Emplacement();
+            $location->setLabel($label);
+            $entityManager->persist($location);
+        }
+
+        return $location;
     }
 
 }

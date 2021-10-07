@@ -39,6 +39,8 @@ $warning:       #ffc107;
 $danger:        $red;
 $dark:          $darkGrey;
 
+$darkenPrimary: darken($primary, 7.5%);
+
 $wiiStockTextColors: (
     grey: $greyDashboard,
     black: $blackDashboard,
