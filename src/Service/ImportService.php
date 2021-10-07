@@ -976,9 +976,8 @@ class ImportService
                 $this->throwError('La référence article n\'existe pas.');
             }
         }
-        if ($newEntity) {
-            $this->updateStats($stats, true);
-        }
+
+        $this->updateStats($stats, $newEntity);
     }
 
     private function importReferenceEntity(array $data,
