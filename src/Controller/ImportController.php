@@ -172,7 +172,7 @@ class ImportController extends AbstractController
                         'secondaryEmails',
                         'token',
                         'searches',
-                        'pageindexes',
+                        'pageIndexes',
                         'columnsOrder',
                         'rechercheForArticle',
                         'recherche',
