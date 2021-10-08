@@ -68,7 +68,7 @@
                         {{ reference.type.label }}
                     </div>
                 {% endif %}
-                <div class="content d-flex" style="border: {{ reference.id ? '1px solid' ~ reference.type.color }}">
+                <div class="content row" style="border: {{ reference.id ? '1px solid' ~ reference.type.color }}">
                     <div class="col-md-5 col-12">
                         <div class="image-container"
                              style="background-image: url({{ reference.image
@@ -327,7 +327,7 @@
                                                     <input type="number" data-no-arrow
                                                            id="quantite"
                                                            name="quantite"
-                                                           class="form-control data needed"
+                                                           class="form-control data needed w-50"
                                                            min="0">
                                                     <button class="increase"></button>
                                                 </div>
@@ -373,7 +373,7 @@
                                     <div class="increase-decrease-field">
                                         <button class="decrease"></button>
                                         <input type="number" data-no-arrow
-                                               name="limitWarning" class="form-control data"
+                                               name="limitWarning" class="form-control data w-50"
                                                value="{{ reference.limitWarning ?? '' }}" min="0">
                                         <button class="increase"></button>
                                     </div>
@@ -389,7 +389,7 @@
                                     <div class="increase-decrease-field">
                                         <button class="decrease"></button>
                                         <input type="number" data-no-arrow
-                                               name="limitSecurity" class="form-control data"
+                                               name="limitSecurity" class="form-control data w-50"
                                                value="{{ reference.limitSecurity ?? '' }}" min="0">
                                         <button class="increase"></button>
                                     </div>
