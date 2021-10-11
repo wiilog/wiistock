@@ -92,7 +92,7 @@ class AlertService
                 ->setTemplate($template)
                 ->setContent($content)
                 ->setSource($sensorWrapper->getName())
-                ->setTriggered(new DateTime('now', new \DateTimeZone("Europe/Paris")));
+                ->setTriggered(new DateTime());
             $usersRepository = $entityManager->getRepository(Utilisateur::class);
             $users = $usersRepository->findBy([
                 'status' => true

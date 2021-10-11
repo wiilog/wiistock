@@ -257,13 +257,13 @@ class DispatchController extends AbstractController {
         if(!empty($startDate)) {
             $dispatch->setStartDate($startDate);
         } else if ($preFill) {
-            $dispatch->setStartDate(new DateTime('now', new \DateTimeZone('Europe/Paris')));
+            $dispatch->setStartDate(new DateTime());
         }
 
         if(!empty($endDate)) {
             $dispatch->setEndDate($endDate);
         } else if ($preFill) {
-            $dispatch->setEndDate(new DateTime('now', new \DateTimeZone('Europe/Paris')));
+            $dispatch->setEndDate(new DateTime());
         }
 
         if(!empty($carrier)) {

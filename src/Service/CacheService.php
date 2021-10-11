@@ -53,7 +53,6 @@ class CacheService {
         }
 
         $handle = fopen("$cache/$namespace$key", 'w+');
-        chmod("$cache/$namespace$key", 0777);
         fwrite($handle, serialize($value));
         fclose($handle);
     }

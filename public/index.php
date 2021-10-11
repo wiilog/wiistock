@@ -26,6 +26,9 @@ if ($debug) {
     umask(0002);
 }
 
+// set default timezone to Europe/Paris = (php.ini > date.timezone)
+date_default_timezone_set('Europe/Paris');
+
 if ($trustedProxies = $_SERVER['TRUSTED_PROXIES'] ?? false) {
     Request::setTrustedProxies(explode(',', $trustedProxies), Request::HEADER_X_FORWARDED_ALL);
 }
