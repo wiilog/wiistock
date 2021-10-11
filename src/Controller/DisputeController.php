@@ -96,7 +96,7 @@ class DisputeController extends AbstractController
 	}
 
     /**
-     * @Route("/litiges_infos", name="get_litiges_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     * @Route("/csv", name="export_csv_dispute", options={"expose"=true}, methods={"GET","POST"})
      *
      * @param Request $request
      * @param DisputeService $disputeService
@@ -105,7 +105,7 @@ class DisputeController extends AbstractController
      *
      * @return Response
      */
-    public function getLitigesIntels(Request                $request,
+    public function exportCSVDispute(Request                $request,
                                      DisputeService         $disputeService,
                                      EntityManagerInterface $entityManager,
                                      CSVExportService       $CSVExportService): Response
@@ -227,6 +227,9 @@ class DisputeController extends AbstractController
                 ->setUser($currentUser)
                 ->setDate(new DateTime('now'))
                 ->setComment($data);
+
+            $dispute->setLastHistoryRecord($historyRecord);
+
             $em->persist($historyRecord);
             $em->flush();
 

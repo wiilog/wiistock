@@ -28,7 +28,7 @@ class DisputeRepository extends EntityRepository
 		'numCommandeBl' => 'numCommandeBl',
         'buyers' => 'acheteurs',
         'reporter' => 'reporter',
-		'lastHistoric' => 'lastHistoric',
+		'lastHistoryRecord' => 'lastHistoryRecord',
 		'creationDate' => 'creationDate',
 		'updateDate' => 'updateDate',
         'status' => 'status',
@@ -79,25 +79,6 @@ class DisputeRepository extends EntityRepository
             return $utilisateur[$field];
         }, $query->execute());
     }
-
-	/**
-	 * @param int $disputeId
-	 * @return DisputeHistoryRecord
-	 */
-	public function getLastHistoricByDisputeId($disputeId)
-	{
-        $result = $this->createQueryBuilder('dispute')
-            ->select('disputeHistoryRecord.date')
-            ->addSelect('disputeHistoryRecord.comment')
-            ->join('dispute.disputeHistory', 'disputeHistoryRecord')
-            ->andWhere('dispute = :dispute')
-            ->orderBy('disputeHistoryRecord.date', Criteria::DESC)
-            ->setParameter('dispute', $disputeId)
-            ->getQuery()
-            ->execute();
-
-		return $result ? $result[0] : null;
-	}
 
 	/**
 	 * @param DateTime $dateMin
@@ -205,9 +186,12 @@ class DisputeRepository extends EntityRepository
             ->addSelect('dispute.updateDate')
             ->addSelect('t.label as type')
             ->addSelect('s.nom as status')
+            ->addSelect('join_lastHistoryRecord.date AS lastHistoryRecord_date')
+            ->addSelect('join_lastHistoryRecord.comment AS lastHistoryRecord_comment')
 			->leftJoin('dispute.type', 't')
 			->leftJoin('dispute.status', 's')
 			->leftJoin('dispute.disputeHistory', 'join_dispute_history_record')
+			->leftJoin('dispute.lastHistoryRecord', 'join_lastHistoryRecord')
 			// litiges sur arrivage
             ->addSelect('reporter.username as reporterUsername')
             ->addSelect('buyers.username as achUsername')

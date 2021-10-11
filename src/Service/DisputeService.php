@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Arrivage;
 use App\Entity\Article;
+use App\Entity\DisputeHistoryRecord;
 use App\Entity\FiltreSup;
 use App\Entity\Dispute;
 use App\Entity\Utilisateur;
@@ -115,8 +116,12 @@ class DisputeService {
         $acheteursArrivage = $disputeRepository->getAcheteursArrivageByDisputeId($disputeId, 'username');
         $acheteursReception = $disputeRepository->getAcheteursReceptionByDisputeId($disputeId, 'username');
 
-        $lastHistoric = $disputeRepository->getLastHistoricByDisputeId($disputeId);
-        $lastHistoricStr = $lastHistoric ? $lastHistoric['date']->format('d/m/Y H:i') . ' : ' . nl2br($lastHistoric['comment']) : '';
+        $lastHistoryRecordDate = $dispute['lastHistoryRecord_date'];
+        $lastHistoryRecordComment = $dispute['lastHistoryRecord_comment'];
+
+        $lastHistoryRecordStr = ($lastHistoryRecordDate && $lastHistoryRecordComment)
+            ? (FormatHelper::datetime($lastHistoryRecordDate) . ' : ' . nl2br($lastHistoryRecordComment))
+            : '';
 
         $commands = $disputeRepository->getCommandesByDisputeId($disputeId);
 
@@ -155,7 +160,7 @@ class DisputeService {
                 ->unique()
                 ->join(", "),
             'provider' => $dispute['provider'] ?? '',
-            'lastHistoric' => $lastHistoricStr,
+            'lastHistoryRecord' => $lastHistoryRecordStr,
             'creationDate' => $dispute['creationDate'] ? $dispute['creationDate']->format('d/m/Y H:i') : '',
             'updateDate' => $dispute['updateDate'] ? $dispute['updateDate']->format('d/m/Y H:i') : '',
             'status' => $dispute['status'] ?? '',
@@ -228,7 +233,7 @@ class DisputeService {
                 ["name" => 'command', 'title' => 'N° ligne'],
                 ["name" => 'provider', 'title' => 'Fournisseur'],
                 ["name" => 'references', 'title' => 'Référence'],
-                ["name" => 'lastHistoric', 'title' => 'Dernier historique'],
+                ["name" => 'lastHistoryRecord', 'title' => 'Dernier historique'],
                 ["name" => 'creationDate', 'title' => 'Créé le'],
                 ["name" => 'updateDate', 'title' => 'Modifié le'],
                 ["name" => 'status', 'title' => 'Statut'],
@@ -275,12 +280,11 @@ class DisputeService {
                 $row[] = $fournisseur ? $fournisseur->getNom() : '';
                 $row[] = ''; // N° de ligne
                 $row[] = $buyersMailsStr;
-                $disputeHistory = $dispute->getDisputeHistory();
-                if (!$disputeHistory->isEmpty()) {
-                    $historic = $disputeHistory->last();
-                    $row[] = $historic->getDate() ? $historic->getDate()->format('d/m/Y H:i') : '';
-                    $row[] = $historic->getUser() ? $historic->getUser()->getUsername() : '';
-                    $row[] = $historic->getComment();
+                $lastHistoryRecord = $dispute->getLastHistoryRecord();
+                if ($lastHistoryRecord) {
+                    $row[] = FormatHelper::datetime($lastHistoryRecord->getDate());
+                    $row[] = FormatHelper::user($lastHistoryRecord->getUser());
+                    $row[] = $lastHistoryRecord->getComment();
                 }
                 $this->CSVExportService->putLine($handle, $row);
             }
@@ -314,15 +318,13 @@ class DisputeService {
                 $row[] = isset($fournisseur) ? $fournisseur->getNom() : '';
 
                 $row[] = implode(', ', $disputeRepository->getCommandesByDisputeId($dispute->getId()));
-
-                $disputeHistory = $dispute->getDisputeHistory();
-
                 $row[] = $buyersMailsStr;
-                if (!$disputeHistory->isEmpty()) {
-                    $historic = $disputeHistory->last();
-                    $row[] = ($historic->getDate() ? $historic->getDate()->format('d/m/Y H:i') : '');
-                    $row[] = $historic->getUser() ? $historic->getUser()->getUsername() : '';
-                    $row[] = $historic->getComment();
+
+                $lastHistoryRecord = $dispute->getLastHistoryRecord();
+                if ($lastHistoryRecord) {
+                    $row[] = FormatHelper::datetime($lastHistoryRecord->getDate());
+                    $row[] = FormatHelper::user($lastHistoryRecord->getUser());
+                    $row[] = $lastHistoryRecord->getComment();
                 }
                 $this->CSVExportService->putLine($handle, $row);
             }

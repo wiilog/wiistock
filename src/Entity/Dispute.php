@@ -86,6 +86,11 @@ class Dispute
      */
     private ?Utilisateur $reporter = null;
 
+    /**
+     * @ORM\OneToOne(targetEntity=DisputeHistoryRecord::class)
+     */
+    private ?DisputeHistoryRecord $lastHistoryRecord = null;
+
     public function __construct()
     {
         $this->attachements = new ArrayCollection();
@@ -351,6 +356,15 @@ class Dispute
     {
         $this->reporter = $reporter;
 
+        return $this;
+    }
+
+    public function getLastHistoryRecord(): ?DisputeHistoryRecord {
+        return $this->lastHistoryRecord;
+    }
+
+    public function setLastHistoryRecord(?DisputeHistoryRecord $lastHistoryRecord): self {
+        $this->lastHistoryRecord = $lastHistoryRecord;
         return $this;
     }
 

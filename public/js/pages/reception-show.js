@@ -134,7 +134,7 @@ function InitPageDataTable() {
             {"data": 'actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},
             {"data": 'type', 'name': 'type', 'title': 'Type'},
             {"data": 'status', 'name': 'status', 'title': 'Statut'},
-            {"data": 'lastHistoric', 'name': 'lastHistoric', 'title': 'Dernier historique'},
+            {"data": 'lastHistoryRecord', 'name': 'lastHistoryRecord', 'title': 'Dernier historique'},
             {"data": 'date', 'name': 'date', 'title': 'Date', visible: false},
             {"data": 'urgence', 'name': 'urgence', 'title': 'urgence', visible: false},
         ],

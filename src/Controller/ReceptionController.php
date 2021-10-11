@@ -1075,13 +1075,16 @@ class ReceptionController extends AbstractController {
         $currentUser = $this->getUser();
 
         if(!empty($comment)) {
-            $histoLitige = new DisputeHistoryRecord();
-            $histoLitige
+            $historyRecord = new DisputeHistoryRecord();
+            $historyRecord
                 ->setDispute($dispute)
                 ->setDate(new DateTime('now'))
                 ->setUser($currentUser)
                 ->setComment($comment);
-            $entityManager->persist($histoLitige);
+
+            $dispute->setLastHistoryRecord($historyRecord);
+
+            $entityManager->persist($historyRecord);
             $entityManager->flush();
         }
 
@@ -1161,13 +1164,16 @@ class ReceptionController extends AbstractController {
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
         if(!empty($commentaire)) {
-            $histo = new DisputeHistoryRecord();
-            $histo
+            $historyRecord = new DisputeHistoryRecord();
+            $historyRecord
                 ->setDate(new DateTime('now'))
                 ->setComment($commentaire)
                 ->setDispute($dispute)
                 ->setUser($currentUser);
-            $entityManager->persist($histo);
+
+            $dispute->setLastHistoryRecord($historyRecord);
+
+            $entityManager->persist($historyRecord);
         }
 
         $entityManager->persist($dispute);
@@ -1286,15 +1292,10 @@ class ReceptionController extends AbstractController {
             foreach($dispute->getArticles() as $article) {
                 $articles[] = $article->getBarCode();
             }
-            $lastHistoric = count($dispute->getDisputeHistory()) > 0
-                ?
-                $dispute->getDisputeHistory()[count($dispute->getDisputeHistory()) - 1]->getComment()
-                :
-                '';
             $rows[] = [
                 'type' => $dispute->getType()->getLabel(),
                 'status' => $dispute->getStatus()->getNom(),
-                'lastHistoric' => $lastHistoric,
+                'lastHistoryRecord' => $dispute->getLastHistoryRecord() ? $dispute->getLastHistoryRecord()->getComment() : null,
                 'date' => $dispute->getCreationDate()->format('d/m/Y H:i'),
                 'actions' => $this->renderView('reception/datatableLitigesRow.html.twig', [
                     'receptionId' => $reception->getId(),

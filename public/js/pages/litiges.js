@@ -58,7 +58,7 @@ function initDatatableLitiges() {
             {"data": 'command', 'name': 'command', 'title': 'N° ligne', 'orderable': false},
             {"data": 'provider', 'name': 'provider', 'title': 'Fournisseur'},
             {"data": 'references', 'name': 'references', 'title': 'Référence', 'orderable': false},
-            {"data": 'lastHistoric', 'name': 'lastHistoric', 'title': 'Dernier historique', 'orderable': false},
+            {"data": 'lastHistoryRecord', 'name': 'lastHistoryRecord', 'title': 'Dernier historique', 'orderable': false},
             {"data": 'creationDate', 'name': 'creationDate', 'title': 'Créé le'},
             {"data": 'updateDate', 'name': 'updateDate', 'title': 'Modifié le'},
             {"data": 'status', 'name': 'status', 'title': 'Statut'},

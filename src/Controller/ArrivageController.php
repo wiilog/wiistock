@@ -837,14 +837,19 @@ class ArrivageController extends AbstractController
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
 
+        $entityManager->persist($dispute);
+
         if (!empty($commentaire)) {
-            $histo = new DisputeHistoryRecord();
-            $histo
+            $historyRecord = new DisputeHistoryRecord();
+            $historyRecord
                 ->setDate(new DateTime('now'))
                 ->setComment($commentaire)
                 ->setDispute($dispute)
                 ->setUser($currentUser);
-            $entityManager->persist($histo);
+
+            $dispute->setLastHistoryRecord($historyRecord);
+
+            $entityManager->persist($historyRecord);
         }
 
         $this->persistAttachmentsForEntity($dispute, $this->attachmentService, $request, $entityManager);
@@ -1079,13 +1084,16 @@ class ArrivageController extends AbstractController
         }
 
         if (!empty($comment)) {
-            $histoLitige = new DisputeHistoryRecord();
-            $histoLitige
+            $historyRecord = new DisputeHistoryRecord();
+            $historyRecord
                 ->setDispute($dispute)
                 ->setDate(new DateTime('now'))
                 ->setUser($currentUser)
                 ->setComment($comment);
-            $entityManager->persist($histoLitige);
+
+            $dispute->setLastHistoryRecord($historyRecord);
+
+            $entityManager->persist($historyRecord);
             $entityManager->flush();
         }
 
