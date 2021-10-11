@@ -30,9 +30,8 @@
                                 <span class="wii-field-text">Quantité disponible <strong>{{ referenceArticle.quantiteDisponible }}</strong></span>
                             </div>
                             <div class="d-flex align-content-center">
-                                {% set active = referenceArticle.statut == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') ? 'active' : 'inactive' %}
-                                <span class="wii-small-text mr-3" title="Référence {{ active }}">
-                                    {{ 'reference.Référence' | trans ~ ' ' ~ active }}
+                                <span class="wii-small-text mr-3">
+                                    Référence {{ referenceArticle.statut == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') ? 'active' : 'inactive' }}
                                 </span>
                                 <div class="d-flex align-content-center">
                                     <img src="{{ asset('svg/reference_article/' ~ (referenceArticle.needsMobileSync
@@ -206,7 +205,7 @@
                         <div class="d-flex align-items-center urgent-container">
                             <img src="{{ asset('svg/reference_article/urgent.svg') }}" alt="Icône référence urgente" width="25px">
                             <div class="d-flex flex-column ml-3">
-                                <span class="wii-field-name" title="Référence urgente">{{ 'reference.Référence' | trans }} urgente</span>
+                                <span class="wii-field-name">Référence urgente</span>
                                 <div class="wii-body-text">{{ referenceArticle.emergencyComment | raw }}</div>
                             </div>
                         </div>

@@ -319,7 +319,7 @@ class RefArticleDataService {
         }
 
         if(isset($data['mobileSync'])) {
-            $refArticle->setNeedsMobileSync($data['mobileSync'] === "true");
+            $refArticle->setNeedsMobileSync(filter_var($data['mobileSync'], FILTER_VALIDATE_BOOLEAN));
         }
 
         $refArticle->setBuyer(isset($data['buyer']) ? $userRepository->find($data['buyer']) : null);

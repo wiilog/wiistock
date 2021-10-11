@@ -68,7 +68,7 @@
                         {{ reference.type.label }}
                     </div>
                 {% endif %}
-                <div class="content row" style="border: {{ reference.id ? '1px solid' ~ reference.type.color }}">
+                <div class="content row mx-0" style="border: {{ reference.id ? '1px solid ' ~ reference.type.color }}">
                     <div class="col-md-5 col-12">
                         <div class="image-container"
                              style="background-image: url({{ reference.image
@@ -97,12 +97,12 @@
                     </div>
                     <div class="col-md-7 col-12">
                         <label class="wii-field-name" title="Référence">
-                            {{ 'reference.Référence' | trans }}*
-                            <input type="text" name="reference" class="form-control data needed" placeholder="{{ 'reference.Référence' | trans }}"
+                            Référence*
+                            <input type="text" name="reference" class="form-control data needed" placeholder="Référence"
                                    value="{{ reference.reference }}">
                         </label>
                         <label class="mt-3 wii-field-name" title="Libellé">
-                            {{ 'reference.Libellé' | trans }}*
+                            Libellé*
                             <input type="text" name="libelle" class="form-control data needed" placeholder="Libellé" value="{{ reference.libelle }}">
                         </label>
                         {% if not reference.id %}
