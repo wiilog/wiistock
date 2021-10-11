@@ -159,9 +159,9 @@ class Article extends FreeFieldEntity implements PairedEntity
     private $ordreCollecte;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Litige", mappedBy="articles", cascade={"remove"})
+     * @ORM\ManyToMany(targetEntity=Dispute::class, mappedBy="articles", cascade={"remove"})
      */
-    private $litiges;
+    private Collection $disputes;
 
     /**
      * @ORM\OneToOne(targetEntity=Pack::class, mappedBy="article")
@@ -206,7 +206,7 @@ class Article extends FreeFieldEntity implements PairedEntity
         $this->mouvements = new ArrayCollection();
         $this->inventoryEntries = new ArrayCollection();
         $this->inventoryMissions = new ArrayCollection();
-        $this->litiges = new ArrayCollection();
+        $this->disputes = new ArrayCollection();
         $this->ordreCollecte = new ArrayCollection();
         $this->transferRequests = new ArrayCollection();
 
@@ -544,28 +544,28 @@ class Article extends FreeFieldEntity implements PairedEntity
     }
 
     /**
-     * @return Collection|Litige[]
+     * @return Collection|Dispute[]
      */
-    public function getLitiges(): Collection
+    public function getDisputes(): Collection
     {
-        return $this->litiges;
+        return $this->disputes;
     }
 
-    public function addLitige(Litige $litige): self
+    public function addDispute(Dispute $dispute): self
     {
-        if (!$this->litiges->contains($litige)) {
-            $this->litiges[] = $litige;
-            $litige->addArticle($this);
+        if (!$this->disputes->contains($dispute)) {
+            $this->disputes[] = $dispute;
+            $dispute->addArticle($this);
         }
 
         return $this;
     }
 
-    public function removeLitige(Litige $litige): self
+    public function removeDispute(Dispute $dispute): self
     {
-        if ($this->litiges->contains($litige)) {
-            $this->litiges->removeElement($litige);
-            $litige->removeArticle($this);
+        if ($this->disputes->contains($dispute)) {
+            $this->disputes->removeElement($dispute);
+            $dispute->removeArticle($this);
         }
 
         return $this;
@@ -647,7 +647,7 @@ class Article extends FreeFieldEntity implements PairedEntity
         return (
             (!$this->getCollectes()->isEmpty())
                 ? self::USED_ASSOC_COLLECTE
-                : ((!$this->getLitiges()->isEmpty())
+                : ((!$this->getDisputes()->isEmpty())
                     ? self::USED_ASSOC_LITIGE
                     : ((!$this->getInventoryEntries()->isEmpty())
                         ? self::USED_ASSOC_INVENTORY

@@ -23,7 +23,7 @@ class CategorieStatut
     const ARRIVAGE = 'arrivage';
     const MVT_TRACA = 'mouvement_traca';
     const MVT_STOCK = 'mouvement_stock';
-    const LITIGE_ARR = 'litige arrivage';
+    const DISPUTE_ARR = 'litige arrivage';
     const LITIGE_RECEPT = 'litige reception';
     const DISPATCH = 'acheminement';
     const TRANSFER_REQUEST = 'demande de transfert';

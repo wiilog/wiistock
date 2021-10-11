@@ -46,7 +46,7 @@ class StatusController extends AbstractController {
         $categories = $categoryStatusRepository->findByLabelLike([
             CategorieStatut::DISPATCH,
             CategorieStatut::HANDLING,
-            CategorieStatut::LITIGE_ARR,
+            CategorieStatut::DISPUTE_ARR,
             CategorieStatut::LITIGE_RECEPT,
             CategorieStatut::ARRIVAGE,
             CategorieStatut::PURCHASE_REQUEST

@@ -11,7 +11,7 @@ use App\Entity\FreeField;
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
 use App\Entity\InventoryCategory;
-use App\Entity\Litige;
+use App\Entity\Dispute;
 use App\Entity\DisputeHistoryRecord;
 use App\Entity\FieldsParam;
 use App\Entity\CategorieCL;
@@ -39,7 +39,7 @@ use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\DemandeLivraisonService;
 use App\Service\GlobalParamService;
-use App\Service\LitigeService;
+use App\Service\DisputeService;
 use App\Service\LivraisonsManagerService;
 use App\Service\MailerService;
 use App\Service\MouvementStockService;
@@ -843,8 +843,8 @@ class ReceptionController extends AbstractController {
         return $this->render("reception/show.html.twig", [
             'reception' => $reception,
             'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
-            'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, 'displayOrder'),
-            'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
+            'disputeStatuses' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, 'displayOrder'),
+            'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
             'utilisateurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
             'typeChampsLibres' => $typeChampLibreDL,
             'createDL' => $createDL ? $createDL->getValue() : false,
@@ -979,28 +979,28 @@ class ReceptionController extends AbstractController {
      * @Route("/modifier-litige", name="litige_edit_reception",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::QUALI, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function editLitige(EntityManagerInterface $entityManager,
-                               ArticleDataService $articleDataService,
-                               LitigeService $litigeService,
-                               AttachmentService $attachmentService,
-                               Request $request): Response {
+    public function editDispute(EntityManagerInterface $entityManager,
+                                ArticleDataService     $articleDataService,
+                                DisputeService         $disputeService,
+                                AttachmentService      $attachmentService,
+                                Request                $request): Response {
         $post = $request->request;
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $litigeRepository = $entityManager->getRepository(Litige::class);
+        $disputeRepository = $entityManager->getRepository(Dispute::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
-        $litige = $litigeRepository->find($post->get('id'));
-        $typeBefore = $litige->getType()->getId();
-        $typeBeforeName = $litige->getType()->getLabel();
-        $typeAfter = (int)$post->get('typeLitige');
-        $statutBeforeId = $litige->getStatus()->getId();
-        $statutBeforeName = $litige->getStatus()->getNom();
-        $statutAfterId = (int)$post->get('statutLitige');
+        $dispute = $disputeRepository->find($post->get('id'));
+        $typeBefore = $dispute->getType()->getId();
+        $typeBeforeName = $dispute->getType()->getLabel();
+        $typeAfter = (int)$post->get('disputeType');
+        $statutBeforeId = $dispute->getStatus()->getId();
+        $statutBeforeName = $dispute->getStatus()->getNom();
+        $statutAfterId = (int)$post->get('disputeStatus');
         $statutAfter = $statutRepository->find($statutAfterId);
 
-        $articlesNotAvailableCounter = $litige
+        $articlesNotAvailableCounter = $dispute
             ->getArticles()
             ->filter(function(Article $article) {
                 // articles non disponibles
@@ -1022,46 +1022,46 @@ class ReceptionController extends AbstractController {
             ]);
         }
 
-        $litige
-            ->setDeclarant($utilisateurRepository->find($post->get('declarantLitige')))
+        $dispute
+            ->setReporter($utilisateurRepository->find($post->get('disputeReporter')))
             ->setUpdateDate(new DateTime('now'))
-            ->setType($typeRepository->find($post->get('typeLitige')))
+            ->setType($typeRepository->find($post->get('disputeType')))
             ->setStatus($statutAfter);
 
-        $errorResponse = $this->addArticleIntoDispute($entityManager, $articleDataService, $post->get('colis'), $litige);
+        $errorResponse = $this->addArticleIntoDispute($entityManager, $articleDataService, $post->get('colis'), $dispute);
         if($errorResponse) {
             return $errorResponse;
         }
 
         if($post->get('emergency')) {
-            $litige->setEmergencyTriggered($post->get('emergency') === 'true');
+            $dispute->setEmergencyTriggered($post->get('emergency') === 'true');
         }
         if(!empty($buyers = $post->get('acheteursLitige'))) {
             // on détache les colis existants...
-            $existingBuyers = $litige->getBuyers();
+            $existingBuyers = $dispute->getBuyers();
             foreach($existingBuyers as $buyer) {
-                $litige->removeBuyer($buyer);
+                $dispute->removeBuyer($buyer);
             }
             // ... et on ajoute ceux sélectionnés
             $listBuyer = explode(',', $buyers);
             foreach($listBuyer as $buyerId) {
-                $litige->addBuyer($utilisateurRepository->find($buyerId));
+                $dispute->addBuyer($utilisateurRepository->find($buyerId));
             }
         }
         $entityManager->flush();
 
         $comment = '';
-        $statutinstance = $statutRepository->find($post->get('statutLitige'));
+        $statutinstance = $statutRepository->find($post->get('disputeStatus'));
         $commentStatut = $statutinstance->getComment();
         if($typeBefore !== $typeAfter) {
-            $comment .= "Changement du type : " . $typeBeforeName . " -> " . $litige->getType()->getLabel() . ".";
+            $comment .= "Changement du type : " . $typeBeforeName . " -> " . $dispute->getType()->getLabel() . ".";
         }
         if($statutBeforeId !== $statutAfterId) {
             if(!empty($comment)) {
                 $comment .= "\n";
             }
             $comment .= "Changement du statut : " .
-                $statutBeforeName . " -> " . $litige->getStatus()->getNom() . "." .
+                $statutBeforeName . " -> " . $dispute->getStatus()->getNom() . "." .
                 (!empty($commentStatut) ? ("\n" . $commentStatut . ".") : '');
         }
         if($post->get('commentaire')) {
@@ -1077,7 +1077,7 @@ class ReceptionController extends AbstractController {
         if(!empty($comment)) {
             $histoLitige = new DisputeHistoryRecord();
             $histoLitige
-                ->setDispute($litige)
+                ->setDispute($dispute)
                 ->setDate(new DateTime('now'))
                 ->setUser($currentUser)
                 ->setComment($comment);
@@ -1086,36 +1086,36 @@ class ReceptionController extends AbstractController {
         }
 
         $listAttachmentIdToKeep = $post->get('files') ?? [];
-        $attachments = $litige->getAttachments()->toArray();
+        $attachments = $dispute->getAttachments()->toArray();
         foreach($attachments as $attachment) {
             /** @var Attachment $attachment */
             if(!in_array($attachment->getId(), $listAttachmentIdToKeep)) {
-                $attachmentService->removeAndDeleteAttachment($attachment, $litige);
+                $attachmentService->removeAndDeleteAttachment($attachment, $dispute);
             }
         }
 
-        $litigeService->createDisputeAttachments($litige, $request, $entityManager);
+        $disputeService->createDisputeAttachments($dispute, $request, $entityManager);
         $entityManager->flush();
         $isStatutChange = ($statutBeforeId !== $statutAfterId);
         if($isStatutChange) {
-            $litigeService->sendMailToAcheteursOrDeclarant($litige, LitigeService::CATEGORY_RECEPTION, true);
+            $disputeService->sendMailToAcheteursOrDeclarant($dispute, DisputeService::CATEGORY_RECEPTION, true);
         }
         return new JsonResponse([
             'success' => true,
-            'msg' => 'Le litige <strong>' . $litige->getNumeroLitige() . '</strong> a bien été modifié.'
+            'msg' => 'Le litige <strong>' . $dispute->getNumber() . '</strong> a bien été modifié.'
         ]);
     }
 
     /**
-     * @Route("/creer-litige", name="litige_new_reception", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
+     * @Route("/creer-litige", name="dispute_new_reception", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::QUALI, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
     public function newLitige(EntityManagerInterface $entityManager,
-                              LitigeService $litigeService,
-                              ArticleDataService $articleDataService,
-                              Request $request,
-                              UniqueNumberService $uniqueNumberService,
-                              TranslatorInterface $translator): Response
+                              DisputeService         $disputeService,
+                              ArticleDataService     $articleDataService,
+                              Request                $request,
+                              UniqueNumberService    $uniqueNumberService,
+                              TranslatorInterface    $translator): Response
     {
         $post = $request->request;
 
@@ -1123,34 +1123,34 @@ class ReceptionController extends AbstractController {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
-        $litige = new Litige();
+        $dispute = new Dispute();
 
         $now = new DateTime('now');
 
-        $disputeNumber = $uniqueNumberService->createUniqueNumber($entityManager, Litige::DISPUTE_RECEPTION_PREFIX, Litige::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
+        $disputeNumber = $uniqueNumberService->createUniqueNumber($entityManager, Dispute::DISPUTE_RECEPTION_PREFIX, Dispute::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 
-        $litige
-            ->setStatus($statutRepository->find($post->get('statutLitige')))
-            ->setType($typeRepository->find($post->get('typeLitige')))
-            ->setDeclarant($utilisateurRepository->find($post->get('declarantLitige')))
+        $dispute
+            ->setStatus($statutRepository->find($post->get('disputeStatus')))
+            ->setType($typeRepository->find($post->get('disputeType')))
+            ->setReporter($utilisateurRepository->find($post->get('disputeReporter')))
             ->setCreationDate($now)
-            ->setNumeroLitige($disputeNumber);
+            ->setNumber($disputeNumber);
 
-        $errorResponse = $this->addArticleIntoDispute($entityManager, $articleDataService, $post->get('colisLitige'), $litige);
+        $errorResponse = $this->addArticleIntoDispute($entityManager, $articleDataService, $post->get('disputePacks'), $dispute);
         if($errorResponse) {
             return $errorResponse;
         }
 
         if($post->get('emergency')) {
-            $litige->setEmergencyTriggered($post->get('emergency') === 'true');
+            $dispute->setEmergencyTriggered($post->get('emergency') === 'true');
         }
         if(!empty($buyers = $post->get('acheteursLitige'))) {
             $listBuyers = explode(',', $buyers);
             foreach($listBuyers as $buyer) {
-                $litige->addBuyer($utilisateurRepository->find($buyer));
+                $dispute->addBuyer($utilisateurRepository->find($buyer));
             }
         }
-        $statutinstance = $statutRepository->find($post->get('statutLitige'));
+        $statutinstance = $statutRepository->find($post->get('disputeStatus'));
         $commentStatut = $statutinstance->getComment();
 
         $trimCommentStatut = trim($commentStatut);
@@ -1165,12 +1165,12 @@ class ReceptionController extends AbstractController {
             $histo
                 ->setDate(new DateTime('now'))
                 ->setComment($commentaire)
-                ->setDispute($litige)
+                ->setDispute($dispute)
                 ->setUser($currentUser);
             $entityManager->persist($histo);
         }
 
-        $entityManager->persist($litige);
+        $entityManager->persist($dispute);
 
         try {
             $entityManager->flush();
@@ -1183,13 +1183,13 @@ class ReceptionController extends AbstractController {
             ]);
         }
 
-        $litigeService->createDisputeAttachments($litige, $request, $entityManager);
+        $disputeService->createDisputeAttachments($dispute, $request, $entityManager);
         $entityManager->flush();
-        $litigeService->sendMailToAcheteursOrDeclarant($litige, LitigeService::CATEGORY_RECEPTION);
+        $disputeService->sendMailToAcheteursOrDeclarant($dispute, DisputeService::CATEGORY_RECEPTION);
 
         return new JsonResponse([
             'success' => true,
-            'msg' => 'Le litige <strong>' . $litige->getNumeroLitige() . '</strong> a bien été créé.'
+            'msg' => 'Le litige <strong>' . $dispute->getNumber() . '</strong> a bien été créé.'
         ]);
     }
 
@@ -1201,29 +1201,29 @@ class ReceptionController extends AbstractController {
         if($data = json_decode($request->getContent(), true)) {
             $typeRepository = $entityManager->getRepository(Type::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
-            $litigeRepository = $entityManager->getRepository(Litige::class);
+            $disputeRepository = $entityManager->getRepository(Dispute::class);
             $attachmentRepository = $entityManager->getRepository(Attachment::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
-            $litige = $litigeRepository->find($data['litigeId']);
+            $dispute = $disputeRepository->find($data['disputeId']);
             $colisCode = [];
             $acheteursCode = [];
 
-            foreach($litige->getArticles() as $colis) {
+            foreach($dispute->getArticles() as $colis) {
                 $colisCode[] = [
                     'id' => $colis->getId(),
                     'text' => $colis->getBarCode()
                 ];
             }
-            foreach($litige->getBuyers() as $buyer) {
+            foreach($dispute->getBuyers() as $buyer) {
                 $acheteursCode[] = $buyer->getId();
             }
 
             $html = $this->renderView('reception/modalEditLitigeContent.html.twig', [
-                'litige' => $litige,
-                'typesLitige' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
-                'statusLitige' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, 'displayOrder'),
-                'attachments' => $attachmentRepository->findBy(['litige' => $litige]),
+                'dispute' => $dispute,
+                'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
+                'disputeStatuses' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, 'displayOrder'),
+                'attachments' => $attachmentRepository->findBy(['dispute' => $dispute]),
                 'utilisateurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
             ]);
 
@@ -1239,17 +1239,17 @@ class ReceptionController extends AbstractController {
     public function deleteLitige(Request $request,
                                  EntityManagerInterface $entityManager): Response {
         if($data = json_decode($request->getContent(), true)) {
-            $litigeRepository = $entityManager->getRepository(Litige::class);
+            $disputeRepository = $entityManager->getRepository(Dispute::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
 
-            $dispute = $litigeRepository->find($data['litige']);
-            $disputeNumber = $dispute->getNumeroLitige();
+            $dispute = $disputeRepository->find($data['litige']);
+            $disputeNumber = $dispute->getNumber();
             $articlesInDispute = $dispute->getArticles()->toArray();
 
             $articleStatusAvailable = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
             /** @var Article $article */
             foreach($articlesInDispute as $article) {
-                $article->removeLitige($dispute);
+                $article->removeDispute($dispute);
                 $this->setArticleStatusForTreatedDispute($article, $articleStatusAvailable);
             }
 
@@ -1270,41 +1270,41 @@ class ReceptionController extends AbstractController {
     public function apiReceptionLitiges(EntityManagerInterface $entityManager,
                                         Reception $reception): Response {
 
-        $litigeRepository = $entityManager->getRepository(Litige::class);
+        $disputeRepository = $entityManager->getRepository(Dispute::class);
 
-        /** @var Litige[] $litiges */
-        $litiges = $litigeRepository->findByReception($reception);
+        /** @var Dispute[] $disputes */
+        $disputes = $disputeRepository->findByReception($reception);
 
         $rows = [];
 
-        foreach($litiges as $litige) {
+        foreach($disputes as $dispute) {
             $buyers = [];
             $articles = [];
-            foreach($litige->getBuyers() as $buyer) {
+            foreach($dispute->getBuyers() as $buyer) {
                 $buyers[] = $buyer->getUsername();
             }
-            foreach($litige->getArticles() as $article) {
+            foreach($dispute->getArticles() as $article) {
                 $articles[] = $article->getBarCode();
             }
-            $lastHistoric = count($litige->getDisputeHistory()) > 0
+            $lastHistoric = count($dispute->getDisputeHistory()) > 0
                 ?
-                $litige->getDisputeHistory()[count($litige->getDisputeHistory()) - 1]->getComment()
+                $dispute->getDisputeHistory()[count($dispute->getDisputeHistory()) - 1]->getComment()
                 :
                 '';
             $rows[] = [
-                'type' => $litige->getType()->getLabel(),
-                'status' => $litige->getStatus()->getNom(),
+                'type' => $dispute->getType()->getLabel(),
+                'status' => $dispute->getStatus()->getNom(),
                 'lastHistoric' => $lastHistoric,
-                'date' => $litige->getCreationDate()->format('d/m/Y H:i'),
+                'date' => $dispute->getCreationDate()->format('d/m/Y H:i'),
                 'actions' => $this->renderView('reception/datatableLitigesRow.html.twig', [
                     'receptionId' => $reception->getId(),
                     'url' => [
-                        'edit' => $this->generateUrl('litige_edit_reception', ['id' => $litige->getId()])
+                        'edit' => $this->generateUrl('litige_edit_reception', ['id' => $dispute->getId()])
                     ],
-                    'litigeId' => $litige->getId(),
-                    'disputeNumber' => $litige->getNumeroLitige()
+                    'disputeId' => $dispute->getId(),
+                    'disputeNumber' => $dispute->getNumber()
                 ]),
-                'urgence' => $litige->getEmergencyTriggered()
+                'urgence' => $dispute->getEmergencyTriggered()
             ];
         }
 
@@ -2004,14 +2004,14 @@ class ReceptionController extends AbstractController {
      * @param EntityManagerInterface $entityManager
      * @param ArticleDataService $articleDataService
      * @param string $articlesParamStr
-     * @param Litige $dispute
+     * @param Dispute $dispute
      * @return Response|null
      * @throws NonUniqueResultException
      */
     private function addArticleIntoDispute(EntityManagerInterface $entityManager,
-                                           ArticleDataService $articleDataService,
-                                           string $articlesParamStr,
-                                           Litige $dispute): ?Response {
+                                           ArticleDataService     $articleDataService,
+                                           string                 $articlesParamStr,
+                                           Dispute                $dispute): ?Response {
         if(!empty($articlesParamStr)) {
             $articleRepository = $entityManager->getRepository(Article::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
@@ -2021,7 +2021,7 @@ class ReceptionController extends AbstractController {
             // on détache les colis existants...
             $existingArticles = $dispute->getArticles();
             foreach($existingArticles as $article) {
-                $article->removeLitige($dispute);
+                $article->removeDispute($dispute);
                 $this->setArticleStatusForTreatedDispute($article, $articleStatusAvailable);
             }
 
@@ -2056,8 +2056,8 @@ class ReceptionController extends AbstractController {
                                                       Statut $articleStatusAvailable) {
         // on check si l'article a des
         $currentDisputesCounter = $article
-            ->getLitiges()
-            ->filter(function(Litige $articleDispute) {
+            ->getDisputes()
+            ->filter(function(Dispute $articleDispute) {
                 return !$articleDispute->getStatus()->isTreated();
             })
             ->count();

@@ -223,7 +223,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     private $inventoryCategoryHistory;
 
     /**
-     * @ORM\OneToMany(targetEntity="DisputeHistoryRecord", mappedBy="user")
+     * @ORM\OneToMany(targetEntity=DisputeHistoryRecord::class, mappedBy="user")
      */
     private Collection $disputeHistory;
 
@@ -233,9 +233,9 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     private $receptionsTraca;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Litige", mappedBy="buyers")
+     * @ORM\ManyToMany(targetEntity=Dispute::class, mappedBy="buyers")
      */
-    private $litiges;
+    private $disputes;
 
     /**
      * @ORM\Column(type="json_array", nullable=true)
@@ -311,9 +311,9 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     private $secondaryEmails = [];
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Litige", mappedBy="declarant")
+     * @ORM\OneToMany(targetEntity=Dispute::class, mappedBy="reporter")
      */
-    private $litigesDeclarant;
+    private Collection $reportedDisputes;
 
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\ReferenceArticle", mappedBy="managers")
@@ -402,9 +402,9 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->treatedDispatches = new ArrayCollection();
         $this->treatedHandlings = new ArrayCollection();
         $this->receptionsTraca = new ArrayCollection();
-        $this->litiges = new ArrayCollection();
+        $this->disputes = new ArrayCollection();
         $this->referencesEmergenciesTriggered = new ArrayCollection();
-        $this->litigesDeclarant = new ArrayCollection();
+        $this->reportedDisputes = new ArrayCollection();
         $this->referencesArticle = new ArrayCollection();
         $this->secondaryEmails = [];
         $this->savedDispatchDeliveryNoteData = [];
@@ -1388,28 +1388,28 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     }
 
     /**
-     * @return Collection|Litige[]
+     * @return Collection|Dispute[]
      */
-    public function getLitiges(): Collection
+    public function getDisputes(): Collection
     {
-        return $this->litiges;
+        return $this->disputes;
     }
 
-    public function addLitige(Litige $litige): self
+    public function addDispute(Dispute $dispute): self
     {
-        if (!$this->litiges->contains($litige)) {
-            $this->litiges[] = $litige;
-            $litige->addBuyer($this);
+        if (!$this->disputes->contains($dispute)) {
+            $this->disputes[] = $dispute;
+            $dispute->addBuyer($this);
         }
 
         return $this;
     }
 
-    public function removeLitige(Litige $litige): self
+    public function removeDispute(Dispute $dispute): self
     {
-        if ($this->litiges->contains($litige)) {
-            $this->litiges->removeElement($litige);
-            $litige->removeBuyer($this);
+        if ($this->disputes->contains($dispute)) {
+            $this->disputes->removeElement($dispute);
+            $dispute->removeBuyer($this);
         }
 
         return $this;
@@ -1593,30 +1593,30 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     }
 
     /**
-     * @return Collection|Litige[]
+     * @return Collection|Dispute[]
      */
-    public function getLitigesDeclarant(): Collection
+    public function getReportedDisputes(): Collection
     {
-        return $this->litigesDeclarant;
+        return $this->reportedDisputes;
     }
 
-    public function addLitigesDeclarant(Litige $litigesDeclarant): self
+    public function addDisputeReporter(Dispute $dispute): self
     {
-        if (!$this->litigesDeclarant->contains($litigesDeclarant)) {
-            $this->litigesDeclarant[] = $litigesDeclarant;
-            $litigesDeclarant->setDeclarant($this);
+        if (!$this->reportedDisputes->contains($dispute)) {
+            $this->reportedDisputes[] = $dispute;
+            $dispute->setReporter($this);
         }
 
         return $this;
     }
 
-    public function removeLitigesDeclarant(Litige $litigesDeclarant): self
+    public function removeDisputeReporter(Dispute $dispute): self
     {
-        if ($this->litigesDeclarant->contains($litigesDeclarant)) {
-            $this->litigesDeclarant->removeElement($litigesDeclarant);
+        if ($this->reportedDisputes->contains($dispute)) {
+            $this->reportedDisputes->removeElement($dispute);
             // set the owning side to null (unless already changed)
-            if ($litigesDeclarant->getDeclarant() === $this) {
-                $litigesDeclarant->setDeclarant(null);
+            if ($dispute->getReporter() === $this) {
+                $dispute->setReporter(null);
             }
         }
 

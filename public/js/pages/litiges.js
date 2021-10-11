@@ -53,7 +53,7 @@ function initDatatableLitiges() {
             {"data": "arrivalNumber", 'name': "arrivalNumber", 'title': 'arrivage.n° d\'arrivage', translated: true, className: 'noVis'},
             {"data": 'receptionNumber', 'name': "receptionNumber", 'title': 'réception.n° de réception', translated: true, className: 'noVis'},
             {"data": 'buyers', 'name': 'buyers', 'title': 'Acheteur', 'orderable': false},
-            {"data": 'declarant', 'name': 'declarant', 'title': 'Déclarant'},
+            {"data": 'reporter', 'name': 'reporter', 'title': 'Déclarant'},
             {"data": 'numCommandeBl', 'name': 'numCommandeBl', 'title': 'N° commande / BL'},
             {"data": 'command', 'name': 'command', 'title': 'N° ligne', 'orderable': false},
             {"data": 'provider', 'name': 'provider', 'title': 'Fournisseur'},
@@ -85,13 +85,13 @@ function initDatatableLitiges() {
     tableLitiges = initDataTable('tableLitiges', tableLitigesConfig);
 }
 
-function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arrivageOrReceptionId, litigeId, disputeNumber) {
+function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arrivageOrReceptionId, disputeId, disputeNumber) {
     let route = isArrivage ? 'litige_api_edit' : 'litige_api_edit_reception';
     let path = Routing.generate(route, true);
     let $modal = $('#modalEditLitige');
     let $submit = $modal.find('#submitEditLitige');
     let params = {
-        litigeId: litigeId
+        disputeId
     };
 
     if (isArrivage) {
@@ -129,13 +129,13 @@ function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arr
 
     }, 'json');
 
-    $modal.find($submit).attr('value', litigeId);
+    $modal.find($submit).attr('value', disputeId);
     $('#disputeNumber').text(disputeNumber);
 }
 
 function openTableHisto() {
 
-    let pathHistoLitige = Routing.generate('histo_litige_api', {dispute: $('#litigeId').val()}, true);
+    let pathHistoLitige = Routing.generate('histo_dispute_api', {dispute: $('#disputeId').val()}, true);
     let tableHistoLitigeConfig = {
         ajax: {
             "url": pathHistoLitige,
@@ -155,7 +155,7 @@ function openTableHisto() {
 }
 
 function getCommentAndAddHisto() {
-    let path = Routing.generate('add_comment', {litige: $('#litigeId').val()}, true);
+    let path = Routing.generate('add_comment', {dispute: $('#disputeId').val()}, true);
     let commentLitige = $('#modalEditLitige').find('#litige-edit-commentaire');
     let dataComment = commentLitige.val();
 

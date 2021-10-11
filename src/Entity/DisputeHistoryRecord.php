@@ -35,10 +35,10 @@ class DisputeHistoryRecord
     private ?Utilisateur $user = null;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Litige", inversedBy="disputeHistory")
+     * @ORM\ManyToOne(targetEntity=Dispute::class, inversedBy="disputeHistory")
      * @ORM\JoinColumn(name="dispute_id", referencedColumnName="id", onDelete="CASCADE", nullable=false)
      */
-    private ?Litige $dispute = null;
+    private ?Dispute $dispute = null;
 
     public function getId(): ?int
     {
@@ -85,11 +85,11 @@ class DisputeHistoryRecord
         return $this;
     }
 
-    public function getDispute(): ?Litige {
+    public function getDispute(): ?Dispute {
         return $this->dispute;
     }
 
-    public function setDispute(?Litige $dispute): self {
+    public function setDispute(?Dispute $dispute): self {
         if($this->dispute && $this->dispute !== $dispute) {
             $this->dispute->removeDisputeHistoryRecord($this);
         }

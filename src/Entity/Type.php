@@ -105,9 +105,9 @@ class Type
 	private $demandesLivraison;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Litige", mappedBy="type")
+     * @ORM\OneToMany(targetEntity=Dispute::class, mappedBy="type")
      */
-    private $litiges;
+    private Collection $disputes;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Collecte", mappedBy="type")
@@ -205,7 +205,7 @@ class Type
         $this->referenceArticles = new ArrayCollection();
         $this->articles = new ArrayCollection();
         $this->receptions = new ArrayCollection();
-        $this->litiges = new ArrayCollection();
+        $this->disputes = new ArrayCollection();
         $this->demandesLivraison = new ArrayCollection();
         $this->collectes = new ArrayCollection();
         $this->deliveryUsers = new ArrayCollection();
@@ -373,27 +373,27 @@ class Type
     }
 
     /**
-     * @return Collection|Litige[]
+     * @return Collection|Dispute[]
      */
-    public function getLitiges(): Collection
+    public function getDisputes(): Collection
     {
-        return $this->litiges;
+        return $this->disputes;
     }
 
-    public function addCommentaire(Litige $commentaire): self
+    public function addCommentaire(Dispute $commentaire): self
     {
-        if (!$this->litiges->contains($commentaire)) {
-            $this->litiges[] = $commentaire;
+        if (!$this->disputes->contains($commentaire)) {
+            $this->disputes[] = $commentaire;
             $commentaire->setType($this);
         }
 
         return $this;
     }
 
-    public function removeCommentaire(Litige $commentaire): self
+    public function removeCommentaire(Dispute $commentaire): self
     {
-        if ($this->litiges->contains($commentaire)) {
-            $this->litiges->removeElement($commentaire);
+        if ($this->disputes->contains($commentaire)) {
+            $this->disputes->removeElement($commentaire);
             // set the owning side to null (unless already changed)
             if ($commentaire->getType() === $this) {
                 $commentaire->setType(null);
@@ -403,23 +403,23 @@ class Type
         return $this;
     }
 
-    public function addLitige(Litige $litige): self
+    public function addDispute(Dispute $dispute): self
     {
-        if (!$this->litiges->contains($litige)) {
-            $this->litiges[] = $litige;
-            $litige->setType($this);
+        if (!$this->disputes->contains($dispute)) {
+            $this->disputes[] = $dispute;
+            $dispute->setType($this);
         }
 
         return $this;
     }
 
-    public function removeLitige(Litige $litige): self
+    public function removeDispute(Dispute $dispute): self
     {
-        if ($this->litiges->contains($litige)) {
-            $this->litiges->removeElement($litige);
+        if ($this->disputes->contains($dispute)) {
+            $this->disputes->removeElement($dispute);
             // set the owning side to null (unless already changed)
-            if ($litige->getType() === $this) {
-                $litige->setType(null);
+            if ($dispute->getType() === $this) {
+                $dispute->setType(null);
             }
         }
 

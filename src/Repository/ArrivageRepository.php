@@ -237,22 +237,20 @@ class ArrivageRepository extends EntityRepository
 	 * @throws NonUniqueResultException
 	 * @throws NoResultException
 	 */
-    public function countLitigesUnsolvedByArrivage($arrivage)
+    public function countUnsolvedDisputesByArrivage($arrivage)
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(l)
-			FROM App\Entity\Litige l
-			JOIN l.packs c
-			JOIN l.status s
-			WHERE s.state = :stateNotTreated
-			AND c.arrivage = :arrivage"
-        )
+        return $this->createQueryBuilder('arrival')
+            ->select('COUNT(dispute.id)')
+            ->join('arrival.packs', 'pack')
+            ->join('pack.disputes', 'disputes')
+            ->join('disputes.status', 'status')
+            ->andWhere('pack.arrivage = :arrival')
+            ->andWhere('status.state = :stateNotTreated')
+            ->setMaxResults(1)
             ->setParameter('stateNotTreated', Statut::NOT_TREATED)
-            ->setParameter('arrivage', $arrivage);
-
-        return $query->getSingleScalarResult();
+            ->setParameter('arrival', $arrivage)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     /**

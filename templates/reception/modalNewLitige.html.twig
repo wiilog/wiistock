@@ -13,32 +13,32 @@
                 <div class="modal-body modal-input container-fluid">
                     <div class="row">
                         <div class="form-group col-12">
-                            <label for="statutLitige">Type*</label>
+                            <label>Type*</label>
                             {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
-                                array: typesLitige,
+                                array: disputeTypes,
                                 warningLabel: 'Attention ! Aucun type de litige n\'a été créé',
                                 redirectPath: path('types_index'),
                                 redirectLabel: 'Aller vers la page de types'
                             } %}
-                            <select class="form-control data needed" id="typeLitige" name="typeLitige">
-                                <option placeholder="" disabled value="" selected></option>
-                                {% for type in typesLitige %}
+                            <select class="form-control data needed" name="disputeType" title="Type" placeholder="">
+                                <option  disabled value="" selected></option>
+                                {% for type in disputeTypes %}
                                     <option value="{{ type.id }}">{{ type.label }}</option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div class="form-group col-12">
-                            <label for="statutLitige">Statut*</label>
+                            <label>Statut*</label>
                             {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
-                                array: statusLitige,
+                                array: disputeStatuses,
                                 warningLabel: 'Attention ! Aucun statut de litige n\'a été créé',
                                 redirectPath: path('status_param_index'),
                                 redirectLabel: 'Aller vers la page des statuts'
                             } %}
 
-                            <select class="form-control data needed" id="statutLitige" name="statutLitige">
-                                <option placeholder="" disabled value="" selected></option>
-                                {% for statut in statusLitige %}
+                            <select class="form-control data needed" name="disputeStatus" title="Statut" placeholder="">
+                                <option disabled value="" selected></option>
+                                {% for statut in disputeStatuses %}
                                     <option value="{{ statut.id }}">{{ statut.nom }}</option>
                                 {% endfor %}
                             </select>
@@ -56,8 +56,8 @@
                             </select>
                         </div>
                         <div class="form-group w-100 col-12">
-                            <label for="declarantLitige">Déclarant*</label>
-                            <select class="form-control data select2-declarant needed" name="declarantLitige" id="declarantLitige">
+                            <label for="disputeReporter">Déclarant*</label>
+                            <select class="form-control data select2-declarant needed" name="disputeReporter" id="disputeReporter">
                                 {% for utilisateur in utilisateurs %}
                                     <option value="{{ utilisateur.id }}">{{ utilisateur.text }}</option>
                                 {% endfor %}
@@ -68,9 +68,9 @@
                                    data-id="{{ app.user.id }}"/>
                         </div>
                         <div class="form-group w-100 col-12">
-                            <label for="colisLitige" title="articles">{{ 'réception.articles'|trans }}*</label>
+                            <label for="disputePacks" title="articles">{{ 'réception.articles'|trans }}*</label>
                             <select class="form-control select2 w-100 data needed select2-autocomplete-articles"
-                                    id="colisLitige" name="colisLitige" multiple="multiple">
+                                    id="disputePacks" name="disputePacks" multiple="multiple">
                             </select>
                         </div>
                         <div class="form-group col-8 h-fit-content">

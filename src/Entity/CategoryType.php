@@ -13,7 +13,7 @@ class CategoryType
 {
     const RECEPTION = 'réception';
     const ARTICLE = 'article';
-    const LITIGE = 'litige';
+    const DISPUTE = 'litige';
     const DEMANDE_LIVRAISON = 'demande livraison';
     const DEMANDE_COLLECTE = 'demande collecte';
     const DEMANDE_DISPATCH = 'acheminements';

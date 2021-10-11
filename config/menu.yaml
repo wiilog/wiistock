@@ -46,7 +46,7 @@ parameters:
             icon: 'qualite'
             sub:
                 -   label: 'Litiges'
-                    path: 'litige_index'
+                    path: 'dispute_index'
                     rights:
                         menu: App\Entity\Menu::QUALI
                         action: App\Entity\Action::DISPLAY_LITI

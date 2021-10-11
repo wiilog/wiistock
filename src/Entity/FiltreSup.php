@@ -65,7 +65,7 @@ class FiltreSup
 	const PAGE_INV_ENTRIES = 'inv_entries';
 	const PAGE_INV_MISSIONS = 'inv_missions';
 	const PAGE_INV_SHOW_MISSION = 'inv_mission_show';
-	const PAGE_LITIGE = 'litige';
+	const PAGE_DISPUTE = 'litige';
     const PAGE_RECEIPT_ASSOCIATION = 'receipt_association';
 	const PAGE_ARTICLE = 'article';
     const PAGE_URGENCES = 'urgences';

@@ -105,9 +105,9 @@ class Statut
     private $dispatches;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Litige", mappedBy="status")
+     * @ORM\OneToMany(targetEntity=Dispute::class, mappedBy="status")
      */
-    private $litiges;
+    private Collection $disputes;
 
     /**
      * @ORM\Column(type="boolean", nullable=true)
@@ -185,7 +185,7 @@ class Statut
         $this->collectes = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
         $this->handlings = new ArrayCollection();
-        $this->litiges = new ArrayCollection();
+        $this->disputes = new ArrayCollection();
         $this->dispatches = new ArrayCollection();
         $this->arrivages = new ArrayCollection();
         $this->transferRequests = new ArrayCollection();
@@ -555,30 +555,30 @@ class Statut
     }
 
     /**
-     * @return Collection|Litige[]
+     * @return Collection|Dispute[]
      */
-    public function getLitiges(): Collection
+    public function getDisputes(): Collection
     {
-        return $this->litiges;
+        return $this->disputes;
     }
 
-    public function addLitige(Litige $litige): self
+    public function addDispute(Dispute $dispute): self
     {
-        if (!$this->litiges->contains($litige)) {
-            $this->litiges[] = $litige;
-            $litige->setStatus($this);
+        if (!$this->disputes->contains($dispute)) {
+            $this->disputes[] = $dispute;
+            $dispute->setStatus($this);
         }
 
         return $this;
     }
 
-    public function removeLitige(Litige $litige): self
+    public function removeDispute(Dispute $dispute): self
     {
-        if ($this->litiges->contains($litige)) {
-            $this->litiges->removeElement($litige);
+        if ($this->disputes->contains($dispute)) {
+            $this->disputes->removeElement($dispute);
             // set the owning side to null (unless already changed)
-            if ($litige->getStatus() === $this) {
-                $litige->setStatus(null);
+            if ($dispute->getStatus() === $this) {
+                $dispute->setStatus(null);
             }
         }
 

@@ -9,7 +9,7 @@ use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispatch;
 use App\Entity\Handling;
-use App\Entity\Litige;
+use App\Entity\Dispute;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Type;
@@ -141,7 +141,7 @@ class TypeRepository extends EntityRepository
             ['class' => FreeField::class, 'where' => 'item.type = :id'],
             ['class' => Collecte::class, 'where' => 'item.type = :id'],
             ['class' => Demande::class, 'where' => 'item.type = :id'],
-            ['class' => Litige::class, 'where' => 'item.type = :id'],
+            ['class' => Dispute::class, 'where' => 'item.type = :id'],
             ['class' => Reception::class, 'where' => 'item.type = :id'],
             ['class' => ReferenceArticle::class, 'where' => 'item.type = :id'],
             ['class' => Handling::class, 'where' => 'item.type = :id'],

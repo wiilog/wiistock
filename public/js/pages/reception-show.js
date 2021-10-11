@@ -62,7 +62,7 @@ function initPageModals() {
 
     let modalNewLitige = $('#modalNewLitige');
     let submitNewLitige = $('#submitNewLitige');
-    let urlNewLitige = Routing.generate('litige_new_reception', true);
+    let urlNewLitige = Routing.generate('dispute_new_reception', true);
     InitModal(modalNewLitige, submitNewLitige, urlNewLitige, {tables: [tableLitigesReception]});
 
     let modalEditLitige = $('#modalEditLitige');
@@ -174,13 +174,13 @@ function initDateTimePickerReception() {
     });
 }
 
-function editRowLitigeReception(button, afterLoadingEditModal = () => {}, receptionId, litigeId, disputeNumber) {
+function editRowLitigeReception(button, afterLoadingEditModal = () => {}, receptionId, disputeId, disputeNumber) {
     let path = Routing.generate('litige_api_edit_reception', true);
     let modal = $('#modalEditLitige');
     let submit = $('#submitEditLitige');
 
     let params = {
-        litigeId: litigeId,
+        disputeId,
         reception: receptionId,
         disputeNumber: disputeNumber
     };
@@ -206,12 +206,12 @@ function editRowLitigeReception(button, afterLoadingEditModal = () => {}, recept
         afterLoadingEditModal()
     }, 'json');
 
-    modal.find(submit).attr('value', litigeId);
+    modal.find(submit).attr('value', disputeId);
     $('#disputeNumberReception').text(disputeNumber);
 }
 
 function getCommentAndAddHisto() {
-    let path = Routing.generate('add_comment', {litige: $('#litigeId').val()}, true);
+    let path = Routing.generate('add_comment', {dispute: $('#disputeId').val()}, true);
     let commentLitige = $('#modalEditLitige').find('#litige-edit-commentaire');
     let dataComment = commentLitige.val();
 
@@ -222,7 +222,7 @@ function getCommentAndAddHisto() {
 }
 
 function openTableHisto() {
-    let pathHistoLitige = Routing.generate('histo_litige_api', {dispute: $('#litigeId').val()}, true);
+    let pathHistoLitige = Routing.generate('histo_dispute_api', {dispute: $('#disputeId').val()}, true);
     let tableHistoLitigeConfig = {
         ajax: {
             "url": pathHistoLitige,

@@ -57,7 +57,7 @@ $(function () {
 
 let tableHistoLitige;
 function openTableHisto() {
-    let pathHistoLitige = Routing.generate('histo_litige_api', {dispute: $('#litigeId').val()}, true);
+    let pathHistoLitige = Routing.generate('histo_dispute_api', {dispute: $('#disputeId').val()}, true);
     let tableHistoLitigeConfig = {
         ajax: {
             "url": pathHistoLitige,
@@ -114,7 +114,7 @@ InitModal(
         success: (data) => {
             if (data.packs && data.packs.length > 0) {
                 // update list in dispute forms (new and edit)
-                $('#colisLitige, #colisEditLitige').append(
+                $('#disputePacks, #colisEditLitige').append(
                     ...data.packs.map(({id, code}) => $(`<option value="${id}">${code}</option>`))
                 );
 
@@ -160,7 +160,7 @@ let tableArrivageLitiges = initDataTable('tableArrivageLitiges', tableArrivageLi
 
 let modalNewLitige = $('#modalNewLitige');
 let submitNewLitige = $('#submitNewLitige');
-let urlNewLitige = Routing.generate('litige_new', {reloadArrivage: $('#arrivageId').val()}, true);
+let urlNewLitige = Routing.generate('dispute_new', {reloadArrivage: $('#arrivageId').val()}, true);
 InitModal(modalNewLitige, submitNewLitige, urlNewLitige, {tables: [tableArrivageLitiges]});
 
 let modalEditLitige = $('#modalEditLitige');
@@ -218,13 +218,13 @@ function editRowArrivage(button) {
     modal.find(submit).attr('value', id);
 }
 
-function editRowLitigeArrivage(button, afterLoadingEditModal = () => {}, arrivageId, litigeId, disputeNumber) {
+function editRowLitigeArrivage(button, afterLoadingEditModal = () => {}, arrivageId, disputeId, disputeNumber) {
     let path = Routing.generate('litige_api_edit', true);
     let modal = $('#modalEditLitige');
     let submit = $('#submitEditLitige');
 
     let params = {
-        litigeId: litigeId,
+        disputeId,
         arrivageId: arrivageId
     };
 
@@ -236,7 +236,7 @@ function editRowLitigeArrivage(button, afterLoadingEditModal = () => {}, arrivag
         afterLoadingEditModal()
     }, 'json');
 
-    modal.find(submit).attr('value', litigeId);
+    modal.find(submit).attr('value', disputeId);
     $('#disputeNumberArrival').text(disputeNumber);
 }
 
@@ -252,7 +252,7 @@ function deleteRowArrivage(button, modal, submit, hasLitige) {
 
 function getCommentAndAddHisto()
 {
-    let path = Routing.generate('add_comment', {litige: $('#litigeId').val()}, true);
+    let path = Routing.generate('add_comment', {dispute: $('#disputeId').val()}, true);
     let commentLitige = $('#modalEditLitige').find('#litige-edit-commentaire');
     let dataComment = commentLitige.val();
 

@@ -228,7 +228,7 @@ class PackController extends AbstractController
                 $msg = $translator->trans("colis.Ce colis est référencé dans un ou plusieurs acheminements");
             }
 
-            if (!$pack->getLitiges()->isEmpty()) {
+            if (!$pack->getDisputes()->isEmpty()) {
                 $msg = $translator->trans("colis.Ce colis est référencé dans un ou plusieurs litiges");
             }
             if ($pack->getArrivage() && $arrivage !== $pack->getArrivage()) {

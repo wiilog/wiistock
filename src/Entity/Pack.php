@@ -42,9 +42,9 @@ class Pack implements PairedEntity
     private $arrivage;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Litige", mappedBy="packs")
+     * @ORM\ManyToMany(targetEntity=Dispute::class, mappedBy="packs")
      */
-    private $litiges;
+    private Collection $disputes;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Nature", inversedBy="packs")
@@ -148,7 +148,7 @@ class Pack implements PairedEntity
 
 
     public function __construct() {
-        $this->litiges = new ArrayCollection();
+        $this->disputes = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
         $this->dispatchPacks = new ArrayCollection();
         $this->locationClusterRecords = new ArrayCollection();
@@ -187,28 +187,28 @@ class Pack implements PairedEntity
     }
 
     /**
-     * @return Collection|Litige[]
+     * @return Collection|Dispute[]
      */
-    public function getLitiges(): Collection
+    public function getDisputes(): Collection
     {
-        return $this->litiges;
+        return $this->disputes;
     }
 
-    public function addLitige(Litige $litige): self
+    public function addDispute(Dispute $dispute): self
     {
-        if (!$this->litiges->contains($litige)) {
-            $this->litiges[] = $litige;
-            $litige->addPack($this);
+        if (!$this->disputes->contains($dispute)) {
+            $this->disputes[] = $dispute;
+            $dispute->addPack($this);
         }
 
         return $this;
     }
 
-    public function removeLitige(Litige $litige): self
+    public function removeDispute(Dispute $dispute): self
     {
-        if ($this->litiges->contains($litige)) {
-            $this->litiges->removeElement($litige);
-            $litige->removePack($this);
+        if ($this->disputes->contains($dispute)) {
+            $this->disputes->removeElement($dispute);
+            $dispute->removePack($this);
         }
 
         return $this;

@@ -7,9 +7,9 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\LitigeRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\DisputeRepository")
  */
-class Litige
+class Dispute
 {
     // origine du litige
     const ORIGIN_RECEPTION = 'REC';
@@ -23,7 +23,7 @@ class Litige
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
 
 	/**
@@ -37,39 +37,39 @@ class Litige
 	private $updateDate;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Pack", inversedBy="litiges")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Pack", inversedBy="disputes")
      */
-    private $packs;
+    private Collection $packs;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="litiges")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="disputes")
      */
-    private $type;
+    private ?Type $type = null;
 
     /**
-     * @ORM\OneToMany(targetEntity="Attachment", mappedBy="litige")
+     * @ORM\OneToMany(targetEntity=Attachment::class, mappedBy="dispute")
      */
-    private $attachements;
+    private Collection $attachements;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="litiges")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="disputes")
      */
-    private $status;
+    private ?Statut $status = null;
 
     /**
-     * @ORM\OneToMany(targetEntity="DisputeHistoryRecord", mappedBy="dispute")
+     * @ORM\OneToMany(targetEntity=DisputeHistoryRecord::class, mappedBy="dispute")
      */
     private Collection $disputeHistory;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Article", inversedBy="litiges")
+     * @ORM\ManyToMany(targetEntity=Article::class, inversedBy="disputes")
      */
-    private $articles;
+    private Collection $articles;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Utilisateur", inversedBy="litiges")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Utilisateur", inversedBy="disputes")
      */
-    private $buyers;
+    private Collection $buyers;
 
     /**
      * @ORM\Column(type="boolean", nullable=true)
@@ -79,12 +79,12 @@ class Litige
     /**
      * @ORM\Column(type="string", length=64, nullable=false, unique=true)
      */
-    private $numeroLitige;
+    private ?string $number = null;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="litigesDeclarant")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="reportedDisputes")
      */
-    private $declarant;
+    private ?Utilisateur $reporter = null;
 
     public function __construct()
     {
@@ -125,7 +125,7 @@ class Litige
     {
         if (!$this->attachements->contains($piecesJointe)) {
             $this->attachements[] = $piecesJointe;
-            $piecesJointe->setLitige($this);
+            $piecesJointe->setDispute($this);
         }
 
         return $this;
@@ -136,8 +136,8 @@ class Litige
         if ($this->attachements->contains($piecesJointe)) {
             $this->attachements->removeElement($piecesJointe);
             // set the owning side to null (unless already changed)
-            if ($piecesJointe->getLitige() === $this) {
-                $piecesJointe->setLitige(null);
+            if ($piecesJointe->getDispute() === $this) {
+                $piecesJointe->setDispute(null);
             }
         }
 
@@ -215,7 +215,7 @@ class Litige
     {
         if (!$this->attachements->contains($attachment)) {
             $this->attachements[] = $attachment;
-            $attachment->setLitige($this);
+            $attachment->setDispute($this);
         }
 
         return $this;
@@ -226,8 +226,8 @@ class Litige
         if ($this->attachements->contains($attachment)) {
             $this->attachements->removeElement($attachment);
             // set the owning side to null (unless already changed)
-            if ($attachment->getLitige() === $this) {
-                $attachment->setLitige(null);
+            if ($attachment->getDispute() === $this) {
+                $attachment->setDispute(null);
             }
         }
 
@@ -330,26 +330,26 @@ class Litige
         return $this;
     }
 
-    public function getNumeroLitige(): ?string
+    public function getNumber(): ?string
     {
-        return $this->numeroLitige;
+        return $this->number;
     }
 
-    public function setNumeroLitige(?string $numeroLitige): self
+    public function setNumber(?string $number): self
     {
-        $this->numeroLitige = $numeroLitige;
+        $this->number = $number;
 
         return $this;
     }
 
-    public function getDeclarant(): ?Utilisateur
+    public function getReporter(): ?Utilisateur
     {
-        return $this->declarant;
+        return $this->reporter;
     }
 
-    public function setDeclarant(?Utilisateur $declarant): self
+    public function setReporter(?Utilisateur $reporter): self
     {
-        $this->declarant = $declarant;
+        $this->reporter = $reporter;
 
         return $this;
     }
@@ -357,7 +357,7 @@ class Litige
     public function serialize()
     {
         return [
-            'numeroLitige' => $this->getNumeroLitige(),
+            'number' => $this->getNumber(),
             'type' => $this->getType() ? $this->getType()->getLabel() : '',
             'status' => $this->getStatus() ? $this->getStatus()->getNom() : '',
             'creationDate' => $this->getCreationDate() ? $this->getCreationDate()->format('d/m/Y') : '',

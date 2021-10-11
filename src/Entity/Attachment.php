@@ -40,11 +40,11 @@ class Attachment
     private $arrivage;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Litige", inversedBy="attachements")
-     * @ORM\JoinColumn(name="litige_id", referencedColumnName="id", onDelete="CASCADE")
-     * @ORM\JoinColumn(nullable=true)
+     * @ORM\ManyToOne(targetEntity=Dispute::class, inversedBy="attachements")
+     * @ORM\JoinColumn(name="dispute_id", referencedColumnName="id", onDelete="CASCADE", nullable=true)
+     * @ORM\JoinColumn()
      */
-    private $litige;
+    private ?Dispute $dispute = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=TrackingMovement::class, inversedBy="attachements")
@@ -157,14 +157,14 @@ class Attachment
         return $this;
     }
 
-    public function getLitige(): ?Litige
+    public function getDispute(): ?Dispute
     {
-        return $this->litige;
+        return $this->dispute;
     }
 
-    public function setLitige(?Litige $litige): self
+    public function setDispute(?Dispute $dispute): self
     {
-        $this->litige = $litige;
+        $this->dispute = $dispute;
 
         return $this;
     }
