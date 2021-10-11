@@ -3,9 +3,10 @@
 namespace App\Repository;
 
 use App\Entity\Litige;
-use App\Entity\LitigeHistoric;
+use App\Entity\DisputeHistoryRecord;
 use App\Helper\QueryCounter;
 use DateTime;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Exception;
@@ -111,22 +112,20 @@ class LitigeRepository extends EntityRepository
 	}
 
 	/**
-	 * @param int $litigeId
-	 * @return LitigeHistoric
+	 * @param int $disputeId
+	 * @return DisputeHistoryRecord
 	 */
-	public function getLastHistoricByLitigeId($litigeId)
+	public function getLastHistoricByLitigeId($disputeId)
 	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-		/** @lang DQL */
-			"SELECT lh.date, lh.comment
-			FROM App\Entity\LitigeHistoric lh
-			WHERE lh.litige = :litige
-			ORDER BY lh.date DESC
-			")
-		->setParameter('litige', $litigeId);
-
-		$result = $query->execute();
+        $result = $this->createQueryBuilder('dispute')
+            ->select('disputeHistoryRecord.date')
+            ->addSelect('disputeHistoryRecord.comment')
+            ->join('dispute.disputeHistory', 'disputeHistoryRecord')
+            ->andWhere('dispute = :dispute')
+            ->orderBy('disputeHistoryRecord.date', Criteria::DESC)
+            ->setParameter('dispute', $disputeId)
+            ->getQuery()
+            ->execute();
 
 		return $result ? $result[0] : null;
 	}
@@ -241,7 +240,7 @@ class LitigeRepository extends EntityRepository
 			->from('App\Entity\Litige', 'litige')
 			->leftJoin('litige.type', 't')
 			->leftJoin('litige.status', 's')
-			->leftJoin('litige.litigeHistorics', 'lh')
+			->leftJoin('litige.disputeHistory', 'join_dispute_history_record')
 			// litiges sur arrivage
             ->addSelect('declarant.username as declarantUsername')
             ->addSelect('buyers.username as achUsername')
@@ -359,7 +358,7 @@ class LitigeRepository extends EntityRepository
 						ach.email LIKE :value OR
 						buyers.email LIKE :value OR
 						s.nom LIKE :value OR
-						lh.comment LIKE :value OR
+						join_dispute_history_record.comment LIKE :value OR
 						aFourn.nom LIKE :value OR
 						rFourn.nom LIKE :value OR
 						ra.reference LIKE :value OR

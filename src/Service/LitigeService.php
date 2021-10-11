@@ -275,9 +275,9 @@ class LitigeService {
                 $row[] = $fournisseur ? $fournisseur->getNom() : '';
                 $row[] = ''; // N° de ligne
                 $row[] = $buyersMailsStr;
-                $litigeHistorics = $dispute->getLitigeHistorics();
-                if (!$litigeHistorics->isEmpty()) {
-                    $historic = $litigeHistorics->last();
+                $disputeHistory = $dispute->getDisputeHistory();
+                if (!$disputeHistory->isEmpty()) {
+                    $historic = $disputeHistory->last();
                     $row[] = $historic->getDate() ? $historic->getDate()->format('d/m/Y H:i') : '';
                     $row[] = $historic->getUser() ? $historic->getUser()->getUsername() : '';
                     $row[] = $historic->getComment();
@@ -316,11 +316,11 @@ class LitigeService {
 
                 $row[] = implode(', ', $litigeRepository->getCommandesByLitigeId($dispute->getId()));
 
-                $litigeHistorics = $dispute->getLitigeHistorics();
+                $disputeHistory = $dispute->getDisputeHistory();
 
                 $row[] = $buyersMailsStr;
-                if (!$litigeHistorics->isEmpty()) {
-                    $historic = $litigeHistorics->last();
+                if (!$disputeHistory->isEmpty()) {
+                    $historic = $disputeHistory->last();
                     $row[] = ($historic->getDate() ? $historic->getDate()->format('d/m/Y H:i') : '');
                     $row[] = $historic->getUser() ? $historic->getUser()->getUsername() : '';
                     $row[] = $historic->getComment();

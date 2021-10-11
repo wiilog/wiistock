@@ -15,7 +15,7 @@ use App\Entity\Pack;
 use App\Entity\FieldsParam;
 use App\Entity\Fournisseur;
 use App\Entity\Litige;
-use App\Entity\LitigeHistoric;
+use App\Entity\DisputeHistoryRecord;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
@@ -836,11 +836,11 @@ class ArrivageController extends AbstractController
         $currentUser = $this->getUser();
 
         if (!empty($commentaire)) {
-            $histo = new LitigeHistoric();
+            $histo = new DisputeHistoryRecord();
             $histo
                 ->setDate(new DateTime('now'))
                 ->setComment($commentaire)
-                ->setLitige($litige)
+                ->setDispute($litige)
                 ->setUser($currentUser);
             $entityManager->persist($histo);
         }
@@ -1078,9 +1078,9 @@ class ArrivageController extends AbstractController
         }
 
         if (!empty($comment)) {
-            $histoLitige = new LitigeHistoric();
+            $histoLitige = new DisputeHistoryRecord();
             $histoLitige
-                ->setLitige($litige)
+                ->setDispute($litige)
                 ->setDate(new DateTime('now'))
                 ->setUser($currentUser)
                 ->setComment($comment);

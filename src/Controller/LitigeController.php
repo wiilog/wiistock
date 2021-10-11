@@ -8,7 +8,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Litige;
 use App\Entity\Menu;
-use App\Entity\LitigeHistoric;
+use App\Entity\DisputeHistoryRecord;
 
 use App\Entity\Attachment;
 use App\Entity\Statut;
@@ -196,23 +196,21 @@ class LitigeController extends AbstractController
 	}
 
     /**
-     * @Route("/histo/{litige}", name="histo_litige_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @Route("/histo/{dispute}", name="histo_litige_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-	public function apiHistoricLitige(Request $request,
-                                      EntityManagerInterface $entityManager,
-                                      Litige $litige): Response
+	public function apiHistoricLitige(EntityManagerInterface $entityManager,
+                                      Litige                 $dispute): Response
     {
         $rows = [];
-        $idLitige = $litige->getId();
-        $litigeHistoricRepository = $entityManager->getRepository(LitigeHistoric::class);
-        $litigeHisto = $litigeHistoricRepository->findByLitige($idLitige);
+        $disputeHistoryRecordRepository = $entityManager->getRepository(DisputeHistoryRecord::class);
+        $disputeHistory = $disputeHistoryRecordRepository->findBy(['dispute' => $dispute]);
 
-        foreach ($litigeHisto as $histo)
+        foreach ($disputeHistory as $record)
         {
             $rows[] = [
-                'user' => $histo->getUser() ? $histo->getUser()->getUsername() : '',
-                'date' => $histo->getDate() ? $histo->getDate()->format('d/m/Y H:i') : '',
-                'commentaire' => nl2br($histo->getComment()),
+                'user' => $record->getUser() ? $record->getUser()->getUsername() : '',
+                'date' => $record->getDate() ? $record->getDate()->format('d/m/Y H:i') : '',
+                'commentaire' => nl2br($record->getComment()),
             ];
         }
         $data['data'] = $rows;
@@ -230,13 +228,13 @@ class LitigeController extends AbstractController
 
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
-            $litigeHisto = new LitigeHistoric();
-            $litigeHisto
-                ->setLitige($litige)
+            $historyRecord = new DisputeHistoryRecord();
+            $historyRecord
+                ->setDispute($litige)
                 ->setUser($currentUser)
                 ->setDate(new DateTime('now'))
                 ->setComment($data);
-            $em->persist($litigeHisto);
+            $em->persist($historyRecord);
             $em->flush();
 
             return new JsonResponse(true);

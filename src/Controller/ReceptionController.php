@@ -12,7 +12,7 @@ use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
 use App\Entity\InventoryCategory;
 use App\Entity\Litige;
-use App\Entity\LitigeHistoric;
+use App\Entity\DisputeHistoryRecord;
 use App\Entity\FieldsParam;
 use App\Entity\CategorieCL;
 use App\Entity\MouvementStock;
@@ -1075,9 +1075,9 @@ class ReceptionController extends AbstractController {
         $currentUser = $this->getUser();
 
         if(!empty($comment)) {
-            $histoLitige = new LitigeHistoric();
+            $histoLitige = new DisputeHistoryRecord();
             $histoLitige
-                ->setLitige($litige)
+                ->setDispute($litige)
                 ->setDate(new DateTime('now'))
                 ->setUser($currentUser)
                 ->setComment($comment);
@@ -1161,11 +1161,11 @@ class ReceptionController extends AbstractController {
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
         if(!empty($commentaire)) {
-            $histo = new LitigeHistoric();
+            $histo = new DisputeHistoryRecord();
             $histo
                 ->setDate(new DateTime('now'))
                 ->setComment($commentaire)
-                ->setLitige($litige)
+                ->setDispute($litige)
                 ->setUser($currentUser);
             $entityManager->persist($histo);
         }
@@ -1286,9 +1286,9 @@ class ReceptionController extends AbstractController {
             foreach($litige->getArticles() as $article) {
                 $articles[] = $article->getBarCode();
             }
-            $lastHistoric = count($litige->getLitigeHistorics()) > 0
+            $lastHistoric = count($litige->getDisputeHistory()) > 0
                 ?
-                $litige->getLitigeHistorics()[count($litige->getLitigeHistorics()) - 1]->getComment()
+                $litige->getDisputeHistory()[count($litige->getDisputeHistory()) - 1]->getComment()
                 :
                 '';
             $rows[] = [

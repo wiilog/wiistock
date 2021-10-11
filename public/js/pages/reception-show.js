@@ -222,7 +222,7 @@ function getCommentAndAddHisto() {
 }
 
 function openTableHisto() {
-    let pathHistoLitige = Routing.generate('histo_litige_api', {litige: $('#litigeId').val()}, true);
+    let pathHistoLitige = Routing.generate('histo_litige_api', {dispute: $('#litigeId').val()}, true);
     let tableHistoLitigeConfig = {
         ajax: {
             "url": pathHistoLitige,

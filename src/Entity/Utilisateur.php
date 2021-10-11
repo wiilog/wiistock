@@ -223,9 +223,9 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     private $inventoryCategoryHistory;
 
     /**
-     * @ORM\OneToMany(targetEntity="LitigeHistoric", mappedBy="user")
+     * @ORM\OneToMany(targetEntity="DisputeHistoryRecord", mappedBy="user")
      */
-    private $litigeHistorics;
+    private Collection $disputeHistory;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\ReceiptAssociation", mappedBy="user")
@@ -396,7 +396,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->dispatchTypes = new ArrayCollection();
         $this->handlingTypes = new ArrayCollection();
         $this->filtresSup = new ArrayCollection();
-        $this->litigeHistorics = new ArrayCollection();
+        $this->disputeHistory = new ArrayCollection();
         $this->receivedDispatches = new ArrayCollection();
         $this->requestedDispatches = new ArrayCollection();
         $this->treatedDispatches = new ArrayCollection();
@@ -1202,53 +1202,30 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     }
 
     /**
-     * @return Collection|LitigeHistoric[]
+     * @return Collection|DisputeHistoryRecord[]
      */
-    public function getLitigeHistorics(): Collection
+    public function getDisputeHistory(): Collection
     {
-        return $this->litigeHistorics;
+        return $this->disputeHistory;
     }
 
-    public function addLitigeHistory(LitigeHistoric $litigeHistory): self
+    public function addDisputeHistoryRecord(DisputeHistoryRecord $record): self
     {
-        if (!$this->litigeHistorics->contains($litigeHistory)) {
-            $this->litigeHistorics[] = $litigeHistory;
-            $litigeHistory->setUser($this);
+        if (!$this->disputeHistory->contains($record)) {
+            $this->disputeHistory[] = $record;
+            $record->setUser($this);
         }
 
         return $this;
     }
 
-    public function removeLitigeHistory(LitigeHistoric $litigeHistory): self
+    public function removeDisputeHistoryRecord(DisputeHistoryRecord $record): self
     {
-        if ($this->litigeHistorics->contains($litigeHistory)) {
-            $this->litigeHistorics->removeElement($litigeHistory);
+        if ($this->disputeHistory->contains($record)) {
+            $this->disputeHistory->removeElement($record);
             // set the owning side to null (unless already changed)
-            if ($litigeHistory->getUser() === $this) {
-                $litigeHistory->setUser(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function addLitigeHistoric(LitigeHistoric $litigeHistoric): self
-    {
-        if (!$this->litigeHistorics->contains($litigeHistoric)) {
-            $this->litigeHistorics[] = $litigeHistoric;
-            $litigeHistoric->setUser($this);
-        }
-
-        return $this;
-    }
-
-    public function removeLitigeHistoric(LitigeHistoric $litigeHistoric): self
-    {
-        if ($this->litigeHistorics->contains($litigeHistoric)) {
-            $this->litigeHistorics->removeElement($litigeHistoric);
-            // set the owning side to null (unless already changed)
-            if ($litigeHistoric->getUser() === $this) {
-                $litigeHistoric->setUser(null);
+            if ($record->getUser() === $this) {
+                $record->setUser(null);
             }
         }
 

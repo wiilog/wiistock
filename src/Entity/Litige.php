@@ -57,9 +57,9 @@ class Litige
     private $status;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\LitigeHistoric", mappedBy="litige")
+     * @ORM\OneToMany(targetEntity="DisputeHistoryRecord", mappedBy="dispute")
      */
-    private $litigeHistorics;
+    private Collection $disputeHistory;
 
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\Article", inversedBy="litiges")
@@ -89,7 +89,7 @@ class Litige
     public function __construct()
     {
         $this->attachements = new ArrayCollection();
-        $this->litigeHistorics = new ArrayCollection();
+        $this->disputeHistory = new ArrayCollection();
         $this->packs = new ArrayCollection();
         $this->articles = new ArrayCollection();
         $this->buyers = new ArrayCollection();
@@ -157,30 +157,30 @@ class Litige
     }
 
     /**
-     * @return Collection|LitigeHistoric[]
+     * @return Collection|DisputeHistoryRecord[]
      */
-    public function getLitigeHistorics(): Collection
+    public function getDisputeHistory(): Collection
     {
-        return $this->litigeHistorics;
+        return $this->disputeHistory;
     }
 
-    public function addLitigeHistory(LitigeHistoric $litigeHistory): self
+    public function addDisputeHistoryRecord(DisputeHistoryRecord $record): self
     {
-        if (!$this->litigeHistorics->contains($litigeHistory)) {
-            $this->litigeHistorics[] = $litigeHistory;
-            $litigeHistory->setLitige($this);
+        if (!$this->disputeHistory->contains($record)) {
+            $this->disputeHistory[] = $record;
+            $record->setDispute($this);
         }
 
         return $this;
     }
 
-    public function removeLitigeHistory(LitigeHistoric $litigeHistory): self
+    public function removeDisputeHistoryRecord(DisputeHistoryRecord $record): self
     {
-        if ($this->litigeHistorics->contains($litigeHistory)) {
-            $this->litigeHistorics->removeElement($litigeHistory);
+        if ($this->disputeHistory->contains($record)) {
+            $this->disputeHistory->removeElement($record);
             // set the owning side to null (unless already changed)
-            if ($litigeHistory->getLitige() === $this) {
-                $litigeHistory->setLitige(null);
+            if ($record->getDispute() === $this) {
+                $record->setDispute(null);
             }
         }
 
@@ -228,29 +228,6 @@ class Litige
             // set the owning side to null (unless already changed)
             if ($attachment->getLitige() === $this) {
                 $attachment->setLitige(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function addLitigeHistoric(LitigeHistoric $litigeHistoric): self
-    {
-        if (!$this->litigeHistorics->contains($litigeHistoric)) {
-            $this->litigeHistorics[] = $litigeHistoric;
-            $litigeHistoric->setLitige($this);
-        }
-
-        return $this;
-    }
-
-    public function removeLitigeHistoric(LitigeHistoric $litigeHistoric): self
-    {
-        if ($this->litigeHistorics->contains($litigeHistoric)) {
-            $this->litigeHistorics->removeElement($litigeHistoric);
-            // set the owning side to null (unless already changed)
-            if ($litigeHistoric->getLitige() === $this) {
-                $litigeHistoric->setLitige(null);
             }
         }
 
