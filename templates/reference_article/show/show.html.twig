@@ -1,6 +1,7 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Stock | Référence | Article de référence{% endblock %}
+{% block title %}Stock | {{ 'reference.références'|trans }} | Article de référence{% endblock %}
+{% block title_tooltip %}Stock | Références | Article de référence{% endblock %}
 {% block titleLink path('reference_article_index') %}
 
 {% block stylesheets %}
@@ -29,9 +30,10 @@
                                 <span class="wii-field-text">Quantité disponible <strong>{{ referenceArticle.quantiteDisponible }}</strong></span>
                             </div>
                             <div class="d-flex align-content-center">
-                            <span class="wii-small-text mr-3">
-                                Référence {{ referenceArticle.statut == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') ? 'active' : 'inactive' }}
-                            </span>
+                                {% set active = referenceArticle.statut == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') ? 'active' : 'inactive' %}
+                                <span class="wii-small-text mr-3" title="Référence {{ active }}">
+                                    {{ 'reference.Référence' | trans ~ ' ' ~ active }}
+                                </span>
                                 <div class="d-flex align-content-center">
                                     <img src="{{ asset('svg/reference_article/' ~ (referenceArticle.needsMobileSync
                                         ? 'mobile-sync-on.svg'
@@ -43,7 +45,7 @@
                                                   alt="Icône information"
                                                   width="10px"
                                                   class="has-tooltip"
-                                                  title="Permet de sélectionner la référence lors de la création d'une demande de livraison sur l'application mobile">
+                                                  title="Permet de sélectionner la {{ 'reference.référence' | trans }} lors de la création d'une demande de livraison sur l'application mobile">
                                         </sup>
                                     </span>
                                 </div>
@@ -113,7 +115,8 @@
                                     {% endfor %}
                                 {% else %}
                                     <div class="d-flex mt-2">
-                                        <span class="wii-small-text">Cette référence n'a aucune pièce jointe</span>
+                                        <span class="wii-small-text"
+                                              title="Cette référence n'a aucune pièce jointe">Cette {{ 'reference.référence' | trans }} n'a aucune pièce jointe</span>
                                     </div>
                                 {% endif %}
                             </div>
@@ -203,7 +206,7 @@
                         <div class="d-flex align-items-center urgent-container">
                             <img src="{{ asset('svg/reference_article/urgent.svg') }}" alt="Icône référence urgente" width="25px">
                             <div class="d-flex flex-column ml-3">
-                                <span class="wii-field-name">Référence urgente</span>
+                                <span class="wii-field-name" title="Référence urgente">{{ 'reference.Référence' | trans }} urgente</span>
                                 <div class="wii-body-text">{{ referenceArticle.emergencyComment | raw }}</div>
                             </div>
                         </div>
@@ -270,7 +273,7 @@
                         </div>
                     {% else %}
                         <div class="content ml-3">
-                            <span class="wii-small-text">Cette référence n'a aucun champ libre</span>
+                            <span class="wii-small-text" title="Cette référence n'a aucun champ libre">Cette {{ 'reference.référence' | trans }} n'a aucun champ libre</span>
                         </div>
                     {% endif %}
                 </div>

@@ -96,13 +96,13 @@
                         </div>
                     </div>
                     <div class="col-md-7 col-12">
-                        <label class="wii-field-name">
-                            Référence*
-                            <input type="text" name="reference" class="form-control data needed" placeholder="Référence"
+                        <label class="wii-field-name" title="Référence">
+                            {{ 'reference.Référence' | trans }}*
+                            <input type="text" name="reference" class="form-control data needed" placeholder="{{ 'reference.Référence' | trans }}"
                                    value="{{ reference.reference }}">
                         </label>
-                        <label class="mt-3 wii-field-name">
-                            Libellé*
+                        <label class="mt-3 wii-field-name" title="Libellé">
+                            {{ 'reference.Libellé' | trans }}*
                             <input type="text" name="libelle" class="form-control data needed" placeholder="Libellé" value="{{ reference.libelle }}">
                         </label>
                         {% if not reference.id %}
@@ -139,7 +139,7 @@
                                      alt="Icône information"
                                      width="10px"
                                      class="has-tooltip"
-                                     title="Permet de sélectionner la référence lors de la création d'une demande de livraison sur l'application mobile">
+                                     title="Permet de sélectionner la {{ 'reference.référence' | trans }} lors de la création d'une demande de livraison sur l'application mobile">
                             </sup>
                         </label>
                     </div>
