@@ -33,7 +33,7 @@ class InactiveSensorsCommand extends Command {
         $wrappers = $wrapperRepository->findBy([
             'deleted' => false
         ]);
-        $nowMinus48Hours = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $nowMinus48Hours = new \DateTime();
         $nowMinus48Hours->modify('-2 day');
         /**
          * @var SensorWrapper $wrapper
