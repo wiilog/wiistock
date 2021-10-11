@@ -164,7 +164,7 @@ class ReferenceArticleController extends AbstractController
 
             $refArticle = new ReferenceArticle();
             $refArticle
-                ->setNeedsMobileSync(filter_var($data['mobileSync'], FILTER_VALIDATE_BOOLEAN))
+                ->setNeedsMobileSync(filter_var($data['mobileSync'] ?? false, FILTER_VALIDATE_BOOLEAN))
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
                 ->setCommentaire($data['commentaire'])
