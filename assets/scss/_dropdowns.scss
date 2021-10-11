@@ -1,11 +1,10 @@
+@import 'variables';
+
 .dropdown-menu.dropdown-follow-gt {
     & > .dropdown-item {
-        &:not(.disabled) {
-            color: $backgroundBodyColorDark;
-        }
-
-        &:active {
-            background-color: $backgroundBodyColorDark;
+        &:active,
+        &:hover {
+            background-color: $primary;
             color: white !important;
         }
     }
