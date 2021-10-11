@@ -1,3 +1,5 @@
+@import "variables";
+
 $maxColumnOnRow: 12;
 $maxRowOnPage: 12;
 $responsive-breakpoint: map-get($grid-breakpoints, lg);
@@ -240,7 +242,7 @@ $rowNumberToDatatableHeight: (
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    box-shadow: 2px 2px 3px grey;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
     background: $white;
 
     .dashboard:not(.dashboard-bounce) &,

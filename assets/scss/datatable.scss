@@ -3,7 +3,6 @@
 .dataTables_wrapper .dataTables_paginate .paginate_button {
     @extend .btn;
     @extend .btn-sm;
-    color: $primary !important;
 
     &.current {
         background: $primary !important;
@@ -100,7 +99,7 @@ table.wii-table {
         border: none;
         padding-left: 0.75rem;
         padding-right: 0.75rem;
-        color: #1A1A1A !important;
+        color: $black !important;
     }
 
     &.next, &.previous {
