@@ -232,6 +232,8 @@ function openTableHisto() {
             {"data": 'user', 'name': 'Utilisateur', 'title': 'Utilisateur'},
             {"data": 'date', 'name': 'date', 'title': 'Date'},
             {"data": 'commentaire', 'name': 'commentaire', 'title': 'Commentaire'},
+            {data: 'status', name: 'status', title: 'Statut'},
+            {data: 'type', name: 'type', title: 'Type'},
         ],
         rowConfig: {
             needsRowClickAction: true,

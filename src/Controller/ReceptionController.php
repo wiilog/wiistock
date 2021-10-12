@@ -12,7 +12,6 @@ use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
 use App\Entity\InventoryCategory;
 use App\Entity\Dispute;
-use App\Entity\DisputeHistoryRecord;
 use App\Entity\FieldsParam;
 use App\Entity\CategorieCL;
 use App\Entity\MouvementStock;
@@ -59,9 +58,7 @@ use App\Service\FreeFieldService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
 
-use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -72,9 +69,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 
 /**
  * @Route("/reception")
@@ -856,17 +850,7 @@ class ReceptionController extends AbstractController {
     }
 
     /**
-     * @Route(
-     *     "/autocomplete-art{reception}",
-     *     name="get_article_reception",
-     *     options={"expose"=true},
-     *     methods="GET|POST",
-     *     condition="request.isXmlHttpRequest()"
-     * )
-     *
-     * @param ArticleDataService $articleDataService
-     * @param Reception $reception
-     * @return JsonResponse
+     * @Route("/autocomplete-art{reception}", name="get_article_reception", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function getArticles(ArticleDataService $articleDataService,
                                 Reception $reception): JsonResponse {
@@ -889,13 +873,6 @@ class ReceptionController extends AbstractController {
 
     /**
      * @Route("/autocomplete-ref-art/{reception}", name="get_ref_article_reception", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     *
-     * @param Request $request
-     * @param Reception $reception
-     *
-     * @param EntityManagerInterface $entityManager
-     * @param RefArticleDataService $refArticleDataService
-     * @return JsonResponse
      */
     public function getRefTypeQtyArticle(Request $request,
                                          Reception $reception,
@@ -1159,8 +1136,8 @@ class ReceptionController extends AbstractController {
             ]
         );
 
-        $entityManager->persist($historyRecord);
         $entityManager->persist($dispute);
+        $entityManager->persist($historyRecord);
 
         try {
             $entityManager->flush();
@@ -1339,13 +1316,8 @@ class ReceptionController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @param Reception $reception
-     * @throws Exception
-     */
     private function validateReception(EntityManagerInterface $entityManager,
-                                       $reception) {
+                                       Reception $reception) {
         $statutRepository = $entityManager->getRepository(Statut::class);
 
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, Reception::STATUT_RECEPTION_TOTALE);
@@ -1427,15 +1399,6 @@ class ReceptionController extends AbstractController {
 
     /**
      * @Route("/{reception}/etiquettes", name="reception_bar_codes_print", options={"expose"=true})
-     * @param Reception $reception
-     * @param EntityManagerInterface $entityManager
-     * @param RefArticleDataService $refArticleDataService
-     * @param ArticleDataService $articleDataService
-     * @param PDFGeneratorService $PDFGeneratorService
-     * @return Response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
      */
     public function getReceptionBarCodes(Reception $reception,
                                          EntityManagerInterface $entityManager,
@@ -1481,14 +1444,6 @@ class ReceptionController extends AbstractController {
 
     /**
      * @Route("/{reception}/ligne-article/{ligneArticle}/etiquette", name="reception_ligne_article_bar_code_print", options={"expose"=true})
-     * @param Reception $reception
-     * @param ReceptionReferenceArticle $ligneArticle
-     * @param RefArticleDataService $refArticleDataService
-     * @param PDFGeneratorService $PDFGeneratorService
-     * @return Response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
      */
     public function getReceptionLigneArticleBarCode(Reception $reception,
                                                     ReceptionReferenceArticle $ligneArticle,
@@ -1544,11 +1499,6 @@ class ReceptionController extends AbstractController {
 
     /**
      * @Route("/csv", name="get_receptions_csv", options={"expose"=true}, methods={"GET"})
-     * @param EntityManagerInterface $entityManager
-     * @param TranslatorInterface $translator
-     * @param CSVExportService $CSVExportService
-     * @param Request $request
-     * @return Response
      */
     public function getReceptionCSV(EntityManagerInterface $entityManager,
                                     TranslatorInterface $translator,
@@ -1985,14 +1935,6 @@ class ReceptionController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @param ArticleDataService $articleDataService
-     * @param string $articlesParamStr
-     * @param Dispute $dispute
-     * @return Response|null
-     * @throws NonUniqueResultException
-     */
     private function addArticleIntoDispute(EntityManagerInterface $entityManager,
                                            ArticleDataService     $articleDataService,
                                            string                 $articlesParamStr,
@@ -2054,14 +1996,6 @@ class ReceptionController extends AbstractController {
 
     /**
      * @Route("/{reception}/etiquette/{article}", name="reception_article_single_bar_code_print", options={"expose"=true})
-     * @param Article $article
-     * @param Reception $reception
-     * @param ArticleDataService $articleDataService
-     * @param PDFGeneratorService $PDFGeneratorService
-     * @return Response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
      */
     public function getSingleReceptionArticleBarCode(Article $article,
                                                     Reception $reception,

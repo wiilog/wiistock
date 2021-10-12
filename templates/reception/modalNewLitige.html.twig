@@ -10,87 +10,85 @@
             </div>
 
             <div class="modal-body modal-input container-fluid">
-                <div class="modal-body modal-input container-fluid">
-                    <div class="row">
-                        <div class="form-group col-12">
-                            <label>Type*</label>
-                            {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
-                                array: disputeTypes,
-                                warningLabel: 'Attention ! Aucun type de litige n\'a été créé',
-                                redirectPath: path('types_index'),
-                                redirectLabel: 'Aller vers la page de types'
-                            } %}
-                            <select class="form-control data needed" name="disputeType" title="Type" placeholder="">
-                                <option  disabled value="" selected></option>
-                                {% for type in disputeTypes %}
-                                    <option value="{{ type.id }}">{{ type.label }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="form-group col-12">
-                            <label>Statut*</label>
-                            {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
-                                array: disputeStatuses,
-                                warningLabel: 'Attention ! Aucun statut de litige n\'a été créé',
-                                redirectPath: path('status_param_index'),
-                                redirectLabel: 'Aller vers la page des statuts'
-                            } %}
+                <div class="row">
+                    <div class="form-group col-12">
+                        <label>Type*</label>
+                        {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+                            array: disputeTypes,
+                            warningLabel: 'Attention ! Aucun type de litige n\'a été créé',
+                            redirectPath: path('types_index'),
+                            redirectLabel: 'Aller vers la page de types'
+                        } %}
+                        <select class="form-control data needed" name="disputeType" title="Type" placeholder="">
+                            <option disabled value="" selected></option>
+                            {% for type in disputeTypes %}
+                                <option value="{{ type.id }}">{{ type.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group col-12">
+                        <label>Statut*</label>
+                        {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
+                            array: disputeStatuses,
+                            warningLabel: 'Attention ! Aucun statut de litige n\'a été créé',
+                            redirectPath: path('status_param_index'),
+                            redirectLabel: 'Aller vers la page des statuts'
+                        } %}
 
-                            <select class="form-control data needed" name="disputeStatus" title="Statut" placeholder="">
-                                <option disabled value="" selected></option>
-                                {% for statut in disputeStatuses %}
-                                    <option value="{{ statut.id }}">{{ statut.nom }}</option>
-                                {% endfor %}
-                            </select>
-                            {% if defaultDisputeStatusId is not null %}
-                                <input type="hidden" name="default-status" data-id="{{ defaultDisputeStatusId }}"/>
-                            {% endif %}
-                        </div>
-                        <div class="form-group w-100 col-12">
-                            <label for="acheteursLitige">Acheteur(s)</label>
-                            <select class="form-control data select2" name="acheteursLitige" id="acheteursLitige"
-                                    multiple="multiple">
-                                {% for utilisateur in utilisateurs %}
-                                    <option value="{{ utilisateur.id }}">{{ utilisateur.text }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="form-group w-100 col-12">
-                            <label for="disputeReporter">Déclarant*</label>
-                            <select class="form-control data select2-declarant needed" name="disputeReporter" id="disputeReporter">
-                                {% for utilisateur in utilisateurs %}
-                                    <option value="{{ utilisateur.id }}">{{ utilisateur.text }}</option>
-                                {% endfor %}
-                            </select>
-                            <input hidden
-                                   name="logged-user"
-                                   data-username="{{ app.user.username }}"
-                                   data-id="{{ app.user.id }}"/>
-                        </div>
-                        <div class="form-group w-100 col-12">
-                            <label for="disputePacks" title="articles">{{ 'réception.articles'|trans }}*</label>
-                            <select class="form-control select2 w-100 data needed select2-autocomplete-articles"
-                                    id="disputePacks" name="disputePacks" multiple="multiple">
-                            </select>
-                        </div>
-                        <div class="form-group col-8 h-fit-content">
-                            <label for="litige-commentaire">Commentaire</label>
-                            <input type="text" id="litige-commentaire" class="commentaire form-control data"
-                                   name="commentaire">
-                        </div>
-                        <div class="form-group col-3 mt-4">
-                            <label>Urgence ?</label>
-                            <label class="switch">
-                                <input class="checkbox data" type="checkbox" name="emergency">
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                        <div class="form-group col-12">
-                            <div>
-                                {% include 'attachment/attachment.html.twig' with {
-                                    'isNew' : true
-                                } %}
-                            </div>
+                        <select class="form-control data needed" name="disputeStatus" title="Statut" placeholder="">
+                            <option disabled value="" selected></option>
+                            {% for statut in disputeStatuses %}
+                                <option value="{{ statut.id }}">{{ statut.nom }}</option>
+                            {% endfor %}
+                        </select>
+                        {% if defaultDisputeStatusId is not null %}
+                            <input type="hidden" name="default-status" data-id="{{ defaultDisputeStatusId }}"/>
+                        {% endif %}
+                    </div>
+                    <div class="form-group w-100 col-12">
+                        <label for="acheteursLitige">Acheteur(s)</label>
+                        <select class="form-control data select2" name="acheteursLitige" id="acheteursLitige"
+                                multiple="multiple">
+                            {% for utilisateur in utilisateurs %}
+                                <option value="{{ utilisateur.id }}">{{ utilisateur.text }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group w-100 col-12">
+                        <label for="disputeReporter">Déclarant*</label>
+                        <select class="form-control data select2-declarant needed" name="disputeReporter" id="disputeReporter">
+                            {% for utilisateur in utilisateurs %}
+                                <option value="{{ utilisateur.id }}">{{ utilisateur.text }}</option>
+                            {% endfor %}
+                        </select>
+                        <input hidden
+                               name="logged-user"
+                               data-username="{{ app.user.username }}"
+                               data-id="{{ app.user.id }}"/>
+                    </div>
+                    <div class="form-group w-100 col-12">
+                        <label for="disputePacks" title="articles">{{ 'réception.articles'|trans }}*</label>
+                        <select class="form-control select2 w-100 data needed select2-autocomplete-articles"
+                                id="disputePacks" name="disputePacks" multiple="multiple">
+                        </select>
+                    </div>
+                    <div class="form-group col-8 h-fit-content">
+                        <label for="litige-commentaire">Commentaire</label>
+                        <input type="text" id="litige-commentaire" class="commentaire form-control data"
+                               name="commentaire">
+                    </div>
+                    <div class="form-group col-3 mt-4">
+                        <label>Urgence ?</label>
+                        <label class="switch">
+                            <input class="checkbox data" type="checkbox" name="emergency">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="form-group col-12">
+                        <div>
+                            {% include 'attachment/attachment.html.twig' with {
+                                'isNew' : true
+                            } %}
                         </div>
                     </div>
                 </div>

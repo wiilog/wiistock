@@ -1049,14 +1049,15 @@ class ArrivageController extends AbstractController
         }
 
         $comment = trim($post->get('commentaire', ''));
+        $typeDescription = $dispute->getType()->getDescription();
         if ($statutBefore !== $statutAfter
             || $typeBefore !== $typeAfter
-            || $comment) {
+            || $comment || $typeDescription) {
 
             $historyRecord = $disputeService->createDisputeHistoryRecord(
                 $dispute,
                 $currentUser,
-                [$comment]
+                [$comment, $typeDescription]
             );
 
             $entityManager->persist($historyRecord);

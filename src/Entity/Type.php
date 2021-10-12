@@ -15,16 +15,6 @@ use App\Entity\IOT\RequestTemplate;
  */
 class Type
 {
-    // types de la catégorie article
-	// CEA
-    const LABEL_CSP = 'CSP';
-    const LABEL_PDT = 'PDT';
-    const LABEL_SILI = 'SILI';
-    const LABEL_SILICIUM = 'SILICIUM';
-    const LABEL_SILI_EXT = 'SILI-ext';
-    const LABEL_SILI_INT = 'SILI-int';
-    const LABEL_MOB = 'MOB';
-    const LABEL_SLUGCIBLE = 'SLUGCIBLE';
     // type de la catégorie réception
     const LABEL_RECEPTION = 'RECEPTION';
     // types de la catégorie litige
@@ -77,32 +67,32 @@ class Type
     /**
      * @ORM\OneToMany(targetEntity="FreeField", mappedBy="type")
      */
-    private $champsLibres;
+    private Collection $champsLibres;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\ReferenceArticle", mappedBy="type")
      */
-    private $referenceArticles;
+    private Collection $referenceArticles;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="type")
      */
-    private $articles;
+    private Collection $articles;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\CategoryType", inversedBy="types")
      */
-    private $category;
+    private ?CategoryType $category = null;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Reception", mappedBy="type")
      */
-    private $receptions;
+    private Collection $receptions;
 
 	/**
 	 * @ORM\OneToMany(targetEntity="App\Entity\DeliveryRequest\Demande", mappedBy="type")
 	 */
-	private $demandesLivraison;
+	private Collection $demandesLivraison;
 
     /**
      * @ORM\OneToMany(targetEntity=Dispute::class, mappedBy="type")
@@ -112,67 +102,67 @@ class Type
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Collecte", mappedBy="type")
      */
-    private $collectes;
+    private Collection $collectes;
 
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\Utilisateur", mappedBy="deliveryTypes")
      */
-    private $deliveryUsers;
+    private Collection $deliveryUsers;
 
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\Utilisateur", mappedBy="dispatchTypes")
      */
-    private $dispatchUsers;
+    private Collection $dispatchUsers;
 
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\Utilisateur", mappedBy="handlingTypes")
      */
-    private $handlingUsers;
+    private Collection $handlingUsers;
 
     /**
      * @ORM\Column(type="boolean", nullable=true)
      */
-    private $sendMail;
+    private ?bool $sendMail = null;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Dispatch", mappedBy="type")
      */
-    private $dispatches;
+    private Collection $dispatches;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Arrivage", mappedBy="type")
      */
-    private $arrivals;
+    private Collection $arrivals;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Statut", mappedBy="type", orphanRemoval=true)
      */
-    private $statuts;
+    private Collection $statuts;
 
     /**
      * @ORM\OneToMany(targetEntity=Handling::class, mappedBy="type")
      */
-    private $handlings;
+    private Collection $handlings;
 
     /**
      * @ORM\ManyToOne(targetEntity=Emplacement::class, inversedBy="dropTypes")
      */
-    private $dropLocation;
+    private ?Emplacement $dropLocation = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=Emplacement::class, inversedBy="pickTypes")
      */
-    private $pickLocation;
+    private ?Emplacement $pickLocation = null;
 
     /**
      * @ORM\OneToOne(targetEntity=AverageRequestTime::class, mappedBy="type", cascade={"persist", "remove"})
      */
-    private $averageRequestTime;
+    private ?AverageRequestTime $averageRequestTime = null;
 
     /**
      * @ORM\Column(type="boolean", options={"default": 0})
      */
-    private ?bool $notificationsEnabled;
+    private ?bool $notificationsEnabled = null;
 
     /**
      * @ORM\Column(type="json", nullable=true)

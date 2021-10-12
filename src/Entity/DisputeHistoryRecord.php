@@ -41,7 +41,7 @@ class DisputeHistoryRecord
     private ?Dispute $dispute = null;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Statut::class, inversedBy="disputeHistory")
+     * @ORM\ManyToOne(targetEntity=Statut::class, inversedBy="disputeHistoryRecords")
      * @ORM\JoinColumn(onDelete="CASCADE", nullable=false)
      */
     private ?Statut $status = null;

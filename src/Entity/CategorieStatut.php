@@ -36,17 +36,17 @@ class CategorieStatut
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="string", length=32)
      */
-    private $nom;
+    private ?string $nom = null;
 
     /**
      * @ORM\OneToMany(targetEntity="Statut", mappedBy="categorie")
      */
-    private $statuts;
+    private Collection $statuts;
 
 
     public function __construct()

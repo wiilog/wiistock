@@ -351,7 +351,7 @@ class DisputeService {
 
         $comment = Stream::from($commentPart)
             ->filterMap(fn(?string $part) => ($part ? trim($part) : null))
-            ->join('\n');
+            ->join("\n");
 
         $historyRecord = new DisputeHistoryRecord();
         $historyRecord

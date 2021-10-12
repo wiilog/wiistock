@@ -65,9 +65,11 @@ function openTableHisto() {
         },
         order: [['date', 'asc']],
         columns: [
-            {"data": 'user', 'name': 'Utilisateur', 'title': 'Utilisateur'},
-            {"data": 'date', 'name': 'date', 'title': 'Date', "type": "customDate"},
-            {"data": 'commentaire', 'name': 'commentaire', 'title': 'Commentaire'},
+            {data: 'user', name: 'Utilisateur', title: 'Utilisateur'},
+            {data: 'date', name: 'date', title: 'Date', "type": "customDate"},
+            {data: 'commentaire', name: 'commentaire', title: 'Commentaire'},
+            {data: 'status', name: 'status', title: 'Statut'},
+            {data: 'type', name: 'type', title: 'Type'},
         ],
         domConfig: {
             needsPartialDomOverride: true,

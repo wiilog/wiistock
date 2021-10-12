@@ -6,7 +6,6 @@ use App\Entity\FiltreSup;
 use App\Service\FilterSupService;
 use App\Service\DisputeService;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,11 +23,6 @@ class FiltreSupController extends AbstractController
 
     /**
      * @Route("/creer", name="filter_sup_new", options={"expose"=true})
-     * @param EntityManagerInterface $entityManager
-     * @param FilterSupService $filterSupService
-     * @param Request $request
-     * @return Response
-     * @throws NonUniqueResultException
      */
     public function new(EntityManagerInterface $entityManager,
                         FilterSupService $filterSupService,

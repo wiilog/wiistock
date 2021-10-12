@@ -19,7 +19,6 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\DisputeService;
-use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -29,33 +28,12 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * @Route("/litige")
  */
 class DisputeController extends AbstractController
 {
-
-	/**
-	 * @var UserService
-	 */
-	private $userService;
-
-    /**
-     * @var TranslatorInterface
-     */
-    private $translator;
-
-    /**
-     * @param UserService $userService
-     * @param TranslatorInterface $translator
-     */
-	public function __construct(UserService         $userService,
-                                TranslatorInterface $translator) {
-		$this->userService = $userService;
-        $this->translator = $translator;
-	}
 
     /**
      * @Route("/liste", name="dispute_index", options={"expose"=true}, methods="GET|POST")
@@ -98,13 +76,6 @@ class DisputeController extends AbstractController
 
     /**
      * @Route("/csv", name="export_csv_dispute", options={"expose"=true}, methods={"GET","POST"})
-     *
-     * @param Request $request
-     * @param DisputeService $disputeService
-     * @param EntityManagerInterface $entityManager
-     * @param CSVExportService $CSVExportService
-     *
-     * @return Response
      */
     public function exportCSVDispute(Request                $request,
                                      DisputeService         $disputeService,
@@ -205,6 +176,8 @@ class DisputeController extends AbstractController
                 'user' => $record->getUser() ? $record->getUser()->getUsername() : '',
                 'date' => $record->getDate() ? $record->getDate()->format('d/m/Y H:i') : '',
                 'commentaire' => nl2br($record->getComment()),
+                'status' => FormatHelper::status($record->getStatus()),
+                'type' => FormatHelper::type($record->getType())
             ];
         }
         $data['data'] = $rows;
@@ -308,8 +281,6 @@ class DisputeController extends AbstractController
 
     /**
      * @Route("/article/{dispute}", name="article_dispute_api", options={"expose"=true}, methods="POST|GET", condition="request.isXmlHttpRequest()")
-     * @param Dispute $dispute
-     * @return Response
      */
     public function articlesByLitige(Dispute $dispute): Response
     {

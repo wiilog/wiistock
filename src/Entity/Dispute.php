@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -29,12 +30,12 @@ class Dispute
 	/**
 	 * @ORM\Column(type="datetime", nullable=true)
 	 */
-	private $creationDate;
+	private ?DateTime $creationDate = null;
 
 	/**
 	 * @ORM\Column(type="datetime", nullable=true)
 	 */
-	private $updateDate;
+	private ?DateTime $updateDate = null;
 
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\Pack", inversedBy="disputes")
@@ -74,7 +75,7 @@ class Dispute
     /**
      * @ORM\Column(type="boolean", nullable=true)
      */
-    private $emergencyTriggered;
+    private ?bool $emergencyTriggered = null;
 
     /**
      * @ORM\Column(type="string", length=64, nullable=false, unique=true)

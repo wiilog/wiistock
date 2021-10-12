@@ -3,7 +3,6 @@
 namespace App\Entity;
 
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
-use App\Entity\DeliveryRequest\Demande;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
@@ -50,32 +49,32 @@ class Article extends FreeFieldEntity implements PairedEntity
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $reference;
+    private ?string $reference = null;
 
     /**
      * @ORM\Column(type="string", length=15, nullable=true)
      */
-    private $barCode;
+    private ?string $barCode = null;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
-    private $quantite;
+    private ?int $quantite = null;
 
     /**
      * @ORM\Column(type="text", nullable=true)
      */
-    private $commentaire;
+    private ?string $commentaire = null;
 
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\Collecte", mappedBy="articles")
      */
-    private $collectes;
+    private Collection $collectes;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="articles")
@@ -90,32 +89,32 @@ class Article extends FreeFieldEntity implements PairedEntity
     /**
      * @ORM\Column(type="boolean")
      */
-    private $conform;
+    private ?bool $conform = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $label;
+    private ?string $label = null;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\MouvementStock", mappedBy="article")
      */
-    private $mouvements;
+    private Collection $mouvements;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\ArticleFournisseur", inversedBy="articles")
      */
-    private $articleFournisseur;
+    private ?ArticleFournisseur $articleFournisseur = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="articles")
      */
-    private $type;
+    private ?Type $type = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="articles")
      */
-    private $emplacement;
+    private ?Emplacement $emplacement = null;
 
     /**
      * @ORM\OneToMany(targetEntity=DeliveryRequestArticleLine::class, mappedBy="article")
@@ -131,32 +130,32 @@ class Article extends FreeFieldEntity implements PairedEntity
      * @ORM\ManyToOne(targetEntity="App\Entity\ReceptionReferenceArticle", inversedBy="articles")
      * @ORM\JoinColumn(nullable=true)
      */
-    private $receptionReferenceArticle;
+    private ?ReceptionReferenceArticle $receptionReferenceArticle = null;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\InventoryEntry", mappedBy="article")
      */
-    private $inventoryEntries;
+    private Collection $inventoryEntries;
 
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\InventoryMission", inversedBy="articles")
      */
-    private $inventoryMissions;
+    private Collection $inventoryMissions;
 
     /**
      * @ORM\Column(type="float", nullable=true)
      */
-    private $prixUnitaire;
+    private ?float $prixUnitaire = null;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private $dateLastInventory;
+    private ?DateTime $dateLastInventory = null;
 
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\OrdreCollecte", inversedBy="articles")
      */
-    private $ordreCollecte;
+    private Collection $ordreCollecte;
 
     /**
      * @ORM\ManyToMany(targetEntity=Dispute::class, mappedBy="articles", cascade={"remove"})
@@ -166,32 +165,32 @@ class Article extends FreeFieldEntity implements PairedEntity
     /**
      * @ORM\OneToOne(targetEntity=Pack::class, mappedBy="article")
      */
-    private $trackingPack;
+    private ?Pack $trackingPack = null;
 
     /**
      * @ORM\ManyToMany(targetEntity=TransferRequest::class, mappedBy="articles")
      */
-    private $transferRequests;
+    private Collection $transferRequests;
 
     /**
      * @ORM\OneToMany(targetEntity=Alert::class, mappedBy="article", cascade={"remove"})
      */
-    private $alerts;
+    private Collection $alerts;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $batch;
+    private ?string $batch = null;
 
     /**
      * @ORM\Column(type="date", nullable=true)
      */
-    private $expiryDate;
+    private ?DateTime $expiryDate = null;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private $stockEntryDate;
+    private ?DateTime $stockEntryDate = null;
 
     /**
      * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="article", cascade={"remove"})
