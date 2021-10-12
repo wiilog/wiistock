@@ -225,7 +225,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     /**
      * @ORM\OneToMany(targetEntity=DisputeHistoryRecord::class, mappedBy="user")
      */
-    private Collection $disputeHistory;
+    private Collection $disputeHistoryRecords;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\ReceiptAssociation", mappedBy="user")
@@ -396,7 +396,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->dispatchTypes = new ArrayCollection();
         $this->handlingTypes = new ArrayCollection();
         $this->filtresSup = new ArrayCollection();
-        $this->disputeHistory = new ArrayCollection();
+        $this->disputeHistoryRecords = new ArrayCollection();
         $this->receivedDispatches = new ArrayCollection();
         $this->requestedDispatches = new ArrayCollection();
         $this->treatedDispatches = new ArrayCollection();
@@ -1204,15 +1204,15 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     /**
      * @return Collection|DisputeHistoryRecord[]
      */
-    public function getDisputeHistory(): Collection
+    public function getDisputeHistoryRecords(): Collection
     {
-        return $this->disputeHistory;
+        return $this->disputeHistoryRecords;
     }
 
     public function addDisputeHistoryRecord(DisputeHistoryRecord $record): self
     {
-        if (!$this->disputeHistory->contains($record)) {
-            $this->disputeHistory[] = $record;
+        if (!$this->disputeHistoryRecords->contains($record)) {
+            $this->disputeHistoryRecords[] = $record;
             $record->setUser($this);
         }
 
@@ -1221,8 +1221,8 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
 
     public function removeDisputeHistoryRecord(DisputeHistoryRecord $record): self
     {
-        if ($this->disputeHistory->contains($record)) {
-            $this->disputeHistory->removeElement($record);
+        if ($this->disputeHistoryRecords->contains($record)) {
+            $this->disputeHistoryRecords->removeElement($record);
             // set the owning side to null (unless already changed)
             if ($record->getUser() === $this) {
                 $record->setUser(null);

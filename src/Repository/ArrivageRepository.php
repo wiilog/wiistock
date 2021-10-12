@@ -71,7 +71,10 @@ class ArrivageRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
-    public function countByDate(DateTime $date)
+    /**
+     * @return Arrivage[]|null
+     */
+    public function countByDate(DateTime $date): ?array
     {
 		return $this->createQueryBuilder('arrivage')
             ->select('COUNT(arrivage)')
@@ -81,7 +84,10 @@ class ArrivageRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
-    public function findByDates($dateMin, $dateMax)
+    /**
+     * @return Arrivage[]|null
+     */
+    public function findByDates(DateTime $dateMin, DateTime $dateMax): ?array
     {
 		return $this->createQueryBuilderByDates($dateMin, $dateMax)
             ->getQuery()
@@ -122,7 +128,7 @@ class ArrivageRepository extends EntityRepository
             ->toIterable();
     }
 
-    public function createQueryBuilderByDates($dateMin, $dateMax): QueryBuilder
+    public function createQueryBuilderByDates(DateTime $dateMin, DateTime $dateMax): QueryBuilder
     {
         return $this->createQueryBuilder('arrivage')
             ->where('arrivage.date BETWEEN :dateMin AND :dateMax')
@@ -132,7 +138,7 @@ class ArrivageRepository extends EntityRepository
             ]);
     }
 
-    public function countByFournisseur($fournisseurId)
+    public function countByFournisseur($fournisseurId): ?int
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
@@ -203,7 +209,7 @@ class ArrivageRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function findByParamsAndFilters(InputBag $params, $filters, $userId)
+    public function findByParamsAndFilters(InputBag $params, $filters, $userId): array
     {
         $qb = $this->createQueryBuilder("a");
 

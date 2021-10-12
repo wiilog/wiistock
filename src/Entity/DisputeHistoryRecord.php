@@ -29,7 +29,7 @@ class DisputeHistoryRecord
     private ?string $comment = null;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="disputeHistory")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="disputeHistoryRecords")
      * @ORM\JoinColumn(nullable=false)
      */
     private ?Utilisateur $user = null;
@@ -47,7 +47,7 @@ class DisputeHistoryRecord
     private ?Statut $status = null;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Type::class, inversedBy="disputeHistory")
+     * @ORM\ManyToOne(targetEntity=Type::class, inversedBy="disputeHistoryRecords")
      * @ORM\JoinColumn(onDelete="CASCADE", nullable=false)
      */
     private ?Type $type = null;

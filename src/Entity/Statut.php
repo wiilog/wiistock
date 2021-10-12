@@ -167,7 +167,7 @@ class Statut
     /**
      * @ORM\Column(type="boolean", nullable=false, options={"default": false})
      */
-    private ?bool $defaultForCategory;
+    private ?bool $defaultForCategory = false;
 
     /**
      * @ORM\OneToMany(targetEntity=PurchaseRequest::class, mappedBy="status")
@@ -196,7 +196,6 @@ class Statut
         $this->transferRequests = new ArrayCollection();
         $this->transferOrders = new ArrayCollection();
 
-        $this->defaultForCategory = false;
         $this->purchaseRequests = new ArrayCollection();
         $this->handlingRequestStatusTemplates = new ArrayCollection();
     }
@@ -880,7 +879,7 @@ class Statut
     /**
      * @return Collection|DisputeHistoryRecord[]
      */
-    public function getDisputeHistory(): Collection {
+    public function getDisputeHistoryRecords(): Collection {
         return $this->disputeHistoryRecords;
     }
 

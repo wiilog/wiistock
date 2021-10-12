@@ -173,8 +173,8 @@ class DisputeController extends AbstractController
         foreach ($disputeHistory as $record)
         {
             $rows[] = [
-                'user' => $record->getUser() ? $record->getUser()->getUsername() : '',
-                'date' => $record->getDate() ? $record->getDate()->format('d/m/Y H:i') : '',
+                'user' => FormatHelper::user($record->getUser()),
+                'date' => FormatHelper::datetime($record->getDate()),
                 'commentaire' => nl2br($record->getComment()),
                 'status' => FormatHelper::status($record->getStatus()),
                 'type' => FormatHelper::type($record->getType())

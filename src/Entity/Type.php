@@ -192,7 +192,7 @@ class Type
     /**
      * @ORM\OneToMany(targetEntity=DisputeHistoryRecord::class, mappedBy="type")
      */
-    private Collection $disputeHistory;
+    private Collection $disputeHistoryRecords;
 
     public function __construct()
     {
@@ -213,7 +213,7 @@ class Type
         $this->requestTemplates = new ArrayCollection();
         $this->requestTypeTemplates = new ArrayCollection();
         $this->sensors = new ArrayCollection();
-        $this->disputeHistory = new ArrayCollection();
+        $this->disputeHistoryRecords = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -921,13 +921,13 @@ class Type
     /**
      * @return Collection|DisputeHistoryRecord[]
      */
-    public function getDisputeHistory(): Collection {
-        return $this->disputeHistory;
+    public function getDisputeHistoryRecords(): Collection {
+        return $this->disputeHistoryRecords;
     }
 
     public function addDisputeHistoryRecord(DisputeHistoryRecord $disputeHistoryRecord): self {
-        if (!$this->disputeHistory->contains($disputeHistoryRecord)) {
-            $this->disputeHistory[] = $disputeHistoryRecord;
+        if (!$this->disputeHistoryRecords->contains($disputeHistoryRecord)) {
+            $this->disputeHistoryRecords[] = $disputeHistoryRecord;
             $disputeHistoryRecord->setType($this);
         }
 
@@ -935,7 +935,7 @@ class Type
     }
 
     public function removeDisputeHistoryRecord(DisputeHistoryRecord $disputeHistoryRecord): self {
-        if ($this->disputeHistory->removeElement($disputeHistoryRecord)) {
+        if ($this->disputeHistoryRecords->removeElement($disputeHistoryRecord)) {
             if ($disputeHistoryRecord->getType() === $this) {
                 $disputeHistoryRecord->setType(null);
             }

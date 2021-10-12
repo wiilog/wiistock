@@ -73,7 +73,7 @@ class Pack implements PairedEntity
     /**
      * @ORM\Column(type="integer", options={"default": 1})
      */
-    private ?int $quantity;
+    private ?int $quantity = 1;
 
     /**
      * @ORM\Column(type="decimal", precision=12, scale=3, nullable=true)
@@ -151,7 +151,6 @@ class Pack implements PairedEntity
         $this->locationClusterRecords = new ArrayCollection();
         $this->children = new ArrayCollection();
         $this->childTrackingMovements = new ArrayCollection();
-        $this->quantity = 1;
         $this->pairings = new ArrayCollection();
         $this->sensorMessages = new ArrayCollection();
         $this->receiptAssociations = new ArrayCollection();
