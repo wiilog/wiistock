@@ -251,7 +251,7 @@ class StatutRepository extends EntityRepository {
             ->leftJoin('s.demandes', 'dl')
             ->leftJoin('s.livraisons', 'ol')
             ->leftJoin('s.preparations', 'p')
-            ->leftJoin('s.litiges', 'l')
+            ->leftJoin('s.disputes', 'l')
             ->leftJoin('s.receptions', 'r')
             ->leftJoin('s.referenceArticles', 'ra')
             ->leftJoin('s.handlings', 'handling')
@@ -259,6 +259,7 @@ class StatutRepository extends EntityRepository {
             ->leftJoin('s.transferRequests', 'transferRequest')
             ->leftJoin('s.transferOrders', 'transferOrder')
             ->leftJoin('s.arrivages', 'arrivals')
+            ->leftJoin('s.disputeHistoryRecords', 'disputeHistoryRecord')
             ->where('s.id = :statusId')
             ->andWhere($exprBuilder->orX(
                 'a IS NOT NULL',
@@ -272,7 +273,8 @@ class StatutRepository extends EntityRepository {
                 'dispatch IS NOT NULL',
                 'transferRequest IS NOT NULL',
                 'transferOrder IS NOT NULL',
-                'arrivals IS NOT NULL'
+                'arrivals IS NOT NULL',
+                'disputeHistoryRecord IS NOT NULL'
             ))
             ->setParameter('statusId', $id);
 
@@ -296,7 +298,7 @@ class StatutRepository extends EntityRepository {
                     'category.nom = :categoryLabel_purchaseRequest'
                 ) . ')')
             ->setParameters([
-                'categoryLabel_arrivalDispute' => CategorieStatut::LITIGE_ARR,
+                'categoryLabel_arrivalDispute' => CategorieStatut::DISPUTE_ARR,
                 'categoryLabel_receptionDispute' => CategorieStatut::LITIGE_RECEPT,
                 'categoryLabel_dispatch' => CategorieStatut::DISPATCH,
                 'categoryLabel_handling' => CategorieStatut::HANDLING,

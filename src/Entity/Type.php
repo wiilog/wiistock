@@ -15,16 +15,6 @@ use App\Entity\IOT\RequestTemplate;
  */
 class Type
 {
-    // types de la catégorie article
-	// CEA
-    const LABEL_CSP = 'CSP';
-    const LABEL_PDT = 'PDT';
-    const LABEL_SILI = 'SILI';
-    const LABEL_SILICIUM = 'SILICIUM';
-    const LABEL_SILI_EXT = 'SILI-ext';
-    const LABEL_SILI_INT = 'SILI-int';
-    const LABEL_MOB = 'MOB';
-    const LABEL_SLUGCIBLE = 'SLUGCIBLE';
     // type de la catégorie réception
     const LABEL_RECEPTION = 'RECEPTION';
     // types de la catégorie litige
@@ -77,102 +67,102 @@ class Type
     /**
      * @ORM\OneToMany(targetEntity="FreeField", mappedBy="type")
      */
-    private $champsLibres;
+    private Collection $champsLibres;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\ReferenceArticle", mappedBy="type")
      */
-    private $referenceArticles;
+    private Collection $referenceArticles;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="type")
      */
-    private $articles;
+    private Collection $articles;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\CategoryType", inversedBy="types")
      */
-    private $category;
+    private ?CategoryType $category = null;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Reception", mappedBy="type")
      */
-    private $receptions;
+    private Collection $receptions;
 
 	/**
 	 * @ORM\OneToMany(targetEntity="App\Entity\DeliveryRequest\Demande", mappedBy="type")
 	 */
-	private $demandesLivraison;
+	private Collection $demandesLivraison;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Litige", mappedBy="type")
+     * @ORM\OneToMany(targetEntity=Dispute::class, mappedBy="type")
      */
-    private $litiges;
+    private Collection $disputes;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Collecte", mappedBy="type")
      */
-    private $collectes;
+    private Collection $collectes;
 
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\Utilisateur", mappedBy="deliveryTypes")
      */
-    private $deliveryUsers;
+    private Collection $deliveryUsers;
 
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\Utilisateur", mappedBy="dispatchTypes")
      */
-    private $dispatchUsers;
+    private Collection $dispatchUsers;
 
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\Utilisateur", mappedBy="handlingTypes")
      */
-    private $handlingUsers;
+    private Collection $handlingUsers;
 
     /**
      * @ORM\Column(type="boolean", nullable=true)
      */
-    private $sendMail;
+    private ?bool $sendMail = null;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Dispatch", mappedBy="type")
      */
-    private $dispatches;
+    private Collection $dispatches;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Arrivage", mappedBy="type")
      */
-    private $arrivals;
+    private Collection $arrivals;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Statut", mappedBy="type", orphanRemoval=true)
      */
-    private $statuts;
+    private Collection $statuts;
 
     /**
      * @ORM\OneToMany(targetEntity=Handling::class, mappedBy="type")
      */
-    private $handlings;
+    private Collection $handlings;
 
     /**
      * @ORM\ManyToOne(targetEntity=Emplacement::class, inversedBy="dropTypes")
      */
-    private $dropLocation;
+    private ?Emplacement $dropLocation = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=Emplacement::class, inversedBy="pickTypes")
      */
-    private $pickLocation;
+    private ?Emplacement $pickLocation = null;
 
     /**
      * @ORM\OneToOne(targetEntity=AverageRequestTime::class, mappedBy="type", cascade={"persist", "remove"})
      */
-    private $averageRequestTime;
+    private ?AverageRequestTime $averageRequestTime = null;
 
     /**
      * @ORM\Column(type="boolean", options={"default": 0})
      */
-    private ?bool $notificationsEnabled;
+    private ?bool $notificationsEnabled = null;
 
     /**
      * @ORM\Column(type="json", nullable=true)
@@ -199,13 +189,18 @@ class Type
      */
     private ?string $color = null;
 
+    /**
+     * @ORM\OneToMany(targetEntity=DisputeHistoryRecord::class, mappedBy="type")
+     */
+    private Collection $disputeHistoryRecords;
+
     public function __construct()
     {
         $this->champsLibres = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
         $this->articles = new ArrayCollection();
         $this->receptions = new ArrayCollection();
-        $this->litiges = new ArrayCollection();
+        $this->disputes = new ArrayCollection();
         $this->demandesLivraison = new ArrayCollection();
         $this->collectes = new ArrayCollection();
         $this->deliveryUsers = new ArrayCollection();
@@ -218,6 +213,7 @@ class Type
         $this->requestTemplates = new ArrayCollection();
         $this->requestTypeTemplates = new ArrayCollection();
         $this->sensors = new ArrayCollection();
+        $this->disputeHistoryRecords = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -373,27 +369,27 @@ class Type
     }
 
     /**
-     * @return Collection|Litige[]
+     * @return Collection|Dispute[]
      */
-    public function getLitiges(): Collection
+    public function getDisputes(): Collection
     {
-        return $this->litiges;
+        return $this->disputes;
     }
 
-    public function addCommentaire(Litige $commentaire): self
+    public function addCommentaire(Dispute $commentaire): self
     {
-        if (!$this->litiges->contains($commentaire)) {
-            $this->litiges[] = $commentaire;
+        if (!$this->disputes->contains($commentaire)) {
+            $this->disputes[] = $commentaire;
             $commentaire->setType($this);
         }
 
         return $this;
     }
 
-    public function removeCommentaire(Litige $commentaire): self
+    public function removeCommentaire(Dispute $commentaire): self
     {
-        if ($this->litiges->contains($commentaire)) {
-            $this->litiges->removeElement($commentaire);
+        if ($this->disputes->contains($commentaire)) {
+            $this->disputes->removeElement($commentaire);
             // set the owning side to null (unless already changed)
             if ($commentaire->getType() === $this) {
                 $commentaire->setType(null);
@@ -403,23 +399,23 @@ class Type
         return $this;
     }
 
-    public function addLitige(Litige $litige): self
+    public function addDispute(Dispute $dispute): self
     {
-        if (!$this->litiges->contains($litige)) {
-            $this->litiges[] = $litige;
-            $litige->setType($this);
+        if (!$this->disputes->contains($dispute)) {
+            $this->disputes[] = $dispute;
+            $dispute->setType($this);
         }
 
         return $this;
     }
 
-    public function removeLitige(Litige $litige): self
+    public function removeDispute(Dispute $dispute): self
     {
-        if ($this->litiges->contains($litige)) {
-            $this->litiges->removeElement($litige);
+        if ($this->disputes->contains($dispute)) {
+            $this->disputes->removeElement($dispute);
             // set the owning side to null (unless already changed)
-            if ($litige->getType() === $this) {
-                $litige->setType(null);
+            if ($dispute->getType() === $this) {
+                $dispute->setType(null);
             }
         }
 
@@ -918,6 +914,32 @@ class Type
     public function setColor(string $color): self
     {
         $this->color = $color;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|DisputeHistoryRecord[]
+     */
+    public function getDisputeHistoryRecords(): Collection {
+        return $this->disputeHistoryRecords;
+    }
+
+    public function addDisputeHistoryRecord(DisputeHistoryRecord $disputeHistoryRecord): self {
+        if (!$this->disputeHistoryRecords->contains($disputeHistoryRecord)) {
+            $this->disputeHistoryRecords[] = $disputeHistoryRecord;
+            $disputeHistoryRecord->setType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDisputeHistoryRecord(DisputeHistoryRecord $disputeHistoryRecord): self {
+        if ($this->disputeHistoryRecords->removeElement($disputeHistoryRecord)) {
+            if ($disputeHistoryRecord->getType() === $this) {
+                $disputeHistoryRecord->setType(null);
+            }
+        }
 
         return $this;
     }

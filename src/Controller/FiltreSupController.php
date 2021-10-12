@@ -4,9 +4,8 @@ namespace App\Controller;
 
 use App\Entity\FiltreSup;
 use App\Service\FilterSupService;
-use App\Service\LitigeService;
+use App\Service\DisputeService;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,11 +23,6 @@ class FiltreSupController extends AbstractController
 
     /**
      * @Route("/creer", name="filter_sup_new", options={"expose"=true})
-     * @param EntityManagerInterface $entityManager
-     * @param FilterSupService $filterSupService
-     * @param Request $request
-     * @return Response
-     * @throws NonUniqueResultException
      */
     public function new(EntityManagerInterface $entityManager,
                         FilterSupService $filterSupService,
@@ -146,16 +140,16 @@ class FiltreSupController extends AbstractController
     /**
      * @Route("/api", name="filter_get_by_page", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      */
-    public function getByPage(Request $request,
+    public function getByPage(Request                $request,
                               EntityManagerInterface $entityManager,
-                              LitigeService $litigeService): Response
+                              DisputeService         $disputeService): Response
     {
         if ($page = json_decode($request->getContent(), true)) {
             $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
 
             $filters = $filtreSupRepository->getFieldAndValueByPageAndUser($page, $this->getUser());
-            if ($page === FiltreSup::PAGE_LITIGE) {
-                $translations = $litigeService->getLitigeOrigin();
+            if ($page === FiltreSup::PAGE_DISPUTE) {
+                $translations = $disputeService->getLitigeOrigin();
                 foreach ($filters as $index => $filter) {
                     if (isset($translations[$filter['value']])) {
                         $filters[$index]['value'] = $translations[$filter['value']];

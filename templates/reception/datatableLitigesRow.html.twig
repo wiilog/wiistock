@@ -8,14 +8,14 @@
                          data-toggle='modal'
                          data-target='#modalEditLitige'
                          id="litigeArticleModal"
-                         onclick="editRowLitigeReception($(this), openTableHisto, {{ receptionId }}, {{ litigeId }}, '{{ disputeNumber }}')">
+                         onclick="editRowLitigeReception($(this), openTableHisto, {{ receptionId }}, {{ disputeId }}, '{{ disputeNumber }}')">
                         <i class='fas fa-pencil-alt'></i>
                     </div>
                 </div>
             {% endif %}
             {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::DELETE')) %}
                 <div onclick="deleteRow($(this), $('#modalDeleteLitige'), $('#submitDeleteLitige'))"
-                     data-id='{{ litigeId }}'
+                     data-id='{{ disputeId }}'
                      data-target='#modalDeleteLitige'
                      data-toggle='modal'
                      class="dropdown-item">

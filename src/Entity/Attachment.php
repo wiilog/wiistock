@@ -16,69 +16,69 @@ class Attachment
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private $originalName;
+    private ?string $originalName = null;
 
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private $fileName;
+    private ?string $fileName = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $fullPath;
+    private ?string $fullPath = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Arrivage", inversedBy="attachements")
      * @ORM\JoinColumn(nullable=true)
      */
-    private $arrivage;
+    private ?Arrivage $arrivage = null;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Litige", inversedBy="attachements")
-     * @ORM\JoinColumn(name="litige_id", referencedColumnName="id", onDelete="CASCADE")
-     * @ORM\JoinColumn(nullable=true)
+     * @ORM\ManyToOne(targetEntity=Dispute::class, inversedBy="attachements")
+     * @ORM\JoinColumn(name="dispute_id", referencedColumnName="id", onDelete="CASCADE", nullable=true)
+     * @ORM\JoinColumn()
      */
-    private $litige;
+    private ?Dispute $dispute = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=TrackingMovement::class, inversedBy="attachements")
      * @ORM\JoinColumn(name="mvt_traca_id", referencedColumnName="id", onDelete="CASCADE")
      * @ORM\JoinColumn(nullable=true)
      */
-    private $trackingMovement;
+    private ?TrackingMovement $trackingMovement = null;
 
     /**
      * @ORM\OneToOne(targetEntity="App\Entity\Import", mappedBy="csvFile")
      */
-    private $importCsv;
+    private ?Import $importCsv = null;
 
     /**
      * @ORM\OneToOne(targetEntity="App\Entity\Import", mappedBy="logFile")
      */
-    private $importLog;
+    private ?Import $importLog = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Dispatch", inversedBy="attachements")
      * @ORM\JoinColumn(nullable=true)
      */
-    private $dispatch;
+    private ?Dispatch $dispatch = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Handling", inversedBy="attachments")
      * @ORM\JoinColumn(nullable=true)
      */
-    private $handling;
+    private ?Handling $handling = null;
 
     /**
      * @ORM\OneToOne(targetEntity="App\Entity\ReferenceArticle", mappedBy="image")
      */
-    private $referenceArticle;
+    private ?ReferenceArticle $referenceArticle = null;
 
     public function getId(): ?int
     {
@@ -157,14 +157,14 @@ class Attachment
         return $this;
     }
 
-    public function getLitige(): ?Litige
+    public function getDispute(): ?Dispute
     {
-        return $this->litige;
+        return $this->dispute;
     }
 
-    public function setLitige(?Litige $litige): self
+    public function setDispute(?Dispute $dispute): self
     {
-        $this->litige = $litige;
+        $this->dispute = $dispute;
 
         return $this;
     }

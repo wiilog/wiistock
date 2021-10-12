@@ -8,7 +8,7 @@
 {% if editAttachments %}
     <div class="dropFrame justify-content-md-center"
          data-arrivage-id="{{ arrivage is defined ? arrivage.id : '' }}"
-         data-litige-id="{{ litige is defined ? litige.id : '' }}"
+         data-litige-id="{{ dispute is defined ? dispute.id : '' }}"
          ondragenter="dragEnterDiv(event, $(this))"
          ondragover="dragOverDiv(event, $(this))"
          ondragleave="dragLeaveDiv(event, $(this))"

@@ -4,12 +4,15 @@ namespace App\Service;
 
 use App\Entity\Arrivage;
 use App\Entity\Article;
+use App\Entity\DisputeHistoryRecord;
 use App\Entity\FiltreSup;
-use App\Entity\Litige;
+use App\Entity\Dispute;
 use App\Entity\Utilisateur;
+use App\Helper\FormatHelper;
+use DateTime;
 use Symfony\Component\HttpFoundation\Request;
 use WiiCommon\Helper\Stream;
-use App\Repository\LitigeRepository;
+use App\Repository\DisputeRepository;
 use Exception;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
@@ -20,7 +23,7 @@ use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
-class LitigeService {
+class DisputeService {
 
     public const CATEGORY_ARRIVAGE = 'un arrivage';
     public const CATEGORY_RECEPTION = 'une réception';
@@ -81,16 +84,16 @@ class LitigeService {
     public function getDataForDatatable($params = null) {
 
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
-        $litigeRepository = $this->entityManager->getRepository(Litige::class);
+        $disputeRepository = $this->entityManager->getRepository(Dispute::class);
 
-        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_LITIGE, $this->security->getUser());
+        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DISPUTE, $this->security->getUser());
 
-        $queryResult = $litigeRepository->findByParamsAndFilters($params, $filters);
-        $litiges = $queryResult['data'];
+        $queryResult = $disputeRepository->findByParamsAndFilters($params, $filters);
+        $disputes = $queryResult['data'];
 
         $rows = [];
-        foreach ($litiges as $litige) {
-            $rows[] = $this->dataRowLitige($litige);
+        foreach ($disputes as $dispute) {
+            $rows[] = $this->dataRowDispute($dispute);
         }
 
         return [
@@ -101,85 +104,89 @@ class LitigeService {
     }
 
     /**
-     * @param array $litige
+     * @param array $dispute
      * @return array
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
      */
-    public function dataRowLitige($litige) {
-        $litigeRepository = $this->entityManager->getRepository(Litige::class);
+    public function dataRowDispute($dispute) {
+        $disputeRepository = $this->entityManager->getRepository(Dispute::class);
 
-        $litigeId = $litige['id'];
-        $acheteursArrivage = $litigeRepository->getAcheteursArrivageByLitigeId($litigeId, 'username');
-        $acheteursReception = $litigeRepository->getAcheteursReceptionByLitigeId($litigeId, 'username');
+        $disputeId = $dispute['id'];
+        $acheteursArrivage = $disputeRepository->getAcheteursArrivageByDisputeId($disputeId, 'username');
+        $acheteursReception = $disputeRepository->getAcheteursReceptionByDisputeId($disputeId, 'username');
 
-        $lastHistoric = $litigeRepository->getLastHistoricByLitigeId($litigeId);
-        $lastHistoricStr = $lastHistoric ? $lastHistoric['date']->format('d/m/Y H:i') . ' : ' . nl2br($lastHistoric['comment']) : '';
+        $lastHistoryRecordDate = $dispute['lastHistoryRecord_date'];
+        $lastHistoryRecordComment = $dispute['lastHistoryRecord_comment'];
 
-        $commands = $litigeRepository->getCommandesByLitigeId($litigeId);
+        $lastHistoryRecordStr = ($lastHistoryRecordDate && $lastHistoryRecordComment)
+            ? (FormatHelper::datetime($lastHistoryRecordDate) . ' : ' . nl2br($lastHistoryRecordComment))
+            : '';
 
-        $references = $litigeRepository->getReferencesByLitigeId($litigeId);
+        $commands = $disputeRepository->getCommandesByDisputeId($disputeId);
 
-        $isNumeroBLJson = !empty($litige['arrivageId']);
-        $numerosBL = isset($litige['numCommandeBl'])
+        $references = $disputeRepository->getReferencesByDisputeId($disputeId);
+
+        $isNumeroBLJson = !empty($dispute['arrivageId']);
+        $numerosBL = isset($dispute['numCommandeBl'])
             ? ($isNumeroBLJson
-                ? implode(', ', json_decode($litige['numCommandeBl'], true))
-                : $litige['numCommandeBl'])
+                ? implode(', ', json_decode($dispute['numCommandeBl'], true))
+                : $dispute['numCommandeBl'])
             : '';
 
         $row = [
             'actions' => $this->templating->render('litige/datatableLitigesRow.html.twig', [
-                'litigeId' => $litige['id'],
-                'arrivageId' => $litige['arrivageId'],
-                'receptionId' => $litige['receptionId'],
-                'isArrivage' => !empty($litige['arrivageId']) ? 1 : 0,
-                'disputeNumber' => $litige['disputeNumber']
+                'disputeId' => $dispute['id'],
+                'arrivageId' => $dispute['arrivageId'],
+                'receptionId' => $dispute['receptionId'],
+                'isArrivage' => !empty($dispute['arrivageId']) ? 1 : 0,
+                'disputeNumber' => $dispute['disputeNumber']
             ]),
-            'type' => $litige['type'] ?? '',
+            'type' => $dispute['type'] ?? '',
             'arrivalNumber' => $this->templating->render('litige/datatableLitigesRowFrom.html.twig', [
-                'arrivalNb' => $litige['arrivalNumber'] ?? '',
-                'arrivalId' => $litige['arrivageId']
+                'arrivalNb' => $dispute['arrivalNumber'] ?? '',
+                'arrivalId' => $dispute['arrivageId']
             ]),
             'receptionNumber' => $this->templating->render('litige/datatableLitigesRowFrom.html.twig', [
-                'receptionNb' => $litige['receptionNumber'] ?? '',
-                'receptionId' => $litige['receptionId']
+                'receptionNb' => $dispute['receptionNumber'] ?? '',
+                'receptionId' => $dispute['receptionId']
             ]),
-            'disputeNumber' => $litige['disputeNumber'],
+            'disputeNumber' => $dispute['disputeNumber'],
             'references' => $references,
-            'declarant' => $litige['declarantUsername'],
+            'reporter' => $dispute['reporterUsername'],
             'command' => $commands,
             'numCommandeBl' => $numerosBL,
             'buyers' => Stream::from($acheteursArrivage, $acheteursReception)
                 ->unique()
                 ->join(", "),
-            'provider' => $litige['provider'] ?? '',
-            'lastHistoric' => $lastHistoricStr,
-            'creationDate' => $litige['creationDate'] ? $litige['creationDate']->format('d/m/Y H:i') : '',
-            'updateDate' => $litige['updateDate'] ? $litige['updateDate']->format('d/m/Y H:i') : '',
-            'status' => $litige['status'] ?? '',
-            'urgence' => $litige['emergencyTriggered']
+            'provider' => $dispute['provider'] ?? '',
+            'lastHistoryRecord' => $lastHistoryRecordStr,
+            'creationDate' => $dispute['creationDate'] ? $dispute['creationDate']->format('d/m/Y H:i') : '',
+            'updateDate' => $dispute['updateDate'] ? $dispute['updateDate']->format('d/m/Y H:i') : '',
+            'status' => $dispute['status'] ?? '',
+            'urgence' => $dispute['emergencyTriggered']
         ];
         return $row;
     }
 
     public function getLitigeOrigin(): array {
         return [
-            Litige::ORIGIN_ARRIVAGE => $this->translator->trans('arrivage.arrivage'),
-            Litige::ORIGIN_RECEPTION => $this->translator->trans('réception.réception')
+            Dispute::ORIGIN_ARRIVAGE => $this->translator->trans('arrivage.arrivage'),
+            Dispute::ORIGIN_RECEPTION => $this->translator->trans('réception.réception')
         ];
     }
 
-    public function sendMailToAcheteursOrDeclarant(Litige $litige, string $category, $isUpdate = false) {
-        $wantSendToBuyersMailStatusChange = $litige->getStatus()->getSendNotifToBuyer();
-        $wantSendToDeclarantMailStatusChange = $litige->getStatus()->getSendNotifToDeclarant();
+    public function sendMailToAcheteursOrDeclarant(Dispute $dispute, string $category, $isUpdate = false) {
+        $wantSendToBuyersMailStatusChange = $dispute->getStatus()->getSendNotifToBuyer();
+        $wantSendToDeclarantMailStatusChange = $dispute->getStatus()->getSendNotifToDeclarant();
         $recipients = [];
         $isArrival = ($category === self::CATEGORY_ARRIVAGE);
         if ($wantSendToBuyersMailStatusChange) {
-            $litigeRepository = $this->entityManager->getRepository(Litige::class);
+            $disputeRepository = $this->entityManager->getRepository(Dispute::class);
             $recipients = $isArrival
-                ? $litigeRepository->getAcheteursArrivageByLitigeId($litige->getId())
-                : array_reduce($litige->getBuyers()->toArray(), function(array $carry, Utilisateur $buyer) {
+                ? $disputeRepository->getAcheteursArrivageByDisputeId($dispute->getId())
+                : array_reduce($dispute->getBuyers()->toArray(), function(array $carry, Utilisateur $buyer) {
                     return array_merge(
                         $carry,
                         $buyer->getMainAndSecondaryEmails()
@@ -187,8 +194,8 @@ class LitigeService {
                 }, []);
         }
 
-        if ($wantSendToDeclarantMailStatusChange && $litige->getDeclarant()) {
-            $recipients = array_merge($recipients, $litige->getDeclarant()->getMainAndSecondaryEmails());
+        if ($wantSendToDeclarantMailStatusChange && $dispute->getReporter()) {
+            $recipients = array_merge($recipients, $dispute->getReporter()->getMainAndSecondaryEmails());
         }
 
         if (!empty($recipients)) {
@@ -203,7 +210,7 @@ class LitigeService {
             $this->mailerService->sendMail(
                 $subject,
                 $this->templating->render('mails/contents/' . ($isArrival ? 'mailLitigesArrivage' : 'mailLitigesReception') . '.html.twig', [
-                    'litiges' => [$litige],
+                    'disputes' => [$dispute],
                     'title' => $title,
                     'urlSuffix' => ($isArrival ? '/arrivage' : '/reception')
                 ]),
@@ -223,11 +230,11 @@ class LitigeService {
                 ["name" => 'receptionNumber', 'title' => 'réception.n° de réception', "translated" => true],
                 ["name" => 'buyers', 'title' => 'Acheteur'],
                 ["name" => 'numCommandeBl', 'title' => 'N° commande / BL'],
-                ["name" => 'declarant', 'title' => 'Déclarant'],
+                ["name" => 'reporter', 'title' => 'Déclarant'],
                 ["name" => 'command', 'title' => 'N° ligne'],
                 ["name" => 'provider', 'title' => 'Fournisseur'],
                 ["name" => 'references', 'title' => 'Référence'],
-                ["name" => 'lastHistoric', 'title' => 'Dernier historique'],
+                ["name" => 'lastHistoryRecord', 'title' => 'Dernier historique'],
                 ["name" => 'creationDate', 'title' => 'Créé le'],
                 ["name" => 'updateDate', 'title' => 'Modifié le'],
                 ["name" => 'status', 'title' => 'Statut'],
@@ -237,10 +244,10 @@ class LitigeService {
         );
     }
 
-    public function putDisputeLine(string $mode,
-                                   $handle,
-                                   LitigeRepository $litigeRepository,
-                                   Litige $dispute) {
+    public function putDisputeLine(string            $mode,
+                                                     $handle,
+                                   DisputeRepository $disputeRepository,
+                                   Dispute           $dispute) {
 
         if (!in_array($mode, [self::PUT_LINE_ARRIVAL, self::PUT_LINE_RECEPTION])) {
             throw new \InvalidArgumentException('Invalid mode');
@@ -269,22 +276,21 @@ class LitigeService {
 
                 $numeroCommandeList = $arrivage ? $arrivage->getNumeroCommandeList() : [];
                 $row[] = implode(' / ', $numeroCommandeList); // N° de commandes
-                $declarant = $dispute->getDeclarant() ? $dispute->getDeclarant()->getUsername() : '';
-                $row[] = $declarant;
+                $row[] = FormatHelper::user($dispute->getReporter());
                 $fournisseur = $arrivage ? $arrivage->getFournisseur() : null;
                 $row[] = $fournisseur ? $fournisseur->getNom() : '';
                 $row[] = ''; // N° de ligne
                 $row[] = $buyersMailsStr;
-                $litigeHistorics = $dispute->getLitigeHistorics();
-                if (!$litigeHistorics->isEmpty()) {
-                    $historic = $litigeHistorics->last();
-                    $row[] = $historic->getDate() ? $historic->getDate()->format('d/m/Y H:i') : '';
-                    $row[] = $historic->getUser() ? $historic->getUser()->getUsername() : '';
-                    $row[] = $historic->getComment();
+                $lastHistoryRecord = $dispute->getLastHistoryRecord();
+                if ($lastHistoryRecord) {
+                    $row[] = FormatHelper::datetime($lastHistoryRecord->getDate());
+                    $row[] = FormatHelper::user($lastHistoryRecord->getUser());
+                    $row[] = $lastHistoryRecord->getComment();
                 }
                 $this->CSVExportService->putLine($handle, $row);
             }
-        } else if ($mode === self::PUT_LINE_RECEPTION) {
+        }
+        else if ($mode === self::PUT_LINE_RECEPTION) {
             $articles = $dispute->getArticles();
             foreach ($articles as $article) {
                 $buyers = $dispute->getBuyers()->toArray();
@@ -294,7 +300,7 @@ class LitigeService {
 
                 $row = $dispute->serialize();
 
-                $referencesStr = implode(', ', $litigeRepository->getReferencesByLitigeId($dispute->getId()));
+                $referencesStr = implode(', ', $disputeRepository->getReferencesByDisputeId($dispute->getId()));
 
                 $row[] = $referencesStr;
 
@@ -309,32 +315,27 @@ class LitigeService {
 
                 $row[] = (isset($reception) ? $reception->getOrderNumber() : null);
 
-                $declarant = $dispute->getDeclarant() ? $dispute->getDeclarant()->getUsername() : '';
-                $row[] = $declarant;
+                $row[] = FormatHelper::user($dispute->getReporter());
                 $fournisseur = (isset($reception) ? $reception->getFournisseur() : null);
                 $row[] = isset($fournisseur) ? $fournisseur->getNom() : '';
 
-                $row[] = implode(', ', $litigeRepository->getCommandesByLitigeId($dispute->getId()));
-
-                $litigeHistorics = $dispute->getLitigeHistorics();
-
+                $row[] = implode(', ', $disputeRepository->getCommandesByDisputeId($dispute->getId()));
                 $row[] = $buyersMailsStr;
-                if (!$litigeHistorics->isEmpty()) {
-                    $historic = $litigeHistorics->last();
-                    $row[] = ($historic->getDate() ? $historic->getDate()->format('d/m/Y H:i') : '');
-                    $row[] = $historic->getUser() ? $historic->getUser()->getUsername() : '';
-                    $row[] = $historic->getComment();
+
+                $lastHistoryRecord = $dispute->getLastHistoryRecord();
+                if ($lastHistoryRecord) {
+                    $row[] = FormatHelper::datetime($lastHistoryRecord->getDate());
+                    $row[] = FormatHelper::user($lastHistoryRecord->getUser());
+                    $row[] = $lastHistoryRecord->getComment();
                 }
                 $this->CSVExportService->putLine($handle, $row);
             }
         }
     }
 
-
-
-    public function createDisputeAttachments(Litige                 $dispute,
-                                              Request                $request,
-                                              EntityManagerInterface $entityManager): void {
+    public function createDisputeAttachments(Dispute                $dispute,
+                                             Request                $request,
+                                             EntityManagerInterface $entityManager): void {
         $attachments = $this->attachmentService->createAttachements($request->files);
         foreach($attachments as $attachment) {
             $entityManager->persist($attachment);
@@ -342,6 +343,28 @@ class LitigeService {
         }
         $entityManager->persist($dispute);
         $entityManager->flush();
+    }
+
+    public function createDisputeHistoryRecord(Dispute     $dispute,
+                                               Utilisateur $user,
+                                               array       $commentPart): DisputeHistoryRecord {
+
+        $comment = Stream::from($commentPart)
+            ->filterMap(fn(?string $part) => ($part ? trim($part) : null))
+            ->join("\n");
+
+        $historyRecord = new DisputeHistoryRecord();
+        $historyRecord
+            ->setDate(new DateTime('now'))
+            ->setComment($comment ?: null)
+            ->setType($dispute->getType())
+            ->setStatus($dispute->getStatus())
+            ->setDispute($dispute)
+            ->setUser($user);
+
+        $dispute->setLastHistoryRecord($historyRecord);
+
+        return $historyRecord;
     }
 
 }

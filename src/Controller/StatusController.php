@@ -27,12 +27,6 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class StatusController extends AbstractController {
 
-    private $statusService;
-
-    public function __construct(StatusService $statusService) {
-        $this->statusService = $statusService;
-    }
-
     /**
      * @Route("/", name="status_param_index")
      * @HasPermission({Menu::PARAM, Action::DISPLAY_STATU_LITI})
@@ -46,7 +40,7 @@ class StatusController extends AbstractController {
         $categories = $categoryStatusRepository->findByLabelLike([
             CategorieStatut::DISPATCH,
             CategorieStatut::HANDLING,
-            CategorieStatut::LITIGE_ARR,
+            CategorieStatut::DISPUTE_ARR,
             CategorieStatut::LITIGE_RECEPT,
             CategorieStatut::ARRIVAGE,
             CategorieStatut::PURCHASE_REQUEST
@@ -88,8 +82,9 @@ class StatusController extends AbstractController {
      * @Route("/api", name="status_param_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::DISPLAY_STATU_LITI}, mode=HasPermission::IN_JSON)
      */
-    public function api(Request $request): Response {
-        $data = $this->statusService->getDataForDatatable($request->request);
+    public function api(Request $request,
+                        StatusService $statusService): Response {
+        $data = $statusService->getDataForDatatable($request->request);
         return new JsonResponse($data);
     }
 

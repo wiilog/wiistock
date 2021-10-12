@@ -26,17 +26,17 @@ class AttachmentRepository extends EntityRepository
             ->getResult();
 	}
 
-	public function findOneByFileNameAndLitigeId($fileName, $litigeId)
+	public function findOneByFileNameAndDisputeId($fileName, $disputeId)
 	{
         $qb = $this->createQueryBuilder('attachment');
 
         $qb
             ->select('attachment')
             ->where('attachment.fileName = :fileName')
-            ->andWhere('attachment.litige = :litigeId')
+            ->andWhere('attachment.dispute = :disputeId')
             ->setParameters([
                 'fileName' => $fileName,
-                'litigeId' => $litigeId
+                'disputeId' => $disputeId
             ]);
 
         return $qb

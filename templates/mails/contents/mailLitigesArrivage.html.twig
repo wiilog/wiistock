@@ -2,10 +2,10 @@
 
 {% block content %}
 
-    {% set s = litiges|length > 1 ? 's' : '' %}
-    {% set nt = litiges|length > 1 ? 'nt' : '' %}
+    {% set s = disputes|length > 1 ? 's' : '' %}
+    {% set nt = disputes|length > 1 ? 'nt' : '' %}
     <h3 class="margin-bottom:30px;">
-        {{ litiges|length }} litige{{ s }} vous concerne{{ nt }} :
+        {{ disputes|length }} litige{{ s }} vous concerne{{ nt }} :
     </h3>
 
     <table class="table"
@@ -31,20 +31,20 @@
         </tr>
         </thead>
         <tbody>
-        {% for litige in litiges %}
+        {% for dispute in disputes %}
             <tr>
                 <td class="td"
-                    rowspan="{{ litige.packs|length }}"
+                    rowspan="{{ dispute.packs|length }}"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ litige.type.label }}
+                    {{ dispute.type.label }}
                 </td>
                 <td class="td"
-                    rowspan="{{ litige.packs|length }}"
+                    rowspan="{{ dispute.packs|length }}"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ litige.status.nom }}
+                    {{ dispute.status.nom }}
                 </td>
 
-                {% set firstColis = litige.packs|first %}
+                {% set firstColis = dispute.packs|first %}
                 <td class="td"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
                     {% for numeroBL in firstColis.arrivage.numeroCommandeList %}
@@ -57,7 +57,7 @@
                     {{ firstColis.code }}
                 </td>
             </tr>
-            {% for pack in litige.packs %}
+            {% for pack in dispute.packs %}
                 {% if not loop.first %}
                     <tr>
                         <td class="td"
