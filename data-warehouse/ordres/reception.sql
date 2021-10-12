@@ -32,12 +32,15 @@ SELECT
 
     IF(reception.urgent_articles = 1, 'oui', 'non') AS urgence_reference,
 
-    IF(reception.manual_urgent = 1, 'oui', 'non') AS urgence_reception
+    IF(reception.manual_urgent = 1, 'oui', 'non') AS urgence_reception,
+    purchase_request.number AS numero_demande_achat
 
 FROM reception
 
          LEFT JOIN statut ON reception.statut_id = statut.id
          LEFT JOIN fournisseur ON reception.fournisseur_id = fournisseur.id
+         LEFT JOIN purchase_request_line ON reception.id = purchase_request_line.reception_id
+         LEFT JOIN purchase_request ON purchase_request_line.purchase_request_id = purchase_request.id
 
          LEFT JOIN reception_reference_article ON reception.id = reception_reference_article.reception_id
 
