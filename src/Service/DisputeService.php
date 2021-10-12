@@ -9,6 +9,7 @@ use App\Entity\FiltreSup;
 use App\Entity\Dispute;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use DateTime;
 use Symfony\Component\HttpFoundation\Request;
 use WiiCommon\Helper\Stream;
 use App\Repository\DisputeRepository;
@@ -288,7 +289,8 @@ class DisputeService {
                 }
                 $this->CSVExportService->putLine($handle, $row);
             }
-        } else if ($mode === self::PUT_LINE_RECEPTION) {
+        }
+        else if ($mode === self::PUT_LINE_RECEPTION) {
             $articles = $dispute->getArticles();
             foreach ($articles as $article) {
                 $buyers = $dispute->getBuyers()->toArray();
@@ -331,8 +333,6 @@ class DisputeService {
         }
     }
 
-
-
     public function createDisputeAttachments(Dispute                $dispute,
                                              Request                $request,
                                              EntityManagerInterface $entityManager): void {
@@ -343,6 +343,28 @@ class DisputeService {
         }
         $entityManager->persist($dispute);
         $entityManager->flush();
+    }
+
+    public function createDisputeHistoryRecord(Dispute     $dispute,
+                                               Utilisateur $user,
+                                               array       $commentPart): DisputeHistoryRecord {
+
+        $comment = Stream::from($commentPart)
+            ->filterMap(fn(?string $part) => ($part ? trim($part) : null))
+            ->join('\n');
+
+        $historyRecord = new DisputeHistoryRecord();
+        $historyRecord
+            ->setDate(new DateTime('now'))
+            ->setComment($comment ?: null)
+            ->setType($dispute->getType())
+            ->setStatus($dispute->getStatus())
+            ->setDispute($dispute)
+            ->setUser($user);
+
+        $dispute->setLastHistoryRecord($historyRecord);
+
+        return $historyRecord;
     }
 
 }

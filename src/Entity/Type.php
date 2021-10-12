@@ -199,6 +199,11 @@ class Type
      */
     private ?string $color = null;
 
+    /**
+     * @ORM\OneToMany(targetEntity=DisputeHistoryRecord::class, mappedBy="type")
+     */
+    private Collection $disputeHistory;
+
     public function __construct()
     {
         $this->champsLibres = new ArrayCollection();
@@ -218,6 +223,7 @@ class Type
         $this->requestTemplates = new ArrayCollection();
         $this->requestTypeTemplates = new ArrayCollection();
         $this->sensors = new ArrayCollection();
+        $this->disputeHistory = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -918,6 +924,32 @@ class Type
     public function setColor(string $color): self
     {
         $this->color = $color;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|DisputeHistoryRecord[]
+     */
+    public function getDisputeHistory(): Collection {
+        return $this->disputeHistory;
+    }
+
+    public function addDisputeHistoryRecord(DisputeHistoryRecord $disputeHistoryRecord): self {
+        if (!$this->disputeHistory->contains($disputeHistoryRecord)) {
+            $this->disputeHistory[] = $disputeHistoryRecord;
+            $disputeHistoryRecord->setType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDisputeHistoryRecord(DisputeHistoryRecord $disputeHistoryRecord): self {
+        if ($this->disputeHistory->removeElement($disputeHistoryRecord)) {
+            if ($disputeHistoryRecord->getType() === $this) {
+                $disputeHistoryRecord->setType(null);
+            }
+        }
 
         return $this;
     }

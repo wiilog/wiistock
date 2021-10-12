@@ -16,6 +16,7 @@ use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
+use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\DisputeService;
 use App\Service\UserService;
@@ -214,21 +215,21 @@ class DisputeController extends AbstractController
     /**
      * @Route("/add_Comment/{dispute}", name="add_comment", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-    public function addComment(Request $request, Dispute $dispute): Response
+    public function addComment(Request $request,
+                               DisputeService $disputeService,
+                               Dispute $dispute): Response
     {
         if ($data = (json_decode($request->getContent(), true) ?? [])) {
             $em = $this->getDoctrine()->getManager();
 
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
-            $historyRecord = new DisputeHistoryRecord();
-            $historyRecord
-                ->setDispute($dispute)
-                ->setUser($currentUser)
-                ->setDate(new DateTime('now'))
-                ->setComment($data);
 
-            $dispute->setLastHistoryRecord($historyRecord);
+            $historyRecord = $disputeService->createDisputeHistoryRecord(
+                $dispute,
+                $currentUser,
+                [$data]
+            );
 
             $em->persist($historyRecord);
             $em->flush();
@@ -318,9 +319,9 @@ class DisputeController extends AbstractController
         foreach ($articlesInLitige as $article) {
             $rows[] = [
                 'codeArticle' => $article ? $article->getBarCode() : '',
-                'status' => $article->getStatut() ? $article->getStatut()->getNom() : '',
-                'libelle' => $article->getLabel() ? $article->getLabel() : '',
-                'reference' => $article->getReference() ? $article->getReference() : '',
+                'status' => FormatHelper::status($article->getStatut()),
+                'libelle' => $article->getLabel() ?: '',
+                'reference' => $article->getReference() ?: '',
                 'quantity' => $article ? $article->getQuantite() : 'non renseigné',
             ];
         }

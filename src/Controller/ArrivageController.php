@@ -824,33 +824,22 @@ class ArrivageController extends AbstractController
             );
             $arrivage->setStatut($disputeStatus);
         }
-        $typeDescription = $dispute->getType()->getDescription();
-        $typeLabel = $dispute->getType()->getLabel();
-        $statutNom = $dispute->getStatus()->getNom();
-
-        $trimmedTypeDescription = trim($typeDescription);
-        $userComment = trim($post->get('commentaire'));
-        $nl = !empty($userComment) ? "\n" : '';
-        $trimmedTypeDescription = !empty($trimmedTypeDescription) ? "\n" . $trimmedTypeDescription : '';
-        $commentaire = $userComment . $nl . 'Type à la création -> ' . $typeLabel . $trimmedTypeDescription . "\n" . 'Statut à la création -> ' . $statutNom;
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
 
         $entityManager->persist($dispute);
 
-        if (!empty($commentaire)) {
-            $historyRecord = new DisputeHistoryRecord();
-            $historyRecord
-                ->setDate(new DateTime('now'))
-                ->setComment($commentaire)
-                ->setDispute($dispute)
-                ->setUser($currentUser);
+        $historyRecord = $disputeService->createDisputeHistoryRecord(
+            $dispute,
+            $currentUser,
+            [
+                $post->get('commentaire'),
+                $dispute->getType()->getDescription()
+            ]
+        );
 
-            $dispute->setLastHistoryRecord($historyRecord);
-
-            $entityManager->persist($historyRecord);
-        }
+        $entityManager->persist($historyRecord);
 
         $this->persistAttachmentsForEntity($dispute, $this->attachmentService, $request, $entityManager);
         try {
@@ -1019,10 +1008,8 @@ class ArrivageController extends AbstractController
 
         $dispute = $disputeRepository->find($post->get('id'));
         $typeBefore = $dispute->getType()->getId();
-        $typeBeforeName = $dispute->getType()->getLabel();
         $typeAfter = (int)$post->get('disputeType');
         $statutBefore = $dispute->getStatus()->getId();
-        $statutBeforeName = $dispute->getStatus()->getNom();
         $statutAfter = (int)$post->get('disputeStatus');
         $dispute
             ->setReporter($utilisateurRepository->find($post->get('disputeReporter')))
@@ -1057,41 +1044,20 @@ class ArrivageController extends AbstractController
 
         $entityManager->flush();
 
-        $comment = '';
-        $typeDescription = $dispute->getType()->getDescription();
-        if ($typeBefore !== $typeAfter) {
-            $comment .= "Changement du type : "
-                . $typeBeforeName . " -> " . $dispute->getType()->getLabel() . "." .
-                (!empty($typeDescription) ? ("\n" . $typeDescription . ".") : '');
-        }
-        if ($statutBefore !== $statutAfter) {
-            if (!empty($comment)) {
-                $comment .= "\n";
-            }
-            $comment .= "Changement du statut : " .
-                $statutBeforeName . " -> " . $dispute->getStatus()->getNom() . ".";
-        }
-
-        if ($post->get('commentaire')) {
-            if (!empty($comment)) {
-                $comment .= "\n";
-            }
-            $comment .= trim($post->get('commentaire'));
-        }
-
         if ($post->get('emergency')) {
             $dispute->setEmergencyTriggered($post->get('emergency') === 'true');
         }
 
-        if (!empty($comment)) {
-            $historyRecord = new DisputeHistoryRecord();
-            $historyRecord
-                ->setDispute($dispute)
-                ->setDate(new DateTime('now'))
-                ->setUser($currentUser)
-                ->setComment($comment);
+        $comment = trim($post->get('commentaire', ''));
+        if ($statutBefore !== $statutAfter
+            || $typeBefore !== $typeAfter
+            || $comment) {
 
-            $dispute->setLastHistoryRecord($historyRecord);
+            $historyRecord = $disputeService->createDisputeHistoryRecord(
+                $dispute,
+                $currentUser,
+                [$comment]
+            );
 
             $entityManager->persist($historyRecord);
             $entityManager->flush();

@@ -1050,39 +1050,28 @@ class ReceptionController extends AbstractController {
         }
         $entityManager->flush();
 
-        $comment = '';
-        $statutinstance = $statutRepository->find($post->get('disputeStatus'));
-        $commentStatut = $statutinstance->getComment();
-        if($typeBefore !== $typeAfter) {
-            $comment .= "Changement du type : " . $typeBeforeName . " -> " . $dispute->getType()->getLabel() . ".";
-        }
-        if($statutBeforeId !== $statutAfterId) {
-            if(!empty($comment)) {
-                $comment .= "\n";
-            }
-            $comment .= "Changement du statut : " .
-                $statutBeforeName . " -> " . $dispute->getStatus()->getNom() . "." .
-                (!empty($commentStatut) ? ("\n" . $commentStatut . ".") : '');
-        }
-        if($post->get('commentaire')) {
-            if(!empty($comment)) {
-                $comment .= "\n";
-            }
-            $comment .= trim($post->get('commentaire'));
-        }
+        $commentStatut = $dispute->getStatus()
+            ? $dispute->getStatus()->getComment()
+            : '';
+
+        $trimCommentStatut = trim($commentStatut);
+        $userComment = trim($post->get('commentaire'));
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
+        if ($typeBefore !== $typeAfter
+            || $statutBeforeId !== $statutAfterId
+            || $trimCommentStatut
+            || $userComment) {
 
-        if(!empty($comment)) {
-            $historyRecord = new DisputeHistoryRecord();
-            $historyRecord
-                ->setDispute($dispute)
-                ->setDate(new DateTime('now'))
-                ->setUser($currentUser)
-                ->setComment($comment);
-
-            $dispute->setLastHistoryRecord($historyRecord);
+            $historyRecord = $disputeService->createDisputeHistoryRecord(
+                $dispute,
+                $currentUser,
+                [
+                    $userComment,
+                    $trimCommentStatut
+                ]
+            );
 
             $entityManager->persist($historyRecord);
             $entityManager->flush();
@@ -1153,29 +1142,24 @@ class ReceptionController extends AbstractController {
                 $dispute->addBuyer($utilisateurRepository->find($buyer));
             }
         }
-        $statutinstance = $statutRepository->find($post->get('disputeStatus'));
-        $commentStatut = $statutinstance->getComment();
 
-        $trimCommentStatut = trim($commentStatut);
-        $userComment = trim($post->get('commentaire'));
-        $nl = !empty($userComment) ? "\n" : '';
-        $commentaire = $userComment . (!empty($trimCommentStatut) ? ($nl . $commentStatut) : '');
+        $commentStatut = $dispute->getStatus()
+            ? $dispute->getStatus()->getComment()
+            : '';
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
-        if(!empty($commentaire)) {
-            $historyRecord = new DisputeHistoryRecord();
-            $historyRecord
-                ->setDate(new DateTime('now'))
-                ->setComment($commentaire)
-                ->setDispute($dispute)
-                ->setUser($currentUser);
 
-            $dispute->setLastHistoryRecord($historyRecord);
+        $historyRecord = $disputeService->createDisputeHistoryRecord(
+            $dispute,
+            $currentUser,
+            [
+                trim($post->get('commentaire')),
+                trim($commentStatut)
+            ]
+        );
 
-            $entityManager->persist($historyRecord);
-        }
-
+        $entityManager->persist($historyRecord);
         $entityManager->persist($dispute);
 
         try {

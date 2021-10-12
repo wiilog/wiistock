@@ -36,9 +36,21 @@ class DisputeHistoryRecord
 
     /**
      * @ORM\ManyToOne(targetEntity=Dispute::class, inversedBy="disputeHistory")
-     * @ORM\JoinColumn(name="dispute_id", referencedColumnName="id", onDelete="CASCADE", nullable=false)
+     * @ORM\JoinColumn(onDelete="CASCADE", nullable=false)
      */
     private ?Dispute $dispute = null;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Statut::class, inversedBy="disputeHistory")
+     * @ORM\JoinColumn(onDelete="CASCADE", nullable=false)
+     */
+    private ?Statut $status = null;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Type::class, inversedBy="disputeHistory")
+     * @ORM\JoinColumn(onDelete="CASCADE", nullable=false)
+     */
+    private ?Type $type = null;
 
     public function getId(): ?int
     {
@@ -96,6 +108,38 @@ class DisputeHistoryRecord
         $this->dispute = $dispute;
         if($dispute) {
             $dispute->addDisputeHistoryRecord($this);
+        }
+
+        return $this;
+    }
+
+    public function getStatus(): ?Statut {
+        return $this->status;
+    }
+
+    public function setStatus(?Statut $status): self {
+        if($this->status && $this->status !== $status) {
+            $this->status->removeDisputeHistoryRecord($this);
+        }
+        $this->status = $status;
+        if($status) {
+            $status->addDisputeHistoryRecord($this);
+        }
+
+        return $this;
+    }
+
+    public function getType(): ?Type {
+        return $this->type;
+    }
+
+    public function setType(?Type $type): self {
+        if($this->type && $this->type !== $type) {
+            $this->type->removeDisputeHistoryRecord($this);
+        }
+        $this->type = $type;
+        if($type) {
+            $type->addDisputeHistoryRecord($this);
         }
 
         return $this;
