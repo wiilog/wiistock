@@ -172,7 +172,7 @@ class ReferenceArticleController extends AbstractController
                 ->setTypeQuantite($typeArticle)
                 ->setPrixUnitaire(max(0, $data['prix']))
                 ->setType($type)
-                ->setIsUrgent($data['urgence'] == "true")
+                ->setIsUrgent(filter_var($data['urgence'] ?? false, FILTER_VALIDATE_BOOLEAN))
                 ->setEmplacement($emplacement)
 				->setBarCode($this->refArticleDataService->generateBarCode())
                 ->setBuyer(isset($data['buyer']) ? $userRepository->find($data['buyer']) : null);
