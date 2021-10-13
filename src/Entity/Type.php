@@ -162,7 +162,7 @@ class Type
     /**
      * @ORM\Column(type="boolean", options={"default": 0})
      */
-    private ?bool $notificationsEnabled = null;
+    private ?bool $notificationsEnabled = false;
 
     /**
      * @ORM\Column(type="json", nullable=true)
