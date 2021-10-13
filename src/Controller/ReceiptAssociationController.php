@@ -37,7 +37,7 @@ class ReceiptAssociationController extends AbstractController
      */
     public function index(): Response
     {
-        return $this->render('receipt_association/modal/index.html.twig');
+        return $this->render('receipt_association/index.html.twig');
     }
 
     /**
