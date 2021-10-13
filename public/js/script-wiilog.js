@@ -89,7 +89,9 @@ function registerNotificationChannel() {
                     $countFigure.display();
                 });
             })
-        }).catch(() => {});
+        }).catch(() => {
+            showBSAlert(`Les notifications n'ont pas été autorisées sur ce navigateur et sont donc désactivées`, 'warning');
+        });
     }
 }
 
