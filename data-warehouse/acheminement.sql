@@ -33,12 +33,16 @@ SELECT dispatch.id                                        AS id,
        dispatch.business_unit                             AS business_unit,
        IF(dispatch.treatment_date IS NOT NULL AND dispatch.end_date IS NOT NULL,
           ROUND(
-                      TIME_FORMAT(TIMEDIFF(dispatch.treatment_date, CAST(dispatch.end_date AS DATETIME)), '%H')
-                      + TIME_FORMAT(TIMEDIFF(dispatch.treatment_date, CAST(dispatch.end_date AS DATETIME)), '%i') / 60
-                      +
-                      TIME_FORMAT(TIMEDIFF(dispatch.treatment_date, CAST(dispatch.end_date AS DATETIME)), '%s') / 3600,
-                      4),
-          NULL)                                           AS delta_date
+                  TIME_FORMAT(TIMEDIFF(dispatch.treatment_date, CAST(dispatch.end_date AS DATETIME)), '%H')
+                  + TIME_FORMAT(TIMEDIFF(dispatch.treatment_date, CAST(dispatch.end_date AS DATETIME)), '%i') / 60
+                  + TIME_FORMAT(TIMEDIFF(dispatch.treatment_date, CAST(dispatch.end_date AS DATETIME)), '%s') / 3600, 4),
+          NULL)                                           AS delais_traitement_attendu,
+       IF(dispatch.treatment_date IS NOT NULL AND dispatch.end_date IS NOT NULL,
+          ROUND(
+                  TIME_FORMAT(TIMEDIFF(dispatch.treatment_date, dispatch.validation_date), '%H')
+                  + TIME_FORMAT(TIMEDIFF(dispatch.treatment_date, dispatch.validation_date), '%i') / 60
+                  + TIME_FORMAT(TIMEDIFF(dispatch.treatment_date, dispatch.validation_date), '%s') / 3600, 4),
+          NULL)                                           AS delais_traitement_validation
 
 FROM dispatch
 
@@ -88,4 +92,5 @@ GROUP BY id,
          urgence,
          numero_projet,
          business_unit,
-         delta_date
+         delais_traitement_attendu,
+         delais_traitement_validation

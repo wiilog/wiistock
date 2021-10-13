@@ -1,3 +1,25 @@
+DROP FUNCTION IF EXISTS get_validation_date;
+DROP FUNCTION IF EXISTS get_treatment_date;
+
+CREATE FUNCTION get_validation_date(demande_id INTEGER)
+    RETURNS DATETIME
+BEGIN
+    RETURN (SELECT MIN(preparation.date)
+            FROM demande AS sub_demande
+                     LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
+            WHERE sub_demande.id = demande_id);
+END;
+
+CREATE FUNCTION get_treatment_date(demande_id INTEGER)
+    RETURNS DATETIME
+BEGIN
+    RETURN (SELECT MAX(livraison.date_fin)
+            FROM demande AS sub_demande
+                     LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
+                     LEFT JOIN livraison ON preparation.id = livraison.preparation_id
+            WHERE sub_demande.id = demande_id);
+END;
+
 SELECT id,
        numero,
        date_creation,
@@ -13,15 +35,13 @@ SELECT id,
        libelle,
        code_barre,
        quantite_disponible,
-       quantite_a_prelever
+       quantite_a_prelever,
+       delais_traitement
 FROM (
          SELECT demande.id                                     AS id,
                 demande.numero                                 AS numero,
                 demande.date                                   AS date_creation,
-                (SELECT MIN(preparation.date)
-                 FROM demande AS sub_demande
-                          LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                 WHERE sub_demande.id = demande.id)            AS date_validation,
+                get_validation_date(demande.id)                AS date_validation,
                 demandeur.username                             AS demandeur,
                 type.label                                     AS type,
                 statut.nom                                     AS statut,
@@ -43,7 +63,16 @@ FROM (
                 article.label                                  AS libelle,
                 article.bar_code                               AS code_barre,
                 article.quantite                               AS quantite_disponible,
-                delivery_request_article_line.quantity_to_pick AS quantite_a_prelever
+                delivery_request_article_line.quantity_to_pick AS quantite_a_prelever,
+                IF(get_treatment_date(demande.id) IS NOT NULL AND get_validation_date(demande.id) IS NOT NULL,
+                   ROUND(TIME_FORMAT(TIMEDIFF(get_treatment_date(demande.id), get_validation_date(demande.id)), '%H')
+                             +
+                         TIME_FORMAT(TIMEDIFF(get_treatment_date(demande.id), get_validation_date(demande.id)), '%i') /
+                         60
+                             +
+                         TIME_FORMAT(TIMEDIFF(get_treatment_date(demande.id), get_validation_date(demande.id)), '%s') /
+                         3600, 4),
+                   NULL)                                       AS delais_traitement
 
          FROM demande
 
@@ -60,35 +89,41 @@ FROM (
          WHERE demande.numero
 
          UNION
-         SELECT demande.id                                        AS id,
-                demande.numero                                    AS numero,
-                demande.date                                      AS date_creation,
-                (SELECT MIN(preparation.date)
-                 FROM demande AS sub_demande
-                          LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                 WHERE sub_demande.id = demande.id)               AS date_validation,
-                demandeur.username                                AS demandeur,
-                type.label                                        AS type,
-                statut.nom                                        AS statut,
+         SELECT demande.id                                       AS id,
+                demande.numero                                   AS numero,
+                demande.date                                     AS date_creation,
+                get_validation_date(demande.id)                  AS date_validation,
+                demandeur.username                               AS demandeur,
+                type.label                                       AS type,
+                statut.nom                                       AS statut,
 
                 (SELECT GROUP_CONCAT(preparation.numero SEPARATOR ' / ')
                  FROM demande AS sub_demande
                           LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                 WHERE sub_demande.id IN (demande.id))            AS codes_preparations,
+                 WHERE sub_demande.id IN (demande.id))           AS codes_preparations,
 
                 (SELECT GROUP_CONCAT(livraison.numero SEPARATOR ' / ')
                  FROM demande AS sub_demande
                           LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                           LEFT JOIN livraison on preparation.id = livraison.preparation_id
-                 WHERE sub_demande.id IN (demande.id))            AS codes_livraisons,
+                 WHERE sub_demande.id IN (demande.id))           AS codes_livraisons,
 
-                destination.label                                 AS destination,
-                demande.cleaned_comment                           AS commentaire,
-                reference_article.reference                       AS reference_article,
-                reference_article.libelle                         AS libelle,
-                reference_article.bar_code                        AS code_barre,
-                reference_article.quantite_disponible             AS quantite_disponible,
-                delivery_request_reference_line.quantity_to_pick AS quantite_a_prelever
+                destination.label                                AS destination,
+                demande.cleaned_comment                          AS commentaire,
+                reference_article.reference                      AS reference_article,
+                reference_article.libelle                        AS libelle,
+                reference_article.bar_code                       AS code_barre,
+                reference_article.quantite_disponible            AS quantite_disponible,
+                delivery_request_reference_line.quantity_to_pick AS quantite_a_prelever,
+                IF(get_treatment_date(demande.id) IS NOT NULL AND get_validation_date(demande.id) IS NOT NULL,
+                   ROUND(TIME_FORMAT(TIMEDIFF(get_treatment_date(demande.id), get_validation_date(demande.id)), '%H')
+                             +
+                         TIME_FORMAT(TIMEDIFF(get_treatment_date(demande.id), get_validation_date(demande.id)), '%i') /
+                         60
+                             +
+                         TIME_FORMAT(TIMEDIFF(get_treatment_date(demande.id), get_validation_date(demande.id)), '%s') /
+                         3600, 4),
+                   NULL)                                         AS delais_traitement
 
          FROM demande
 

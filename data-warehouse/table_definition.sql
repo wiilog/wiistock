@@ -164,20 +164,21 @@ CREATE TABLE dw_reference_article
 
 CREATE TABLE dw_service
 (
-    id                 integer,
-    type               varchar(255),
-    objet              text,
-    demandeur          varchar(255),
-    date_creation      timestamp(0),
-    date_attendue      timestamp(0),
-    date_realisation   timestamp(0),
-    operateur          varchar(255),
-    emplacement_prise  varchar(255),
-    emplacement_depose varchar(255),
-    numero             varchar(255),
-    statut             varchar(255),
-    urgence            varchar(255),
-    delta_date         float
+    id                           integer,
+    type                         varchar(255),
+    objet                        text,
+    demandeur                    varchar(255),
+    date_creation                timestamp(0),
+    date_attendue                timestamp(0),
+    date_realisation             timestamp(0),
+    operateur                    varchar(255),
+    emplacement_prise            varchar(255),
+    emplacement_depose           varchar(255),
+    numero                       varchar(255),
+    statut                       varchar(255),
+    urgence                      varchar(255),
+    delais_traitement_attendu    float,
+    delais_traitement_validation float
 );
 
 CREATE TABLE dw_service_champs_libres
@@ -280,7 +281,8 @@ CREATE TABLE dw_acheminement
     urgence                      varchar(255),
     numero_projet                varchar(255),
     business_unit                varchar(255),
-    delta_date                   float
+    delais_traitement_attendu    float,
+    delais_traitement_validation float
 );
 
 CREATE TABLE dw_demande_collecte
@@ -332,7 +334,8 @@ CREATE TABLE dw_demande_livraison
     libelle             varchar(255),
     code_barre          varchar(255),
     quantite_disponible integer,
-    quantite_a_prelever integer
+    quantite_a_prelever integer,
+    delais_traitement   float
 );
 
 CREATE TABLE dw_ordre_transfert
