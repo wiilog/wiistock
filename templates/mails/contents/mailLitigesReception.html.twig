@@ -2,10 +2,10 @@
 
 {% block content %}
 
-    {% set s = litiges|length > 1 ? 's' : '' %}
-    {% set nt = litiges|length > 1 ? 'nt' : '' %}
+    {% set s = disputes|length > 1 ? 's' : '' %}
+    {% set nt = disputes|length > 1 ? 'nt' : '' %}
     <h3 class="margin-bottom:30px;">
-        {{ litiges|length }} litige{{ s }} vous concerne{{ nt }} :
+        {{ disputes|length }} litige{{ s }} vous concerne{{ nt }} :
     </h3>
 
     <table class="table"
@@ -47,34 +47,34 @@
         </tr>
         </thead>
         <tbody>
-        {% for litige in litiges %}
+        {% for dispute in disputes %}
             <tr>
-                {% set firstArticle = litige.articles|first %}
+                {% set firstArticle = dispute.articles|first %}
                 {% set firstReceptionReferenceArticle = firstArticle.receptionReferenceArticle %}
                 {% set reception = firstArticle.receptionReferenceArticle.reception %}
 
                 <td class="td"
-                    rowspan="{{ litige.articles|length }}"
+                    rowspan="{{ dispute.articles|length }}"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ litige.type ? litige.type.label }}
+                    {{ dispute.type ? dispute.type.label }}
                 </td>
                 <td class="td"
-                    rowspan="{{ litige.articles|length }}"
+                    rowspan="{{ dispute.articles|length }}"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ litige.status ? litige.status.nom }}
+                    {{ dispute.status ? dispute.status.nom }}
                 </td>
                 <td class="td"
-                    rowspan="{{ litige.articles|length }}"
+                    rowspan="{{ dispute.articles|length }}"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
                     {{ reception.number }}
                 </td>
                 <td class="td"
-                    rowspan="{{ litige.articles|length }}"
+                    rowspan="{{ dispute.articles|length }}"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
                     {{ reception.orderNumber }}
                 </td>
                 <td class="td"
-                    rowspan="{{ litige.articles|length }}"
+                    rowspan="{{ dispute.articles|length }}"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
                     {{ reception.fournisseur ? reception.fournisseur.nom }}
                 </td>
@@ -92,7 +92,7 @@
                     {{ firstArticle.barcode }}
                 </td>
             </tr>
-            {% for article in litige.articles %}
+            {% for article in dispute.articles %}
                 {% if not loop.first %}
                     {% set receptionReferenceArticle = firstArticle.receptionReferenceArticle %}
                     <tr>

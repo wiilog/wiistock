@@ -56,7 +56,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 				Action::CREATE,
 				Action::EDIT,
 				Action::DELETE,
-				Action::TREAT_LITIGE
+				Action::TREAT_DISPUTE
 			],
 			Menu::DEM => [
 				Action::DISPLAY_TRANSFER_REQ,
@@ -191,7 +191,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 
         $selectedByDefault = [
             Menu::QUALI => [
-                Action::TREAT_LITIGE,
+                Action::TREAT_DISPUTE,
             ],
             Menu::NOMADE => [
                 Action::MODULE_ACCESS_STOCK,

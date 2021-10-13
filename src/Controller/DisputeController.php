@@ -6,9 +6,9 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\Litige;
+use App\Entity\Dispute;
 use App\Entity\Menu;
-use App\Entity\LitigeHistoric;
+use App\Entity\DisputeHistoryRecord;
 
 use App\Entity\Attachment;
 use App\Entity\Statut;
@@ -16,9 +16,9 @@ use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
+use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
-use App\Service\LitigeService;
-use App\Service\UserService;
+use App\Service\DisputeService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -28,47 +28,18 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * @Route("/litige")
  */
-class LitigeController extends AbstractController
+class DisputeController extends AbstractController
 {
 
-	/**
-	 * @var UserService
-	 */
-	private $userService;
-
-	/**
-	 * @var LitigeService
-	 */
-	private $litigeService;
-
     /**
-     * @var TranslatorInterface
-     */
-    private $translator;
-
-    /**
-     * @param LitigeService $litigeService
-     * @param UserService $userService
-     * @param TranslatorInterface $translator
-     */
-	public function __construct(LitigeService $litigeService,
-                                UserService $userService,
-                                TranslatorInterface $translator) {
-		$this->userService = $userService;
-		$this->litigeService = $litigeService;
-        $this->translator = $translator;
-	}
-
-    /**
-     * @Route("/liste", name="litige_index", options={"expose"=true}, methods="GET|POST")
+     * @Route("/liste", name="dispute_index", options={"expose"=true}, methods="GET|POST")
      * @HasPermission({Menu::QUALI, Action::DISPLAY_LITI})
      */
-    public function index(LitigeService $litigeService,
+    public function index(DisputeService         $disputeService,
                           EntityManagerInterface $entityManager)
     {
 
@@ -80,11 +51,11 @@ class LitigeController extends AbstractController
         $user = $this->getUser();
 
         return $this->render('litige/index.html.twig',[
-            'statuts' => $statutRepository->findByCategorieNames([CategorieStatut::LITIGE_ARR, CategorieStatut::LITIGE_RECEPT]),
+            'statuts' => $statutRepository->findByCategorieNames([CategorieStatut::DISPUTE_ARR, CategorieStatut::LITIGE_RECEPT]),
             'carriers' => $transporteurRepository->findAllSorted(),
-            'types' => $typeRepository->findByCategoryLabels([CategoryType::LITIGE]),
-			'litigeOrigins' => $litigeService->getLitigeOrigin(),
-            'fields' => $litigeService->getColumnVisibleConfig($user)
+            'types' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
+			'litigeOrigins' => $disputeService->getLitigeOrigin(),
+            'fields' => $disputeService->getColumnVisibleConfig($user)
 		]);
     }
 
@@ -92,30 +63,24 @@ class LitigeController extends AbstractController
      * @Route("/api", name="litige_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::QUALI, Action::DISPLAY_LITI}, mode=HasPermission::IN_JSON)
      */
-    public function api(Request $request) {
+    public function api(Request $request,
+                        DisputeService $disputeService) {
 
         /** @var Utilisateur $user */
         $user = $this->getUser();
-        $data = $this->litigeService->getDataForDatatable($request->request);
+        $data = $disputeService->getDataForDatatable($request->request);
         $columnVisible = $user->getColumnsVisibleForLitige();
         $data['visible'] = $columnVisible;
         return new JsonResponse($data);
 	}
 
     /**
-     * @Route("/litiges_infos", name="get_litiges_for_csv", options={"expose"=true}, methods={"GET","POST"})
-     *
-     * @param Request $request
-     * @param LitigeService $litigeService
-     * @param EntityManagerInterface $entityManager
-     * @param CSVExportService $CSVExportService
-     *
-     * @return Response
+     * @Route("/csv", name="export_csv_dispute", options={"expose"=true}, methods={"GET","POST"})
      */
-    public function getLitigesIntels(Request $request,
-                                     LitigeService $litigeService,
+    public function exportCSVDispute(Request                $request,
+                                     DisputeService         $disputeService,
                                      EntityManagerInterface $entityManager,
-                                     CSVExportService $CSVExportService): Response
+                                     CSVExportService       $CSVExportService): Response
     {
 
 
@@ -150,20 +115,20 @@ class LitigeController extends AbstractController
 
         $nowStr = date("d-m-Y_H-i");
 
-        return $CSVExportService->streamResponse(function ($output) use ($litigeService, $entityManager, $dateTimeMin, $dateTimeMax) {
+        return $CSVExportService->streamResponse(function ($output) use ($disputeService, $entityManager, $dateTimeMin, $dateTimeMax) {
 
-            $litigeRepository = $entityManager->getRepository(Litige::class);
+            $disputeRepository = $entityManager->getRepository(Dispute::class);
 
-            $arrivalDisputes = $litigeRepository->iterateArrivalsLitigeByDates($dateTimeMin, $dateTimeMax);
-            /** @var Litige $dispute */
+            $arrivalDisputes = $disputeRepository->iterateArrivalDisputesByDates($dateTimeMin, $dateTimeMax);
+            /** @var Dispute $dispute */
             foreach ($arrivalDisputes as $dispute) {
-                $litigeService->putDisputeLine(LitigeService::PUT_LINE_ARRIVAL, $output, $litigeRepository, $dispute);
+                $disputeService->putDisputeLine(DisputeService::PUT_LINE_ARRIVAL, $output, $disputeRepository, $dispute);
             }
 
-            $receptionDisputes = $litigeRepository->iterateReceptionLitigeByDates($dateTimeMin, $dateTimeMax);
-            /** @var Litige $dispute */
+            $receptionDisputes = $disputeRepository->iterateReceptionDisputesByDates($dateTimeMin, $dateTimeMax);
+            /** @var Dispute $dispute */
             foreach ($receptionDisputes as $dispute) {
-                $litigeService->putDisputeLine(LitigeService::PUT_LINE_RECEPTION, $output, $litigeRepository, $dispute);
+                $disputeService->putDisputeLine(DisputeService::PUT_LINE_RECEPTION, $output, $disputeRepository, $dispute);
             }
         }, "Export-Litiges" . $nowStr . ".csv", $headers);
     }
@@ -175,10 +140,10 @@ class LitigeController extends AbstractController
                                             EntityManagerInterface $entityManager)
 	{
 		if ($data = json_decode($request->getContent(), true)) {
-			$litigeId = (int)$data['litigeId'];
+			$disputeId = (int)$data['disputeId'];
 			$attachmentRepository = $entityManager->getRepository(Attachment::class);
 
-			$attachements = $attachmentRepository->findOneByFileNameAndLitigeId($data['pjName'], $litigeId);
+			$attachements = $attachmentRepository->findOneByFileNameAndDisputeId($data['pjName'], $disputeId);
 			if (!empty($attachements)) {
 			    foreach ($attachements as $attachement) {
                     $entityManager->remove($attachement);
@@ -196,23 +161,23 @@ class LitigeController extends AbstractController
 	}
 
     /**
-     * @Route("/histo/{litige}", name="histo_litige_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @Route("/histo/{dispute}", name="histo_dispute_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-	public function apiHistoricLitige(Request $request,
-                                      EntityManagerInterface $entityManager,
-                                      Litige $litige): Response
+	public function apiHistoricLitige(EntityManagerInterface $entityManager,
+                                      Dispute                $dispute): Response
     {
         $rows = [];
-        $idLitige = $litige->getId();
-        $litigeHistoricRepository = $entityManager->getRepository(LitigeHistoric::class);
-        $litigeHisto = $litigeHistoricRepository->findByLitige($idLitige);
+        $disputeHistoryRecordRepository = $entityManager->getRepository(DisputeHistoryRecord::class);
+        $disputeHistory = $disputeHistoryRecordRepository->findBy(['dispute' => $dispute]);
 
-        foreach ($litigeHisto as $histo)
+        foreach ($disputeHistory as $record)
         {
             $rows[] = [
-                'user' => $histo->getUser() ? $histo->getUser()->getUsername() : '',
-                'date' => $histo->getDate() ? $histo->getDate()->format('d/m/Y H:i') : '',
-                'commentaire' => nl2br($histo->getComment()),
+                'user' => FormatHelper::user($record->getUser()),
+                'date' => FormatHelper::datetime($record->getDate()),
+                'commentaire' => nl2br($record->getComment()),
+                'status' => FormatHelper::status($record->getStatus()),
+                'type' => FormatHelper::type($record->getType())
             ];
         }
         $data['data'] = $rows;
@@ -221,22 +186,25 @@ class LitigeController extends AbstractController
     }
 
     /**
-     * @Route("/add_Comment/{litige}", name="add_comment", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @Route("/add_Comment/{dispute}", name="add_comment", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-    public function addComment(Request $request, Litige $litige): Response
+    public function addComment(Request $request,
+                               DisputeService $disputeService,
+                               Dispute $dispute): Response
     {
         if ($data = (json_decode($request->getContent(), true) ?? [])) {
             $em = $this->getDoctrine()->getManager();
 
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
-            $litigeHisto = new LitigeHistoric();
-            $litigeHisto
-                ->setLitige($litige)
-                ->setUser($currentUser)
-                ->setDate(new DateTime('now'))
-                ->setComment($data);
-            $em->persist($litigeHisto);
+
+            $historyRecord = $disputeService->createDisputeHistoryRecord(
+                $dispute,
+                $currentUser,
+                [$data]
+            );
+
+            $em->persist($historyRecord);
             $em->flush();
 
             return new JsonResponse(true);
@@ -268,8 +236,8 @@ class LitigeController extends AbstractController
                                  EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
-            $litigeRepository = $entityManager->getRepository(Litige::class);
-            $dispute = $litigeRepository->find($data['litige']);
+            $disputeRepository = $entityManager->getRepository(Dispute::class);
+            $dispute = $disputeRepository->find($data['litige']);
 
             $articlesInDispute = $dispute->getArticles()->toArray();
             $controller = !empty($articlesInDispute) ? 'App\Controller\ReceptionController' : 'App\Controller\ArrivageController';
@@ -312,21 +280,19 @@ class LitigeController extends AbstractController
     }
 
     /**
-     * @Route("/article/{litige}", name="article_litige_api", options={"expose"=true}, methods="POST|GET", condition="request.isXmlHttpRequest()")
-     * @param Litige $litige
-     * @return Response
+     * @Route("/article/{dispute}", name="article_dispute_api", options={"expose"=true}, methods="POST|GET", condition="request.isXmlHttpRequest()")
      */
-    public function articlesByLitige(Litige $litige): Response
+    public function articlesByLitige(Dispute $dispute): Response
     {
         $rows = [];
-        $articlesInLitige = $litige->getFiveLastArticles();
+        $articlesInLitige = $dispute->getFiveLastArticles();
 
         foreach ($articlesInLitige as $article) {
             $rows[] = [
                 'codeArticle' => $article ? $article->getBarCode() : '',
-                'status' => $article->getStatut() ? $article->getStatut()->getNom() : '',
-                'libelle' => $article->getLabel() ? $article->getLabel() : '',
-                'reference' => $article->getReference() ? $article->getReference() : '',
+                'status' => FormatHelper::status($article->getStatut()),
+                'libelle' => $article->getLabel() ?: '',
+                'reference' => $article->getReference() ?: '',
                 'quantity' => $article ? $article->getQuantite() : 'non renseigné',
             ];
         }
@@ -342,7 +308,7 @@ class LitigeController extends AbstractController
     {
         $search = $request->query->get('term');
 
-        $utilisateurRepository = $entityManager->getRepository(Litige::class);
+        $utilisateurRepository = $entityManager->getRepository(Dispute::class);
         $user = $utilisateurRepository->getIdAndDisputeNumberBySearch($search);
         return new JsonResponse([
             'results' => $user

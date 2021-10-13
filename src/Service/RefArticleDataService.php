@@ -303,7 +303,7 @@ class RefArticleDataService {
                 $refArticle->setUserThatTriggeredEmergency(null);
                 $refArticle->setEmergencyComment('');
             }
-            $refArticle->setIsUrgent($data['urgence'] === "true");
+            $refArticle->setIsUrgent(filter_var($data['urgence'] ?? false, FILTER_VALIDATE_BOOLEAN));
         }
 
         if(isset($data['prix'])) {

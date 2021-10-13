@@ -1,12 +1,12 @@
 <div class="row">
     <div class="form-group col-8">
-        <label for="typeLitige">Type*</label>
+        <label for="disputeType">Type*</label>
         <select class="form-control data needed"
                 {{ not hasRightToTreatLitige ? 'disabled' }}
-                id="typeLitige" name="typeLitige">
-            <option placeholder="" value="{{ litige.type.id }}" selected>{{ litige.type.label }}</option>
-            {% for type in typesLitige %}
-                {% if type.id != litige.type.id %}
+                id="disputeType" name="disputeType">
+            <option placeholder="" value="{{ dispute.type.id }}" selected>{{ dispute.type.label }}</option>
+            {% for type in disputeTypes %}
+                {% if type.id != dispute.type.id %}
                     <option value="{{ type.id }}">{{ type.label }}</option>
                 {% endif %}
             {% endfor %}
@@ -15,31 +15,31 @@
     <div class="form-group col-4 mt-4">
         <label>Urgence ?</label>
         <label class="switch">
-            <input class="checkbox" type="checkbox" name="emergency" {{ litige.emergencyTriggered ? 'checked': ''}}>
+            <input class="checkbox" type="checkbox" name="emergency" {{ dispute.emergencyTriggered ? 'checked': ''}}>
             <span class="slider round"></span>
         </label>
     </div>
     <div class="form-group col-12">
-        <label for="statutLitige">Statut*</label>
-        <select class="form-control data needed" id="statutLitige" name="statutLitige">
-            {% for statut in statusLitige %}
-                {% set selected = (litige.status.id == statut.id) ? 'selected' : '' %}
-                {% set disabled = hasRightToTreatLitige ? '' : (statut.treated and statut.id != litige.status.id ? 'disabled' : '') %}
+        <label>Statut*</label>
+        <select class="form-control data needed" name="disputeStatus" title="Statut">
+            {% for statut in disputeStatuses %}
+                {% set selected = (dispute.status.id == statut.id) ? 'selected' : '' %}
+                {% set disabled = hasRightToTreatLitige ? '' : (statut.treated and statut.id != dispute.status.id ? 'disabled' : '') %}
                 <option value="{{ statut.id }}" {{ selected }} {{ disabled }}>{{ statut.nom }}</option>
             {% endfor %}
         </select>
     </div>
     <div class="form-group w-100 col-12">
-        <label for="declarantLitige">Déclarant*</label>
-        <select class="form-control data select2-declarant needed" name="declarantLitige" id="declarantLitige">
+        <label for="disputeReporter">Déclarant*</label>
+        <select class="form-control data select2-declarant needed" name="disputeReporter" id="disputeReporter">
             {% for utilisateur in utilisateurs %}
                 <option value="{{ utilisateur.id }}">{{ utilisateur.text }}</option>
             {% endfor %}
         </select>
         <input hidden
                name="logged-user"
-               data-username="{{ litige.declarant ? litige.declarant.username : '' }}"
-               data-id="{{ litige.declarant ? litige.declarant.id : '' }}"/>
+               data-username="{{ dispute.reporter ? dispute.reporter.username : '' }}"
+               data-id="{{ dispute.reporter ? dispute.reporter.id : '' }}"/>
     </div>
     <div class="form-group w-100 col-12">
         <label for="colisEditLitige">Colis*</label>
@@ -73,4 +73,4 @@
 <div class="tableHistoric">
     <table id="tableHistoLitige" class="table w-100"></table>
 </div>
-<input hidden value="{{ litige.id }}" id="litigeId" class="data">
+<input hidden value="{{ dispute.id }}" id="disputeId" class="data">

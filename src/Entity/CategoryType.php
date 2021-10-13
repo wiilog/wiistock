@@ -13,7 +13,7 @@ class CategoryType
 {
     const RECEPTION = 'réception';
     const ARTICLE = 'article';
-    const LITIGE = 'litige';
+    const DISPUTE = 'litige';
     const DEMANDE_LIVRAISON = 'demande livraison';
     const DEMANDE_COLLECTE = 'demande collecte';
     const DEMANDE_DISPATCH = 'acheminements';
@@ -21,10 +21,6 @@ class CategoryType
     const ARRIVAGE = 'arrivage';
     const MOUVEMENT_TRACA = 'mouvement traca';
     const TRANSFER_REQUEST = 'demande transfert';
-    const COLLECT_ORDER = 'ordre collecte';
-    const DELIVERY_ORDER = 'ordre livraison';
-    const PREPARATION_ORDER = 'ordre preparation';
-    const TRANSFER_ORDER = 'ordre transfert';
     const SENSOR = 'capteur';
     const REQUEST_TEMPLATE = 'modèle demande';
 
@@ -33,22 +29,22 @@ class CategoryType
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $label;
+    private ?string $label = null;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Type", mappedBy="category")
      */
-    private $types;
+    private Collection $types;
 
     /**
      * @ORM\OneToMany(targetEntity=CategorieCL::class, mappedBy="categoryType")
      */
-    private $categorieCLs;
+    private Collection $categorieCLs;
 
     public function __construct()
     {

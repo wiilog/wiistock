@@ -29,69 +29,66 @@ class Pack implements PairedEntity
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $code;
+    private ?string $code = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Arrivage", inversedBy="packs")
      */
-    private $arrivage;
+    private ?Arrivage $arrivage = null;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Litige", mappedBy="packs")
+     * @ORM\ManyToMany(targetEntity=Dispute::class, mappedBy="packs")
      */
-    private $litiges;
+    private Collection $disputes;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Nature", inversedBy="packs")
      */
-    private $nature;
+    private ?Nature $nature = null;
 
     /**
-     * @var TrackingMovement
      * @ORM\OneToOne(targetEntity=TrackingMovement::class, inversedBy="linkedPackLastDrop")
      * @ORM\JoinColumn(nullable=true)
      */
-    private $lastDrop;
+    private ?TrackingMovement $lastDrop = null;
 
     /**
-     * @var null|TrackingMovement
      * @ORM\OneToOne(targetEntity=TrackingMovement::class, inversedBy="linkedPackLastTracking")
      * @ORM\JoinColumn(nullable=true)
      */
-    private $lastTracking;
+    private ?TrackingMovement $lastTracking = null;
 
     /**
-     * @var Collection
      * @ORM\OneToMany(targetEntity=TrackingMovement::class, mappedBy="pack")
      * @ORM\JoinColumn(onDelete="CASCADE")
      * @ORM\OrderBy({"datetime" = "DESC", "id" = "DESC"})
      */
-    private $trackingMovements;
+    private Collection $trackingMovements;
 
     /**
      * @ORM\Column(type="integer", options={"default": 1})
      */
-    private $quantity;
+    private ?int $quantity = 1;
 
     /**
      * @ORM\Column(type="decimal", precision=12, scale=3, nullable=true)
      */
-    private $weight;
+    private ?float $weight = null;
 
     /**
      * @ORM\Column(type="decimal", precision=12, scale=3, nullable=true)
      */
-    private $volume;
+    private ?float $volume = null;
 
     /**
      * @ORM\Column(type="text", nullable=true)
      */
-    private $comment;
+    private ?string $comment = null;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
@@ -101,24 +98,24 @@ class Pack implements PairedEntity
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\DispatchPack", mappedBy="pack", orphanRemoval=true)
      */
-    private $dispatchPacks;
+    private Collection $dispatchPacks;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterRecord", mappedBy="pack", cascade={"remove"})
      */
-    private $locationClusterRecords;
+    private Collection $locationClusterRecords;
 
     /**
      * @ORM\OneToOne(targetEntity="App\Entity\Article", inversedBy="trackingPack")
      * @ORM\JoinColumn(nullable=true)
      */
-    private $article;
+    private ?Article $article = null;
 
     /**
      * @ORM\OneToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="trackingPack")
      * @ORM\JoinColumn(nullable=true)
      */
-    private $referenceArticle;
+    private ?ReferenceArticle $referenceArticle = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=Pack::class, inversedBy="children")
@@ -144,17 +141,16 @@ class Pack implements PairedEntity
     /**
      * @ORM\OneToMany(targetEntity=ReceiptAssociation::class, mappedBy="pack")
      */
-    private $receiptAssociations;
+    private Collection $receiptAssociations;
 
 
     public function __construct() {
-        $this->litiges = new ArrayCollection();
+        $this->disputes = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
         $this->dispatchPacks = new ArrayCollection();
         $this->locationClusterRecords = new ArrayCollection();
         $this->children = new ArrayCollection();
         $this->childTrackingMovements = new ArrayCollection();
-        $this->quantity = 1;
         $this->pairings = new ArrayCollection();
         $this->sensorMessages = new ArrayCollection();
         $this->receiptAssociations = new ArrayCollection();
@@ -187,28 +183,28 @@ class Pack implements PairedEntity
     }
 
     /**
-     * @return Collection|Litige[]
+     * @return Collection|Dispute[]
      */
-    public function getLitiges(): Collection
+    public function getDisputes(): Collection
     {
-        return $this->litiges;
+        return $this->disputes;
     }
 
-    public function addLitige(Litige $litige): self
+    public function addDispute(Dispute $dispute): self
     {
-        if (!$this->litiges->contains($litige)) {
-            $this->litiges[] = $litige;
-            $litige->addPack($this);
+        if (!$this->disputes->contains($dispute)) {
+            $this->disputes[] = $dispute;
+            $dispute->addPack($this);
         }
 
         return $this;
     }
 
-    public function removeLitige(Litige $litige): self
+    public function removeDispute(Dispute $dispute): self
     {
-        if ($this->litiges->contains($litige)) {
-            $this->litiges->removeElement($litige);
-            $litige->removePack($this);
+        if ($this->disputes->contains($dispute)) {
+            $this->disputes->removeElement($dispute);
+            $dispute->removePack($this);
         }
 
         return $this;

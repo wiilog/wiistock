@@ -23,7 +23,7 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
 			CategoryType::RECEPTION => [Type::LABEL_RECEPTION],
 			CategoryType::DEMANDE_LIVRAISON => [Type::LABEL_STANDARD],
 			CategoryType::DEMANDE_COLLECTE => [Type::LABEL_STANDARD],
-			CategoryType::LITIGE => [
+			CategoryType::DISPUTE => [
 				Type::LABEL_MANQUE_BL,
 				Type::LABEL_MANQUE_INFO_BL,
 				Type::LABEL_ECART_QTE,
@@ -65,7 +65,7 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
 
 			// création des types
     		foreach ($typesNames as $typeName) {
-				if (!$categoryHasType || ($typeName !== Type::LABEL_STANDARD && $typeName !== Type::LABEL_RECEPTION && $categoryName !== CategoryType::LITIGE)) {
+				if (!$categoryHasType || ($typeName !== Type::LABEL_STANDARD && $typeName !== Type::LABEL_RECEPTION && $categoryName !== CategoryType::DISPUTE)) {
                     $type = $typeRepository->findOneByCategoryLabelAndLabel($categoryName, $typeName);
                     if (empty($type)) {
                         $type = new Type();
