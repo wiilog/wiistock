@@ -124,7 +124,7 @@
                     <div class="content comment-container">
                         <div class="ml-3">
                             <span class="wii-subtitle">Commentaire</span>
-                            <div class="mt-2">{{ referenceArticle.commentaire and referenceArticle.commentaire != '<p><br></p>'
+                            <div class="mt-2 text-break">{{ referenceArticle.commentaire and referenceArticle.commentaire != '<p><br></p>'
                                 ? referenceArticle.commentaire | raw
                                 : '-' }}
                             </div>

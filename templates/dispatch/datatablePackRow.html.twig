@@ -8,7 +8,7 @@
                  {% if modifiable %}
                  onclick="openEditPackModal({
                      packDispatchId: {{ packDispatch.id }},
-                     code: '{{ pack.code }}',
+                     code: '{{ pack_code }}',
                      quantity: {{ packDispatch.quantity is not empty ? packDispatch.quantity : 0 }},
                      comment: '{{ pack.comment }}',
                      packQuantity: {{ pack.quantity is not empty ? pack.quantity : 0 }},
@@ -18,7 +18,7 @@
                      })"
                      {% else %}
                          onclick="openShowPackModal({
-                             code: '{{ pack.code }}',
+                             code: '{{ pack_code }}',
                              nature: '{{ pack.nature is not null ? pack.nature.label : 'null' }}',
                              quantity: {{ packDispatch.quantity is not empty ? packDispatch.quantity : 0 }},
                              packQuantity: {{ pack.quantity is not empty ? pack.quantity : 0 }},

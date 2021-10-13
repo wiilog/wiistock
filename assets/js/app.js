@@ -198,7 +198,7 @@ $(document).ready(() => {
                     const formatted = moment(original, "YYYY-MM-DDTHH:mm")
                         .format("DD/MM/YYYY HH:mm");
 
-                    $input.attr("placeholder", "dd/mm/yyyy HH:MM")
+                    $input.attr("placeholder", "jj/mm/aaaa --:--")
                     $input.val(formatted);
                     $input.datetimepicker({
                         format: "DD/MM/YYYY HH:mm"

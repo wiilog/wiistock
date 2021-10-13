@@ -657,10 +657,11 @@ class DispatchController extends AbstractController {
     /**
      * @Route("/packs/api/{dispatch}", name="dispatch_pack_api", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
      */
-    public function apiPack(Dispatch $dispatch): Response {
+    public function apiPack(Dispatch $dispatch, EntityManagerInterface $manager): Response {
+        $prefixPackCodeWithDispatchNumber = $manager->getRepository(ParametrageGlobal::class)->getOneParamByLabel(ParametrageGlobal::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
         return new JsonResponse([
             'data' => $dispatch->getDispatchPacks()
-                ->map(function(DispatchPack $dispatchPack) {
+                ->map(function(DispatchPack $dispatchPack) use ($dispatch, $prefixPackCodeWithDispatchNumber) {
                     $pack = $dispatchPack->getPack();
                     $lastTracking = $pack->getLastTracking();
                     return [
@@ -673,6 +674,9 @@ class DispatchController extends AbstractController {
                         'status' => $dispatchPack->isTreated() ? 'Traité' : 'A traiter',
                         'actions' => $this->renderView('dispatch/datatablePackRow.html.twig', [
                             'pack' => $pack,
+                            'pack_code' => $prefixPackCodeWithDispatchNumber
+                                ? str_replace($dispatch->getNumber() . '-', '', $pack->getCode())
+                                : $pack->getCode(),
                             'packDispatch' => $dispatchPack,
                             'modifiable' => $dispatchPack->getDispatch()->getStatut()->isDraft()
                         ])
