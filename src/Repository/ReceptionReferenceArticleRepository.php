@@ -72,30 +72,23 @@ class ReceptionReferenceArticleRepository extends EntityRepository
 	}
 
 	/**
-	 * @param Reception $reception
-	 * @param string $noCommande
-	 * @param int $refArticleId
-	 * @return ReceptionReferenceArticle|null
-	 * @throws NonUniqueResultException
+	 * @return ReceptionReferenceArticle[]
 	 */
-	public function findOneByReceptionAndCommandeAndRefArticleId($reception, $noCommande, $refArticleId)
-	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-		/** @lang DQL */
-			'SELECT rra
-            FROM App\Entity\ReceptionReferenceArticle rra
-            JOIN rra.referenceArticle ra
-            WHERE rra.reception = :reception
-            AND ra.id = :refArticleId
-            AND rra.commande = :noCommande
-            '
-		)->setParameters([
-			'reception' => $reception,
-			'noCommande' => $noCommande,
-			'refArticleId' => $refArticleId
-		]);
-		return $query->getOneOrNullResult();
+	public function findByReceptionAndCommandeAndRefArticleId(Reception $reception,
+                                                              ?string $orderNumber,
+                                                              ?int $refArticleId): array {
+        return $this->createQueryBuilder('reception_reference_article')
+            ->join('reception_reference_article.referenceArticle', 'referenceArticle')
+            ->andWhere('reception_reference_article.reception = :reception')
+            ->andWhere('reception_reference_article.commande = :orderNumber')
+            ->andWhere('referenceArticle.id = :refArticleId')
+            ->setParameters([
+                'reception' => $reception,
+                'orderNumber' => $orderNumber,
+                'refArticleId' => $refArticleId
+            ])
+            ->getQuery()
+            ->getResult();
 	}
 
 	/**

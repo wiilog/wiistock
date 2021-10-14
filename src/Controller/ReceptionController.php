@@ -1645,28 +1645,38 @@ class ReceptionController extends AbstractController {
 
             $totalQuantities = [];
             foreach($articles as $article) {
-                $rra = $receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticleId(
+                $receptionReferenceArticles = $receptionReferenceArticleRepository->findByReceptionAndCommandeAndRefArticleId(
                     $reception,
                     $article['noCommande'],
                     $article['refArticle']
                 );
-                if(!isset($totalQuantities[$rra->getId()])) {
-                    $totalQuantities[$rra->getId()] = ($rra->getQuantite() ?? 0);
+
+                if (count($receptionReferenceArticles) > 1) {
+                    return $this->json([
+                        'success' => false,
+                        'msg' => 'Erreur : La référence avec le même numéro de commande est présente plusieurs fois dans la réception'
+                    ]);
                 }
-                $totalQuantities[$rra->getId()] += $article['quantite'];
+
+                $receptionReferenceArticle = $receptionReferenceArticles[0] ?? null;
+
+                if(!isset($totalQuantities[$receptionReferenceArticle->getId()])) {
+                    $totalQuantities[$receptionReferenceArticle->getId()] = ($receptionReferenceArticle->getQuantite() ?? 0);
+                }
+                $totalQuantities[$receptionReferenceArticle->getId()] += $article['quantite'];
             }
 
             foreach($totalQuantities as $rraId => $totalQuantity) {
-                $rra = $receptionReferenceArticleRepository->find($rraId);
+                $receptionReferenceArticle = $receptionReferenceArticleRepository->find($rraId);
 
                 // protection quantité reçue <= quantité à recevoir
-                if($totalQuantity > $rra->getQuantiteAR() || $totalQuantity < 0) {
+                if($totalQuantity > $receptionReferenceArticle->getQuantiteAR() || $totalQuantity < 0) {
                     return new JsonResponse([
                         'success' => false,
                         'msg' => 'Erreur, la quantité reçue doit être inférieure ou égale à la quantité à recevoir.'
                     ]);
                 }
-                $rra->setQuantite($totalQuantity);
+                $receptionReferenceArticle->setQuantite($totalQuantity);
             }
 
             // optionnel : crée la demande de livraison
@@ -1820,9 +1830,10 @@ class ReceptionController extends AbstractController {
                 }
 
                 $ref = $article->getArticleFournisseur()->getReferenceArticle();
-                $rra = $receptionReferenceArticleRepository->findOneByReceptionAndCommandeAndRefArticleId($reception, $noCommande, $ref->getId());
-                $article->setReceptionReferenceArticle($rra);
-                $ref = $rra->getReferenceArticle();
+                $receptionReferenceArticles = $receptionReferenceArticleRepository->findByReceptionAndCommandeAndRefArticleId($reception, $noCommande, $ref->getId());
+                $receptionReferenceArticle = $receptionReferenceArticles[0] ?? null;
+                $article->setReceptionReferenceArticle($receptionReferenceArticle);
+                $ref = $receptionReferenceArticle->getReferenceArticle();
                 if($ref->getIsUrgent()) {
                     $emergencies[] = $article;
                 }
