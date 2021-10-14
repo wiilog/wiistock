@@ -96,45 +96,23 @@ class StatusController extends AbstractController {
                         EntityManagerInterface $entityManager,
                         StatusService $statusService): Response {
         if ($data = json_decode($request->getContent(), true)) {
+            $validation = $statusService->validateStatusData($entityManager, $data);
 
-            $statusRepository = $entityManager->getRepository(Statut::class);
-            $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
-            $typeRepository = $entityManager->getRepository(Type::class);
+            if ($validation['success']) {
+                $status = $statusService->updateStatus($entityManager, new Statut(), $data);
 
-            $category = $categoryStatusRepository->find($data['category']);
-            $type = $typeRepository->find($data['type']);
-
-            $defaults = $statusRepository->countDefaults($category, $type);
-            $drafts = $statusRepository->countDrafts($category, $type);
-            $disputes = $statusRepository->countDisputes($category, $type);
-
-            if ($statusRepository->countSimilarLabels($category, $data['label'], $data['type'])) {
-                $success = false;
-                $message = 'Le statut "' . $data['label'] . '" existe déjà pour cette catégorie. Veuillez en choisir un autre.';
-            } else if ($data['defaultForCategory'] && $defaults > 0) {
-                $success = false;
-                $message = 'Vous ne pouvez pas créer un statut par défaut pour cette entité et ce type, il en existe déjà un.';
-            } else if (((int) $data['state']) === Statut::DRAFT && $drafts > 0) {
-                $success = false;
-                $message = 'Vous ne pouvez pas créer un statut brouillon pour cette entité et ce type, il en existe déjà un.';
-            } else if (((int) $data['state']) === Statut::DISPUTE && $disputes > 0) {
-                $success = false;
-                $message = 'Vous ne pouvez pas créer un statut litige pour cette entité et ce type, il en existe déjà un.';
-            } else {
-                $status = $statusService->updateStatus(new Statut(), $type, $data);
+                $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
+                $category = $categoryStatusRepository->find($data['category']);
                 $status->setCategorie($category);
 
                 $entityManager->persist($status);
                 $entityManager->flush();
 
-                $success = true;
-                $message = 'Le statut <strong>' . $data['label'] . '</strong> a bien été créé.';
+                $validation['success'] = true;
+                $validation['message'] = 'Le statut <strong>' . $data['label'] . '</strong> a bien été créé.';
             }
 
-            return new JsonResponse([
-                'success' => $success,
-                'msg' => $message
-            ]);
+            return new JsonResponse($validation);
         }
         throw new BadRequestHttpException();
     }
@@ -186,43 +164,22 @@ class StatusController extends AbstractController {
         if ($data = json_decode($request->getContent(), true)) {
 
             $statusRepository = $entityManager->getRepository(Statut::class);
-            $typeRepository = $entityManager->getRepository(Type::class);
 
             /** @var Statut $status */
             $status = $statusRepository->find($data['status']);
-            $statusLabel = $status->getNom();
+            $validation = $statusService->validateStatusData($entityManager, $data, $status);
 
-            // on vérifie que le label n'est pas déjà utilisé
-            $category = $status->getCategorie();
-
-            $type = $typeRepository->find($data['type']);
-
-            $defaults = $statusRepository->countDefaults($category, $type, $status);
-            $drafts = $statusRepository->countDrafts($category, $type, $status);
-
-            if ($statusRepository->countSimilarLabels($category, $data['label'], $data['type'], $status)) {
-                $success = false;
-                $message = 'Le statut "' . $data['label'] . '" existe déjà pour cette catégorie. Veuillez en choisir un autre.';
-            } else if ($data['defaultForCategory'] && $defaults > 0) {
-                $success = false;
-                $message = 'Vous ne pouvez pas créer un statut par défaut pour cette entité et ce type, il en existe déjà un.';
-            } else if (((int) $data['state']) === Statut::DRAFT && $drafts > 0) {
-                $success = false;
-                $message = 'Vous ne pouvez pas ajouter un statut brouillon pour cette entité et ce type, il en existe déjà un.';
-            } else {
-                $status = $statusService->updateStatus($status, $type, $data);
+            if ($validation['success']) {
+                $status = $statusService->updateStatus($entityManager, $status, $data);
 
                 $entityManager->persist($status);
                 $entityManager->flush();
 
-                $success = true;
-                $message = 'Le statut <strong>' . $statusLabel . '</strong> a bien été modifié.';
+                $validation['success'] = true;
+                $validation['message'] = 'Le statut <strong>' . $data['label'] . '</strong> a bien été créé.';
             }
 
-            return new JsonResponse([
-                'success' => $success,
-                'msg' => $message
-            ]);
+            return new JsonResponse($validation);
         }
         throw new BadRequestHttpException();
     }

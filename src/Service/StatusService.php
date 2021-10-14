@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\CategorieStatut;
 use App\Entity\FiltreSup;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -27,7 +28,10 @@ class StatusService {
         $this->router = $router;
     }
 
-    public function updateStatus(Statut $status, ?Type $type, array $data): Statut {
+    public function updateStatus(EntityManagerInterface $entityManager, Statut $status, array $data): Statut {
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $type = $typeRepository->find($data['type']);
+
         $status
             ->setNom($data['label'])
             ->setState($data['state'])
@@ -42,6 +46,39 @@ class StatusService {
             ->setComment($data['comment'])
             ->setType($type);
         return $status;
+    }
+
+    public function validateStatusData(EntityManagerInterface $entityManager, array $data, ?Statut $status = null): array {
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+
+        $category = $status
+            ? $status->getCategorie()
+            : $categoryStatusRepository->find($data['category']);
+
+        $type = $typeRepository->find($data['type']);
+
+        $defaults = $statusRepository->countDefaults($category, $type, $status);
+        $drafts = $statusRepository->countDrafts($category, $type, $status);
+        $disputes = $statusRepository->countDisputes($category, $type, $status);
+        $autos = $statusRepository->countAutoForTreated($category, $type, $status);
+
+        if ($statusRepository->countSimilarLabels($category, $data['label'], $data['type'])) {
+            $message = 'Le statut "' . $data['label'] . '" existe déjà pour cette catégorie. Veuillez en choisir un autre.';
+        } else if ($data['defaultForCategory'] && $defaults > 0) {
+            $message = 'Vous ne pouvez pas créer un statut par défaut pour cette entité et ce type, il en existe déjà un.';
+        } else if (((int) $data['state']) === Statut::DRAFT && $drafts > 0) {
+            $message = 'Vous ne pouvez pas créer un statut brouillon pour cette entité et ce type, il en existe déjà un.';
+        } else if (((int) $data['state']) === Statut::DISPUTE && $disputes > 0) {
+            $message = 'Vous ne pouvez pas créer un statut litige pour cette entité et ce type, il en existe déjà un.';
+        } else if (((int) $data['state']) === Statut::TREATED && $autos > 0 && $data['treatedAutoStatus']) {
+            $message = 'Vous ne pouvez pas créer un statut automatique en état traité pour cette entité et ce type, il en existe déjà un.';
+        }
+        return [
+            'success' => empty($message),
+            'message' => $message ?? null
+        ];
     }
 
     public function getDataForDatatable($params = null) {
