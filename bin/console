@@ -38,6 +38,9 @@ if ($_SERVER['APP_DEBUG']) {
     }
 }
 
+// set default timezone to Europe/Paris = (php.ini > date.timezone)
+date_default_timezone_set('Europe/Paris');
+
 $kernel = new Kernel($_SERVER['APP_ENV'], (bool) $_SERVER['APP_DEBUG']);
 $application = new Application($kernel);
 $application->run($input);
