@@ -92,7 +92,9 @@ class StatusController extends AbstractController {
      * @Route("/creer", name="status_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function new(Request $request, EntityManagerInterface $entityManager): Response {
+    public function new(Request $request,
+                        EntityManagerInterface $entityManager,
+                        StatusService $statusService): Response {
         if ($data = json_decode($request->getContent(), true)) {
 
             $statusRepository = $entityManager->getRepository(Statut::class);
@@ -119,22 +121,8 @@ class StatusController extends AbstractController {
                 $success = false;
                 $message = 'Vous ne pouvez pas créer un statut litige pour cette entité et ce type, il en existe déjà un.';
             } else {
-                $type = $typeRepository->find($data['type']);
-                $status = new Statut();
-                $status
-                    ->setNom($data['label'])
-                    ->setComment($data['description'])
-                    ->setState($data['state'])
-                    ->setDefaultForCategory((bool)$data['defaultForCategory'])
-                    ->setSendNotifToBuyer((bool)$data['sendMails'])
-                    ->setCommentNeeded((bool)$data['commentNeeded'])
-                    ->setSendNotifToDeclarant((bool)$data['sendMailsDeclarant'])
-                    ->setSendNotifToRecipient((bool)$data['sendMailsRecipient'])
-                    ->setNeedsMobileSync((bool)$data['needsMobileSync'])
-                    ->setAutomaticReceptionCreation((bool)$data['automaticReceptionCreation'])
-                    ->setDisplayOrder((int)$data['displayOrder'])
-                    ->setCategorie($category)
-                    ->setType($type ?? null);
+                $status = $statusService->updateStatus(new Statut(), $type, $data);
+                $status->setCategorie($category);
 
                 $entityManager->persist($status);
                 $entityManager->flush();
@@ -193,7 +181,8 @@ class StatusController extends AbstractController {
      * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function edit(EntityManagerInterface $entityManager,
-                         Request $request): Response {
+                         Request $request,
+                         StatusService $statusService): Response {
         if ($data = json_decode($request->getContent(), true)) {
 
             $statusRepository = $entityManager->getRepository(Statut::class);
@@ -221,20 +210,7 @@ class StatusController extends AbstractController {
                 $success = false;
                 $message = 'Vous ne pouvez pas ajouter un statut brouillon pour cette entité et ce type, il en existe déjà un.';
             } else {
-                $type = $typeRepository->find($data['type']);
-                $status
-                    ->setNom($data['label'])
-                    ->setState($data['state'])
-                    ->setDefaultForCategory((bool)$data['defaultForCategory'])
-                    ->setSendNotifToBuyer((bool)$data['sendMails'])
-                    ->setCommentNeeded((bool)$data['commentNeeded'])
-                    ->setNeedsMobileSync((bool)$data['needsMobileSync'])
-                    ->setSendNotifToDeclarant((bool)$data['sendMailsDeclarant'])
-                    ->setSendNotifToRecipient((bool)$data['sendMailsRecipient'])
-                    ->setAutomaticReceptionCreation((bool)$data['automaticReceptionCreation'])
-                    ->setDisplayOrder((int)$data['displayOrder'])
-                    ->setComment($data['comment'])
-                    ->setType($type ?? null);
+                $status = $statusService->updateStatus($status, $type, $data);
 
                 $entityManager->persist($status);
                 $entityManager->flush();

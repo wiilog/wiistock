@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\FiltreSup;
 use App\Entity\Statut;
+use App\Entity\Type;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
@@ -24,6 +25,23 @@ class StatusService {
         $this->security = $security;
         $this->templating = $templating;
         $this->router = $router;
+    }
+
+    public function updateStatus(Statut $status, ?Type $type, array $data): Statut {
+        $status
+            ->setNom($data['label'])
+            ->setState($data['state'])
+            ->setDefaultForCategory((bool)$data['defaultForCategory'])
+            ->setSendNotifToBuyer((bool)$data['sendMails'])
+            ->setCommentNeeded((bool)$data['commentNeeded'])
+            ->setNeedsMobileSync((bool)$data['needsMobileSync'])
+            ->setSendNotifToDeclarant((bool)$data['sendMailsDeclarant'])
+            ->setSendNotifToRecipient((bool)$data['sendMailsRecipient'])
+            ->setAutomaticReceptionCreation((bool)$data['automaticReceptionCreation'])
+            ->setDisplayOrder((int)$data['displayOrder'])
+            ->setComment($data['comment'])
+            ->setType($type);
+        return $status;
     }
 
     public function getDataForDatatable($params = null) {
