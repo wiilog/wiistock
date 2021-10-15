@@ -2,8 +2,8 @@ SELECT dispute.id                                                     AS litige_
        dispute.number                                                 AS numero,
        type.label                                                     AS type,
        dispute.creation_date                                          AS date_creation,
-       dernier_statut.nom                                             AS dernier_statut,
-       dispute_history_record.comment                                 AS dernier_commentaire,
+       last_dispute_record.status_label                               AS dernier_statut,
+       last_dispute_record.comment                                    AS dernier_commentaire,
        GROUP_CONCAT(acheteurs.username SEPARATOR ', ')                AS acheteurs,
        declarant.username                                             AS declarant,
        IF(dispute.emergency_triggered = 1, 'oui', 'non')              AS urgence,
@@ -26,8 +26,7 @@ SELECT dispute.id                                                     AS litige_
 FROM dispute
 
          LEFT JOIN type ON dispute.type_id = type.id
-         LEFT JOIN dispute_history_record ON dispute.last_history_record_id = dispute_history_record.id
-         LEFT JOIN statut AS dernier_statut ON dispute_history_record.status_id = dernier_statut.id
+         LEFT JOIN dispute_history_record AS last_dispute_record ON dispute.last_history_record_id = last_dispute_record.id
          LEFT JOIN dispute_utilisateur ON dispute.id = dispute_utilisateur.dispute_id
          LEFT JOIN utilisateur AS acheteurs ON dispute_utilisateur.utilisateur_id = acheteurs.id
          LEFT JOIN utilisateur AS declarant ON dispute.reporter_id = declarant.id
