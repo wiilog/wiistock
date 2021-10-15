@@ -6,6 +6,7 @@ use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
+use App\Entity\Traits\FreeFieldsManagerTrait;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -22,9 +23,10 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  * @ORM\Entity(repositoryClass="App\Repository\ArticleRepository")
  * @UniqueEntity("reference")
  */
-class Article extends FreeFieldEntity implements PairedEntity
+class Article implements PairedEntity
 {
     use SensorMessageTrait;
+    use FreeFieldsManagerTrait;
 
     const CATEGORIE = 'article';
 

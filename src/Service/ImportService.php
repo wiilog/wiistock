@@ -44,6 +44,7 @@ class ImportService
 {
     public const MAX_LINES_FLASH_IMPORT = 100;
     public const MAX_LINES_AUTO_FORCED_IMPORT = 500;
+    public const NB_ROW_WITHOUT_CLEARING = 50;
 
     public const IMPORT_MODE_RUN = 1; // réaliser l'import maintenant
     public const IMPORT_MODE_FORCE_PLAN = 2; // réaliser l'import rapidement (dans le cron qui s'exécute toutes les 30min)
@@ -256,6 +257,9 @@ class ImportService
             ['resource' => $logFile, 'fileName' => $logFileName] = $this->fopenLogFile();
             $logFileMapper = $this->getLogFileMapper();
 
+            $import->setStartDate(new DateTime());
+            $this->em->flush();
+
             foreach ($firstRows as $row) {
                 $logRow = $this->treatImportRow(
                     $row,
@@ -283,7 +287,7 @@ class ImportService
                         $colChampsLibres,
                         $refToUpdate,
                         $stats,
-                        ($index % 500 === 0),
+                        ($index % self::NB_ROW_WITHOUT_CLEARING === 0),
                         $receptionsWithCommand,
                         $user,
                         $index
@@ -1016,7 +1020,7 @@ class ImportService
             if(!isset($visibilityGroup)) {
                 $this->throwError("Le groupe de visibilité ${data['visibilityGroups']} n'existe pas");
             }
-            $refArt->setVisibilityGroup($visibilityGroup);
+            $refArt->setAttributes(['visibilityGroup' => $visibilityGroup]);
         }
 
         if (isset($data['managers'])) {

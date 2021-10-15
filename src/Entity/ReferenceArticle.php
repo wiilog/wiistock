@@ -7,6 +7,8 @@ use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CommentTrait;
+use App\Entity\Traits\FreeFieldsManagerTrait;
+use App\Entity\Traits\LiteAttrSetterTrait;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -16,8 +18,14 @@ use WiiCommon\Helper\Stream;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ReferenceArticleRepository")
  */
-class ReferenceArticle extends FreeFieldEntity
-{
+class ReferenceArticle {
+
+    use FreeFieldsManagerTrait;
+    use AttachmentTrait;
+    use CommentTrait;
+    use LiteAttrSetterTrait;
+
+
     const CATEGORIE = 'referenceArticle';
     const STATUT_ACTIF = 'actif';
     const STATUT_INACTIF = 'inactif';
@@ -32,9 +40,6 @@ class ReferenceArticle extends FreeFieldEntity
 
     const PURCHASE_IN_PROGRESS_ORDER_STATE = "purchaseInProgress";
     const WAIT_FOR_RECEPTION_ORDER_STATE = "waitForReception";
-
-    use AttachmentTrait;
-    use CommentTrait;
 
     /**
      * @ORM\Id()

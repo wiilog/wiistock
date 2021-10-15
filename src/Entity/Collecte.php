@@ -8,6 +8,7 @@ use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\Traits\CommentTrait;
+use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Entity\Traits\RequestTrait;
 use App\Helper\FormatHelper;
 use DateTimeInterface;
@@ -19,7 +20,7 @@ use WiiCommon\Helper\Stream;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\CollecteRepository")
  */
-class Collecte extends FreeFieldEntity implements Serializable, PairedEntity {
+class Collecte implements Serializable, PairedEntity {
 
     const CATEGORIE = 'collecte';
 
@@ -31,6 +32,7 @@ class Collecte extends FreeFieldEntity implements Serializable, PairedEntity {
     use CommentTrait;
     use RequestTrait;
     use SensorMessageTrait;
+    use FreeFieldsManagerTrait;
 
     /**
      * @ORM\Id()

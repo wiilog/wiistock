@@ -1,22 +1,18 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Traits;
 
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\MappedSuperclass()
- */
-class FreeFieldEntity
-{
+
+trait FreeFieldsManagerTrait {
 
     /**
      * @ORM\Column(type="json", nullable=true)
      */
-    protected $freeFields = [];
+    private ?array $freeFields = [];
 
-    public function getFreeFields(): ?array
-    {
+    public function getFreeFields(): ?array {
         return $this->freeFields ?? [];
     }
 

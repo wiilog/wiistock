@@ -2,7 +2,7 @@
 
 namespace App\Entity\IOT;
 
-use App\Entity\FreeFieldEntity;
+use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\IOT\SensorWrapperRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -12,8 +12,10 @@ use App\Entity\Utilisateur;
 /**
  * @ORM\Entity(repositoryClass=SensorWrapperRepository::class)
  */
-class SensorWrapper extends FreeFieldEntity
-{
+class SensorWrapper {
+
+    use FreeFieldsManagerTrait;
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
