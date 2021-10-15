@@ -32,7 +32,6 @@ use App\Repository\ReceptionReferenceArticleRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use Google\Service\Transcoder\Input;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\RedirectResponse;

@@ -12,7 +12,6 @@ use App\Entity\FreeField;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Emplacement;
-use App\Entity\Fournisseur;
 use App\Entity\InventoryEntry;
 use App\Entity\InventoryMission;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;

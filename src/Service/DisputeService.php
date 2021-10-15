@@ -39,11 +39,6 @@ class DisputeService {
     private $templating;
 
     /**
-     * @var RouterInterface
-     */
-    private $router;
-
-    /**
      * @var UserService
      */
     private $userService;
@@ -68,7 +63,6 @@ class DisputeService {
         $this->templating = $templating;
         $this->entityManager = $entityManager;
         $this->translator = $translator;
-        $this->router = $router;
         $this->userService = $userService;
         $this->security = $security;
         $this->mailerService = $mailerService;

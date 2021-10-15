@@ -3,10 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\Dispute;
-use App\Entity\DisputeHistoryRecord;
 use App\Helper\QueryCounter;
 use DateTime;
-use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Exception;

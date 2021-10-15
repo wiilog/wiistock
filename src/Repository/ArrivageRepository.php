@@ -5,16 +5,11 @@ namespace App\Repository;
 use App\Entity\Arrivage;
 use App\Entity\FreeField;
 use App\Entity\Statut;
-use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
-use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
-use Exception;
 use Symfony\Component\HttpFoundation\InputBag;
 
 /**

@@ -24,7 +24,6 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use App\Service\NotificationService;
-use Knp\Snappy\Pdf;
 use WiiCommon\Helper\Stream;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
