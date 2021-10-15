@@ -207,11 +207,21 @@ function renderCurrentDashboard() {
                     $dashboard.append(row);
                 }
             });
-    }
 
-    if (mode === MODE_DISPLAY || mode === MODE_EXTERNAL) {
-        $(`.header-title`).html(`Dashboard | <span class="bold">${currentDashboard.name}</span>`);
-        document.title = document.title.split('|')[0] + ` | ${currentDashboard.name}`;
+        if (mode === MODE_DISPLAY || mode === MODE_EXTERNAL) {
+            $(`.header-title`).html(`Dashboard | <span class="bold">${currentDashboard.name}</span>`);
+            document.title = document.title.split('|')[0] + ` | ${currentDashboard.name}`;
+        }
+    } else {
+        const emptyDashboards = $(`<div/>`, {
+            class: `d-flex align-items-center justify-content-center h-100`,
+            html: [
+                $(`<p/>`, {
+                    class: `h4`,
+                    text: 'Dashboards non paramétrés'
+                })
+        ]});
+        $dashboard.append(emptyDashboards);
     }
 }
 
