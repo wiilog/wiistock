@@ -15,7 +15,6 @@ use App\Entity\Pack;
 use App\Entity\FieldsParam;
 use App\Entity\Fournisseur;
 use App\Entity\Dispute;
-use App\Entity\DisputeHistoryRecord;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;

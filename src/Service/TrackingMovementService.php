@@ -23,7 +23,6 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use Symfony\Component\HttpFoundation\FileBag;
-use Symfony\Component\HttpFoundation\ParameterBag;
 use WiiCommon\Helper\Stream;
 use App\Repository\TrackingMovementRepository;
 use DateTime;

@@ -18,7 +18,6 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Exceptions\NegativeQuantityException;
-use App\Repository\ArticleRepository;
 use App\Repository\PreparationOrder\PreparationOrderArticleLineRepository;
 use App\Repository\StatutRepository;
 use DateTime;

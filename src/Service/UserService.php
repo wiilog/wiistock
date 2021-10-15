@@ -20,9 +20,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
 use Twig\Environment as Twig_Environment;
 use Symfony\Component\Security\Core\Security;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 
 class UserService
 {

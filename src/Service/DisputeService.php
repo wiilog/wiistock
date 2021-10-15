@@ -39,11 +39,6 @@ class DisputeService {
     private $templating;
 
     /**
-     * @var RouterInterface
-     */
-    private $router;
-
-    /**
      * @var UserService
      */
     private $userService;
@@ -68,7 +63,6 @@ class DisputeService {
         $this->templating = $templating;
         $this->entityManager = $entityManager;
         $this->translator = $translator;
-        $this->router = $router;
         $this->userService = $userService;
         $this->security = $security;
         $this->mailerService = $mailerService;
@@ -357,10 +351,16 @@ class DisputeService {
         $historyRecord
             ->setDate(new DateTime('now'))
             ->setComment($comment ?: null)
-            ->setType($dispute->getType())
-            ->setStatus($dispute->getStatus())
             ->setDispute($dispute)
             ->setUser($user);
+
+        if ($dispute->getStatus()) {
+            $historyRecord->setStatusLabel($dispute->getStatus()->getNom());
+        }
+
+        if ($dispute->getType()) {
+            $historyRecord->setTypeLabel($dispute->getType()->getLabel());
+        }
 
         $dispute->setLastHistoryRecord($historyRecord);
 

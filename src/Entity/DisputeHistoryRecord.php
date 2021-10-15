@@ -40,27 +40,24 @@ class DisputeHistoryRecord
     private ?Dispute $dispute = null;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Statut::class, inversedBy="disputeHistoryRecords")
+     * @ORM\Column(type="string", nullable=true)
      */
-    private ?Statut $status = null;
+    private ?string $statusLabel = null;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Type::class, inversedBy="disputeHistoryRecords")
+     * @ORM\Column(type="string", nullable=true)
      */
-    private ?Type $type = null;
+    private ?string $typeLabel = null;
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getDate(): ?DateTime
-    {
+    public function getDate(): ?DateTime {
         return $this->date;
     }
 
-    public function setDate(DateTime $date): self
-    {
+    public function setDate(DateTime $date): self {
         $this->date = $date;
 
         return $this;
@@ -110,35 +107,21 @@ class DisputeHistoryRecord
         return $this;
     }
 
-    public function getStatus(): ?Statut {
-        return $this->status;
+    public function getStatusLabel(): ?string {
+        return $this->statusLabel;
     }
 
-    public function setStatus(?Statut $status): self {
-        if($this->status && $this->status !== $status) {
-            $this->status->removeDisputeHistoryRecord($this);
-        }
-        $this->status = $status;
-        if($status) {
-            $status->addDisputeHistoryRecord($this);
-        }
-
+    public function setStatusLabel(?string $statusLabel): self {
+        $this->statusLabel = $statusLabel;
         return $this;
     }
 
-    public function getType(): ?Type {
-        return $this->type;
+    public function getTypeLabel(): ?string {
+        return $this->typeLabel;
     }
 
-    public function setType(?Type $type): self {
-        if($this->type && $this->type !== $type) {
-            $this->type->removeDisputeHistoryRecord($this);
-        }
-        $this->type = $type;
-        if($type) {
-            $type->addDisputeHistoryRecord($this);
-        }
-
+    public function setTypeLabel(?string $typeLabel): self {
+        $this->typeLabel = $typeLabel;
         return $this;
     }
 }

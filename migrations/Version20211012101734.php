@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
-use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
@@ -26,50 +24,58 @@ final class Version20211012101734 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->addSql('ALTER TABLE dispute_history_record ADD type_id INT DEFAULT NULL');
-        $this->addSql('ALTER TABLE dispute_history_record ADD status_id INT DEFAULT NULL');
+        if ($schema->getTable('dispute_history_record')->hasColumn('type_id')) {
+            $this->addSql('ALTER TABLE dispute_history_record ADD type_id INT DEFAULT NULL');
+        }
+        if ($schema->getTable('dispute_history_record')->hasColumn('status_id')) {
+            $this->addSql('ALTER TABLE dispute_history_record ADD status_id INT DEFAULT NULL');
+        }
+        if (!$schema->getTable('dispute_history_record')->hasColumn('type_label')) {
+            $this->addSql('ALTER TABLE dispute_history_record ADD type_label VARCHAR(255) DEFAULT NULL');
+        }
+        if (!$schema->getTable('dispute_history_record')->hasColumn('status_label')) {
+            $this->addSql('ALTER TABLE dispute_history_record ADD status_label VARCHAR(255) DEFAULT NULL');
+        }
 
         $disputeIterator = $this->connection->iterateAssociative('
-            SELECT dispute.*, IF(dispute_article.article_id IS NOT NULL, 1, 0) AS is_reception
+            SELECT dispute.*,
+                   statut.nom AS status_label,
+                   type.label AS type_label
             FROM dispute
-            LEFT JOIN dispute_article ON dispute.id = dispute_article.dispute_id
+                LEFT JOIN statut ON dispute.status_id = statut.id
+                LEFT JOIN type ON dispute.type_id = type.id
         ');
 
         foreach ($disputeIterator as $dispute) {
             $disputeId = $dispute['id'];
-            $isReception = $dispute['is_reception'] == 1;
 
             $disputeHistory = $this->connection
                 ->executeQuery("
                     SELECT dispute_history_record.*
                     FROM dispute_history_record
-                    WHERE dispute_history_record.dispute_id = $disputeId
+                    WHERE dispute_history_record.dispute_id = :disputeId
                     ORDER BY dispute_history_record.date ASC
-                ")
+                ", ['disputeId' => $disputeId])
                 ->fetchAllAssociative();
             if (empty($disputeHistory)) {
                 $userId = $dispute['reporter_id'];
-                $typeId = $dispute['type_id'];
-                $statusId = $dispute['status_id'];
-                $creationDate = $dispute['creation_date'];
-
                 if ($userId) {
                     $this->addSql("
                         INSERT INTO dispute_history_record
-                            (user_id, dispute_id, date, type_id, status_id)
+                            (user_id, dispute_id, date, type_label, status_label)
                         VALUES
-                            ($userId, $disputeId, '$creationDate', $typeId, $statusId);
-                    ");
+                            (:user_id, :dispute_id, :creation_date, :type_label, :status_label);
+                    ", [
+                        'user_id' => $userId,
+                        'dispute_id' => $disputeId,
+                        'creation_date' => $dispute['creation_date'],
+                        'type_label' => $dispute['type_label'],
+                        'status_label' => $dispute['status_label']
+                    ]);
                 }
             }
             else {
                 [$lastStatusLabel, $lastTypeLabel] = $this->getInitialStatusAndType($dispute, $disputeHistory);
-                if (!$lastStatusLabel) {
-                    $lastStatusLabel = 'NULL';
-                }
-                if (!$lastTypeLabel) {
-                    $lastTypeLabel = 'NULL';
-                }
 
                 foreach ($disputeHistory as $record) {
                     $recordId = $record['id'];
@@ -85,45 +91,19 @@ final class Version20211012101734 extends AbstractMigration
                         $lastTypeLabel = $newType;
                     }
 
-                    $categoryStatus = $isReception ? CategorieStatut::LITIGE_RECEPT : CategorieStatut::DISPUTE_ARR;
-                    $categoryType = CategoryType::DISPUTE;
-
-                    $newStatusIdRes = $this->connection
-                        ->executeQuery("
-                            SELECT statut.id AS id
-                            FROM statut
-                                INNER JOIN categorie_statut ON categorie_statut.id = statut.categorie_id
-                            WHERE categorie_statut.nom = '$categoryStatus'
-                              AND (statut.nom = '$lastStatusLabel' OR statut.id = '$lastStatusLabel')
-                            LIMIT 1
-                        ")
-                        ->fetchFirstColumn();
-                    $newTypeIdRes = $this->connection
-                        ->executeQuery("
-                            SELECT type.id AS id
-                            FROM type
-                                INNER JOIN category_type ON category_type.id = type.category_id
-                            WHERE (type.label = '$lastTypeLabel' OR type.id = '$lastTypeLabel')
-                              AND category_type.label = '$categoryType'
-                            LIMIT 1
-                        ")
-                        ->fetchFirstColumn();
-
-                    $newStatusId = $newStatusIdRes[0] ?? null;
-                    $newTypeId = $newTypeIdRes[0] ?? null;
-                    $newStatusIdStr = $newStatusId ?: 'NULL';
-                    $newTypeIdStr = $newTypeId ?: 'NULL';
-
-                    $clearedComment = $this->clearComment($comment, (bool) $newStatusId, (bool) $newTypeId) ?: '';
-                    $clearedStrComment = $clearedComment ? ("'" . str_replace("'", "\'", $clearedComment) . "'") : 'NULL';
+                    $clearedComment = $this->clearComment($comment, !empty($lastStatusLabel), !empty($lastTypeLabel)) ?: '';
 
                     $this->addSql("
                         UPDATE dispute_history_record
-                        SET status_id = $newStatusIdStr,
-                            type_id = $newTypeIdStr,
-                            comment = $clearedStrComment
+                        SET status_label = :status_label,
+                            type_label = :type_label,
+                            comment = :comment
                         WHERE id = $recordId
-                    ");
+                    ", [
+                        'status_label' => $lastStatusLabel,
+                        'type_label' => $lastTypeLabel,
+                        'comment' => $clearedComment
+                    ]);
                 }
             }
         }
@@ -134,44 +114,44 @@ final class Version20211012101734 extends AbstractMigration
     }
 
     private function getInitialStatusAndType(array $dispute, $disputeHistory): array {
-        $firstTypeId = null;
-        $firstStatusId = null;
+        $firstTypeLabel = null;
+        $firstStatusLabel = null;
         $loopIndex = 0;
         foreach ($disputeHistory as $record) {
             $comment = $record['comment'];
             [$oldStatus, $newStatus] = $this->extractStatusFromComment($comment);
-            if (empty($firstStatusId)) {
+            if (empty($firstStatusLabel)) {
                 if ($loopIndex === 0 && $newStatus && !$oldStatus) {
-                    $firstStatusId = $newStatus;
+                    $firstStatusLabel = $newStatus;
                 }
                 else if ($loopIndex > 0 && $newStatus && $oldStatus) {
-                    $firstStatusId = $oldStatus;
+                    $firstStatusLabel = $oldStatus;
                 }
             }
             [$oldType, $newType] = $this->extractTypeFromComment($comment);
-            if (empty($firstTypeId)) {
+            if (empty($firstTypeLabel)) {
                 if ($loopIndex === 0 && $newType && !$oldType) {
-                    $firstTypeId = $newType;
+                    $firstTypeLabel = $newType;
                 }
                 else if ($loopIndex > 0 && $newType && $oldType) {
-                    $firstTypeId = $oldType;
+                    $firstTypeLabel = $oldType;
                 }
             }
 
-            if ($firstStatusId && $firstTypeId) {
+            if ($firstStatusLabel && $firstTypeLabel) {
                 break;
             }
             $loopIndex++;
         }
 
-        if (empty($firstStatusId)) {
-            $firstStatusId = $dispute['status_id'];
+        if (empty($firstStatusLabel)) {
+            $firstStatusLabel = $dispute['status_label'];
         }
-        if (empty($firstTypeId)) {
-            $firstTypeId = $dispute['type_id'];
+        if (empty($firstTypeLabel)) {
+            $firstTypeLabel = $dispute['type_label'];
         }
 
-        return [$firstStatusId, $firstTypeId];
+        return [$firstStatusLabel, $firstTypeLabel];
     }
 
     private function extractStatusFromComment(?string $comment): array {

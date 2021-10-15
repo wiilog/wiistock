@@ -17,7 +17,6 @@ use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use DateTime;
 use DateTimeInterface;
-use Doctrine\Common\Collections\Collection;
 use WiiCommon\Helper\Stream;
 
 class FormatHelper {
