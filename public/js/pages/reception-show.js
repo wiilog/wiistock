@@ -594,8 +594,8 @@ function initNewLigneReception($button) {
             $errorContainer.text('');
             wrapLoadingOnActionButton($button, () => (
                 SubmitAction($modalNewLigneReception, $submitNewReceptionButton, urlNewLigneReception, {tables: [tableArticle]})
-                    .then(function (success) {
-                        if (success) {
+                    .then(function (response) {
+                        if (response && response.success) {
                             const $printButton = $('#buttonPrintMultipleBarcodes');
                             if ($printButton.length > 0) {
                                 window.location.href = $printButton.attr('href');

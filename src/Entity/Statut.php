@@ -110,11 +110,6 @@ class Statut
     private Collection $disputes;
 
     /**
-     * @ORM\OneToMany(targetEntity=DisputeHistoryRecord::class, mappedBy="status")
-     */
-    private Collection $disputeHistoryRecords;
-
-    /**
      * @ORM\Column(type="boolean", nullable=true)
      */
     private ?bool $sendNotifToBuyer = null;
@@ -190,7 +185,6 @@ class Statut
         $this->referenceArticles = new ArrayCollection();
         $this->handlings = new ArrayCollection();
         $this->disputes = new ArrayCollection();
-        $this->disputeHistoryRecords = new ArrayCollection();
         $this->dispatches = new ArrayCollection();
         $this->arrivages = new ArrayCollection();
         $this->transferRequests = new ArrayCollection();
@@ -870,32 +864,6 @@ class Statut
             // set the owning side to null (unless already changed)
             if ($handlingRequestStatusTemplate->getRequestStatus() === $this) {
                 $handlingRequestStatusTemplate->setRequestStatus(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|DisputeHistoryRecord[]
-     */
-    public function getDisputeHistoryRecords(): Collection {
-        return $this->disputeHistoryRecords;
-    }
-
-    public function addDisputeHistoryRecord(DisputeHistoryRecord $disputeHistoryRecord): self {
-        if (!$this->disputeHistoryRecords->contains($disputeHistoryRecord)) {
-            $this->disputeHistoryRecords[] = $disputeHistoryRecord;
-            $disputeHistoryRecord->setStatus($this);
-        }
-
-        return $this;
-    }
-
-    public function removeDisputeHistoryRecord(DisputeHistoryRecord $disputeHistoryRecord): self {
-        if ($this->disputeHistoryRecords->removeElement($disputeHistoryRecord)) {
-            if ($disputeHistoryRecord->getStatus() === $this) {
-                $disputeHistoryRecord->setStatus(null);
             }
         }
 

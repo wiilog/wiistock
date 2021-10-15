@@ -6,7 +6,6 @@ use App\Entity\Emplacement;
 use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\Pack;
-use App\Helper\FormatHelper;
 use DateTimeInterface;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;

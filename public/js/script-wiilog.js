@@ -89,7 +89,7 @@ function registerNotificationChannel() {
                     $countFigure.display();
                 });
             })
-        });
+        }).catch(() => {});
     }
 }
 

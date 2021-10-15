@@ -162,7 +162,7 @@ class Type
     /**
      * @ORM\Column(type="boolean", options={"default": 0})
      */
-    private ?bool $notificationsEnabled = null;
+    private ?bool $notificationsEnabled = false;
 
     /**
      * @ORM\Column(type="json", nullable=true)
@@ -189,11 +189,6 @@ class Type
      */
     private ?string $color = null;
 
-    /**
-     * @ORM\OneToMany(targetEntity=DisputeHistoryRecord::class, mappedBy="type")
-     */
-    private Collection $disputeHistoryRecords;
-
     public function __construct()
     {
         $this->champsLibres = new ArrayCollection();
@@ -213,7 +208,6 @@ class Type
         $this->requestTemplates = new ArrayCollection();
         $this->requestTypeTemplates = new ArrayCollection();
         $this->sensors = new ArrayCollection();
-        $this->disputeHistoryRecords = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -914,32 +908,6 @@ class Type
     public function setColor(string $color): self
     {
         $this->color = $color;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|DisputeHistoryRecord[]
-     */
-    public function getDisputeHistoryRecords(): Collection {
-        return $this->disputeHistoryRecords;
-    }
-
-    public function addDisputeHistoryRecord(DisputeHistoryRecord $disputeHistoryRecord): self {
-        if (!$this->disputeHistoryRecords->contains($disputeHistoryRecord)) {
-            $this->disputeHistoryRecords[] = $disputeHistoryRecord;
-            $disputeHistoryRecord->setType($this);
-        }
-
-        return $this;
-    }
-
-    public function removeDisputeHistoryRecord(DisputeHistoryRecord $disputeHistoryRecord): self {
-        if ($this->disputeHistoryRecords->removeElement($disputeHistoryRecord)) {
-            if ($disputeHistoryRecord->getType() === $this) {
-                $disputeHistoryRecord->setType(null);
-            }
-        }
 
         return $this;
     }
