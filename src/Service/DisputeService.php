@@ -357,10 +357,16 @@ class DisputeService {
         $historyRecord
             ->setDate(new DateTime('now'))
             ->setComment($comment ?: null)
-            ->setType($dispute->getType())
-            ->setStatus($dispute->getStatus())
             ->setDispute($dispute)
             ->setUser($user);
+
+        if ($dispute->getStatus()) {
+            $historyRecord->setStatusLabel($dispute->getStatus()->getNom());
+        }
+
+        if ($dispute->getType()) {
+            $historyRecord->setTypeLabel($dispute->getType()->getLabel());
+        }
 
         $dispute->setLastHistoryRecord($historyRecord);
 

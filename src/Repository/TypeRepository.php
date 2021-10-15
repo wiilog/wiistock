@@ -147,7 +147,6 @@ class TypeRepository extends EntityRepository
             ['class' => ReferenceArticle::class, 'where' => 'item.type = :id'],
             ['class' => Handling::class, 'where' => 'item.type = :id'],
             ['class' => Dispatch::class, 'where' => 'item.type = :id'],
-            ['class' => DisputeHistoryRecord::class, 'where' => 'item.type = :id']
         ];
 
         $resultsCount = array_map(function (array $table) use ($entityManager, $typeId) {
