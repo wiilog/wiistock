@@ -4,7 +4,6 @@ namespace App\Service;
 
 use App\Entity\CategorieCL;
 use App\Entity\FreeField;
-use App\Entity\FreeFieldEntity;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Throwable;
@@ -54,10 +53,9 @@ class FreeFieldService {
     }
 
 
-    public function manageFreeFields(FreeFieldEntity $entity,
+    public function manageFreeFields($entity,
                                      array $data,
-                                     EntityManagerInterface $entityManager)
-    {
+                                     EntityManagerInterface $entityManager) {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $freeFields = [];
         $champsLibresKey = array_keys($data);
@@ -108,11 +106,11 @@ class FreeFieldService {
     }
 
     public function getFilledFreeFieldArray(EntityManagerInterface $entityManager,
-                                            FreeFieldEntity $freeFieldEntity,
-                                            ?string $categoryCLLabel,
-                                            string $category) {
+                                                                   $freeFieldEntity,
+                                            ?string                $categoryCLLabel,
+                                            string                 $category) {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
-        $categorieCLRepository =  $entityManager->getRepository(CategorieCL::class);
+        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
         if (!empty($categoryCLLabel)) {
             $categorieCL = $categorieCLRepository->findOneBy(['label' => $categoryCLLabel]);

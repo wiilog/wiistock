@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CommentTrait;
+use App\Entity\Traits\FreeFieldsManagerTrait;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -14,17 +15,19 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ReceptionRepository")
  */
-class Reception extends FreeFieldEntity
-{
+class Reception {
+
+    use FreeFieldsManagerTrait;
+    use AttachmentTrait;
+    use CommentTrait;
+
+
     const PREFIX_NUMBER = 'R';
 
     const STATUT_EN_ATTENTE = 'en attente de réception';
     const STATUT_RECEPTION_PARTIELLE = 'réception partielle';
     const STATUT_RECEPTION_TOTALE = 'réception totale';
     const STATUT_ANOMALIE = 'anomalie';
-
-    use AttachmentTrait;
-    use CommentTrait;
 
     /**
      * @ORM\Id()

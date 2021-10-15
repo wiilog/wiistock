@@ -2,8 +2,8 @@
 
 namespace App\Entity\IOT;
 
+use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\IOT\RequestTemplateRepository;
-use App\Entity\FreeFieldEntity;
 use App\Entity\Type;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -14,7 +14,9 @@ use Doctrine\ORM\Mapping as ORM;
  * @ORM\InheritanceType("JOINED")
  * @ORM\DiscriminatorColumn(name="discr", type="string")
  */
-abstract class RequestTemplate extends FreeFieldEntity {
+abstract class RequestTemplate {
+
+    use FreeFieldsManagerTrait;
 
     public const TYPE_HANDLING = 1;
     public const TYPE_DELIVERY = 2;

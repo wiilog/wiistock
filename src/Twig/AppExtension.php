@@ -78,14 +78,19 @@ class AppExtension extends AbstractExtension {
 
     public function base64(string $relativePath) {
         $absolutePath = $this->kernel->getProjectDir() . "/$relativePath";
-        $type = pathinfo($absolutePath, PATHINFO_EXTENSION);
-        $content = base64_encode(file_get_contents($absolutePath));
+        if (file_exists($absolutePath)) {
+            $type = pathinfo($absolutePath, PATHINFO_EXTENSION);
+            $content = base64_encode(file_get_contents($absolutePath));
 
-        if($type == "svg") {
-            $type = "svg+xml";
+            if ($type == "svg") {
+                $type = "svg+xml";
+            }
+            $res = "data:image/$type;base64,$content";
         }
-
-        return "data:image/$type;base64,$content";
+        else {
+            $res = '';
+        }
+        return $res;
     }
 
     public function logo(string $platform, bool $file = false): ?string {

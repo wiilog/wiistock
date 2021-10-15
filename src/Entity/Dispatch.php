@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Traits\FreeFieldsManagerTrait;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -10,8 +11,10 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\DispatchRepository")
  */
-class Dispatch extends FreeFieldEntity
-{
+class Dispatch {
+
+    use FreeFieldsManagerTrait;
+
     const CATEGORIE = 'acheminements';
 
     const PREFIX_NUMBER = 'A';
@@ -73,7 +76,7 @@ class Dispatch extends FreeFieldEntity
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private int $id;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="datetime")

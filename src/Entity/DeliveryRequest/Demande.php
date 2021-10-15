@@ -4,7 +4,6 @@ namespace App\Entity\DeliveryRequest;
 
 use App\Entity\Article;
 use App\Entity\Emplacement;
-use App\Entity\FreeFieldEntity;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
@@ -14,6 +13,7 @@ use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Reception;
 use App\Entity\Statut;
 use App\Entity\Traits\CommentTrait;
+use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Entity\Traits\RequestTrait;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -27,7 +27,7 @@ use WiiCommon\Helper\Stream;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\DeliveryRequest\DemandeRepository")
  */
-class Demande extends FreeFieldEntity implements PairedEntity
+class Demande implements PairedEntity
 {
     const CATEGORIE = 'demande';
 
@@ -41,6 +41,7 @@ class Demande extends FreeFieldEntity implements PairedEntity
     use CommentTrait;
     use RequestTrait;
     use SensorMessageTrait;
+    use FreeFieldsManagerTrait;
 
     /**
      * @ORM\Id()
