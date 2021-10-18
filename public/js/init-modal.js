@@ -38,11 +38,6 @@ function InitModal($modal, submit, path, options = {}) {
             showBSAlert('L\'opération est en cours de traitement', 'warning');
         } else {
             SubmitAction($modal, $button, path, options)
-                .then((data) => {
-                    if (data && data.success && options && options.success) {
-                        options.success(data);
-                    }
-                })
                 .catch(() => {});
         }
     };
@@ -57,12 +52,13 @@ function InitModal($modal, submit, path, options = {}) {
 
 /**
  *
- * @param {{confirmMessage: function|undefined, tables: undefined|Array<jQuery>, keepModal: undefined|boolean, keepForm: undefined|boolean, validator: function|undefined}} options Object containing some options.
+ * @param {{confirmMessage: function|undefined, tables: undefined|Array<jQuery>, keepModal: undefined|boolean, success: function, keepForm: undefined|boolean, validator: function|undefined}} options Object containing some options.
  *   - tables is an array of datatable
  *   - keepForm true if we do not clear form
  *   - keepModal true if we do not close form
  *   - validator function which calculate custom form validation
  *   - confirmMessage Function which return promise throwing when form can be submited
+ *   - success called on success
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery} $submit jQuery element of the submit button
  * @param {string} path
@@ -87,12 +83,12 @@ function SubmitAction($modal,
 
 /**
  *
- * @param {{tables: undefined|Array<jQuery>, keepModal: undefined|boolean, keepForm: undefined|boolean, validator: function|undefined}} options Object containing some options.
+ * @param {{tables: undefined|Array<jQuery>, keepModal: undefined|boolean, success: function, keepForm: undefined|boolean, validator: function|undefined}} options Object containing some options.
  *   - tables is an array of datatable
  *   - keepForm true if we do not clear form
  *   - keepModal true if we do not close form
  *   - validator function which calculate custom form validation
- *   - onSuccess called on success
+ *   - success called on success
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery} $submit jQuery element of the submit button
  * @param {string} path
@@ -100,10 +96,10 @@ function SubmitAction($modal,
 function processSubmitAction($modal,
                              $submit,
                              path,
-                             {tables, keepModal, keepForm, validator, onSuccess, headerCallback} = {}) {
+                             {tables, keepModal, keepForm, validator, success, headerCallback} = {}) {
     const isAttachmentForm = $modal.find('input[name="isAttachmentForm"]').val() === '1';
-    const {success, errorMessages, $isInvalidElements, data} = ProcessForm($modal, isAttachmentForm, validator);
-    if (success) {
+    const {success: formValidation, errorMessages, $isInvalidElements, data} = ProcessForm($modal, isAttachmentForm, validator);
+    if (formValidation) {
         const smartData = isAttachmentForm
             ? createFormData(data)
             : JSON.stringify(data);
@@ -129,13 +125,17 @@ function processSubmitAction($modal,
                     });
                 }
                 else {
-                    if(onSuccess) {
-                        onSuccess(data);
-                    }
-
                     const res = treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, headerCallback);
                     if (!res) {
                         return;
+                    }
+                    else {
+                        return res
+                            .then(() => {
+                                if(data && data.success && success) {
+                                    success(data);
+                                }
+                            })
                     }
                 }
 
@@ -183,32 +183,41 @@ function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, hea
     if (data.nextModal) {
         $modal.find('.modal-body').html(data.nextModal);
     }
-    if (tables) {
-        tables.forEach((table) => {
-            table.ajax.reload(null, false);
+
+    let tablesReloadingPromises = [];
+    if (tables && tables.length > 0) {
+        tablesReloadingPromises = tables.map((table) => {
+            return new Promise((resolve) => {
+                table.ajax.reload(
+                    () => { resolve(); },
+                    false
+                );
+            });
         });
     }
+    else {
+        tablesReloadingPromises = [new Promise((resolve) => resolve())];
+    }
 
-    if (!data.nextModal && !keepModal) {
-        $modal.off('hidden.bs.modal');
-        $modal.on('hidden.bs.modal', function () {
+    return Promise.all(tablesReloadingPromises).then(() => {
+        if (!data.nextModal && !keepModal) {
+            $modal.off('hidden.bs.modal');
+            $modal.on('hidden.bs.modal', function () {
+                refreshHeader(data.entete, headerCallback);
+            })
+            $modal.modal('hide');
+        } else {
             refreshHeader(data.entete, headerCallback);
-        })
-        $modal.modal('hide');
-    } else {
-        refreshHeader(data.entete, headerCallback);
-    }
+        }
 
-    if (!keepForm) {
-        clearModal($modal);
-    }
+        if (!keepForm) {
+            clearModal($modal);
+        }
 
-    if (data.msg) {
-        showBSAlert(data.msg, 'success');
-    }
-
-    // pour mise à jour des données d'en-tête après modification
-    return true;
+        if (data.msg) {
+            showBSAlert(data.msg, 'success');
+        }
+    });
 }
 
 function refreshHeader(entete, headerCallback) {
