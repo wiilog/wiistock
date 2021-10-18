@@ -3,9 +3,9 @@
 namespace App\Entity\Traits;
 
 
-trait LiteAttrSetterTrait {
-    public function setAttributes(array $attributes): void {
-        foreach ($attributes as $name => $value) {
+trait LitePropertySetterTrait {
+    public function setProperties(array $properties): void {
+        foreach ($properties as $name => $value) {
             if (property_exists($this, $name)) {
                 $this->{$name} = $value;
             }

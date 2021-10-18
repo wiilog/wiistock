@@ -1020,7 +1020,7 @@ class ImportService
             if(!isset($visibilityGroup)) {
                 $this->throwError("Le groupe de visibilité ${data['visibilityGroups']} n'existe pas");
             }
-            $refArt->setAttributes(['visibilityGroup' => $visibilityGroup]);
+            $refArt->setProperties(['visibilityGroup' => $visibilityGroup]);
         }
 
         if (isset($data['managers'])) {
