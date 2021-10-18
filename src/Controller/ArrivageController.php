@@ -871,6 +871,14 @@ class ArrivageController extends AbstractController
             $disputeRepository = $entityManager->getRepository(Dispute::class);
             $dispute = $disputeRepository->find($data['litige']);
 
+            $dispute->setLastHistoryRecord(null);
+            //required before removing dispute or next flush will fail
+            $entityManager->flush();
+
+            foreach($dispute->getDisputeHistory() as $history) {
+                $entityManager->remove($history);
+            }
+
             $entityManager->remove($dispute);
             $entityManager->flush();
             return new JsonResponse();

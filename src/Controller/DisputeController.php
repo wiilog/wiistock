@@ -240,10 +240,9 @@ class DisputeController extends AbstractController
             $dispute = $disputeRepository->find($data['litige']);
 
             $articlesInDispute = $dispute->getArticles()->toArray();
-            $controller = !empty($articlesInDispute) ? 'App\Controller\ReceptionController' : 'App\Controller\ArrivageController';
+            $controller = !empty($articlesInDispute) ? ReceptionController::class : ArrivageController::class;
 
-
-            return $this->forward($controller . '::deleteLitige', [
+            return $this->forward("$controller::deleteDispute", [
                 'request' => $request
             ]);
         }

@@ -1203,7 +1203,7 @@ class ReceptionController extends AbstractController {
      * @Route("/supprimer-litige", name="litige_delete_reception", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::QUALI, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
-    public function deleteLitige(Request $request,
+    public function deleteDispute(Request $request,
                                  EntityManagerInterface $entityManager): Response {
         if($data = json_decode($request->getContent(), true)) {
             $disputeRepository = $entityManager->getRepository(Dispute::class);
@@ -1212,6 +1212,14 @@ class ReceptionController extends AbstractController {
             $dispute = $disputeRepository->find($data['litige']);
             $disputeNumber = $dispute->getNumber();
             $articlesInDispute = $dispute->getArticles()->toArray();
+
+            $dispute->setLastHistoryRecord(null);
+            //required before removing dispute or next flush will fail
+            $entityManager->flush();
+
+            foreach($dispute->getDisputeHistory() as $history) {
+                $entityManager->remove($history);
+            }
 
             $articleStatusAvailable = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
             /** @var Article $article */
