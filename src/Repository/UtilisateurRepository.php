@@ -23,6 +23,7 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         'Dropzone' => 'dropzone',
         'Dernière connexion' => 'lastLogin',
         'Rôle' => 'role',
+        'Actif' => 'status',
     ];
 
     public function getForSelect(?string $term) {
@@ -143,6 +144,10 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
                         $qb
                             ->leftJoin('a.visibilityGroups', 'order_visibility_group')
                             ->orderBy('order_visibility_group.label', $order);
+                        break;
+                    case 'status':
+                        $qb
+                            ->orderBy('a.status', $order);
                         break;
                     default:
                         $qb->orderBy('a.' . self::DtToDbLabels[$column], $order);

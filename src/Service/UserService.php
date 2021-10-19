@@ -99,6 +99,7 @@ class UserService
 			'Dernière connexion' => $user->getLastLogin() ? $user->getLastLogin()->format('d/m/Y') : '',
             'role' => $user->getRole() ? $user->getRole()->getLabel() : '',
             'visibilityGroup' => FormatHelper::entity($user->getVisibilityGroups()->toArray(), "label", ' / '),
+            'status' => $user->getStatus() ? 'Actif' : "Inactif",
 			'Actions' => $this->templating->render('utilisateur/datatableUtilisateurRow.html.twig', ['idUser' => $idUser]),
 		];
     }
