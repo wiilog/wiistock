@@ -69,13 +69,9 @@ final class Version20211011100007 extends AbstractMigration
             WHERE 1=1
         ');
 
+        $this->addSql('ALTER TABLE dispute_history_record ADD type_label VARCHAR(255) DEFAULT NULL');
+        $this->addSql('ALTER TABLE dispute_history_record ADD status_label VARCHAR(255) DEFAULT NULL');
 
-        if (!$schema->getTable('dispute_history_record')->hasColumn('type_label')) {
-            $this->addSql('ALTER TABLE dispute_history_record ADD type_label VARCHAR(255) DEFAULT NULL');
-        }
-        if (!$schema->getTable('dispute_history_record')->hasColumn('status_label')) {
-            $this->addSql('ALTER TABLE dispute_history_record ADD status_label VARCHAR(255) DEFAULT NULL');
-        }
 
         $disputeIterator = $this->connection->iterateAssociative('
             SELECT litige.*,
