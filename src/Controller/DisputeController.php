@@ -176,8 +176,8 @@ class DisputeController extends AbstractController
                 'user' => FormatHelper::user($record->getUser()),
                 'date' => FormatHelper::datetime($record->getDate()),
                 'commentaire' => nl2br($record->getComment()),
-                'status' => FormatHelper::status($record->getStatusLabel()),
-                'type' => FormatHelper::type($record->getTypeLabel())
+                'status' => $record->getStatusLabel(),
+                'type' => $record->getTypeLabel()
             ];
         }
         $data['data'] = $rows;
