@@ -84,12 +84,6 @@ final class Version20211011100007 extends AbstractMigration
             ');
         }
         else {
-            if ($schema->getTable('dispute_history_record')->hasColumn('type_id')) {
-                $this->addSql('ALTER TABLE dispute_history_record ADD type_id INT DEFAULT NULL');
-            }
-            if ($schema->getTable('dispute_history_record')->hasColumn('status_id')) {
-                $this->addSql('ALTER TABLE dispute_history_record ADD status_id INT DEFAULT NULL');
-            }
             if (!$schema->getTable('dispute_history_record')->hasColumn('type_label')) {
                 $this->addSql('ALTER TABLE dispute_history_record ADD type_label VARCHAR(255) DEFAULT NULL');
             }
