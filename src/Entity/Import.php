@@ -54,7 +54,6 @@ class Import
             'reference',
             'libelle',
             'type',
-            'emplacement',
             'typeQuantite'
         ],
         self::ENTITY_RECEPTION => [
