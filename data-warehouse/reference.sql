@@ -57,4 +57,5 @@ GROUP BY
     date_dernier_inventaire,
     synchronisation_nomade,
     gestion_stock,
-    groupe_visibilite
+    groupe_visibilite,
+    acheteur

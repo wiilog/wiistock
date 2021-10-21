@@ -322,6 +322,7 @@ CREATE TABLE dw_demande_livraison
     id                  integer,
     numero              varchar(255),
     date_creation       timestamp(0),
+    date_traitement     timestamp(0),
     date_validation     timestamp(0),
     demandeur           varchar(255),
     type                varchar(255),
