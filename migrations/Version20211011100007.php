@@ -99,12 +99,12 @@ final class Version20211011100007 extends AbstractMigration
         }
 
         $disputeIterator = $this->connection->iterateAssociative('
-            SELECT dispute.*,
+            SELECT litige.*,
                    statut.nom AS status_label,
                    type.label AS type_label
-            FROM dispute
-                LEFT JOIN statut ON dispute.status_id = statut.id
-                LEFT JOIN type ON dispute.type_id = type.id
+            FROM litige
+                LEFT JOIN statut ON litige.status_id = statut.id
+                LEFT JOIN type ON litige.type_id = type.id
         ');
 
         foreach ($disputeIterator as $dispute) {
@@ -112,10 +112,10 @@ final class Version20211011100007 extends AbstractMigration
 
             $disputeHistory = $this->connection
                 ->executeQuery("
-                    SELECT dispute_history_record.*
-                    FROM dispute_history_record
-                    WHERE dispute_history_record.dispute_id = :disputeId
-                    ORDER BY dispute_history_record.date ASC
+                    SELECT litige_historic.*
+                    FROM litige_historic
+                    WHERE litige_historic.litige_id = :disputeId
+                    ORDER BY litige_historic.date ASC
                 ", ['disputeId' => $disputeId])
                 ->fetchAllAssociative();
             if (empty($disputeHistory)) {
