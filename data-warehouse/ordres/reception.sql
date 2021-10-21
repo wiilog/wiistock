@@ -35,8 +35,7 @@ SELECT reception.id              AS id,
     purchase_request.number AS numero_demande_achat
 
 FROM reception
-    LEFT JOIN statut
-ON reception.statut_id = statut.id
+    LEFT JOIN statut ON reception.statut_id = statut.id
     LEFT JOIN fournisseur ON reception.fournisseur_id = fournisseur.id
     LEFT JOIN purchase_request_line ON reception.id = purchase_request_line.reception_id
     LEFT JOIN purchase_request ON purchase_request_line.purchase_request_id = purchase_request.id
