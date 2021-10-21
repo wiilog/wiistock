@@ -113,6 +113,7 @@ InitModal(
     urlAddColis,
     {
         tables: [tableColis],
+        waitDatatable: true,
         success: (data) => {
             if (data.packs && data.packs.length > 0) {
                 // update list in dispute forms (new and edit)
