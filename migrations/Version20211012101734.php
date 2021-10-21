@@ -24,17 +24,32 @@ final class Version20211012101734 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        if ($schema->getTable('dispute_history_record')->hasColumn('type_id')) {
-            $this->addSql('ALTER TABLE dispute_history_record ADD type_id INT DEFAULT NULL');
+        if (!$schema->hasTable('dispute_history_record')) {
+            $this->addSql('
+                CREATE TABLE dispute_history_record (
+                    id INT AUTO_INCREMENT NOT NULL,
+                    user_id INT DEFAULT NULL,
+                    dispute_id INT NOT NULL,
+                    date DATETIME NOT NULL,
+                    comment LONGTEXT DEFAULT NULL,
+                    status_label VARCHAR(255) DEFAULT NULL,
+                    type_label VARCHAR(255) DEFAULT NULL,
+                    PRIMARY KEY(id))
+            ');
         }
-        if ($schema->getTable('dispute_history_record')->hasColumn('status_id')) {
-            $this->addSql('ALTER TABLE dispute_history_record ADD status_id INT DEFAULT NULL');
-        }
-        if (!$schema->getTable('dispute_history_record')->hasColumn('type_label')) {
-            $this->addSql('ALTER TABLE dispute_history_record ADD type_label VARCHAR(255) DEFAULT NULL');
-        }
-        if (!$schema->getTable('dispute_history_record')->hasColumn('status_label')) {
-            $this->addSql('ALTER TABLE dispute_history_record ADD status_label VARCHAR(255) DEFAULT NULL');
+        else {
+            if ($schema->getTable('dispute_history_record')->hasColumn('type_id')) {
+                $this->addSql('ALTER TABLE dispute_history_record ADD type_id INT DEFAULT NULL');
+            }
+            if ($schema->getTable('dispute_history_record')->hasColumn('status_id')) {
+                $this->addSql('ALTER TABLE dispute_history_record ADD status_id INT DEFAULT NULL');
+            }
+            if (!$schema->getTable('dispute_history_record')->hasColumn('type_label')) {
+                $this->addSql('ALTER TABLE dispute_history_record ADD type_label VARCHAR(255) DEFAULT NULL');
+            }
+            if (!$schema->getTable('dispute_history_record')->hasColumn('status_label')) {
+                $this->addSql('ALTER TABLE dispute_history_record ADD status_label VARCHAR(255) DEFAULT NULL');
+            }
         }
 
         $disputeIterator = $this->connection->iterateAssociative('
