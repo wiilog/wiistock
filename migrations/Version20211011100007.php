@@ -42,7 +42,6 @@ final class Version20211011100007 extends AbstractMigration
         $this->addSql('ALTER TABLE dispute_history_record CHANGE dispute_id dispute_id INT NOT NULL');
 
 
-
         $usersWithDeclarant = $this->connection->executeQuery("
             SELECT id AS user_id,
                    columns_visible_for_litige
@@ -70,26 +69,12 @@ final class Version20211011100007 extends AbstractMigration
             WHERE 1=1
         ');
 
-        if (!$schema->hasTable('dispute_history_record')) {
-            $this->addSql('
-                CREATE TABLE dispute_history_record (
-                    id INT AUTO_INCREMENT NOT NULL,
-                    user_id INT DEFAULT NULL,
-                    dispute_id INT NOT NULL,
-                    date DATETIME NOT NULL,
-                    comment LONGTEXT DEFAULT NULL,
-                    status_label VARCHAR(255) DEFAULT NULL,
-                    type_label VARCHAR(255) DEFAULT NULL,
-                    PRIMARY KEY(id))
-            ');
+
+        if (!$schema->getTable('dispute_history_record')->hasColumn('type_label')) {
+            $this->addSql('ALTER TABLE dispute_history_record ADD type_label VARCHAR(255) DEFAULT NULL');
         }
-        else {
-            if (!$schema->getTable('dispute_history_record')->hasColumn('type_label')) {
-                $this->addSql('ALTER TABLE dispute_history_record ADD type_label VARCHAR(255) DEFAULT NULL');
-            }
-            if (!$schema->getTable('dispute_history_record')->hasColumn('status_label')) {
-                $this->addSql('ALTER TABLE dispute_history_record ADD status_label VARCHAR(255) DEFAULT NULL');
-            }
+        if (!$schema->getTable('dispute_history_record')->hasColumn('status_label')) {
+            $this->addSql('ALTER TABLE dispute_history_record ADD status_label VARCHAR(255) DEFAULT NULL');
         }
 
         $disputeIterator = $this->connection->iterateAssociative('
@@ -128,8 +113,7 @@ final class Version20211011100007 extends AbstractMigration
                         'status_label' => $dispute['status_label']
                     ]);
                 }
-            }
-            else {
+            } else {
                 [$lastStatusLabel, $lastTypeLabel] = $this->getInitialStatusAndType($dispute, $disputeHistory);
 
                 foreach ($disputeHistory as $record) {
@@ -164,7 +148,8 @@ final class Version20211011100007 extends AbstractMigration
         }
     }
 
-    private function getInitialStatusAndType(array $dispute, $disputeHistory): array {
+    private function getInitialStatusAndType(array $dispute, $disputeHistory): array
+    {
         $firstTypeLabel = null;
         $firstStatusLabel = null;
         $loopIndex = 0;
@@ -174,8 +159,7 @@ final class Version20211011100007 extends AbstractMigration
             if (empty($firstStatusLabel)) {
                 if ($loopIndex === 0 && $newStatus && !$oldStatus) {
                     $firstStatusLabel = $newStatus;
-                }
-                else if ($loopIndex > 0 && $newStatus && $oldStatus) {
+                } else if ($loopIndex > 0 && $newStatus && $oldStatus) {
                     $firstStatusLabel = $oldStatus;
                 }
             }
@@ -183,8 +167,7 @@ final class Version20211011100007 extends AbstractMigration
             if (empty($firstTypeLabel)) {
                 if ($loopIndex === 0 && $newType && !$oldType) {
                     $firstTypeLabel = $newType;
-                }
-                else if ($loopIndex > 0 && $newType && $oldType) {
+                } else if ($loopIndex > 0 && $newType && $oldType) {
                     $firstTypeLabel = $oldType;
                 }
             }
@@ -205,7 +188,8 @@ final class Version20211011100007 extends AbstractMigration
         return [$firstStatusLabel, $firstTypeLabel];
     }
 
-    private function extractStatusFromComment(?string $comment): array {
+    private function extractStatusFromComment(?string $comment): array
+    {
         if ($comment) {
             preg_match(self::REGEX_STATUS_CHANGE, $comment, $changeMatches);
             preg_match(self::REGEX_STATUS_NEW, $comment, $newMatches);
@@ -217,7 +201,8 @@ final class Version20211011100007 extends AbstractMigration
                 : [null, null]);
     }
 
-    private function extractTypeFromComment(?string $comment): array {
+    private function extractTypeFromComment(?string $comment): array
+    {
         if ($comment) {
             preg_match(self::REGEX_TYPE_CHANGE, $comment, $changeMatches);
             preg_match(self::REGEX_TYPE_NEW, $comment, $newMatches);
@@ -229,7 +214,8 @@ final class Version20211011100007 extends AbstractMigration
                 : [null, null]);
     }
 
-    private function clearComment(?string $comment, bool $removeStatus, bool $removeType): ?string {
+    private function clearComment(?string $comment, bool $removeStatus, bool $removeType): ?string
+    {
         $regexToCheck = [
             $removeStatus ? self::REGEX_STATUS_CHANGE : null,
             $removeStatus ? self::REGEX_STATUS_NEW : null,
