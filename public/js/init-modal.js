@@ -241,6 +241,10 @@ function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, hea
 
     if (waitDatatable) {
         return Promise.all(tablesReloadingPromises);
+    } else {
+        return new Promise((resolve) => {
+            resolve();
+        });
     }
 }
 
