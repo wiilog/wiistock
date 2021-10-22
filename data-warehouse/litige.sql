@@ -2,7 +2,7 @@ SELECT dispute.id                                                     AS litige_
        dispute.number                                                 AS numero,
        type.label                                                     AS type,
        dispute.creation_date                                          AS date_creation,
-       last_dispute_record.status_label                               AS dernier_statut,
+       statut.nom                                                     AS dernier_statut,
        last_dispute_record.comment                                    AS dernier_commentaire,
        GROUP_CONCAT(acheteurs.username SEPARATOR ', ')                AS acheteurs,
        declarant.username                                             AS declarant,
@@ -46,6 +46,7 @@ FROM dispute
          LEFT JOIN arrivage ON pack.arrivage_id = arrivage.id
          LEFT JOIN fournisseur AS fournisseur_arrivage ON arrivage.fournisseur_id = fournisseur_arrivage.id
          LEFT JOIN transporteur AS transporteur_arrivage ON arrivage.transporteur_id = transporteur_arrivage.id
+         LEFT JOIN statut ON dispute.status_id = statut.id
 
 GROUP BY litige_id,
          numero,
