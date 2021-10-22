@@ -13,10 +13,14 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment as Twig_Environment;
 
 class MailsLitigesComand extends Command
 {
+
+    /** @Required */
+    public RouterInterface $router;
 
     /**
      * @var MailerService
@@ -78,7 +82,7 @@ class MailsLitigesComand extends Command
                 $this->templating->render('mails/contents/mailLitigesArrivage.html.twig', [
                     'disputes' => $disputes,
                     'title' => 'Récapitulatif de vos litiges',
-                    'urlSuffix' => '/arrivage'
+                    'urlSuffix' => $this->router->generate('arrivage_index')
                 ]),
                 $email
             );

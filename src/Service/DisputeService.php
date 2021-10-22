@@ -33,6 +33,9 @@ class DisputeService {
     /** @Required */
     public AttachmentService $attachmentService;
 
+    /** @Required */
+    public RouterInterface $router;
+
     /**
      * @var Twig_Environment
      */
@@ -206,7 +209,9 @@ class DisputeService {
                 $this->templating->render('mails/contents/' . ($isArrival ? 'mailLitigesArrivage' : 'mailLitigesReception') . '.html.twig', [
                     'disputes' => [$dispute],
                     'title' => $title,
-                    'urlSuffix' => ($isArrival ? '/arrivage' : '/reception')
+                    'urlSuffix' => $isArrival
+                        ? $this->router->generate('arrivage_index')
+                        : $this->router->generate('reception_index')
                 ]),
                 $recipients
             );
