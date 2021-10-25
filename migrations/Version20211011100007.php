@@ -94,7 +94,7 @@ final class Version20211011100007 extends AbstractMigration
                 ", ['disputeId' => $disputeId])
                 ->fetchAllAssociative();
             if (empty($disputeHistory)) {
-                $userId = $dispute['reporter_id'];
+                $userId = $dispute['declarant_id'];
                 if ($userId) {
                     $this->addSql("
                         INSERT INTO dispute_history_record
