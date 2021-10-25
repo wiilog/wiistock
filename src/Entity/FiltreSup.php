@@ -65,7 +65,7 @@ class FiltreSup
 	const PAGE_INV_ENTRIES = 'inv_entries';
 	const PAGE_INV_MISSIONS = 'inv_missions';
 	const PAGE_INV_SHOW_MISSION = 'inv_mission_show';
-	const PAGE_LITIGE = 'litige';
+	const PAGE_DISPUTE = 'litige';
     const PAGE_RECEIPT_ASSOCIATION = 'receipt_association';
 	const PAGE_ARTICLE = 'article';
     const PAGE_URGENCES = 'urgences';
@@ -79,28 +79,28 @@ class FiltreSup
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
 	/**
 	 * @ORM\Column(type="string", length=32)
 	 */
-	private $field;
+	private ?string $field = null;
 
 	/**
 	 * @ORM\Column(type="string", length=255)
 	 */
-	private $value;
+	private ?string $value = null;
 
 	/**
 	 * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="filtresSup")
      * @ORM\JoinColumn(name="user_id", referencedColumnName="id", onDelete="CASCADE")
 	 */
-	private $user;
+	private ?Utilisateur $user = null;
 
 	/**
 	 * @ORM\Column(type="string", length=64)
 	 */
-	private $page;
+	private ?string $page = null;
 
 
     public function getId(): ?int

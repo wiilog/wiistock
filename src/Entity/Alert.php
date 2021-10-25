@@ -5,7 +5,6 @@ namespace App\Entity;
 use App\Helper\FormatHelper;
 use App\Repository\AlertRepository;
 use Doctrine\ORM\Mapping as ORM;
-use WiiCommon\Helper\Stream;
 
 /**
  * @ORM\Entity(repositoryClass=AlertRepository::class)

@@ -8,7 +8,7 @@ use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
-use App\Entity\Traits\LiteAttrSetterTrait;
+use App\Entity\Traits\LitePropertiesSetterTrait;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -23,7 +23,7 @@ class ReferenceArticle {
     use FreeFieldsManagerTrait;
     use AttachmentTrait;
     use CommentTrait;
-    use LiteAttrSetterTrait;
+    use LitePropertiesSetterTrait;
 
 
     const CATEGORIE = 'referenceArticle';

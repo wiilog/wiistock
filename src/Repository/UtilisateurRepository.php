@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\ReceiptAssociation;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -23,6 +24,7 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         'Dropzone' => 'dropzone',
         'Dernière connexion' => 'lastLogin',
         'Rôle' => 'role',
+        'Actif' => 'status',
     ];
 
     public function getForSelect(?string $term) {
@@ -145,7 +147,11 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
                             ->orderBy('order_visibility_group.label', $order);
                         break;
                     default:
-                        $qb->orderBy('a.' . self::DtToDbLabels[$column], $order);
+                        $dbColumn = self::DtToDbLabels[$column] ?? $column;
+                        if (property_exists(Utilisateur::class, $dbColumn)) {
+                            $qb->orderBy("a.$dbColumn", $order);
+                        }
+                        break;
                 }
             }
         }

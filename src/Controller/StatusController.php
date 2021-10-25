@@ -27,12 +27,6 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class StatusController extends AbstractController {
 
-    private $statusService;
-
-    public function __construct(StatusService $statusService) {
-        $this->statusService = $statusService;
-    }
-
     /**
      * @Route("/", name="status_param_index")
      * @HasPermission({Menu::PARAM, Action::DISPLAY_STATU_LITI})
@@ -46,7 +40,7 @@ class StatusController extends AbstractController {
         $categories = $categoryStatusRepository->findByLabelLike([
             CategorieStatut::DISPATCH,
             CategorieStatut::HANDLING,
-            CategorieStatut::LITIGE_ARR,
+            CategorieStatut::DISPUTE_ARR,
             CategorieStatut::LITIGE_RECEPT,
             CategorieStatut::ARRIVAGE,
             CategorieStatut::PURCHASE_REQUEST
@@ -88,8 +82,9 @@ class StatusController extends AbstractController {
      * @Route("/api", name="status_param_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::DISPLAY_STATU_LITI}, mode=HasPermission::IN_JSON)
      */
-    public function api(Request $request): Response {
-        $data = $this->statusService->getDataForDatatable($request->request);
+    public function api(Request $request,
+                        StatusService $statusService): Response {
+        $data = $statusService->getDataForDatatable($request->request);
         return new JsonResponse($data);
     }
 
@@ -97,61 +92,27 @@ class StatusController extends AbstractController {
      * @Route("/creer", name="status_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function new(Request $request, EntityManagerInterface $entityManager): Response {
+    public function new(Request $request,
+                        EntityManagerInterface $entityManager,
+                        StatusService $statusService): Response {
         if ($data = json_decode($request->getContent(), true)) {
+            $validation = $statusService->validateStatusData($entityManager, $data);
 
-            $statusRepository = $entityManager->getRepository(Statut::class);
-            $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
-            $typeRepository = $entityManager->getRepository(Type::class);
+            if ($validation['success']) {
+                $status = $statusService->updateStatus($entityManager, new Statut(), $data);
 
-            $category = $categoryStatusRepository->find($data['category']);
-            $type = $typeRepository->find($data['type']);
-
-            $defaults = $statusRepository->countDefaults($category, $type);
-            $drafts = $statusRepository->countDrafts($category, $type);
-            $disputes = $statusRepository->countDisputes($category, $type);
-
-            if ($statusRepository->countSimilarLabels($category, $data['label'], $data['type'])) {
-                $success = false;
-                $message = 'Le statut "' . $data['label'] . '" existe déjà pour cette catégorie. Veuillez en choisir un autre.';
-            } else if ($data['defaultForCategory'] && $defaults > 0) {
-                $success = false;
-                $message = 'Vous ne pouvez pas créer un statut par défaut pour cette entité et ce type, il en existe déjà un.';
-            } else if (((int) $data['state']) === Statut::DRAFT && $drafts > 0) {
-                $success = false;
-                $message = 'Vous ne pouvez pas créer un statut brouillon pour cette entité et ce type, il en existe déjà un.';
-            } else if (((int) $data['state']) === Statut::DISPUTE && $disputes > 0) {
-                $success = false;
-                $message = 'Vous ne pouvez pas créer un statut litige pour cette entité et ce type, il en existe déjà un.';
-            } else {
-                $type = $typeRepository->find($data['type']);
-                $status = new Statut();
-                $status
-                    ->setNom($data['label'])
-                    ->setComment($data['description'])
-                    ->setState($data['state'])
-                    ->setDefaultForCategory((bool)$data['defaultForCategory'])
-                    ->setSendNotifToBuyer((bool)$data['sendMails'])
-                    ->setCommentNeeded((bool)$data['commentNeeded'])
-                    ->setSendNotifToDeclarant((bool)$data['sendMailsDeclarant'])
-                    ->setSendNotifToRecipient((bool)$data['sendMailsRecipient'])
-                    ->setNeedsMobileSync((bool)$data['needsMobileSync'])
-                    ->setAutomaticReceptionCreation((bool)$data['automaticReceptionCreation'])
-                    ->setDisplayOrder((int)$data['displayOrder'])
-                    ->setCategorie($category)
-                    ->setType($type ?? null);
+                $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
+                $category = $categoryStatusRepository->find($data['category']);
+                $status->setCategorie($category);
 
                 $entityManager->persist($status);
                 $entityManager->flush();
 
-                $success = true;
-                $message = 'Le statut <strong>' . $data['label'] . '</strong> a bien été créé.';
+                $validation['success'] = true;
+                $validation['message'] = 'Le statut <strong>' . $data['label'] . '</strong> a bien été créé.';
             }
 
-            return new JsonResponse([
-                'success' => $success,
-                'msg' => $message
-            ]);
+            return new JsonResponse($validation);
         }
         throw new BadRequestHttpException();
     }
@@ -198,60 +159,27 @@ class StatusController extends AbstractController {
      * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function edit(EntityManagerInterface $entityManager,
-                         Request $request): Response {
+                         Request $request,
+                         StatusService $statusService): Response {
         if ($data = json_decode($request->getContent(), true)) {
 
             $statusRepository = $entityManager->getRepository(Statut::class);
-            $typeRepository = $entityManager->getRepository(Type::class);
 
             /** @var Statut $status */
             $status = $statusRepository->find($data['status']);
-            $statusLabel = $status->getNom();
+            $validation = $statusService->validateStatusData($entityManager, $data, $status);
 
-            // on vérifie que le label n'est pas déjà utilisé
-            $category = $status->getCategorie();
-
-            $type = $typeRepository->find($data['type']);
-
-            $defaults = $statusRepository->countDefaults($category, $type, $status);
-            $drafts = $statusRepository->countDrafts($category, $type, $status);
-
-            if ($statusRepository->countSimilarLabels($category, $data['label'], $data['type'], $status)) {
-                $success = false;
-                $message = 'Le statut "' . $data['label'] . '" existe déjà pour cette catégorie. Veuillez en choisir un autre.';
-            } else if ($data['defaultForCategory'] && $defaults > 0) {
-                $success = false;
-                $message = 'Vous ne pouvez pas créer un statut par défaut pour cette entité et ce type, il en existe déjà un.';
-            } else if (((int) $data['state']) === Statut::DRAFT && $drafts > 0) {
-                $success = false;
-                $message = 'Vous ne pouvez pas ajouter un statut brouillon pour cette entité et ce type, il en existe déjà un.';
-            } else {
-                $type = $typeRepository->find($data['type']);
-                $status
-                    ->setNom($data['label'])
-                    ->setState($data['state'])
-                    ->setDefaultForCategory((bool)$data['defaultForCategory'])
-                    ->setSendNotifToBuyer((bool)$data['sendMails'])
-                    ->setCommentNeeded((bool)$data['commentNeeded'])
-                    ->setNeedsMobileSync((bool)$data['needsMobileSync'])
-                    ->setSendNotifToDeclarant((bool)$data['sendMailsDeclarant'])
-                    ->setSendNotifToRecipient((bool)$data['sendMailsRecipient'])
-                    ->setAutomaticReceptionCreation((bool)$data['automaticReceptionCreation'])
-                    ->setDisplayOrder((int)$data['displayOrder'])
-                    ->setComment($data['comment'])
-                    ->setType($type ?? null);
+            if ($validation['success']) {
+                $status = $statusService->updateStatus($entityManager, $status, $data);
 
                 $entityManager->persist($status);
                 $entityManager->flush();
 
-                $success = true;
-                $message = 'Le statut <strong>' . $statusLabel . '</strong> a bien été modifié.';
+                $validation['success'] = true;
+                $validation['message'] = 'Le statut <strong>' . $data['label'] . '</strong> a bien été créé.';
             }
 
-            return new JsonResponse([
-                'success' => $success,
-                'msg' => $message
-            ]);
+            return new JsonResponse($validation);
         }
         throw new BadRequestHttpException();
     }

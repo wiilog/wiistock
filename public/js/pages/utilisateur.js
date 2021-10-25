@@ -14,6 +14,7 @@ let tableUserConfig = {
         { "data": "Dernière connexion", 'title': 'Dernière connexion' },
         { "data": "role", 'title': 'Rôle' },
         { "data": "visibilityGroup", 'title': 'Groupes de visibilité' },
+        { "data": "status", 'title': 'Actif' },
     ],
     rowConfig: {
         needsRowClickAction: true

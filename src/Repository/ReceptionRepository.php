@@ -2,7 +2,6 @@
 
 namespace App\Repository;
 
-use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Reception;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
@@ -10,7 +9,6 @@ use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 

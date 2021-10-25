@@ -32,7 +32,6 @@ use App\Repository\ReceptionReferenceArticleRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use Google\Service\Transcoder\Input;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -303,7 +302,7 @@ class RefArticleDataService {
                 $refArticle->setUserThatTriggeredEmergency(null);
                 $refArticle->setEmergencyComment('');
             }
-            $refArticle->setIsUrgent($data['urgence'] === "true");
+            $refArticle->setIsUrgent(filter_var($data['urgence'] ?? false, FILTER_VALIDATE_BOOLEAN));
         }
 
         if(isset($data['prix'])) {

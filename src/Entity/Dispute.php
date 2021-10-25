@@ -2,14 +2,15 @@
 
 namespace App\Entity;
 
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\LitigeRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\DisputeRepository")
  */
-class Litige
+class Dispute
 {
     // origine du litige
     const ORIGIN_RECEPTION = 'REC';
@@ -23,73 +24,78 @@ class Litige
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
 
 	/**
 	 * @ORM\Column(type="datetime", nullable=true)
 	 */
-	private $creationDate;
+	private ?DateTime $creationDate = null;
 
 	/**
 	 * @ORM\Column(type="datetime", nullable=true)
 	 */
-	private $updateDate;
+	private ?DateTime $updateDate = null;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Pack", inversedBy="litiges")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Pack", inversedBy="disputes")
      */
-    private $packs;
+    private Collection $packs;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="litiges")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="disputes")
      */
-    private $type;
+    private ?Type $type = null;
 
     /**
-     * @ORM\OneToMany(targetEntity="Attachment", mappedBy="litige")
+     * @ORM\OneToMany(targetEntity=Attachment::class, mappedBy="dispute")
      */
-    private $attachements;
+    private Collection $attachements;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="litiges")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="disputes")
      */
-    private $status;
+    private ?Statut $status = null;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\LitigeHistoric", mappedBy="litige")
+     * @ORM\OneToMany(targetEntity=DisputeHistoryRecord::class, mappedBy="dispute")
      */
-    private $litigeHistorics;
+    private Collection $disputeHistory;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Article", inversedBy="litiges")
+     * @ORM\ManyToMany(targetEntity=Article::class, inversedBy="disputes")
      */
-    private $articles;
+    private Collection $articles;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Utilisateur", inversedBy="litiges")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Utilisateur", inversedBy="disputes")
      */
-    private $buyers;
+    private Collection $buyers;
 
     /**
      * @ORM\Column(type="boolean", nullable=true)
      */
-    private $emergencyTriggered;
+    private ?bool $emergencyTriggered = null;
 
     /**
      * @ORM\Column(type="string", length=64, nullable=false, unique=true)
      */
-    private $numeroLitige;
+    private ?string $number = null;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="litigesDeclarant")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="reportedDisputes")
      */
-    private $declarant;
+    private ?Utilisateur $reporter = null;
+
+    /**
+     * @ORM\OneToOne(targetEntity=DisputeHistoryRecord::class)
+     */
+    private ?DisputeHistoryRecord $lastHistoryRecord = null;
 
     public function __construct()
     {
         $this->attachements = new ArrayCollection();
-        $this->litigeHistorics = new ArrayCollection();
+        $this->disputeHistory = new ArrayCollection();
         $this->packs = new ArrayCollection();
         $this->articles = new ArrayCollection();
         $this->buyers = new ArrayCollection();
@@ -125,7 +131,7 @@ class Litige
     {
         if (!$this->attachements->contains($piecesJointe)) {
             $this->attachements[] = $piecesJointe;
-            $piecesJointe->setLitige($this);
+            $piecesJointe->setDispute($this);
         }
 
         return $this;
@@ -136,8 +142,8 @@ class Litige
         if ($this->attachements->contains($piecesJointe)) {
             $this->attachements->removeElement($piecesJointe);
             // set the owning side to null (unless already changed)
-            if ($piecesJointe->getLitige() === $this) {
-                $piecesJointe->setLitige(null);
+            if ($piecesJointe->getDispute() === $this) {
+                $piecesJointe->setDispute(null);
             }
         }
 
@@ -157,30 +163,30 @@ class Litige
     }
 
     /**
-     * @return Collection|LitigeHistoric[]
+     * @return Collection|DisputeHistoryRecord[]
      */
-    public function getLitigeHistorics(): Collection
+    public function getDisputeHistory(): Collection
     {
-        return $this->litigeHistorics;
+        return $this->disputeHistory;
     }
 
-    public function addLitigeHistory(LitigeHistoric $litigeHistory): self
+    public function addDisputeHistoryRecord(DisputeHistoryRecord $record): self
     {
-        if (!$this->litigeHistorics->contains($litigeHistory)) {
-            $this->litigeHistorics[] = $litigeHistory;
-            $litigeHistory->setLitige($this);
+        if (!$this->disputeHistory->contains($record)) {
+            $this->disputeHistory[] = $record;
+            $record->setDispute($this);
         }
 
         return $this;
     }
 
-    public function removeLitigeHistory(LitigeHistoric $litigeHistory): self
+    public function removeDisputeHistoryRecord(DisputeHistoryRecord $record): self
     {
-        if ($this->litigeHistorics->contains($litigeHistory)) {
-            $this->litigeHistorics->removeElement($litigeHistory);
+        if ($this->disputeHistory->contains($record)) {
+            $this->disputeHistory->removeElement($record);
             // set the owning side to null (unless already changed)
-            if ($litigeHistory->getLitige() === $this) {
-                $litigeHistory->setLitige(null);
+            if ($record->getDispute() === $this) {
+                $record->setDispute(null);
             }
         }
 
@@ -215,7 +221,7 @@ class Litige
     {
         if (!$this->attachements->contains($attachment)) {
             $this->attachements[] = $attachment;
-            $attachment->setLitige($this);
+            $attachment->setDispute($this);
         }
 
         return $this;
@@ -226,31 +232,8 @@ class Litige
         if ($this->attachements->contains($attachment)) {
             $this->attachements->removeElement($attachment);
             // set the owning side to null (unless already changed)
-            if ($attachment->getLitige() === $this) {
-                $attachment->setLitige(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function addLitigeHistoric(LitigeHistoric $litigeHistoric): self
-    {
-        if (!$this->litigeHistorics->contains($litigeHistoric)) {
-            $this->litigeHistorics[] = $litigeHistoric;
-            $litigeHistoric->setLitige($this);
-        }
-
-        return $this;
-    }
-
-    public function removeLitigeHistoric(LitigeHistoric $litigeHistoric): self
-    {
-        if ($this->litigeHistorics->contains($litigeHistoric)) {
-            $this->litigeHistorics->removeElement($litigeHistoric);
-            // set the owning side to null (unless already changed)
-            if ($litigeHistoric->getLitige() === $this) {
-                $litigeHistoric->setLitige(null);
+            if ($attachment->getDispute() === $this) {
+                $attachment->setDispute(null);
             }
         }
 
@@ -353,34 +336,43 @@ class Litige
         return $this;
     }
 
-    public function getNumeroLitige(): ?string
+    public function getNumber(): ?string
     {
-        return $this->numeroLitige;
+        return $this->number;
     }
 
-    public function setNumeroLitige(?string $numeroLitige): self
+    public function setNumber(?string $number): self
     {
-        $this->numeroLitige = $numeroLitige;
+        $this->number = $number;
 
         return $this;
     }
 
-    public function getDeclarant(): ?Utilisateur
+    public function getReporter(): ?Utilisateur
     {
-        return $this->declarant;
+        return $this->reporter;
     }
 
-    public function setDeclarant(?Utilisateur $declarant): self
+    public function setReporter(?Utilisateur $reporter): self
     {
-        $this->declarant = $declarant;
+        $this->reporter = $reporter;
 
+        return $this;
+    }
+
+    public function getLastHistoryRecord(): ?DisputeHistoryRecord {
+        return $this->lastHistoryRecord;
+    }
+
+    public function setLastHistoryRecord(?DisputeHistoryRecord $lastHistoryRecord): self {
+        $this->lastHistoryRecord = $lastHistoryRecord;
         return $this;
     }
 
     public function serialize()
     {
         return [
-            'numeroLitige' => $this->getNumeroLitige(),
+            'number' => $this->getNumber(),
             'type' => $this->getType() ? $this->getType()->getLabel() : '',
             'status' => $this->getStatus() ? $this->getStatus()->getNom() : '',
             'creationDate' => $this->getCreationDate() ? $this->getCreationDate()->format('d/m/Y') : '',

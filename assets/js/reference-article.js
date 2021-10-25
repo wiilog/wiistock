@@ -25,7 +25,7 @@ $(document).ready(() => {
             const $form = $(`.ra-form`);
             clearFormErrors($form);
             processSubmitAction($form, $button, $button.data(`submit`), {
-                onSuccess: data => window.location.href = Routing.generate('reference_article_show_page', {id: data.data.id})
+                success: data => window.location.href = Routing.generate('reference_article_show_page', {id: data.data.id})
             });
         }
     });

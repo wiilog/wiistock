@@ -113,9 +113,6 @@ class PackController extends AbstractController
 
     /**
      * @Route("/{packCode}", name="get_pack_intel", options={"expose"=true}, methods={"GET"}, condition="request.isXmlHttpRequest()")
-     * @param EntityManagerInterface $entityManager
-     * @param string $packCode
-     * @return JsonResponse
      */
     public function getPackIntel(EntityManagerInterface $entityManager,
                                  string $packCode): JsonResponse
@@ -228,7 +225,7 @@ class PackController extends AbstractController
                 $msg = $translator->trans("colis.Ce colis est référencé dans un ou plusieurs acheminements");
             }
 
-            if (!$pack->getLitiges()->isEmpty()) {
+            if (!$pack->getDisputes()->isEmpty()) {
                 $msg = $translator->trans("colis.Ce colis est référencé dans un ou plusieurs litiges");
             }
             if ($pack->getArrivage() && $arrivage !== $pack->getArrivage()) {

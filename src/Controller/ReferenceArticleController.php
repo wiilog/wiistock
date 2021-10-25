@@ -5,7 +5,6 @@ namespace App\Controller;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Article;
-use App\Entity\Attachment;
 use App\Entity\CategoryType;
 use App\Entity\Fournisseur;
 use App\Entity\FreeField;
@@ -16,20 +15,15 @@ use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
-use App\Entity\TransferRequest;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Entity\CollecteReference;
 use App\Entity\CategorieCL;
-use App\Entity\Collecte;
 use App\Entity\VisibilityGroup;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Helper\FormatHelper;
-use App\Repository\FreeFieldRepository;
 use App\Service\AttachmentService;
 use WiiCommon\Helper\Stream;
-use App\Service\DemandeCollecteService;
 use App\Service\MouvementStockService;
 use App\Service\FreeFieldService;
 use App\Service\ArticleFournisseurService;
@@ -51,7 +45,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use App\Entity\DeliveryRequest\Demande;
 use App\Entity\ArticleFournisseur;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 
@@ -172,7 +165,7 @@ class ReferenceArticleController extends AbstractController
                 ->setTypeQuantite($typeArticle)
                 ->setPrixUnitaire(max(0, $data['prix']))
                 ->setType($type)
-                ->setIsUrgent($data['urgence'] == "true")
+                ->setIsUrgent(filter_var($data['urgence'] ?? false, FILTER_VALIDATE_BOOLEAN))
                 ->setEmplacement($emplacement)
 				->setBarCode($this->refArticleDataService->generateBarCode())
                 ->setBuyer(isset($data['buyer']) ? $userRepository->find($data['buyer']) : null);

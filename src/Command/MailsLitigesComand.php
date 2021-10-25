@@ -5,7 +5,7 @@
 namespace App\Command;
 
 
-use App\Entity\Litige;
+use App\Entity\Dispute;
 
 use App\Service\MailerService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -13,10 +13,14 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment as Twig_Environment;
 
 class MailsLitigesComand extends Command
 {
+
+    /** @Required */
+    public RouterInterface $router;
 
     /**
      * @var MailerService
@@ -56,36 +60,36 @@ class MailsLitigesComand extends Command
 
     public function execute(InputInterface $input, OutputInterface $output)
     {
-        $litigeRepository = $this->entityManager->getRepository(Litige::class);
+        $disputeRepository = $this->entityManager->getRepository(Dispute::class);
 
-        /** @var Litige[] $litiges */
-        $litiges = $litigeRepository->findByStatutSendNotifToBuyer();
+        /** @var Dispute[] $disputes */
+        $disputes = $disputeRepository->findByStatutSendNotifToBuyer();
 
-        $litigesByAcheteur = [];
-        foreach ($litiges as $litige) {
+        $disputesByBuyer = [];
+        foreach ($disputes as $dispute) {
             /** @var  $acheteursEmail */
-            $acheteursEmail = $litigeRepository->getAcheteursArrivageByLitigeId($litige->getId());
+            $acheteursEmail = $disputeRepository->getAcheteursArrivageByDisputeId($dispute->getId());
             foreach ($acheteursEmail as $email) {
-                $litigesByAcheteur[$email][] = $litige;
+                $disputesByBuyer[$email][] = $dispute;
             }
         }
 
         $listEmails = '';
 
-        foreach ($litigesByAcheteur as $email => $litiges) {
+        foreach ($disputesByBuyer as $email => $disputes) {
             $this->mailerService->sendMail(
                 'FOLLOW GT // Récapitulatif de vos litiges',
                 $this->templating->render('mails/contents/mailLitigesArrivage.html.twig', [
-                    'litiges' => $litiges,
+                    'disputes' => $disputes,
                     'title' => 'Récapitulatif de vos litiges',
-                    'urlSuffix' => '/arrivage'
+                    'urlSuffix' => $this->router->generate('arrivage_index')
                 ]),
                 $email
             );
             $listEmails .= $email . ', ';
         }
 
-        $nbMails = count($litigesByAcheteur);
+        $nbMails = count($disputesByBuyer);
 
         $output->writeln($nbMails . ' mails ont été envoyés');
         $this->logger->info('ENVOI DE ' . $nbMails . ' MAILS RECAP LITIGES : ' . $listEmails);

@@ -8,16 +8,26 @@ let droppedFiles = [];
  * Init form validation modal.
  *
  * @param {jQuery} $modal jQuery element of the modal
- * @param {jQuery}|string submit jQuery element of the submit button
+ * @param {jQuery|string} submit jQuery element of the submit button
  * @param {string} path url to call on submit
- * @param {{confirmMessage: function|undefined, tables: undefined|Array<jQuery>, keepModal: undefined|boolean, keepForm: undefined|boolean, success: undefined|function, clearOnClose: undefined|boolean, validator: undefined|function}} options Object containing some option.
+ * @param {{
+ *      confirmMessage: function|undefined,
+ *      tables: undefined|Array<jQuery>,
+ *      keepModal: undefined|boolean,
+ *      keepForm: undefined|boolean,
+ *      success: undefined|function,
+ *      clearOnClose: undefined|boolean,
+ *      validator: undefined|function,
+ *      waitDatatable: undefined|boolean
+ * }} options Object containing some option.
  *   - tables is an array of datatable
  *   - keepForm is an array of datatable
  *   - keepModal true if we do not close form
  *   - success success handler
  *   - clearOnClose clear the modal on close action
  *   - validator function which calculate custom form validation
- *   - confirmMessage Function which return promise throwing when form can be submited
+ *   - confirmMessage Function which return promise throwing when form can be submitted
+ *   - waitDatatable if true returned a Promise resolve whe Datatable is reloaded
  */
 function InitModal($modal, submit, path, options = {}) {
     if(options.clearOnClose) {
@@ -38,11 +48,6 @@ function InitModal($modal, submit, path, options = {}) {
             showBSAlert('L\'opération est en cours de traitement', 'warning');
         } else {
             SubmitAction($modal, $button, path, options)
-                .then((data) => {
-                    if (data && data.success && options && options.success) {
-                        options.success(data);
-                    }
-                })
                 .catch(() => {});
         }
     };
@@ -57,12 +62,22 @@ function InitModal($modal, submit, path, options = {}) {
 
 /**
  *
- * @param {{confirmMessage: function|undefined, tables: undefined|Array<jQuery>, keepModal: undefined|boolean, keepForm: undefined|boolean, validator: function|undefined}} options Object containing some options.
+ * @param {{
+ *      confirmMessage: function|undefined,
+ *      tables: undefined|Array<jQuery>,
+ *      keepModal: undefined|boolean,
+ *      success: function,
+ *      keepForm: undefined|boolean,
+ *      validator: function|undefined,
+ *      waitDatatable: undefined|boolean
+ * }} options Object containing some options.
  *   - tables is an array of datatable
  *   - keepForm true if we do not clear form
  *   - keepModal true if we do not close form
  *   - validator function which calculate custom form validation
- *   - confirmMessage Function which return promise throwing when form can be submited
+ *   - confirmMessage Function which return promise throwing when form can be submitted
+ *   - success called on success
+ *   - waitDatatable if true returned a Promise resolve whe Datatable is reloaded
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery} $submit jQuery element of the submit button
  * @param {string} path
@@ -76,10 +91,10 @@ function SubmitAction($modal,
     return (
         confirmMessage
             ? confirmMessage($modal)
-            : (new Promise ((resolve) => resolve(true)))
+            : (new Promise((resolve) => resolve(true)))
     )
         .then((success) => {
-            if (success) {
+            if(success) {
                 return processSubmitAction($modal, $submit, path, options);
             }
         });
@@ -87,12 +102,13 @@ function SubmitAction($modal,
 
 /**
  *
- * @param {{tables: undefined|Array<jQuery>, keepModal: undefined|boolean, keepForm: undefined|boolean, validator: function|undefined}} options Object containing some options.
+ * @param {{tables: undefined|Array<jQuery>, waitDatatable: undefined|boolean, keepModal: undefined|boolean, success: function, keepForm: undefined|boolean, validator: function|undefined}} options Object containing some options.
  *   - tables is an array of datatable
  *   - keepForm true if we do not clear form
  *   - keepModal true if we do not close form
  *   - validator function which calculate custom form validation
- *   - onSuccess called on success
+ *   - success called on success
+ *   - waitDatatable if true returned a Promise resolve whe Datatable is reloaded
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery} $submit jQuery element of the submit button
  * @param {string} path
@@ -100,10 +116,10 @@ function SubmitAction($modal,
 function processSubmitAction($modal,
                              $submit,
                              path,
-                             {tables, keepModal, keepForm, validator, onSuccess, headerCallback} = {}) {
+                             {tables, keepModal, keepForm, validator, success, headerCallback, waitDatatable} = {}) {
     const isAttachmentForm = $modal.find('input[name="isAttachmentForm"]').val() === '1';
-    const {success, errorMessages, $isInvalidElements, data} = ProcessForm($modal, isAttachmentForm, validator);
-    if (success) {
+    const {success: formValidation, errorMessages, $isInvalidElements, data} = ProcessForm($modal, isAttachmentForm, validator);
+    if (formValidation) {
         const smartData = isAttachmentForm
             ? createFormData(data)
             : JSON.stringify(data);
@@ -122,20 +138,26 @@ function processSubmitAction($modal,
             })
             .then((data) => {
                 $submit.popLoader();
+
                 if (data.success === false) {
+                    const errorMessage = data.msg || data.message;
                     displayFormErrors($modal, {
                         $isInvalidElements: data.invalidFieldsSelector ? [$(data.invalidFieldsSelector)] : undefined,
-                        errorMessages: data.msg ? [data.msg] : undefined
+                        errorMessages: errorMessage ? [errorMessage] : undefined
                     });
                 }
                 else {
-                    if(onSuccess) {
-                        onSuccess(data);
-                    }
-
-                    const res = treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, headerCallback);
+                    const res = treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable);
                     if (!res) {
                         return;
+                    }
+                    else {
+                        return res
+                            .then(() => {
+                                if(data && data.success && success) {
+                                    success(data);
+                                }
+                            })
                     }
                 }
 
@@ -173,7 +195,7 @@ function clearFormErrors($modal) {
         .empty();
 }
 
-function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, headerCallback) {
+function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable) {
     resetDroppedFiles();
     if (data.redirect && !keepModal) {
         window.location.href = data.redirect;
@@ -183,10 +205,20 @@ function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, hea
     if (data.nextModal) {
         $modal.find('.modal-body').html(data.nextModal);
     }
-    if (tables) {
-        tables.forEach((table) => {
-            table.ajax.reload(null, false);
+
+    let tablesReloadingPromises;
+    if (tables && tables.length > 0) {
+        tablesReloadingPromises = tables.map((table) => {
+            return new Promise((resolve) => {
+                table.ajax.reload(
+                    () => { resolve(); },
+                    false
+                );
+            });
         });
+    }
+    else {
+        tablesReloadingPromises = [new Promise((resolve) => resolve())];
     }
 
     if (!data.nextModal && !keepModal) {
@@ -207,8 +239,13 @@ function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, hea
         showBSAlert(data.msg, 'success');
     }
 
-    // pour mise à jour des données d'en-tête après modification
-    return true;
+    if (waitDatatable) {
+        return Promise.all(tablesReloadingPromises);
+    } else {
+        return new Promise((resolve) => {
+            resolve();
+        });
+    }
 }
 
 function refreshHeader(entete, headerCallback) {
@@ -348,9 +385,7 @@ function processInputsForm($modal, data, isAttachmentForm) {
             .replace(/\*/g, '')
             .replace(/\n/g, ' ')
             .trim();
-        if (name === 'quantity') {
-            console.log(label)
-        }
+
         // validation données obligatoires
         if ($input.hasClass('needed')
             && $input.is(':disabled') === false

@@ -5,16 +5,11 @@ namespace App\Repository;
 use App\Entity\Arrivage;
 use App\Entity\FreeField;
 use App\Entity\Statut;
-use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
-use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
-use Exception;
 use Symfony\Component\HttpFoundation\InputBag;
 
 /**
@@ -46,15 +41,6 @@ class ArrivageRepository extends EntityRepository
         'businessUnit' => 'businessUnit'
     ];
 
-    /**
-     * @param DateTime $dateMin
-     * @param DateTime $dateMax
-     * @param array $arrivalStatusesFilter
-     * @param array $arrivalTypesFilter
-     * @return int
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
     public function countByDates(DateTime $dateMin,
                                  DateTime $dateMax,
                                  array $arrivalStatusesFilter = [],
@@ -81,12 +67,9 @@ class ArrivageRepository extends EntityRepository
     }
 
     /**
-     * @param DateTime $date
      * @return Arrivage[]|null
-     * @throws NoResultException
-     * @throws NonUniqueResultException
      */
-    public function countByDate(DateTime $date)
+    public function countByDate(DateTime $date): ?array
     {
 		return $this->createQueryBuilder('arrivage')
             ->select('COUNT(arrivage)')
@@ -97,11 +80,9 @@ class ArrivageRepository extends EntityRepository
     }
 
     /**
-     * @param DateTime $dateMin
-     * @param DateTime $dateMax
      * @return Arrivage[]|null
      */
-    public function findByDates($dateMin, $dateMax)
+    public function findByDates(DateTime $dateMin, DateTime $dateMax): ?array
     {
 		return $this->createQueryBuilderByDates($dateMin, $dateMax)
             ->getQuery()
@@ -109,7 +90,7 @@ class ArrivageRepository extends EntityRepository
     }
 
     public function iterateBetween($from, $to) {
-        $iterator = $this->createQueryBuilderByDates($from, $to)
+        return $this->createQueryBuilderByDates($from, $to)
             ->select('arrivage.id')
             ->addSelect('arrivage.numeroArrivage')
             ->addSelect('recipient.username AS recipientUsername')
@@ -139,20 +120,10 @@ class ArrivageRepository extends EntityRepository
             ->leftJoin('arrivage.type', 'arrivalType')
             ->leftJoin('arrivage.dropLocation', 'join_dropLocation')
             ->getQuery()
-            ->iterate(null, Query::HYDRATE_ARRAY);
-
-        foreach($iterator as $item) {
-            // $item [index => reference array]
-            yield array_pop($item);
-        }
+            ->toIterable();
     }
 
-    /**
-     * @param DateTime $dateMin
-     * @param DateTime $dateMax
-     * @return QueryBuilder
-     */
-    public function createQueryBuilderByDates($dateMin, $dateMax): QueryBuilder
+    public function createQueryBuilderByDates(DateTime $dateMin, DateTime $dateMax): QueryBuilder
     {
         return $this->createQueryBuilder('arrivage')
             ->where('arrivage.date BETWEEN :dateMin AND :dateMax')
@@ -162,13 +133,7 @@ class ArrivageRepository extends EntityRepository
             ]);
     }
 
-    /**
-     * @param $fournisseurId
-     * @return int|mixed|string
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
-    public function countByFournisseur($fournisseurId)
+    public function countByFournisseur($fournisseurId): ?int
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
@@ -180,12 +145,6 @@ class ArrivageRepository extends EntityRepository
         return $query->getSingleScalarResult();
     }
 
-    /**
-     * @param $chauffeur
-     * @return int|mixed|string
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
     public function countByChauffeur($chauffeur)
     {
         $em = $this->getEntityManager();
@@ -199,12 +158,6 @@ class ArrivageRepository extends EntityRepository
         return $query->getSingleScalarResult();
     }
 
-	/**
-	 * @param Arrivage $arrivage
-	 * @return int
-	 * @throws NonUniqueResultException
-	 * @throws NoResultException
-	 */
     public function countColisByArrivage($arrivage)
     {
         $em = $this->getEntityManager();
@@ -218,49 +171,22 @@ class ArrivageRepository extends EntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function getColisByArrivage($arrivage)
+    public function countUnsolvedDisputesByArrivage($arrivage)
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT c.code
-			FROM App\Entity\Pack c
-			WHERE c.arrivage = :arrivage"
-        )->setParameter('arrivage', $arrivage);
-
-        return $query->getScalarResult();
-    }
-
-	/**
-	 * @param Arrivage $arrivage
-	 * @return int
-	 * @throws NonUniqueResultException
-	 * @throws NoResultException
-	 */
-    public function countLitigesUnsolvedByArrivage($arrivage)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(l)
-			FROM App\Entity\Litige l
-			JOIN l.packs c
-			JOIN l.status s
-			WHERE s.state = :stateNotTreated
-			AND c.arrivage = :arrivage"
-        )
+        return $this->createQueryBuilder('arrival')
+            ->select('COUNT(dispute.id)')
+            ->join('arrival.packs', 'pack')
+            ->join('pack.disputes', 'dispute')
+            ->join('dispute.status', 'status')
+            ->andWhere('pack.arrivage = :arrival')
+            ->andWhere('status.state = :stateNotTreated')
+            ->setMaxResults(1)
             ->setParameter('stateNotTreated', Statut::NOT_TREATED)
-            ->setParameter('arrivage', $arrivage);
-
-        return $query->getSingleScalarResult();
+            ->setParameter('arrival', $arrivage)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
-    /**
-     * @param $firstDay
-     * @param $lastDay
-     * @return mixed
-     * @throws Exception
-     */
     public function countByDays($firstDay, $lastDay)
     {
         $from = new DateTime(str_replace("/", "-", $firstDay) . " 00:00:00");
@@ -278,15 +204,7 @@ class ArrivageRepository extends EntityRepository
         return $query->execute();
     }
 
-    /**
-     * @param array|null $params
-     * @param array|null $filters
-     * @param int|null $userId
-     * @return array
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
-    public function findByParamsAndFilters(InputBag $params, $filters, $userId)
+    public function findByParamsAndFilters(InputBag $params, $filters, $userId): array
     {
         $qb = $this->createQueryBuilder("a");
 
@@ -493,12 +411,6 @@ class ArrivageRepository extends EntityRepository
         ];
     }
 
-    /**
-     * @param Utilisateur $user
-     * @return int
-     * @throws NonUniqueResultException
-     * @throws NoResultException
-     */
     public function countByUser($user)
     {
         $em = $this->getEntityManager();

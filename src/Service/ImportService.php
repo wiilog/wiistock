@@ -836,7 +836,10 @@ class ImportService
             $user = $userRepository->find($user->getId());
         }
 
-        $reception = $receptionService->getAlreadySavedReception($receptionsWithCommand, $data['orderNumber'], $data['expectedDate'], fn() => $this->updateStats($stats, false));
+        $dataOrderNumber = $data['orderNumber'] ?? null;
+        $dataExpectedDate = $data['expectedDate'] ?? null;
+
+        $reception = $receptionService->getAlreadySavedReception($receptionsWithCommand, $dataOrderNumber, $dataExpectedDate, fn() => $this->updateStats($stats, false));
         $newEntity = !isset($reception);
         if (!$reception) {
             try {
@@ -1017,7 +1020,7 @@ class ImportService
             if(!isset($visibilityGroup)) {
                 $this->throwError("Le groupe de visibilité ${data['visibilityGroups']} n'existe pas");
             }
-            $refArt->setAttributes(['visibilityGroup' => $visibilityGroup]);
+            $refArt->setProperties(['visibilityGroup' => $visibilityGroup]);
         }
 
         if (isset($data['managers'])) {

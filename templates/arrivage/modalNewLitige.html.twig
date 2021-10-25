@@ -16,13 +16,13 @@
             <div class="modal-body modal-input container-fluid">
 
                 {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
-                    array: typesLitige,
+                    array: disputeTypes,
                     warningLabel: 'Attention ! Aucun type de litige n\'a été créé',
                     redirectPath: path('types_index'),
                     redirectLabel: 'Aller vers la page de types'
                 } %}
                 {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
-                    array: statusLitige,
+                    array: disputeStatuses,
                     warningLabel: 'Attention ! Aucun statut de litige n\'a été créé',
                     redirectPath: path('status_param_index'),
                     redirectLabel: 'Aller vers la page des statuts'
@@ -72,10 +72,10 @@
                     {% endif %}
 
                     <div class="form-group col-4">
-                        <label for="typeLitige">Type*</label>
-                        <select class="form-control data needed" id="typeLitige" name="typeLitige">
+                        <label for="disputeType">Type*</label>
+                        <select class="form-control data needed" id="disputeType" name="disputeType">
                             <option placeholder="" disabled value="" selected></option>
-                            {% for type in typesLitige %}
+                            {% for type in disputeTypes %}
                                 <option value="{{ type.id }}">{{ type.label }}</option>
                             {% endfor %}
                         </select>
@@ -94,8 +94,8 @@
                         </div>
                     {% endif %}
                     <div class="form-group w-100 col-4">
-                        <label for="declarantLitige">Déclarant*</label>
-                        <select class="form-control data select2-declarant needed" name="declarantLitige" id="declarantLitige">
+                        <label for="disputeReporter">Déclarant*</label>
+                        <select class="form-control data select2-declarant needed" name="disputeReporter" id="disputeReporter">
                             {% for utilisateur in utilisateurs %}
                                 <option value="{{ utilisateur.id }}">{{ utilisateur.text }}</option>
                             {% endfor %}
@@ -106,17 +106,17 @@
                                data-id="{{ app.user.id }}"/>
                     </div>
                     <div class="form-group col-4">
-                        <label for="statutLitige">Statut*</label>
+                        <label>Statut*</label>
                         {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
-                            array: statusLitige,
+                            array: disputeStatuses,
                             warningLabel: 'Attention ! Aucun statut de litige n\'a été créé',
                             redirectPath: path('status_param_index'),
                             redirectLabel: 'Aller vers la page des statuts'
                         } %}
 
-                        <select class="form-control data needed" id="statutLitige" name="statutLitige">
+                        <select class="form-control data needed" name="disputeStatus" title="Statut">
                             <option disabled selected></option>
-                            {% for statut in statusLitige %}
+                            {% for statut in disputeStatuses %}
                                 <option value="{{ statut.id }}">{{ statut.nom }}</option>
                             {% endfor %}
                             {% if defaultDisputeStatusId is not null %}
@@ -125,8 +125,8 @@
                         </select>
                     </div>
                     <div class="form-group col-4">
-                        <label for="colisLitige">Colis*</label>
-                        <select multiple="multiple" class="form-control select2 w-100 data needed" id="colisLitige" name="colisLitige">
+                        <label for="disputePacks">Colis*</label>
+                        <select multiple="multiple" class="form-control select2 w-100 data needed" id="disputePacks" name="disputePacks">
                             {% for colis in allColis %}
                                 <option value="{{ colis.id }}">{{ colis.code }}</option>
                             {% endfor %}

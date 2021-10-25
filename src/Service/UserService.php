@@ -20,9 +20,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
 use Twig\Environment as Twig_Environment;
 use Symfony\Component\Security\Core\Security;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 
 class UserService
 {
@@ -102,6 +99,7 @@ class UserService
 			'Dernière connexion' => $user->getLastLogin() ? $user->getLastLogin()->format('d/m/Y') : '',
             'role' => $user->getRole() ? $user->getRole()->getLabel() : '',
             'visibilityGroup' => FormatHelper::entity($user->getVisibilityGroups()->toArray(), "label", ' / '),
+            'status' => $user->getStatus() ? 'Actif' : "Inactif",
 			'Actions' => $this->templating->render('utilisateur/datatableUtilisateurRow.html.twig', ['idUser' => $idUser]),
 		];
     }

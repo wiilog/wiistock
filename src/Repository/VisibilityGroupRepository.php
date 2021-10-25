@@ -2,12 +2,10 @@
 
 namespace App\Repository;
 
-use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
-use WiiCommon\Helper\Stream;
 
 /**
  * @method VisibilityGroup|null find($id, $lockMode = null, $lockVersion = null)

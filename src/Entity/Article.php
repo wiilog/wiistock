@@ -3,7 +3,6 @@
 namespace App\Entity;
 
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
-use App\Entity\DeliveryRequest\Demande;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
@@ -52,32 +51,32 @@ class Article implements PairedEntity
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $reference;
+    private ?string $reference = null;
 
     /**
      * @ORM\Column(type="string", length=15, nullable=true)
      */
-    private $barCode;
+    private ?string $barCode = null;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
-    private $quantite;
+    private ?int $quantite = null;
 
     /**
      * @ORM\Column(type="text", nullable=true)
      */
-    private $commentaire;
+    private ?string $commentaire = null;
 
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\Collecte", mappedBy="articles")
      */
-    private $collectes;
+    private Collection $collectes;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="articles")
@@ -92,32 +91,32 @@ class Article implements PairedEntity
     /**
      * @ORM\Column(type="boolean")
      */
-    private $conform;
+    private ?bool $conform = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $label;
+    private ?string $label = null;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\MouvementStock", mappedBy="article")
      */
-    private $mouvements;
+    private Collection $mouvements;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\ArticleFournisseur", inversedBy="articles")
      */
-    private $articleFournisseur;
+    private ?ArticleFournisseur $articleFournisseur = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="articles")
      */
-    private $type;
+    private ?Type $type = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="articles")
      */
-    private $emplacement;
+    private ?Emplacement $emplacement = null;
 
     /**
      * @ORM\OneToMany(targetEntity=DeliveryRequestArticleLine::class, mappedBy="article")
@@ -133,67 +132,67 @@ class Article implements PairedEntity
      * @ORM\ManyToOne(targetEntity="App\Entity\ReceptionReferenceArticle", inversedBy="articles")
      * @ORM\JoinColumn(nullable=true)
      */
-    private $receptionReferenceArticle;
+    private ?ReceptionReferenceArticle $receptionReferenceArticle = null;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\InventoryEntry", mappedBy="article")
      */
-    private $inventoryEntries;
+    private Collection $inventoryEntries;
 
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\InventoryMission", inversedBy="articles")
      */
-    private $inventoryMissions;
+    private Collection $inventoryMissions;
 
     /**
      * @ORM\Column(type="float", nullable=true)
      */
-    private $prixUnitaire;
+    private ?float $prixUnitaire = null;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private $dateLastInventory;
+    private ?DateTime $dateLastInventory = null;
 
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\OrdreCollecte", inversedBy="articles")
      */
-    private $ordreCollecte;
+    private Collection $ordreCollecte;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Litige", mappedBy="articles", cascade={"remove"})
+     * @ORM\ManyToMany(targetEntity=Dispute::class, mappedBy="articles", cascade={"remove"})
      */
-    private $litiges;
+    private Collection $disputes;
 
     /**
      * @ORM\OneToOne(targetEntity=Pack::class, mappedBy="article")
      */
-    private $trackingPack;
+    private ?Pack $trackingPack = null;
 
     /**
      * @ORM\ManyToMany(targetEntity=TransferRequest::class, mappedBy="articles")
      */
-    private $transferRequests;
+    private Collection $transferRequests;
 
     /**
      * @ORM\OneToMany(targetEntity=Alert::class, mappedBy="article", cascade={"remove"})
      */
-    private $alerts;
+    private Collection $alerts;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $batch;
+    private ?string $batch = null;
 
     /**
      * @ORM\Column(type="date", nullable=true)
      */
-    private $expiryDate;
+    private ?DateTime $expiryDate = null;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private $stockEntryDate;
+    private ?DateTime $stockEntryDate = null;
 
     /**
      * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="article", cascade={"remove"})
@@ -208,7 +207,7 @@ class Article implements PairedEntity
         $this->mouvements = new ArrayCollection();
         $this->inventoryEntries = new ArrayCollection();
         $this->inventoryMissions = new ArrayCollection();
-        $this->litiges = new ArrayCollection();
+        $this->disputes = new ArrayCollection();
         $this->ordreCollecte = new ArrayCollection();
         $this->transferRequests = new ArrayCollection();
 
@@ -546,28 +545,28 @@ class Article implements PairedEntity
     }
 
     /**
-     * @return Collection|Litige[]
+     * @return Collection|Dispute[]
      */
-    public function getLitiges(): Collection
+    public function getDisputes(): Collection
     {
-        return $this->litiges;
+        return $this->disputes;
     }
 
-    public function addLitige(Litige $litige): self
+    public function addDispute(Dispute $dispute): self
     {
-        if (!$this->litiges->contains($litige)) {
-            $this->litiges[] = $litige;
-            $litige->addArticle($this);
+        if (!$this->disputes->contains($dispute)) {
+            $this->disputes[] = $dispute;
+            $dispute->addArticle($this);
         }
 
         return $this;
     }
 
-    public function removeLitige(Litige $litige): self
+    public function removeDispute(Dispute $dispute): self
     {
-        if ($this->litiges->contains($litige)) {
-            $this->litiges->removeElement($litige);
-            $litige->removeArticle($this);
+        if ($this->disputes->contains($dispute)) {
+            $this->disputes->removeElement($dispute);
+            $dispute->removeArticle($this);
         }
 
         return $this;
@@ -649,7 +648,7 @@ class Article implements PairedEntity
         return (
             (!$this->getCollectes()->isEmpty())
                 ? self::USED_ASSOC_COLLECTE
-                : ((!$this->getLitiges()->isEmpty())
+                : ((!$this->getDisputes()->isEmpty())
                     ? self::USED_ASSOC_LITIGE
                     : ((!$this->getInventoryEntries()->isEmpty())
                         ? self::USED_ASSOC_INVENTORY

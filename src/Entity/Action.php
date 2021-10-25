@@ -34,7 +34,7 @@ class Action {
 
     // menu qualité
     const DISPLAY_LITI = 'afficher litiges';
-    const TREAT_LITIGE = 'traiter les litiges';
+    const TREAT_DISPUTE = 'traiter les litiges';
 
     // menu demande
     const DISPLAY_TRANSFER_REQ = 'afficher transferts';

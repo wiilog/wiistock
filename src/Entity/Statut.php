@@ -27,148 +27,147 @@ class Statut
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $code;
+    private ?string $code = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $nom;
+    private ?string $nom = null;
 
 	/**
 	 * @ORM\Column(type="text", nullable=true)
 	 */
-    private $comment;
+    private ?string $comment = null;
 
 	/**
 	 * @ORM\Column(type="integer", nullable=true)
 	 */
-    private $displayOrder;
+    private ?int $displayOrder = null;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
-    private $state;
+    private ?int $state = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\CategorieStatut", inversedBy="statuts")
      */
-    private $categorie;
+    private ?CategorieStatut $categorie = null;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="statut")
      */
-    private $articles;
+    private Collection $articles;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Reception", mappedBy="statut")
      */
-    private $receptions;
+    private Collection $receptions;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\DeliveryRequest\Demande", mappedBy="statut")
      */
-    private $demandes;
+    private Collection $demandes;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\PreparationOrder\Preparation", mappedBy="statut")
      */
-    private $preparations;
+    private Collection $preparations;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Livraison", mappedBy="statut")
      */
-    private $livraisons;
+    private Collection $livraisons;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Collecte", mappedBy="statut")
      */
-    private $collectes;
+    private Collection $collectes;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\ReferenceArticle", mappedBy="statut")
      */
-    private $referenceArticles;
+    private Collection $referenceArticles;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Handling", mappedBy="status")
      */
-    private $handlings;
+    private Collection $handlings;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Dispatch", mappedBy="statut")
      */
-    private $dispatches;
+    private Collection $dispatches;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Litige", mappedBy="status")
+     * @ORM\OneToMany(targetEntity=Dispute::class, mappedBy="status")
      */
-    private $litiges;
+    private Collection $disputes;
 
     /**
      * @ORM\Column(type="boolean", nullable=true)
      */
-    private $sendNotifToBuyer;
+    private ?bool $sendNotifToBuyer = null;
 
     /**
      * @ORM\Column(type="boolean", nullable=true, options={"default": true})
      */
-    private $commentNeeded;
+    private ?bool $commentNeeded = null;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Arrivage", mappedBy="statut")
      */
-    private $arrivages;
+    private Collection $arrivages;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\TransferRequest", mappedBy="status")
      */
-    private $transferRequests;
+    private Collection $transferRequests;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\TransferOrder", mappedBy="status")
      */
-    private $transferOrders;
+    private Collection $transferOrders;
 
     /**
      * @ORM\Column(type="boolean", nullable=true)
      */
-    private $sendNotifToDeclarant;
+    private ?bool $sendNotifToDeclarant = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="statuts")
      */
-    private $type;
+    private ?Type $type = null;
 
     /**
      * @ORM\Column(type="boolean", nullable=true)
      */
-    private $sendNotifToRecipient;
+    private ?bool $sendNotifToRecipient = null;
 
     /**
      * @ORM\Column(type="boolean", nullable=true)
      */
-    private $needsMobileSync;
+    private ?bool $needsMobileSync = null;
 
     /**
      * @ORM\Column(type="boolean", nullable=true)
      */
-    private $automaticReceptionCreation;
+    private ?bool $automaticReceptionCreation = null;
 
     /**
-     * @var bool
      * @ORM\Column(type="boolean", nullable=false, options={"default": false})
      */
-    private $defaultForCategory;
+    private ?bool $defaultForCategory = false;
 
     /**
      * @ORM\OneToMany(targetEntity=PurchaseRequest::class, mappedBy="status")
      */
-    private ?Collection $purchaseRequests;
+    private Collection $purchaseRequests;
 
     /**
      * @ORM\OneToMany(targetEntity=HandlingRequestTemplate::class, mappedBy="requestStatus")
@@ -185,13 +184,12 @@ class Statut
         $this->collectes = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
         $this->handlings = new ArrayCollection();
-        $this->litiges = new ArrayCollection();
+        $this->disputes = new ArrayCollection();
         $this->dispatches = new ArrayCollection();
         $this->arrivages = new ArrayCollection();
         $this->transferRequests = new ArrayCollection();
         $this->transferOrders = new ArrayCollection();
 
-        $this->defaultForCategory = false;
         $this->purchaseRequests = new ArrayCollection();
         $this->handlingRequestStatusTemplates = new ArrayCollection();
     }
@@ -555,30 +553,30 @@ class Statut
     }
 
     /**
-     * @return Collection|Litige[]
+     * @return Collection|Dispute[]
      */
-    public function getLitiges(): Collection
+    public function getDisputes(): Collection
     {
-        return $this->litiges;
+        return $this->disputes;
     }
 
-    public function addLitige(Litige $litige): self
+    public function addDispute(Dispute $dispute): self
     {
-        if (!$this->litiges->contains($litige)) {
-            $this->litiges[] = $litige;
-            $litige->setStatus($this);
+        if (!$this->disputes->contains($dispute)) {
+            $this->disputes[] = $dispute;
+            $dispute->setStatus($this);
         }
 
         return $this;
     }
 
-    public function removeLitige(Litige $litige): self
+    public function removeDispute(Dispute $dispute): self
     {
-        if ($this->litiges->contains($litige)) {
-            $this->litiges->removeElement($litige);
+        if ($this->disputes->contains($dispute)) {
+            $this->disputes->removeElement($dispute);
             // set the owning side to null (unless already changed)
-            if ($litige->getStatus() === $this) {
-                $litige->setStatus(null);
+            if ($dispute->getStatus() === $this) {
+                $dispute->setStatus(null);
             }
         }
 
