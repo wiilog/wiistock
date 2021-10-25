@@ -4,15 +4,13 @@ namespace App\Service;
 
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment as Twig_Environment;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class PasswordService
 {
-    /**
-     * @var UserPasswordEncoderInterface
-     */
-    private $passwordEncoder;
+    /** @Required */
+    public RouterInterface $router;
 
     /**
      * @var EntityManagerInterface
@@ -30,13 +28,11 @@ class PasswordService
     private $templating;
 
 
-    public function __construct(UserPasswordEncoderInterface $passwordEncoder,
-                                EntityManagerInterface $entityManager,
+    public function __construct(EntityManagerInterface $entityManager,
                                 MailerService $mailerService,
                                 Twig_Environment $templating)
     {
         $this->entityManager = $entityManager;
-        $this->passwordEncoder = $passwordEncoder;
         $this->mailerService = $mailerService;
         $this->templating = $templating;
     }
@@ -53,7 +49,7 @@ class PasswordService
 				'FOLLOW GT // Mot de passe oublié',
 				$this->templating->render('mails/template.html.twig', [
 					'title' => 'Renouvellement de votre mot de passe Follow GT.',
-					'urlSuffix' => '/change-password?token=' . $token,
+					'urlSuffix' => $this->router->generate('change_password', ['token' => $token]),
 					'buttonText' => 'Cliquez ici pour modifier votre mot de passe',
 				]),
 				$to);
