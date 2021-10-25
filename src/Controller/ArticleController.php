@@ -12,6 +12,7 @@ use App\Entity\Fournisseur;
 use App\Entity\Menu;
 use App\Entity\Article;
 use App\Entity\MouvementStock;
+use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\TrackingMovement;
 use App\Entity\ReferenceArticle;
 use App\Entity\CategorieCL;
@@ -374,20 +375,27 @@ class ArticleController extends AbstractController
                 $deliveryRequestLines = $article->getDeliveryRequestLines();
                 $preparationOrderLines = $article->getPreparationOrderLines();
 
-                $lastDeliveryRequest = $deliveryRequestLines->last();
-                $lastPreparationOrderLines = $preparationOrderLines->last();
+                /**
+                 * @var DeliveryRequestArticleLine $lastDeliveryRequestLine
+                 */
+                $lastDeliveryRequestLine = $deliveryRequestLines->last();
 
-                $isNotUsedInAssoc = ($articlesMvtTracaIsEmpty && $articlesMvtStockIsEmpty && $lastDeliveryRequest && $lastPreparationOrderLines);
+                /**
+                 * @var PreparationOrderArticleLine $lastPreparationOrderLine
+                 */
+                $lastPreparationOrderLine = $preparationOrderLines->last();
+
+                $isNotUsedInAssoc = ($articlesMvtTracaIsEmpty && $articlesMvtStockIsEmpty && $lastDeliveryRequestLine && $lastPreparationOrderLine);
 
                 if (($hasRightToDeleteTraca || $articlesMvtTracaIsEmpty)
                     && ($hasRightToDeleteStock || $articlesMvtStockIsEmpty)
-                    && ($hasRightToDeleteRequests || $lastDeliveryRequest)
-                    && ($hasRightToDeleteOrders || $lastPreparationOrderLines)) {
+                    && ($hasRightToDeleteRequests || $lastDeliveryRequestLine)
+                    && ($hasRightToDeleteOrders || $lastPreparationOrderLine)) {
                     return new JsonResponse([
                         'delete' => $isFromReception || $isNotUsedInAssoc,
                         'html' => $this->renderView('article/modalDeleteArticleRight.html.twig', [
-                            'prepa' => $lastPreparationOrderLines ? $lastPreparationOrderLines->getNumero() : null,
-                            'request' => $lastDeliveryRequest ? $lastDeliveryRequest->getNumero() : null,
+                            'prepa' => $lastPreparationOrderLine ? $lastPreparationOrderLine->getPreparation()->getNumero() : null,
+                            'request' => $lastDeliveryRequestLine ? $lastDeliveryRequestLine->getRequest()->getNumero() : null,
                             'mvtStockIsEmpty' => $articlesMvtStockIsEmpty,
                             'mvtTracaIsEmpty' => $articlesMvtTracaIsEmpty,
                             'askQuestion' => $isFromReception
