@@ -1059,8 +1059,7 @@ class ArrivageController extends AbstractController
         $typeDescription = $dispute->getType()->getDescription();
         if ($statutBefore !== $statutAfter
             || $typeBefore !== $typeAfter
-            || $comment
-            || $typeDescription) {
+            || $comment) {
 
             $historyRecord = $disputeService->createDisputeHistoryRecord(
                 $dispute,
