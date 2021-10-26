@@ -69,7 +69,7 @@ class ArrivageRepository extends EntityRepository
     /**
      * @return Arrivage[]|null
      */
-    public function countByDate(DateTime $date): ?array
+    public function countByDate(DateTime $date)
     {
 		return $this->createQueryBuilder('arrivage')
             ->select('COUNT(arrivage)')
