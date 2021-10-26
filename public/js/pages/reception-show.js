@@ -593,16 +593,17 @@ function initNewLigneReception($button) {
         } else {
             $errorContainer.text('');
             wrapLoadingOnActionButton($button, () => (
-                SubmitAction($modalNewLigneReception, $submitNewReceptionButton, urlNewLigneReception, {tables: [tableArticle]})
-                    .then(function (response) {
+                SubmitAction($modalNewLigneReception, $submitNewReceptionButton, urlNewLigneReception, {
+                    tables: [tableArticle],
+                    success: (response) => {
                         if (response && response.success) {
                             const $printButton = $('#buttonPrintMultipleBarcodes');
                             if ($printButton.length > 0) {
                                 window.location.href = $printButton.attr('href');
                             }
                         }
-                    })
-                    .catch(() => {/* we handle form error */})
+                    }
+                })
             ));
         }
     });
