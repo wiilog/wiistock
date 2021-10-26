@@ -8,7 +8,7 @@ trait LitePropertiesSetterTrait {
 
     public function setProperty(string $attribute, $value = null): void {
         if(property_exists($this, $attribute)) {
-            $this->{$name} = $value;
+            $this->{$attribute} = $value;
         } else {
             throw new RuntimeException("Property {$attribute} does not exists for class " . self::class);
         }
