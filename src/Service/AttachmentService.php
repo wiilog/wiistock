@@ -122,36 +122,33 @@ class AttachmentService {
     }
 
     private function saveFileInDedicatedFolder(UploadedFile $uploadedFile, string $dedicatedSubFolder): Attachment {
-        $dedicatedFolder = $this->attachmentDirectory . '/' . $dedicatedSubFolder;
-        if (!file_exists($dedicatedSubFolder)) {
-            mkdir($dedicatedSubFolder, 0777, true);
+        $dedicatedFolder = "$this->attachmentDirectory/$dedicatedSubFolder";
+        if (!file_exists($dedicatedFolder)) {
+            mkdir($dedicatedFolder, 0777, true);
         }
 
         $filename = $uploadedFile->getClientOriginalName();
 
-        $fileNameWithoutExtension = pathinfo($filename, PATHINFO_FILENAME);
-        $fileNameExtension = pathinfo($filename, PATHINFO_EXTENSION);
+        $nameWithoutExtension = pathinfo($filename, PATHINFO_FILENAME);
+        $extension = pathinfo($filename, PATHINFO_EXTENSION);
 
-        $filePath = $dedicatedFolder . '/' . $filename;
-
-        $relativePath = Attachment::MAIN_PATH . '/' . $dedicatedSubFolder . '/' . $filename;
-
-        while (file_exists($filePath)) {
-            $fileNameWithoutExtension .= '_BIS';
-            $filename = $fileNameWithoutExtension . '.' . $fileNameExtension;
-            $filePath = $dedicatedFolder . '/' . $filename;
-        }
+        $i = 1;
+        do {
+            $filename = "$nameWithoutExtension" . ($i !== 1 ? "_$i" : "") . ".$extension";
+            $fullPath = "$dedicatedFolder/$filename";
+            $publicPath = Attachment::MAIN_PATH . "/$dedicatedSubFolder/$filename";
+            $i++;
+        } while (file_exists($fullPath));
 
         $uploadedFile->move($dedicatedFolder, $filename);
-        return $this->createAttachment($filename, $relativePath);
+
+        return $this->createAttachment($filename, $publicPath);
     }
 
     public function createAttachment(string $fileName, string $fullPath): Attachment {
-        $attachment = new Attachment();
-        $attachment
+        return (new Attachment())
             ->setOriginalName($fileName)
             ->setFullPath($fullPath)
             ->setFileName($fileName);
-        return $attachment;
     }
 }
