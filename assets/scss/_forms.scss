@@ -72,6 +72,25 @@
     }
 }
 
+.form-control, .select2-search__field {
+    border-radius: 5px;
+    color: black !important;
+    padding: 5px 10px;
+
+    &::placeholder {
+        color: black !important;
+        opacity: 1; /* Firefox */
+    }
+}
+
+.select2-search__field {
+    padding: 0 5px !important;
+}
+
+.checkbox-filter .row {
+    padding: 0 5px;
+}
+
 .lite-picker {
     width: 30%;
 }
