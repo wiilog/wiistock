@@ -109,7 +109,7 @@ function initPageDatatable() {
                 targets: 1
             }
         ],
-
+        page: 'deliveryRequest',
     };
 
     const tableDemande = initDataTable('table_demande', tableDemandeConfig);
