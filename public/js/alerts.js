@@ -43,14 +43,13 @@ function showBSAlert(message, color, remove = true) {
         $alertContainer.append($alert);
 
         if (remove) {
-            $alert
-                .delay(3000)
-                .fadeOut(2000);
+            $alert.delay(5500).fadeOut(500);
+
             setTimeout(() => {
                 if ($alert.parent().length) {
                     $alert.remove();
                 }
-            }, 5000);
+            }, 6000);
         }
     }
 }
