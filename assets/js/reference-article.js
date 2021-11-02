@@ -19,7 +19,7 @@ $(document).ready(() => {
 
     $(`.save`).click(function() {
         if($('.supplier-container').length === 0 && $('.ligneFournisseurArticle').length === 0) {
-            showBSAlert('Un fournisseur minimum est obligatoire pour continuer', 'warning');
+            showBSAlert('Un fournisseur minimum est obligatoire pour continuer', 'danger');
         } else {
             const $button = $(this);
             const $form = $(`.ra-form`);
@@ -46,7 +46,7 @@ $(document).ready(() => {
         const $uploadArticleReferenceImage = $('#upload-article-reference-image')[0];
         if ($uploadArticleReferenceImage.files && $uploadArticleReferenceImage.files.length > 0) {
             if($uploadArticleReferenceImage.files[0].size > MAX_UPLOAD_FILE_SIZE) {
-                showBSAlert(`La taille de l'image ne peut excéder 10mo`, `warning`);
+                showBSAlert(`La taille de l'image ne peut excéder 10mo`, `danger`);
             } else {
                 updateArticleReferenceImage($('.image-container'), $uploadArticleReferenceImage);
             }

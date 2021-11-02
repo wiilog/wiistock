@@ -45,7 +45,7 @@ function InitModal($modal, submit, path, options = {}) {
         const $button = $(this);
 
         if ($button.hasClass(LOADING_CLASS)) {
-            showBSAlert('L\'opération est en cours de traitement', 'warning');
+            showBSAlert('L\'opération est en cours de traitement', 'info');
         } else {
             SubmitAction($modal, $button, path, options)
                 .catch(() => {});

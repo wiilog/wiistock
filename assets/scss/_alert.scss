@@ -1,0 +1,49 @@
+@import "variables";
+
+#alerts-container {
+    position: absolute;
+    z-index: 10000;
+    bottom: 0;
+    right: 0;
+
+    .alert-wrapper {
+        position: relative;
+        margin-right: 1rem;
+        margin-bottom: 1.2rem;
+        padding: 12px 0 15px 20px !important;
+        border-radius: 5px;
+
+        .alert-close {
+            position: absolute;
+            top: 0;
+            right: 0;
+
+            button {
+                background: none;
+                border: none;
+            }
+
+            span {
+                color: $white;
+                font-weight: bold;
+                font-size: 25px;
+            }
+        }
+
+        .alert-content {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+
+            width: 90%;
+            color: $white;
+        }
+    }
+}
+
+@each $color, $value in $alertColors {
+    .wii-alert-#{$color} {
+        background-color: $value;
+    }
+}
+
