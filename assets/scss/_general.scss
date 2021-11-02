@@ -344,7 +344,7 @@ select.is-invalid {
 }
 
 .bg-primary-followgt {
-    background: rgb(46,84,146);
+    background: rgb(46, 84, 146);
     background: linear-gradient(-64deg, $backgroundBodyColorDark, #2e5391);
 }
 
@@ -373,7 +373,7 @@ label.required:after {
     }
 }
 
-.popover{
+.popover {
     max-width: 100%;
 }
 
@@ -408,7 +408,7 @@ label.required:after {
 }
 
 .stripped-blue-background {
-    background: repeating-linear-gradient( 45deg, #d6d6d6, #d6d6d6 10px, #606dbc 10px, #606dbc 20px);
+    background: repeating-linear-gradient(45deg, #d6d6d6, #d6d6d6 10px, #606dbc 10px, #606dbc 20px);
 }
 
 .overflow-y-hidden {
@@ -519,16 +519,17 @@ label.required:after {
 
 .wii-icon-iot-article, .wii-icon-iot-location, .wii-icon-iot-pack {
     background-color: white;
-    width:15px;
+    width: 15px;
     height: 15px;
-    display:inline-block;
+    display: inline-block;
 }
 
 .wii-icon-pairing {
     background-color: $blueGT;
-    width:15px;
+    width: 15px;
     height: 15px;
-    display:inline-block;
+    display: inline-block;
+
     .dropdown-item:active & {
         background-color: $white;
     }
@@ -585,15 +586,65 @@ label.required:after {
 
 @keyframes spin {
     from {
-        transform:rotate(0deg);
+        transform: rotate(0deg);
     }
     to {
-        transform:rotate(360deg);
+        transform: rotate(360deg);
     }
 }
 
 $blue: #3353D7;
 $grey: #CBCBCB;
+
+.wii-form {
+    label {
+        vertical-align: middle;
+        font-size: 0.8rem;
+        color: black;
+        font-weight: bold;
+        margin-top: 7px;
+
+        &:not(.switch) {
+            width: 100%;
+        }
+
+        .select2, .select2-container {
+            font-weight: normal;
+            width: 100%;
+        }
+
+        input[type="checkbox"] {
+            margin-right: 7px;
+            width: 20px;
+            height: 20px;
+            border-radius: 5px;
+        }
+
+        input, .select2-container {
+            margin-top: 5px;
+        }
+
+        input[type="radio"] {
+            margin-top: 0px;
+        }
+    }
+
+    label.with-checkbox {
+        display: flex;
+        align-items: center;
+        font-weight: normal;
+        margin-top: 14px;
+    }
+
+    .increase-decrease-field .increase, .increase-decrease-field .decrease {
+        border-color: $blue;
+        color: $blue;
+    }
+
+    .content {
+        padding: 16px 20px;
+    }
+}
 
 .wii-column {
     width: 1200px;
@@ -606,7 +657,7 @@ $grey: #CBCBCB;
 }
 
 .wii-large-column {
-    width: 80%;
+    width: 90%;
     margin-top: 30px;
     margin-bottom: 30px;
 
@@ -631,10 +682,38 @@ $grey: #CBCBCB;
     }
 
     .content {
-        padding: 16px 5px;
+        padding: 5px 16px;
 
         .box-item {
             display: grid;
+        }
+
+        .section {
+            margin: 10px -16px 0;
+            background: #F2F3F7;
+            color: black;
+            font-weight: bold;
+            font-size: 0.9rem;
+            padding: 3px 20px;
+        }
+
+        .comment {
+            margin: 10px -16px 0;
+            padding: 10px 15px;
+            background-color: #E8E8E8;
+            color: black;
+            font-size: 0.9rem;
+
+            .comment-title {
+                display: block;
+                margin-bottom: 5px;
+                color: $darkGrey;
+                font-weight: bold;
+            }
+
+            img {
+                max-width: 100%;
+            }
         }
     }
 }
@@ -684,6 +763,7 @@ $grey: #CBCBCB;
     color: #666666;
     font-size: 12px;
 }
+
 .wii-medium-text {
     color: #666666;
     font-size: 14px;

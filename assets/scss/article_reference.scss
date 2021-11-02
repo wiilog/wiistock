@@ -24,93 +24,6 @@ body {
     background: $blue;
 }
 
-.ra-form {
-    margin-top: 90px !important;
-
-    label {
-        font-weight: bold;
-        margin-top: 7px;
-
-        &:not(.switch) {
-            width: 100%;
-        }
-
-        .select2, .select2-container {
-            font-weight: normal;
-            width: 100%;
-        }
-
-        input[type="checkbox"] {
-            margin-right: 7px;
-            width: 20px;
-            height: 20px;
-            border-radius: 5px;
-        }
-
-        input,
-        .select2-container {
-            margin-top: 5px;
-        }
-    }
-
-    label.with-checkbox {
-        display: flex;
-        align-items: center;
-        font-weight: normal;
-        margin-top: 14px;
-    }
-
-    .increase-decrease-field .increase, .increase-decrease-field .decrease {
-        border-color: $blue;
-        color: $blue;
-    }
-
-    .wii-switch {
-        display: inline-flex;
-        border-color: $grey;
-        height: 38px;
-        padding: 0;
-
-        input[type="radio"] {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: auto;
-            border-radius: 0;
-            margin: -1px;
-
-            &:before {
-                padding: 0 10px;
-            }
-
-            &:first-of-type {
-                border-radius: 4px 0 0 4px;
-            }
-
-            &:last-of-type {
-                border-radius: 0 4px 4px 0;
-            }
-
-            &:checked {
-                background: $blue;
-            }
-
-            &:not(:checked) {
-                color: $blue;
-
-                &:not(:disabled):hover, &:not(:disabled):focus {
-                    color: white;
-                    background-color: $blue;
-                }
-            }
-        }
-    }
-}
-
-.ra-form .content {
-    padding: 16px 20px;
-}
-
 .ra-header {
     border: solid 1px;
     border-top: none;
@@ -151,8 +64,8 @@ body {
     border-bottom-right-radius: 5px;
 
     .dropdown-wrapper {
-        padding : 15px;
-        cursor : pointer;
+        padding: 15px;
+        cursor: pointer;
         display: block;
 
         &::after {
@@ -314,21 +227,21 @@ input[type="checkbox"] {
 }
 
 input[type="checkbox"]:not(:disabled):hover {
-    border-color:$blue;
+    border-color: $blue;
 
 }
 
 input[type="checkbox"]:active:not(:disabled) {
-    border-color:$blue;
+    border-color: $blue;
 }
 
 input[type="checkbox"]:focus {
-    outline:none;
+    outline: none;
 
 }
 
 input[type="checkbox"]:checked {
-    border-color:$blue;
+    border-color: $blue;
     background-color: $blue;
 }
 

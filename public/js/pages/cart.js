@@ -51,9 +51,9 @@ $(document).ready(() => {
         });
     })
 
-    $('.request-type-container input[type="radio"]').on('click', function() {
-        retrieveAppropriateHtml($(this));
-    });
+    // $('.request-type-container input[type="radio"]').on('click', function() {
+    //     retrieveAppropriateHtml($(this));
+    // });
 
     const refsCount = $('#cart-refs-count').val();
     if (refsCount && refsCount> 0) {

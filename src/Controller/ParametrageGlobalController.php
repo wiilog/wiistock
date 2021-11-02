@@ -1026,7 +1026,7 @@ class ParametrageGlobalController extends AbstractController
 
                 //magie noire qui recharge la config php fpm sur les pods kubernetes :
                 //pgrep recherche l'id du processus de php fpm
-                //kill envoie un message USER2 (qui veut dire "recharge la configuration") à phpfpm
+                //kill envoie un message USR2 (qui veut dire "recharge la configuration") à phpfpm
                 exec("kill -USR2 $(pgrep -o php-fpm7)");
 
                 return $this->json([

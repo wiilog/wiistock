@@ -1,14 +1,36 @@
+{% import 'form.html.twig' as form %}
+
 {% extends 'layout.html.twig' %}
 
 {% block title %}Panier{% endblock %}
 
 {% block page_content %}
     <div class="d-flex justify-content-center align-items-center" style="margin-bottom: 50px;">
-        <div class="row wii-large-column">
+        <div class="row wii-form wii-large-column">
             <div class="col-12 col-md-4">
                 <div class="wii-box">
                     <div class="header wii-title">Demande</div>
                     <div class="content">
+                        {{ form.switch('requestType', 'Type de demande', false, [
+                            {label: {wiiIcon: 'cart-delivery', text: 'Livraison'}, value: 1},
+                            {label: {wiiIcon: 'cart-collect', text: 'Collecte'}, value: 2},
+                            {label: {wiiIcon: 'cart-purchase', text: 'Achat'}, value: 3},
+                        ]) }}
+
+                        {{ form.radio('addOrCreate', 'Ajouter à une de mes demandes en brouillon', false, 'add') }}
+                        {{ form.radio('addOrCreate', 'Créer une nouvelle demande', false, 'create') }}
+
+                        <div class="section">Ma demande de livraison</div>
+
+                        <div class="comment">
+                            <span class="comment-title">Commentaire</span>
+                            le commentaire !!
+                        </div>
+
+                        {{ form.slider('nameeo', 'Oui ou non', true) }}
+                        {{ form.input('namee', 'Champ texte', true) }}
+                        {{ form.textarea('nameeee', 'Textarea', false) }}
+                        {{ form.checkbox('checkname', 'Une checkbox', false) }}
                     </div>
                 </div>
             </div>
