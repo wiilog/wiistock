@@ -59,9 +59,9 @@
 {% set disabled = editable ? '' : 'disabled' %}
 {% set isReferenceManagementQuantity = reference.id and reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_REFERENCE') %}
 <div class="d-flex justify-content-center align-items-center" style="margin-bottom: 50px;">
-    <div class="row ra-form ra-column">
+    <div class="row ra-form wii-column">
         <div class="col-12 col-md-6">
-            <div class="ra-box">
+            <div class="wii-box">
                 {% if reference.id %}
                     <div class="d-flex justify-content-center align-items-center type-container wii-type"
                          style="background-color: {{ reference.type.color }};">
@@ -145,7 +145,7 @@
                     </div>
                 </div>
             </div>
-            <div class="ra-box">
+            <div class="wii-box">
                 <div class="header wii-title">Informations</div>
                 <div class="content">
                     <div class="row">
@@ -241,7 +241,7 @@
             </div>
         </div>
         <div class="col-12 col-md-6">
-            <div class="ra-box">
+            <div class="wii-box">
                 <div class="header wii-title">Gestion quantité</div>
                 <div class="content">
                     {% if reference.id %}
@@ -420,7 +420,7 @@
                     </div>
                 </div>
             </div>
-            <div class="ra-box">
+            <div class="wii-box">
                 <div class="header wii-title">Fournisseurs</div>
                 <div class="content">
                     <div class="supplier-articles">
@@ -464,7 +464,7 @@
                     </div>
                 </div>
             </div>
-            <div class="ra-box">
+            <div class="wii-box">
                 <div class="header wii-title">Champs libres</div>
                 <div class="content free-fields-container">
                     {% if reference.id %}

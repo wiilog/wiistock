@@ -595,6 +595,50 @@ label.required:after {
 $blue: #3353D7;
 $grey: #CBCBCB;
 
+.wii-column {
+    width: 1200px;
+    margin-top: 30px;
+    margin-bottom: 30px;
+
+    @media (max-width: $responsive-breakpoint) {
+        width: calc(100% - 20px);
+    }
+}
+
+.wii-large-column {
+    width: 80%;
+    margin-top: 30px;
+    margin-bottom: 30px;
+
+    @media (max-width: $responsive-breakpoint) {
+        width: calc(100% - 20px);
+    }
+}
+
+.wii-box {
+    background: white;
+    border-radius: 5px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+    margin-top: 15px;
+
+    .type-container {
+        height: 20px;
+    }
+
+    .header {
+        padding: 16px 20px;
+        border-bottom: 1px solid $grey;
+    }
+
+    .content {
+        padding: 16px 5px;
+
+        .box-item {
+            display: grid;
+        }
+    }
+}
+
 .wii-title {
     color: $blue;
     font-size: 18px;

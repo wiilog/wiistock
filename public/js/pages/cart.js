@@ -61,6 +61,10 @@ $(document).ready(() => {
     }
 });
 
+function validateCart() {
+    alert('validé');
+}
+
 function onArticleSelectChange($select) {
     const $selectedOption = $select.find('option:selected');
     const $container = $select.parents('.row');

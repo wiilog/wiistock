@@ -3,23 +3,28 @@
 {% block title %}Panier{% endblock %}
 
 {% block page_content %}
-    <div class="m-4 wii-page-card">
-        <div class="row wii-page-card-header">
-            <div class="col-auto ml-auto">
-                <div class="btn-group">
-                    <button type="button" class="btn btn-primary d-none add-cart-to-request" data-target='#modalAddToRequest' data-toggle='modal'>
-                        <i class="fa fa-plus mr-2"></i>
-                        Ajouter à une demande
-                    </button>
+    <div class="d-flex justify-content-center align-items-center" style="margin-bottom: 50px;">
+        <div class="row wii-large-column">
+            <div class="col-12 col-md-4">
+                <div class="wii-box">
+                    <div class="header wii-title">Demande</div>
+                    <div class="content">
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="row">
-            <div class="col-12">
-                <table id="cartTable" class="table w-100"></table>
+            <div class="col-12 col-md-8">
+                <div class="wii-box">
+                    <div class="header wii-title">Références</div>
+                    <div class="content">
+                    </div>
+                </div>
+                <button class="btn btn-success float-right mt-3" onclick="validateCart()">
+                    Valider mon panier
+                </button>
             </div>
         </div>
     </div>
+
     <input type="hidden" value="{{ app.user.cart.references | length }}" id="cart-refs-count"/>
     {% include 'cart/modalAddToRequest.html.twig' %}
 {% endblock %}
