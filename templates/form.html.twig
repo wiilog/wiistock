@@ -1,0 +1,70 @@
+{% macro switch(name, label, required, switches, options = {}) %}
+    <label>{{ label | raw }}{{ required ? '*' }}</label>
+    <div class="wii-switch {{ required ? 'needed' }} request-type-container mt-2" data-title="{{ label | striptags }}{{ required ? '*' }}">
+        {% for switch in switches %}
+            {% set id = random(100000, 10000000) %}
+
+            <input type="radio" id="{{ name }}-{{ id }}" name="{{ name }}" value="{{ switch.value ?? '' }}">
+            {% if switch.label is iterable %}
+                <label for="{{ name }}-{{ id }}">
+                    {% if switch.label.wiiIcon is defined %}
+                        <span class="wii-icon wii-icon-{{ switch.label.wiiIcon }}"></span>
+                    {% elseif switch.label.faIcon is defined %}
+                        <i class="{{ switch.label.faIcon }}"></i>
+                    {% endif %}
+
+                    {{ switch.label.text | raw }}
+                </label>
+            {% else %}
+                <label for="{{ name }}-{{ id }}">{{ switch.label | raw }}</label>
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endmacro %}
+
+{% macro slider(name, label, required, checked = false, options = {}) %}
+    <label>{{ label | raw }}</label>
+    <label class="switch">
+        <input class="checkbox data {{ required ? 'needed' }}" type="checkbox" name="{{ name }}" {{ checked ? 'checked' }}>
+        <span class="slider round"></span>
+    </label>
+{% endmacro %}
+
+{% macro checkbox(name, label, required, value = 1, options = {}) %}
+    {% set id = random(100000, 10000000) %}
+
+    <div class="wii-checkbox">
+        <input type="checkbox" id="checkbox-{{ id }}" class="data {{ required ? 'needed' }}" name="{{ name }}"
+               value="{{ value }}" {{ options.checked ?? false ? 'checked' }}>
+        <label for="checkbox-{{ id }}"><span>{{ label | raw }}{{ required ? '*' }}</span></label>
+    </div>
+{% endmacro %}
+
+{% macro radio(name, label, required, value = '', options = {}) %}
+    {% set id = random(100000, 10000000) %}
+
+    <div class="wii-radio mt-1">
+        <input type="radio" name="{{ name }}" id="radio-{{ id }}" class="data {{ required ? 'needed' }}" {{ options.checked ?? false ? 'checked' }} />
+        <label for="radio-{{ id }}">{{ label | raw }}{{ required ? '*' }}</label>
+    </div>
+{% endmacro %}
+
+{% macro input(name, label, required, value = '', options = {}) %}
+    <label>
+        {{ label }}{{ required ? '*' }}
+        <input class="form-control data {{ required ? 'needed' }}" type="text" value="{{ value}}"
+            {{ options.readonly ?? false ? 'readonly' }}
+            {{ options.disabled ?? false ? 'disabled' }}>
+    </label>
+{% endmacro %}
+
+{% macro textarea(name, label, required, value = '', options = {}) %}
+    <label>
+        {{ label }}{{ required ? '*' }}
+        <textarea class="form-control data {{ required ? 'needed' }}"
+            {{ options.readonly ?? false ? 'readonly' }}
+            {{ options.disabled ?? false ? 'disabled' }}>
+            {{- value | raw -}}
+        </textarea>
+    </label>
+{% endmacro %}

@@ -62,6 +62,9 @@ $icons: (
     'iot-historic': "../../public/svg/iot/historic.svg",
     'pairing':"../../public/svg/pairing.svg",
     'pin':"../../public/svg/pin.svg",
+    'cart-delivery': "../../public/svg/cart-delivery.svg",
+    'cart-collect': "../../public/svg/cart-collect.svg",
+    'cart-purchase': "../../public/svg/cart-purchase.svg",
 );
 
 @each $iconName, $iconPath in $icons {
