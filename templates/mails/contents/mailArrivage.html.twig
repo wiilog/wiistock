@@ -6,83 +6,91 @@
         (emergencies|length > 0 and emergencies[0].commande)
         ? [emergencies[0].commande]
         : arrival.numeroCommandeList
-        ) %}
+        )
+    %}
 
     {% set comment = (arrival.commentaire|striptags|length > 150)
         ? arrival.commentaire|striptags|slice(0, 150) ~ '...'
-        : arrival.commentaire|striptags %}
+        : arrival.commentaire|striptags
+    %}
 
-<p>Bonjour,</p>
-<p>Votre commande {{ isUrgentArrival ? 'urgente ' }} est arrivée :</p>
-<ul>
-    <li>{{ "arrivage.n° d\'arrivage"|trans }} : <strong>{{ arrival.numeroArrivage }}</strong></li>
+    <p>Bonjour,</p>
+    <p>Votre commande {{ isUrgentArrival ? 'urgente ' }} est arrivée :</p>
+    <ul>
+        <li>{{ "arrivage.n° d\'arrivage"|trans }} : <strong>{{ arrival.numeroArrivage }}</strong></li>
 
-    {% if numeroCommandeList|length > 0 %}
-        <li>{{ 'arrivage.Numéro de commande'|trans }}{{ numeroCommandeList|length > 1 ? 's' }} : <strong>{{ numeroCommandeList|join(', ') }}</strong>
+        {% if numeroCommandeList|length > 0 %}
+            <li>{{ 'arrivage.Numéro de commande'|trans }}{{ numeroCommandeList|length > 1 ? 's' }} : <strong>{{ numeroCommandeList|join(', ') }}</strong></li>
+        {% endif %}
+
+        {% if arrival.fournisseur %}
+            <li>Fournisseur : <strong>{{ arrival.fournisseur.nom }}</strong></li>
+        {% endif %}
+
+        {% if arrival.transporteur %}
+            <li>Transporteur : <strong>{{ arrival.transporteur.label }}</strong></li>
+        {% endif %}
+
+        {% if arrival.noTracking %}
+            <li>Numéro de tracking transporteur : <strong>{{ arrival.noTracking }}</strong></li>
+        {% endif %}
+
+        {% if arrival.projectNumber %}
+            <li>Numéro projet : <strong>{{ arrival.projectNumber }}</strong></li>
+        {% endif %}
+
+        {% if arrival.businessUnit %}
+            <li>Business Unit : <strong>{{ arrival.businessUnit }}</strong></li>
+        {% endif %}
+
+        <li>
+            Pièces jointes :
+            <ul>
+                {% set linkBaseHref = app.request is not null ? app.request.getSchemeAndHttpHost() : app_url %}
+                {% for attachment in arrival.attachments %}
+                    <li><a target="_blank"
+                           href="{{ linkBaseHref ~ '/uploads/attachements/' ~ attachment.fileName }}"
+                           download="{{ attachment.originalName }}">
+                            {{ attachment.originalName }}
+                        </a></li>
+                {% endfor %}
+            </ul>
         </li>
-    {% endif %}
 
-    {% if arrival.fournisseur %}
-        <li>Fournisseur : <strong>{{ arrival.fournisseur.nom }}</strong></li>
-    {% endif %}
+        {% if arrival.commentaire %}
+            <li>Commentaire : {{ comment }}</li>
+        {% endif %}
 
-    {% if arrival.transporteur %}
-        <li>Transporteur : <strong>{{ arrival.transporteur.label }}</strong></li>
-    {% endif %}
+        {% for freeField in freeFields %}
+            <li>{{ freeField.label }} : <strong>{{ freeField.value }}</strong></li>
+        {% endfor %}
 
-    {% if arrival.noTracking %}
-        <li>Numéro de tracking transporteur : <strong>{{ arrival.noTracking }}</strong></li>
-    {% endif %}
-
-    {% if arrival.projectNumber %}
-        <li>Numéro projet : <strong>{{ arrival.projectNumber }}</strong></li>
-    {% endif %}
-
-    {% if arrival.businessUnit %}
-        <li>Business Unit : <strong>{{ arrival.businessUnit }}</strong></li>
-    {% endif %}
-
-    <li>
-        Pièces jointes :
-        <ul>
-            {% set linkBaseHref = app.request is not null ? app.request.getSchemeAndHttpHost() : app_url %}
-            {% for attachment in arrival.attachments %}
-                <li><a target="_blank"
-                       href="{{ linkBaseHref ~ '/uploads/attachements/' ~ attachment.fileName }}"
-                       download="{{ attachment.originalName }}">
-                        {{ attachment.originalName }}
-                    </a></li>
-            {% endfor %}
-        </ul>
-    </li>
-
-    {% if arrival.commentaire %}
-        <li>Commentaire : {{ comment }}</li>
-    {% endif %}
-
-    {% for freeField in freeFields %}
-        <li>{{ freeField.label }} : <strong>{{ freeField.value }}</strong></li>
-    {% endfor %}
-
-</ul>
-{% if isUrgentArrival and
-    (isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED'))
-    or isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_NS'))) %}
-    <p style="font-weight: bold">
-        La réception de cette commande sera effectuée sous deux heures.
-    </p>
-{% endif %}
-    {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) and arrival.customs %}
-        <p style="font-weight: bold">
-            La réception de cette commande sera effectuée après dédouanement.
-        </p>
+    </ul>
+    {% if isUrgentArrival and
+        (isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED'))
+        or isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_NS'))) %}
+        {% if arrival.customs %}
+            <p style="font-weight: bold">
+                La réception de cette commande sera effectuée après dédouanement.
+            </p>
+        {% else %}
+            <p style="font-weight: bold">
+                La réception de cette commande sera effectuée sous deux heures.
+            </p>
+        {% endif %}
+    {% elseif isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
+        {% if arrival.customs %}
+            <p style="font-weight: bold">
+                La réception de cette commande sera effectuée après dédouanement.
+            </p>
+        {% else %}
+            <p style="font-weight: bold">
+                Votre colis sera livré en dropzone en milieu d'après-midi.
+            </p>
+        {% endif %}
     {% elseif isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_NS')) %}
         <p>
             Votre colis est disponible auprès du magasin.
-        </p>
-    {% else %}
-        <p>
-            Votre colis sera livré en dropzone en milieu d'après-midi.
         </p>
     {% endif %}
 {% endblock %}
