@@ -22,7 +22,7 @@ $(document).ready(() => {
             showBSAlert('Un fournisseur minimum est obligatoire pour continuer', 'danger');
         } else {
             const $button = $(this);
-            const $form = $(`.ra-form`);
+            const $form = $(`.wii-form`);
             clearFormErrors($form);
             processSubmitAction($form, $button, $button.data(`submit`), {
                 success: data => window.location.href = Routing.generate('reference_article_show_page', {id: data.data.id})

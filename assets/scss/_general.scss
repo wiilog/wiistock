@@ -607,7 +607,7 @@ $grey: #CBCBCB;
             border-radius: 5px;
         }
 
-        input, .select2-container {
+        input, .select2.select2-container {
             margin-top: 5px;
         }
 
@@ -684,7 +684,7 @@ $grey: #CBCBCB;
             padding: 3px 20px;
         }
 
-        .comment {
+        .display-comment {
             margin: 10px -16px 0;
             padding: 10px 15px;
             background-color: #E8E8E8;
@@ -725,9 +725,9 @@ $grey: #CBCBCB;
 }
 
 .wii-subtitle {
-    color: #666666;
-    font-size: 14px;
-    font-weight: bold;
+    color: #666666 !important;
+    font-size: 14px !important;
+    font-weight: bold !important;
 }
 
 .wii-field-name {

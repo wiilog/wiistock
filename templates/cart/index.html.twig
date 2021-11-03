@@ -12,15 +12,15 @@
                     <div class="header wii-title">Demande</div>
                     <div class="content">
                         {{ form.switch('requestType', 'Type de demande', false, [
-                            {label: {wiiIcon: 'cart-delivery', text: 'Livraison'}, value: 1},
-                            {label: {wiiIcon: 'cart-collect', text: 'Collecte'}, value: 2},
-                            {label: {wiiIcon: 'cart-purchase', text: 'Achat'}, value: 3},
+                            {label: {wiiIcon: 'cart-delivery', text: 'Livraison'}, value: 'delivery', checked: true},
+                            {label: {wiiIcon: 'cart-collect', text: 'Collecte'}, value: 'collect'},
+                            {label: {wiiIcon: 'cart-purchase', text: 'Achat'}, value: 'purchase'},
                         ]) }}
 
                         {{ form.radio('addOrCreate', 'Ajouter à une de mes demandes en brouillon', false, 'add') }}
                         {{ form.radio('addOrCreate', 'Créer une nouvelle demande', false, 'create') }}
 
-                        <div class="existing-delivery d-none">
+                        <div class="sub-form existing-delivery d-none">
                             <div class="my-delivery-requests">
                                 <div class="section">Ma demande de livraison</div>
                                 <label for="delivery-request" title="delivery-request">
@@ -56,12 +56,53 @@
                             </div>
                         </div>
 
-                        <div class="create-delivery d-none">
+                        <div class="sub-form create-delivery d-none">
                             <div class="section">Ma nouvelle demande de livraison</div>
 
+                            <div class="row">
+                                <div class="col-md-6 col-12">
+                                    {{ form.select('deliveryType', 'Type', true, {
+                                        type: 'deliveryType',
+                                        placeholder: 'Sélectionnez un type',
+                                        search: false,
+                                        onChange: 'cartTypeChange($(this))',
+                                    }) }}
+                                </div>
+                                <div class="col-md-6 col-12">
+                                    {{ form.select('destination', 'Destination', true, {
+                                        type: 'location',
+                                        placeholder: 'Sélectionnez un emplacement',
+                                        includeParams: '[name=deliveryType]',
+                                        disabled: true,
+                                    }) }}
+                                </div>
+                                <div class="col-12">
+                                    <span class="toggle-collapsible wii-subtitle mt-2 expanded">Champs libres</span>
+                                    <div class="collapsible expanded free-fields-container mb-2">
+                                        {% for type in freeFieldsTypes %}
+                                            <div class="d-none" data-type="{{ type.typeId }}">
+                                                {% include 'free_field/freeFieldsViewing.html.twig' with {
+                                                    freeFields: type.champsLibres,
+                                                    freeFieldValues: [],
+                                                    colType: 'col-md-6 col-12',
+                                                    requiredType: 'requiredCreate',
+                                                    actionType: 'new',
+                                                    disabledNeeded: true
+                                                } %}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    {{ form.wysiwyg('comment', 'Commentaire', false) }}
+                                </div>
+                            </div>
+
+
+                            <input type="hidden" id="default-delivery-locations" value="{{ defaultDeliveryLocations | json_encode }}">
                         </div>
 
-                        <div class="existing-collect d-none">
+                        <div class="sub-form existing-collect d-none">
                             <div class="my-collect-requests">
                                 <div class="section">Ma demande de collecte</div>
                             </div>
@@ -73,7 +114,7 @@
                             </div>
                         </div>
 
-                        <div class="create-collect d-none">
+                        <div class="sub-form create-collect d-none">
                             <div class="section">Ma nouvelle demande de collecte</div>
                         </div>
                     </div>
@@ -83,6 +124,9 @@
                 <div class="wii-box">
                     <div class="header wii-title">Références</div>
                     <div class="content">
+                        {% for reference in app.user.cart.references %}
+
+                        {% endfor %}
                     </div>
                 </div>
                 <button class="btn btn-success float-right mt-3" onclick="validateCart()">

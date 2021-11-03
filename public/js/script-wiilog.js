@@ -1009,7 +1009,7 @@ function SetRequestQuery(queryParams = {}) {
 }
 
 function onTypeChange($select) {
-    const $modal = $select.closest('.modal');
+    const $modal = $select.closest('.modal, .wii-form');
     toggleRequiredChampsLibres($select, 'create');
     const $freeFieldsContainer = $modal.find('.free-fields-container');
 

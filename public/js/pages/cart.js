@@ -56,39 +56,67 @@ $(document).ready(() => {
         $('.add-cart-to-request').removeClass('d-none');
     }
 
+    const $existingDelivery = $(`.existing-delivery`);
+    const $existingCollect = $(`.existing-collect`);
+    const $existingPurchase = $(`.existing-purchase`);
+
+    const $createDelivery = $(`.create-delivery`);
+    const $createCollect = $(`.create-collect`);
+    const $createPurchase = $(`.create-purchase`);
+
     $('.request-type-container').on('change', function() {
-        $('.existing-collect').addClass('d-none');
-        $('.existing-delivery').addClass('d-none');
-        $('.create-collect').addClass('d-none');
-        $('.create-delivery').addClass('d-none');
-        $('input[name="addOrCreate"]').prop('checked', false);
+        $(`.sub-form`).addClass(`d-none`);
+        $('input[name="addOrCreate"]').prop(`checked`, false);
     });
 
     $(`input[name="addOrCreate"][value="add"]`).on(`click`, function() {
-        $typeDemande = $('.request-type-container input[name="requestType"]:checked').val();
-        if($typeDemande === "1"){
+        $(`.sub-form`).addClass(`d-none`);
+
+        const requestType = $('input[name="requestType"]:checked').val();
+        if(requestType === "delivery"){
             $('select[name="delivery-request"]').val("-").trigger('change');
-            $('.existing-collect').addClass('d-none');
-            $('.existing-delivery').removeClass('d-none');
-        }
-        else if($typeDemande === "2"){
-            //$('select[name="delivery-request"]').select2();
-            $('.existing-delivery').addClass('d-none');
-            $('.existing-collect').removeClass('d-none');
+            $existingDelivery.removeClass('d-none');
+        } else if(requestType === "collect") {
+            $existingCollect.removeClass('d-none');
+        } else if(requestType === "purchase") {
+            $existingPurchase.removeClass('d-none');
         }
     })
 
     $(`input[name="addOrCreate"][value="create"]`).on(`click`, function() {
-        if($typeDemande === "1"){
-            $('.delivery-request-content').addClass("d-none");
-            $('.existing-delivery').addClass('d-none');
+        $(`.sub-form`).addClass(`d-none`);
+
+        const requestType = $('input[name="requestType"]:checked').val();
+        if(requestType === "delivery"){
+            $('select[name="delivery-request"]').val("-").trigger('change');
+            $createDelivery.removeClass('d-none');
+        } else if(requestType === "collect") {
+            $createCollect.removeClass('d-none');
+        } else if(requestType === "purchase") {
+            $createPurchase.removeClass('d-none');
         }
-        else if($typeDemande === "2"){
-            $('.collect-request-content').addClass("d-none");
-            $('.existing-collect').addClass('d-none');
-        }
-    })
+    });
+
+    initEditor(`.editor-container`);
 });
+
+function cartTypeChange($type) {
+    onTypeChange($type);
+
+    const defaultDestinations = JSON.parse($(`#default-delivery-locations`).val());
+    const type = $type.val();
+    const $destination = $type.closest(`.wii-form`).find(`select[name=destination]`);
+    const defaultDestination = defaultDestinations[type] || defaultDestinations['all'];
+
+    $destination.attr(`disabled`, !type);
+    $destination.val(null)
+    if(defaultDestination) {
+        $destination.append(new Option(defaultDestination.label, defaultDestination.id, true, true))
+    }
+    console.log(defaultDestination, $type.closest(`.wii-form`), $destination);
+
+    $destination.trigger(`change`);
+}
 
 function validateCart() {
     alert('validé');
