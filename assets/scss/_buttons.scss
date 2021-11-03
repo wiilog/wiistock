@@ -6,6 +6,84 @@
     border-left-color: $color !important;
 }
 
+@mixin button-disabled($border-color, $bg-color, $color) {
+    cursor: not-allowed;
+    border-color: $border-color !important;
+    background-color: $bg-color !important;
+    color: $color !important;
+    opacity: 1 !important;
+
+    svg {
+        color: $color !important;
+    }
+
+    &:hover {
+        box-shadow: none !important;
+    }
+}
+
+@mixin simple-button($color, $disabled-color) {
+    &:hover,
+    &:focus {
+        background-color: $color;
+        border-color: $color;
+        box-shadow: $buttonBoxShadow;
+    }
+
+    &:active,
+    :active:focus {
+        box-shadow: none !important;
+    }
+
+    &:disabled {
+        @include button-disabled($grey, $grey, $disabled-color);
+    }
+}
+
+@mixin outline-button($bg-color, $border-color, $active-bg-color, $color, $disabled-color) {
+    background-color: $bg-color !important;
+    border-color: $border-color;
+    color: $color;
+
+    svg {
+        color: $primary !important;
+    }
+
+    &:hover svg,
+    &.active svg {
+        color: $primary !important;
+    }
+
+    .wii-icon {
+        background-color: $primary;
+    }
+
+    &:hover .wii-icon,
+    &:active .wii-icon {
+        background-color: $primary !important;
+    }
+
+    &:hover,
+    &:focus {
+        background-color: $bg-color !important;
+        border-color: $border-color !important;
+        box-shadow: $buttonBoxShadow !important;
+        color: $color !important;
+    }
+
+    &:active,
+    &:active:focus {
+        border-color: $greyDashboard;
+        background-color: $active-bg-color !important;
+        box-shadow: none !important;
+        color: $color !important;
+    }
+
+    &:disabled {
+        @include button-disabled($grey, $bg-color, $disabled-color);
+    }
+}
+
 .btn-action {
     min-width: 172px;
 }
@@ -48,12 +126,18 @@
     display: none;
 }
 
+.btn-success {
+    @include simple-button($success, $white);
+}
+
+.btn-primary {
+    @include simple-button($primary, $white);
+}
+
+.btn-secondary {
+    @include outline-button(transparent, $greyDashboard, #E7E7E8, $greyDashboard, $grey);
+}
+
 .btn-outline-primary {
-    .wii-icon {
-        background-color: $primary;
-    }
-    &:hover .wii-icon,
-    &:active .wii-icon {
-        background-color: $white !important;
-    }
+    @include outline-button($white, $primary, #F2F3F7, $primary, $grey);
 }
