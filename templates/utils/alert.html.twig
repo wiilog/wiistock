@@ -1,17 +1,23 @@
 {% set content = content is defined ? content %}
 {% set id = id is defined ? id : 'alert-template' %}
-{% set color = color is defined ? ('alert-' ~ color) %}
+{% set class = color is defined ? ('wii-alert-' ~ color) %}
 {% set show = show is not defined or show ? 'd-flex' : 'd-none'  %}
 
-<div id="{{ id }}"
-     class="alert pointer justify-content-center align-items-center {{ color }} {{ show }}"
-     data-dismiss="alert"
-     aria-label="Close">
-    <button type="button"
-            class="close mr-2 float-none"
-            data-dismiss="alert"
-            aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-    </button>
-    <span class="content">{{ content|raw }}</span>
+{% set types = {
+    success: 'Succès',
+    danger: 'Erreur',
+    info: 'Information'
+} %}
+
+<div id="{{ id }}" class="alert-wrapper {{ class }} {{ show }}">
+    <div class="alert-close">
+        <button type="button"
+                class="mr-2" onclick="$(this).closest('.alert-wrapper').remove();">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="alert-content">
+        <span class="type"><strong>{{ color is defined ? types[color] : '' }}</strong></span>
+        <span class="content">{{ content|raw }}</span>
+    </div>
 </div>

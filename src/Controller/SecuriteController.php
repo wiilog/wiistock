@@ -79,11 +79,11 @@ class SecuriteController extends AbstractController {
 
 
     /**
-     * @Route("/login/{info}", name="login", options={"expose"=true})
+     * @Route("/login/{success}", name="login", options={"expose"=true})
      */
     public function login(AuthenticationUtils $authenticationUtils,
                           EntityManagerInterface $entityManager,
-                          string $info = '') {
+                          string $success = '') {
         $loggedUser = $this->getUser();
         if($loggedUser && $loggedUser instanceof Utilisateur) {
             $loggedUser->setLastLogin(new DateTime('now'));
@@ -99,16 +99,16 @@ class SecuriteController extends AbstractController {
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $user = $utilisateurRepository->findOneBy(['email' => $lastUsername]);
         if($user && $user->getStatus() === false) {
-            $errorToDisplay = 'Utilisateur inactif.';
+            $errorToDisplay = 'L\'utilisateur est inactif';
         } else if($error) {
-            $errorToDisplay = 'Identifiants incorrects.';
+            $errorToDisplay = 'Les identifiants renseignés sont incorrects';
         }
 
         return $this->render('securite/login.html.twig', [
             'controller_name' => 'SecuriteController',
             'last_username' => $lastUsername,
             'error' => $errorToDisplay,
-            'info' => $info
+            'success' => $success
         ]);
     }
 

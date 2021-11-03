@@ -301,7 +301,7 @@ function printPrepaBarCodes() {
                     true
                 );
             } else {
-                showBSAlert("Il n'y a aucune étiquette à imprimer", 'warning');
+                showBSAlert("Il n'y a aucune étiquette à imprimer", 'info');
             }
         })
     }

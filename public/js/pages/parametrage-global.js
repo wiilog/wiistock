@@ -616,7 +616,7 @@ function newTypeAssociation($button, type = undefined, location = undefined) {
             });
         }
     } else {
-        showBSAlert(`Tous les emplacements doivent être renseignés`, `warning`);
+        showBSAlert(`Tous les emplacements doivent être renseignés`, `danger`);
     }
 }
 
@@ -663,7 +663,7 @@ function removeAssociationLine($button) {
     const $typeAssociationContainer = $('.type-association-container');
 
     if($typeAssociationContainer.length === 1) {
-        showBSAlert('Au moins une association type/emplacement est nécessaire', 'warning')
+        showBSAlert('Au moins une association type/emplacement est nécessaire', 'danger')
     } else {
         $button.prev(`.type-association-container`).remove();
         $button.closest(`div`).remove();
@@ -696,9 +696,9 @@ function updateDeliveryRequestDefaultLocations() {
     });
 
     if(!filledSelectLocations) {
-        showBSAlert(`Tous les emplacements doivent être renseignés`, `warning`);
+        showBSAlert(`Tous les emplacements doivent être renseignés`, `danger`);
     } else if(!filledSelectTypes) {
-        showBSAlert(`Tous les types doivent être renseignés`, `warning`);
+        showBSAlert(`Tous les types doivent être renseignés`, `danger`);
     } else {
         const path = Routing.generate(`update_delivery_request_default_locations`, true);
         const params = JSON.stringify({types: types, locations: locations});

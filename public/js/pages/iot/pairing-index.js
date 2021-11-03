@@ -101,7 +101,7 @@ function pairingList(search = '', filter = '', types = '', elements = '') {
                 $pairings.append($emptyResult).hide().fadeIn(600);
             }
         } else {
-            showBSAlert('Une erreur est survenue lors du chargement des données', 'warning');
+            showBSAlert('Une erreur est survenue lors du chargement des données', 'danger');
         }
     });
 }

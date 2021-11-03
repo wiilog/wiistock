@@ -66,10 +66,7 @@ class ArrivageRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
-    /**
-     * @return Arrivage[]|null
-     */
-    public function countByDate(DateTime $date): ?array
+    public function countByDate(DateTime $date): ?int
     {
 		return $this->createQueryBuilder('arrivage')
             ->select('COUNT(arrivage)')
