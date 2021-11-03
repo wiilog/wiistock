@@ -44,7 +44,8 @@
     {% set id = random(100000, 10000000) %}
 
     <div class="wii-radio mt-1">
-        <input type="radio" name="{{ name }}" id="radio-{{ id }}" class="data {{ required ? 'needed' }}" {{ options.checked ?? false ? 'checked' }} />
+        <input type="radio" name="{{ name }}" id="radio-{{ id }}" class="data {{ required ? 'needed' }}" value="{{ value }}"
+            {{ options.checked ?? false ? 'checked' }} />
         <label for="radio-{{ id }}">{{ label | raw }}{{ required ? '*' }}</label>
     </div>
 {% endmacro %}
@@ -52,7 +53,7 @@
 {% macro input(name, label, required, value = '', options = {}) %}
     <label>
         {{ label }}{{ required ? '*' }}
-        <input class="form-control data {{ required ? 'needed' }}" type="text" value="{{ value}}"
+        <input class="form-control data {{ required ? 'needed' }}" type="text" value="{{ value }}"
             {{ options.readonly ?? false ? 'readonly' }}
             {{ options.disabled ?? false ? 'disabled' }}>
     </label>

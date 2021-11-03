@@ -59,6 +59,14 @@ $(document).ready(() => {
     if (refsCount && refsCount> 0) {
         $('.add-cart-to-request').removeClass('d-none');
     }
+
+    $(`input[name="addOrCreate"][value="add"]`).on(`click`, function() {
+        console.log('TODO romain');
+    })
+
+    $(`input[name="addOrCreate"][value="create"]`).on(`click`, function() {
+        console.log(':)');
+    })
 });
 
 function validateCart() {

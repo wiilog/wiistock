@@ -20,13 +20,35 @@
                         {{ form.radio('addOrCreate', 'Ajouter à une de mes demandes en brouillon', false, 'add') }}
                         {{ form.radio('addOrCreate', 'Créer une nouvelle demande', false, 'create') }}
 
+                        <div class="existing-delivery">
                         <div class="section">Ma demande de livraison</div>
+                            {# TODO romain #}
 
-                        <div class="comment">
-                            <span class="comment-title">Commentaire</span>
-                            le commentaire !!
+                            <div class="comment">
+                                <span class="comment-title">Commentaire</span>
+                                le commentaire !!
+                            </div>
                         </div>
 
+                        <div class="create-delivery">
+                            <div class="section">Ma nouvelle demande de livraison</div>
+
+                        </div>
+
+                        <div class="existing-collect">
+                        <div class="section">Ma demande de collecte</div>
+                            <div class="comment">
+                                <span class="comment-title">Commentaire</span>
+                                le commentaire !!
+                            </div>
+                        </div>
+
+                        <div class="create-delivery">
+                            <div class="section">Ma nouvelle demande de collecte</div>
+
+                        </div>
+
+                        {# examples à supprimer #}
                         {{ form.slider('nameeo', 'Oui ou non', true) }}
                         {{ form.input('namee', 'Champ texte', true) }}
                         {{ form.textarea('nameeee', 'Textarea', false) }}
