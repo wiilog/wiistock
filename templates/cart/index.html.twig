@@ -45,7 +45,7 @@
 
                             </div>
                             <div class="delivery-request-content d-none">
-                                <div class="comment">
+                                <div class="display-comment">
                                     <span class="comment-title">Commentaire</span>
                                 </div>
 
@@ -105,11 +105,45 @@
                         <div class="sub-form existing-collect d-none">
                             <div class="my-collect-requests">
                                 <div class="section">Ma demande de collecte</div>
+                                <label for="collect-request" title="collect-request">
+                                    Mes collectes
+                                </label>
+                                <select class="form-control data needed w-100" name="collect-request"
+                                        onchange="onCollectChanged($(this), true)" data-placeholder="- ">
+                                    <option value="-">-</option>
+                                    {% for collectRequest in collectRequests %}
+                                        <option value="{{ collectRequest.id }}">
+                                            {{ collectRequest.number }} -
+                                            {{ collectRequest.type }} -
+                                            {{ collectRequest.collect_point }} - Créée le
+                                            {{ collectRequest.creationDate }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                {% for collectRequest in collectRequests %}
+                                    <input type="hidden" id="comment{{ collectRequest.id }}" value="{{ collectRequest.comment }}"/>
+                                    <input type="hidden" id="destination{{ collectRequest.id }}" value="{{ collectRequest.destination }}"/>
+                                    <input type="hidden" id="objet{{ collectRequest.id }}" value="{{ collectRequest.objet }}"/>
+                                {% endfor %}
+
+
                             </div>
                             <div class="collect-request-content d-none">
-                                <div class="comment">
+                                <div class="destination-objet d-flex">
+                                    <div class="collect-destination col-6 p-0">
+                                        <span class="collect-title">Destination</span>
+                                    </div>
+                                    <div class="collect-objet col-6 p-0">
+                                        <span class="collect-title">Objet</span>
+                                    </div>
+                                </div>
+                                <div class="display-comment">
                                     <span class="comment-title">Commentaire</span>
-                                    le commentaire !!
+                                </div>
+
+                                <div class="collect-references">
+                                    <span class="references-title">Références présentes dans la demande</span>
+                                    <table id="tableCollectReferences" class="table"></table>
                                 </div>
                             </div>
                         </div>

@@ -621,4 +621,16 @@ class CollecteController extends AbstractController
 
         throw new BadRequestHttpException();
     }
+
+    /**
+     * @Route("/api-collect-references", options={"expose"=true}, name="collecte_api_references", methods={"POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR}, mode=HasPermission::IN_JSON)
+     */
+    public function apiReferences(Request $request,
+                                  DemandeCollecteService $demandeCollecteService): Response
+    {
+        $data = $demandeCollecteService->getDataForReferencesDatatable($request->request->get('collectId'));
+
+        return new JsonResponse($data);
+    }
 }

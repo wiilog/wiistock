@@ -77,6 +77,7 @@ $(document).ready(() => {
             $('select[name="delivery-request"]').val("-").trigger('change');
             $existingDelivery.removeClass('d-none');
         } else if(requestType === "collect") {
+            $('select[name="collect-request"]').val("-").trigger('change');
             $existingCollect.removeClass('d-none');
         } else if(requestType === "purchase") {
             $existingPurchase.removeClass('d-none');
@@ -91,6 +92,7 @@ $(document).ready(() => {
             $('select[name="delivery-request"]').val("-").trigger('change');
             $createDelivery.removeClass('d-none');
         } else if(requestType === "collect") {
+            $('select[name="collect-request"]').val("-").trigger('change');
             $createCollect.removeClass('d-none');
         } else if(requestType === "purchase") {
             $createPurchase.removeClass('d-none');
@@ -162,10 +164,10 @@ function onPurchaseRequestChange(){
 
 function onDeliveryChanged($select) {
     const val = $select.val();
-    $('.comment p').remove();
+    $('.display-comment p').remove();
 
     if($select.val() !== "-"){
-        $('.comment').append($('input[id='+$select.val()+']').val());
+        $('.display-comment').append($('input[id='+$select.val()+']').val());
         let pathReferences = Routing.generate("demande_api_references", true);
         let tableDeliveryReferencesConfig = {
             destroy: true,
@@ -193,5 +195,49 @@ function onDeliveryChanged($select) {
         $('.delivery-request-content').removeClass("d-none");
     } else {
         $('.delivery-request-content').addClass("d-none");
+    }
+}
+
+function onCollectChanged($select) {
+    const val = $select.val();
+    $('.display-comment p').remove();
+    $('.collect-objet p').remove();
+    $('.collect-destination p').remove();
+
+    if($select.val() !== "-"){
+        $('.display-comment').append($('input[id=comment'+$select.val()+']').val());
+        if($('input[id=destination'+$select.val()+']').val() === 1){
+            $('.collect-destination').append('<p>Mise en stock</p>');
+        } else {
+            $('.collect-destination').append('<p>Destruction</p>');
+        }
+        $('.collect-objet').append('<p>'+$('input[id=objet'+$select.val()+']').val()+'</p>');
+        let pathReferences = Routing.generate("collecte_api_references", true);
+        let tableCollectReferencesConfig = {
+            destroy: true,
+            serverSide: true,
+            processing: true,
+            paging: false,
+            ajax: {
+                "url": pathReferences,
+                "type": "POST",
+                'data': {
+                    'collectId': () => $select.val(),
+                }
+            },
+            columns: [
+                {"data": "reference", "title": "Référence"},
+                {"data": "libelle", "title": "Libellé"},
+                {"data": "quantity", "title": "Quantité"},
+            ],
+            filter: false,
+            ordering: false,
+            info: false
+
+        }
+        let tableCollectReferences = initDataTable('tableCollectReferences', tableCollectReferencesConfig);
+        $('.collect-request-content').removeClass("d-none");
+    } else {
+        $('.collect-request-content').addClass("d-none");
     }
 }
