@@ -426,7 +426,7 @@ CREATE TABLE dw_litige
     type                varchar(255),
     date_creation       timestamp(0),
     dernier_statut      varchar(255),
-    dernier_commentaire varchar(255),
+    dernier_commentaire text,
     acheteurs           varchar(255),
     declarant           varchar(255),
     urgence             varchar(3),
