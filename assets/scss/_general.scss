@@ -702,6 +702,19 @@ $grey: #CBCBCB;
                 max-width: 100%;
             }
         }
+
+        .delivery-references {
+            margin: 10px -16px 0;
+            padding: 10px 15px;
+            font-size: 0.9rem;
+
+            .references-title {
+                display: block;
+                margin-bottom: 5px;
+                color: $darkGrey;
+                font-weight: bold;
+            }
+        }
     }
 }
 

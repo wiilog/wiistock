@@ -51,21 +51,42 @@ $(document).ready(() => {
         });
     })
 
-    // $('.request-type-container input[type="radio"]').on('click', function() {
-    //     retrieveAppropriateHtml($(this));
-    // });
-
     const refsCount = $('#cart-refs-count').val();
     if (refsCount && refsCount> 0) {
         $('.add-cart-to-request').removeClass('d-none');
     }
 
+    $('.request-type-container').on('change', function() {
+        $('.existing-collect').addClass('d-none');
+        $('.existing-delivery').addClass('d-none');
+        $('.create-collect').addClass('d-none');
+        $('.create-delivery').addClass('d-none');
+        $('input[name="addOrCreate"]').prop('checked', false);
+    });
+
     $(`input[name="addOrCreate"][value="add"]`).on(`click`, function() {
-        console.log('TODO romain');
+        $typeDemande = $('.request-type-container input[name="requestType"]:checked').val();
+        if($typeDemande === "1"){
+            $('select[name="delivery-request"]').val("-").trigger('change');
+            $('.existing-collect').addClass('d-none');
+            $('.existing-delivery').removeClass('d-none');
+        }
+        else if($typeDemande === "2"){
+            //$('select[name="delivery-request"]').select2();
+            $('.existing-delivery').addClass('d-none');
+            $('.existing-collect').removeClass('d-none');
+        }
     })
 
     $(`input[name="addOrCreate"][value="create"]`).on(`click`, function() {
-        console.log(':)');
+        if($typeDemande === "1"){
+            $('.delivery-request-content').addClass("d-none");
+            $('.existing-delivery').addClass('d-none');
+        }
+        else if($typeDemande === "2"){
+            $('.collect-request-content').addClass("d-none");
+            $('.existing-collect').addClass('d-none');
+        }
     })
 });
 
@@ -109,4 +130,40 @@ function onPurchaseRequestChange(){
     const notSelectedOptionSelectors = selectedOptionValues.map((value) => `[value="${value}"]:not(:selected)`).join(',');
     const notSelectedOptions = $modalAddToRequest.find(notSelectedOptionSelectors);
     notSelectedOptions.addClass('d-none');
+}
+
+function onDeliveryChanged($select) {
+    const val = $select.val();
+    $('.comment p').remove();
+
+    if($select.val() !== "-"){
+        $('.comment').append($('input[id='+$select.val()+']').val());
+        let pathReferences = Routing.generate("demande_api_references", true);
+        let tableDeliveryReferencesConfig = {
+            destroy: true,
+            serverSide: true,
+            processing: true,
+            paging: false,
+            ajax: {
+                "url": pathReferences,
+                "type": "POST",
+                'data': {
+                    'deliveryId': () => $select.val(),
+                }
+            },
+            columns: [
+                {"data": "reference", "title": "Référence"},
+                {"data": "libelle", "title": "Libellé"},
+                {"data": "quantity", "title": "Quantité"},
+            ],
+            filter: false,
+            ordering: false,
+            info: false
+
+        }
+        let tableDeliveryReferences = initDataTable('tableDeliveryReferences', tableDeliveryReferencesConfig);
+        $('.delivery-request-content').removeClass("d-none");
+    } else {
+        $('.delivery-request-content').addClass("d-none");
+    }
 }

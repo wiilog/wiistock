@@ -20,39 +20,62 @@
                         {{ form.radio('addOrCreate', 'Ajouter à une de mes demandes en brouillon', false, 'add') }}
                         {{ form.radio('addOrCreate', 'Créer une nouvelle demande', false, 'create') }}
 
-                        <div class="existing-delivery">
-                        <div class="section">Ma demande de livraison</div>
-                            {# TODO romain #}
+                        <div class="existing-delivery d-none">
+                            <div class="my-delivery-requests">
+                                <div class="section">Ma demande de livraison</div>
+                                <label for="delivery-request" title="delivery-request">
+                                    Mes livraisons
+                                </label>
+                                <select class="form-control data needed w-100" name="delivery-request"
+                                        onchange="onDeliveryChanged($(this), true)" data-placeholder="- ">
+                                    <option value="-">-</option>
+                                    {% for deliveryRequest in deliveryRequests %}
+                                        <option value="{{ deliveryRequest.id }}">
+                                            {{ deliveryRequest.number }} -
+                                            {{ deliveryRequest.type }} -
+                                            {{ deliveryRequest.destination }} - Créée le
+                                            {{ deliveryRequest.creationDate }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                {% for deliveryRequest in deliveryRequests %}
+                                    <input type="hidden" id="{{ deliveryRequest.id }}" value="{{ deliveryRequest.comment }}"/>
+                                {% endfor %}
 
-                            <div class="comment">
-                                <span class="comment-title">Commentaire</span>
-                                le commentaire !!
+
+                            </div>
+                            <div class="delivery-request-content d-none">
+                                <div class="comment">
+                                    <span class="comment-title">Commentaire</span>
+                                </div>
+
+                                <div class="delivery-references">
+                                    <span class="references-title">Références présentes dans la demande</span>
+                                    <table id="tableDeliveryReferences" class="table"></table>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="create-delivery">
+                        <div class="create-delivery d-none">
                             <div class="section">Ma nouvelle demande de livraison</div>
 
                         </div>
 
-                        <div class="existing-collect">
-                        <div class="section">Ma demande de collecte</div>
-                            <div class="comment">
-                                <span class="comment-title">Commentaire</span>
-                                le commentaire !!
+                        <div class="existing-collect d-none">
+                            <div class="my-collect-requests">
+                                <div class="section">Ma demande de collecte</div>
+                            </div>
+                            <div class="collect-request-content d-none">
+                                <div class="comment">
+                                    <span class="comment-title">Commentaire</span>
+                                    le commentaire !!
+                                </div>
                             </div>
                         </div>
 
-                        <div class="create-delivery">
+                        <div class="create-collect d-none">
                             <div class="section">Ma nouvelle demande de collecte</div>
-
                         </div>
-
-                        {# examples à supprimer #}
-                        {{ form.slider('nameeo', 'Oui ou non', true) }}
-                        {{ form.input('namee', 'Champ texte', true) }}
-                        {{ form.textarea('nameeee', 'Textarea', false) }}
-                        {{ form.checkbox('checkname', 'Une checkbox', false) }}
                     </div>
                 </div>
             </div>

@@ -676,4 +676,15 @@ class DemandeController extends AbstractController
         ]);
     }
 
+    /**
+     * @Route("/api-references", options={"expose"=true}, name="demande_api_references", methods={"POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR}, mode=HasPermission::IN_JSON)
+     */
+    public function apiReferences(Request $request,
+                        DemandeLivraisonService $demandeLivraisonService): Response
+    {
+        $data = $demandeLivraisonService->getDataForReferencesDatatable($request->request->get('deliveryId'));
+
+        return new JsonResponse($data);
+    }
 }

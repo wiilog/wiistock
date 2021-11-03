@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Menu;
 use App\Entity\Cart;
 use App\Entity\ReferenceArticle;
@@ -30,9 +31,16 @@ class CartController extends AbstractController
     /**
      * @Route("/", name="cart")
      */
-    public function cart(): Response
+    public function cart(EntityManagerInterface $entityManager): Response
     {
-        return $this->render("cart/index.html.twig");
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+
+        $deliveryRequests = $entityManager->getRepository(Demande::class)->getDeliveryRequestForSelect($currentUser);
+
+        return $this->render("cart/index.html.twig", [
+            "deliveryRequests" => $deliveryRequests
+        ]);
     }
 
     /**
