@@ -125,7 +125,24 @@
                     <div class="header wii-title">Références</div>
                     <div class="content">
                         {% for reference in app.user.cart.references %}
-
+                            <div class="cart-reference-container">
+                                <div class="cart-reference">
+                                    <div class="cart-reference-type">{{ reference.type.label }}</div>
+                                    <div class="cart-reference-infos">
+                                        <span class="wii-medium-text">Référence : {{ reference.reference }}</span><br>
+                                        {{ reference.libelle }}
+                                    </div>
+                                    <div class="cart-reference-current-quantity">
+                                        <span class="wii-medium-text">Quantité disponible</span> {{ reference.quantiteDisponible }}<br>
+                                        <span class="wii-small-text">Ref article fournisseur : ???</span>
+                                    </div>
+                                    <div class="cart-reference-quantity">
+                                        {{ form.number('quantity', '<span class="quantity-label">Quantité</span>', true, null, {
+                                            type: 'quantity',
+                                        }) }}
+                                    </div>
+                                </div>
+                            </div>
                         {% endfor %}
                     </div>
                 </div>
@@ -142,5 +159,6 @@
 
 {% block javascripts %}
     {{ parent() }}
+    {{ encore_entry_script_tags('cart') }}
     <script src="{{ asset('js/pages/cart.js') }}?v={{ web_version }}"></script>
 {% endblock %}

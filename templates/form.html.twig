@@ -76,7 +76,7 @@
     {% set values = value is iterable ? value : [value] %}
 
     <label class="{{ not options.search ?? true ? 'no-search' }}">
-        {{ label }}{{ required ? '*' }}
+        {{ label | raw }}{{ required ? '*' }}
         <select class="form-control w-100 data {{ required ? 'needed' }}"
                 {% if options.type is defined %}data-s2="{{ options.type }}"{% endif %}
             {% if options.placeholder is defined %}data-placeholder="{{ options.placeholder }}"{% endif %}
@@ -92,7 +92,7 @@
 
 {% macro input(name, label, required, value = '', options = {}) %}
     <label>
-        {{ label }}{{ required ? '*' }}
+        {{ label | raw }}{{ required ? '*' }}
         <input type="text" class="form-control w-100 data {{ required ? 'needed' }}"
             {{ _self.common_attributes(name, options) }}
             {{ _self.multiple_key(options) }}
@@ -102,11 +102,7 @@
 
 {% macro number(name, label, required, value = '', options = {}) %}
     <label>
-        {{ label }}{{ required ? '*' }}
-        <input class="form-control w-100 data {{ required ? 'needed' }}" type="text" value="{{ value }}">
-    </label>
-    <label>
-        {{ label }}{{ required ? '*' }}
+        {{ label | raw }}{{ required ? '*' }}
         <div class="increase-decrease-field">
             <button class="decrease"></button>
             <input type="number" data-no-arrow class="form-control w-50 data {{ required ? 'needed' }}"
@@ -122,7 +118,7 @@
 
 {% macro textarea(name, label, required, value = '', options = {}) %}
     <label>
-        {{ label }}{{ required ? '*' }}
+        {{ label | raw }}{{ required ? '*' }}
         <textarea class="form-control w-100 data {{ required ? 'needed' }}"
             {{ options.readonly ?? false ? 'readonly' }}
             {{ options.disabled ?? false ? 'disabled' }}>
@@ -134,7 +130,7 @@
 {% macro wysiwyg(name, label, required, value = '', options = {}) %}
     {% set id = random(100000, 10000000) %}
 
-    <label for="wysiwyg-{{ id }}" class="wii-subtitle">{{ label }}{{ required ? '*' }}</label>
+    <label for="wysiwyg-{{ id }}" class="wii-subtitle">{{ label | raw }}{{ required ? '*' }}</label>
     <input id="wysiwyg-{{ id }}" type="hidden"
            class="form-control data {{ required ? 'needed' }}"
            name="{{ name }}"

@@ -1,0 +1,20 @@
+.cart-reference-container {
+    display: flex;
+
+    .cart-reference {
+        flex: 1;
+        display: flex;
+        border: 1px solid black;
+        border-radius: 4px;
+
+        .cart-reference-type {
+            color: white;
+            background: black;
+            font-weight: bold;
+            font-size: 0.8rem;
+            writing-mode: vertical-lr;
+            text-orientation: mixed;
+        }
+    }
+}
+

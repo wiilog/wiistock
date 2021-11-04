@@ -1,5 +1,5 @@
-import '../scss/article_reference.scss';
-import {initEditor} from './utils';
+import '../../scss/pages/reference-article.scss';
+import {initEditor} from '../utils';
 
 $(document).ready(() => {
     initEditor(`.editor-container`);
