@@ -194,7 +194,7 @@ function displayConfirmationModal(group) {
                 }
             },
             {
-                class: 'btn btn-primary m-0',
+                class: 'btn btn-success m-0',
                 text: 'Oui',
                 action: ($modal) => {
                     $('input[name="forced"]').val(1);
@@ -220,7 +220,7 @@ function displayOnSuccessCreation(success, trackingMovementsCounter) {
         }),
         [
             {
-                class: 'btn btn-primary m-0',
+                class: 'btn btn-success m-0',
                 text: 'Continuer',
                 action: ($modal) => {
                     $modal.modal('hide');
