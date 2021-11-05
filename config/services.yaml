@@ -71,10 +71,6 @@ services:
         class: App\Service\SpecificService
         public: true
 
-    App\EventListener\ExceptionLoggerListener:
-        tags:
-            - { name: 'kernel.event_listener', event: 'kernel.exception' }
-
     App\EventListener\RefArticleQuantityNotifier:
         tags:
             - { name: 'doctrine.orm.entity_listener', event: 'postPersist', lazy: true, entity: 'App\Entity\ReferenceArticle' }
@@ -105,3 +101,11 @@ services:
     App\EventListener\LoginListener:
         tags:
             - { name: 'kernel.event_listener', event: 'security.interactive_login' }
+
+    App\EventListener\ExceptionLoggerListener:
+        tags:
+            - { name: 'kernel.event_listener', event: 'kernel.exception', priority: 1 }
+
+    App\EventListener\JsonExceptionListener:
+        tags:
+            - { name: 'kernel.event_listener', event: 'kernel.exception', priority: 2 }
