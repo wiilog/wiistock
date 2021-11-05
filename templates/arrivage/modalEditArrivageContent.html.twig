@@ -119,7 +119,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group w-100 col-4">
             <label for="acheteursEdit" title="acheteurs">{{ 'arrivage.acheteurs'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : '' }}</label>
-            <select class="form-control data ajax-autocomplete-user {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'needed' : '' }}" name="acheteurs" multiple="multiple"
+            <select class="form-control data select2 {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'needed' : '' }}" name="acheteurs" multiple="multiple"
                     id="acheteursEdit">
                 {% for utilisateur in utilisateurs %}
                     <option value="{{ utilisateur.username }}">
