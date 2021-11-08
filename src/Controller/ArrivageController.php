@@ -23,6 +23,7 @@ use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Service\VisibleColumnService;
 use WiiCommon\Helper\Stream;
 use App\Service\ArrivageDataService;
 use App\Service\AttachmentService;
@@ -1396,30 +1397,23 @@ class ArrivageController extends AbstractController
      * @Route("/colonne-visible", name="save_column_visible_for_arrivage", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI}, mode=HasPermission::IN_JSON)
      */
-    public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
+    public function saveColumnVisible(Request $request,
+                                      EntityManagerInterface $entityManager,
+                                      VisibleColumnService $visibleColumnService): Response
     {
         $data = json_decode($request->getContent(), true);
 
-        $champs = array_keys($data);
-        $user = $this->getUser();
-        /** @var $user Utilisateur */
-        $champs[] = "actions";
-        $user->setColumnsVisibleForArrivage($champs);
-        $entityManager->flush();
-
-        return new JsonResponse();
-    }
-
-    /**
-     * @Route("/colonne-visible", name="get_column_visible_for_arrivage", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI}, mode=HasPermission::IN_JSON)
-     */
-    public function getColumnVisible(): Response
-    {
+        $fields = array_keys($data);
         /** @var Utilisateur $user */
         $user = $this->getUser();
 
-        return new JsonResponse($user->getColumnsVisibleForArrivage());
+        $visibleColumnService->setVisibleColumns('arrival', $fields, $user);
+        $entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'msg' => 'Vos préférences de colonnes à afficher ont bien été sauvegardées'
+        ]);
     }
 
     /**

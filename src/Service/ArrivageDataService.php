@@ -447,7 +447,7 @@ class ArrivageDataService
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
-        $columnsVisible = $currentUser->getColumnsVisibleForArrivage();
+        $columnsVisible = $currentUser->getVisibleColumns()['arrival'];
         $categorieCL = $categorieCLRepository->findOneBy(['label' => CategorieCL::ARRIVAGE]);
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARRIVAGE, $categorieCL);
 

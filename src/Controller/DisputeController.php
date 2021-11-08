@@ -19,6 +19,7 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\DisputeService;
+use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -69,8 +70,8 @@ class DisputeController extends AbstractController
         /** @var Utilisateur $user */
         $user = $this->getUser();
         $data = $disputeService->getDataForDatatable($request->request);
-        $columnVisible = $user->getColumnsVisibleForLitige();
-        $data['visible'] = $columnVisible;
+        $visibleColumns = $user->getVisibleColumns()['dispute'];
+        $data['visible'] = $visibleColumns;
         return new JsonResponse($data);
 	}
 
@@ -253,29 +254,23 @@ class DisputeController extends AbstractController
      * @Route("/colonne-visible", name="save_column_visible_for_litige", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::QUALI, Action::DISPLAY_LITI}, mode=HasPermission::IN_JSON)
      */
-    public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
+    public function saveColumnVisible(Request $request,
+                                      EntityManagerInterface $entityManager,
+                                      VisibleColumnService $visibleColumnService): Response
     {
         $data = json_decode($request->getContent(), true);
-        $champs = array_keys($data);
-        $user = $this->getUser();
+        $fields = array_keys($data);
         /** @var $user Utilisateur */
-        $champs[] = "actions";
-        $user->setColumnsVisibleForLitige($champs);
+        $user = $this->getUser();
+        $fields[] = "actions";
+
+        $visibleColumnService->setVisibleColumns('dispute', $fields, $user);
         $entityManager->flush();
 
-        return new JsonResponse();
-    }
-
-    /**
-     * @Route("/colonne-visible", name="get_column_visible_for_litige", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::QUALI, Action::DISPLAY_LITI}, mode=HasPermission::IN_JSON)
-     */
-    public function getColumnVisible(): Response
-    {
-        /** @var Utilisateur $user */
-        $user = $this->getUser();
-
-        return new JsonResponse($user->getColumnsVisibleForLitige());
+        return $this->json([
+            'success' => true,
+            'msg' => 'Vos préférences de colonnes à afficher ont bien été sauvegardées'
+        ]);
     }
 
     /**

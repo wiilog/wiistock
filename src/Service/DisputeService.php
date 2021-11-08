@@ -220,7 +220,7 @@ class DisputeService {
     }
 
     public function getColumnVisibleConfig(Utilisateur $currentUser): array {
-        $columnsVisible = $currentUser->getColumnsVisibleForLitige();
+        $columnsVisible = $currentUser->getVisibleColumns()['dispute'];
         return $this->visibleColumnService->getArrayConfig(
             [
                 ["name" => 'disputeNumber', 'title' => 'Numéro du litige'],

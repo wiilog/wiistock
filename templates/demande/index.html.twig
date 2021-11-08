@@ -20,11 +20,30 @@
 
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">
-            <div class="col-auto ml-auto">
+            <div class="col-auto ml-auto btn-group">
                 {% if receptionFilter is defined and receptionFilter is not null and receptionFilter != 0 %}
-                    <div class="btn-group">
-                        <div class="btn btn-primary split-button">
-                            <a href="{{ path('demande_index') }}">Voir toutes les demandes</a>
+                    <div class="btn btn-primary split-button">
+                        <a href="{{ path('demande_index') }}">Voir toutes les demandes</a>
+                    </div>
+                    <button type="button"
+                            class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
+                            data-toggle="dropdown"
+                            aria-haspopup="true"
+                            aria-expanded="false">
+                        <span class="fa fa-angle-down"></span>
+                    </button>
+                    <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
+                        <a href="{{ path('reception_show', {'id': receptionFilter}) }}"
+                           class='dropdown-item pointer'>
+                            <i class="fas fa-undo-alt"></i>
+                            Retour à la réception
+                        </a>
+                    </div>
+                {% else %}
+                    {% if hasRightExport %}
+                        <div class="btn btn-primary"
+                             onclick="saveExportFile('get_demandes_csv')">
+                            <span class="fa fa-file-csv mr-2"></span>Exporter au format CSV
                         </div>
                         <button type="button"
                                 class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
@@ -34,22 +53,22 @@
                             <span class="fa fa-angle-down"></span>
                         </button>
                         <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
-                            <a href="{{ path('reception_show', {'id': receptionFilter}) }}"
-                               class='dropdown-item pointer'>
-                                <i class="fas fa-undo-alt"></i>
-                                Retour à la réception
+                            <a class="dropdown-item pointer"
+                               data-toggle="modal"
+                               data-target="#modalColumnVisible">
+                                <i class="fa fa-cog mr-2"></i>
+                                Gestion des colonnes
                             </a>
                         </div>
-                    </div>
-                {% else %}
-                    {% if hasRightExport %}
-                        <div class="btn btn-primary"
-                             onclick="saveExportFile('get_demandes_csv')">
-                            <span class="fa fa-file-csv mr-2"></span>Exporter au format CSV
-                        </div>
+                    {% else %}
+                        <button class="btn btn-primary"
+                                data-toggle="modal"
+                                data-target="#modalColumnVisible">
+                            <i class="fa fa-cog mr-2"></i>
+                            Gestion des colonnes
+                        </button>
                     {% endif %}
                 {% endif %}
-
             </div>
         </div>
         <div class="row">
@@ -67,6 +86,11 @@
     <input type="hidden" value="{{ receptionFilter }}" id="receptionFilter">
     {% include "demande/modalNewDemande.html.twig" with { types: types, restrictedLocations: restrictedLocations} %}
     {% include "demande/modalShowDemande.html.twig" %}
+    {% include "utils/visible_columns.html.twig" with {
+        'fields': fields,
+        'table': 'deliveryRequestTable',
+        'route': 'save_visible_columns_for_delivery_request'
+    } %}
 {% endblock %}
 
 {% block javascripts %}

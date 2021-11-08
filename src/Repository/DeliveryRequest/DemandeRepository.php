@@ -26,14 +26,6 @@ use WiiCommon\Helper\StringHelper;
  */
 class DemandeRepository extends EntityRepository
 {
-    private const DtToDbLabels = [
-        'Date' => 'date',
-        'Demandeur' => 'demandeur',
-        'Statut' => 'statut',
-        'Numéro' => 'numero',
-        'Type' => 'type',
-    ];
-
     public function findRequestToTreatByUser(?Utilisateur $requester, int $limit) {
         $statuses = [
             Demande::STATUT_BROUILLON,
@@ -237,16 +229,16 @@ class DemandeRepository extends EntityRepository
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order))
                 {
-                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
+                    $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
                     if ($column === 'type') {
                         $qb
                             ->leftJoin('d.type', 'search_type')
                             ->orderBy('search_type.label', $order);
-                    } else if ($column === 'statut') {
+                    } else if ($column === 'status') {
                         $qb
                             ->leftJoin('d.statut', 'search_status')
                             ->orderBy('search_status.nom', $order);
-                    } else if ($column === 'demandeur') {
+                    } else if ($column === 'requester') {
                         $qb
                             ->leftJoin('d.utilisateur', 'search_user')
                             ->orderBy('search_user.username', $order);

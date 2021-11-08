@@ -581,7 +581,7 @@ class TrackingMovementService
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
-        $columnsVisible = $currentUser->getColumnsVisibleForTrackingMovement();
+        $columnsVisible = $currentUser->getVisibleColumns()['trackingMovement'];
         $categorieCL = $categorieCLRepository->findOneBy(['label' => CategorieCL::MVT_TRACA]);
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::MOUVEMENT_TRACA, $categorieCL);
 

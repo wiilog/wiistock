@@ -21,15 +21,27 @@ use App\Entity\IOT\SensorWrapper;
  */
 class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenticatedUserInterface
 {
-	const COL_VISIBLE_ARTICLES_DEFAULT = ["actions", "label", "reference", "articleReference", "type", "quantity", "location"];
-    const COL_VISIBLE_REF_DEFAULT = ["actions", "label", "reference", "type", "quantity", "location"];
-    const COL_VISIBLE_ARR_DEFAULT = ["date", "numeroArrivage", "transporteur", "chauffeur", "noTracking", "NumeroCommandeList", "fournisseur", "destinataire", "acheteurs", "NbUM", "customs", "frozen", "Statut", "Utilisateur", "urgent", "actions"];
-    const COL_VISIBLE_DISPATCH_DEFAULT = ["number", "creationDate", "validationDate", "treatmentDate", "type", "requester", "receiver", "locationFrom", "locationTo", "nbPacks", "status", "emergency", "actions"];
-    const COL_VISIBLE_TRACKING_MOVEMENT_DEFAULT = ["origin", "date", "colis", "reference", "label", "quantity", "location", "type", "operateur", "group"];
-    const COL_VISIBLE_LIT_DEFAULT = ["type", "arrivalNumber", "receptionNumber", "buyers", "numCommandeBl", "command", "provider", "references", "lastHistorique", "creationDate", "updateDate", "status", "actions"];
-	const SEARCH_DEFAULT = ["label", "reference"];
-    const COL_VISIBLE_RECEPTION_DEFAULT = ["actions", "Date", "number", "dateAttendue", "DateFin", "orderNumber", "receiver", "Fournisseur", "Statut", "Commentaire", "deliveries", "storageLocation"];
+	const DEFAULT_ARTICLE_VISIBLE_COLUMNS = ["actions", "label", "reference", "articleReference", "type", "quantity", "location"];
+    const DEFAULT_REFERENCE_VISIBLE_COLUMNS = ["actions", "label", "reference", "type", "quantity", "location"];
+    const DEFAULT_ARRIVAL_VISIBLE_COLUMNS = ["date", "numeroArrivage", "transporteur", "chauffeur", "noTracking", "NumeroCommandeList", "fournisseur", "destinataire", "acheteurs", "NbUM", "customs", "frozen", "Statut", "Utilisateur", "urgent", "actions"];
+    const DEFAULT_DISPATCH_VISIBLE_COLUMNS = ["number", "creationDate", "validationDate", "treatmentDate", "type", "requester", "receiver", "locationFrom", "locationTo", "nbPacks", "status", "emergency", "actions"];
+    const DEFAULT_TRACKING_MOVEMENT_VISIBLE_COLUMNS = ["origin", "date", "colis", "reference", "label", "quantity", "location", "type", "operateur", "group"];
+    const DEFAULT_DISPUTE_VISIBLE_COLUMNS = ["type", "arrivalNumber", "receptionNumber", "buyers", "numCommandeBl", "command", "provider", "references", "lastHistorique", "creationDate", "updateDate", "status", "actions"];
+    const DEFAULT_RECEPTION_VISIBLE_COLUMNS = ["actions", "Date", "number", "dateAttendue", "DateFin", "orderNumber", "receiver", "Fournisseur", "Statut", "Commentaire", "deliveries", "storageLocation"];
+    const DEFAULT_DELIVERY_REQUEST_VISIBLE_COLUMNS = ["actions", "pairing", "date", "requester", "number", "status", "type"];
 
+    const DEFAULT_VISIBLE_COLUMNS = [
+        'reference' => self::DEFAULT_REFERENCE_VISIBLE_COLUMNS,
+        'article' => self::DEFAULT_ARTICLE_VISIBLE_COLUMNS,
+        'arrival' => self::DEFAULT_ARRIVAL_VISIBLE_COLUMNS,
+        'dispatch' => self::DEFAULT_DISPATCH_VISIBLE_COLUMNS,
+        'dispute' => self::DEFAULT_DISPUTE_VISIBLE_COLUMNS,
+        'trackingMovement' => self::DEFAULT_TRACKING_MOVEMENT_VISIBLE_COLUMNS,
+        'reception' => self::DEFAULT_RECEPTION_VISIBLE_COLUMNS,
+        'deliveryRequest' => self::DEFAULT_DELIVERY_REQUEST_VISIBLE_COLUMNS
+    ];
+
+    const SEARCH_DEFAULT = ["label", "reference"];
 
     /**
      * @ORM\Id()
@@ -160,11 +172,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     private $filters;
 
     /**
-     * @ORM\Column(type="json", nullable=true)
-     */
-    private $columnVisible = [];
-
-    /**
      * @ORM\OneToMany(targetEntity="App\Entity\OrdreCollecte", mappedBy="utilisateur")
      */
     private $ordreCollectes;
@@ -243,26 +250,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     private $rechercheForArticle;
 
     /**
-     * @ORM\Column(type="json_array", nullable=true)
-     */
-    private $columnsVisibleForArticle;
-
-    /**
-     * @ORM\Column(type="json", nullable=true)
-     */
-    private $columnsVisibleForReception;
-
-    /**
-     * @ORM\Column(type="json", nullable=true)
-     */
-    private $columnsVisibleForDispatch;
-
-    /**
-     * @ORM\Column(type="json", nullable=true)
-     */
-    private $columnsVisibleForTrackingMovement;
-
-    /**
      * @ORM\Column(type="integer", options={"unsigned":true})
      */
     private $pageLengthForArrivage = 100;
@@ -294,16 +281,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
      * @ORM\OneToMany(targetEntity="App\Entity\ReferenceArticle", mappedBy="userThatTriggeredEmergency")
      */
     private $referencesEmergenciesTriggered;
-
-    /**
-     * @ORM\Column(type="json_array", nullable=true)
-     */
-    private $columnsVisibleForLitige;
-
-    /**
-     * @ORM\Column(type="json_array", nullable=true)
-     */
-    private $columnsVisibleForArrivage;
 
     /**
      * @ORM\Column(type="json", nullable=true)
@@ -376,6 +353,11 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
      */
     private $pageIndexes = [];
 
+    /**
+     * @ORM\Column(type="json", nullable=true)
+     */
+    private array $visibleColumns;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -406,20 +388,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->referencesEmergenciesTriggered = new ArrayCollection();
         $this->reportedDisputes = new ArrayCollection();
         $this->referencesArticle = new ArrayCollection();
-        $this->secondaryEmails = [];
-        $this->savedDispatchDeliveryNoteData = [];
-        $this->savedDispatchWaybillData = [];
-
-        $this->columnVisible = Utilisateur::COL_VISIBLE_REF_DEFAULT;
-        $this->columnsVisibleForArticle = Utilisateur::COL_VISIBLE_ARTICLES_DEFAULT;
-        $this->columnsVisibleForArrivage = Utilisateur::COL_VISIBLE_ARR_DEFAULT;
-        $this->columnsVisibleForDispatch = Utilisateur::COL_VISIBLE_DISPATCH_DEFAULT;
-        $this->columnsVisibleForLitige = Utilisateur::COL_VISIBLE_LIT_DEFAULT;
-        $this->columnsVisibleForTrackingMovement = Utilisateur::COL_VISIBLE_TRACKING_MOVEMENT_DEFAULT;
-        $this->columnsVisibleForReception = Utilisateur::COL_VISIBLE_RECEPTION_DEFAULT;
-        $this->recherche = Utilisateur::SEARCH_DEFAULT;
-        $this->rechercheForArticle = Utilisateur::SEARCH_DEFAULT;
-        $this->roles = ['USER']; // évite bug -> champ roles ne doit pas être vide
         $this->receivedHandlings = new ArrayCollection();
         $this->referencesBuyer = new ArrayCollection();
         $this->purchaseRequestBuyers = new ArrayCollection();
@@ -428,6 +396,14 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->unreadNotifications = new ArrayCollection();
         $this->visibilityGroups = new ArrayCollection();
 
+        $this->secondaryEmails = [];
+        $this->savedDispatchDeliveryNoteData = [];
+        $this->savedDispatchWaybillData = [];
+
+        $this->recherche = Utilisateur::SEARCH_DEFAULT;
+        $this->rechercheForArticle = Utilisateur::SEARCH_DEFAULT;
+        $this->roles = ['USER']; // évite bug -> champ roles ne doit pas être vide
+        $this->visibleColumns = self::DEFAULT_VISIBLE_COLUMNS;
     }
 
     public function getId()
@@ -461,18 +437,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
             [$this->email],
             $secondaryEmails
         );
-    }
-
-    public function getColumnsVisibleForReception()
-    {
-        return $this->columnsVisibleForReception;
-    }
-
-    public function setColumnsVisibleForReception($columnsVisibleForReception): self
-    {
-        $this->columnsVisibleForReception = $columnsVisibleForReception;
-
-        return $this;
     }
 
     public function getPassword(): ?string
@@ -807,18 +771,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     public function setRole(?Role $role): self
     {
         $this->role = $role;
-
-        return $this;
-    }
-
-    public function getColumnVisible(): ?array
-    {
-        return $this->columnVisible;
-    }
-
-    public function setColumnVisible(?array $columnVisible): self
-    {
-        $this->columnVisible = $columnVisible;
 
         return $this;
     }
@@ -1455,18 +1407,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
-    public function getColumnsVisibleForArticle()
-    {
-        return $this->columnsVisibleForArticle;
-    }
-
-    public function setColumnsVisibleForArticle($columnsVisibleForArticle): self
-    {
-        $this->columnsVisibleForArticle = $columnsVisibleForArticle;
-
-        return $this;
-    }
-
     public function getPageLengthForArrivage(): ?int
     {
         return $this->pageLengthForArrivage;
@@ -1519,64 +1459,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
             }
         }
 
-        return $this;
-    }
-
-    /**
-     * @param mixed $columnsVisibleForLitige
-     * @return Utilisateur
-     */
-    public function setColumnsVisibleForLitige($columnsVisibleForLitige): Utilisateur
-    {
-        $this->columnsVisibleForLitige = $columnsVisibleForLitige;
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getColumnsVisibleForLitige()
-    {
-        return $this->columnsVisibleForLitige;
-    }
-
-    /**
-     * @param mixed $columnsVisibleForArrivage
-     * @return Utilisateur
-     */
-    public function setColumnsVisibleForArrivage($columnsVisibleForArrivage): Utilisateur
-    {
-        $this->columnsVisibleForArrivage = $columnsVisibleForArrivage;
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getColumnsVisibleForArrivage()
-    {
-        return $this->columnsVisibleForArrivage;
-    }
-
-    public function getColumnsVisibleForDispatch()
-    {
-        return $this->columnsVisibleForDispatch;
-    }
-
-    public function setColumnsVisibleForDispatch($columnsVisibleForDispatch): Utilisateur
-    {
-        $this->columnsVisibleForDispatch = $columnsVisibleForDispatch;
-        return $this;
-    }
-
-    public function getColumnsVisibleForTrackingMovement()
-    {
-        return $this->columnsVisibleForTrackingMovement;
-    }
-
-    public function setColumnsVisibleForTrackingMovement($columnsVisibleForTrackingMovement): Utilisateur
-    {
-        $this->columnsVisibleForTrackingMovement = $columnsVisibleForTrackingMovement;
         return $this;
     }
 
@@ -1968,6 +1850,18 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     public function setPageIndexes(?array $pagesIndexes): self
     {
         $this->pageIndexes = $pagesIndexes;
+
+        return $this;
+    }
+
+    public function getVisibleColumns(): ?array
+    {
+        return $this->visibleColumns;
+    }
+
+    public function setVisibleColumns(?array $visibleColumns): self
+    {
+        $this->visibleColumns = $visibleColumns;
 
         return $this;
     }

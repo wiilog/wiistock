@@ -25,6 +25,7 @@ use App\Service\GlobalParamService;
 use App\Service\RefArticleDataService;
 use App\Service\DemandeLivraisonService;
 use App\Service\FreeFieldService;
+use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -214,6 +215,7 @@ class DemandeController extends AbstractController
      */
     public function index(EntityManagerInterface $entityManager,
                           GlobalParamService $globalParamService,
+                          DemandeLivraisonService $deliveryRequestService,
                           $reception = null,
                           $filter = null): Response
     {
@@ -223,6 +225,7 @@ class DemandeController extends AbstractController
         $globalSettingsRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
+        $fields = $deliveryRequestService->getVisibleColumnsConfig($entityManager, $this->getUser());
 
         $typeChampLibre = [];
         foreach ($types as $type) {
@@ -239,6 +242,7 @@ class DemandeController extends AbstractController
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
             'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
+            'fields' => $fields,
             'filterStatus' => $filter,
             'receptionFilter' => $reception,
             'defaultDeliveryLocations' => $globalParamService->getDefaultDeliveryLocationsByTypeId($entityManager),
@@ -319,8 +323,7 @@ class DemandeController extends AbstractController
      * @Route("/api/{id}", name="demande_article_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR}, mode=HasPermission::IN_JSON)
      */
-    public function articleApi(EntityManagerInterface $entityManager,
-                               Demande $demande): Response
+    public function articleApi(Demande $demande): Response
     {
         $referenceLines = $demande->getReferenceLines();
         $rowsRC = [];
@@ -673,6 +676,43 @@ class DemandeController extends AbstractController
 
         return new JsonResponse([
             'results' => $demandeRepository->getIdAndLibelleBySearch($search)
+        ]);
+    }
+
+    /**
+     * @Route("/api-columns", name="delivery_request_api_columns", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR}, mode=HasPermission::IN_JSON)
+     */
+    public function apiColumns(EntityManagerInterface $entityManager, DemandeLivraisonService $deliveryRequestService): Response {
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+
+        $columns = $deliveryRequestService->getVisibleColumnsConfig($entityManager, $currentUser);
+
+        return $this->json(array_values($columns));
+    }
+
+    /**
+     * @Route("/visible_column", name="save_visible_columns_for_delivery_request", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR}, mode=HasPermission::IN_JSON)
+     */
+    public function saveVisibleColumn(Request $request,
+                                      EntityManagerInterface $entityManager,
+                                      VisibleColumnService $visibleColumnService): Response {
+        $data = json_decode($request->getContent(), true);
+        $fields = array_keys($data);
+        $fields[] = "actions";
+
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+
+        $visibleColumnService->setVisibleColumns('deliveryRequest', $fields, $currentUser);
+
+        $entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'msg' => 'Vos préférences de colonnes à afficher ont bien été sauvegardées'
         ]);
     }
 

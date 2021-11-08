@@ -21,7 +21,7 @@ final class Version20210802123357 extends AbstractMigration
     public function up(Schema $schema): void
     {
         $this->addSql("ALTER TABLE utilisateur ADD columns_visible_for_reception JSON DEFAULT NULL");
-        $this->addSql("UPDATE utilisateur SET columns_visible_for_reception = ('" . json_encode(Utilisateur::COL_VISIBLE_RECEPTION_DEFAULT) . "')");
+        $this->addSql("UPDATE utilisateur SET columns_visible_for_reception = ('" . json_encode(Utilisateur::DEFAULT_RECEPTION_VISIBLE_COLUMNS) . "')");
 
     }
 

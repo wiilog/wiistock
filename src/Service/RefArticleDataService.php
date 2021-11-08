@@ -766,7 +766,7 @@ class RefArticleDataService {
                 array_splice($fields, $visibilityGroupsIndex, 1);
             }
         }
-        return $this->visibleColumnService->getArrayConfig($fields, $freeFields, $currentUser->getColumnVisible());
+        return $this->visibleColumnService->getArrayConfig($fields, $freeFields, $currentUser->getVisibleColumns()['reference']);
     }
 
     public function getFieldTitle(string $fieldName): ?string {

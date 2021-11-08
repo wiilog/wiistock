@@ -502,7 +502,7 @@ class DispatchService {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
-        $columnsVisible = $currentUser->getColumnsVisibleForDispatch();
+        $columnsVisible = $currentUser->getVisibleColumns()['dispatch'];
         $categorieCL = $categorieCLRepository->findOneBy(['label' => CategorieCL::DEMANDE_DISPATCH]);
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_DISPATCH, $categorieCL);
 

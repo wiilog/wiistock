@@ -4,6 +4,7 @@
 namespace App\Service;
 
 
+use App\Entity\Utilisateur;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class VisibleColumnService {
@@ -74,5 +75,12 @@ class VisibleColumnService {
         preg_match("/" . VisibleColumnService::FREE_FIELD_NAME_PREFIX . "_(\d+)/", $freeFieldName, $matches);
         $freeFieldIdStr = $matches[1] ?? null;
         return is_numeric($freeFieldIdStr) ? intval($freeFieldIdStr) : null;
+    }
+
+    public function setVisibleColumns(string $entity, array $fields, Utilisateur $user): void {
+        $visibleColumns = $user->getVisibleColumns();
+        $visibleColumns[$entity] = $fields;
+
+        $user->setVisibleColumns($visibleColumns);
     }
 }
