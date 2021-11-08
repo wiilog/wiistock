@@ -13,23 +13,25 @@
 {% endmacro %}
 
 {% macro label(label) %}
-    {% if label is iterable %}
-        {% if label.wiiIcon is defined %}
-            <span class="wii-icon wii-icon-{{ label.wiiIcon }}"></span>
-        {% elseif label.faIcon is defined %}
-            <i class="{{ label.faIcon }}"></i>
-        {% elseif label.url is defined %}
-            <img src="{{ label.url }}" alt="{{ label.alt ?? '' }}" width="15px">
-        {% endif %}
+    <span class="d-inline-flex align-items-center">
+        {% if label is iterable %}
+            {% if label.wiiIcon is defined %}
+                <span class="mr-2 wii-icon wii-icon-{{ label.wiiIcon }}"></span>
+            {% elseif label.faIcon is defined %}
+                <i class="mr-2 {{ label.faIcon }}"></i>
+            {% elseif label.url is defined %}
+                <img src="{{ label.url }}" alt="{{ label.alt ?? '' }}" width="15px" class="mr-2">
+            {% endif %}
 
-        {{ label.text | raw }}
-    {% else %}
-        {{ label | raw }}
-    {% endif %}
+            {{ label.text | raw }}
+        {% else %}
+            {{ label | raw }}
+        {% endif %}
+    </span>
 {% endmacro %}
 
 {% macro switch(name, label, required, switches, options = {}) %}
-    <label>{{ label | raw }}{{ required ? '*' }}</label>
+    <label class="{{ options.labelClass ?? '' }}">{{ _self.label(label) }}{{ required ? '*' }}</label>
     <div class="wii-switch {{ required ? 'needed' }} request-type-container mt-2" data-title="{{ label | striptags }}{{ required ? '*' }}">
         {% for switch in switches %}
             {% set id = random(100000, 10000000) %}
@@ -41,7 +43,7 @@
 {% endmacro %}
 
 {% macro slider(name, label, required, checked = false, options = {}) %}
-    <label>{{ _self.label(label) }}{{ required ? '*' }}</label>
+    <label class="{{ options.labelClass ?? '' }}">{{ _self.label(label) }}{{ required ? '*' }}</label>
     <label class="switch">
         <input class="checkbox data {{ required ? 'needed' }}" type="checkbox"
             {{ _self.common_attributes(name, options) }}
@@ -59,7 +61,7 @@
             {{ _self.common_attributes(name, options) }}
             {{ _self.multiple_key(options) }}
                value="{{ value }}" {{ options.checked ?? false ? 'checked' }}>
-        <label for="checkbox-{{ id }}"><span>{{ _self.label(label) }}{{ required ? '*' }}</span></label>
+        <label class="{{ options.labelClass ?? '' }}" for="checkbox-{{ id }}"><span>{{ _self.label(label) }}{{ required ? '*' }}</span></label>
     </div>
 {% endmacro %}
 
@@ -71,7 +73,7 @@
             {{ _self.common_attributes(name, options) }}
             {{ _self.multiple_key(options) }}
             {{ options.checked ?? false ? 'checked' }} />
-        <label for="radio-{{ id }}">{{ _self.label(label) }}{{ required ? '*' }}</label>
+        <label class="{{ options.labelClass ?? '' }}" for="radio-{{ id }}">{{ _self.label(label) }}{{ required ? '*' }}</label>
     </div>
 {% endmacro %}
 
@@ -79,8 +81,8 @@
     {% set value = options.value ?? [] %}
     {% set values = value is iterable ? value : [value] %}
 
-    <label class="{{ not options.search ?? true ? 'no-search' }}">
-        {{ _self.label(label) }}{{ required ? '*' }}
+    <label class="{{ options.labelClass ?? '' }} {{ not options.search ?? true ? 'no-search' }}">
+        <span>{{ _self.label(label) }}{{ required ? '*' }}</span>
         <select class="form-control w-100 data {{ required ? 'needed' }}"
                 {% if options.type is defined %}data-s2="{{ options.type }}"{% endif %}
             {% if options.placeholder is defined %}data-placeholder="{{ options.placeholder }}"{% endif %}
@@ -95,8 +97,8 @@
 {% endmacro %}
 
 {% macro input(name, label, required, value = '', options = {}) %}
-    <label>
-        {{ _self.label(label) }}{{ required ? '*' }}
+    <label class="{{ options.labelClass ?? '' }}">
+        <span>{{ _self.label(label) }}{{ required ? '*' }}</span>
         <input type="text" class="form-control w-100 data {{ required ? 'needed' }}"
             {{ _self.common_attributes(name, options) }}
             {{ _self.multiple_key(options) }}
@@ -105,15 +107,15 @@
 {% endmacro %}
 
 {% macro number(name, label, required, value = '', options = {}) %}
-    <label>
-        {{ _self.label(label) }}{{ required ? '*' }}
+    <label class="{{ options.labelClass ?? '' }}">
+        <span>{{ _self.label(label) }}{{ required ? '*' }}</span>
         <div class="increase-decrease-field">
             <button class="decrease"></button>
             <input type="number" data-no-arrow class="form-control w-50 data {{ required ? 'needed' }}"
                 {{ _self.common_attributes(name, options) }}
                 {{ _self.multiple_key(options) }}
                    value="{{ value }}"
-                   {% if options.min is defined %}min="{{ options.min }}"{% endif %}
+                {% if options.min is defined %}min="{{ options.min }}"{% endif %}
                 {% if options.max is defined %}max="{{ options.max }}"{% endif %}>
             <button class="increase"></button>
         </div>
@@ -121,8 +123,8 @@
 {% endmacro %}
 
 {% macro textarea(name, label, required, value = '', options = {}) %}
-    <label>
-        {{ _self.label(label) }}{{ required ? '*' }}
+    <label class="{{ options.labelClass ?? '' }}">
+        <span>{{ _self.label(label) }}{{ required ? '*' }}</span>
         <textarea class="form-control w-100 data {{ required ? 'needed' }}"
             {{ options.readonly ?? false ? 'readonly' }}
             {{ options.disabled ?? false ? 'disabled' }}>

@@ -34,6 +34,10 @@
             &:not(:last-child) {
                 border-right: 1px solid $greyFormLight;
             }
+
+            & .increase-decrease-field {
+                width: 60%;
+            }
         }
 
         .wii-icon-stock {

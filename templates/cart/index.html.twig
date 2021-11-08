@@ -164,7 +164,7 @@
                     <div class="header wii-title">Références</div>
                     <div class="content">
                         {% for reference in app.user.cart.references %}
-                            <div class="cart-reference-container" style="--reference-color: red;">
+                            <div class="cart-reference-container" style="--reference-color: {{ reference.type.color ?? '$primary;' }};">
                                 <div class="cart-reference">
                                     <div class="cart-reference-type">{{ reference.type.label }}</div>
                                     <div class="cart-reference-infos">
@@ -189,6 +189,7 @@
                                     <div class="cart-reference-quantity">
                                         {{ form.number('quantity', {url: '/svg/reference_article/stock.svg', text: '<span class="quantity-label">Quantité à livrer</span>'}, true, null, {
                                             type: 'quantity',
+                                            labelClass: 'd-flex flex-column align-items-center',
                                         }) }}
                                     </div>
                                 </div>
