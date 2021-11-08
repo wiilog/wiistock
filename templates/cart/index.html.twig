@@ -1,25 +1,175 @@
+{% import 'form.html.twig' as form %}
+
 {% extends 'layout.html.twig' %}
 
 {% block title %}Panier{% endblock %}
 
 {% block page_content %}
-    <div class="m-4 wii-page-card">
-        <div class="row wii-page-card-header">
-            <div class="col-auto ml-auto">
-                <div class="btn-group">
-                    <button type="button" class="btn btn-primary d-none add-cart-to-request" data-target='#modalAddToRequest' data-toggle='modal'>
-                        <i class="fa fa-plus mr-2"></i>
-                        Ajouter à une demande
-                    </button>
+    <div class="d-flex justify-content-center align-items-center" style="margin-bottom: 50px;">
+        <div class="row wii-form wii-large-column">
+            <div class="col-12 col-md-4">
+                <div class="wii-box">
+                    <div class="header wii-title">Demande</div>
+                    <div class="content">
+                        {{ form.switch('requestType', 'Type de demande', false, [
+                            {label: {wiiIcon: 'cart-delivery', text: 'Livraison'}, value: 'delivery', checked: true},
+                            {label: {wiiIcon: 'cart-collect', text: 'Collecte'}, value: 'collect'},
+                            {label: {wiiIcon: 'cart-purchase', text: 'Achat'}, value: 'purchase'},
+                        ]) }}
+
+                        {{ form.radio('addOrCreate', 'Ajouter à une de mes demandes en brouillon', false, 'add') }}
+                        {{ form.radio('addOrCreate', 'Créer une nouvelle demande', false, 'create') }}
+
+                        <div class="sub-form existing-delivery d-none">
+                            <div class="my-delivery-requests">
+                                <div class="section">Ma demande de livraison</div>
+                                <label for="delivery-request" title="delivery-request">
+                                    Mes livraisons
+                                </label>
+                                <select class="form-control data needed w-100" name="delivery-request"
+                                        onchange="onDeliveryChanged($(this), true)" data-placeholder="- ">
+                                    <option value="-">-</option>
+                                    {% for deliveryRequest in deliveryRequests %}
+                                        <option value="{{ deliveryRequest.id }}">
+                                            {{ deliveryRequest.number }} -
+                                            {{ deliveryRequest.type }} -
+                                            {{ deliveryRequest.destination }} - Créée le
+                                            {{ deliveryRequest.creationDate }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                {% for deliveryRequest in deliveryRequests %}
+                                    <input type="hidden" id="{{ deliveryRequest.id }}" value="{{ deliveryRequest.comment }}"/>
+                                {% endfor %}
+
+
+                            </div>
+                            <div class="delivery-request-content d-none">
+                                <div class="display-comment">
+                                    <span class="comment-title">Commentaire</span>
+                                </div>
+
+                                <div class="delivery-references">
+                                    <span class="references-title">Références présentes dans la demande</span>
+                                    <table id="tableDeliveryReferences" class="table"></table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="sub-form create-delivery d-none">
+                            <div class="section">Ma nouvelle demande de livraison</div>
+
+                            <div class="row">
+                                <div class="col-md-6 col-12">
+                                    {{ form.select('deliveryType', 'Type', true, {
+                                        type: 'deliveryType',
+                                        placeholder: 'Sélectionnez un type',
+                                        search: false,
+                                        onChange: 'cartTypeChange($(this))',
+                                    }) }}
+                                </div>
+                                <div class="col-md-6 col-12">
+                                    {{ form.select('destination', 'Destination', true, {
+                                        type: 'location',
+                                        placeholder: 'Sélectionnez un emplacement',
+                                        includeParams: '[name=deliveryType]',
+                                        disabled: true,
+                                    }) }}
+                                </div>
+                                <div class="col-12">
+                                    <span class="toggle-collapsible wii-subtitle mt-2 expanded">Champs libres</span>
+                                    <div class="collapsible expanded free-fields-container mb-2">
+                                        {% for type in freeFieldsTypes %}
+                                            <div class="d-none" data-type="{{ type.typeId }}">
+                                                {% include 'free_field/freeFieldsViewing.html.twig' with {
+                                                    freeFields: type.champsLibres,
+                                                    freeFieldValues: [],
+                                                    colType: 'col-md-6 col-12',
+                                                    requiredType: 'requiredCreate',
+                                                    actionType: 'new',
+                                                    disabledNeeded: true
+                                                } %}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    {{ form.wysiwyg('comment', 'Commentaire', false) }}
+                                </div>
+                            </div>
+
+
+                            <input type="hidden" id="default-delivery-locations" value="{{ defaultDeliveryLocations | json_encode }}">
+                        </div>
+
+                        <div class="sub-form existing-collect d-none">
+                            <div class="my-collect-requests">
+                                <div class="section">Ma demande de collecte</div>
+                                <label for="collect-request" title="collect-request">
+                                    Mes collectes
+                                </label>
+                                <select class="form-control data needed w-100" name="collect-request"
+                                        onchange="onCollectChanged($(this), true)" data-placeholder="- ">
+                                    <option value="-">-</option>
+                                    {% for collectRequest in collectRequests %}
+                                        <option value="{{ collectRequest.id }}">
+                                            {{ collectRequest.number }} -
+                                            {{ collectRequest.type }} -
+                                            {{ collectRequest.collect_point }} - Créée le
+                                            {{ collectRequest.creationDate }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                {% for collectRequest in collectRequests %}
+                                    <input type="hidden" id="comment{{ collectRequest.id }}" value="{{ collectRequest.comment }}"/>
+                                    <input type="hidden" id="destination{{ collectRequest.id }}" value="{{ collectRequest.destination }}"/>
+                                    <input type="hidden" id="objet{{ collectRequest.id }}" value="{{ collectRequest.objet }}"/>
+                                {% endfor %}
+
+
+                            </div>
+                            <div class="collect-request-content d-none">
+                                <div class="destination-objet d-flex">
+                                    <div class="collect-destination col-6 p-0">
+                                        <span class="collect-title">Destination</span>
+                                    </div>
+                                    <div class="collect-objet col-6 p-0">
+                                        <span class="collect-title">Objet</span>
+                                    </div>
+                                </div>
+                                <div class="display-comment">
+                                    <span class="comment-title">Commentaire</span>
+                                </div>
+
+                                <div class="collect-references">
+                                    <span class="references-title">Références présentes dans la demande</span>
+                                    <table id="tableCollectReferences" class="table"></table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="sub-form create-collect d-none">
+                            <div class="section">Ma nouvelle demande de collecte</div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="row">
-            <div class="col-12">
-                <table id="cartTable" class="table w-100"></table>
+            <div class="col-12 col-md-8">
+                <div class="wii-box">
+                    <div class="header wii-title">Références</div>
+                    <div class="content">
+                        {% for reference in app.user.cart.references %}
+
+                        {% endfor %}
+                    </div>
+                </div>
+                <button class="btn btn-success float-right mt-3" onclick="validateCart()">
+                    Valider mon panier
+                </button>
             </div>
         </div>
     </div>
+
     <input type="hidden" value="{{ app.user.cart.references | length }}" id="cart-refs-count"/>
     {% include 'cart/modalAddToRequest.html.twig' %}
 {% endblock %}

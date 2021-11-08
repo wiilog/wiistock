@@ -4,12 +4,19 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Collecte;
+use App\Entity\CategorieCL;
+use App\Entity\CategoryType;
+use App\Entity\FreeField;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Menu;
 use App\Entity\Cart;
 use App\Entity\ReferenceArticle;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Service\CartService;
 use App\Service\DemandeLivraisonService;
+use App\Service\GlobalParamService;
 use App\Service\PurchaseRequestService;
 use App\Service\RefArticleDataService;
 use App\Service\UniqueNumberService;
@@ -30,9 +37,36 @@ class CartController extends AbstractController
     /**
      * @Route("/", name="cart")
      */
-    public function cart(): Response
-    {
-        return $this->render("cart/index.html.twig");
+    public function cart(EntityManagerInterface $entityManager, GlobalParamService $globalParamService): Response {
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
+
+        $typeChampLibre = [];
+        foreach ($types as $type) {
+            $champsLibres = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
+
+            $typeChampLibre[] = [
+                "typeLabel" => $type->getLabel(),
+                "typeId" => $type->getId(),
+                "champsLibres" => $champsLibres,
+            ];
+        }
+
+        $defaultDeliveryLocations = $globalParamService->getDefaultDeliveryLocationsByTypeId();
+        $deliveryRequests = $entityManager->getRepository(Demande::class)->getDeliveryRequestForSelect($currentUser);
+        $collectRequests = $entityManager->getRepository(Collecte::class)->getCollectRequestForSelect($currentUser);
+
+
+        return $this->render("cart/index.html.twig", [
+            "deliveryRequests" => $deliveryRequests,
+            "collectRequests" => $collectRequests,
+            "defaultDeliveryLocations" => $defaultDeliveryLocations,
+            "freeFieldsTypes" => $typeChampLibre,
+        ]);
     }
 
     /**

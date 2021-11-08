@@ -8,6 +8,7 @@ use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\Collecte;
+use App\Entity\CollecteReference;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\IOT\Pairing;
@@ -377,6 +378,33 @@ class DemandeCollecteService
             'progressBarColor' => '#2ec2ab',
             'progressBarBGColor' => $requestStatus === Collecte::STATUT_BROUILLON ? 'white' : 'lightGrey',
             'backgroundColor' => $backgroundColor
+        ];
+    }
+
+    public function getDataForReferencesDatatable($params = null)
+    {
+        $collecte = $this->entityManager->find(Collecte::class, $params);
+        $referenceLines = $collecte->getCollecteReferences();
+
+        $rows = [];
+        /** @var CollecteReference $referenceLine */
+        foreach ($referenceLines as $referenceLine) {
+            $rows[] = $this->dataRowReference($referenceLine);
+        }
+
+        return [
+            'data' => $rows,
+            'recordsTotal' => count($rows),
+        ];
+    }
+
+    public function dataRowReference(CollecteReference $referenceArticle)
+    {
+        return [
+            'reference' => $referenceArticle->getReferenceArticle()->getReference(),
+            'libelle' => $referenceArticle->getReferenceArticle()->getLibelle(),
+            'quantity' => $referenceArticle->getQuantite(),
+
         ];
     }
 }

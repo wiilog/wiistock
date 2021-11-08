@@ -11,7 +11,7 @@
 
 {% block page_content %}
     <div class="ra-container d-flex justify-content-center align-content-center">
-        <div class="row ra-column">
+        <div class="row wii-column">
             <div class="col-12 col-md-6">
                 <div class="ra-header d-flex flex-column" style="border-color: {{ referenceArticle.type.color }}">
                     <div class="wii-type" style="background-color: {{ referenceArticle.type.color }}">{{ referenceArticle.type.label }}</div>
@@ -52,7 +52,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="ra-box mt-3">
+                <div class="wii-box mt-3">
                     <div class="header wii-title">Informations</div>
                     <div class="content">
                         <div class="d-flex">
@@ -133,7 +133,7 @@
                 </div>
             </div>
             <div class="col-12 col-md-6">
-                <div class="ra-box">
+                <div class="wii-box">
                     <div class="header wii-title">Gestion quantité</div>
                     <div class="content">
                         <div class="d-flex">
@@ -244,7 +244,7 @@
                         </ul>
                     </div>
                 </div>
-                <div class="ra-box mt-3">
+                <div class="wii-box mt-3">
                     {% set plural = freeFields | length > 1 ? 's' : '' %}
                     <div class="header wii-title">Champ{{ plural }} libre{{ plural }}</div>
                     {% if referenceArticle.freeFields | length > 0 %}

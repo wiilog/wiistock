@@ -1,3 +1,4 @@
+$responsive-breakpoint: 1200px;
 $mobile-breakpoint: 768px;
 
 // Default font (will get overriden by customFont if present
@@ -59,6 +60,9 @@ $alertColors: (
     danger: $danger,
     info: $info,
 );
+
+$btn-focus-box-shadow: none;
+$input-btn-focus-box-shadow: none;
 
 @import "~bootstrap/scss/functions";
 @import "~bootstrap/scss/variables";
