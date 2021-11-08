@@ -119,8 +119,12 @@ class DemandeLivraisonService
         $categoryFF = $this->entityManager->getRepository(CategorieCL::class)->findOneBy(['label' => CategorieCL::DEMANDE_LIVRAISON]);
         $freeFields = $this->entityManager->getRepository(FreeField::class)->getByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_LIVRAISON, $categoryFF);
 
+        /** @var Preparation|null $firstPreparation */
+        $firstPreparation = !$demande->getPreparations()->isEmpty() ? $demande->getPreparations()->first() : null;
+
         $row = [
-            'date' => $demande->getDate() ? $demande->getDate()->format('d/m/Y') : '',
+            'createdAt' => FormatHelper::datetime($demande->getDate()),
+            'validatedAt' => $firstPreparation ? FormatHelper::datetime($firstPreparation->getDate()) : '',
             'requester' => FormatHelper::deliveryRequester($demande),
             'number' => $demande->getNumero() ?? '',
             'status' => $demande->getStatut() ? $demande->getStatut()->getNom() : '',
@@ -524,12 +528,12 @@ class DemandeLivraisonService
 
         return array_merge(
             [
-                ['label' => 'Statut', 'value' => $status ? $this->stringService->mbUcfirst($status->getNom()) : ''],
+                ['label' => 'Statut', 'value' => $this->stringService->mbUcfirst(FormatHelper::status($status))],
                 ['label' => 'Demandeur', 'value' => FormatHelper::deliveryRequester($demande)],
-                ['label' => 'Destination', 'value' => $destination ? $destination->getLabel() : ''],
-                ['label' => 'Date de la demande', 'value' => $date ? $date->format('d/m/Y') : ''],
-                ['label' => 'Date de validation', 'value' => $validationDate ? $validationDate->format('d/m/Y H:i') : ''],
-                ['label' => 'Type', 'value' => $type ? $type->getLabel() : '']
+                ['label' => 'Destination', 'value' => FormatHelper::location($destination)],
+                ['label' => 'Date de la demande', 'value' => FormatHelper::datetime($date)],
+                ['label' => 'Date de validation', 'value' => FormatHelper::datetime($validationDate)],
+                ['label' => 'Type', 'value' => FormatHelper::type($type)]
             ],
             $freeFieldArray,
             [
@@ -578,7 +582,8 @@ class DemandeLivraisonService
         $columns = [
             ['name' => 'actions', 'orderable' => false, 'alwaysVisible' => true, 'class' => 'noVis', 'width' => '10px'],
             ['name' => 'pairing', 'class' => 'pairing-row', 'alwaysVisible' => true, 'orderable' => false],
-            ['title' => 'Date', 'name' => 'date'],
+            ['title' => 'Date de création', 'name' => 'createdAt'],
+            ['title' => 'Date de validation', 'name' => 'validatedAt'],
             ['title' => 'Demandeur', 'name' => 'requester'],
             ['title' => 'Numéro', 'name' => 'number'],
             ['title' => 'Statut', 'name' => 'status'],

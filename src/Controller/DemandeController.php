@@ -537,8 +537,8 @@ class DemandeController extends AbstractController
                     'statut',
                     'destination',
                     'commentaire',
-                    'date demande',
-                    'date validation',
+                    'date de création',
+                    'date de validation',
                     'numéro',
                     'type demande',
                     'code(s) préparation(s)',
@@ -577,9 +577,9 @@ class DemandeController extends AbstractController
                 ) {
                     $rows = [];
                     $demandeId = $demande->getId();
-                    $firstDatePrepaForDemande = isset($firstDates[$demandeId]) ? $firstDates[$demandeId] : null;
-                    $prepartionOrdersForDemande = isset($prepartionOrders[$demandeId]) ? $prepartionOrders[$demandeId] : [];
-                    $livraisonOrdersForDemande = isset($livraisonOrders[$demandeId]) ? $livraisonOrders[$demandeId] : [];
+                    $firstDatePrepaForDemande = $firstDates[$demandeId] ?? null;
+                    $prepartionOrdersForDemande = $prepartionOrders[$demandeId] ?? [];
+                    $livraisonOrdersForDemande = $livraisonOrders[$demandeId] ?? [];
                     $infosDemand = $this->getCSVExportFromDemand($demande, $firstDatePrepaForDemande, $prepartionOrdersForDemande, $livraisonOrdersForDemande);
 
                     $referenceLinesForRequest = $referenceLines[$demandeId] ?? [];
@@ -647,17 +647,15 @@ class DemandeController extends AbstractController
             ? DateTime::createFromFormat('Y-m-d H:i:s', $firstDatePrepaStr)
             : null;
 
-        $requestCreationDate = $demande->getDate();
-
         return [
             FormatHelper::deliveryRequester($demande),
-            $demande->getStatut()->getNom(),
+            FormatHelper::status($demande->getStatut()),
             FormatHelper::location($demande->getDestination()),
-            strip_tags($demande->getCommentaire()),
-            isset($requestCreationDate) ? $requestCreationDate->format('d/m/Y H:i:s') : '',
-            isset($firstDatePrepa) ? $firstDatePrepa->format('d/m/Y H:i:s') : '',
+            FormatHelper::html($demande->getCommentaire()),
+            FormatHelper::datetime($demande->getDate()),
+            $firstDatePrepa ? FormatHelper::datetime($firstDatePrepa) : '',
             $demande->getNumero(),
-            $demande->getType() ? $demande->getType()->getLabel() : '',
+            FormatHelper::type($demande->getType()),
             !empty($preparationOrdersNumeros) ? implode(' / ', $preparationOrdersNumeros) : 'ND',
             !empty($livraisonOrders) ? implode(' / ', $livraisonOrders) : 'ND',
         ];

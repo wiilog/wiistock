@@ -83,7 +83,7 @@ function initPageDatatable() {
             let deliveryRequestTableConfig = {
                 serverSide: true,
                 processing: true,
-                order: [['date', 'desc']],
+                order: [['createdAt', 'desc']],
                 ajax: {
                     "url": deliveryRequestPath,
                     "type": "POST",
