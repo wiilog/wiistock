@@ -1038,7 +1038,6 @@ class ReceptionController extends AbstractController {
         $currentUser = $this->getUser();
         if ($typeBefore !== $typeAfter
             || $statutBeforeId !== $statutAfterId
-            || $trimCommentStatut
             || $userComment) {
 
             $historyRecord = $disputeService->createDisputeHistoryRecord(

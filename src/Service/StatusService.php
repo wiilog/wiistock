@@ -62,7 +62,6 @@ class StatusService {
         $defaults = $statusRepository->countDefaults($category, $type, $status);
         $drafts = $statusRepository->countDrafts($category, $type, $status);
         $disputes = $statusRepository->countDisputes($category, $type, $status);
-        $autos = $statusRepository->countAutoForTreated($category, $type, $status);
 
         if ($statusRepository->countSimilarLabels($category, $data['label'], $data['type'])) {
             $message = 'Le statut "' . $data['label'] . '" existe déjà pour cette catégorie. Veuillez en choisir un autre.';
@@ -72,9 +71,8 @@ class StatusService {
             $message = 'Vous ne pouvez pas créer un statut brouillon pour cette entité et ce type, il en existe déjà un.';
         } else if (((int) $data['state']) === Statut::DISPUTE && $disputes > 0) {
             $message = 'Vous ne pouvez pas créer un statut litige pour cette entité et ce type, il en existe déjà un.';
-        } else if (((int) $data['state']) === Statut::TREATED && $autos > 0 && $data['treatedAutoStatus']) {
-            $message = 'Vous ne pouvez pas créer un statut automatique en état traité pour cette entité et ce type, il en existe déjà un.';
         }
+
         return [
             'success' => empty($message),
             'message' => $message ?? null

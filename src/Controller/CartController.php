@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Collecte;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
@@ -36,10 +37,12 @@ class CartController extends AbstractController
     /**
      * @Route("/", name="cart")
      */
-    public function cart(EntityManagerInterface $manager, GlobalParamService $globalParamService): Response {
-        $typeRepository = $manager->getRepository(Type::class);
-        $freeFieldRepository = $manager->getRepository(FreeField::class);
+    public function cart(EntityManagerInterface $entityManager, GlobalParamService $globalParamService): Response {
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
 
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
 
         $typeChampLibre = [];
@@ -54,12 +57,15 @@ class CartController extends AbstractController
         }
 
         $defaultDeliveryLocations = $globalParamService->getDefaultDeliveryLocationsByTypeId();
-        $deliveryRequests = $manager->getRepository(Demande::class)->getDeliveryRequestForSelect($this->getUser());
+        $deliveryRequests = $entityManager->getRepository(Demande::class)->getDeliveryRequestForSelect($currentUser);
+        $collectRequests = $entityManager->getRepository(Collecte::class)->getCollectRequestForSelect($currentUser);
+
 
         return $this->render("cart/index.html.twig", [
+            "deliveryRequests" => $deliveryRequests,
+            "collectRequests" => $collectRequests,
             "defaultDeliveryLocations" => $defaultDeliveryLocations,
             "freeFieldsTypes" => $typeChampLibre,
-            "deliveryRequests" => $deliveryRequests,
         ]);
     }
 

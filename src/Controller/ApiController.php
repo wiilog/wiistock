@@ -32,7 +32,9 @@ use App\Entity\Translation;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
-use App\Service\ArrivageDataService;
+use App\Helper\FormatHelper;
+use App\Service\ArrivageService;
+use App\Service\DispatchPackService;
 use App\Service\EmplacementDataService;
 use App\Service\NotificationService;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -184,11 +186,11 @@ class ApiController extends AbstractFOSRestController
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function postTrackingMovements(Request $request,
-                                          MailerService $mailerService,
-                                          ArrivageDataService $arrivageDataService,
-                                          EmplacementDataService $locationDataService,
-                                          MouvementStockService $mouvementStockService,
+    public function postTrackingMovements(Request                 $request,
+                                          MailerService           $mailerService,
+                                          ArrivageService         $arrivageDataService,
+                                          EmplacementDataService  $locationDataService,
+                                          MouvementStockService   $mouvementStockService,
                                           TrackingMovementService $trackingMovementService,
                                           ExceptionLoggerService $exceptionLoggerService,
                                           FreeFieldService $freeFieldService,
