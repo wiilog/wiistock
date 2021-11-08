@@ -233,34 +233,7 @@ class ImportController extends AbstractController
                             }
                         }
 
-                        foreach($headers as $headerIndex => $header) {
-                            $closestIndex = null;
-                            $closestDistance = PHP_INT_MAX;
-
-                            if (empty($sourceColumnToField)) {
-                                foreach ($fieldsToCheck as $fieldIndex => $field) {
-                                    preg_match("/(.+)\(.+\)/", $field, $matches);
-                                    $cleanedField = empty($matches)
-                                        ? $field
-                                        : trim($matches[1]);
-                                    $distance = StringHelper::levenshtein($header, $cleanedField);
-                                    if ($distance < 5 && $distance < $closestDistance) {
-                                        $closestIndex = $fieldIndex;
-                                        $closestDistance = $distance;
-                                    }
-                                }
-
-                                if (isset($closestIndex)) {
-                                    $preselection[$header] = $fieldsToCheck[$closestIndex];
-                                    unset($fieldsToCheck[$closestIndex]);
-                                }
-                            }
-                            else {
-                                if (!empty($sourceColumnToField[$headerIndex])) {
-                                    $preselection[$header] = $sourceColumnToField[$headerIndex];
-                                }
-                            }
-                        }
+                        $preselection = $importService->createPreselection($headers, $fieldsToCheck, $sourceColumnToField ?? null);
                     }
 
                     if ($post->get('importId')) {

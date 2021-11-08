@@ -38,6 +38,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\StringHelper;
 
 
 class ImportService
@@ -1682,5 +1683,42 @@ class ImportService
     {
         $this->em->clear();
         $this->currentImport = $this->em->find(Import::class, $this->currentImport->getId());
+    }
+
+    public function createPreselection(array $headers, array $fieldsToCheck, ?array $sourceColumnToField) {
+        $preselection = [];
+        foreach ($headers as $headerIndex => $header) {
+            $closestIndex = null;
+            $closestDistance = PHP_INT_MAX;
+
+            if (empty($sourceColumnToField)) {
+                foreach ($fieldsToCheck as $fieldIndex => $field) {
+                    preg_match("/(.+)\(.+\)/", $field, $fieldMatches);
+                    $cleanedField = empty($fieldMatches)
+                        ? $field
+                        : trim($fieldMatches[1]);
+                    preg_match("/(.+)\(.+\)/", $header, $headerMatches);
+                    $cleanedHeader = empty($headerMatches)
+                        ? $header
+                        : trim($headerMatches[1]);
+                    $distance = StringHelper::levenshtein($cleanedHeader, $cleanedField);
+                    if ($distance < 5 && $distance < $closestDistance) {
+                        $closestIndex = $fieldIndex;
+                        $closestDistance = $distance;
+                    }
+                }
+
+                if (isset($closestIndex)) {
+                    $preselection[$header] = $fieldsToCheck[$closestIndex];
+                    unset($fieldsToCheck[$closestIndex]);
+                }
+            }
+            else {
+                if (!empty($sourceColumnToField[$headerIndex])) {
+                    $preselection[$header] = $sourceColumnToField[$headerIndex];
+                }
+            }
+        }
+        return $preselection;
     }
 }
