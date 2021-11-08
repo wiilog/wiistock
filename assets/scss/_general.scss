@@ -740,6 +740,12 @@ $grey: #CBCBCB;
     font-weight: bold !important;
 }
 
+.wii-label {
+    color: #000000;
+    font-size: 18px;
+    font-weight: bold;
+}
+
 .wii-field-name {
     color: #000000;
     font-size: 14px;
@@ -777,4 +783,8 @@ $grey: #CBCBCB;
 .wii-medium-text {
     color: #666666;
     font-size: 14px;
+}
+
+.nowrap {
+    white-space: nowrap;
 }

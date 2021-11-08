@@ -69,6 +69,17 @@ $(document).ready(() => {
         $('input[name="addOrCreate"]').prop(`checked`, false);
     });
 
+    $(`input[name="requestType"]`).on(`change`, function() {
+        const requestType = $(this).val();
+        if(requestType === "delivery"){
+            $(`.quantity-label`).text(`Quantité à livrer`);
+        } else if(requestType === "collect") {
+            $(`.quantity-label`).text(`Quantité à collecter`);
+        } else if(requestType === "purchase") {
+            $(`.quantity-label`).text(`Quantité demandée`);
+        }
+    })
+
     $(`input[name="addOrCreate"][value="add"]`).on(`click`, function() {
         $(`.sub-form`).addClass(`d-none`);
 

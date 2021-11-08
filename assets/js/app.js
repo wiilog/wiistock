@@ -49,6 +49,8 @@ function importWiistock() {
 
     global.Wiistock = Wiistock;
     global.wrapLoadingOnActionButton = wrapLoadingOnActionButton;
+
+    Wiistock.initialize();
 }
 
 function importJquery() {

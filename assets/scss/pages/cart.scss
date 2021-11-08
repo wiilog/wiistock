@@ -1,19 +1,60 @@
+@import "../variables";
+
 .cart-reference-container {
     display: flex;
+    margin: 10px 5px;
 
     .cart-reference {
+        position: relative;
         flex: 1;
         display: flex;
-        border: 1px solid black;
-        border-radius: 4px;
+        flex-direction: row;
+        border: 1px solid var(--reference-color);
+        border-radius: 5px;
 
         .cart-reference-type {
             color: white;
-            background: black;
+            background: var(--reference-color);
             font-weight: bold;
             font-size: 0.8rem;
-            writing-mode: vertical-lr;
-            text-orientation: mixed;
+            text-align: center;
+            text-transform: uppercase;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+        }
+
+        .cart-reference-infos, .cart-reference-current-quantity, .cart-reference-quantity {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            margin: 20px 0;
+            padding: 0 20px;
+
+            &:not(:last-child) {
+                border-right: 1px solid $greyFormLight;
+            }
+        }
+
+        .wii-icon-stock {
+            color: $primary;
+            width: 15px;
+            height: 15px;
+        }
+    }
+
+    .remove-reference {
+        border: 1px solid $primary;
+        background: none;
+        padding: 4px;
+        margin-left: 3px;
+        border-radius: 5px;
+
+        .wii-icon-trash {
+            display: block;
+            background-color: $primary;
+            width: 20px;
+            height: 20px;
         }
     }
 }

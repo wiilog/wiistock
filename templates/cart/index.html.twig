@@ -4,6 +4,11 @@
 
 {% block title %}Panier{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('cart') }}
+{% endblock %}
+
 {% block page_content %}
     <div class="d-flex justify-content-center align-items-center" style="margin-bottom: 50px;">
         <div class="row wii-form wii-large-column">
@@ -159,23 +164,37 @@
                     <div class="header wii-title">Références</div>
                     <div class="content">
                         {% for reference in app.user.cart.references %}
-                            <div class="cart-reference-container">
+                            <div class="cart-reference-container" style="--reference-color: red;">
                                 <div class="cart-reference">
                                     <div class="cart-reference-type">{{ reference.type.label }}</div>
                                     <div class="cart-reference-infos">
-                                        <span class="wii-medium-text">Référence : {{ reference.reference }}</span><br>
-                                        {{ reference.libelle }}
+                                        <span class="wii-label nowrap">Référence : {{ reference.reference }}</span>
+                                        <span class="wii-field-text">{{ reference.libelle }}</span>
                                     </div>
                                     <div class="cart-reference-current-quantity">
-                                        <span class="wii-medium-text">Quantité disponible</span> {{ reference.quantiteDisponible }}<br>
-                                        <span class="wii-small-text">Ref article fournisseur : ???</span>
+                                        <span class="nowrap">
+                                            <span class="wii-field-name">
+                                                <img src="/svg/reference_article/stock.svg" alt="Icône stock" width="15px">
+                                                Quantité disponible
+                                            </span>
+                                            {{ reference.quantiteDisponible }}
+                                        </span>
+                                        <span class="wii-small-text nowrap">
+                                            Ref article fournisseur :
+                                            {% for supplierArticle in reference.articlesFournisseur %}
+                                                {{ supplierArticle.reference }}{% if not loop.last %},{% endif %}
+                                            {% endfor %}
+                                        </span>
                                     </div>
                                     <div class="cart-reference-quantity">
-                                        {{ form.number('quantity', '<span class="quantity-label">Quantité</span>', true, null, {
+                                        {{ form.number('quantity', {url: '/svg/reference_article/stock.svg', text: '<span class="quantity-label">Quantité à livrer</span>'}, true, null, {
                                             type: 'quantity',
                                         }) }}
                                     </div>
                                 </div>
+                                <button class="remove-reference">
+                                    <i class="wii-icon wii-icon-trash"></i>
+                                </button>
                             </div>
                         {% endfor %}
                     </div>

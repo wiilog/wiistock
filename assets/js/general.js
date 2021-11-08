@@ -8,4 +8,24 @@ export default class Wiistock {
             window.location.href = url;
         }
     }
+
+    static initialize() {
+        $(document).on(`click`, `.increase-decrease-field .increase, .increase-decrease-field .decrease` , function(){
+            const $button = $(this);
+            const $input = $button.siblings('input').first();
+
+            const value = parseInt($input.val()) || 0;
+            if($button.hasClass('increase')){
+                $input.val(value + 1);
+                $input.removeClass('is-invalid');
+            } else if($button.hasClass('decrease') && value >= 1) {
+                $input.val(value - 1);
+                $input.removeClass('is-invalid');
+            } else {
+                $input.val(0)
+            }
+
+            $input.trigger(`change`);
+        });
+    }
 }

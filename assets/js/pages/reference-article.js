@@ -63,10 +63,6 @@ $(document).ready(() => {
         }
         $(this).closest('.supplier-container').remove();
     });
-
-    $(document).on(`click`, `.increase-decrease-field .increase, .increase-decrease-field .decrease` , function(){
-        updateInputValue($(this));
-    });
 });
 
 function updateArticleReferenceImage($div, $image) {
@@ -78,21 +74,4 @@ function updateArticleReferenceImage($div, $image) {
         $imageContainer.css('background-color', '#FFFFFF');
         $imageContainer.css('background-size', 'cover');
     }
-}
-
-function updateInputValue($button) {
-    const $input = $button.siblings('input').first();
-    const value = parseInt($input.val()) || 0;
-    if($button.hasClass('increase')){
-        $input.val(value+1);
-        $input.removeClass('is-invalid');
-    } else if($button.hasClass('decrease') && value >= 1) {
-        $input.val(value-1);
-        $input.removeClass('is-invalid');
-    }
-    else {
-        $input.val(0)
-    }
-
-    $input.trigger(`change`);
 }
