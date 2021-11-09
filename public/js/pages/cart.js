@@ -1,44 +1,4 @@
-let $modalAddToRequest = null;
-
 $(document).ready(() => {
-    $modalAddToRequest = $('#modalAddToRequest');
-
-    $modalAddToRequest.on('hide.bs.modal', function() {
-        clearModal($modalAddToRequest);
-        $modalAddToRequest.find('.type-body').html('');
-        $('#submitAddToRequest').addClass('d-none');
-    });
-
-    let url = Routing.generate('cart_add_to_request', true);
-
-    InitModal($modalAddToRequest, $('#submitAddToRequest'), url);
-
-    const table = initDataTable(`cartTable`, {
-        responsive: true,
-        serverSide: true,
-        processing: true,
-        searching: false,
-        order: [[`label`, `desc`]],
-        ajax: {
-            url: Routing.generate(`cart_api`, true),
-            type: `POST`,
-        },
-        drawConfig: {
-            needsSearchOverride: true,
-        },
-        rowConfig: {
-            needsRowClickAction: true
-        },
-        columns: [
-            {data: `actions`, name: `actions`, title: ``, className: 'noVis', orderable: false, width: `10px`},
-            {data: `label`, name: `label`, title: `Libellé`},
-            {data: `reference`, name: `reference`, title: `Référence`},
-            {data: `supplierReference`, name: `supplierReference`, title: `Référence fournisseur`, orderable: false,},
-            {data: `type`, name: `type`, title: `Type`},
-            {data: `availableQuantity`, name: `availableQuantity`, title: `Quantité disponible`},
-        ],
-    });
-
     $(document).on(`click`, `.remove-reference`, function() {
         const $button = $(this);
         const route = Routing.generate(`cart_remove_reference`, {
@@ -51,11 +11,6 @@ $(document).ready(() => {
             showBSAlert(response.msg, `success`);
         });
     })
-
-    const refsCount = $('#cart-refs-count').val();
-    if (refsCount && refsCount> 0) {
-        $('.add-cart-to-request').removeClass('d-none');
-    }
 
     const $existingDelivery = $(`.existing-delivery`);
     const $existingCollect = $(`.existing-collect`);
@@ -138,30 +93,6 @@ function cartTypeChange($type) {
         $destination.val(null).trigger(`change`);
         $destination.attr(`disabled`, !$type.val());
     }
-}
-
-function onArticleSelectChange($select) {
-    const $selectedOption = $select.find('option:selected');
-    const $container = $select.parents('.row');
-    const $quantityInput = $container.find('.article-quantity');
-    const $quantityToPickInput = $container.find('input[type="number"]');
-    const quantity = $selectedOption.data('quantity');
-
-    $quantityInput.val(quantity);
-    $quantityToPickInput.attr('max', quantity);
-}
-
-function onPurchaseRequestChange(){
-    const $option = $modalAddToRequest.find('option');
-    $option.removeClass('d-none');
-    const selectedOptionValues = $modalAddToRequest.find('option:selected')
-        .map((_, option) => $(option).val())
-        .toArray()
-        .filter((option) => option);
-
-    const notSelectedOptionSelectors = selectedOptionValues.map((value) => `[value="${value}"]:not(:selected)`).join(',');
-    const notSelectedOptions = $modalAddToRequest.find(notSelectedOptionSelectors);
-    notSelectedOptions.addClass('d-none');
 }
 
 function onDeliveryChanged($select) {
