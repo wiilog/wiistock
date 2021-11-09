@@ -665,8 +665,8 @@ $grey: #CBCBCB;
     margin-top: 30px;
     margin-bottom: 30px;
 
-    @media (max-width: $responsive-breakpoint) {
-        width: calc(100% - 20px);
+    @media (max-width: 1360px) {
+        width: auto;
     }
 }
 
