@@ -3,9 +3,9 @@
 namespace App\Repository\IOT;
 
 use App\Entity\IOT\Pairing;
+use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
 use App\Helper\QueryCounter;
-use App\Entity\IOT\Sensor;
 use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
@@ -18,10 +18,9 @@ use WiiCommon\Helper\Stream;
  * @method Pairing[]    findAll()
  * @method Pairing[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class PairingRepository extends EntityRepository
-{
-    public function findByParams(InputBag $params, SensorWrapper $wrapper)
-    {
+class PairingRepository extends EntityRepository {
+
+    public function findByParams(InputBag $params, SensorWrapper $wrapper) {
 
         $qb = $this->createQueryBuilder("sensors_pairing")
             ->leftJoin('sensors_pairing.sensorWrapper', 'sensor_wrapper')
@@ -32,10 +31,10 @@ class PairingRepository extends EntityRepository
 
         $total = QueryCounter::count($qb, "sensors_pairing");
 
-        if (!empty($params)) {
-            if (!empty($params->get('search'))) {
+        if(!empty($params)) {
+            if(!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
-                if (!empty($search)) {
+                if(!empty($search)) {
                     $exprBuilder = $qb->expr();
                     $qb
                         ->andWhere('(' .
@@ -62,11 +61,11 @@ class PairingRepository extends EntityRepository
                 }
             }
 
-            if (!empty($params->get('order'))) {
+            if(!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
-                if (!empty($order)) {
+                if(!empty($order)) {
                     $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
-                    switch ($column) {
+                    switch($column) {
                         case 'element':
                             $qb
                                 ->orderBy('IFNULL(order_article.barCode,
@@ -84,7 +83,7 @@ class PairingRepository extends EntityRepository
                                 ->leftJoin('order_preparationOrder.demande', 'order_deliveryRequest');
                             break;
                         default:
-                            if (property_exists(Pairing::class, $column)) {
+                            if(property_exists(Pairing::class, $column)) {
                                 $qb->orderBy('sensors_pairing.' . $column, $order);
                             }
                             break;
@@ -95,13 +94,13 @@ class PairingRepository extends EntityRepository
 
         $countFiltered = QueryCounter::count($qb, 'sensors_pairing');
 
-        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
-        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
+        if($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
+        if($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
         return [
             'data' => $qb->getQuery()->getResult(),
             'count' => $countFiltered,
-            'total' => $total
+            'total' => $total,
         ];
     }
 
@@ -131,10 +130,10 @@ class PairingRepository extends EntityRepository
     public function findByParamsAndFilters(InputBag $filters) {
         $queryBuilder = $this->createQueryBuilder("pairing");
 
-        if (!empty($filters)) {
-            if ($filters->has('search') && !empty($filters->get('search'))) {
+        if(!empty($filters)) {
+            if($filters->has('search') && !empty($filters->get('search'))) {
                 $search = $filters->get('search');
-                if (!empty($search)) {
+                if(!empty($search)) {
                     $queryBuilder
                         ->leftJoin('pairing.sensorWrapper', 'search_sensorWrapper')
                         ->leftJoin('pairing.article', 'search_article')
@@ -250,7 +249,8 @@ class PairingRepository extends EntityRepository
         $query = $queryBuilder->getQuery();
         return [
             'data' => $query ? $query->getResult() : null,
-            'total' => $this->countAllActive()
+            'total' => $this->countAllActive(),
         ];
     }
+
 }

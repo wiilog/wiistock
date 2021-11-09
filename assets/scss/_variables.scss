@@ -15,7 +15,7 @@ $darkGrey: #6c757d;
 $lightGrey: #c6c6c6b3;
 $greyForm: #b2b2b2;
 
-$red: #cc0000;
+$red: #d73353;
 $redDanger: #bd2130;
 
 $green: #00b31e;
@@ -36,6 +36,7 @@ $primary:       #3353D7;
 $success:       #2FC2AB;
 $warning:       #ffc107;
 $danger:        $red;
+$info:          #33A5D7;
 $dark:          $darkGrey;
 
 $darkenPrimary: darken($primary, 7.5%);
@@ -54,6 +55,12 @@ $wiiStockTextColors: (
 
 $btn-focus-box-shadow: none;
 $input-btn-focus-box-shadow: none;
+
+$alertColors: (
+    success: $success,
+    danger: $danger,
+    info: $info,
+);
 
 @import "~bootstrap/scss/functions";
 @import "~bootstrap/scss/variables";

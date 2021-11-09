@@ -18,6 +18,7 @@
         "doctrine/doctrine-fixtures-bundle": "^3.4",
         "doctrine/doctrine-migrations-bundle": "^3.1",
         "doctrine/orm": "^2.10",
+        "doctrine/dbal": "2.13.4",
         "friendsofsymfony/jsrouting-bundle": "^2.7",
         "friendsofsymfony/rest-bundle": "^3.0",
         "google/apiclient": "^2.10",

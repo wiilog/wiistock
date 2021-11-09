@@ -1,3 +1,9 @@
+const types = {
+    success: `Succès`,
+    danger: `Erreur`,
+    info: `Information`
+}
+
 $(function (){
     const $alertsFlashbagElement = $('#alerts-flashbag');
     const alertsFlashbagStr = $alertsFlashbagElement.val();
@@ -12,9 +18,8 @@ $(function (){
 });
 
 /**
- *
  * @param {string} message
- * @param {'danger'|'success'|'warning'} color
+ * @param {'danger'|'success'|'info'} color
  * @param {boolean = true} remove
  */
 function showBSAlert(message, color, remove = true) {
@@ -23,25 +28,28 @@ function showBSAlert(message, color, remove = true) {
         const $alert = $('#alert-template')
             .clone()
             .removeAttr('id')
-            .addClass(`alert-${color}`)
-            .removeClass('d-none')
-            .addClass('d-flex');
+            .addClass(`wii-alert-${color}`)
+            .removeClass('d-none');
 
         $alert
             .find('.content')
             .html(message);
 
-        $alertContainer.html($alert);
+        $alert
+            .find('.alert-content')
+            .find('.type')
+            .html('<strong>' + types[color] + '</strong>');
+
+        $alertContainer.append($alert);
 
         if (remove) {
-            $alert
-                .delay(3000)
-                .fadeOut(2000);
+            $alert.delay(5500).fadeOut(500);
+
             setTimeout(() => {
                 if ($alert.parent().length) {
                     $alert.remove();
                 }
-            }, 5000);
+            }, 6000);
         }
     }
 }

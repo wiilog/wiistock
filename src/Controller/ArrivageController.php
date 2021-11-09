@@ -23,23 +23,23 @@ use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Service\DashboardService;
+use App\Service\GlobalParamService;
+use App\Service\MailerService;
 use WiiCommon\Helper\Stream;
-use App\Service\ArrivageDataService;
+use App\Service\ArrivageService;
 use App\Service\AttachmentService;
 use App\Service\DispatchService;
 use App\Service\FieldsParamService;
 use App\Service\TrackingMovementService;
 use App\Service\PackService;
 use App\Service\CSVExportService;
-use App\Service\DashboardService;
-use App\Service\GlobalParamService;
 use App\Service\DisputeService;
 use App\Service\PDFGeneratorService;
 use App\Service\SpecificService;
 use App\Service\UniqueNumberService;
 use App\Service\UrgenceService;
 use App\Service\UserService;
-use App\Service\MailerService;
 use App\Service\FreeFieldService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -59,66 +59,34 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Entity;
 /**
  * @Route("/arrivage")
  */
-class ArrivageController extends AbstractController
-{
-    /**
-     * @var UserService
-     */
-    private $userService;
+class ArrivageController extends AbstractController {
 
-    /**
-     * @var GlobalParamService
-     */
-    private $globalParamService;
+    /** @Required */
+    public UserService $userService;
 
-    /**
-     * @var MailerService
-     */
-    private $mailerService;
+    /** @Required */
+    public GlobalParamService $globalParamService;
 
-    /**
-     * @var SpecificService
-     */
-    private $specificService;
+    /** @Required */
+    public MailerService $mailerService;
 
-    /**
-     * @var AttachmentService
-     */
-    private $attachmentService;
+    /** @Required */
+    public SpecificService $specificSerfice;
 
-    /**
-     * @var ArrivageDataService
-     */
-    private $arrivageDataService;
+    /** @Required */
+    public AttachmentService $attachmentService;
 
-    /**
-     * @var DashboardService
-     */
-    private $dashboardService;
+    /** @Required */
+    public ArrivageService $arrivageService;
 
-    public function __construct(ArrivageDataService $arrivageDataService,
-                                DashboardService $dashboardService,
-                                AttachmentService $attachmentService,
-                                SpecificService $specificService,
-                                MailerService $mailerService,
-                                GlobalParamService $globalParamService,
-                                UserService $userService)
-    {
-        $this->dashboardService = $dashboardService;
-        $this->specificService = $specificService;
-        $this->globalParamService = $globalParamService;
-        $this->userService = $userService;
-        $this->mailerService = $mailerService;
-        $this->attachmentService = $attachmentService;
-        $this->arrivageDataService = $arrivageDataService;
-    }
+    /** @Required */
+    public DashboardService $dashboardService;
 
     /**
      * @Route("/", name="arrivage_index")
      * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI})
      */
-    public function index(EntityManagerInterface $entityManager,
-                          ArrivageDataService $arrivageDataService)
+    public function index(EntityManagerInterface $entityManager, ArrivageService $arrivageDataService)
     {
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
@@ -182,20 +150,23 @@ class ArrivageController extends AbstractController
             $userId = $this->getUser()->getId();
         }
 
-        return $this->json($this->arrivageDataService->getDataForDatatable($request->request, $userId));
+        return $this->json($this->arrivageService->getDataForDatatable(
+            $request->request,
+            $userId,
+        ));
     }
 
     /**
      * @Route("/creer", name="arrivage_new", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
-    public function new(Request $request,
+    public function new(Request                $request,
                         EntityManagerInterface $entityManager,
-                        AttachmentService $attachmentService,
-                        ArrivageDataService $arrivageDataService,
-                        FreeFieldService $champLibreService,
-                        PackService $colisService,
-                        TranslatorInterface $translator): Response
+                        AttachmentService      $attachmentService,
+                        ArrivageService        $arrivageDataService,
+                        FreeFieldService       $champLibreService,
+                        PackService            $colisService,
+                        TranslatorInterface    $translator): Response
     {
         $data = $request->request->all();
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
@@ -401,7 +372,7 @@ class ArrivageController extends AbstractController
      */
     public function patchUrgentArrival(Arrivage $arrival,
                                        Request $request,
-                                       ArrivageDataService $arrivageDataService,
+                                       ArrivageService $arrivageDataService,
                                        UrgenceService $urgenceService,
                                        EntityManagerInterface $entityManager): Response
     {
@@ -438,10 +409,10 @@ class ArrivageController extends AbstractController
      * @Route("/{arrival}/tracking-movements", name="post_arrival_tracking_movements", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      * @Entity("arrival", expr="repository.find(arrival) ?: repository.findOneBy({'numeroArrivage': arrival})")
      */
-    public function postArrivalTrackingMovements(Arrivage $arrival,
-                                                 ArrivageDataService $arrivageDataService,
+    public function postArrivalTrackingMovements(Arrivage                $arrival,
+                                                 ArrivageService         $arrivageDataService,
                                                  TrackingMovementService $trackingMovementService,
-                                                 EntityManagerInterface $entityManager): Response
+                                                 EntityManagerInterface  $entityManager): Response
     {
         $location = $arrivageDataService->getLocationForTracking($entityManager, $arrival);
 
@@ -469,9 +440,9 @@ class ArrivageController extends AbstractController
      * @Route("/modifier", name="arrivage_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function edit(Request $request,
-                         ArrivageDataService $arrivageDataService,
-                         FreeFieldService $champLibreService,
+    public function edit(Request                $request,
+                         ArrivageService        $arrivageDataService,
+                         FreeFieldService       $champLibreService,
                          EntityManagerInterface $entityManager): Response
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
@@ -643,12 +614,12 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/csv", name="get_arrivages_csv", options={"expose"=true}, methods={"GET"})
      */
-    public function exportArrivals(Request $request,
+    public function exportArrivals(Request                $request,
                                    EntityManagerInterface $entityManager,
-                                   CSVExportService $csvService,
-                                   FieldsParamService $fieldsParamService,
-                                   ArrivageDataService $arrivageDataService,
-                                   FreeFieldService $freeFieldService) {
+                                   CSVExportService       $csvService,
+                                   FieldsParamService     $fieldsParamService,
+                                   ArrivageService        $arrivageDataService,
+                                   FreeFieldService       $freeFieldService) {
         $FORMAT = "Y-m-d H:i:s";
 
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
@@ -716,11 +687,11 @@ class ArrivageController extends AbstractController
      * @Route("/voir/{id}/{printColis}/{printArrivage}", name="arrivage_show", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function show(EntityManagerInterface $entityManager,
-                         ArrivageDataService $arrivageDataService,
-                         Arrivage $arrivage,
-                         DispatchService  $dispatchService,
-                         bool $printColis = false,
-                         bool $printArrivage = false): Response
+                         ArrivageService        $arrivageDataService,
+                         Arrivage               $arrivage,
+                         DispatchService        $dispatchService,
+                         bool                   $printColis = false,
+                         bool                   $printArrivage = false): Response
     {
         // HasPermission annotation impossible
         if (!$this->userService->hasRightFunction(Menu::TRACA, Action::LIST_ALL)
@@ -772,7 +743,7 @@ class ArrivageController extends AbstractController
      * @HasPermission({Menu::TRACA, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
     public function newDispute(Request                $request,
-                               ArrivageDataService    $arrivageDataService,
+                               ArrivageService        $arrivageDataService,
                                DisputeService         $disputeService,
                                EntityManagerInterface $entityManager,
                                UniqueNumberService    $uniqueNumberService,
@@ -1000,7 +971,7 @@ class ArrivageController extends AbstractController
      * @HasPermission({Menu::QUALI, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function editLitige(Request                $request,
-                               ArrivageDataService    $arrivageDataService,
+                               ArrivageService        $arrivageDataService,
                                EntityManagerInterface $entityManager,
                                DisputeService         $disputeService,
                                Twig_Environment       $templating): Response
@@ -1059,8 +1030,7 @@ class ArrivageController extends AbstractController
         $typeDescription = $dispute->getType()->getDescription();
         if ($statutBefore !== $statutAfter
             || $typeBefore !== $typeAfter
-            || $comment
-            || $typeDescription) {
+            || $comment) {
 
             $historyRecord = $disputeService->createDisputeHistoryRecord(
                 $dispute,
@@ -1361,8 +1331,8 @@ class ArrivageController extends AbstractController
     }
 
     private function getResponseReloadArrivage(EntityManagerInterface $entityManager,
-                                               ArrivageDataService $arrivageDataService,
-                                               $reloadArrivageId): ?array
+                                               ArrivageService        $arrivageDataService,
+                                                                      $reloadArrivageId): ?array
     {
         $response = null;
         if (isset($reloadArrivageId)) {
@@ -1426,7 +1396,7 @@ class ArrivageController extends AbstractController
      * @Route("/api-columns", name="arrival_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI}, mode=HasPermission::IN_JSON)
      */
-    public function apiColumns(ArrivageDataService $arrivageDataService,
+    public function apiColumns(ArrivageService        $arrivageDataService,
                                EntityManagerInterface $entityManager): Response
     {
         /** @var Utilisateur $currentUser */

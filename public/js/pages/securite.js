@@ -26,7 +26,7 @@ function editPassword() {
 
     $.post(path, params, function(data){
         if (data === 'ok') {
-            window.location.href = Routing.generate('login', { 'info': 'Votre mot de passe a bien été modifié.' });
+            window.location.href = Routing.generate('login', { 'success': 'Votre mot de passe a bien été modifié.' });
         } else {
             $('.error-msg').html(data);
         }

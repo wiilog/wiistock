@@ -8,6 +8,7 @@ use App\Entity\FiltreSup;
 use App\Entity\Pack;
 use App\Entity\TrackingMovement;
 use App\Entity\Nature;
+use App\Exception\JsonException;
 use App\Helper\FormatHelper;
 use App\Repository\NatureRepository;
 use App\Repository\PackRepository;
@@ -15,31 +16,26 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
 use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\Stream;
 
-class PackService
-{
+class PackService {
 
-    private $entityManager;
-    private $security;
-    private $template;
-    private $trackingMovementService;
-    private $arrivageDataService;
+    /** @Required */
+    public EntityManagerInterface $entityManager;
 
-    public function __construct(TrackingMovementService $trackingMovementService,
-                                ArrivageDataService $arrivageDataService,
-                                Security $security,
-                                Twig_Environment $template,
-                                EntityManagerInterface $entityManager)
-    {
-        $this->entityManager = $entityManager;
-        $this->trackingMovementService = $trackingMovementService;
-        $this->arrivageDataService = $arrivageDataService;
-        $this->security = $security;
-        $this->template = $template;
-    }
+    /** @Required */
+    public Security $security;
 
-    public function getDataForDatatable($params = null)
-    {
+    /** @Required */
+    public Twig_Environment $template;
+
+    /** @Required */
+    public TrackingMovementService $trackingMovementService;
+
+    /** @Required */
+    public ArrivageService $arrivageDataService;
+
+    public function getDataForDatatable($params = null) {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $packRepository = $this->entityManager->getRepository(Pack::class);
 
@@ -226,6 +222,11 @@ class PackService
         $location = $persistTrackingMovements
             ? $this->arrivageDataService->getLocationForTracking($entityManager, $arrivage)
             : null;
+
+        $totalPacks = Stream::from($colisByNatures)->sum();
+        if($totalPacks > 500) {
+            throw new JsonException("Vous ne pouvez pas ajouter plus de 500 colis");
+        }
 
         $now = new DateTime('now');
         $createdPacks = [];

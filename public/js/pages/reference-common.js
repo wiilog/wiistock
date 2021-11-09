@@ -7,7 +7,7 @@ function addReferenceToCart($element) {
             $(`.header-icon.cart`).find('.icon-figure').text(response.count)[response.count ? `removeClass` : `addClass`](`d-none`);
             showBSAlert(response.msg, `success`);
         } else {
-            showBSAlert(response.msg, `warning`);
+            showBSAlert(response.msg, `info`);
         }
     });
 }

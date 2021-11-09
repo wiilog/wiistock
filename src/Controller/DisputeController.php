@@ -221,9 +221,9 @@ class DisputeController extends AbstractController
         $post = $request->request;
         $isArrivage = $post->get('isArrivage');
 
-        $controller = $isArrivage ? 'App\Controller\ArrivageController' : 'App\Controller\ReceptionController';
+        $controllerAndFunction = $isArrivage ? 'App\Controller\ArrivageController::editLitige' : 'App\Controller\ReceptionController::editDispute';
 
-        return $this->forward($controller . '::editLitige', [
+        return $this->forward($controllerAndFunction, [
             'request' => $request
         ]);
 	}

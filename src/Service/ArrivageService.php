@@ -24,14 +24,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment;
 
 
-class ArrivageDataService
-{
-    private $specificService;
-    private $stringService;
-    private $translator;
-    private $freeFieldService;
-    private $fieldsParamService;
-    private $visibleColumnService;
+class ArrivageService {
 
     /** @Required */
     public Environment $templating;
@@ -51,24 +44,25 @@ class ArrivageDataService
     /** @Required */
     public UrgenceService $urgenceService;
 
-    public function __construct(SpecificService $specificService,
-                                StringService $stringService,
-                                FreeFieldService $champLibreService,
-                                FieldsParamService $fieldsParamService,
-                                TranslatorInterface $translator,
-                                VisibleColumnService $visibleColumnService)
-    {
+    /** @Required */
+    public SpecificService $specificService;
 
-        $this->freeFieldService = $champLibreService;
-        $this->fieldsParamService = $fieldsParamService;
-        $this->translator = $translator;
-        $this->stringService = $stringService;
-        $this->specificService = $specificService;
-        $this->visibleColumnService = $visibleColumnService;
-    }
+    /** @Required */
+    public StringService $stringService;
 
-    public function getDataForDatatable(InputBag $params, $userId)
-    {
+    /** @Required */
+    public TranslatorInterface $translator;
+
+    /** @Required */
+    public FreeFieldService $freeFieldService;
+
+    /** @Required */
+    public FieldsParamService $fieldsParamService;
+
+    /** @Required */
+    public VisibleColumnService $visibleColumnService;
+
+    public function getDataForDatatable(InputBag $params, $userId) {
         $arrivalRepository = $this->entityManager->getRepository(Arrivage::class);
         $supFilterRepository = $this->entityManager->getRepository(FiltreSup::class);
 
