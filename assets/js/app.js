@@ -29,10 +29,14 @@ import '../scss/app.scss';
 import './tooltips';
 import './select2';
 import './modals-commons';
+import Form from "./form";
+
+export const $document = $(document);
 
 ///////////////// Main
 
 importWiistock();
+importForm();
 importJquery();
 importMoment();
 importQuill();
@@ -51,6 +55,10 @@ function importWiistock() {
     global.wrapLoadingOnActionButton = wrapLoadingOnActionButton;
 
     Wiistock.initialize();
+}
+
+function importForm() {
+    global.Form = Form;
 }
 
 function importJquery() {

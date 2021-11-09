@@ -463,22 +463,14 @@ class DemandeRepository extends EntityRepository
     }
 
     public function getDeliveryRequestForSelect(Utilisateur $currentUser) {
-        $qb = $this->createQueryBuilder("demande");
-        return $qb->select("demande.id AS id")
-            ->addSelect("demande.numero AS number")
-            ->addSelect("demande.commentaire AS comment")
-            ->addSelect("delivery_type.label AS type")
-            ->addSelect("delivery_destination.label AS destination")
-            ->addSelect("DATE_FORMAT(demande.date,'%d-%c-%Y %H:%i') AS creationDate")
-            ->leftJoin("demande.type", "delivery_type")
+        return $this->createQueryBuilder("demande")
             ->leftJoin("demande.statut", "delivery_statut")
-            ->leftJoin("demande.destination", "delivery_destination")
             ->leftJoin("demande.utilisateur", "delivery_utilisateur")
             ->where('delivery_utilisateur.username LIKE :currentUser')
             ->andWhere('delivery_statut.state = :status_draft')
             ->setParameter('currentUser', $currentUser->getUsername())
             ->setParameter('status_draft', STATUT::DRAFT)
             ->getQuery()
-            ->getArrayResult();
+            ->getResult();
     }
 }

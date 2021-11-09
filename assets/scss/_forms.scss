@@ -159,6 +159,8 @@ $wii-switch-height: 34px;
 }
 
 .wii-radio {
+    --radio-color: #{$primary};
+
     display: flex;
     align-items: center;
 
@@ -176,7 +178,7 @@ $wii-switch-height: 34px;
         height: 15px;
         padding: 2px;
         background-clip: content-box;
-        border: 2px solid $primary;
+        border: 2px solid var(--radio-color);
         background-color: $white;
         border-radius: 50%;
         margin-right: 5px;
@@ -184,7 +186,7 @@ $wii-switch-height: 34px;
 
     /* appearance for checked radiobutton */
     input[type="radio"]:checked {
-        background-color: $primary;
+        background-color: var(--radio-color);
     }
 }
 
@@ -259,5 +261,14 @@ $wii-switch-height: 34px;
         &:focus + label::before {
             outline: 0;
         }
+    }
+}
+
+label, .wii-checkbox, .wii-radio {
+    .invalid-feedback {
+        display: block;
+        font-size: 0.9rem;
+        font-weight: normal;
+        color: $red;
     }
 }

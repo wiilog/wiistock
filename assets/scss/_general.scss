@@ -256,11 +256,28 @@ a {
 }
 
 //  reprise du form-control.is-invalid de bootstrap
-.is-invalid {
-    border: 2px solid #dc3545 !important;
+.is-invalid:not(label, .wii-radio, .wii-checkbox) {
+    border: 1px solid #dc3545 !important;
     background-repeat: no-repeat;
     background-position: center right calc(2.25rem / 4);
     background-size: calc(2.25rem / 2) calc(2.25rem / 2);
+
+    .select2-selection {
+        border: 1px solid red !important;
+    }
+}
+
+label.is-invalid, .wii-radio.is-invalid, .wii-checkbox.is-invalid {
+    input:not([type=radio]) {
+        border: 1px solid #dc3545 !important;
+        background-repeat: no-repeat;
+        background-position: center right calc(2.25rem / 4);
+        background-size: calc(2.25rem / 2) calc(2.25rem / 2);
+    }
+
+    input[type=radio] {
+        --radio-color: #dc3545 !important;
+    }
 
     .select2-selection {
         border: 1px solid red !important;

@@ -22,32 +22,18 @@
                             {label: {wiiIcon: 'cart-purchase', text: 'Achat'}, value: 'purchase'},
                         ]) }}
 
-                        {{ form.radio('addOrCreate', 'Ajouter à une de mes demandes en brouillon', false, 'add') }}
-                        {{ form.radio('addOrCreate', 'Créer une nouvelle demande', false, 'create') }}
+                        {{ form.radio('addOrCreate', null, true, [
+                            {label: 'Ajouter à une de mes demandes en brouillon', value: 'add'},
+                            {label: 'Créer une nouvelle demande', value: 'create'},
+                        ]) }}
 
                         <div class="sub-form existing-delivery d-none">
                             <div class="my-delivery-requests">
                                 <div class="section">Ma demande de livraison</div>
-                                <label for="delivery-request" title="delivery-request">
-                                    Mes livraisons
-                                </label>
-                                <select class="form-control data needed w-100" name="delivery-request"
-                                        onchange="onDeliveryChanged($(this), true)" data-placeholder="- ">
-                                    <option value="-">-</option>
-                                    {% for deliveryRequest in deliveryRequests %}
-                                        <option value="{{ deliveryRequest.id }}">
-                                            {{ deliveryRequest.number }} -
-                                            {{ deliveryRequest.type }} -
-                                            {{ deliveryRequest.destination }} - Créée le
-                                            {{ deliveryRequest.creationDate }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                                {% for deliveryRequest in deliveryRequests %}
-                                    <input type="hidden" id="{{ deliveryRequest.id }}" value="{{ deliveryRequest.comment }}"/>
-                                {% endfor %}
 
-
+                                {{ form.select('existingDelivery', 'Mes livraisons', true, {
+                                    items: deliveryRequests,
+                                }) }}
                             </div>
                             <div class="delivery-request-content d-none">
                                 <div class="display-comment">
@@ -110,28 +96,9 @@
                         <div class="sub-form existing-collect d-none">
                             <div class="my-collect-requests">
                                 <div class="section">Ma demande de collecte</div>
-                                <label for="collect-request" title="collect-request">
-                                    Mes collectes
-                                </label>
-                                <select class="form-control data needed w-100" name="collect-request"
-                                        onchange="onCollectChanged($(this), true)" data-placeholder="- ">
-                                    <option value="-">-</option>
-                                    {% for collectRequest in collectRequests %}
-                                        <option value="{{ collectRequest.id }}">
-                                            {{ collectRequest.number }} -
-                                            {{ collectRequest.type }} -
-                                            {{ collectRequest.collect_point }} - Créée le
-                                            {{ collectRequest.creationDate }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                                {% for collectRequest in collectRequests %}
-                                    <input type="hidden" id="comment{{ collectRequest.id }}" value="{{ collectRequest.comment }}"/>
-                                    <input type="hidden" id="destination{{ collectRequest.id }}" value="{{ collectRequest.destination }}"/>
-                                    <input type="hidden" id="objet{{ collectRequest.id }}" value="{{ collectRequest.objet }}"/>
-                                {% endfor %}
-
-
+                                {{ form.select('existingCollect', 'Mes collectes', true, {
+                                    items: collectRequests,
+                                }) }}
                             </div>
                             <div class="collect-request-content d-none">
                                 <div class="destination-objet d-flex">
@@ -164,7 +131,10 @@
                     <div class="header wii-title">Références</div>
                     <div class="content">
                         {% for reference in app.user.cart.references %}
-                            <div class="cart-reference-container" style="--reference-color: {{ reference.type.color ?? '$primary;' }};">
+                            <div class="cart-reference-container"
+                                 data-multiple-key="quantities"
+                                 data-multiple-object-index="{{ reference.id }}"
+                                 style="--reference-color: {{ reference.type.color ?? '$primary;' }};">
                                 <div class="cart-reference">
                                     <div class="cart-reference-type">{{ reference.type.label }}</div>
                                     <div class="cart-reference-infos">
@@ -187,9 +157,11 @@
                                         </span>
                                     </div>
                                     <div class="cart-reference-quantity">
-                                        {{ form.number('quantity', {url: '/svg/reference_article/stock.svg', text: '<span class="quantity-label">Quantité à livrer</span>'}, true, null, {
-                                            type: 'quantity',
+                                        {{ form.number('quantity', {url: '/svg/reference_article/stock.svg', text: '<span class="quantity-label">Quantité à livrer</span>'}, true, 0, {
+                                            min: 0,
+                                            max: reference.quantiteDisponible,
                                             labelClass: 'd-flex flex-column align-items-center',
+                                            error: 'global',
                                         }) }}
                                     </div>
                                 </div>
@@ -200,7 +172,7 @@
                         {% endfor %}
                     </div>
                 </div>
-                <button class="btn btn-success float-right mt-3" onclick="validateCart()">
+                <button class="btn btn-success float-right mt-3" type="submit">
                     Valider mon panier
                 </button>
             </div>

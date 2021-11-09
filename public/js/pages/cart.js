@@ -110,7 +110,9 @@ $(document).ready(() => {
         }
     });
 
-    initEditor(`.editor-container`);
+    Form.create(`.wii-form`).onSubmit(data => {
+        console.error(data.asObject());
+    });
 });
 
 function cartTypeChange($type) {
@@ -129,10 +131,6 @@ function cartTypeChange($type) {
     console.log(defaultDestination, $type.closest(`.wii-form`), $destination);
 
     $destination.trigger(`change`);
-}
-
-function validateCart() {
-    alert('validé');
 }
 
 function onArticleSelectChange($select) {

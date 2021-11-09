@@ -27,6 +27,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use WiiCommon\Helper\Stream;
 
 /**
  * @Route("/panier")
@@ -37,9 +38,9 @@ class CartController extends AbstractController
     /**
      * @Route("/", name="cart")
      */
-    public function cart(EntityManagerInterface $entityManager, GlobalParamService $globalParamService): Response {
-        $typeRepository = $entityManager->getRepository(Type::class);
-        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+    public function cart(EntityManagerInterface $manager, GlobalParamService $globalParamService): Response {
+        $typeRepository = $manager->getRepository(Type::class);
+        $freeFieldRepository = $manager->getRepository(FreeField::class);
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -57,10 +58,20 @@ class CartController extends AbstractController
         }
 
         $defaultDeliveryLocations = $globalParamService->getDefaultDeliveryLocationsByTypeId();
-        $deliveryRequests = $entityManager->getRepository(Demande::class)->getDeliveryRequestForSelect($currentUser);
-        $collectRequests = $entityManager->getRepository(Collecte::class)->getCollectRequestForSelect($currentUser);
+        $deliveryRequests = Stream::from($manager->getRepository(Demande::class)->getDeliveryRequestForSelect($currentUser))
+            ->keymap(fn(Demande $request) => [
+                $request->getId(),
+                "{$request->getNumero()} - {$request->getType()->getLabel()} - {$request->getDestination()->getLabel()} - Créée le {$request->getDate()->format('d/m/Y H:i')}"
+            ]);
 
+        $collectRequests = Stream::from($manager->getRepository(Collecte::class)->getCollectRequestForSelect($currentUser))
+            ->keymap(fn(Collecte $request) => [
+                $request->getId(),
+                "{$request->getNumero()} - {$request->getType()->getLabel()} - {$request->getPointCollecte()->getLabel()} - Créée le {$request->getDate()->format('d/m/Y H:i')}"
+            ]);
 
+        dump($deliveryRequests);
+        dump($collectRequests);
         return $this->render("cart/index.html.twig", [
             "deliveryRequests" => $deliveryRequests,
             "collectRequests" => $collectRequests,
