@@ -43,7 +43,7 @@
 
 {% macro visibility_group_input(reference) %}
     <div class="col-12 col-md-6 mt-3">
-        <label for="visibility-group" class="wii-field-name">Groupe de visibilité
+        <label for="visibility-group" class="wii-field-name w-100">Groupe de visibilité
             <select name="visibility-group" class="form-control data" data-s2="visibilityGroup">
                 {% if reference.visibilityGroup %}
                     <option value="{{ reference.visibilityGroup.id }}" selected>{{ reference.visibilityGroup.label }}</option>
@@ -59,7 +59,7 @@
 {% set disabled = editable ? '' : 'disabled' %}
 {% set isReferenceManagementQuantity = reference.id and reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_REFERENCE') %}
 <div class="d-flex justify-content-center align-items-center" style="margin-bottom: 50px;">
-    <div class="row ra-form wii-column">
+    <div class="row wii-form wii-column">
         <div class="col-12 col-md-6">
             <div class="wii-box">
                 {% if reference.id %}
@@ -111,7 +111,7 @@
                                 <select name="type"
                                         data-s2 data-placeholder="Choisissez un type"
                                         class="form-control data d-block type needed"
-                                        onchange="typeChoice($(this), $(this).closest('.ra-form').find('.free-fields-container')); toggleRequiredChampsLibres($(this),'create', $(this).closest('.ra-form').find('.free-fields-container'))">
+                                        onchange="typeChoice($(this), $(this).closest('.wii-form').find('.free-fields-container')); toggleRequiredChampsLibres($(this),'create', $(this).closest('.wii-form').find('.free-fields-container'))">
                                     {% for type in types %}
                                         <option value="{{ type.id }}">
                                             {{ type.label }}
@@ -150,12 +150,12 @@
                 <div class="content">
                     <div class="row">
                         <div class="col-12 col-md-6">
-                            <label>
-                                    <span class="icon wii-field-name">
-                                        <img src="{{ asset('svg/reference_article/manager.svg') }}" class="icon" alt="Image gestionnaire">
-                                        Gestionnaires
-                                    </span>
-                                <select name="managers" class="form-control data w-100" data-s2="user"
+                            <label class="w-100">
+                                <span class="icon wii-field-name">
+                                    <img src="{{ asset('svg/reference_article/manager.svg') }}" class="icon" alt="Image gestionnaire">
+                                    Gestionnaires
+                                </span>
+                                <select name="managers" class="form-control w-100 data" data-s2="user"
                                         data-placeholder="Sélectionnez des gestionnaires" multiple>
                                     {% for manager in reference.managers %}
                                     <option value="{{ manager.id }}" selected>{{ manager.username }}</option>
@@ -180,7 +180,7 @@
                     </div>
                     <div class="row">
                         <div class="col-12 col-md-6 mt-3">
-                            <label>
+                            <label class="w-100">
                                     <span class="icon wii-field-name">
                                         <img src="{{ asset('svg/reference_article/warehouse.svg') }}" class="icon" alt="Image entrepôt">
                                         Catégorie d'inventaire
@@ -262,19 +262,19 @@
                                value="{{ isReferenceManagementQuantity ? "reference" : "article" }}"
                                content="{{ isReferenceManagementQuantity ? "Référence" : "Article" }}"
                                data-title="{{ isReferenceManagementQuantity ? "reference" : "article" }}"
-                               onclick="toggleRequiredChampsFixes($(this), '.ra-form'); updateQuantityDisplay($(this), '.ra-form', true)" checked>
+                               onclick="toggleRequiredChampsFixes($(this), '.wii-form'); updateQuantityDisplay($(this), '.wii-form', true)" checked>
                     {% else %}
-                        <label class="wii-field-name">
+                        <label class="wii-field-name w-100">
                             Gestion quantité*
                         </label>
                         <div class="wii-switch needed" data-title="Statut">
                             <input type="radio" name="type_quantite" value="reference" content="Référence" data-title="reference"
                                 {{ reference.id ? 'class="type_quantite" disabled' : 'class="type_quantite data"' }}
-                                   onclick="toggleRequiredChampsFixes($(this), '.ra-form'); updateQuantityDisplay($(this), '.ra-form', true)"
+                                   onclick="toggleRequiredChampsFixes($(this), '.wii-form'); updateQuantityDisplay($(this), '.wii-form', true)"
                                 {{ not reference.typeQuantite or reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_REFERENCE') ? 'checked' }}>
                             <input type="radio" name="type_quantite" value="article" content="Article" data-title="article"
                                 {{ reference.id ? 'class="type_quantite" disabled' : 'class="type_quantite data"' }}
-                                   onclick="toggleRequiredChampsFixes($(this), '.ra-form'); updateQuantityDisplay($(this), '.ra-form', true)"
+                                   onclick="toggleRequiredChampsFixes($(this), '.wii-form'); updateQuantityDisplay($(this), '.wii-form', true)"
                                 {{ reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_ARTICLE') ? 'checked' }}>
                         </div>
                     {% endif %}
@@ -306,7 +306,7 @@
                                         </div>
                                     {% else %}
                                         <div class="col-12 col-md-4 reference mt-3">
-                                            <label>
+                                            <label class="w-100">
                                                 <span class="icon wii-field-name">
                                                     <img src="{{ asset('svg/reference_article/location.svg') }}" class="icon" alt="Image emplacement">
                                                     Emplacement*

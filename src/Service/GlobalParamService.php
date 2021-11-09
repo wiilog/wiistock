@@ -148,8 +148,8 @@ Class GlobalParamService
         return $defaultDeliveryLocations;
     }
 
-	public function getDefaultDeliveryLocationsByTypeId(EntityManagerInterface $entityManager): array {
-
+	public function getDefaultDeliveryLocationsByTypeId(?EntityManagerInterface $entityManager = null): array {
+        $entityManager = $entityManager ?? $this->entityManager;
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 

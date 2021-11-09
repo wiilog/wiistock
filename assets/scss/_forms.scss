@@ -20,14 +20,18 @@
         color: $primary;
         width: 37px;
         min-width: 37px;
-        height: 37px;
+        height: 38px;
 
         &.decrease:before {
             content: "-";
+            font-weight: bolder;
+            font-size: 18px;
         }
 
         &.increase:before {
             content: "+";
+            font-weight: bolder;
+            font-size: 18px;
         }
     }
 }
@@ -123,15 +127,18 @@ $wii-switch-height: 34px;
     }
 }
 
+.form-control {
+    height: 38px;
+}
+
 .form-control, .select2-search__field, .select2-selection__placeholder {
     border-radius: 5px;
-    color: black !important;
-    padding: 5px 10px;
+    padding: 5px 15px;
+    font-size: 0.9rem !important;
+}
 
-    &::placeholder {
-        color: black !important;
-        opacity: 1; /* Firefox */
-    }
+.select2-selection__placeholder {
+    padding: 5px 5px;
 }
 
 .select2-selection__rendered {
@@ -152,6 +159,8 @@ $wii-switch-height: 34px;
 }
 
 .wii-radio {
+    --radio-color: #{$primary};
+
     display: flex;
     align-items: center;
 
@@ -169,7 +178,7 @@ $wii-switch-height: 34px;
         height: 15px;
         padding: 2px;
         background-clip: content-box;
-        border: 2px solid $primary;
+        border: 2px solid var(--radio-color);
         background-color: $white;
         border-radius: 50%;
         margin-right: 5px;
@@ -177,7 +186,7 @@ $wii-switch-height: 34px;
 
     /* appearance for checked radiobutton */
     input[type="radio"]:checked {
-        background-color: $primary;
+        background-color: var(--radio-color);
     }
 }
 
@@ -252,5 +261,14 @@ $wii-switch-height: 34px;
         &:focus + label::before {
             outline: 0;
         }
+    }
+}
+
+label, .wii-checkbox, .wii-radio {
+    .invalid-feedback {
+        display: block;
+        font-size: 0.9rem;
+        font-weight: normal;
+        color: $red;
     }
 }

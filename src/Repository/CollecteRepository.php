@@ -373,4 +373,16 @@ class CollecteRepository extends EntityRepository
         $res = $unionQuery->fetchAllAssociative();
         return $res[0]['count'] ?? 0;
     }
+
+    public function getCollectRequestForSelect(Utilisateur $currentUser) {
+        return $this->createQueryBuilder("collecte")
+            ->leftJoin("collecte.statut", "collect_statut")
+            ->leftJoin("collecte.demandeur", "collect_utilisateur")
+            ->where('collect_utilisateur.username LIKE :currentUser')
+            ->andWhere('collect_statut.state = :status_draft')
+            ->setParameter('currentUser', $currentUser->getUsername())
+            ->setParameter('status_draft', STATUT::DRAFT)
+            ->getQuery()
+            ->getResult();
+    }
 }

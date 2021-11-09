@@ -240,11 +240,28 @@ a {
 }
 
 //  reprise du form-control.is-invalid de bootstrap
-.is-invalid {
-    border: 2px solid #dc3545 !important;
+.is-invalid:not(label, .wii-radio, .wii-checkbox) {
+    border: 1px solid #dc3545 !important;
     background-repeat: no-repeat;
     background-position: center right calc(2.25rem / 4);
     background-size: calc(2.25rem / 2) calc(2.25rem / 2);
+
+    .select2-selection {
+        border: 1px solid red !important;
+    }
+}
+
+label.is-invalid, .wii-radio.is-invalid, .wii-checkbox.is-invalid {
+    input:not([type=radio]) {
+        border: 1px solid #dc3545 !important;
+        background-repeat: no-repeat;
+        background-position: center right calc(2.25rem / 4);
+        background-size: calc(2.25rem / 2) calc(2.25rem / 2);
+    }
+
+    input[type=radio] {
+        --radio-color: #dc3545 !important;
+    }
 
     .select2-selection {
         border: 1px solid red !important;
@@ -591,7 +608,7 @@ $grey: #CBCBCB;
             border-radius: 5px;
         }
 
-        input, .select2-container {
+        input, .select2.select2-container {
             margin-top: 5px;
         }
 
@@ -632,8 +649,8 @@ $grey: #CBCBCB;
     margin-top: 30px;
     margin-bottom: 30px;
 
-    @media (max-width: $responsive-breakpoint) {
-        width: calc(100% - 20px);
+    @media (max-width: 1360px) {
+        width: auto;
     }
 }
 
@@ -668,7 +685,7 @@ $grey: #CBCBCB;
             padding: 3px 20px;
         }
 
-        .comment {
+        .display-comment {
             margin: 10px -16px 0;
             padding: 10px 15px;
             background-color: #E8E8E8;
@@ -686,6 +703,29 @@ $grey: #CBCBCB;
                 max-width: 100%;
             }
         }
+
+        .delivery-references, .collect-references {
+            margin: 10px -16px 0;
+            padding: 10px 15px;
+            font-size: 0.9rem;
+
+            .references-title {
+                display: block;
+                margin-bottom: 5px;
+                color: $darkGrey;
+                font-weight: bold;
+            }
+        }
+
+        .destination-objet {
+            font-size: 0.9rem;
+            .collect-title {
+                display: block;
+                margin-bottom: 5px;
+                color: $darkGrey;
+                font-weight: bold;
+            }
+        }
     }
 }
 
@@ -696,8 +736,14 @@ $grey: #CBCBCB;
 }
 
 .wii-subtitle {
-    color: #666666;
-    font-size: 14px;
+    color: #666666 !important;
+    font-size: 14px !important;
+    font-weight: bold !important;
+}
+
+.wii-label {
+    color: #000000;
+    font-size: 18px;
     font-weight: bold;
 }
 
@@ -738,4 +784,8 @@ $grey: #CBCBCB;
 .wii-medium-text {
     color: #666666;
     font-size: 14px;
+}
+
+.nowrap {
+    white-space: nowrap;
 }

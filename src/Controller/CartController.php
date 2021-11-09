@@ -4,12 +4,19 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Collecte;
+use App\Entity\CategorieCL;
+use App\Entity\CategoryType;
+use App\Entity\FreeField;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Menu;
 use App\Entity\Cart;
 use App\Entity\ReferenceArticle;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Service\CartService;
 use App\Service\DemandeLivraisonService;
+use App\Service\GlobalParamService;
 use App\Service\PurchaseRequestService;
 use App\Service\RefArticleDataService;
 use App\Service\UniqueNumberService;
@@ -20,6 +27,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use WiiCommon\Helper\Stream;
 
 /**
  * @Route("/panier")
@@ -30,9 +38,44 @@ class CartController extends AbstractController
     /**
      * @Route("/", name="cart")
      */
-    public function cart(): Response
-    {
-        return $this->render("cart/index.html.twig");
+    public function cart(EntityManagerInterface $manager, GlobalParamService $globalParamService): Response {
+        $typeRepository = $manager->getRepository(Type::class);
+        $freeFieldRepository = $manager->getRepository(FreeField::class);
+
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
+
+        $typeChampLibre = [];
+        foreach ($types as $type) {
+            $champsLibres = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
+
+            $typeChampLibre[] = [
+                "typeLabel" => $type->getLabel(),
+                "typeId" => $type->getId(),
+                "champsLibres" => $champsLibres,
+            ];
+        }
+
+        $defaultDeliveryLocations = $globalParamService->getDefaultDeliveryLocationsByTypeId();
+        $deliveryRequests = Stream::from($manager->getRepository(Demande::class)->getDeliveryRequestForSelect($currentUser))
+            ->keymap(fn(Demande $request) => [
+                $request->getId(),
+                "{$request->getNumero()} - {$request->getType()->getLabel()} - {$request->getDestination()->getLabel()} - Créée le {$request->getDate()->format('d/m/Y H:i')}"
+            ]);
+
+        $collectRequests = Stream::from($manager->getRepository(Collecte::class)->getCollectRequestForSelect($currentUser))
+            ->keymap(fn(Collecte $request) => [
+                $request->getId(),
+                "{$request->getNumero()} - {$request->getType()->getLabel()} - {$request->getPointCollecte()->getLabel()} - Créée le {$request->getDate()->format('d/m/Y H:i')}"
+            ]);
+
+        return $this->render("cart/index.html.twig", [
+            "deliveryRequests" => $deliveryRequests,
+            "collectRequests" => $collectRequests,
+            "defaultDeliveryLocations" => $defaultDeliveryLocations,
+            "freeFieldsTypes" => $typeChampLibre,
+        ]);
     }
 
     /**

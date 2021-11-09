@@ -6,6 +6,7 @@ use App\Entity\Article;
 use App\Entity\AverageRequestTime;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Reception;
+use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use DateTime;
@@ -461,4 +462,15 @@ class DemandeRepository extends EntityRepository
             ->toArray();
     }
 
+    public function getDeliveryRequestForSelect(Utilisateur $currentUser) {
+        return $this->createQueryBuilder("demande")
+            ->leftJoin("demande.statut", "delivery_statut")
+            ->leftJoin("demande.utilisateur", "delivery_utilisateur")
+            ->where('delivery_utilisateur.username LIKE :currentUser')
+            ->andWhere('delivery_statut.state = :status_draft')
+            ->setParameter('currentUser', $currentUser->getUsername())
+            ->setParameter('status_draft', STATUT::DRAFT)
+            ->getQuery()
+            ->getResult();
+    }
 }

@@ -1,4 +1,4 @@
-@import "variables";
+@import "assets/scss/variables";
 
 $blue: #3353D7;
 $grey: #CBCBCB;
@@ -10,10 +10,6 @@ body {
         border-bottom-left-radius: 15px;
         border-bottom-right-radius: 15px;
     }
-}
-
-.select2-container {
-    width: 100% !important;
 }
 
 .ra-container {

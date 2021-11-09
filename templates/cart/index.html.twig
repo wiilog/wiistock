@@ -4,43 +4,175 @@
 
 {% block title %}Panier{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('cart') }}
+{% endblock %}
+
 {% block page_content %}
     <div class="d-flex justify-content-center align-items-center" style="margin-bottom: 50px;">
         <div class="row wii-form wii-large-column">
-            <div class="col-12 col-md-4">
+            <div class="col-12 col-xl-4">
                 <div class="wii-box">
                     <div class="header wii-title">Demande</div>
                     <div class="content">
                         {{ form.switch('requestType', 'Type de demande', false, [
-                            {label: {wiiIcon: 'cart-delivery', text: 'Livraison'}, value: 1},
-                            {label: {wiiIcon: 'cart-collect', text: 'Collecte'}, value: 2},
-                            {label: {wiiIcon: 'cart-purchase', text: 'Achat'}, value: 3},
+                            {label: {wiiIcon: 'cart-delivery', text: 'Livraison'}, value: 'delivery', checked: true},
+                            {label: {wiiIcon: 'cart-collect', text: 'Collecte'}, value: 'collect'},
+                            {label: {wiiIcon: 'cart-purchase', text: 'Achat'}, value: 'purchase'},
                         ]) }}
 
-                        {{ form.radio('addOrCreate', 'Ajouter à une de mes demandes en brouillon', false, 'add') }}
-                        {{ form.radio('addOrCreate', 'Créer une nouvelle demande', false, 'create') }}
+                        {{ form.radio('addOrCreate', null, true, [
+                            {label: 'Ajouter à une de mes demandes en brouillon', value: 'add'},
+                            {label: 'Créer une nouvelle demande', value: 'create'},
+                        ]) }}
 
-                        <div class="section">Ma demande de livraison</div>
+                        <div class="sub-form existing-delivery d-none">
+                            <div class="my-delivery-requests">
+                                <div class="section">Ma demande de livraison</div>
 
-                        <div class="comment">
-                            <span class="comment-title">Commentaire</span>
-                            le commentaire !!
+                                {{ form.select('existingDelivery', 'Mes livraisons', true, {
+                                    items: deliveryRequests,
+                                }) }}
+                            </div>
+                            <div class="delivery-request-content d-none">
+                                <div class="display-comment">
+                                    <span class="comment-title">Commentaire</span>
+                                </div>
+
+                                <div class="delivery-references">
+                                    <span class="references-title">Références présentes dans la demande</span>
+                                    <table id="tableDeliveryReferences" class="table"></table>
+                                </div>
+                            </div>
                         </div>
 
-                        {{ form.slider('nameeo', 'Oui ou non', true) }}
-                        {{ form.input('namee', 'Champ texte', true) }}
-                        {{ form.textarea('nameeee', 'Textarea', false) }}
-                        {{ form.checkbox('checkname', 'Une checkbox', false) }}
+                        <div class="sub-form create-delivery d-none">
+                            <div class="section">Ma nouvelle demande de livraison</div>
+
+                            <div class="row">
+                                <div class="col-md-6 col-12">
+                                    {{ form.select('deliveryType', 'Type', true, {
+                                        type: 'deliveryType',
+                                        placeholder: 'Sélectionnez un type',
+                                        search: false,
+                                        onChange: 'cartTypeChange($(this))',
+                                    }) }}
+                                </div>
+                                <div class="col-md-6 col-12">
+                                    {{ form.select('destination', 'Destination', true, {
+                                        type: 'location',
+                                        placeholder: 'Sélectionnez un emplacement',
+                                        includeParams: '[name=deliveryType]',
+                                        disabled: true,
+                                    }) }}
+                                </div>
+                                <div class="col-12">
+                                    <span class="toggle-collapsible wii-subtitle mt-2 expanded">Champs libres</span>
+                                    <div class="collapsible expanded free-fields-container mb-2">
+                                        {% for type in freeFieldsTypes %}
+                                            <div class="d-none" data-type="{{ type.typeId }}">
+                                                {% include 'free_field/freeFieldsViewing.html.twig' with {
+                                                    freeFields: type.champsLibres,
+                                                    freeFieldValues: [],
+                                                    colType: 'col-md-6 col-12',
+                                                    requiredType: 'requiredCreate',
+                                                    actionType: 'new',
+                                                    disabledNeeded: true
+                                                } %}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    {{ form.wysiwyg('comment', 'Commentaire', false) }}
+                                </div>
+                            </div>
+
+
+                            <input type="hidden" id="default-delivery-locations" value="{{ defaultDeliveryLocations | json_encode }}">
+                        </div>
+
+                        <div class="sub-form existing-collect d-none">
+                            <div class="my-collect-requests">
+                                <div class="section">Ma demande de collecte</div>
+                                {{ form.select('existingCollect', 'Mes collectes', true, {
+                                    items: collectRequests,
+                                }) }}
+                            </div>
+                            <div class="collect-request-content d-none">
+                                <div class="destination-objet d-flex">
+                                    <div class="collect-destination col-6 p-0">
+                                        <span class="collect-title">Destination</span>
+                                    </div>
+                                    <div class="collect-objet col-6 p-0">
+                                        <span class="collect-title">Objet</span>
+                                    </div>
+                                </div>
+                                <div class="display-comment">
+                                    <span class="comment-title">Commentaire</span>
+                                </div>
+
+                                <div class="collect-references">
+                                    <span class="references-title">Références présentes dans la demande</span>
+                                    <table id="tableCollectReferences" class="table"></table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="sub-form create-collect d-none">
+                            <div class="section">Ma nouvelle demande de collecte</div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-md-8">
+            <div class="col-12 col-xl-8">
                 <div class="wii-box">
                     <div class="header wii-title">Références</div>
                     <div class="content">
+                        {% for reference in app.user.cart.references %}
+                            <div class="cart-reference-container"
+                                 data-multiple-key="quantities"
+                                 data-multiple-object-index="{{ reference.id }}"
+                                 style="--reference-color: {{ reference.type.color ?? '$primary;' }};">
+                                <div class="cart-reference">
+                                    <div class="cart-reference-type">{{ reference.type.label }}</div>
+                                    <div class="cart-reference-infos">
+                                        <span class="wii-label nowrap">Référence : {{ reference.reference }}</span>
+                                        <span class="wii-field-text">{{ reference.libelle }}</span>
+                                    </div>
+                                    <div class="cart-reference-current-quantity">
+                                        <span class="nowrap">
+                                            <span class="wii-field-name">
+                                                <img src="/svg/reference_article/stock.svg" alt="Icône stock" width="15px">
+                                                Quantité disponible
+                                            </span>
+                                            {{ reference.quantiteDisponible }}
+                                        </span>
+                                        <span class="wii-small-text nowrap">
+                                            Ref article fournisseur :
+                                            {% for supplierArticle in reference.articlesFournisseur %}
+                                                {{ supplierArticle.reference }}{% if not loop.last %},{% endif %}
+                                            {% endfor %}
+                                        </span>
+                                    </div>
+                                    <div class="cart-reference-quantity">
+                                        {{ form.number('quantity', {url: '/svg/reference_article/stock.svg', text: '<span class="quantity-label">Quantité à livrer</span>'}, true, 0, {
+                                            min: 0,
+                                            max: reference.quantiteDisponible,
+                                            labelClass: 'd-flex flex-column align-items-center',
+                                            error: 'global',
+                                        }) }}
+                                    </div>
+                                </div>
+                                <button class="remove-reference">
+                                    <i class="wii-icon wii-icon-trash"></i>
+                                </button>
+                            </div>
+                        {% endfor %}
                     </div>
                 </div>
-                <button class="btn btn-success float-right mt-3" onclick="validateCart()">
+                <button class="btn btn-success float-right mt-3" type="submit">
                     Valider mon panier
                 </button>
             </div>
@@ -53,5 +185,6 @@
 
 {% block javascripts %}
     {{ parent() }}
+    {{ encore_entry_script_tags('cart') }}
     <script src="{{ asset('js/pages/cart.js') }}?v={{ web_version }}"></script>
 {% endblock %}

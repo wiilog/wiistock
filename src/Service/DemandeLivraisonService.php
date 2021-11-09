@@ -13,6 +13,7 @@ use App\Entity\FreeField;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\Pack;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\PrefixeNomDemande;
@@ -23,6 +24,7 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use App\Helper\QueryCounter;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\NonUniqueResultException;
@@ -628,5 +630,32 @@ class DemandeLivraisonService
             ->setArticle($article)
             ->setRequest($request);
         return $articleLine;
+    }
+
+    public function getDataForReferencesDatatable($params = null)
+    {
+        $demande = $this->entityManager->find(Demande::class, $params);
+        $referenceLines = $demande->getReferenceLines();
+
+        $rows = [];
+        /** @var DeliveryRequestArticleLine[] $referenceLine */
+        foreach ($referenceLines as $referenceLine) {
+            $rows[] = $this->dataRowReference($referenceLine);
+        }
+
+        return [
+            'data' => $rows,
+            'recordsTotal' => count($rows),
+        ];
+    }
+
+    public function dataRowReference(DeliveryRequestReferenceLine $referenceArticle)
+    {
+        return [
+            'reference' => $referenceArticle->getReference()->getReference(),
+            'libelle' => $referenceArticle->getReference()->getLibelle(),
+            'quantity' => $referenceArticle->getQuantityToPick(),
+
+        ];
     }
 }
