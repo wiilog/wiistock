@@ -54,7 +54,8 @@ class Import
             'reference',
             'libelle',
             'type',
-            'typeQuantite'
+            'typeQuantite',
+            'emplacement'
         ],
         self::ENTITY_RECEPTION => [
             'orderNumber',
