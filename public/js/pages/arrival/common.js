@@ -99,7 +99,7 @@ function setArrivalUrgent(newArrivalId, numeroCommande, postNb, arrivalResponseC
                         text: 'Erreur dans la mise en urgence de l\'arrivage.'
                     }),
                     [{
-                        class: 'btn btn-secondary m-0',
+                        class: 'btn btn-outline-secondary m-0',
                         text: 'OK',
                         action: ($modal) => {
                             $modal.modal('hide')
@@ -184,7 +184,7 @@ function createButtonConfigs({modalType, arrivalId, alertConfig, nextAlertConfig
 
     if (modalType === 'yes-no-question') {
         buttonConfigs.unshift({
-            class: 'btn btn-secondary m-0',
+            class: 'btn btn-outline-secondary m-0',
             text: 'Non',
             action: () => {
                 arrivalCallback(

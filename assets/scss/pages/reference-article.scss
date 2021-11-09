@@ -16,10 +16,6 @@ body {
     margin-top: 60px;
 }
 
-.btn-primary {
-    background: $blue;
-}
-
 .ra-header {
     border: solid 1px;
     border-top: none;
@@ -174,13 +170,6 @@ span.icon {
     display: flex;
     justify-content: flex-end;
     margin-top: 15px;
-}
-
-.btn-secondary {
-    color: #666666;
-    background: white;
-    border-color: #666666;
-    font-weight: bold;
 }
 
 .comment-container {

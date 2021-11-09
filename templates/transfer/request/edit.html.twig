@@ -4,7 +4,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Modifier la demande de transfert</h5>
+                <h5 class="modal-title wii-title">Modifier la demande de transfert</h5>
                 {% if transfer.filled %}
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
@@ -16,7 +16,7 @@
             <div class="modal-footer">
                 <input type="hidden" class="data" name="transfer" value="{{ transfer.id }}">
                 {% if transfer.filled %}
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
                 {% endif %}
                 <button type="button" class="btn btn-success" id="submitEditTransferRequest">Modifier la demande</button>
             </div>

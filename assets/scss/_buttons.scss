@@ -1,5 +1,26 @@
 @import "variables";
 
+$buttonConfig: (
+    'primary': $primary,
+    'success': $success,
+    'danger': $danger
+);
+
+$outlineButtonConfig: (
+    'primary': (
+        'bg-color': $white,
+        'color': $primary,
+        'active-bg-color': #F2F3F7,
+        'disabled-color': $grey
+    ),
+    'secondary': (
+        'bg-color': transparent,
+        'color': $greyDashboard,
+        'active-bg-color': #E7E7E8,
+        'disabled-color': $grey
+    )
+);
+
 @mixin setColorLoader ($color) {
     border-top-color: $color !important;
     border-bottom-color: $color !important;
@@ -30,8 +51,7 @@
         box-shadow: $buttonBoxShadow;
     }
 
-    &:active,
-    :active:focus {
+    &:active {
         box-shadow: none !important;
     }
 
@@ -40,39 +60,28 @@
     }
 }
 
-@mixin outline-button($bg-color, $border-color, $active-bg-color, $color, $disabled-color) {
+@mixin outline-button($bg-color, $color, $active-bg-color, $disabled-color) {
     background-color: $bg-color !important;
-    border-color: $border-color;
+    border-color: $color;
     color: $color;
 
     svg {
-        color: $primary !important;
-    }
-
-    &:hover svg,
-    &.active svg {
-        color: $primary !important;
+        color: $color !important;
     }
 
     .wii-icon {
-        background-color: $primary;
-    }
-
-    &:hover .wii-icon,
-    &:active .wii-icon {
-        background-color: $primary !important;
+        background-color: $color;
     }
 
     &:hover,
     &:focus {
         background-color: $bg-color !important;
-        border-color: $border-color !important;
+        border-color: $color !important;
         box-shadow: $buttonBoxShadow !important;
         color: $color !important;
     }
 
-    &:active,
-    &:active:focus {
+    &:active {
         border-color: $greyDashboard;
         background-color: $active-bg-color !important;
         box-shadow: none !important;
@@ -126,18 +135,19 @@
     display: none;
 }
 
-.btn-success {
-    @include simple-button($success, $white);
+@each $name, $color in $buttonConfig {
+    .btn-#{$name} {
+        @include simple-button($color, $white);
+    }
 }
 
-.btn-primary {
-    @include simple-button($primary, $white);
-}
-
-.btn-secondary {
-    @include outline-button(transparent, $greyDashboard, #E7E7E8, $greyDashboard, $grey);
-}
-
-.btn-outline-primary {
-    @include outline-button($white, $primary, #F2F3F7, $primary, $grey);
+@each $name, $config in $outlineButtonConfig {
+    .btn-outline-#{$name} {
+        @include outline-button(
+            map-get($config, 'bg-color'),
+            map-get($config, 'color'),
+            map-get($config, 'active-bg-color'),
+            map-get($config, 'disabled-color')
+        );
+    }
 }

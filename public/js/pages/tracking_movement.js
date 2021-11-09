@@ -186,7 +186,7 @@ function displayConfirmationModal(group) {
         }),
         [
             {
-                class: 'btn btn-secondary m-0',
+                class: 'btn btn-outline-secondary m-0',
                 text: 'Non',
                 action: ($modal) => {
                     $('input[name="forced"]').val("0");
