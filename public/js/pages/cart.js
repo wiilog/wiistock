@@ -40,13 +40,14 @@ $(document).ready(() => {
     });
 
     $(document).on(`click`, `.remove-reference`, function() {
+        const $button = $(this);
         const route = Routing.generate(`cart_remove_reference`, {
-            reference: $(this).data(`id`)
+            reference: $button.data(`id`)
         });
 
         $.post(route, response => {
+            $button.closest(`.cart-reference-container`).remove();
             $(`.header-icon.cart`).find(`.icon-figure`).text(response.count)[response.count ? `addClass` : `removeClass`](`d-none`);
-            table.ajax.reload();
             showBSAlert(response.msg, `success`);
         });
     })
@@ -148,20 +149,6 @@ function onArticleSelectChange($select) {
 
     $quantityInput.val(quantity);
     $quantityToPickInput.attr('max', quantity);
-}
-
-function retrieveAppropriateHtml($input) {
-    const type = Number.parseInt($input.val());
-    const path = Routing.generate('cart_get_appropriate_html', {type});
-
-    $.get(path, function(response) {
-        $modalAddToRequest.find('.type-body').html(response.html);
-        if (response.count > 0) {
-            $('#submitAddToRequest').removeClass('d-none');
-        } else {
-            showBSAlert(response.message, 'danger');
-        }
-    });
 }
 
 function onPurchaseRequestChange(){

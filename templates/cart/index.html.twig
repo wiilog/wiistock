@@ -186,7 +186,7 @@
             <div class="col-12 col-xl-8">
                 <div class="wii-box">
                     <div class="header wii-title">Références</div>
-                    <div class="content">
+                    <div class="content cart-reference-list">
                         {% for reference in app.user.cart.references %}
                             <div class="cart-reference-container"
                                  data-multiple-key="quantities"
@@ -222,10 +222,12 @@
                                         }) }}
                                     </div>
                                 </div>
-                                <button class="remove-reference">
+                                <button class="remove-reference" data-id="{{ reference.id }}">
                                     <i class="wii-icon wii-icon-trash"></i>
                                 </button>
                             </div>
+                        {% else %}
+                            Votre panier est vide
                         {% endfor %}
                     </div>
                 </div>
