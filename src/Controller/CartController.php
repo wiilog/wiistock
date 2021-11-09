@@ -70,8 +70,6 @@ class CartController extends AbstractController
                 "{$request->getNumero()} - {$request->getType()->getLabel()} - {$request->getPointCollecte()->getLabel()} - Créée le {$request->getDate()->format('d/m/Y H:i')}"
             ]);
 
-        dump($deliveryRequests);
-        dump($collectRequests);
         return $this->render("cart/index.html.twig", [
             "deliveryRequests" => $deliveryRequests,
             "collectRequests" => $collectRequests,
