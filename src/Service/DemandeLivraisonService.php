@@ -89,7 +89,7 @@ class DemandeLivraisonService
         } else {
             $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DEM_LIVRAISON, $this->user);
         }
-        $queryResult = $demandeRepository->findByParamsAndFilters($params, $filters, $receptionFilter);
+        $queryResult = $demandeRepository->findByParamsAndFilters($params, $filters, $receptionFilter, $this->user);
 
         $demandeArray = $queryResult['data'];
 
@@ -119,16 +119,13 @@ class DemandeLivraisonService
         $categoryFF = $this->entityManager->getRepository(CategorieCL::class)->findOneBy(['label' => CategorieCL::DEMANDE_LIVRAISON]);
         $freeFields = $this->entityManager->getRepository(FreeField::class)->getByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_LIVRAISON, $categoryFF);
 
-        /** @var Preparation|null $firstPreparation */
-        $firstPreparation = !$demande->getPreparations()->isEmpty() ? $demande->getPreparations()->first() : null;
-
         $row = [
-            'createdAt' => FormatHelper::datetime($demande->getDate()),
-            'validatedAt' => $firstPreparation ? FormatHelper::datetime($firstPreparation->getDate()) : '',
+            'createdAt' => FormatHelper::datetime($demande->getCreatedAt()),
+            'validatedAt' => FormatHelper::datetime($demande->getValidatedAt()),
             'requester' => FormatHelper::deliveryRequester($demande),
             'number' => $demande->getNumero() ?? '',
-            'status' => $demande->getStatut() ? $demande->getStatut()->getNom() : '',
-            'type' => $demande->getType() ? $demande->getType()->getLabel() : '',
+            'status' => FormatHelper::status($demande->getStatut()),
+            'type' => FormatHelper::type($demande->getType()),
             'actions' => $this->templating->render('demande/datatableDemandeRow.html.twig',
                 [
                     'idDemande' => $idDemande,
@@ -187,7 +184,7 @@ class DemandeLivraisonService
         $today = new DateTime();
 
         if (isset($averageTime)) {
-            $expectedDate = (clone $demande->getDate())
+            $expectedDate = (clone $demande->getCreatedAt())
                 ->add($dateService->secondsToDateInterval($averageTime->getAverage()));
             if ($expectedDate >= $today) {
                 $estimatedFinishTimeLabel = 'Date et heure de livraison prévue';
@@ -199,7 +196,7 @@ class DemandeLivraisonService
             }
         }
 
-        $requestDate = $demande->getDate();
+        $requestDate = $demande->getCreatedAt();
         $requestDateStr = $requestDate
             ? (
                 $requestDate->format('d ')
@@ -277,7 +274,7 @@ class DemandeLivraisonService
         $demande
             ->setStatut($statut)
             ->setUtilisateur($utilisateur)
-            ->setDate($date)
+            ->setCreatedAt($date)
             ->setType($type)
             ->setDestination($destination)
             ->setNumero($numero)
@@ -427,6 +424,10 @@ class DemandeLivraisonService
             ->setNumero($preparationNumber)
             ->setDate($date);
 
+        if(!$demande->getValidatedAt()) {
+            $demande->setValidatedAt($date);
+        }
+
         $statutP = $statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
         $preparation->setStatut($statutP);
         $entityManager->persist($preparation);
@@ -512,13 +513,6 @@ class DemandeLivraisonService
 
     public function createHeaderDetailsConfig(Demande $demande): array
     {
-        $status = $demande->getStatut();
-        $destination = $demande->getDestination();
-        $date = $demande->getDate();
-        $validationDate = $demande->getValidationDate();
-        $type = $demande->getType();
-        $comment = $demande->getCommentaire();
-
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
             $demande,
@@ -528,18 +522,18 @@ class DemandeLivraisonService
 
         return array_merge(
             [
-                ['label' => 'Statut', 'value' => $this->stringService->mbUcfirst(FormatHelper::status($status))],
+                ['label' => 'Statut', 'value' => $this->stringService->mbUcfirst(FormatHelper::status($demande->getStatut()))],
                 ['label' => 'Demandeur', 'value' => FormatHelper::deliveryRequester($demande)],
-                ['label' => 'Destination', 'value' => FormatHelper::location($destination)],
-                ['label' => 'Date de la demande', 'value' => FormatHelper::datetime($date)],
-                ['label' => 'Date de validation', 'value' => FormatHelper::datetime($validationDate)],
-                ['label' => 'Type', 'value' => FormatHelper::type($type)]
+                ['label' => 'Destination', 'value' => FormatHelper::location($demande->getDestination())],
+                ['label' => 'Date de la demande', 'value' => FormatHelper::datetime($demande->getCreatedAt())],
+                ['label' => 'Date de validation', 'value' => FormatHelper::datetime($demande->getValidatedAt())],
+                ['label' => 'Type', 'value' => FormatHelper::type($demande->getType())]
             ],
             $freeFieldArray,
             [
                 [
                     'label' => 'Commentaire',
-                    'value' => $comment ?: '',
+                    'value' => $demande->getCommentaire() ?? '',
                     'isRaw' => true,
                     'colClass' => 'col-sm-6 col-12',
                     'isScrollable' => true,

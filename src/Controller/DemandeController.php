@@ -553,7 +553,6 @@ class DemandeController extends AbstractController
                 $freeFieldsConfig['freeFieldsHeader']
             );
 
-            $firstDates = $preparationRepository->getFirstDatePreparationGroupByDemande($demandes);
             $prepartionOrders = $preparationRepository->getNumeroPrepaGroupByDemande($demandes);
             $livraisonOrders = $livraisonRepository->getNumeroLivraisonGroupByDemande($demandes);
 
@@ -567,7 +566,6 @@ class DemandeController extends AbstractController
                 $headers,
                 function (Demande $demande)
                 use (
-                    $firstDates,
                     $prepartionOrders,
                     $livraisonOrders,
                     $articleLines,
@@ -577,10 +575,9 @@ class DemandeController extends AbstractController
                 ) {
                     $rows = [];
                     $demandeId = $demande->getId();
-                    $firstDatePrepaForDemande = $firstDates[$demandeId] ?? null;
                     $prepartionOrdersForDemande = $prepartionOrders[$demandeId] ?? [];
                     $livraisonOrdersForDemande = $livraisonOrders[$demandeId] ?? [];
-                    $infosDemand = $this->getCSVExportFromDemand($demande, $firstDatePrepaForDemande, $prepartionOrdersForDemande, $livraisonOrdersForDemande);
+                    $infosDemand = $this->getCSVExportFromDemand($demande, $prepartionOrdersForDemande, $livraisonOrdersForDemande);
 
                     $referenceLinesForRequest = $referenceLines[$demandeId] ?? [];
                     /** @var DeliveryRequestReferenceLine $line */
@@ -640,20 +637,15 @@ class DemandeController extends AbstractController
     }
 
     private function getCSVExportFromDemand(Demande $demande,
-                                            $firstDatePrepaStr,
                                             array $preparationOrdersNumeros,
                                             array $livraisonOrders): array {
-        $firstDatePrepa = isset($firstDatePrepaStr)
-            ? DateTime::createFromFormat('Y-m-d H:i:s', $firstDatePrepaStr)
-            : null;
-
         return [
             FormatHelper::deliveryRequester($demande),
             FormatHelper::status($demande->getStatut()),
             FormatHelper::location($demande->getDestination()),
             FormatHelper::html($demande->getCommentaire()),
-            FormatHelper::datetime($demande->getDate()),
-            $firstDatePrepa ? FormatHelper::datetime($firstDatePrepa) : '',
+            FormatHelper::datetime($demande->getCreatedAt()),
+            FormatHelper::datetime($demande->getValidatedAt()),
             $demande->getNumero(),
             FormatHelper::type($demande->getType()),
             !empty($preparationOrdersNumeros) ? implode(' / ', $preparationOrdersNumeros) : 'ND',

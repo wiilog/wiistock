@@ -12,7 +12,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Exception;
+use Doctrine\ORM\Query;
 use Generator;
 use Symfony\Component\HttpFoundation\InputBag;
 
@@ -39,35 +39,6 @@ class TrackingMovementRepository extends EntityRepository
         'operateur' => 'user',
         'quantity' => 'quantity'
     ];
-    private const FIELD_ENTITY_NAME = [
-        "label" => "libelle",
-        "warningThreshold" => "limitWarning",
-        "securityThreshold" => "limitSecurity",
-        "emergency" => "isUrgent",
-        "availableQuantity" => "quantiteDisponible",
-        "stockQuantity" => "quantiteStock",
-        "location" => "emplacement",
-        "quantityType" => "typeQuantite",
-        "lastInventory" => "dateLastInventory",
-        "mobileSync" => "needsMobileSync",
-        "supplier" => "fournisseur",
-        "unitPrice" => "prixUnitaire",
-        "comment" => "commentaire",
-    ];
-
-    /**
-     * @param $uniqueId
-     * @return TrackingMovement
-     * @throws NonUniqueResultException
-     */
-    public function findOneByUniqueIdForMobile($uniqueId) {
-        return $this->createQueryBuilder('tracking_movement')
-            ->select('tracking_movement')
-            ->where('tracking_movement.uniqueIdForMobile = :uniqueId')
-            ->setParameter('uniqueId', $uniqueId)
-            ->getQuery()
-            ->getOneOrNullResult();
-    }
 
     /**
      * @return int|mixed|string
@@ -85,18 +56,13 @@ class TrackingMovementRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
-    /**
-     * @param DateTime $dateMin
-     * @param DateTime $dateMax
-     * @return Generator
-     */
     public function iterateByDates(DateTime $dateMin,
-                                   DateTime $dateMax):Generator
+                                   DateTime $dateMax): iterable
     {
         $dateMax = $dateMax->format('Y-m-d H:i:s');
         $dateMin = $dateMin->format('Y-m-d H:i:s');
 
-        $queryBuilder = $this->createQueryBuilder('tracking_movement')
+        return $this->createQueryBuilder('tracking_movement')
             ->select('tracking_movement.id as id')
             ->addSelect('tracking_movement.datetime as datetime')
             ->addSelect('pack.code AS code')
@@ -127,27 +93,15 @@ class TrackingMovementRepository extends EntityRepository
             ->leftJoin('mouvementStock.transferOrder', 'transferOrder')
             ->leftJoin('tracking_movement.dispatch','dispatches')
             ->leftJoin('tracking_movement.packParent', 'join_packParent')
-
             ->setParameters([
                 'dateMin' => $dateMin,
                 'dateMax' => $dateMax
             ])
-
             ->getQuery()
-            ->iterate(null, \Doctrine\ORM\Query::HYDRATE_ARRAY);
-
-        foreach ($queryBuilder as $item) {
-            yield array_pop($item);
-        }
+            ->toIterable();
     }
 
-    /**
-     * @param array|null $params
-     * @param array|null $filters
-     * @return array
-     * @throws Exception
-     */
-    public function findByParamsAndFilters(InputBag $params, $filters)
+    public function findByParamsAndFilters(InputBag $params, ?array $filters, Utilisateur $user): array
     {
         $qb = $this->createQueryBuilder('tracking_movement');
 
@@ -201,7 +155,22 @@ class TrackingMovementRepository extends EntityRepository
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
+                    $conditions = [
+                        "date" =>  "DATE_FORMAT(tracking_movement.datetime, '%d/%m/%Y %H:%i:%s') LIKE :search_value",
+                        "code" => "search_pack.code LIKE :search_value",
+                        "reference" => "search_pack_supplierItem_referenceArticle.reference LIKE :search_value",
+                        "label" => 'search_pack_article.label LIKE :search_value',
+                        "group" => "search_pack_group.code LIKE :search_value",
+                        "quantity" => null,
+                        "location" => "search_location.label LIKE :search_value",
+                        "type" => "search_type.nom LIKE :search_value",
+                        "operator" => "search_operator.username LIKE :search_value",
+                    ];
+
+                    $condition = VisibleColumnService::getSearchableColumns($conditions, 'trackingMovement', $qb, $user);
+
                     $qb
+                        ->andWhere($condition)
                         ->innerJoin('tracking_movement.pack', 'search_pack')
                         ->leftJoin('tracking_movement.emplacement', 'search_location')
                         ->leftJoin('tracking_movement.packParent', 'search_pack_group')
@@ -211,17 +180,6 @@ class TrackingMovementRepository extends EntityRepository
                         ->leftJoin('search_pack.article', 'search_pack_article')
                         ->leftJoin('search_pack_article.articleFournisseur', 'search_pack_article_supplierItem')
                         ->leftJoin('search_pack_article_supplierItem.referenceArticle', 'search_pack_supplierItem_referenceArticle')
-                        ->andWhere($qb->expr()->orX(
-                            'search_pack.code LIKE :search_value',
-                            'search_location.label LIKE :search_value',
-                            'search_type.nom LIKE :search_value',
-                            'search_pack_group.code LIKE :search_value',
-                            'search_pack_supplierItem_referenceArticle.reference LIKE :search_value',
-                            'search_pack_article.label LIKE :search_value',
-                            'search_pack_referenceArticle.reference LIKE :search_value',
-                            'search_pack_referenceArticle.libelle LIKE :search_value',
-                            'search_operator.username LIKE :search_value'
-						))
                         ->setParameter('search_value', '%' . $search . '%');
                 }
             }

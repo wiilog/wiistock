@@ -48,43 +48,43 @@ class Demande implements PairedEntity
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=false, unique=true)
      */
-    private $numero;
+    private ?string $numero = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="demandes")
      */
-    private $destination;
+    private ?Emplacement $destination = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="demandes")
      */
-    private $utilisateur;
+    private ?Utilisateur $utilisateur = null;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private $date;
+    private ?DateTime $createdAt = null;
 
     /**
      * @var Collection
      * @ORM\OneToMany(targetEntity="App\Entity\PreparationOrder\Preparation", mappedBy="demande")
      */
-    private $preparations;
+    private Collection $preparations;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="demandes")
      */
-    private $statut;
+    private ?Statut $statut = null;
 
 	/**
 	 * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="demandesLivraison")
 	 */
-    private $type;
+    private ?Type $type = null;
 
     /**
      * @ORM\OneToMany(targetEntity=DeliveryRequestReferenceLine::class, mappedBy="request")
@@ -99,17 +99,22 @@ class Demande implements PairedEntity
     /**
      * @ORM\Column(type="text", nullable=true)
      */
-    private $commentaire;
+    private ?string $commentaire = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="demandes")
      */
-    private $reception;
+    private ?Reception $reception = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=SensorWrapper::class)
      */
     private ?SensorWrapper $triggeringSensorWrapper = null;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private ?DateTime $validatedAt = null;
 
 	public function __construct() {
         $this->preparations = new ArrayCollection();
@@ -167,14 +172,14 @@ class Demande implements PairedEntity
         return $this;
     }
 
-    public function getDate(): ?DateTimeInterface
+    public function getCreatedAt(): ?DateTimeInterface
     {
-        return $this->date;
+        return $this->createdAt;
     }
 
-    public function setDate(?DateTimeInterface $date): self
+    public function setCreatedAt(?DateTimeInterface $createdAt): self
     {
-        $this->date = $date;
+        $this->createdAt = $createdAt;
 
         return $this;
     }
@@ -372,13 +377,6 @@ class Demande implements PairedEntity
         );
     }
 
-    public function getValidationDate(): ?DateTime {
-        $preparationOrders = $this->getPreparations();
-        return (!$preparationOrders->isEmpty())
-            ? $preparationOrders->first()->getDate()
-            : null;
-    }
-
     public function getPairings(): Collection {
         $pairingsArray = Stream::from($this->getPreparations()->toArray())
             ->flatMap(fn(Preparation $preparation) => $preparation->getPairings()->toArray())
@@ -397,5 +395,15 @@ class Demande implements PairedEntity
         return $activePairing;
     }
 
+    public function getValidatedAt(): ?DateTime
+    {
+        return $this->validatedAt;
+    }
 
+    public function setValidatedAt(?DateTime $validatedAt): self
+    {
+        $this->validatedAt = $validatedAt;
+
+        return $this;
+    }
 }

@@ -13,15 +13,11 @@ use DateTime;
 use Symfony\Component\HttpFoundation\Request;
 use WiiCommon\Helper\Stream;
 use App\Repository\DisputeRepository;
-use Exception;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 
 class DisputeService {
 
@@ -41,11 +37,6 @@ class DisputeService {
      */
     private $templating;
 
-    /**
-     * @var UserService
-     */
-    private $userService;
-
     private $security;
 
     private $entityManager;
@@ -54,9 +45,7 @@ class DisputeService {
     private $visibleColumnService;
     private $CSVExportService;
 
-    public function __construct(UserService $userService,
-                                RouterInterface $router,
-                                EntityManagerInterface $entityManager,
+    public function __construct(EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
                                 TranslatorInterface $translator,
                                 MailerService $mailerService,
@@ -66,26 +55,20 @@ class DisputeService {
         $this->templating = $templating;
         $this->entityManager = $entityManager;
         $this->translator = $translator;
-        $this->userService = $userService;
         $this->security = $security;
         $this->mailerService = $mailerService;
         $this->visibleColumnService = $visibleColumnService;
         $this->CSVExportService = $CSVExportService;
     }
 
-    /**
-     * @param array|null $params
-     * @return array
-     * @throws Exception
-     */
-    public function getDataForDatatable($params = null) {
+    public function getDataForDatatable($params = null): array {
 
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $disputeRepository = $this->entityManager->getRepository(Dispute::class);
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DISPUTE, $this->security->getUser());
 
-        $queryResult = $disputeRepository->findByParamsAndFilters($params, $filters);
+        $queryResult = $disputeRepository->findByParamsAndFilters($params, $filters, $this->security->getUser());
         $disputes = $queryResult['data'];
 
         $rows = [];
@@ -100,14 +83,7 @@ class DisputeService {
         ];
     }
 
-    /**
-     * @param array $dispute
-     * @return array
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
-    public function dataRowDispute($dispute) {
+    public function dataRowDispute(array $dispute): array {
         $disputeRepository = $this->entityManager->getRepository(Dispute::class);
 
         $disputeId = $dispute['id'];
@@ -132,7 +108,7 @@ class DisputeService {
                 : $dispute['numCommandeBl'])
             : '';
 
-        $row = [
+        return [
             'actions' => $this->templating->render('litige/datatableLitigesRow.html.twig', [
                 'disputeId' => $dispute['id'],
                 'arrivageId' => $dispute['arrivageId'],
@@ -164,7 +140,6 @@ class DisputeService {
             'status' => $dispute['status'] ?? '',
             'urgence' => $dispute['emergencyTriggered']
         ];
-        return $row;
     }
 
     public function getLitigeOrigin(): array {

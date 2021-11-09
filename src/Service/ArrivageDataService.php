@@ -67,7 +67,7 @@ class ArrivageDataService
         $this->visibleColumnService = $visibleColumnService;
     }
 
-    public function getDataForDatatable(InputBag $params, $userId)
+    public function getDataForDatatable(InputBag $params, ?int $userIdArrivalFilter)
     {
         $arrivalRepository = $this->entityManager->getRepository(Arrivage::class);
         $supFilterRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -76,7 +76,7 @@ class ArrivageDataService
         $currentUser = $this->security->getUser();
 
         $filters = $supFilterRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ARRIVAGE, $currentUser);
-        $queryResult = $arrivalRepository->findByParamsAndFilters($params, $filters, $userId);
+        $queryResult = $arrivalRepository->findByParamsAndFilters($params, $filters, $userIdArrivalFilter, $this->security->getUser());
 
         $arrivals = $queryResult['data'];
 

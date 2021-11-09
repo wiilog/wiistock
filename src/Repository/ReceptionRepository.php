@@ -5,10 +5,9 @@ namespace App\Repository;
 use App\Entity\Reception;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
+use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 
@@ -45,10 +44,6 @@ class ReceptionRepository extends EntityRepository
 		return $query->getSingleScalarResult();
 	}
 
-    /**
-     * @param $date
-     * @return mixed|null
-     */
     public function getLastNumberByDate(string $date): ?string {
         $result = $this->createQueryBuilder('reception')
             ->select('reception.number AS number')
@@ -62,14 +57,7 @@ class ReceptionRepository extends EntityRepository
         return $result ? $result[0]['number'] : null;
     }
 
-
-    /**
-	 * @param Utilisateur $user
-	 * @return int
-	 * @throws NonUniqueResultException
-	 * @throws NoResultException
-	 */
-	public function countByUser($user)
+	public function countByUser(Utilisateur $user): int
 	{
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
@@ -82,12 +70,7 @@ class ReceptionRepository extends EntityRepository
 		return $query->getSingleScalarResult();
 	}
 
-    /**
-     * @param DateTime $dateMin
-     * @param DateTime $dateMax
-     * @return Reception[]|null
-     */
-    public function getByDates(DateTime $dateMin, DateTime $dateMax) {
+    public function getByDates(DateTime $dateMin, DateTime $dateMax): array {
         $queryBuilder = $this->createQueryBuilder('reception')
             ->select('reception.id AS id')
             ->addSelect('article.id AS articleId')
@@ -142,11 +125,11 @@ class ReceptionRepository extends EntityRepository
             ->getResult();
     }
 
-    public function findByParamAndFilters(InputBag $params, $filters)
+    public function findByParamAndFilters(InputBag $params, $filters, Utilisateur $user)
     {
-        $qb = $this->createQueryBuilder("r");
+        $qb = $this->createQueryBuilder("reception");
 
-        $countTotal = QueryCounter::count($qb, 'r');
+        $countTotal = QueryCounter::count($qb, 'reception');
 
         // filtres sup
         foreach ($filters as $filter) {
@@ -154,14 +137,14 @@ class ReceptionRepository extends EntityRepository
                 case 'statut':
                     $value = explode(',', $filter['value']);
                     $qb
-                        ->join('r.statut', 's')
+                        ->join('reception.statut', 's')
                         ->andWhere('s.id in (:statut)')
                         ->setParameter('statut', $value);
                     break;
                 case 'purchaseRequest':
                     $value = $filter['value'];
                     $qb
-                        ->join('r.purchaseRequestLines', 'purchaseRequestLines')
+                        ->join('reception.purchaseRequestLines', 'purchaseRequestLines')
                         ->join('purchaseRequestLines.purchaseRequest', 'purchaseRequestLines_purchaseRequest')
                         ->andWhere('purchaseRequestLines_purchaseRequest.id = :purchaseRequest')
                         ->setParameter('purchaseRequest', $value);
@@ -171,7 +154,7 @@ class ReceptionRepository extends EntityRepository
                         ->map(fn($v) => explode(':', $v)[0])
                         ->toArray();
                     $qb
-                        ->andWhere('r.orderNumber in (:commandList)')
+                        ->andWhere('reception.orderNumber in (:commandList)')
                         ->setParameter('commandList', $value);
                     break;
                 case 'utilisateurs':
@@ -179,43 +162,43 @@ class ReceptionRepository extends EntityRepository
                         return explode(":", $value)[0];
                     }, explode(',', $filter['value']));
                     $qb
-                        ->join('r.demandes', 'filter_request')
+                        ->join('reception.demandes', 'filter_request')
                         ->join('filter_request.utilisateur', 'filter_request_user');
 
                     $exprBuilder = $qb->expr();
                     $OROperands = [];
-                    foreach ($values as $index => $user) {
+                    foreach ($values as $index => $receiver) {
                         $OROperands[] = "filter_request_user.id = :user$index";
-                        $qb->setParameter("user$index", $user);
+                        $qb->setParameter("user$index", $receiver);
                     }
                     $qb->andWhere('(' . $exprBuilder->orX(...$OROperands) . ')');
                     break;
                 case 'providers':
                     $value = explode(',', $filter['value']);
                     $qb
-                        ->join('r.fournisseur', 'f')
+                        ->join('reception.fournisseur', 'f')
                         ->andWhere("f.id in (:fournisseur)")
                         ->setParameter('fournisseur', $value);
                     break;
                 case 'dateMin':
-                    $qb->andWhere('r.date >= :dateMin')
+                    $qb->andWhere('reception.date >= :dateMin')
                         ->setParameter('dateMin', $filter['value'] . ' 00:00:00');
                     break;
                 case 'dateMax':
-                    $qb->andWhere('r.date <= :dateMax')
+                    $qb->andWhere('reception.date <= :dateMax')
                         ->setParameter('dateMax', $filter['value'] . ' 23:59:59');
                     break;
                 case 'expectedDate':
                     $dateExpectedMin = ($filter['value'] . ' 00:00:00 ');
                     $dateExpectedMax = ($filter['value'] . ' 23:59:59 ');
-                    $qb->andWhere('r.dateAttendue BETWEEN :dateExpectedMin AND :dateExpectedMax')
+                    $qb->andWhere('reception.dateAttendue BETWEEN :dateExpectedMin AND :dateExpectedMax')
                         ->setParameter('dateExpectedMin', $dateExpectedMin)
                         ->setParameter('dateExpectedMax', $dateExpectedMax);
                     break;
                 case 'emergency':
                     $valueFilter = ((int)($filter['value'] ?? 0));
                     if ($valueFilter) {
-                        $qb->andWhere('r.urgentArticles = true OR r.manualUrgent = true');
+                        $qb->andWhere('reception.urgentArticles = true OR reception.manualUrgent = true');
                     }
                     break;
             }
@@ -225,21 +208,30 @@ class ReceptionRepository extends EntityRepository
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
+                    $conditions = [
+                        "Date" => "DATE_FORMAT(reception.date, '%d/%m/%Y') LIKE :search_value",
+                        "number" => "reception.number LIKE :search_value",
+                        "dateAttendue" => "DATE_FORMAT(reception.dateAttendue, '%d/%m/%Y') LIKE :search_value",
+                        "DateFin" => "DATE_FORMAT(reception.dateFinReception, '%d/%m/%Y') LIKE :search_value",
+                        "orderNumber" => "reception.orderNumber LIKE :search_value",
+                        "receiver" => null,
+                        "Fournisseur" => "search_provider.nom LIKE :search_value",
+                        "Statut" => "search_status.nom LIKE :search_value",
+                        "storageLocation" => "search_storage_location.label LIKE :search_value",
+                        "Commentaire" => "reception.commentaire LIKE :search_value",
+                        "deliveries" => null,
+                    ];
+
+                    $condition = VisibleColumnService::getSearchableColumns($conditions, 'reception', $qb, $user);
+
                     $qb
-						->leftJoin('r.statut', 'search_status')
-						->leftJoin('r.fournisseur', 'search_provider')
-                        ->leftJoin('r.demandes', 'search_request')
+                        ->andWhere($condition)
+						->leftJoin('reception.statut', 'search_status')
+						->leftJoin('reception.fournisseur', 'search_provider')
+                        ->leftJoin('reception.demandes', 'search_request')
                         ->leftJoin('search_request.utilisateur', 'search_request_user')
-                        ->andWhere("
-                            DATE_FORMAT(r.date, '%d/%m/%Y') LIKE :value
-                            OR DATE_FORMAT(r.dateAttendue, '%d/%m/%Y') LIKE :value
-                            OR r.number LIKE :value
-                            OR r.orderNumber LIKE :value
-                            OR r.commentaire LIKE :value
-                            OR search_status.nom LIKE :value
-                            OR search_provider.nom LIKE :value
-                            OR search_request_user.username LIKE :value")
-                        ->setParameter('value', '%' . $search . '%');
+                        ->leftJoin('reception.storageLocation', 'search_storage_location')
+                        ->setParameter('search_value', '%' . $search . '%');
                 }
             }
 
@@ -253,19 +245,19 @@ class ReceptionRepository extends EntityRepository
                         $column = self::DtToDbLabels[$columnName] ?? $columnName;
                         if ($column === 'statut') {
                             $qb
-                                ->leftJoin('r.statut', 's2')
+                                ->leftJoin('reception.statut', 's2')
                                 ->addOrderBy('s2.nom', $order);
                         } else if ($column === 'fournisseur') {
                             $qb
-                                ->leftJoin('r.fournisseur', 'u2')
+                                ->leftJoin('reception.fournisseur', 'u2')
                                 ->addOrderBy('u2.nom', $order);
                         } else if ($column === 'storageLocation') {
                             $qb
-                                ->leftJoin('r.storageLocation', 'join_storageLocation')
+                                ->leftJoin('reception.storageLocation', 'join_storageLocation')
                                 ->addOrderBy('join_storageLocation.label', $order);
                         } else if (property_exists(Reception::class, $column)) {
                             $qb
-                                ->addOrderBy('r.' . $column, $order);
+                                ->addOrderBy('reception.' . $column, $order);
                         }
                     }
                 }
@@ -273,7 +265,7 @@ class ReceptionRepository extends EntityRepository
         }
 
         // compte éléments filtrés
-        $countFiltered = QueryCounter::count($qb, 'r');
+        $countFiltered = QueryCounter::count($qb, 'reception');
 
         if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));

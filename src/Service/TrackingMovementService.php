@@ -75,7 +75,7 @@ class TrackingMovementService
         $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MVT_TRACA, $this->security->getUser());
-        $queryResult = $trackingMovementRepository->findByParamsAndFilters($params, $filters);
+        $queryResult = $trackingMovementRepository->findByParamsAndFilters($params, $filters, $this->security->getUser());
 
         $mouvements = $queryResult['data'];
 
