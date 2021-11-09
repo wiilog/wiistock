@@ -64,7 +64,7 @@ $(document).ready(() => {
     const $createCollect = $(`.create-collect`);
     const $createPurchase = $(`.create-purchase`);
 
-    $('.request-type-container').on('change', function() {
+    $('[name="requestType"]').on('change', function() {
         $(`.sub-form`).addClass(`d-none`);
         $('input[name="addOrCreate"]').prop(`checked`, false);
     });
@@ -84,6 +84,7 @@ $(document).ready(() => {
         $(`.sub-form`).addClass(`d-none`);
 
         const requestType = $('input[name="requestType"]:checked').val();
+        console.log(requestType);
         if(requestType === "delivery"){
             $('select[name="delivery-request"]').val("-").trigger('change');
             $existingDelivery.removeClass('d-none');
@@ -118,19 +119,24 @@ $(document).ready(() => {
 function cartTypeChange($type) {
     onTypeChange($type);
 
-    const defaultDestinations = JSON.parse($(`#default-delivery-locations`).val());
-    const type = $type.val();
-    const $destination = $type.closest(`.wii-form`).find(`select[name=destination]`);
-    const defaultDestination = defaultDestinations[type] || defaultDestinations['all'];
+    if($type.attr(`name`) === `deliveryType`) {
+        const defaultDestinations = JSON.parse($(`#default-delivery-locations`).val());
+        const type = $type.val();
+        const $destination = $type.closest(`.wii-form`).find(`select[name=destination]`);
+        const defaultDestination = defaultDestinations[type] || defaultDestinations['all'];
 
-    $destination.attr(`disabled`, !type);
-    $destination.val(null)
-    if(defaultDestination) {
-        $destination.append(new Option(defaultDestination.label, defaultDestination.id, true, true))
+        $destination.attr(`disabled`, !type);
+        $destination.val(null)
+        if(defaultDestination) {
+            $destination.append(new Option(defaultDestination.label, defaultDestination.id, true, true))
+        }
+
+        $destination.trigger(`change`);
+    } else if($type.attr(`name`) === `collectType`) {
+        const $destination = $type.closest(`.wii-form`).find(`select[name=location]`);
+        $destination.val(null).trigger(`change`);
+        $destination.attr(`disabled`, !$type.val());
     }
-    console.log(defaultDestination, $type.closest(`.wii-form`), $destination);
-
-    $destination.trigger(`change`);
 }
 
 function onArticleSelectChange($select) {
@@ -173,10 +179,12 @@ function onPurchaseRequestChange(){
 
 function onDeliveryChanged($select) {
     const val = $select.val();
-    $('.display-comment p').remove();
 
-    if($select.val() !== "-"){
-        $('.display-comment').append($('input[id='+$select.val()+']').val());
+    if($select.val() !== "-") {
+        $.get(Routing.generate(`cart_delivery_data`, {request: val}), function(data) {
+            $('.delivery-comment').html(data.comment);
+        })
+
         let pathReferences = Routing.generate("demande_api_references", true);
         let tableDeliveryReferencesConfig = {
             destroy: true,
@@ -209,18 +217,14 @@ function onDeliveryChanged($select) {
 
 function onCollectChanged($select) {
     const val = $select.val();
-    $('.display-comment p').remove();
-    $('.collect-objet p').remove();
-    $('.collect-destination p').remove();
 
     if($select.val() !== "-"){
-        $('.display-comment').append($('input[id=comment'+$select.val()+']').val());
-        if($('input[id=destination'+$select.val()+']').val() === 1){
-            $('.collect-destination').append('<p>Mise en stock</p>');
-        } else {
-            $('.collect-destination').append('<p>Destruction</p>');
-        }
-        $('.collect-objet').append('<p>'+$('input[id=objet'+$select.val()+']').val()+'</p>');
+        $.get(Routing.generate(`cart_collect_data`, {request: val}), function(data) {
+            $('.collect-object').text(data.object);
+            $('.collect-destination').text(data.destination);
+            $('.collect-comment').html(data.comment);
+        })
+
         let pathReferences = Routing.generate("collecte_api_references", true);
         let tableCollectReferencesConfig = {
             destroy: true,
