@@ -82,7 +82,7 @@ class CartController extends AbstractController
             ->filter(fn(Demande $request) => $request->getType() && $request->getDestination())
             ->keymap(fn(Demande $request) => [
                 $request->getId(),
-                "{$request->getNumero()} - {$request->getType()->getLabel()} - {$request->getDestination()->getLabel()} - Créée le {$request->getDate()->format('d/m/Y H:i')}"
+                "{$request->getNumero()} - {$request->getType()->getLabel()} - {$request->getDestination()->getLabel()} - Créée le {$request->getCreatedAt()->format('d/m/Y H:i')}"
             ]);
 
         $collectRequests = Stream::from($manager->getRepository(Collecte::class)->getCollectRequestForSelect($currentUser))
