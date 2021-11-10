@@ -9,6 +9,48 @@
     {{ encore_entry_link_tags('cart') }}
 {% endblock %}
 
+{% macro reference_card(reference, disabled = false) %}
+    <div class="cart-reference-container"
+         data-multiple-key="quantities"
+         data-multiple-object-index="{{ reference.id }}"
+         style="--reference-color: {{ reference.type.color ?? '$primary;' }};">
+        <div class="cart-reference">
+            <div class="cart-reference-type">{{ reference.type.label }}</div>
+            <div class="cart-reference-infos text-break">
+                <span class="wii-label">Référence : {{ reference.reference }}</span>
+                <span class="wii-field-text">{{ reference.libelle }}</span>
+            </div>
+            <div class="cart-reference-current-quantity">
+                <span class="nowrap">
+                    <span class="wii-field-name">
+                        <img src="/svg/reference_article/stock.svg" alt="Icône stock" width="15px">
+                        Quantité disponible
+                    </span>
+                    {{ reference.quantiteDisponible }}
+                </span>
+                <span class="wii-small-text">
+                    Ref article fournisseur :
+                    {% for supplierArticle in reference.articlesFournisseur %}
+                        {{ supplierArticle.reference }}{% if not loop.last %},{% endif %}
+                    {% endfor %}
+                </span>
+            </div>
+            <div class="cart-reference-quantity nowrap">
+                {{ form.number('quantity', {url: '/svg/reference_article/stock.svg', text: '<span class="quantity-label">Quantité à livrer</span>'}, true, 0, {
+                    min: 0,
+                    max: reference.quantiteDisponible,
+                    labelClass: 'd-flex flex-column align-items-center',
+                    error: 'global',
+                    disabled: disabled,
+                }) }}
+            </div>
+        </div>
+        <button class="remove-reference">
+            <i class="wii-icon wii-icon-trash"></i>
+        </button>
+    </div>
+{% endmacro %}
+
 {% block page_content %}
     <div class="d-flex justify-content-center align-items-center" style="margin-bottom: 50px;">
         <div class="row wii-form wii-large-column">
@@ -180,57 +222,68 @@
                                 </div>
                             </div>
                         </div>
+
+
+                        <div class="sub-form existing-purchase d-none">
+                            <div class="section">Mes demandes d'achat</div>
+                            <div class="selected-purchase-requests"></div>
+
+                            <template id="purchase-request-infos-template">
+                                <div class="purchase-references">
+                                    <span class="references-title">Références présentes dans <span class="purchase-request-infos"></span></span>
+                                    <table class="table purchase-request-table"></table>
+                                </div>
+                            </template>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-xl-8">
+            <div class="col-12 col-xl-8 all-references">
                 <div class="wii-box">
                     <div class="header wii-title">Références</div>
                     <div class="content cart-reference-list">
                         {% for reference in app.user.cart.references %}
-                            <div class="cart-reference-container"
-                                 data-multiple-key="quantities"
-                                 data-multiple-object-index="{{ reference.id }}"
-                                 style="--reference-color: {{ reference.type.color ?? '$primary;' }};">
-                                <div class="cart-reference">
-                                    <div class="cart-reference-type">{{ reference.type.label }}</div>
-                                    <div class="cart-reference-infos">
-                                        <span class="wii-label">Référence : {{ reference.reference }}</span>
-                                        <span class="wii-field-text">{{ reference.libelle }}</span>
-                                    </div>
-                                    <div class="cart-reference-current-quantity">
-                                        <span class="nowrap">
-                                            <span class="wii-field-name">
-                                                <img src="/svg/reference_article/stock.svg" alt="Icône stock" width="15px">
-                                                Quantité disponible
-                                            </span>
-                                            {{ reference.quantiteDisponible }}
-                                        </span>
-                                        <span class="wii-small-text">
-                                            Ref article fournisseur :
-                                            {% for supplierArticle in reference.articlesFournisseur %}
-                                                {{ supplierArticle.reference }}{% if not loop.last %},{% endif %}
-                                            {% endfor %}
-                                        </span>
-                                    </div>
-                                    <div class="cart-reference-quantity">
-                                        {{ form.number('quantity', {url: '/svg/reference_article/stock.svg', text: '<span class="quantity-label">Quantité à livrer</span>'}, true, 0, {
-                                            min: 1,
-                                            max: reference.quantiteDisponible,
-                                            labelClass: 'd-flex flex-column align-items-center',
-                                            error: 'global',
-                                        }) }}
-                                    </div>
-                                </div>
-                                <button class="remove-reference" data-id="{{ reference.id }}">
-                                    <i class="wii-icon wii-icon-trash"></i>
-                                </button>
-                            </div>
-                        {% else %}
-                            Votre panier est vide
+                            {{ _self.reference_card(reference) }}
                         {% endfor %}
                     </div>
                 </div>
+                <button class="btn btn-success float-right mt-3" type="submit">
+                    Valider mon panier
+                </button>
+            </div>
+            <div class="col-12 col-xl-8 references-by-buyer"
+                 data-multiple-key="buyers"
+                 data-multiple-object-index="{{ item.buyer.id ?? null }}"
+                 style="display: none">
+                {% for item in referencesByBuyer %}
+                    <div class="wii-box">
+                        <div class="header wii-title">
+                            {% if item.buyer %}
+                                Acheteur référence : {{ item.buyer.username }}
+                            {% else %}
+                                Aucun acheteur référence
+                            {% endif %}
+                        </div>
+                        <div class="content">
+                            {% if not item.buyer %}
+                                Aucun acheteur n'est définit pour les références suivantes. Elles seront
+                                 ignorées lors de la validation du panier.
+                            {% endif %}
+
+                            {% for reference in item.references %}
+                                {{ _self.reference_card(reference, not item.buyer) }}
+                            {% endfor %}
+
+                            {% if item.buyer %}
+                                {{ form.select('existingPurchase', 'Mes demandes d\'achat', true, {
+                                    placeholder: 'Sélectionnez une demande d\'achat',
+                                    items: purchaseRequests,
+                                }) }}
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+
                 <button class="btn btn-success float-right mt-3" type="submit">
                     Valider mon panier
                 </button>

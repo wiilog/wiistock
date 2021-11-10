@@ -385,4 +385,5 @@ class CollecteRepository extends EntityRepository
             ->getQuery()
             ->getResult();
     }
+
 }

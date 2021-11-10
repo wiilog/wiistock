@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\PurchaseRequest;
+use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use DateTime;
@@ -180,5 +181,15 @@ class PurchaseRequestRepository extends EntityRepository
             ->toIterable();
     }
 
+    public function getPurchaseRequestForSelect(Utilisateur $user) {
+        return $this->createQueryBuilder("purchase_request")
+            ->leftJoin("purchase_request.status", "purchase_request_status")
+            ->andWhere("purchase_request.requester = :user")
+            ->andWhere("purchase_request_status.state = :draft")
+            ->setParameter("user", $user)
+            ->setParameter("draft", STATUT::DRAFT)
+            ->getQuery()
+            ->getResult();
+    }
 
 }

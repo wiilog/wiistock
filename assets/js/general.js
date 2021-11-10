@@ -13,6 +13,9 @@ export default class Wiistock {
         $(document).on(`click`, `.increase-decrease-field .increase, .increase-decrease-field .decrease` , function(){
             const $button = $(this);
             const $input = $button.siblings('input').first();
+            if($input.is(`[disabled], [readonly]`)) {
+                return;
+            }
 
             const value = parseInt($input.val()) || 0;
             if($button.hasClass('increase')){
@@ -22,7 +25,15 @@ export default class Wiistock {
                 $input.val(value - 1);
                 $input.removeClass('is-invalid');
             } else {
-                $input.val(0)
+                $input.val(0);
+            }
+
+            if($input.attr(`max`) < $input.val()) {
+                $input.val($input.attr(`max`));
+            }
+
+            if($input.attr(`min`) > $input.val()) {
+                $input.val($input.attr(`min`));
             }
 
             $input.trigger(`change`);
