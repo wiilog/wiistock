@@ -49,7 +49,6 @@ $(document).ready(() => {
         $(`.sub-form`).addClass(`d-none`);
 
         const requestType = $('input[name="requestType"]:checked').val();
-        console.log(requestType);
         if(requestType === "delivery"){
             $('select[name="delivery-request"]').val("-").trigger('change');
             $existingDelivery.removeClass('d-none');
@@ -84,8 +83,7 @@ $(document).ready(() => {
             if (response.success) {
                 window.location.href = response.link;
             }
-        })
-        console.error(data.asObject());
+        });
     });
 });
 
