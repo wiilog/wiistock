@@ -693,7 +693,7 @@ class PurchaseRequestController extends AbstractController
      * @HasPermission({Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS}, mode=HasPermission::IN_JSON)
      */
     public function apiReferences(Request $request, PurchaseRequestService $service): Response {
-        dump($request->request->get('purchaseId'));
+
         return $this->json($service->getDataForReferencesDatatable($request->request->get('purchaseId')));
     }
 

@@ -191,5 +191,4 @@ class PurchaseRequestRepository extends EntityRepository
             ->getQuery()
             ->getResult();
     }
-
 }
