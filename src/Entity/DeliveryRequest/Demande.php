@@ -87,7 +87,7 @@ class Demande implements PairedEntity
     private $type;
 
     /**
-     * @ORM\OneToMany(targetEntity=DeliveryRequestReferenceLine::class, mappedBy="request")
+     * @ORM\OneToMany(targetEntity=DeliveryRequestReferenceLine::class, mappedBy="request", cascade={"persist", "remove"})
      */
     private Collection $referenceLines;
 

@@ -4,22 +4,29 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
+use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
+use App\Entity\Emplacement;
 use App\Entity\FreeField;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Menu;
 use App\Entity\Cart;
 use App\Entity\ReferenceArticle;
+use App\Entity\Statut;
+use App\Entity\TransferRequest;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Service\CartService;
 use App\Service\DemandeLivraisonService;
+use App\Service\FreeFieldService;
 use App\Service\GlobalParamService;
 use App\Service\PurchaseRequestService;
 use App\Service\RefArticleDataService;
 use App\Service\UniqueNumberService;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -72,12 +79,14 @@ class CartController extends AbstractController
 
         $defaultDeliveryLocations = $globalParamService->getDefaultDeliveryLocationsByTypeId();
         $deliveryRequests = Stream::from($manager->getRepository(Demande::class)->getDeliveryRequestForSelect($currentUser))
+            ->filter(fn(Demande $request) => $request->getType() && $request->getDestination())
             ->keymap(fn(Demande $request) => [
                 $request->getId(),
                 "{$request->getNumero()} - {$request->getType()->getLabel()} - {$request->getDestination()->getLabel()} - Créée le {$request->getDate()->format('d/m/Y H:i')}"
             ]);
 
         $collectRequests = Stream::from($manager->getRepository(Collecte::class)->getCollectRequestForSelect($currentUser))
+            ->filter(fn(Collecte $collecte) => $collecte->getType() && $collecte->getPointCollecte())
             ->keymap(fn(Collecte $request) => [
                 $request->getId(),
                 "{$request->getNumero()} - {$request->getType()->getLabel()} - {$request->getPointCollecte()->getLabel()} - Créée le {$request->getDate()->format('d/m/Y H:i')}"
@@ -255,5 +264,82 @@ class CartController extends AbstractController
             }
         }
         throw new BadRequestHttpException();
+    }
+
+    /**
+     * @Route("/validate-cart", name="cart_validate", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
+     */
+    public function validateCart(Request $request,
+                                 EntityManagerInterface $entityManager,
+                                 DemandeLivraisonService $demandeLivraisonService,
+                                 FreeFieldService $freeFieldService)
+    {
+        $deliveryRepository = $entityManager->getRepository(Demande::class);
+        $data = json_decode($request->getContent(), true);
+        $referencesQuantities = json_decode($data['quantities'], true);
+
+        if ($data['addOrCreate'] === "add") {
+            /** @var Demande $deliveryRequest */
+            $deliveryRequest = $deliveryRepository->find($data['existingDelivery']);
+            $this->addReferencesToCurrentUserCart($entityManager, $deliveryRequest, $referencesQuantities);
+            $msg = " les Références ont bien étées ajoutées dans votre panier";
+        }
+        else if ($data['addOrCreate'] === "create") {
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $statutRepository = $entityManager->getRepository(Statut::class);
+            $locationRepository = $entityManager->getRepository(Emplacement::class);
+            $destination = $locationRepository->find($data['destination']);
+            $draft = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_REQUEST, TransferRequest::DRAFT);
+            $type = $typeRepository->find($data['deliveryType']);
+            $deliveryRequest = new Demande();
+
+            $deliveryRequest
+                ->setNumero($demandeLivraisonService->generateNumeroForNewDL($entityManager))
+                ->setUtilisateur($this->getUser())
+                ->setType($type)
+                ->setFilled(false)
+                ->setDate(new DateTime('now'))
+                ->setDestination($destination)
+                ->setStatut($draft);
+
+            $freeFieldService->manageFreeFields($deliveryRequest, $data, $entityManager);
+            $entityManager->persist($deliveryRequest);
+
+            $this->addReferencesToCurrentUserCart($entityManager, $deliveryRequest, $referencesQuantities);
+            $msg = "Les references ont bien étées ajoutées dans un nouvelle demande de livraison";
+        }
+        $entityManager->flush();
+        if (isset($deliveryRequest)) {
+            $link = $this->generateUrl('demande_show',['id' => $deliveryRequest->getId()]);
+        }
+        $this->addFlash('success', $msg);
+        return $this->json([
+            "success" => true,
+            "msg" => $msg,
+            'link' => $link
+        ]);
+    }
+
+    private function addReferencesToCurrentUserCart(EntityManagerInterface $entityManager,
+                                                    Demande $demande,
+                                                    array $referencesQuantities)
+    {
+        $referenceRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $references = $referenceRepository->findById(array_keys($referencesQuantities));
+        foreach ($referencesQuantities as $reference => $referencesQuantity) {
+            $reference = $references[$reference];
+            $deliveryRequestLine = new DeliveryRequestReferenceLine();
+            $deliveryRequestLine->setReference($reference);
+            $deliveryRequestLine->setQuantityToPick($referencesQuantity['quantity']);
+            $demande->addReferenceLine($deliveryRequestLine);
+        }
+
+        /**
+         * @var Utilisateur $currentUser
+         */
+        $currentUser = $this->getUser();
+        foreach ($currentUser->getCart()->getReferences() as $reference) {
+            $currentUser->getCart()->removeReference($reference);
+        }
     }
 }
