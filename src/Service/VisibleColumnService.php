@@ -4,6 +4,9 @@
 namespace App\Service;
 
 
+use App\Entity\Utilisateur;
+use Doctrine\ORM\Query\Expr\Orx;
+use Doctrine\ORM\QueryBuilder;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class VisibleColumnService {
@@ -74,5 +77,28 @@ class VisibleColumnService {
         preg_match("/" . VisibleColumnService::FREE_FIELD_NAME_PREFIX . "_(\d+)/", $freeFieldName, $matches);
         $freeFieldIdStr = $matches[1] ?? null;
         return is_numeric($freeFieldIdStr) ? intval($freeFieldIdStr) : null;
+    }
+
+    public function setVisibleColumns(string $entity, array $fields, Utilisateur $user): void {
+        $visibleColumns = $user->getVisibleColumns();
+        $visibleColumns[$entity] = $fields;
+
+        $user->setVisibleColumns($visibleColumns);
+    }
+
+    public static function getSearchableColumns(array $conditions, string $entity, QueryBuilder $qb, Utilisateur $user): Orx {
+        $condition = $qb->expr()->orX();
+        $queryBuilderAlias = $qb->getRootAliases()[0];
+
+        foreach($user->getVisibleColumns()[$entity] as $column) {
+            if(str_starts_with($column, "free_field_")) {
+                $id = str_replace("free_field_", "", $column);
+                $condition->add("JSON_EXTRACT(${queryBuilderAlias}.freeFields, '$.\"$id\"') LIKE :search_value");
+            } else if(isset($conditions[$column])) {
+                $condition->add($conditions[$column]);
+            }
+        }
+
+        return $condition;
     }
 }

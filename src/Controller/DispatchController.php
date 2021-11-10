@@ -24,6 +24,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use App\Service\NotificationService;
+use App\Service\VisibleColumnService;
 use WiiCommon\Helper\Stream;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
@@ -107,7 +108,7 @@ class DispatchController extends AbstractController {
      * @Route("/api-columns", name="dispatch_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE}, mode=HasPermission::IN_JSON)
      */
-    public function apiColumns(Request $request, EntityManagerInterface $entityManager, DispatchService $service): Response {
+    public function apiColumns(EntityManagerInterface $entityManager, DispatchService $service): Response {
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
 
@@ -120,7 +121,9 @@ class DispatchController extends AbstractController {
      * @Route("/colonne-visible", name="save_column_visible_for_dispatch", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE}, mode=HasPermission::IN_JSON)
      */
-    public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response {
+    public function saveColumnVisible(Request $request,
+                                      EntityManagerInterface $entityManager,
+                                      VisibleColumnService $visibleColumnService): Response {
         $data = json_decode($request->getContent(), true);
         $fields = array_keys($data);
         $fields[] = "actions";
@@ -128,12 +131,13 @@ class DispatchController extends AbstractController {
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
 
-        $currentUser->setColumnsVisibleForDispatch($fields);
+        $visibleColumnService->setVisibleColumns('dispatch', $fields, $currentUser);
+
         $entityManager->flush();
 
         return $this->json([
-            "success" => true,
-            "msg" => "Vos préférences de colonnes ont bien été sauvegardées."
+            'success' => true,
+            'msg' => 'Vos préférences de colonnes à afficher ont bien été sauvegardées'
         ]);
     }
 

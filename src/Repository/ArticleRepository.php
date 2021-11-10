@@ -3,7 +3,6 @@
 namespace App\Repository;
 
 use App\Entity\Article;
-use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FreeField;
 use App\Entity\InventoryFrequency;
@@ -12,7 +11,6 @@ use App\Entity\IOT\Sensor;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
-use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 
 use App\Entity\VisibilityGroup;
@@ -205,38 +203,6 @@ class ArticleRepository extends EntityRepository {
 		return $queryBuilder
             ->getQuery()
             ->execute();
-	}
-
-	public function findByRefArticleAndStatut($refArticle, array $statusNames, string $refArticleStatusName = null)
-	{
-
-		$queryBuilder = $this->createQueryBuilder('article')
-            ->select('article')
-            ->join('article.articleFournisseur', 'articleFournisseur')
-            ->join('articleFournisseur.referenceArticle', 'referenceArticle')
-            ->where('referenceArticle = :refArticle')
-            ->setParameter('refArticle', $refArticle);
-
-		if(!empty($statusNames)) {
-            $queryBuilder->join('article.statut', 'article_status');
-            $exprBuilder = $queryBuilder->expr();
-            $OROperands = [];
-
-            foreach ($statusNames as $index => $statusName) {
-                $OROperands[] = "article_status.nom = :articleStatusName$index";
-                $queryBuilder->setParameter("articleStatusName$index", $statusName);
-            }
-            $queryBuilder->andWhere('(' . $exprBuilder->orX(...$OROperands) . ')');
-        }
-
-		if ($refArticleStatusName) {
-            $queryBuilder
-                ->join('referenceArticle.statut', 'referenceArticle_status')
-                ->andWhere('referenceArticle_status.nom = :referenceArticle_statusName')
-                ->setParameter('referenceArticle_statusName', $refArticleStatusName);
-        }
-
-		return $queryBuilder->getQuery()->execute();
 	}
 
 	public function findActiveArticles(ReferenceArticle $referenceArticle): array
@@ -998,38 +964,6 @@ class ArticleRepository extends EntityRepository {
             ->getResult();
     }
 
-    public function isUsedInQuantityChangingProcesses(Article $article): bool {
-        $queryBuilder = $this->createQueryBuilder('article');
-        $exprBuilder = $queryBuilder->expr();
-        $articleIsProcessed = $queryBuilder
-            ->leftJoin('article.deliveryRequestLines', 'deliveryRequestLine')
-            ->leftJoin('deliveryRequestLine.request', 'deliveryRequest')
-            ->leftJoin('deliveryRequest.statut', 'deliveryRequestStatus')
-
-            ->leftJoin('article.transferRequests', 'transferRequest')
-            ->leftJoin('transferRequest.status', 'transferRequestStatus')
-
-            ->leftJoin('article.ordreCollecte', 'collectOrder')
-            ->leftJoin('collectOrder.statut', 'collectOrderStatus')
-
-            ->andWhere('article = :article')
-            ->andWhere($exprBuilder->orX(
-                '(deliveryRequestLine IS NOT NULL AND deliveryRequestStatus.code NOT IN (:deliveryRequestStatus_processed))',
-                '(transferRequest.id IS NOT NULL AND transferRequestStatus.code NOT IN (:transferRequestStatus_processed))',
-                '(collectOrder.id IS NOT NULL AND collectOrderStatus.code NOT IN (:collectOrderStatusStatus_processed))'
-            ))
-
-            ->setParameter('article', $article)
-            ->setParameter('deliveryRequestStatus_processed', [Demande::STATUT_BROUILLON, Demande::STATUT_LIVRE, Demande::STATUT_LIVRE_INCOMPLETE])
-            ->setParameter('transferRequestStatus_processed', [TransferRequest::DRAFT, TransferRequest::TREATED])
-            ->setParameter('collectOrderStatusStatus_processed', [OrdreCollecte::STATUT_TRAITE])
-
-            ->getQuery()
-            ->getResult();
-
-        return !empty($articleIsProcessed);
-    }
-
     private function getCollectableArticlesQueryBuilder(?ReferenceArticle $referenceArticle, bool $lastMonthOutput = true): QueryBuilder {
         $queryBuilder = $this->createQueryBuilder("article")
             ->join('article.statut', 'statut')
@@ -1087,9 +1021,6 @@ class ArticleRepository extends EntityRepository {
         return $queryBuilder->getQuery()->getResult();
     }
 
-    /**
-     * @return ReferenceArticle[]
-     */
     public function iterateArticlesToInventory(InventoryFrequency $frequency,
                                                InventoryMission $inventoryMission): iterable
     {

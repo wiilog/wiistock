@@ -239,7 +239,7 @@ class IOTService
         $request = new Demande();
         $request
             ->setStatut($statut)
-            ->setDate($date)
+            ->setCreatedAt($date)
             ->setCommentaire($requestTemplate->getComment())
             ->setTriggeringSensorWrapper($wrapper)
             ->setType($requestTemplate->getRequestType())

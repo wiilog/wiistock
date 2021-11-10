@@ -62,7 +62,8 @@ class ArrivageService {
     /** @Required */
     public VisibleColumnService $visibleColumnService;
 
-    public function getDataForDatatable(InputBag $params, $userId) {
+    public function getDataForDatatable(InputBag $params, ?int $userIdArrivalFilter)
+    {
         $arrivalRepository = $this->entityManager->getRepository(Arrivage::class);
         $supFilterRepository = $this->entityManager->getRepository(FiltreSup::class);
 
@@ -70,7 +71,7 @@ class ArrivageService {
         $currentUser = $this->security->getUser();
 
         $filters = $supFilterRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ARRIVAGE, $currentUser);
-        $queryResult = $arrivalRepository->findByParamsAndFilters($params, $filters, $userId);
+        $queryResult = $arrivalRepository->findByParamsAndFilters($params, $filters, $userIdArrivalFilter, $this->security->getUser());
 
         $arrivals = $queryResult['data'];
 
@@ -441,7 +442,7 @@ class ArrivageService {
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
-        $columnsVisible = $currentUser->getColumnsVisibleForArrivage();
+        $columnsVisible = $currentUser->getVisibleColumns()['arrival'];
         $categorieCL = $categorieCLRepository->findOneBy(['label' => CategorieCL::ARRIVAGE]);
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARRIVAGE, $categorieCL);
 

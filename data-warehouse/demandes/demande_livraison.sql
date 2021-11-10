@@ -1,25 +1,3 @@
-/*DROP FUNCTION IF EXISTS get_validation_date;
-DROP FUNCTION IF EXISTS get_treatment_date;
-
-CREATE FUNCTION get_validation_date(demande_id INTEGER)
-    RETURNS DATETIME
-BEGIN
-    RETURN (SELECT MIN(preparation.date)
-            FROM demande AS sub_demande
-                     LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-            WHERE sub_demande.id = demande_id);
-END;
-
-CREATE FUNCTION get_treatment_date(demande_id INTEGER)
-    RETURNS DATETIME
-BEGIN
-    RETURN (SELECT MAX(livraison.date_fin)
-            FROM demande AS sub_demande
-                     LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                     LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-            WHERE sub_demande.id = demande_id);
-END;
-*/
 SELECT id,
        numero,
        date_creation,
@@ -41,11 +19,8 @@ SELECT id,
 FROM (
          SELECT demande.id                                     AS id,
                 demande.numero                                 AS numero,
-                demande.date                                   AS date_creation,
-                (SELECT MIN(preparation.date)
-                 FROM demande AS sub_demande
-                          LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                 WHERE sub_demande.id = demande.id)                AS date_validation,
+                demande.created_at                             AS date_creation,
+                demande.validated_at                           AS date_validation,
                 (SELECT MAX(livraison.date_fin)
                  FROM demande AS sub_demande
                           LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
@@ -77,37 +52,25 @@ FROM (
                     FROM demande AS sub_demande
                              LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                              LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                    WHERE sub_demande.id = demande.id) IS NOT NULL AND (SELECT MIN(preparation.date)
-                                                                   FROM demande AS sub_demande
-                                                                            LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                                                                   WHERE sub_demande.id = demande.id) IS NOT NULL,
+                    WHERE sub_demande.id = demande.id) IS NOT NULL AND demande.validated_at IS NOT NULL,
                    ROUND(TIME_FORMAT(TIMEDIFF((SELECT MAX(livraison.date_fin)
                                                FROM demande AS sub_demande
                                                         LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                         LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                               WHERE sub_demande.id = demande.id), (SELECT MIN(preparation.date)
-                                                                               FROM demande AS sub_demande
-                                                                                        LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                                                                               WHERE sub_demande.id = demande.id)), '%H')
+                                               WHERE sub_demande.id = demande.id), demande.validated_at), '%H')
                              +
                          TIME_FORMAT(TIMEDIFF((SELECT MAX(livraison.date_fin)
                                                FROM demande AS sub_demande
                                                         LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                         LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                               WHERE sub_demande.id = demande.id), (SELECT MIN(preparation.date)
-                                                                               FROM demande AS sub_demande
-                                                                                        LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                                                                               WHERE sub_demande.id = demande.id)), '%i') /
+                                               WHERE sub_demande.id = demande.id), demande.validated_at), '%i') /
                          60
                              +
                          TIME_FORMAT(TIMEDIFF((SELECT MAX(livraison.date_fin)
                                                FROM demande AS sub_demande
                                                         LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                         LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                               WHERE sub_demande.id = demande.id), (SELECT MIN(preparation.date)
-                                                                               FROM demande AS sub_demande
-                                                                                        LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                                                                               WHERE sub_demande.id = demande.id)), '%s') /
+                                               WHERE sub_demande.id = demande.id), demande.validated_at), '%s') /
                          3600, 4),
                    NULL)                                       AS delais_traitement
 
@@ -128,11 +91,8 @@ FROM (
          UNION
          SELECT demande.id                                       AS id,
                 demande.numero                                   AS numero,
-                demande.date                                     AS date_creation,
-                (SELECT MIN(preparation.date)
-                 FROM demande AS sub_demande
-                          LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                 WHERE sub_demande.id = demande.id)                  AS date_validation,
+                demande.created_at                               AS date_creation,
+                demande.validated_at                             AS date_validation,
                 (SELECT MAX(livraison.date_fin)
                  FROM demande AS sub_demande
                           LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
@@ -164,37 +124,25 @@ FROM (
                     FROM demande AS sub_demande
                              LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                              LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                    WHERE sub_demande.id = demande.id) IS NOT NULL AND (SELECT MIN(preparation.date)
-                                                                   FROM demande AS sub_demande
-                                                                            LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                                                                   WHERE sub_demande.id = demande.id) IS NOT NULL,
+                    WHERE sub_demande.id = demande.id) IS NOT NULL AND demande.validated_at IS NOT NULL,
                    ROUND(TIME_FORMAT(TIMEDIFF((SELECT MAX(livraison.date_fin)
                                                FROM demande AS sub_demande
                                                         LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                         LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                               WHERE sub_demande.id = demande.id), (SELECT MIN(preparation.date)
-                                                                               FROM demande AS sub_demande
-                                                                                        LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                                                                               WHERE sub_demande.id = demande.id)), '%H')
+                                               WHERE sub_demande.id = demande.id), demande.validated_at), '%H')
                              +
                          TIME_FORMAT(TIMEDIFF((SELECT MAX(livraison.date_fin)
                                                FROM demande AS sub_demande
                                                         LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                         LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                               WHERE sub_demande.id = demande.id), (SELECT MIN(preparation.date)
-                                                                               FROM demande AS sub_demande
-                                                                                        LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                                                                               WHERE sub_demande.id = demande.id)), '%i') /
+                                               WHERE sub_demande.id = demande.id), demande.validated_at), '%i') /
                          60
                              +
                          TIME_FORMAT(TIMEDIFF((SELECT MAX(livraison.date_fin)
                                                FROM demande AS sub_demande
                                                         LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                         LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                               WHERE sub_demande.id = demande.id), (SELECT MIN(preparation.date)
-                                                                               FROM demande AS sub_demande
-                                                                                        LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                                                                               WHERE sub_demande.id = demande.id)), '%s') /
+                                               WHERE sub_demande.id = demande.id), demande.validated_at), '%s') /
                          3600, 4),
                    NULL)                                         AS delais_traitement
 

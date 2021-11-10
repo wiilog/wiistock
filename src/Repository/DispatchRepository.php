@@ -25,9 +25,8 @@ use Doctrine\ORM\Query\Expr\Join;
  */
 class DispatchRepository extends EntityRepository
 {
-    public function findByParamAndFilters(InputBag $params, $filters) {
+    public function findByParamAndFilters(InputBag $params, $filters, Utilisateur $user) {
         $qb = $this->createQueryBuilder('dispatch');
-        $exprBuilder = $qb->expr();
 
         $countTotal = $qb
             ->select('COUNT(dispatch.id)')
@@ -110,22 +109,25 @@ class DispatchRepository extends EntityRepository
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
+                    $conditions = [
+                        "creationDate" => "DATE_FORMAT(dispatch.creationDate, '%e/%m/%Y') LIKE :search_value",
+                        "validationDate" => "DATE_FORMAT(dispatch.validationDate, '%e/%m/%Y') LIKE :search_value",
+                        "treatmentDate" => "DATE_FORMAT(dispatch.treatmentDate, '%e/%m/%Y') LIKE :search_value",
+                        "endDate" => "DATE_FORMAT(dispatch.endDate, '%e/%m/%Y') LIKE :search_value",
+                        "type" => "search_type.label LIKE :search_value",
+                        "requester" => "search_requester.username LIKE :search_value",
+                        "receivers" => "search_receivers.username LIKE :search_value",
+                        "number" => "dispatch.number LIKE :search_value",
+                        "locationFrom" => "search_locationFrom.label LIKE :search_value",
+                        "locationTo" => "search_locationTo.label LIKE :search_value",
+                        "status" => "search_statut.nom LIKE :search_value",
+                        "destination" => "dispatch.destination LIKE :search_value",
+                    ];
+
+                    $condition = VisibleColumnService::getSearchableColumns($conditions, 'dispatch', $qb, $user);
+
                     $qb
-                        ->andWhere('(' . $exprBuilder->orX(
-                            "DATE_FORMAT(dispatch.creationDate, '%e/%m/%Y') LIKE :search_value",
-                            "DATE_FORMAT(dispatch.validationDate, '%e/%m/%Y') LIKE :search_value",
-                            "DATE_FORMAT(dispatch.treatmentDate, '%e/%m/%Y') LIKE :search_value",
-                            "DATE_FORMAT(dispatch.endDate, '%e/%m/%Y') LIKE :search_value",
-                            'search_type.label LIKE :search_value',
-                            'search_requester.username LIKE :search_value',
-                            'search_receivers.username LIKE :search_value',
-                            'dispatch.number LIKE :search_value',
-                            'search_locationFrom.label LIKE :search_value',
-                            'search_locationTo.label LIKE :search_value',
-                            'search_statut.nom LIKE :search_value',
-                            'dispatch.freeFields LIKE :search_value',
-                            'dispatch.destination LIKE :search_value'
-                        ) . ')')
+                        ->andWhere($condition)
                         ->leftJoin('dispatch.locationFrom', 'search_locationFrom')
                         ->leftJoin('dispatch.locationTo', 'search_locationTo')
                         ->leftJoin('dispatch.statut', 'search_statut')

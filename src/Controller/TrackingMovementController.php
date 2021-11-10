@@ -27,6 +27,7 @@ use App\Service\TrackingMovementService;
 use App\Service\SpecificService;
 use App\Service\UserService;
 
+use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -122,7 +123,8 @@ class TrackingMovementController extends AbstractController
      * @HasPermission({Menu::TRACA, Action::DISPLAY_MOUV}, mode=HasPermission::IN_JSON)
      */
     public function saveColumnVisible(Request $request,
-                                      EntityManagerInterface $entityManager): Response {
+                                      EntityManagerInterface $entityManager,
+                                      VisibleColumnService $visibleColumnService): Response {
 
         $data = json_decode($request->getContent(), true);
         $fields = array_keys($data);
@@ -130,12 +132,13 @@ class TrackingMovementController extends AbstractController
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
 
-        $currentUser->setColumnsVisibleForTrackingMovement($fields);
+        $visibleColumnService->setVisibleColumns('trackingMovement', $fields, $currentUser);
+
         $entityManager->flush();
 
         return $this->json([
-            "success" => true,
-            "msg" => "Vos préférences de colonnes ont bien été sauvegardées."
+            'success' => true,
+            'msg' => 'Vos préférences de colonnes à afficher ont bien été sauvegardées'
         ]);
     }
 

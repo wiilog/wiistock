@@ -9,11 +9,10 @@ use App\Entity\Reception;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
+use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
@@ -27,14 +26,6 @@ use WiiCommon\Helper\StringHelper;
  */
 class DemandeRepository extends EntityRepository
 {
-    private const DtToDbLabels = [
-        'Date' => 'date',
-        'Demandeur' => 'demandeur',
-        'Statut' => 'statut',
-        'Numéro' => 'numero',
-        'Type' => 'type',
-    ];
-
     public function findRequestToTreatByUser(?Utilisateur $requester, int $limit) {
         $statuses = [
             Demande::STATUT_BROUILLON,
@@ -58,7 +49,7 @@ class DemandeRepository extends EntityRepository
             ->andWhere($queryBuilderExpr->in('status.nom', ':statusNames'))
             ->setParameter('statusNames', $statuses)
             ->addOrderBy(sprintf("FIELD(status.nom, '%s', '%s', '%s', '%s', '%s')", ...$statuses), 'DESC')
-            ->addOrderBy("DATE_ADD(demande.date, art.average, 'second')", 'ASC')
+            ->addOrderBy("DATE_ADD(demande.createdAt, art.average, 'second')", 'ASC')
             ->setMaxResults($limit)
             ->getQuery()
             ->execute();
@@ -90,18 +81,6 @@ class DemandeRepository extends EntityRepository
         return $query->fetchAll();
     }
 
-    public function findByStatutAndUser($statut, $user)
-    {
-        return $this->createQueryBuilder('request')
-            ->andWhere('request.statut = :statut AND request.utilisateur = :user')
-            ->setParameters([
-                'statut' => $statut,
-                'user' => $user
-            ])
-            ->getQuery()
-            ->execute();
-    }
-
     public function countByEmplacement($emplacementId)
     {
         return $this->createQueryBuilder('request')
@@ -115,16 +94,14 @@ class DemandeRepository extends EntityRepository
     }
 
 	/**
-	 * @param DateTime $dateMin
-	 * @param DateTime $dateMax
 	 * @return Demande[]|null
 	 */
-    public function findByDates($dateMin, $dateMax)
+    public function findByDates(DateTime $dateMin, DateTime $dateMax)
     {
 		$dateMax = $dateMax->format('Y-m-d H:i:s');
 		$dateMin = $dateMin->format('Y-m-d H:i:s');
         return $this->createQueryBuilder('request')
-            ->andWhere('request.date BETWEEN :dateMin AND :dateMax')
+            ->andWhere('request.createdAt BETWEEN :dateMin AND :dateMax')
             ->setParameters([
                 'dateMin' => $dateMin,
                 'dateMax' => $dateMax
@@ -149,13 +126,7 @@ class DemandeRepository extends EntityRepository
 		return $result ? $result[0]['numero'] : null;
 	}
 
-	/**
-	 * @param Utilisateur $user
-	 * @return int
-	 * @throws NonUniqueResultException
-	 * @throws NoResultException
-	 */
-	public function countByUser($user)
+	public function countByUser($user): int
 	{
         return $this->createQueryBuilder('request')
             ->select('COUNT(request)')
@@ -166,16 +137,16 @@ class DemandeRepository extends EntityRepository
             ->getSingleScalarResult();
 	}
 
-	public function findByParamsAndFilters(InputBag $params, $filters, $receptionFilter)
+	public function findByParamsAndFilters(InputBag $params, $filters, $receptionFilter, Utilisateur $user): array
     {
-        $qb = $this->createQueryBuilder("d");
+        $qb = $this->createQueryBuilder("delivery_request");
 
-        $countTotal = QueryCounter::count($qb, 'd');
+        $countTotal = QueryCounter::count($qb, 'delivery_request');
 
         if ($receptionFilter) {
             $qb
-                ->join('d.reception', 'r')
-                ->andWhere('r.id = :reception')
+                ->join('delivery_request.reception', 'join_reception')
+                ->andWhere('join_reception.id = :reception')
                 ->setParameter('reception', $receptionFilter);
         } else {
             // filtres sup
@@ -184,29 +155,29 @@ class DemandeRepository extends EntityRepository
                     case 'statut':
                         $value = explode(',', $filter['value']);
                         $qb
-                            ->join('d.statut', 's')
-                            ->andWhere('s.id in (:statut)')
+                            ->join('delivery_request.statut', 'filter_status')
+                            ->andWhere('filter_status.id in (:statut)')
                             ->setParameter('statut', $value);
                         break;
                     case 'type':
                         $qb
-                            ->join('d.type', 't')
-                            ->andWhere('t.label = :type')
+                            ->join('delivery_request.type', 'filter_type')
+                            ->andWhere('filter_type.label = :type')
                             ->setParameter('type', $filter['value']);
                         break;
                     case 'utilisateurs':
                         $value = explode(',', $filter['value']);
                         $qb
-                            ->join('d.utilisateur', 'u')
-                            ->andWhere("u.id in (:id)")
+                            ->join('delivery_request.utilisateur', 'filter_user')
+                            ->andWhere("filter_user.id in (:id)")
                             ->setParameter('id', $value);
                         break;
                     case 'dateMin':
-                        $qb->andWhere('d.date >= :dateMin')
+                        $qb->andWhere('delivery_request.createdAt >= :dateMin')
                             ->setParameter('dateMin', $filter['value'] . " 00:00:00");
                         break;
                     case 'dateMax':
-                        $qb->andWhere('d.date <= :dateMax')
+                        $qb->andWhere('delivery_request.createdAt <= :dateMax')
                             ->setParameter('dateMax', $filter['value'] . " 23:59:59");
                         break;
                 }
@@ -218,17 +189,22 @@ class DemandeRepository extends EntityRepository
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
+                    $conditions = [
+                        "createdAt" => "DATE_FORMAT(delivery_request.createdAt, '%d/%m/%Y') LIKE :value",
+                        "validatedAt" => "DATE_FORMAT(delivery_request.validatedAt, '%d/%m/%Y') LIKE :value",
+                        "requester" => "search_user.username LIKE :value",
+                        "number" => "delivery_request.numero LIKE :value",
+                        "status" => "search_status.nom LIKE :value",
+                        "type" => "search_type.label LIKE :value",
+                    ];
+
+                    $condition = VisibleColumnService::getSearchableColumns($conditions, 'deliveryRequest', $qb, $user);
+
                     $qb
-						->join('d.statut', 's2')
-						->join('d.type', 't2')
-						->join('d.utilisateur', 'u2')
-                        ->andWhere("(
-                            DATE_FORMAT(d.date, '%d/%m/%Y') LIKE :value
-                            OR u2.username LIKE :value
-                            OR d.numero LIKE :value
-                            OR s2.nom LIKE :value
-                            OR t2.label LIKE :value
-                        )")
+                        ->andWhere($condition)
+                        ->join('delivery_request.statut', 'search_status')
+                        ->join('delivery_request.type', 'search_type')
+                        ->join('delivery_request.utilisateur', 'search_user')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
@@ -238,22 +214,22 @@ class DemandeRepository extends EntityRepository
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order))
                 {
-                    $column = self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']];
+                    $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
                     if ($column === 'type') {
                         $qb
-                            ->leftJoin('d.type', 'search_type')
-                            ->orderBy('search_type.label', $order);
-                    } else if ($column === 'statut') {
+                            ->leftJoin('delivery_request.type', 'order_type')
+                            ->orderBy('order_type.label', $order);
+                    } else if ($column === 'status') {
                         $qb
-                            ->leftJoin('d.statut', 'search_status')
-                            ->orderBy('search_status.nom', $order);
-                    } else if ($column === 'demandeur') {
+                            ->leftJoin('delivery_request.statut', 'order_status')
+                            ->orderBy('order_status.nom', $order);
+                    } else if ($column === 'requester') {
                         $qb
-                            ->leftJoin('d.utilisateur', 'search_user')
-                            ->orderBy('search_user.username', $order);
+                            ->leftJoin('delivery_request.utilisateur', 'order_user')
+                            ->orderBy('order_user.username', $order);
                     } else {
                         if (property_exists(Demande::class, $column)) {
-                            $qb->orderBy("d.$column", $order);
+                            $qb->orderBy("delivery_request.$column", $order);
                         }
                     }
                 }
@@ -261,7 +237,7 @@ class DemandeRepository extends EntityRepository
         }
 
 		// compte éléments filtrés
-		$countFiltered = QueryCounter::count($qb, 'd');
+		$countFiltered = QueryCounter::count($qb, 'delivery_request');
 
         if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
@@ -273,10 +249,6 @@ class DemandeRepository extends EntityRepository
         ];
     }
 
-    /**
-     * @param $search
-     * @return mixed
-     */
     public function getIdAndLibelleBySearch($search)
     {
         return $this->createQueryBuilder('demande')
@@ -287,8 +259,6 @@ class DemandeRepository extends EntityRepository
             ->getQuery()
             ->execute();
     }
-
-
 
     public function getOlderDateToTreat(array $types = [],
                                         array $statuses = []): ?DateTime {
@@ -437,12 +407,10 @@ class DemandeRepository extends EntityRepository
         }
 
         return $queryBuilder
-            ->orderBy('request.date', Criteria::DESC)
+            ->orderBy('request.createdAt', Criteria::DESC)
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
-
-
     }
 
     public function getRequestersForReceptionExport() {

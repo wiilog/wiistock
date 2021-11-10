@@ -83,7 +83,7 @@ class ReceptionService
             $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_RECEPTION, $user);
         }
 
-        $queryResult = $receptionRepository->findByParamAndFilters($params, $filters);
+        $queryResult = $receptionRepository->findByParamAndFilters($params, $filters, $user);
 
         $receptions = $queryResult['data'];
 
@@ -278,10 +278,9 @@ class ReceptionService
         ];
     }
 
-    public function getColumnVisibleConfig(EntityManagerInterface $entityManager,
-                                           Utilisateur $currentUser): array {
+    public function getColumnVisibleConfig(Utilisateur $currentUser): array {
 
-        $columnsVisible = $currentUser->getColumnsVisibleForReception();
+        $columnsVisible = $currentUser->getVisibleColumns()['reception'];
         $columns = [
             ['name' => "Actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true],
             ["title" => "Date création", "name" => "Date", 'searchable' => true],
