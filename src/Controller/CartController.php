@@ -14,6 +14,7 @@ use App\Entity\FreeField;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Menu;
 use App\Entity\Cart;
+use App\Entity\PurchaseRequest;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\TransferRequest;
@@ -77,27 +78,50 @@ class CartController extends AbstractController
             ];
         }
 
+        $referencesByBuyer = [];
+        foreach($currentUser->getCart()->getReferences() as $reference) {
+            $buyerId = $reference->getBuyer() ? $reference->getBuyer()->getId() : null;
+            if(!isset($referencesByBuyer[$buyerId])) {
+                $referencesByBuyer[$buyerId] = [
+                    "buyer" => $reference->getBuyer(),
+                    "references" => [],
+                ];
+            }
+
+            $referencesByBuyer[$buyerId]["references"][] = $reference;
+        }
+
         $defaultDeliveryLocations = $globalParamService->getDefaultDeliveryLocationsByTypeId();
         $deliveryRequests = Stream::from($manager->getRepository(Demande::class)->getDeliveryRequestForSelect($currentUser))
             ->filter(fn(Demande $request) => $request->getType() && $request->getDestination())
             ->keymap(fn(Demande $request) => [
-                $request->getId(),
-                "{$request->getNumero()} - {$request->getType()->getLabel()} - {$request->getDestination()->getLabel()} - Créée le {$request->getCreatedAt()->format('d/m/Y H:i')}"
+                "value" => $request->getId(),
+                "text" => "{$request->getNumero()} - {$request->getType()->getLabel()} - {$request->getDestination()->getLabel()} - Créée le {$request->getDate()->format('d/m/Y H:i')}"
             ]);
 
         $collectRequests = Stream::from($manager->getRepository(Collecte::class)->getCollectRequestForSelect($currentUser))
-            ->filter(fn(Collecte $collecte) => $collecte->getType() && $collecte->getPointCollecte())
+            ->filter(fn(Collecte $request) => $request->getType() && $request->getPointCollecte())
             ->keymap(fn(Collecte $request) => [
-                $request->getId(),
-                "{$request->getNumero()} - {$request->getType()->getLabel()} - {$request->getPointCollecte()->getLabel()} - Créée le {$request->getDate()->format('d/m/Y H:i')}"
+                "value" => $request->getId(),
+                "text" => "{$request->getNumero()} - {$request->getType()->getLabel()} - {$request->getPointCollecte()->getLabel()} - Créée le {$request->getDate()->format('d/m/Y H:i')}"
+            ]);
+
+        $purchaseRequests = Stream::from($manager->getRepository(PurchaseRequest::class)->getPurchaseRequestForSelect($currentUser))
+            ->map(fn(PurchaseRequest $request) => [
+                "value" => $request->getId(),
+                "text" => "{$request->getNumber()} - Créée le {$request->getCreationDate()->format('d/m/Y H:i')}",
+                "number" => $request->getNumber(),
+                "requester" => $request->getRequester(),
             ]);
 
         return $this->render("cart/index.html.twig", [
             "deliveryRequests" => $deliveryRequests,
             "collectRequests" => $collectRequests,
+            "purchaseRequests" => $purchaseRequests,
             "defaultDeliveryLocations" => $defaultDeliveryLocations,
             "deliveryFreeFieldsTypes" => $deliveryFreeFields,
             "collectFreeFieldsTypes" => $collectFreeFields,
+            "referencesByBuyer" => $referencesByBuyer,
         ]);
     }
 

@@ -590,7 +590,10 @@ $grey: #CBCBCB;
         font-size: 0.8rem;
         color: black;
         font-weight: bold;
-        margin-top: 7px;
+
+        &:not(:first-child) {
+            margin-top: 7px;
+        }
 
         &:not(.switch) {
             width: 100%;
@@ -670,7 +673,7 @@ $grey: #CBCBCB;
     }
 
     .content {
-        padding: 5px 16px;
+        padding: 16px;
 
         .box-item {
             display: grid;
@@ -704,7 +707,7 @@ $grey: #CBCBCB;
             }
         }
 
-        .delivery-references, .collect-references {
+        .delivery-references, .collect-references, .purchase-references {
             margin: 10px -16px 0;
             padding: 10px 15px;
             font-size: 0.9rem;

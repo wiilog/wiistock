@@ -56,7 +56,7 @@ $wii-switch-height: 34px;
         color: $primary;
         height: $wii-switch-height;
         line-height: $wii-switch-height;
-        margin: -1px 0 0;
+        margin: -1px 0 0 !important;
         font-weight: normal;
         transition: all 200ms linear;
         font-size: 1rem;
@@ -165,7 +165,7 @@ $wii-switch-height: 34px;
     align-items: center;
 
     label {
-        margin-top: 0;
+        margin-top: 0 !important;
         font-weight: normal;
     }
 
