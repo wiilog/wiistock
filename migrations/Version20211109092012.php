@@ -8,18 +8,9 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 use WiiCommon\Helper\Stream;
 
-/**
- * Auto-generated Migration: Please modify to your needs!
- */
-final class Version20211109092012 extends AbstractMigration
-{
-    public function getDescription(): string
-    {
-        return '';
-    }
+final class Version20211109092012 extends AbstractMigration {
 
-    public function up(Schema $schema): void
-    {
+    public function up(Schema $schema): void {
         // this up() migration is auto-generated, please modify it to your needs
         if(!$schema->getTable("demande")->hasColumn("created_at")) {
             $this->addSql("ALTER TABLE demande RENAME COLUMN date TO created_at");
@@ -33,7 +24,7 @@ final class Version20211109092012 extends AbstractMigration
 
         $previousDateFieldName = 'date';
         $newDateFieldName = 'createdAt';
-        foreach ($users as $user) {
+        foreach($users as $user) {
             $visibleColumns = $this->connection->executeQuery("SELECT visible_columns FROM utilisateur WHERE id = ${user['id']}")->fetchFirstColumn();
             $visibleColumns = json_decode($visibleColumns[0], true);
 
@@ -45,17 +36,12 @@ final class Version20211109092012 extends AbstractMigration
         }
 
         $deliveryRequests = $this->connection
-            ->executeQuery("SELECT demande.id, preparation.date AS preparation_date FROM demande JOIN preparation ON demande.id = preparation.demande_id")
+            ->executeQuery("SELECT demande.id, MIN(preparation.date) AS preparation_date FROM demande LEFT JOIN preparation ON demande.id = preparation.demande_id WHERE preparation.date IS NOT NULL GROUP BY demande.id")
             ->fetchAllAssociative();
 
-        foreach ($deliveryRequests as $deliveryRequest) {
+        foreach($deliveryRequests as $deliveryRequest) {
             $this->addSql("UPDATE demande SET validated_at = '${deliveryRequest['preparation_date']}' WHERE id = ${deliveryRequest['id']}");
         }
     }
 
-    public function down(Schema $schema): void
-    {
-        // this down() migration is auto-generated, please modify it to your needs
-
-    }
 }
