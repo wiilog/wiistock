@@ -1,6 +1,6 @@
 $(function () {
     $.fn.dataTable.ext.errMode = () => {
-        alert('La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.');
+        showBSAlert(`La requête n\'est pas parvenue au serveur. Veuillez contacter le support si cela se reproduit.`, `danger`);
     };
 
     $(window).on('shown.bs.collapse shown.bs.modal', (event) => {

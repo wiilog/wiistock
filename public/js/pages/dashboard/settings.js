@@ -49,7 +49,7 @@ function loadDashboards(m, refreshRate) {
     mode = m;
 
     if (mode === undefined) {
-        alert("Configuration invalide");
+        showBSAlert(`Configuration invalide`, `danger`);
     }
 
     dashboards = JSON.parse($(`.dashboards-data`).val());
