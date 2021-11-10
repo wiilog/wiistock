@@ -160,6 +160,10 @@ export default class Form {
                             multipleKey[$multipleKey.data(`multiple-object-index`)] = {};
                         }
                         const multipleObject = multipleKey[$multipleKey.data(`multiple-object-index`)];
+                        if ($multipleKey.data(`multiple-key`) === "cart") {
+                            console.log($multipleKey.data(`multiple-object-index`), $input.attr(`name`), value);
+                        }
+
                         multipleObject[$input.attr(`name`) || $input.attr(`data-wysiwyg`)] = value;
                         data.set($multipleKey.data(`multiple-key`), JSON.stringify(multipleKey));
                     } else {

@@ -24,8 +24,6 @@ $(document).ready(() => {
     const $addOrCreate = $(`[name="addOrCreate"]`).closest(`.wii-radio-container`);
 
     const $purchaseRequestInfosTemplate = $(`#purchase-request-infos-template`);
-    const $allReferences = $(`.all-references`);
-    const $referencesByBuyer = $(`.references-by-buyer`);
 
     const $existingDelivery = $(`.existing-delivery`);
     const $existingCollect = $(`.existing-collect`);
@@ -35,27 +33,10 @@ $(document).ready(() => {
     const $createCollect = $(`.create-collect`);
     const $createPurchase = $(`.create-purchase`);
 
-    $(`[name="requestType"]`).on(`change`, function() {
-        $allReferences.hide();
-        $referencesByBuyer.hide();
-
-        $addOrCreate.show();
-        $(`.sub-form`).addClass(`d-none`);
-        $('input[name="addOrCreate"]').prop(`checked`, false);
-
-        const requestType = $(this).val();
-        if(requestType === "delivery"){
-            $allReferences.show();
-            $(`.quantity-label`).text(`Quantité à livrer`);
-        } else if(requestType === "collect") {
-            $allReferences.show();
-            $(`.quantity-label`).text(`Quantité à collecter`);
-        } else if(requestType === "purchase") {
-            $referencesByBuyer.show();
-            $existingPurchase.removeClass(`d-none`);
-            $addOrCreate.hide();
-            $(`.quantity-label`).text(`Quantité demandée`);
-        }
+    const $requestTypeRadio = $(`[name="requestType"]`);
+    handleRequestTypeChange($requestTypeRadio, $addOrCreate, $existingPurchase)
+    $requestTypeRadio.on(`change`, function() {
+        handleRequestTypeChange($(this), $addOrCreate, $existingPurchase);
     });
 
     $(`input[name="addOrCreate"][value="add"]`).on(`click`, function() {
@@ -121,6 +102,23 @@ $(document).ready(() => {
             }
         });
     });
+
+    // $("select[name=existingPurchase]").on("change", function () {
+    //     const selectedValue = $(this).val();
+    //     const $selects = $("select[name=existingPurchase]").not($(this));
+    //
+    //     console.log($selects);
+    //     if (selectedValue !== "new") {
+    //         $selects.each(function () {
+    //             $(this).find("option").each(function () {
+    //                 $(this).toggleClass('d-none', selectedValue === $(this).val());
+    //             })
+    //         });
+    //     }
+    // })
+
+
+
 });
 
 function initializePurchaseRequestInfos($purchaseInfos, id) {
@@ -247,4 +245,36 @@ function onCollectChanged($select) {
     } else {
         $('.collect-request-content').addClass("d-none");
     }
+}
+function handleRequestTypeChange($requestType, $addOrCreate, $existingPurchase) {
+
+    const $cartContentContainers = $('.wii-form > .cart-content');
+    $cartContentContainers.hide();
+
+    $cartContentContainers
+        .find('.data')
+        .addClass("data-save")
+        .removeClass('data');
+
+    $(`.sub-form`).addClass(`d-none`);
+    $('input[name="addOrCreate"]').prop(`checked`, false);
+
+    const requestType = $requestType.val();
+
+    const $cartContentToShow = $cartContentContainers.filter(`[data-request-type="${requestType}"]`);
+
+    $cartContentToShow.show();
+
+    $cartContentToShow
+        .find('.data-save')
+        .removeClass("data-save")
+        .addClass('data');
+
+    if(requestType === "delivery" || requestType === "collect") {
+        $addOrCreate.show();
+    } else if(requestType === "purchase") {
+        $addOrCreate.hide();
+    }
+
+    // TODO cedric toggleSelectedPurchaseRequest()
 }

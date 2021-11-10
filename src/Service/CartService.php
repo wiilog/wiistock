@@ -185,8 +185,17 @@ class CartService {
         ];
     }
 
-    private function emptyCart(Cart $cart) {
-        $cart->getReferences()->clear();
+    private function emptyCart(Cart $cart, ?array $referencesToRemove = null): void {
+        if ($referencesToRemove) {
+            /** @var ReferenceArticle $reference */
+            foreach ($cart->getReferences()->toArray() as $reference) {
+                if (in_array($reference->getId(), $referencesToRemove)) {
+                    $cart->removeReference($reference);
+                }
+            }
+        } else {
+            $cart->getReferences()->clear();
+        }
     }
 
     public function manageCollectRequest($data,
@@ -235,59 +244,75 @@ class CartService {
     }
 
     public function managePurchaseRequest($data,
-                                          Utilisateur $utilisateur,
+                                          Utilisateur $user,
                                           PurchaseRequestService $purchaseRequestService,
-                                          EntityManagerInterface $entityManager,
-                                          Cart $cart): array
+                                          EntityManagerInterface $entityManager): array
     {
-        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $purchaseRequestRepository = $entityManager->getRepository(PurchaseRequest::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $status = $statusRepository->findOneByCategorieNameAndStatutState(CategorieStatut::PURCHASE_REQUEST, Statut::DRAFT);
+        $treatedCartReferences = [];
 
-        $requestsByBuyer = [];
         if ($status) {
-            foreach ($data as $key => $datum) {
-                if (str_starts_with($key, 'reference')) {
-                    if (preg_match('/(-(.\d*)-(.\d*))/', $key, $match) == 1) {
-                        $buyerID = $match[2];
-                        $index = $match[3];
-                        $associatedPurchaseRequest = $data['purchase-' . $buyerID] ?: ($requestsByBuyer[$buyerID] ?? null);
-                        $wantedQuantity = intval($data['quantity-' . $buyerID . '-' . $index]);
-                        $reference = $referenceArticleRepository->findOneBy(['reference' => $datum]);
+            $requestsByBuyer = Stream::from(json_decode($data['buyers'], true))
+                ->keymap(fn(array $buyerData) => [
+                    $buyerData['buyer'],
+                    !empty($buyerData['existingPurchase']) ? $entityManager->find(PurchaseRequest::class, $buyerData['existingPurchase']) : null
+                ])
+                ->toArray();
+            $cart = json_decode($data['cart'], true);
+            foreach ($cart as $referenceData) {
+                $reference = !empty($referenceData['reference'])
+                    ? $entityManager->find(ReferenceArticle::class, $referenceData['reference'])
+                    : null;
 
-                        if ($associatedPurchaseRequest) {
-                            $request = $associatedPurchaseRequest instanceof PurchaseRequest
-                                ? $associatedPurchaseRequest
-                                : $purchaseRequestRepository->find($associatedPurchaseRequest);
-                        } else {
-                            $buyer = $reference->getBuyer();
-                            $request = $purchaseRequestService->createPurchaseRequest($entityManager, $status, $utilisateur, null, null, $buyer);
-                            $entityManager->persist($request);
-                            $entityManager->flush();
-                        }
-                        $refAlreadyInRequest = !$request->getPurchaseRequestLines()->filter(function (PurchaseRequestLine $line) use ($reference) {
-                            return $line->getReference() === $reference;
-                        })->isEmpty();
-                        if (!$refAlreadyInRequest && (!$request->getBuyer() || $request->getBuyer()->getId() === intval($buyerID))) {
-                            if (!$request->getBuyer()) {
-                                $request->setBuyer($reference->getBuyer());
+                if ($reference) {
+                    $buyer = $reference->getBuyer();
+                    if ($buyer) {
+                        $quantity = (int) $referenceData['quantity'] ?? 0;
+                        $associatedPurchaseRequest = $requestsByBuyer[$buyer->getId()] ?? null;
+
+                        if ($quantity > 0) {
+                            if (!isset($associatedPurchaseRequest)) {
+                                $associatedPurchaseRequest = $purchaseRequestService->createPurchaseRequest($entityManager, $status, $user, null, null, $buyer);
+                                $entityManager->persist($associatedPurchaseRequest);
+                                $entityManager->flush();
+                                $requestsByBuyer[$buyer->getId()] = $associatedPurchaseRequest;
                             }
-                            $line = new PurchaseRequestLine();
-                            $line
-                                ->setRequestedQuantity($wantedQuantity)
-                                ->setReference($reference)
-                                ->setPurchaseRequest($request);
-                            $entityManager->persist($line);
+
+                            /** @var PurchaseRequestLine|null $associatedLine */
+                            $associatedLine = $associatedPurchaseRequest
+                                ->getPurchaseRequestLines()
+                                ->filter(fn(PurchaseRequestLine $line) => $line->getReference() === $reference)
+                                ->first() ?: null;
+
+                            $treatedCartReferences[] = $reference->getId();
+
+                            if ($associatedLine) {
+                                if ($associatedLine->getRequestedQuantity() < $quantity) {
+                                    $associatedLine->setRequestedQuantity($quantity);
+                                }
+                            } else {
+                                $line = new PurchaseRequestLine();
+                                $line
+                                    ->setRequestedQuantity($quantity)
+                                    ->setReference($reference)
+                                    ->setPurchaseRequest($associatedPurchaseRequest);
+                                $entityManager->persist($line);
+                            }
+
                         }
-                        $requestsByBuyer[$buyerID] = $request;
                     }
                 }
             }
         }
-        $this->emptyCart($cart);
+        $this->emptyCart($user->getCart(), $treatedCartReferences);
         $entityManager->flush();
-        return $requestsByBuyer;
+        return [
+            "success" => true,
+            "msg" => "Les références ont bien étées ajoutées dans des demandes d'achat",
+            /** TODO Cedric creer le redirect */
+//            "link" => $redirect,
+        ];
     }
 
     public function manageDeliveryRequest($data,

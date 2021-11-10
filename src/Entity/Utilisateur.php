@@ -356,7 +356,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     /**
      * @ORM\Column(type="json", nullable=true)
      */
-    private array $visibleColumns;
+    private ?array $visibleColumns = [];
 
     public function __construct()
     {

@@ -203,16 +203,20 @@ class CartController extends AbstractController
     public function validateCart(Request $request,
                                  EntityManagerInterface $entityManager,
                                  DemandeLivraisonService $deliveryRequestService,
-                                 FreeFieldService $freeFieldService)
+                                 CartService $cartService,
+                                 FreeFieldService $freeFieldService,
+                                 PurchaseRequestService $purchaseRequestService)
     {
         $data = json_decode($request->getContent(), true);
-
         switch ($data["requestType"]) {
             case "delivery":
                 $response = $this->manageDeliveryRequest($data, $entityManager, $deliveryRequestService, $freeFieldService);
                 break;
             case "collect":
                 $response = $this->manageCollectRequest($data, $entityManager, $freeFieldService);
+                break;
+            case "purchase":
+                $response = $cartService->managePurchaseRequest($data, $this->getUser(), $purchaseRequestService, $entityManager);
                 break;
             default:
                 throw new RuntimeException("Unsupported request type");
@@ -281,7 +285,7 @@ class CartController extends AbstractController
 
     private function manageCollectRequest(array $data,
                                           EntityManagerInterface $manager, $freeFieldService) {
-        $referencesQuantities = json_decode($data['quantities'], true);
+        $referencesQuantities = json_decode($data['cart'], true);
 
         $msg = '';
         $link = '';
@@ -332,14 +336,20 @@ class CartController extends AbstractController
     }
 
     private function addReferencesToCurrentUserCart(EntityManagerInterface $entityManager,
-                                                    $request,
-                                                    array $referencesQuantities)
+                                                                           $request,
+                                                    array                  $cart)
     {
         $referenceRepository = $entityManager->getRepository(ReferenceArticle::class);
-        if($request instanceof Demande) {
-            $references = $referenceRepository->findByIds(array_keys($referencesQuantities));
-            foreach ($referencesQuantities as $reference => $referencesQuantity) {
-                $reference = $references[$reference];
+        $references = $referenceRepository->findByIds(
+            Stream::from($cart)
+                ->map(fn($referenceData) => $referenceData['reference'])
+                ->toArray()
+        );
+        foreach ($cart as $referenceData) {
+            $referenceId = $referenceData['reference'];
+            $quantity = $referenceData['quantity'];
+            $reference = $references[$referenceId];
+            if($request instanceof Demande) {
                 /** @var DeliveryRequestReferenceLine|null $alreadyInRequest */
                 $alreadyInRequest = Stream::from($request->getReferenceLines())
                     ->filter(fn(DeliveryRequestReferenceLine $line) => $line->getReference() === $reference)
@@ -347,31 +357,28 @@ class CartController extends AbstractController
 
                 if(!empty($alreadyInRequest)) {
                     $alreadyInRequest
-                        ->setQuantityToPick($referencesQuantities[$reference->getId()]['quantity']);
+                        ->setQuantityToPick($cart[$reference->getId()]['quantity']);
                 } else {
                     $deliveryRequestLine = (new DeliveryRequestReferenceLine())
                         ->setReference($reference)
-                        ->setQuantityToPick($referencesQuantity['quantity']);
+                        ->setQuantityToPick($quantity);
 
                     $request->addReferenceLine($deliveryRequestLine);
                 }
             }
-        } else if($request instanceof Collecte) {
-            $references = $referenceRepository->findByIds(array_keys($referencesQuantities));
-            foreach ($referencesQuantities as $reference => $referencesQuantity) {
-                $reference = $references[$reference];
+            else if($request instanceof Collecte) {
                 /** @var CollecteReference|null $alreadyInRequest */
                 $alreadyInRequest = Stream::from($request->getCollecteReferences())
                     ->filter(fn(CollecteReference $line) => $line->getReferenceArticle() === $reference)
                     ->first();
 
-                if(!empty($alreadyInRequest)) {
-                    $alreadyInRequest->setQuantite($referencesQuantities[$reference->getId()]['quantity']);
+                if (!empty($alreadyInRequest)) {
+                    $alreadyInRequest->setQuantite($cart[$reference->getId()]['quantity']);
                 } else {
                     $collectRequestLine = new CollecteReference();
                     $collectRequestLine
                         ->setReferenceArticle($reference)
-                        ->setQuantite($referencesQuantity['quantity']);
+                        ->setQuantite($quantity);
                     $request->addCollecteReference($collectRequestLine);
                 }
             }

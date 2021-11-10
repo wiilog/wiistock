@@ -24,6 +24,7 @@ const ROUTES = {
     supplierCode: `ajax_select_supplier_code`,
     supplierLabel: `ajax_select_supplier_label`,
     collectableArticles: `ajax_select_collectable_articles`,
+    purchaseRequest: `ajax_select_references_by_buyer`,
 }
 
 const INSTANT_SELECT_TYPES = {

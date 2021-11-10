@@ -15,7 +15,7 @@ class VisibleColumnFixtures extends Fixture implements FixtureGroupInterface {
         if(!empty($users)) {
             /** @var Utilisateur $user */
             foreach ($users as $user) {
-                $visibleColumns = $user->getVisibleColumns();
+                $visibleColumns = $user->getVisibleColumns() ?? Utilisateur::DEFAULT_VISIBLE_COLUMNS;
                 $visibleColumnsIndexes = array_keys($visibleColumns);
                 $missingKeys = array_diff(array_keys(Utilisateur::DEFAULT_VISIBLE_COLUMNS), $visibleColumnsIndexes);
 

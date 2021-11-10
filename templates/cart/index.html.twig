@@ -8,12 +8,12 @@
     {{ parent() }}
     {{ encore_entry_link_tags('cart') }}
 {% endblock %}
-
-{% macro reference_card(reference, disabled = false) %}
+{% macro reference_card(reference, index, quantityLabel, disabled = false, maxIsAvailableQuantity = false) %}
     <div class="cart-reference-container"
-         data-multiple-key="quantities"
-         data-multiple-object-index="{{ reference.id }}"
+         data-multiple-key="cart"
+         data-multiple-object-index="{{ index }}"
          style="--reference-color: {{ reference.type.color ?? '$primary;' }};">
+        <input type="hidden" class="data" name="reference" value="{{ reference.id }}"/>
         <div class="cart-reference">
             <div class="cart-reference-type">{{ reference.type.label }}</div>
             <div class="cart-reference-infos text-break">
@@ -36,9 +36,9 @@
                 </span>
             </div>
             <div class="cart-reference-quantity nowrap">
-                {{ form.number('quantity', {url: '/svg/reference_article/stock.svg', text: '<span class="quantity-label">Quantité à livrer</span>'}, true, 0, {
+                {{ form.number('quantity', {url: '/svg/reference_article/stock.svg', text: quantityLabel}, true, 0, {
                     min: 0,
-                    max: reference.quantiteDisponible,
+                    max: maxIsAvailableQuantity ? reference.quantiteDisponible : null,
                     labelClass: 'd-flex flex-column align-items-center',
                     error: 'global',
                     disabled: disabled,
@@ -61,7 +61,7 @@
                         {{ form.switch('requestType', 'Type de demande', false, [
                             {label: {wiiIcon: 'cart-delivery', text: 'Livraison'}, value: 'delivery', checked: true},
                             {label: {wiiIcon: 'cart-collect', text: 'Collecte'}, value: 'collect'},
-                            {label: {wiiIcon: 'cart-purchase', text: 'Achat'}, value: 'purchase'},
+                            {label: {wiiIcon: 'cart-purchase', text: 'Achat'}, value: 'purchase' , max: true}
                         ]) }}
 
                         {{ form.radio('addOrCreate', null, true, [
@@ -238,12 +238,14 @@
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-xl-8 all-references">
+            <div class="col-12 col-xl-8 cart-content" data-request-type="delivery">
                 <div class="wii-box">
                     <div class="header wii-title">Références</div>
                     <div class="content cart-reference-list">
                         {% for reference in app.user.cart.references %}
-                            {{ _self.reference_card(reference) }}
+                            {{ _self.reference_card(reference, loop.index0, 'Quantité à livrer', false, true) }}
+                            {%  set buyerId = reference.buyer.id is defined ? reference.buyer.id : "null" %}
+                            <input type="hidden" value="{{reference.id ~'/'~ buyerId }}" class="data" name="referenceBuyer"/>
                         {% endfor %}
                     </div>
                 </div>
@@ -251,10 +253,27 @@
                     Valider mon panier
                 </button>
             </div>
-            <div class="col-12 col-xl-8 references-by-buyer"
+            <div class="col-12 col-xl-8 cart-content" data-request-type="collect">
+                <div class="wii-box">
+                    <div class="header wii-title">Références</div>
+                    <div class="content cart-reference-list">
+                        {% for reference in app.user.cart.references %}
+                            {{ _self.reference_card(reference, loop.index0, 'Quantité à collecter') }}
+                            {%  set buyerId = reference.buyer.id is defined ? reference.buyer.id : "null" %}
+                            <input type="hidden" value="{{reference.id ~'/'~ buyerId }}" class="data" name="referenceBuyer"/>
+                        {% endfor %}
+                    </div>
+                </div>
+                <button class="btn btn-success float-right mt-3" type="submit">
+                    Valider mon panier
+                </button>
+            </div>
+            <div class="col-12 col-xl-8 cart-content"
+                 data-request-type="purchase"
                  data-multiple-key="buyers"
                  data-multiple-object-index="{{ item.buyer.id ?? null }}"
                  style="display: none">
+                {% set referenceIndex = 0 %}
                 {% for item in referencesByBuyer %}
                     <div class="wii-box">
                         <div class="header wii-title">
@@ -271,14 +290,24 @@
                             {% endif %}
 
                             {% for reference in item.references %}
-                                {{ _self.reference_card(reference, not item.buyer) }}
+                                {{ _self.reference_card(reference, referenceIndex, 'Quantité demandée', not item.buyer) }}
+                                {% set referenceIndex = referenceIndex + 1 %}
                             {% endfor %}
 
                             {% if item.buyer %}
-                                {{ form.select('existingPurchase', 'Mes demandes d\'achat', true, {
-                                    placeholder: 'Sélectionnez une demande d\'achat',
-                                    items: purchaseRequests,
-                                }) }}
+                                <div data-multiple-key="buyers"
+                                     data-multiple-object-index="{{ loop.index0 }}">
+                                    <input type="hidden" class="data" name="buyer" value="{{ item.buyer.id }}"/>
+                                    {{ form.select('existingPurchase', 'Mes demandes d\'achat', true, {
+                                        placeholder: "Sélectionnez une demande d'achat",
+                                        items: purchaseRequests,
+                                        emptyOption: {
+                                            text: "Créer une demande d'achat",
+                                            selected: true,
+                                            value: "new",
+                                        }
+                                    }) }}
+                                </div>
                             {% endif %}
                         </div>
                     </div>

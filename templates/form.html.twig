@@ -102,7 +102,9 @@
             {% endif %}
             {{ _self.common_attributes(name, options) }}
             {{ _self.multiple_key(options) }}>
-            {% if options.type is not defined and options.placeholder ?? false %}
+            {% if options.emptyOption is defined and options.emptyOption is not empty %}
+                <option {{ options.emptyOption.selected ? "selected" }} value="{{ options.emptyOption.value }}">{{ options.emptyOption.text }}</option>
+            {% elseif options.type is not defined and options.placeholder ?? false %}
                 <option disabled selected>{{ options.placeholder }}</option>
             {% endif %}
             {% for item in options.items ?? [] %}
@@ -137,8 +139,8 @@
                 {{ required ? 'required' }}
                 {{ _self.common_attributes(name, options) }}
                 {{ _self.multiple_key(options) }}
-                {% if options.min is defined %}min="{{ options.min }}"{% endif %}
-                {% if options.max is defined %}max="{{ options.max }}"{% endif %}>
+                {% if options.min is defined and options.min is not null %}min="{{ options.min }}"{% endif %}
+                {% if options.max is defined and options.max is not null %}max="{{ options.max }}"{% endif %}>
             <button class="increase"></button>
         </div>
     </label>
