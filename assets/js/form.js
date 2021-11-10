@@ -158,17 +158,16 @@ export default class Form {
                         if(!multipleKey[$multipleKey.data(`multiple-object-index`)]) {
                             multipleKey[$multipleKey.data(`multiple-object-index`)] = {};
                         }
-
                         const multipleObject = multipleKey[$multipleKey.data(`multiple-object-index`)];
                         multipleObject[$input.attr(`name`) || $input.attr(`data-wysiwyg`)] = value;
-
-                        data.append($multipleKey.data(`multiple-key`), JSON.stringify(multipleKey));
+                        data.set($multipleKey.data(`multiple-key`), JSON.stringify(multipleKey));
                     } else {
-                        data.append($input.attr(`name`) || $input.attr(`data-wysiwyg`), value);
+                        data.set($input.attr(`name`) || $input.attr(`data-wysiwyg`), value);
                     }
                 }
             }
         }
+        console.log(data);
 
         this.addDataArray(data, classes);
 
