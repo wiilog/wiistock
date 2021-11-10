@@ -16,6 +16,7 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Service\AttachmentService;
+use App\Service\DemandeLivraisonService;
 use App\Service\PurchaseRequestService;
 use App\Service\ReceptionService;
 use App\Service\RefArticleDataService;
@@ -686,5 +687,15 @@ class PurchaseRequestController extends AbstractController
         }
         throw new BadRequestHttpException();
     }
+
+    /**
+     * @Route("/api-references", options={"expose"=true}, name="purchase_api_references", methods={"POST"}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS}, mode=HasPermission::IN_JSON)
+     */
+    public function apiReferences(Request $request, PurchaseRequestService $service): Response {
+
+        return $this->json($service->getDataForReferencesDatatable($request->request->get('purchaseId')));
+    }
+
 }
 

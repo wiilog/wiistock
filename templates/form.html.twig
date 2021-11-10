@@ -105,8 +105,11 @@
             {% if options.type is not defined and options.placeholder ?? false %}
                 <option disabled selected>{{ options.placeholder }}</option>
             {% endif %}
-            {% for value, label in options.items ?? [] %}
-                <option value="{{ value }}" {{ value in values ? 'selected' }}>{{ label }}</option>
+            {% for item in options.items ?? [] %}
+                <option value="{{ item.value }}" {{ item.value in values ? 'selected' }}
+                    {% for dataKey, dataValue in item %}
+                        data-{{ dataKey }}="{{ dataValue }}"
+                    {% endfor %}>{{ item.text }}</option>
             {% endfor %}
         </select>
     </label>
@@ -126,9 +129,9 @@
 {% macro number(name, label, required, value = '', options = {}) %}
     <label class="{{ options.labelClass ?? '' }}">
         <span>{{ _self.label(label) }}{{ required ? '*' }}</span>
-        <div class="increase-decrease-field">
+        <div class="increase-decrease-field" style="min-width: 120px;">
             <button class="decrease"></button>
-            <input type="number" data-no-arrow class="form-control w-50 data"
+            <input type="number" data-no-arrow class="form-control w-50 p-0 text-center data"
                    placeholder="{{ options.placeholder ?? '' }}"
                    value="{{ value }}"
                 {{ required ? 'required' }}
