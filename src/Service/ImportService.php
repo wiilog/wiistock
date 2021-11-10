@@ -378,11 +378,14 @@ class ImportService
                         $this->importUserEntity($data, $stats);
                         break;
                     case Import::ENTITY_DELIVERY:
-                        $this->importDeliveryEntity($data, $stats, $deliveries, $user ?? $this->currentImport->getUser(), $refToUpdate, $colChampsLibres, $row);
+                        $insertedDelivery = $this->importDeliveryEntity($data, $stats, $deliveries, $user ?? $this->currentImport->getUser(), $refToUpdate, $colChampsLibres, $row);
                         break;
                 }
 
                 $this->em->flush();
+                if (!empty($insertedDelivery)) {
+                    $deliveries[$insertedDelivery->getUtilisateur()->getId() . '-' . $insertedDelivery->getDestination()->getId()] = $insertedDelivery;
+                }
                 if ($needsUnitClear) {
                     $this->clearEntityManagerAndRetrieveImport();
                 }
@@ -1492,7 +1495,7 @@ class ImportService
         $this->updateStats($stats, !$user->getId());
     }
 
-    private function importDeliveryEntity(array $data, array &$stats, array &$deliveries, Utilisateur $utilisateur, array &$refsToUpdate, array $colChampsLibres, $row): void {
+    private function importDeliveryEntity(array $data, array &$stats, array &$deliveries, Utilisateur $utilisateur, array &$refsToUpdate, array $colChampsLibres, $row): ?Demande {
         $users = $this->em->getRepository(Utilisateur::class);
         $locations = $this->em->getRepository(Emplacement::class);
         $types = $this->em->getRepository(Type::class);
@@ -1500,7 +1503,7 @@ class ImportService
         $references = $this->em->getRepository(ReferenceArticle::class);
         $articles = $this->em->getRepository(Article::class);
 
-        $requester = $data['requester'] ? $users->findOneBy(['email' => $data['requester']]) : $utilisateur;
+        $requester = $data['requester'] ? $users->findOneBy(['username' => $data['requester']]) : $utilisateur;
         $destination = $data['destination'] ? $locations->findOneBy(['label' => $data['destination']]) : null;
         $type = $data['type'] ? $types->findOneByCategoryLabelAndLabel(CategoryType::DEMANDE_LIVRAISON, $data['type']) : null;
         $status = $data['status'] ? $statuses->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_LIVRAISON, $data['status']) : null;
@@ -1520,15 +1523,12 @@ class ImportService
         }
         $deliveryKey = $requester->getId() . '-' . $destination->getId();
         $newEntity = !isset($deliveries[$deliveryKey]);
-        if ($newEntity) {
-            $deliveries[$deliveryKey] = new Demande();
-        } else {
+        if (!$newEntity) {
             $request = $deliveries[$deliveryKey];
             $request = $this->em->getRepository(Demande::class)->find($request->getId());
             $deliveries[$deliveryKey] = $request;
         }
-
-        $request = $deliveries[$deliveryKey];
+        $request = $newEntity ? new Demande() : $deliveries[$deliveryKey];
 
         if (!$type) {
             $this->throwError('Type inconnu.');
@@ -1559,7 +1559,7 @@ class ImportService
                             $line = new DeliveryRequestArticleLine();
                             $line
                                 ->setArticle($article)
-                                ->setPickedQuantity(intval($quantityDelivery));
+                                ->setQuantityToPick(intval($quantityDelivery));
                             $this->em->persist($line);
                             $request->addArticleLine($line);
                             if (!$request->getPreparations()->isEmpty()) {
@@ -1623,17 +1623,14 @@ class ImportService
             $request->setCommentaire($commentaire);
         }
 
-        if ($newEntity) {
-            $request
-                ->setDate(new DateTime('now', new \DateTimeZone('Europe/Paris')))
-                ->setUtilisateur($requester)
-                ->setDestination($destination)
-                ->setNumero($this->demandeLivraisonService->generateNumeroForNewDL($this->em));
-            $this->em->persist($request);
-        }
-
+        $request
+            ->setDate(new DateTime('now', new \DateTimeZone('Europe/Paris')))
+            ->setUtilisateur($requester)
+            ->setDestination($destination)
+            ->setNumero($this->demandeLivraisonService->generateNumeroForNewDL($this->em));
+        $this->em->persist($request);
         if ($request->getStatut()->getCode() === Demande::STATUT_A_TRAITER && $newEntity) {
-            $response = $this->demandeLivraisonService->validateDLAfterCheck($this->em, $request);
+            $response = $this->demandeLivraisonService->validateDLAfterCheck($this->em, $request, true, false, false);
             if (!$response['success']) {
                 $this->throwError($response['msg']);
             }
@@ -1642,6 +1639,8 @@ class ImportService
         $this->checkAndSetChampsLibres($colChampsLibres, $request, $newEntity, $row);
 
         $this->updateStats($stats, $newEntity);
+
+        return $request;
     }
 
     private function checkAndSetChampsLibres(array $colChampsLibres,

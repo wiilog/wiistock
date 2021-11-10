@@ -29,6 +29,7 @@ use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
+use Monolog\Handler\Curl\Util;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
@@ -50,11 +51,6 @@ class DemandeLivraisonService
      * @var RouterInterface
      */
     private $router;
-
-    /**
-     * @var Utilisateur
-     */
-    private $user;
 
     private $entityManager;
     private $stringService;
@@ -87,7 +83,6 @@ class DemandeLivraisonService
         $this->stringService = $stringService;
         $this->entityManager = $entityManager;
         $this->router = $router;
-        $this->user = $tokenStorage->getToken()->getUser();
         $this->translator = $translator;
         $this->mailerService = $mailerService;
         $this->refArticleDataService = $refArticleDataService;
@@ -96,7 +91,7 @@ class DemandeLivraisonService
         $this->appURL = $appURL;
     }
 
-    public function getDataForDatatable($params = null, $statusFilter = null, $receptionFilter = null)
+    public function getDataForDatatable($params = null, $statusFilter = null, $receptionFilter = null, Utilisateur $user)
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $demandeRepository = $this->entityManager->getRepository(Demande::class);
@@ -109,7 +104,7 @@ class DemandeLivraisonService
                 ]
             ];
         } else {
-            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DEM_LIVRAISON, $this->user);
+            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DEM_LIVRAISON, $user);
         }
         $queryResult = $demandeRepository->findByParamsAndFilters($params, $filters, $receptionFilter);
 
