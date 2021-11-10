@@ -72,13 +72,6 @@ class DemandeLivraisonService
     /** @Required */
     public VisibleColumnService $visibleColumnService;
 
-    private $user;
-
-    public function __construct(TokenStorageInterface $tokenStorage)
-    {
-        $this->user = $tokenStorage->getToken()->getUser();
-    }
-
     public function getDataForDatatable($params = null, $statusFilter = null, $receptionFilter = null, Utilisateur $user)
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -94,7 +87,7 @@ class DemandeLivraisonService
         } else {
             $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DEM_LIVRAISON, $user);
         }
-        $queryResult = $demandeRepository->findByParamsAndFilters($params, $filters, $receptionFilter, $this->user);
+        $queryResult = $demandeRepository->findByParamsAndFilters($params, $filters, $receptionFilter, $user);
 
         $demandeArray = $queryResult['data'];
 

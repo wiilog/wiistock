@@ -1624,7 +1624,7 @@ class ImportService
         }
 
         $request
-            ->setDate(new DateTime('now', new \DateTimeZone('Europe/Paris')))
+            ->setCreatedAt(new DateTime('now', new \DateTimeZone('Europe/Paris')))
             ->setUtilisateur($requester)
             ->setDestination($destination)
             ->setNumero($this->demandeLivraisonService->generateNumeroForNewDL($this->em));
