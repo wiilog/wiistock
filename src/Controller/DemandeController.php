@@ -25,6 +25,7 @@ use App\Service\GlobalParamService;
 use App\Service\RefArticleDataService;
 use App\Service\DemandeLivraisonService;
 use App\Service\FreeFieldService;
+use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -214,6 +215,7 @@ class DemandeController extends AbstractController
      */
     public function index(EntityManagerInterface $entityManager,
                           GlobalParamService $globalParamService,
+                          DemandeLivraisonService $deliveryRequestService,
                           $reception = null,
                           $filter = null): Response
     {
@@ -223,6 +225,7 @@ class DemandeController extends AbstractController
         $globalSettingsRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
+        $fields = $deliveryRequestService->getVisibleColumnsConfig($entityManager, $this->getUser());
 
         $typeChampLibre = [];
         foreach ($types as $type) {
@@ -239,6 +242,7 @@ class DemandeController extends AbstractController
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
             'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
+            'fields' => $fields,
             'filterStatus' => $filter,
             'receptionFilter' => $reception,
             'defaultDeliveryLocations' => $globalParamService->getDefaultDeliveryLocationsByTypeId($entityManager),
@@ -319,8 +323,7 @@ class DemandeController extends AbstractController
      * @Route("/api/{id}", name="demande_article_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR}, mode=HasPermission::IN_JSON)
      */
-    public function articleApi(EntityManagerInterface $entityManager,
-                               Demande $demande): Response
+    public function articleApi(Demande $demande): Response
     {
         $referenceLines = $demande->getReferenceLines();
         $rowsRC = [];
@@ -534,8 +537,8 @@ class DemandeController extends AbstractController
                     'statut',
                     'destination',
                     'commentaire',
-                    'date demande',
-                    'date validation',
+                    'date de création',
+                    'date de validation',
                     'numéro',
                     'type demande',
                     'code(s) préparation(s)',
@@ -550,7 +553,6 @@ class DemandeController extends AbstractController
                 $freeFieldsConfig['freeFieldsHeader']
             );
 
-            $firstDates = $preparationRepository->getFirstDatePreparationGroupByDemande($demandes);
             $prepartionOrders = $preparationRepository->getNumeroPrepaGroupByDemande($demandes);
             $livraisonOrders = $livraisonRepository->getNumeroLivraisonGroupByDemande($demandes);
 
@@ -564,7 +566,6 @@ class DemandeController extends AbstractController
                 $headers,
                 function (Demande $demande)
                 use (
-                    $firstDates,
                     $prepartionOrders,
                     $livraisonOrders,
                     $articleLines,
@@ -574,10 +575,9 @@ class DemandeController extends AbstractController
                 ) {
                     $rows = [];
                     $demandeId = $demande->getId();
-                    $firstDatePrepaForDemande = isset($firstDates[$demandeId]) ? $firstDates[$demandeId] : null;
-                    $prepartionOrdersForDemande = isset($prepartionOrders[$demandeId]) ? $prepartionOrders[$demandeId] : [];
-                    $livraisonOrdersForDemande = isset($livraisonOrders[$demandeId]) ? $livraisonOrders[$demandeId] : [];
-                    $infosDemand = $this->getCSVExportFromDemand($demande, $firstDatePrepaForDemande, $prepartionOrdersForDemande, $livraisonOrdersForDemande);
+                    $prepartionOrdersForDemande = $prepartionOrders[$demandeId] ?? [];
+                    $livraisonOrdersForDemande = $livraisonOrders[$demandeId] ?? [];
+                    $infosDemand = $this->getCSVExportFromDemand($demande, $prepartionOrdersForDemande, $livraisonOrdersForDemande);
 
                     $referenceLinesForRequest = $referenceLines[$demandeId] ?? [];
                     /** @var DeliveryRequestReferenceLine $line */
@@ -637,24 +637,17 @@ class DemandeController extends AbstractController
     }
 
     private function getCSVExportFromDemand(Demande $demande,
-                                            $firstDatePrepaStr,
                                             array $preparationOrdersNumeros,
                                             array $livraisonOrders): array {
-        $firstDatePrepa = isset($firstDatePrepaStr)
-            ? DateTime::createFromFormat('Y-m-d H:i:s', $firstDatePrepaStr)
-            : null;
-
-        $requestCreationDate = $demande->getDate();
-
         return [
             FormatHelper::deliveryRequester($demande),
-            $demande->getStatut()->getNom(),
+            FormatHelper::status($demande->getStatut()),
             FormatHelper::location($demande->getDestination()),
-            strip_tags($demande->getCommentaire()),
-            isset($requestCreationDate) ? $requestCreationDate->format('d/m/Y H:i:s') : '',
-            isset($firstDatePrepa) ? $firstDatePrepa->format('d/m/Y H:i:s') : '',
+            FormatHelper::html($demande->getCommentaire()),
+            FormatHelper::datetime($demande->getCreatedAt()),
+            FormatHelper::datetime($demande->getValidatedAt()),
             $demande->getNumero(),
-            $demande->getType() ? $demande->getType()->getLabel() : '',
+            FormatHelper::type($demande->getType()),
             !empty($preparationOrdersNumeros) ? implode(' / ', $preparationOrdersNumeros) : 'ND',
             !empty($livraisonOrders) ? implode(' / ', $livraisonOrders) : 'ND',
         ];
@@ -687,4 +680,42 @@ class DemandeController extends AbstractController
 
         return new JsonResponse($data);
     }
+
+    /**
+     * @Route("/api-columns", name="delivery_request_api_columns", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR}, mode=HasPermission::IN_JSON)
+     */
+    public function apiColumns(EntityManagerInterface $entityManager, DemandeLivraisonService $deliveryRequestService): Response {
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+
+        $columns = $deliveryRequestService->getVisibleColumnsConfig($entityManager, $currentUser);
+
+        return $this->json(array_values($columns));
+    }
+
+    /**
+     * @Route("/visible_column", name="save_visible_columns_for_delivery_request", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR}, mode=HasPermission::IN_JSON)
+     */
+    public function saveVisibleColumn(Request $request,
+                                      EntityManagerInterface $entityManager,
+                                      VisibleColumnService $visibleColumnService): Response {
+        $data = json_decode($request->getContent(), true);
+        $fields = array_keys($data);
+        $fields[] = "actions";
+
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+
+        $visibleColumnService->setVisibleColumns('deliveryRequest', $fields, $currentUser);
+
+        $entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'msg' => 'Vos préférences de colonnes à afficher ont bien été sauvegardées'
+        ]);
+    }
+
 }

@@ -186,6 +186,10 @@ class PreparationsManagerService
             ->setDate($date)
             ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::PREPARATION, Preparation::STATUT_A_TRAITER));
 
+        if(!$demande->getValidatedAt()) {
+            $demande->setValidatedAt($date);
+        }
+
         $demande->addPreparation($newPreparation);
         foreach ($listOfArticleSplitted as $lineId) {
             /** @var PreparationOrderArticleLine $line */

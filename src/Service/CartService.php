@@ -312,7 +312,7 @@ class CartService {
                 ->setNumero($demandeLivraisonService->generateNumeroForNewDL($entityManager))
                 ->setUtilisateur($utilisateur)
                 ->setFilled(false)
-                ->setDate(new DateTime('now'))
+                ->setCreatedAt(new DateTime('now'))
                 ->setStatut($draft);
             $entityManager->persist($request);
             $entityManager->flush();

@@ -3,12 +3,13 @@
 namespace App\Repository;
 
 use App\Entity\Dispute;
+use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
+use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
-use Exception;
-use Generator;
+use Symfony\Component\HttpFoundation\InputBag;
 
 /**
  * @method Dispute|null find($id, $lockMode = null, $lockVersion = null)
@@ -78,50 +79,26 @@ class DisputeRepository extends EntityRepository
         }, $query->execute());
     }
 
-	/**
-	 * @param DateTime $dateMin
-	 * @param DateTime $dateMax
-	 */
-	public function iterateArrivalDisputesByDates(DateTime $dateMin, DateTime $dateMax): Generator {
-        $iterator = $this
+	public function iterateArrivalDisputesByDates(DateTime $dateMin, DateTime $dateMax): iterable {
+        return $this
             ->createQueryBuilderByDates($dateMin, $dateMax)
             ->join('dispute.packs', 'pack')
             ->join('pack.arrivage', 'arrivage')
             ->getQuery()
-            ->iterate();
-
-        foreach($iterator as $item) {
-            // $item [index => reference array]
-            yield array_pop($item);
-        }
+            ->toIterable();
 	}
 
-	/**
-	 * @param DateTime $dateMin
-	 * @param DateTime $dateMax
-	 * @return Dispute[]|null
-	 */
-	public function iterateReceptionDisputesByDates(DateTime $dateMin, DateTime $dateMax)
+	public function iterateReceptionDisputesByDates(DateTime $dateMin, DateTime $dateMax): iterable
 	{
-        $iterator = $this
+        return $this
             ->createQueryBuilderByDates($dateMin, $dateMax)
             ->join('dispute.articles', 'article')
             ->join('article.receptionReferenceArticle', 'receptionReferenceArticle')
             ->join('receptionReferenceArticle.reception', 'reception')
             ->getQuery()
-            ->iterate();
-
-        foreach($iterator as $item) {
-            // $item [index => reference array]
-            yield array_pop($item);
-        }
+            ->toIterable();
 	}
 
-    /**
-     * @param DateTime $dateMin
-     * @param DateTime $dateMax
-     * @return QueryBuilder
-     */
 	public function createQueryBuilderByDates(DateTime $dateMin, DateTime $dateMax): QueryBuilder {
         $queryBuilder = $this->createQueryBuilder('dispute');
         $exprBuilder = $queryBuilder->expr();
@@ -166,13 +143,7 @@ class DisputeRepository extends EntityRepository
         return $query->execute();
     }
 
-	/**
-	 * @param array|null $params
-	 * @param array|null $filters
-	 * @return array
-	 * @throws Exception
-	 */
-	public function findByParamsAndFilters($params, $filters)
+	public function findByParamsAndFilters(InputBag $params, array $filters, Utilisateur $user): array
 	{
         $qb = $this->createQueryBuilder('dispute');
 
@@ -294,36 +265,35 @@ class DisputeRepository extends EntityRepository
 			if (!empty($params->get('search'))) {
 				$search = $params->get('search')['value'];
 				if (!empty($search)) {
+                    $conditions = [
+                        'disputeNumber' => "dispute.number LIKE :search_value",
+                        'type' => "t.label LIKE :search_value",
+                        'arrivalNumber' => "a.numeroArrivage LIKE :search_value",
+                        'receptionNumber' => "r.number LIKE :search_value",
+                        'buyers' => "ach.username LIKE :search_value OR ach.email LIKE :search_value",
+                        'numCommandeBl' => "a.numeroCommandeList LIKE :search_value",
+                        'reporter' => "reporter.username LIKE :search_value",
+                        'command' => "r.orderNumber LIKE :search_value",
+                        'provider' => "aFourn.nom LIKE :search_value OR rFourn.nom LIKE :search_value",
+                        'references' => "ra.reference LIKE :search_value",
+                        'lastHistoryRecord' => "join_dispute_history_record.comment LIKE :search_value",
+                        'creationDate' => "DATE_FORMAT(dispute.creationDate, '%e/%m/%Y') LIKE :search_value",
+                        'updateDate' => "DATE_FORMAT(dispute.updateDate, '%e/%m/%Y') LIKE :search_value",
+                        'status' => "s.nom LIKE :search_value"
+                    ];
+
+                    $condition = VisibleColumnService::getSearchableColumns($conditions, 'dispute', $qb, $user);
+
 					$qb
-						->andWhere('(
-						t.label LIKE :value OR
-						reporter.username LIKE :value OR
-						reporter.email LIKE :value OR
-						a.numeroArrivage LIKE :value OR
-						r.number LIKE :value OR
-						r.orderNumber LIKE :value OR
-                        rra.commande LIKE :value OR
-						ach.username LIKE :value OR
-						ach.email LIKE :value OR
-						buyers.email LIKE :value OR
-						s.nom LIKE :value OR
-						join_dispute_history_record.comment LIKE :value OR
-						aFourn.nom LIKE :value OR
-						rFourn.nom LIKE :value OR
-						ra.reference LIKE :value OR
-						a.numeroCommandeList LIKE :value OR
-						dispute.number LIKE :value
-						)')
-						->setParameter('value', '%' . $search . '%');
+						->andWhere($condition)
+						->setParameter('search_value', '%' . $search . '%');
 				}
 			}
 
-			if (!empty($params->get('order')))
-			{
+			if (!empty($params->get('order'))) {
                 foreach ($params->get('order') as $sort) {
                     $order = $sort['dir'];
-                    if (!empty($order))
-                    {
+                    if (!empty($order)) {
                         $column = self::DtToDbLabels[$params->get('columns')[$sort['column']]['data']];
 
                         if ($column === 'type') {
@@ -385,11 +355,7 @@ class DisputeRepository extends EntityRepository
         );
     }
 
-	/**
-	 * @param int $disputeId
-	 * @return string[]
-	 */
-	public function getCommandesByDisputeId(int $disputeId) {
+	public function getCommandesByDisputeId(int $disputeId): array {
 		$em = $this->getEntityManager();
 
 		$query = $em->createQuery(
@@ -404,11 +370,7 @@ class DisputeRepository extends EntityRepository
 		return array_column($result, 'commande');
 	}
 
-	/**
-	 * @param int $disputeId
-	 * @return string[]
-	 */
-	public function getReferencesByDisputeId(int $disputeId) {
+	public function getReferencesByDisputeId(int $disputeId): array {
 		$em = $this->getEntityManager();
 
 		$query = $em->createQuery(

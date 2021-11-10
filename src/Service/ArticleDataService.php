@@ -598,6 +598,6 @@ class ArticleDataService
             ["title" => "Commentaire", "name" => "comment", 'searchable' => true]
         ];
 
-        return $this->visibleColumnService->getArrayConfig($fieldConfig, $freeFields, $currentUser->getColumnsVisibleForArticle());
+        return $this->visibleColumnService->getArrayConfig($fieldConfig, $freeFields, $currentUser->getVisibleColumns()['article']);
     }
 }
