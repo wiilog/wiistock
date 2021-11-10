@@ -195,7 +195,7 @@
                                 <div class="cart-reference">
                                     <div class="cart-reference-type">{{ reference.type.label }}</div>
                                     <div class="cart-reference-infos">
-                                        <span class="wii-label nowrap">Référence : {{ reference.reference }}</span>
+                                        <span class="wii-label">Référence : {{ reference.reference }}</span>
                                         <span class="wii-field-text">{{ reference.libelle }}</span>
                                     </div>
                                     <div class="cart-reference-current-quantity">
@@ -206,7 +206,7 @@
                                             </span>
                                             {{ reference.quantiteDisponible }}
                                         </span>
-                                        <span class="wii-small-text nowrap">
+                                        <span class="wii-small-text">
                                             Ref article fournisseur :
                                             {% for supplierArticle in reference.articlesFournisseur %}
                                                 {{ supplierArticle.reference }}{% if not loop.last %},{% endif %}
@@ -215,7 +215,7 @@
                                     </div>
                                     <div class="cart-reference-quantity">
                                         {{ form.number('quantity', {url: '/svg/reference_article/stock.svg', text: '<span class="quantity-label">Quantité à livrer</span>'}, true, 0, {
-                                            min: 0,
+                                            min: 1,
                                             max: reference.quantiteDisponible,
                                             labelClass: 'd-flex flex-column align-items-center',
                                             error: 'global',

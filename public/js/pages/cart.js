@@ -1,3 +1,12 @@
+window.addEventListener( "pageshow", function ( event ) {
+    const historyTraversal = event.persisted ||
+        ( typeof window.performance != "undefined" &&
+            window.performance.navigation.type === 2 );
+    if ( historyTraversal ) {
+        window.location.reload();
+    }
+});
+
 $(document).ready(() => {
     $(document).on(`click`, `.remove-reference`, function() {
         const $button = $(this);
@@ -67,7 +76,14 @@ $(document).ready(() => {
     });
 
     Form.create(`.wii-form`).onSubmit(data => {
-        console.error(data.asObject());
+        const url = Routing.generate('cart_validate', true);
+        const params = JSON.stringify(data.asObject());
+        $.post(url, params, function (response) {
+            showBSAlert(response.msg, response.success ? 'success' : 'danger');
+            if (response.success) {
+                window.location.href = response.link;
+            }
+        });
     });
 });
 
