@@ -79,22 +79,22 @@ class Demande implements PairedEntity
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="demandes")
      */
-    private $statut;
+    private ?Statut $statut = null;
 
 	/**
 	 * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="demandesLivraison")
 	 */
-    private $type;
+    private ?Type $type = null;
 
     /**
      * @ORM\OneToMany(targetEntity=DeliveryRequestReferenceLine::class, mappedBy="request")
      */
-    private Collection $referenceLines;
+    private ?Collection $referenceLines;
 
     /**
      * @ORM\OneToMany(targetEntity=DeliveryRequestArticleLine::class, mappedBy="request")
      */
-    private Collection $articleLines;
+    private ?Collection $articleLines;
 
     /**
      * @ORM\Column(type="text", nullable=true)

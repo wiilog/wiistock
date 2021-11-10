@@ -8,6 +8,7 @@ use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\Fournisseur;
@@ -134,7 +135,8 @@ class ImportController extends AbstractController
                         Import::ENTITY_FOU => Fournisseur::class,
                         Import::ENTITY_ART_FOU => ArticleFournisseur::class,
                         Import::ENTITY_RECEPTION => Reception::class,
-                        Import::ENTITY_USER => Utilisateur::class
+                        Import::ENTITY_USER => Utilisateur::class,
+                        Import::ENTITY_DELIVERY => Demande::class
                     ];
                     $attributes = $entityManager->getClassMetadata($entityCodeToClass[$entity]);
 
@@ -179,7 +181,7 @@ class ImportController extends AbstractController
                         'roles',
                     ];
 
-                    $fieldNames = array_diff($attributes->getFieldNames(), $fieldsToHide);
+                    $fieldNames = $attributes->getFieldNames();
                     switch ($entity) {
                         case Import::ENTITY_ART:
                             $categoryCL = CategorieCL::ARTICLE;
@@ -203,8 +205,14 @@ class ImportController extends AbstractController
                             $fieldsToAdd = ['role', 'secondaryEmail', 'lastEmail', 'phone', 'mobileLoginKey', 'address', 'deliveryTypes', 'dispatchTypes', 'handlingTypes', 'dropzone', 'visibilityGroup'];
                             $fieldNames = array_merge($fieldNames, $fieldsToAdd);
                             break;
+                        case Import::ENTITY_DELIVERY:
+                            $categoryCL = CategorieCL::DEMANDE_LIVRAISON;
+                            $fieldsToHide = array_merge($fieldsToHide, ['numero', 'filled']);
+                            $fieldsToAdd = ['articleReference', 'quantityDelivery', 'articleCode', 'status', 'type', 'requester', 'destination'];
+                            $fieldNames = array_merge($fieldNames, $fieldsToAdd);
+                            break;
                     }
-
+                    $fieldNames = array_diff($fieldNames, $fieldsToHide);
                     $fields = [];
                     foreach ($fieldNames as $fieldName) {
                         $fields[$fieldName] = Import::FIELDS_ENTITY[$fieldName] ?? $fieldName;

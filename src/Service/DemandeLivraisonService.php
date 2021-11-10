@@ -465,7 +465,8 @@ class DemandeLivraisonService
     public function validateDLAfterCheck(EntityManagerInterface $entityManager,
                                          Demande $demande,
                                          bool $fromNomade = false,
-                                         bool $simpleValidation = false): array
+                                         bool $simpleValidation = false,
+                                         bool $flush = true): array
     {
         $response = [];
         $response['success'] = true;
@@ -522,7 +523,7 @@ class DemandeLivraisonService
         }
 
         try {
-            $entityManager->flush();
+            if ($flush) $entityManager->flush();
             if ($demande->getType()->isNotificationsEnabled()) {
                 $this->notificationService->toTreat($preparation);
             }
@@ -553,7 +554,7 @@ class DemandeLivraisonService
                 $demande->getUtilisateur()
             );
         }
-        $entityManager->flush();
+        if ($flush) $entityManager->flush();
         if (!$simpleValidation && !$fromNomade) {
             $response['entete'] = $this->templating->render('demande/demande-show-header.html.twig', [
                 'demande' => $demande,
