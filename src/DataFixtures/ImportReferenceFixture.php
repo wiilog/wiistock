@@ -12,7 +12,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\ReferenceArticle;
 
 
-class RefArticleCollinsSOAFixtures extends Fixture implements FixtureGroupInterface
+class ImportReferenceFixture extends Fixture implements FixtureGroupInterface
 {
 
     /**

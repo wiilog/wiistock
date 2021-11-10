@@ -14,7 +14,7 @@
 {% endmacro %}
 
 {% macro label(label) %}
-    <span class="d-inline-flex align-items-center field-label">
+    <span class="d-inline-flex align-items-center field-label nowrap">
         {% if label is iterable %}
             {% if label.wiiIcon is defined %}
                 <span class="mr-2 wii-icon wii-icon-{{ label.wiiIcon }}"></span>
@@ -35,7 +35,7 @@
     {# TODO: add support for required #}
 
     <label class="{{ options.labelClass ?? '' }}">{{ _self.label(label) }}{{ required ? '*' }}</label>
-    <div class="wii-switch request-type-container mt-2" data-title="{{ label | striptags }}{{ required ? '*' }}">
+    <div class="wii-switch mt-2" data-title="{{ label | striptags }}{{ required ? '*' }}">
         {% for switch in switches %}
             {% set id = random(100000, 10000000) %}
 
@@ -95,11 +95,16 @@
         <span>{{ _self.label(label) }}{{ required ? '*' }}</span>
         <select class="form-control w-100 data"
             {{ required ? 'required' }}
-            {% if options.type is defined %}data-s2="{{ options.type }}"{% endif %}
-            {% if options.placeholder is defined %}data-placeholder="{{ options.placeholder }}"{% endif %}
-            {% if options.includeParams is defined %}data-include-params="{{ options.includeParams }}"{% endif %}
+            {% if options.type is defined %}
+                data-s2="{{ options.type }}"
+                {% if options.placeholder is defined %}data-placeholder="{{ options.placeholder }}"{% endif %}
+                {% if options.includeParams is defined %}data-include-params="{{ options.includeParams }}"{% endif %}
+            {% endif %}
             {{ _self.common_attributes(name, options) }}
             {{ _self.multiple_key(options) }}>
+            {% if options.type is not defined and options.placeholder ?? false %}
+                <option disabled selected>{{ options.placeholder }}</option>
+            {% endif %}
             {% for value, label in options.items ?? [] %}
                 <option value="{{ value }}" {{ value in values ? 'selected' }}>{{ label }}</option>
             {% endfor %}
@@ -111,6 +116,7 @@
     <label class="{{ options.labelClass ?? '' }}">
         <span>{{ _self.label(label) }}{{ required ? '*' }}</span>
         <input type="text" class="form-control w-100 data" value="{{ value }}"
+               placeholder="{{ options.placeholder ?? '' }}"
             {{ required ? 'required' }}
             {{ _self.common_attributes(name, options) }}
             {{ _self.multiple_key(options) }}>
@@ -123,6 +129,7 @@
         <div class="increase-decrease-field">
             <button class="decrease"></button>
             <input type="number" data-no-arrow class="form-control w-50 data"
+                   placeholder="{{ options.placeholder ?? '' }}"
                    value="{{ value }}"
                 {{ required ? 'required' }}
                 {{ _self.common_attributes(name, options) }}

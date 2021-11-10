@@ -121,7 +121,7 @@ export default class Form {
                 }
             }
 
-            if($input.is(`[required]`) || $input.is(`[data-required]`)) {
+            if($input.is(`[required]`) || $input.is(`[data-required]`) || $input.is(`.needed`)) {
                 if(([`radio`, `checkbox`].includes($input.attr(`type`)) && !$input.is(`:checked`))) {
                     errors.push({
                         elements: [$input.closest(`.wii-radio, .wii-checkbox`)],

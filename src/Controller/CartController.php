@@ -46,11 +46,24 @@ class CartController extends AbstractController
         $currentUser = $this->getUser();
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
 
-        $typeChampLibre = [];
+        $deliveryFreeFields = [];
         foreach ($types as $type) {
             $champsLibres = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
 
-            $typeChampLibre[] = [
+            $deliveryFreeFields[] = [
+                "typeLabel" => $type->getLabel(),
+                "typeId" => $type->getId(),
+                "champsLibres" => $champsLibres,
+            ];
+        }
+
+        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
+
+        $collectFreeFields = [];
+        foreach ($types as $type) {
+            $champsLibres = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_COLLECTE);
+
+            $collectFreeFields[] = [
                 "typeLabel" => $type->getLabel(),
                 "typeId" => $type->getId(),
                 "champsLibres" => $champsLibres,
@@ -74,7 +87,8 @@ class CartController extends AbstractController
             "deliveryRequests" => $deliveryRequests,
             "collectRequests" => $collectRequests,
             "defaultDeliveryLocations" => $defaultDeliveryLocations,
-            "freeFieldsTypes" => $typeChampLibre,
+            "deliveryFreeFieldsTypes" => $deliveryFreeFields,
+            "collectFreeFieldsTypes" => $collectFreeFields,
         ]);
     }
 
@@ -107,6 +121,28 @@ class CartController extends AbstractController
             "success" => true,
             "msg" => "La référence a bien été ajoutée au panier",
             "count" => $cart->getReferences()->count()
+        ]);
+    }
+
+    /**
+     * @Route("/infos/livraison/{request}", name="cart_delivery_data", options={"expose"=true}, methods="GET")
+     */
+    public function deliveryRequestData(Demande $request): JsonResponse {
+        return $this->json([
+            "success" => true,
+            "comment" => $request->getCommentaire(),
+        ]);
+    }
+
+    /**
+     * @Route("/infos/collecte/{request}", name="cart_collect_data", options={"expose"=true}, methods="GET")
+     */
+    public function collectRequestData(Collecte $request): JsonResponse {
+        return $this->json([
+            "success" => true,
+            "destination" => $request->isDestruct() ? "Destruction" : "Mise en stock",
+            "object" => $request->getObjet(),
+            "comment" => $request->getCommentaire(),
         ]);
     }
 
