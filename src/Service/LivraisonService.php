@@ -108,14 +108,14 @@ class LivraisonService
         if (isset($demande) && isset($preparation)) {
             $dataLivraison = [
                 $livraison->getNumero() ?? '',
-                $livraison->getStatut() ? $livraison->getStatut()->getNom() : '',
-                $livraison->getDate() ? $livraison->getDate()->format('d/m/Y H:i') : '',
-                $livraison->getDateFin() ? $livraison->getDateFin()->format('d/m/Y H:i') : '',
-                $demande->getValidationDate() ? FormatHelper::date($demande->getValidationDate()) : '',
+                FormatHelper::status($livraison->getStatut()),
+                FormatHelper::datetime($livraison->getDate()),
+                FormatHelper::datetime($livraison->getDateFin()),
+                FormatHelper::date($demande->getValidatedAt()),
                 FormatHelper::deliveryRequester($demande),
-                $livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : '',
-                $demande ? ($demande->getType() ? $demande->getType()->getLabel() : '') : '',
-                $demande->getCommentaire() ? strip_tags($demande->getCommentaire()) : ''
+                FormatHelper::user($livraison->getUtilisateur()),
+                FormatHelper::type($demande->getType()),
+                FormatHelper::html($demande->getCommentaire())
             ];
 
             /** @var PreparationOrderReferenceLine $referenceLine */

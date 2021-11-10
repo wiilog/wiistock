@@ -32,12 +32,15 @@
                                 <div class="section">Ma demande de livraison</div>
 
                                 {{ form.select('existingDelivery', 'Mes livraisons', true, {
+                                    placeholder: 'Sélectionnez une livraison',
                                     items: deliveryRequests,
+                                    onChange: 'onDeliveryChanged($(this))',
                                 }) }}
                             </div>
                             <div class="delivery-request-content d-none">
                                 <div class="display-comment">
                                     <span class="comment-title">Commentaire</span>
+                                    <div class="delivery-comment"></div>
                                 </div>
 
                                 <div class="delivery-references">
@@ -70,7 +73,7 @@
                                 <div class="col-12">
                                     <span class="toggle-collapsible wii-subtitle mt-2 expanded">Champs libres</span>
                                     <div class="collapsible expanded free-fields-container mb-2">
-                                        {% for type in freeFieldsTypes %}
+                                        {% for type in deliveryFreeFieldsTypes %}
                                             <div class="d-none" data-type="{{ type.typeId }}">
                                                 {% include 'free_field/freeFieldsViewing.html.twig' with {
                                                     freeFields: type.champsLibres,
@@ -97,20 +100,25 @@
                             <div class="my-collect-requests">
                                 <div class="section">Ma demande de collecte</div>
                                 {{ form.select('existingCollect', 'Mes collectes', true, {
+                                    placeholder: 'Sélectionnez une collecte',
                                     items: collectRequests,
+                                    onChange: 'onCollectChanged($(this))',
                                 }) }}
                             </div>
-                            <div class="collect-request-content d-none">
+                            <div class="collect-request-content mt-2 d-none">
                                 <div class="destination-objet d-flex">
-                                    <div class="collect-destination col-6 p-0">
+                                    <div class="col-6 p-0">
                                         <span class="collect-title">Destination</span>
+                                        <span class="collect-destination"></span>
                                     </div>
-                                    <div class="collect-objet col-6 p-0">
+                                    <div class="col-6 p-0">
                                         <span class="collect-title">Objet</span>
+                                        <span class="collect-object"></span>
                                     </div>
                                 </div>
                                 <div class="display-comment">
                                     <span class="comment-title">Commentaire</span>
+                                    <div class="collect-comment"></div>
                                 </div>
 
                                 <div class="collect-references">
@@ -122,6 +130,55 @@
 
                         <div class="sub-form create-collect d-none">
                             <div class="section">Ma nouvelle demande de collecte</div>
+                            <div class="row">
+                                <div class="col-md-6 col-12">
+                                    {{ form.select('collectType', 'Type', true, {
+                                        type: 'collectType',
+                                        placeholder: 'Sélectionnez un type',
+                                        search: false,
+                                        onChange: 'cartTypeChange($(this))',
+                                    }) }}
+                                </div>
+                                <div class="col-md-6 col-12">
+                                    {{ form.input('object', 'Objet', true, null, {
+                                        placeholder: 'Renseigner un objet',
+                                    }) }}
+                                </div>
+                                <div class="col-md-6 col-12">
+                                    {{ form.select('location', 'Point de collecte', true, {
+                                        type: 'location',
+                                        placeholder: 'Sélectionnez un emplacement',
+                                        includeParams: '[name=collectType]',
+                                        disabled: true,
+                                    }) }}
+                                </div>
+                                <div class="col-md-6 col-12">
+                                    {{ form.switch('destination', 'Destination', true, [
+                                        {label: 'Destruction', value: 'destruction'},
+                                        {label: 'Mise en stock', value: 'stock'},
+                                    ]) }}
+                                </div>
+                                <div class="col-12">
+                                    <span class="toggle-collapsible wii-subtitle mt-2 expanded">Champs libres</span>
+                                    <div class="collapsible expanded free-fields-container mb-2">
+                                        {% for type in collectFreeFieldsTypes %}
+                                            <div class="d-none" data-type="{{ type.typeId }}">
+                                                {% include 'free_field/freeFieldsViewing.html.twig' with {
+                                                    freeFields: type.champsLibres,
+                                                    freeFieldValues: [],
+                                                    colType: 'col-md-6 col-12',
+                                                    requiredType: 'requiredCreate',
+                                                    actionType: 'new',
+                                                    disabledNeeded: true
+                                                } %}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    {{ form.wysiwyg('comment', 'Commentaire', false) }}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -129,7 +186,7 @@
             <div class="col-12 col-xl-8">
                 <div class="wii-box">
                     <div class="header wii-title">Références</div>
-                    <div class="content">
+                    <div class="content cart-reference-list">
                         {% for reference in app.user.cart.references %}
                             <div class="cart-reference-container"
                                  data-multiple-key="quantities"
@@ -138,7 +195,7 @@
                                 <div class="cart-reference">
                                     <div class="cart-reference-type">{{ reference.type.label }}</div>
                                     <div class="cart-reference-infos">
-                                        <span class="wii-label nowrap">Référence : {{ reference.reference }}</span>
+                                        <span class="wii-label">Référence : {{ reference.reference }}</span>
                                         <span class="wii-field-text">{{ reference.libelle }}</span>
                                     </div>
                                     <div class="cart-reference-current-quantity">
@@ -149,7 +206,7 @@
                                             </span>
                                             {{ reference.quantiteDisponible }}
                                         </span>
-                                        <span class="wii-small-text nowrap">
+                                        <span class="wii-small-text">
                                             Ref article fournisseur :
                                             {% for supplierArticle in reference.articlesFournisseur %}
                                                 {{ supplierArticle.reference }}{% if not loop.last %},{% endif %}
@@ -158,17 +215,19 @@
                                     </div>
                                     <div class="cart-reference-quantity">
                                         {{ form.number('quantity', {url: '/svg/reference_article/stock.svg', text: '<span class="quantity-label">Quantité à livrer</span>'}, true, 0, {
-                                            min: 0,
+                                            min: 1,
                                             max: reference.quantiteDisponible,
                                             labelClass: 'd-flex flex-column align-items-center',
                                             error: 'global',
                                         }) }}
                                     </div>
                                 </div>
-                                <button class="remove-reference">
+                                <button class="remove-reference" data-id="{{ reference.id }}">
                                     <i class="wii-icon wii-icon-trash"></i>
                                 </button>
                             </div>
+                        {% else %}
+                            Votre panier est vide
                         {% endfor %}
                     </div>
                 </div>

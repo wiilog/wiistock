@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Arrivage;
 use App\Entity\FreeField;
 use App\Entity\Statut;
+use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use App\Service\VisibleColumnService;
 use DateTime;
@@ -201,19 +202,19 @@ class ArrivageRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function findByParamsAndFilters(InputBag $params, $filters, $userId): array
+    public function findByParamsAndFilters(InputBag $params, $filters, ?int $userIdArrivalFilter, Utilisateur $user): array
     {
-        $qb = $this->createQueryBuilder("a");
+        $qb = $this->createQueryBuilder("arrival");
 
         // filtre arrivages de l'utilisateur
-        if ($userId) {
+        if ($userIdArrivalFilter) {
             $qb
-                ->join('a.acheteurs', 'ach')
+                ->join('arrival.acheteurs', 'ach')
                 ->where('ach.id = :userId')
-                ->setParameter('userId', $userId);
+                ->setParameter('userId', $user->getId());
         }
 
-        $total = QueryCounter::count($qb, 'a');
+        $total = QueryCounter::count($qb, 'arrival');
 
         // filtres sup
         foreach ($filters as $filter) {
@@ -221,70 +222,70 @@ class ArrivageRepository extends EntityRepository
                 case 'statut':
 					$value = explode(',', $filter['value']);
 					$qb
-						->join('a.statut', 's')
+						->join('arrival.statut', 's')
 						->andWhere('s.id in (:statut)')
 						->setParameter('statut', $value);
 					break;
                 case 'utilisateurs':
                     $value = explode(',', $filter['value']);
                     $qb
-                        ->join('a.destinataire', 'dest')
+                        ->join('arrival.destinataire', 'dest')
                         ->andWhere("dest.id in (:userId)")
                         ->setParameter('userId', $value);
                     break;
                 case 'providers':
                     $value = explode(',', $filter['value']);
 					$qb
-                        ->join('a.fournisseur', 'f2')
+                        ->join('arrival.fournisseur', 'f2')
                         ->andWhere("f2.id in (:fournisseurId)")
                         ->setParameter('fournisseurId', $value);
                     break;
                 case 'emplacement':
                     $value = explode(',', $filter['value']);
                     $qb
-                        ->join('a.dropLocation', 'filter_drop_location')
+                        ->join('arrival.dropLocation', 'filter_drop_location')
                         ->andWhere("filter_drop_location.id in (:locationId)")
                         ->setParameter('locationId', $value);
                     break;
                 case 'carriers':
                     $value = explode(',', $filter['value']);
                     $qb
-                        ->join('a.transporteur', 't2')
+                        ->join('arrival.transporteur', 't2')
                         ->andWhere("t2.id in (:transporteurId)")
                         ->setParameter('transporteurId', $value);
                     break;
                 case 'dateMin':
                     $qb
-                        ->andWhere('a.date >= :dateMin')
+                        ->andWhere('arrival.date >= :dateMin')
                         ->setParameter('dateMin', $filter['value'] . " 00:00:00");
                     break;
                 case 'dateMax':
                     $qb
-                        ->andWhere('a.date <= :dateMax')
+                        ->andWhere('arrival.date <= :dateMax')
                         ->setParameter('dateMax', $filter['value'] . " 23:59:59");
                     break;
                 case 'emergency':
                     $qb
-                        ->andWhere('a.isUrgent = :isUrgent')
+                        ->andWhere('arrival.isUrgent = :isUrgent')
                         ->setParameter('isUrgent', $filter['value']);
                     break;
                 case 'customs':
                     if ($filter['value'] === '1') {
                         $qb
-                            ->andWhere('a.customs = :value')
+                            ->andWhere('arrival.customs = :value')
                             ->setParameter('value', $filter['value']);
                     }
                     break;
                 case 'frozen':
                     if ($filter['value'] === '1') {
                         $qb
-                            ->andWhere('a.frozen = :value')
+                            ->andWhere('arrival.frozen = :value')
                             ->setParameter('value', $filter['value']);
                     }
                     break;
                 case 'numArrivage':
                     $qb
-                        ->andWhere('a.numeroArrivage = :numeroArrivage')
+                        ->andWhere('arrival.numeroArrivage = :numeroArrivage')
                         ->setParameter('numeroArrivage', $filter['value']);
                     break;
             }
@@ -296,39 +297,46 @@ class ArrivageRepository extends EntityRepository
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
-                    $searchValue = '%' . $search . '%';
+                    $conditions = [
+                        "creationDate" => "DATE_FORMAT(arrival.date, '%d/%m/%Y') LIKE :search_value",
+                        "arrivalNumber" => "arrival.numeroArrivage LIKE :search_value",
+                        "carrier" => "search_carrier.label LIKE :search_value",
+                        "driver" => "search_driver.prenom LIKE :search_value OR search_driver.nom LIKE :search_value",
+                        "trackingCarrierNumber" => "arrival.noTracking LIKE :search_value",
+                        "orderNumber" => "arrival.numeroCommandeList LIKE :search_value",
+                        "type" => "search_type.label LIKE :search_value",
+                        "provider" => "search_provider.nom LIKE :search_value",
+                        "receivers" => "search_receivers.username LIKE :search_value",
+                        "buyers" => "search_buyers.username LIKE :search_value",
+                        "nbUm" => null,
+                        "customs" => null,
+                        "frozen" => null,
+                        "status" => "search_status.nom LIKE :search_value",
+                        "user" => "search_user.username LIKE :search_value",
+                        "emergency" => null,
+                        "projectNumber" => "arrival.projectNumber LIKE :search_value",
+                        "businessUnit" => "arrival.businessUnit LIKE :search_value",
+                        "dropLocation" => "search_dropLocation.label LIKE :search_value",
+                    ];
+
+                    $condition = VisibleColumnService::getSearchableColumns($conditions, 'arrival', $qb, $user);
+
                     $qb
-                        ->leftJoin('a.transporteur', 't3')
-                        ->leftJoin('a.chauffeur', 'ch3')
-                        ->leftJoin('a.fournisseur', 'f3')
-                        ->leftJoin('a.destinataire', 'd3')
-                        ->leftJoin('a.acheteurs', 'ach3')
-                        ->leftJoin('a.utilisateur', 'u3')
-                        ->leftJoin('a.type', 'search_type')
-                        ->leftJoin('a.dropLocation', 'search_dropLocation')
-                        ->andWhere("(
-                            a.numeroArrivage LIKE :value
-                            OR t3.label LIKE :value
-                            OR ch3.nom LIKE :value
-                            OR ch3.prenom LIKE :value
-                            OR a.noTracking LIKE :value
-                            OR a.numeroCommandeList LIKE :value
-                            OR f3.nom LIKE :value
-                            OR d3.username LIKE :value
-                            OR ach3.username LIKE :value
-                            OR u3.username LIKE :value
-                            OR search_type.label LIKE :value
-                            OR a.businessUnit LIKE :value
-                            OR a.projectNumber LIKE :value
-                            OR search_dropLocation.label LIKE :value
-                            OR DATE_FORMAT(a.date, '%d/%m/%Y') LIKE :value
-                            OR JSON_SEARCH(a.freeFields, 'one', '$searchValue') IS NOT NULL
-                        )")
-                        ->setParameter('value', $searchValue);
+                        ->andWhere($condition)
+                        ->leftJoin('arrival.transporteur', 'search_carrier')
+                        ->leftJoin('arrival.chauffeur', 'search_driver')
+                        ->leftJoin('arrival.fournisseur', 'search_provider')
+                        ->leftJoin('arrival.destinataire', 'search_receivers')
+                        ->leftJoin('arrival.acheteurs', 'search_buyers')
+                        ->leftJoin('arrival.utilisateur', 'search_user')
+                        ->leftJoin('arrival.type', 'search_type')
+                        ->leftJoin('arrival.statut', 'search_status')
+                        ->leftJoin('arrival.dropLocation', 'search_dropLocation')
+                        ->setParameter('search_value', '%' . $search . '%');
                 }
             }
 
-            $filtered = QueryCounter::count($qb, 'a');
+            $filtered = QueryCounter::count($qb, 'arrival');
 
             if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
@@ -338,45 +346,45 @@ class ArrivageRepository extends EntityRepository
 
                     if ($column === 'carrier') {
                         $qb
-                            ->leftJoin('a.transporteur', 't2')
+                            ->leftJoin('arrival.transporteur', 't2')
                             ->orderBy('t2.label', $order);
                     } else if ($column === 'driver') {
                         $qb
-                            ->leftJoin('a.chauffeur', 'c2')
+                            ->leftJoin('arrival.chauffeur', 'c2')
                             ->orderBy('c2.nom', $order);
                     } else if ($column === 'type') {
                         $qb
-                            ->leftJoin('a.type', 'order_type')
+                            ->leftJoin('arrival.type', 'order_type')
                             ->orderBy('order_type.label', $order);
                     } else if ($column === 'provider') {
                         $qb
-                            ->leftJoin('a.fournisseur', 'order_fournisseur')
+                            ->leftJoin('arrival.fournisseur', 'order_fournisseur')
                             ->orderBy('order_fournisseur.nom', $order);
                     } else if ($column === 'receiver') {
                         $qb
-                            ->leftJoin('a.destinataire', 'a2')
+                            ->leftJoin('arrival.destinataire', 'a2')
                             ->orderBy('a2.username', $order);
                     } else if ($column === 'buyers') {
                         $qb
-                            ->leftJoin('a.acheteurs', 'ach2')
+                            ->leftJoin('arrival.acheteurs', 'ach2')
                             ->orderBy('ach2.username', $order);
                     } else if ($column === 'user') {
                         $qb
-                            ->leftJoin('a.utilisateur', 'u2')
+                            ->leftJoin('arrival.utilisateur', 'u2')
                             ->orderBy('u2.username', $order);
                     } else if ($column === 'nbUm') {
                         $qb
                             ->addSelect('count(col2.id) as hidden nbum')
-                            ->leftJoin('a.packs', 'col2')
+                            ->leftJoin('arrival.packs', 'col2')
                             ->orderBy('nbum', $order)
-                            ->groupBy('col2.arrivage, a');
+                            ->groupBy('col2.arrivage, arrival');
                     } else if ($column === 'status') {
                         $qb
-                            ->leftJoin('a.statut', 'order_status')
+                            ->leftJoin('arrival.statut', 'order_status')
                             ->orderBy('order_status.nom', $order);
                     } else if ($column === 'dropLocation') {
                         $qb
-                            ->leftJoin('a.dropLocation', 'order_dropLocation')
+                            ->leftJoin('arrival.dropLocation', 'order_dropLocation')
                             ->orderBy('order_dropLocation.label', $order);
                     } else {
                         $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
@@ -384,12 +392,12 @@ class ArrivageRepository extends EntityRepository
                             /** @var FreeField $freeField */
                             $freeField = $this->getEntityManager()->getRepository(FreeField::class)->find($freeFieldId);
                             if($freeField->getTypage() === FreeField::TYPE_NUMBER) {
-                                $qb->orderBy("CAST(JSON_EXTRACT(a.freeFields, '$.\"$freeFieldId\"') AS SIGNED)", $order);
+                                $qb->orderBy("CAST(JSON_EXTRACT(arrival.freeFields, '$.\"$freeFieldId\"') AS SIGNED)", $order);
                             } else {
-                                $qb->orderBy("JSON_EXTRACT(a.freeFields, '$.\"$freeFieldId\"')", $order);
+                                $qb->orderBy("JSON_EXTRACT(arrival.freeFields, '$.\"$freeFieldId\"')", $order);
                             }
                         } else if (property_exists(Arrivage::class, $column)) {
-                            $qb->orderBy("a.$column", $order);
+                            $qb->orderBy("arrival.$column", $order);
                         }
                     }
                 }

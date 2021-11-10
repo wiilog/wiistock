@@ -31,6 +31,7 @@ use App\Service\UserService;
 use App\Service\FreeFieldService;
 use App\Annotation\HasPermission;
 
+use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
@@ -497,17 +498,22 @@ class ArticleController extends AbstractController
      * @Route("/colonne-visible", name="save_column_visible_for_article", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI}, mode=HasPermission::IN_JSON)
      */
-    public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
+    public function saveColumnVisible(Request $request,
+                                      EntityManagerInterface $entityManager,
+                                      VisibleColumnService $visibleColumnService): Response
     {
         $data = json_decode($request->getContent(), true);
-        $champs = array_keys($data);
-        $user = $this->getUser();
+        $fields = array_keys($data);
         /** @var $user Utilisateur */
-        $user->setColumnsVisibleForArticle($champs);
+        $user = $this->getUser();
+
+        $visibleColumnService->setVisibleColumns('article', $fields, $user);
+
         $entityManager->flush();
 
         return $this->json([
-            "success" => true
+            'success' => true,
+            'msg' => 'Vos préférences de colonnes à afficher ont bien été sauvegardées'
         ]);
     }
 

@@ -31,7 +31,7 @@ class EmplacementRepository extends EntityRepository
 
     public function getForSelect(?string $term, $deliveryType = null, $collectType = null) {
         $query = $this->createQueryBuilder("location");
-dump($deliveryType);
+
         if($deliveryType) {
             $query->leftJoin("location.allowedDeliveryTypes", "allowed_delivery_types")
                 ->andWhere("allowed_delivery_types.id = :type")

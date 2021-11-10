@@ -23,6 +23,7 @@ use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Helper\FormatHelper;
 use App\Service\AttachmentService;
+use App\Service\VisibleColumnService;
 use WiiCommon\Helper\Stream;
 use App\Service\MouvementStockService;
 use App\Service\FreeFieldService;
@@ -322,11 +323,14 @@ class ReferenceArticleController extends AbstractController
 
         $filter = $filtreRefRepository->findOneByUserAndChampFixe($user, FiltreRef::FIXED_FIELD_STATUT);
 
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+
         return $this->render('reference_article/index.html.twig', [
             "fields" => $fields,
             "searches" => $user->getRecherche(),
             'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
-            'columnsVisibles' => $this->getUser()->getColumnVisible(),
+            'columnsVisibles' => $currentUser->getVisibleColumns()['reference'],
             'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
             'typeQuantite' => $typeQuantite,
@@ -550,17 +554,23 @@ class ReferenceArticleController extends AbstractController
      * @Route("/colonne-visible", name="save_column_visible", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE}, mode=HasPermission::IN_JSON)
      */
-    public function saveColumnVisible(Request $request): Response
+    public function saveColumnVisible(Request $request,
+                                      EntityManagerInterface $manager,
+                                      VisibleColumnService $visibleColumnService): Response
     {
             $data = json_decode($request->getContent(), true);
-            $champs = array_keys($data);
-            $user  = $this->getUser();
+            $fields = array_keys($data);
             /** @var $user Utilisateur */
-            $user->setColumnVisible($champs);
-            $em  = $this->getDoctrine()->getManager();
-            $em->flush();
+            $user  = $this->getUser();
 
-            return new JsonResponse(['success' => true]);
+            $visibleColumnService->setVisibleColumns('reference', $fields, $user);
+
+            $manager->flush();
+
+            return $this->json([
+                'success' => true,
+                'msg' => 'Vos préférences de colonnes à afficher ont bien été sauvegardées'
+            ]);
     }
 
     /**

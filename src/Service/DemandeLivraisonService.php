@@ -35,60 +35,48 @@ use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 use WiiCommon\Helper\Stream;
 
 class DemandeLivraisonService
 {
-    /**
-     * @var Twig_Environment
-     */
-    private $templating;
+    /** @Required */
+    public Twig_Environment $templating;
 
-    /**
-     * @var RouterInterface
-     */
-    private $router;
+    /** @Required */
+    public RouterInterface $router;
 
-    private $entityManager;
-    private $stringService;
-    private $refArticleDataService;
-    private $mailerService;
-    private $translator;
-    private $preparationsManager;
-    private $freeFieldService;
-    private $userService;
-    private $appURL;
+    /** @Required */
+    public EntityManagerInterface $entityManager;
+
+    /** @Required */
+    public StringService $stringService;
+
+    /** @Required */
+    public RefArticleDataService $refArticleDataService;
+
+    /** @Required */
+    public MailerService $mailerService;
+
+    /** @Required */
+    public TranslatorInterface $translator;
+
+    /** @Required */
+    public PreparationsManagerService $preparationsManager;
+
+    /** @Required */
+    public FreeFieldService $freeFieldService;
 
     /** @Required */
     public NotificationService $notificationService;
 
-    public function __construct(FreeFieldService $freeFieldService,
-                                TokenStorageInterface $tokenStorage,
-                                StringService $stringService,
-                                PreparationsManagerService $preparationsManager,
-                                RouterInterface $router,
-                                EntityManagerInterface $entityManager,
-                                TranslatorInterface $translator,
-                                MailerService $mailerService,
-                                RefArticleDataService $refArticleDataService,
-                                UserService $userService,
-                                string $appURL,
-                                Twig_Environment $templating)
+    /** @Required */
+    public VisibleColumnService $visibleColumnService;
+
+    private $user;
+
+    public function __construct(TokenStorageInterface $tokenStorage)
     {
-        $this->preparationsManager = $preparationsManager;
-        $this->templating = $templating;
-        $this->stringService = $stringService;
-        $this->entityManager = $entityManager;
-        $this->router = $router;
-        $this->translator = $translator;
-        $this->mailerService = $mailerService;
-        $this->refArticleDataService = $refArticleDataService;
-        $this->userService =$userService;
-        $this->freeFieldService = $freeFieldService;
-        $this->appURL = $appURL;
+        $this->user = $tokenStorage->getToken()->getUser();
     }
 
     public function getDataForDatatable($params = null, $statusFilter = null, $receptionFilter = null, Utilisateur $user)
@@ -106,7 +94,7 @@ class DemandeLivraisonService
         } else {
             $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DEM_LIVRAISON, $user);
         }
-        $queryResult = $demandeRepository->findByParamsAndFilters($params, $filters, $receptionFilter);
+        $queryResult = $demandeRepository->findByParamsAndFilters($params, $filters, $receptionFilter, $this->user);
 
         $demandeArray = $queryResult['data'];
 
@@ -122,23 +110,28 @@ class DemandeLivraisonService
         ];
     }
 
-    public function dataRowDemande(Demande $demande)
+    public function dataRowDemande(Demande $demande): array
     {
         $idDemande = $demande->getId();
         $url = $this->router->generate('demande_show', ['id' => $idDemande]);
 
         $prepas = Stream::from($demande->getPreparations())
-                ->filter(fn(Preparation $preparation) => $preparation->getPairings()->count() > 0)
-                ->first();
+            ->filter(fn(Preparation $preparation) => $preparation->getPairings()->count() > 0)
+            ->first();
         $pairing = $prepas ? $prepas->getPairings()->first() : null;
         $sensorCode = $pairing ? $pairing->getSensorWrapper()->getName() : null;
-        return [
-            'Date' => $demande->getDate() ? $demande->getDate()->format('d/m/Y') : '',
-            'Demandeur' => FormatHelper::deliveryRequester($demande),
-            'Numéro' => $demande->getNumero() ?? '',
-            'Statut' => $demande->getStatut() ? $demande->getStatut()->getNom() : '',
-            'Type' => $demande->getType() ? $demande->getType()->getLabel() : '',
-            'Actions' => $this->templating->render('demande/datatableDemandeRow.html.twig',
+
+        $categoryFF = $this->entityManager->getRepository(CategorieCL::class)->findOneBy(['label' => CategorieCL::DEMANDE_LIVRAISON]);
+        $freeFields = $this->entityManager->getRepository(FreeField::class)->getByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_LIVRAISON, $categoryFF);
+
+        $row = [
+            'createdAt' => FormatHelper::datetime($demande->getCreatedAt()),
+            'validatedAt' => FormatHelper::datetime($demande->getValidatedAt()),
+            'requester' => FormatHelper::deliveryRequester($demande),
+            'number' => $demande->getNumero() ?? '',
+            'status' => FormatHelper::status($demande->getStatut()),
+            'type' => FormatHelper::type($demande->getType()),
+            'actions' => $this->templating->render('demande/datatableDemandeRow.html.twig',
                 [
                     'idDemande' => $idDemande,
                     'url' => $url,
@@ -149,26 +142,29 @@ class DemandeLivraisonService
                 'hasPairing' => (bool)$pairing,
             ]),
         ];
+
+        foreach ($freeFields as $freeField) {
+            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeField['id']);
+            $row[$freeFieldName] = $this->freeFieldService->serializeValue([
+                "valeur" => $demande->getFreeFieldValue($freeField["id"]),
+                "typage" => $freeField["typage"],
+            ]);
+        }
+
+        return $row;
     }
 
-    /**
-     * @param Demande $demande
-     * @param DateService $dateService
-     * @param array $averageRequestTimesByType
-     * @return array
-     * @throws Exception
-     */
-    public function parseRequestForCard(Demande $demande,
+    public function parseRequestForCard(Demande     $demande,
                                         DateService $dateService,
-                                        array $averageRequestTimesByType) {
+                                        array       $averageRequestTimesByType): array
+    {
 
         $requestStatus = $demande->getStatut() ? $demande->getStatut()->getNom() : '';
         $demandeType = $demande->getType() ? $demande->getType()->getLabel() : '';
 
         if ($requestStatus === Demande::STATUT_A_TRAITER && !$demande->getPreparations()->isEmpty()) {
             $href = $this->router->generate('preparation_index', ['demandId' => $demande->getId()]);
-        }
-        else if (
+        } else if (
             (
                 $requestStatus === Demande::STATUT_LIVRE_INCOMPLETE ||
                 $requestStatus === Demande::STATUT_INCOMPLETE ||
@@ -177,8 +173,7 @@ class DemandeLivraisonService
             && !$demande->getLivraisons()->isEmpty()
         ) {
             $href = $this->router->generate('livraison_index', ['demandId' => $demande->getId()]);
-        }
-        else {
+        } else {
             $href = $this->router->generate('demande_show', ['id' => $demande->getId()]);
         }
 
@@ -194,7 +189,7 @@ class DemandeLivraisonService
         $today = new DateTime();
 
         if (isset($averageTime)) {
-            $expectedDate = (clone $demande->getDate())
+            $expectedDate = (clone $demande->getCreatedAt())
                 ->add($dateService->secondsToDateInterval($averageTime->getAverage()));
             if ($expectedDate >= $today) {
                 $estimatedFinishTimeLabel = 'Date et heure de livraison prévue';
@@ -206,7 +201,7 @@ class DemandeLivraisonService
             }
         }
 
-        $requestDate = $demande->getDate();
+        $requestDate = $demande->getCreatedAt();
         $requestDateStr = $requestDate
             ? (
                 $requestDate->format('d ')
@@ -245,18 +240,6 @@ class DemandeLivraisonService
         ];
     }
 
-    /**
-     * @param $data
-     * @param EntityManagerInterface $entityManager
-     * @param bool $fromNomade
-     * @param FreeFieldService $champLibreService
-     * @return Demande|array
-     * @throws LoaderError
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
-     * @throws Exception
-     */
     public function newDemande($data, EntityManagerInterface $entityManager, FreeFieldService $champLibreService, bool $fromNomade = false)
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
@@ -296,7 +279,7 @@ class DemandeLivraisonService
         $demande
             ->setStatut($statut)
             ->setUtilisateur($utilisateur)
-            ->setDate($date)
+            ->setCreatedAt($date)
             ->setType($type)
             ->setDestination($destination)
             ->setNumero($numero)
@@ -317,13 +300,7 @@ class DemandeLivraisonService
         return $demande;
     }
 
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @return string
-     * @throws NonUniqueResultException
-     * @throws Exception
-     */
-    public function generateNumeroForNewDL(EntityManagerInterface $entityManager)
+    public function generateNumeroForNewDL(EntityManagerInterface $entityManager): string
     {
         $date = new DateTime('now');
         $demandeRepository = $entityManager->getRepository(Demande::class);
@@ -339,21 +316,10 @@ class DemandeLivraisonService
         return ($prefixe . $yearMonth . $cpt);
     }
 
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @param array $demandeArray
-     * @param bool $fromNomade
-     * @param FreeFieldService $champLibreService
-     * @return array
-     * @throws LoaderError
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
     public function checkDLStockAndValidate(EntityManagerInterface $entityManager,
-                                            array $demandeArray,
-                                            bool $fromNomade = false,
-                                            FreeFieldService $champLibreService): array
+                                            array                  $demandeArray,
+                                            bool                   $fromNomade = false,
+                                            FreeFieldService       $champLibreService): array
     {
         $demandeRepository = $entityManager->getRepository(Demande::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -382,12 +348,10 @@ class DemandeLivraisonService
                         $champLibreService
                     );
                 }
-            }
-            else {
+            } else {
                 return $demande;
             }
-        }
-        else {
+        } else {
             $demande = $demandeRepository->find($demandeArray['demande']);
         }
         if ($demande->getStatut() && $demande->getStatut()->getNom() === Demande::STATUT_BROUILLON) {
@@ -445,18 +409,6 @@ class DemandeLivraisonService
         return $response;
     }
 
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @param Demande $demande
-     * @param bool $fromNomade
-     * @param bool $simpleValidation
-     * @return array
-     * @throws LoaderError
-     * @throws NonUniqueResultException
-     * @throws RuntimeError
-     * @throws SyntaxError
-     * @throws Exception
-     */
     public function validateDLAfterCheck(EntityManagerInterface $entityManager,
                                          Demande $demande,
                                          bool $fromNomade = false,
@@ -477,6 +429,10 @@ class DemandeLivraisonService
         $preparation
             ->setNumero($preparationNumber)
             ->setDate($date);
+
+        if(!$demande->getValidatedAt()) {
+            $demande->setValidatedAt($date);
+        }
 
         $statutP = $statutRepository->findOneByCategorieNameAndStatutCode(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
         $preparation->setStatut($statutP);
@@ -522,8 +478,7 @@ class DemandeLivraisonService
             if ($demande->getType()->isNotificationsEnabled()) {
                 $this->notificationService->toTreat($preparation);
             }
-        }
-        /** @noinspection PhpRedundantCatchClauseInspection */
+        } /** @noinspection PhpRedundantCatchClauseInspection */
         catch (UniqueConstraintViolationException $e) {
             $response['success'] = false;
             $response['msg'] = 'Une autre préparation est en cours de création, veuillez réessayer.';
@@ -564,13 +519,6 @@ class DemandeLivraisonService
 
     public function createHeaderDetailsConfig(Demande $demande): array
     {
-        $status = $demande->getStatut();
-        $destination = $demande->getDestination();
-        $date = $demande->getDate();
-        $validationDate = $demande->getValidationDate();
-        $type = $demande->getType();
-        $comment = $demande->getCommentaire();
-
         $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
             $this->entityManager,
             $demande,
@@ -580,18 +528,18 @@ class DemandeLivraisonService
 
         return array_merge(
             [
-                ['label' => 'Statut', 'value' => $status ? $this->stringService->mbUcfirst($status->getNom()) : ''],
+                ['label' => 'Statut', 'value' => $this->stringService->mbUcfirst(FormatHelper::status($demande->getStatut()))],
                 ['label' => 'Demandeur', 'value' => FormatHelper::deliveryRequester($demande)],
-                ['label' => 'Destination', 'value' => $destination ? $destination->getLabel() : ''],
-                ['label' => 'Date de la demande', 'value' => $date ? $date->format('d/m/Y') : ''],
-                ['label' => 'Date de validation', 'value' => $validationDate ? $validationDate->format('d/m/Y H:i') : ''],
-                ['label' => 'Type', 'value' => $type ? $type->getLabel() : '']
+                ['label' => 'Destination', 'value' => FormatHelper::location($demande->getDestination())],
+                ['label' => 'Date de la demande', 'value' => FormatHelper::datetime($demande->getCreatedAt())],
+                ['label' => 'Date de validation', 'value' => FormatHelper::datetime($demande->getValidatedAt())],
+                ['label' => 'Type', 'value' => FormatHelper::type($demande->getType())]
             ],
             $freeFieldArray,
             [
                 [
                     'label' => 'Commentaire',
-                    'value' => $comment ?: '',
+                    'value' => $demande->getCommentaire() ?? '',
                     'isRaw' => true,
                     'colClass' => 'col-sm-6 col-12',
                     'isScrollable' => true,
@@ -601,11 +549,8 @@ class DemandeLivraisonService
         );
     }
 
-    /**
-     * @param Demande $demande
-     * @param EntityManagerInterface $entityManager
-     */
-    public function managePreRemoveDeliveryRequest(Demande $demande, EntityManagerInterface $entityManager) {
+    public function managePreRemoveDeliveryRequest(Demande $demande, EntityManagerInterface $entityManager)
+    {
         foreach ($demande->getArticleLines() as $articleLine) {
             $entityManager->remove($articleLine);
         }
@@ -616,8 +561,9 @@ class DemandeLivraisonService
 
     public function createArticleLine(Article $article,
                                       Demande $request,
-                                      int $quantityToPick = 0,
-                                      int $pickedQuantity = 0): DeliveryRequestArticleLine {
+                                      int     $quantityToPick = 0,
+                                      int     $pickedQuantity = 0): DeliveryRequestArticleLine
+    {
 
         $articleLine = new DeliveryRequestArticleLine();
         $articleLine
@@ -654,4 +600,24 @@ class DemandeLivraisonService
 
         ];
     }
+
+    public function getVisibleColumnsConfig(EntityManagerInterface $manager, Utilisateur $currentUser): array {
+        $columnsVisible = $currentUser->getVisibleColumns()['deliveryRequest'];
+        $FFCategory = $manager->getRepository(CategorieCL::class)->findOneBy(['label' => CategorieCL::DEMANDE_LIVRAISON]);
+        $freeFields = $manager->getRepository(FreeField::class)->getByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_LIVRAISON, $FFCategory);
+
+        $columns = [
+            ['name' => 'actions', 'orderable' => false, 'alwaysVisible' => true, 'class' => 'noVis', 'width' => '10px'],
+            ['name' => 'pairing', 'class' => 'pairing-row', 'alwaysVisible' => true, 'orderable' => false],
+            ['title' => 'Date de création', 'name' => 'createdAt'],
+            ['title' => 'Date de validation', 'name' => 'validatedAt'],
+            ['title' => 'Demandeur', 'name' => 'requester'],
+            ['title' => 'Numéro', 'name' => 'number'],
+            ['title' => 'Statut', 'name' => 'status'],
+            ['title' => 'Type', 'name' => 'type'],
+        ];
+
+        return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
+    }
+
 }
