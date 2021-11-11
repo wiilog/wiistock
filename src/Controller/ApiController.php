@@ -1502,9 +1502,6 @@ class ApiController extends AbstractFOSRestController
         $typeRepository = $entityManager->getRepository(Type::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
-        $translationsRepository = $entityManager->getRepository(Translation::class);
-        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
-        $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $handlingRepository = $entityManager->getRepository(Handling::class);
         $attachmentRepository = $entityManager->getRepository(Attachment::class);
