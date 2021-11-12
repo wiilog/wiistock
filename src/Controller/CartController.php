@@ -31,6 +31,7 @@ use App\Service\UniqueNumberService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\Entity;
+use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -207,24 +208,20 @@ class CartController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         switch ($data["requestType"]) {
-            case 'delivery':
+            case "delivery":
                 $response = $this->manageDeliveryRequest($data, $entityManager, $deliveryRequestService, $freeFieldService);
                 break;
-            case 'collect':
+            case "collect":
                 $response = $this->manageCollectRequest($data, $entityManager, $freeFieldService);
                 break;
             default:
-                $response = [
-                    'success' => false,
-                    'link' => null,
-                    'msg' => null
-                ];
-                break;
+                throw new RuntimeException("Unsupported request type");
         }
 
-        if($response['success']) {
-            $this->addFlash('success', $response['msg']);
+        if($response["success"]) {
+            $this->addFlash("success", $response['msg']);
         }
+
         return $this->json($response);
     }
 

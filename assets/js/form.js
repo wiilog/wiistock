@@ -66,7 +66,7 @@ export default class Form {
         for(const input of $inputs) {
             let $input = $(input);
 
-            if($input.is(`:not([type="hidden"]):hidden`) && !$input.hasClass('force-data')) {
+            if($input.is(`:not(.force-data, [type="hidden"]):hidden`)) {
                 continue;
             }
 
