@@ -54,6 +54,8 @@ class ImportCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        ini_set("memory_limit", "1024M");
+
         $importRepository = $this->getEntityManager()->getRepository(Import::class);
         $statutRepository = $this->getEntityManager()->getRepository(Statut::class);
 
@@ -70,8 +72,7 @@ class ImportCommand extends Command
         // si on est au alentours de minuit => on commence tous les imports sinon uniquement ceux qui sont forcés
         $runOnlyForced = ($nowHours !== 0 || $nowMinutes >= 30);
         foreach ($importsPlanned as $import) {
-            if (!$runOnlyForced
-                || $import->isForced()) {
+            if (!$runOnlyForced || $import->isForced()) {
                 $import->setStatus($statusEnCours);
                 $importsToLaunch[] = $import;
             }
