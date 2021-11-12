@@ -250,7 +250,8 @@ function importTemplateChanged($dataTypeImport = null) {
         FOU: {label: 'fournisseurs', url: `${templateDirectory}/modele-import-fournisseurs.csv`},
         ART_FOU: {label: 'articles fournisseurs', url: `${templateDirectory}/modele-import-articles-fournisseurs.csv`},
         RECEP: {label: 'réceptions', url: `${templateDirectory}/modele-import-receptions.csv`},
-        USER: {label: 'utilisateurs', url: `${templateDirectory}/modele-import-utilisateurs.csv`}
+        USER: {label: 'utilisateurs', url: `${templateDirectory}/modele-import-utilisateurs.csv`},
+        DELIVERY: {label: 'livraisons', url: `${templateDirectory}/modele-import-livraisons.csv`}
     };
 
     const valTypeImport = $dataTypeImport ? $dataTypeImport.val() : '';

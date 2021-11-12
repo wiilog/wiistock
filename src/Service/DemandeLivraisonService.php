@@ -27,6 +27,9 @@ use App\Helper\FormatHelper;
 use App\Helper\QueryCounter;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Doctrine\ORM\NonUniqueResultException;
+use Exception;
+use Monolog\Handler\Curl\Util;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
@@ -69,14 +72,7 @@ class DemandeLivraisonService
     /** @Required */
     public VisibleColumnService $visibleColumnService;
 
-    private $user;
-
-    public function __construct(TokenStorageInterface $tokenStorage)
-    {
-        $this->user = $tokenStorage->getToken()->getUser();
-    }
-
-    public function getDataForDatatable($params = null, $statusFilter = null, $receptionFilter = null): array
+    public function getDataForDatatable($params = null, $statusFilter = null, $receptionFilter = null, Utilisateur $user)
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $demandeRepository = $this->entityManager->getRepository(Demande::class);
@@ -89,9 +85,9 @@ class DemandeLivraisonService
                 ]
             ];
         } else {
-            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DEM_LIVRAISON, $this->user);
+            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DEM_LIVRAISON, $user);
         }
-        $queryResult = $demandeRepository->findByParamsAndFilters($params, $filters, $receptionFilter, $this->user);
+        $queryResult = $demandeRepository->findByParamsAndFilters($params, $filters, $receptionFilter, $user);
 
         $demandeArray = $queryResult['data'];
 
@@ -407,9 +403,10 @@ class DemandeLivraisonService
     }
 
     public function validateDLAfterCheck(EntityManagerInterface $entityManager,
-                                         Demande                $demande,
-                                         bool                   $fromNomade = false,
-                                         bool                   $simpleValidation = false): array
+                                         Demande $demande,
+                                         bool $fromNomade = false,
+                                         bool $simpleValidation = false,
+                                         bool $flush = true): array
     {
         $response = [];
         $response['success'] = true;
@@ -470,7 +467,7 @@ class DemandeLivraisonService
         }
 
         try {
-            $entityManager->flush();
+            if ($flush) $entityManager->flush();
             if ($demande->getType()->isNotificationsEnabled()) {
                 $this->notificationService->toTreat($preparation);
             }
@@ -500,7 +497,7 @@ class DemandeLivraisonService
                 $demande->getUtilisateur()
             );
         }
-        $entityManager->flush();
+        if ($flush) $entityManager->flush();
         if (!$simpleValidation && !$fromNomade) {
             $response['entete'] = $this->templating->render('demande/demande-show-header.html.twig', [
                 'demande' => $demande,
