@@ -65,7 +65,8 @@ export default class Form {
 
         for(const input of $inputs) {
             let $input = $(input);
-            if($input.is(`:not([type="hidden"]):hidden`)) {
+
+            if($input.is(`:not([type="hidden"]):hidden`) && !$input.hasClass('force-data')) {
                 continue;
             }
 
@@ -167,7 +168,6 @@ export default class Form {
                 }
             }
         }
-        console.log(data);
 
         this.addDataArray(data, classes);
 

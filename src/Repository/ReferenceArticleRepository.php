@@ -1188,13 +1188,10 @@ class ReferenceArticleRepository extends EntityRepository {
         return !empty($articleIsProcessed);
     }
 
-    public function findById(array $id):array {
-
+    public function findByIds(array $id): array {
         $references = $this->createQueryBuilder('referenceArticle')
             ->where('referenceArticle.id IN (:id)')
-
             ->setParameter('id', $id)
-
             ->getQuery()
             ->getResult();
 

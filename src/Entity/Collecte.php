@@ -88,7 +88,7 @@ class Collecte implements Serializable, PairedEntity {
     private $commentaire;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\CollecteReference", mappedBy="collecte")
+     * @ORM\OneToMany(targetEntity="App\Entity\CollecteReference", mappedBy="collecte", cascade={"persist", "remove"})
      */
     private $collecteReferences;
 

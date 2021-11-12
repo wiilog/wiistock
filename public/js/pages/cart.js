@@ -113,11 +113,10 @@ $(document).ready(() => {
 
     Form.create(`.wii-form`).onSubmit(data => {
         const url = Routing.generate('cart_validate', true);
-        console.log(data.asObject());
         const params = JSON.stringify(data.asObject());
         $.post(url, params, function (response) {
             showBSAlert(response.msg, response.success ? 'success' : 'danger');
-            if (response.success) {
+            if (response.success && response.link) {
                 window.location.href = response.link;
             }
         });
