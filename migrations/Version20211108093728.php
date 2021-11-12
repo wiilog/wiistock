@@ -37,10 +37,11 @@ final class Version20211108093728 extends AbstractMigration {
                 "reference" => $this->connection->executeQuery("SELECT column_visible FROM utilisateur WHERE id = ${user['id']}")->fetchFirstColumn(),
                 "trackingMovement" => $this->connection->executeQuery("SELECT columns_visible_for_tracking_movement FROM utilisateur WHERE id = ${user['id']}")->fetchFirstColumn(),
                 "reception" => $this->connection->executeQuery("SELECT columns_visible_for_reception FROM utilisateur WHERE id = ${user['id']}")->fetchFirstColumn(),
-                "deliveryRequest" => Utilisateur::DEFAULT_DELIVERY_REQUEST_VISIBLE_COLUMNS,
             ];
 
             $visibleColumns = array_map(fn($value) => json_decode($value[0]), $visibleColumns);
+            $visibleColumns["deliveryRequest"] = Utilisateur::DEFAULT_DELIVERY_REQUEST_VISIBLE_COLUMNS;
+
             $this->addSql("UPDATE utilisateur SET visible_columns = :columns WHERE id = ${user['id']}", ['columns' => json_encode($visibleColumns)]);
         }
 
