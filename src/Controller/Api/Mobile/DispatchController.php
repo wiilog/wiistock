@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Controller\MobileApi;
+namespace App\Controller\Api\Mobile;
 
 use App\Entity\Utilisateur;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 
-class MobileApiDispatchController extends AbstractFOSRestController {
+class DispatchController extends AbstractFOSRestController {
 
     private ?Utilisateur $user = null;
 

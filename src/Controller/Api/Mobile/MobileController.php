@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Api\Mobile;
 
 use App\Annotation as Wii;
 use App\Entity\Dispatch;
@@ -81,7 +81,7 @@ use Symfony\Component\HttpKernel\KernelInterface;
 use Throwable;
 
 
-class ApiController extends AbstractFOSRestController
+class MobileController extends AbstractFOSRestController
 {
 
     /** @var Utilisateur|null */
@@ -169,7 +169,7 @@ class ApiController extends AbstractFOSRestController
      * @Rest\View()
      * @Wii\RestVersionChecked()
      */
-    public function ping() {
+    public function ping(): JsonResponse {
         $response = new JsonResponse(['success' => true]);
         $response->headers->set('Content-Type', 'application/json');
         $response->headers->set('Access-Control-Allow-Origin', '*');
