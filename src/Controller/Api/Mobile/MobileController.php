@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Api\Mobile;
 
 use App\Annotation as Wii;
 use App\Entity\Dispatch;
@@ -34,8 +34,8 @@ use App\Entity\Utilisateur;
 
 use App\Helper\FormatHelper;
 use App\Service\ArrivageService;
-use App\Service\DispatchPackService;
 use App\Service\EmplacementDataService;
+use App\Service\MobileApiService;
 use App\Service\NotificationService;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use WiiCommon\Helper\Stream;
@@ -81,11 +81,7 @@ use Symfony\Component\HttpKernel\KernelInterface;
 use Throwable;
 
 
-/**
- * Class ApiController
- * @package App\Controller
- */
-class ApiController extends AbstractFOSRestController
+class MobileController extends AbstractFOSRestController
 {
 
     /** @var Utilisateur|null */
@@ -94,8 +90,10 @@ class ApiController extends AbstractFOSRestController
     /** @Required */
     public NotificationService $notificationService;
 
-    public function getUser(): Utilisateur
-    {
+    /** @Required */
+    public MobileApiService $mobileApiService;
+
+    public function getUser(): Utilisateur {
         return $this->user;
     }
 
@@ -125,7 +123,7 @@ class ApiController extends AbstractFOSRestController
             $loggedUser->setApiKey($apiKey);
             $entityManager->flush();
 
-            $rights = $this->getMenuRights($loggedUser, $userService);
+            $rights = $userService->getMobileRights($loggedUser);
             $channels = Stream::from($rights)
                 ->filter(fn($val, $key) => $val && in_array($key, ["stock", "tracking", "group", "ungroup", "demande", "notifications"]))
                 ->takeKeys()
@@ -171,8 +169,7 @@ class ApiController extends AbstractFOSRestController
      * @Rest\View()
      * @Wii\RestVersionChecked()
      */
-    public function ping()
-    {
+    public function ping(): JsonResponse {
         $response = new JsonResponse(['success' => true]);
         $response->headers->set('Content-Type', 'application/json');
         $response->headers->set('Access-Control-Allow-Origin', '*');
@@ -1438,7 +1435,7 @@ class ApiController extends AbstractFOSRestController
         $httpCode = Response::HTTP_OK;
         $dataResponse['success'] = true;
 
-        $rights = $this->getMenuRights($nomadUser, $userService);
+        $rights = $userService->getMobileRights($nomadUser);
         if ($rights['demande']) {
             $dataResponse['data'] = [
                 'demandeLivraisonArticles' => $referenceArticleRepository->getByNeedsMobileSync(),
@@ -1491,7 +1488,6 @@ class ApiController extends AbstractFOSRestController
     private function getDataArray(Utilisateur $user,
                                   UserService $userService,
                                   TrackingMovementService $trackingMovementService,
-                                  NatureService $natureService,
                                   Request $request,
                                   EntityManagerInterface $entityManager)
     {
@@ -1506,9 +1502,6 @@ class ApiController extends AbstractFOSRestController
         $typeRepository = $entityManager->getRepository(Type::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
-        $translationsRepository = $entityManager->getRepository(Translation::class);
-        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
-        $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $handlingRepository = $entityManager->getRepository(Handling::class);
         $attachmentRepository = $entityManager->getRepository(Attachment::class);
@@ -1516,7 +1509,7 @@ class ApiController extends AbstractFOSRestController
         $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
-        $rights = $this->getMenuRights($user, $userService);
+        $rights = $userService->getMobileRights($user);
 
         $status = $statutRepository->getMobileStatus($rights['tracking'], $rights['demande']);
 
@@ -1609,7 +1602,7 @@ class ApiController extends AbstractFOSRestController
             $removeHoursDesiredDate = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME);
             $handlings = Stream::from($handlings)
                 ->map(function (array $handling) use ($handlingExpectedDateColors, $removeHoursDesiredDate) {
-                    $handling['color'] = $this->expectedDateColor($handling['desiredDate'], $handlingExpectedDateColors);
+                    $handling['color'] = $this->mobileApiService->expectedDateColor($handling['desiredDate'], $handlingExpectedDateColors);
                     $handling['desiredDate'] = $handling['desiredDate']
                         ? $handling['desiredDate']->format($removeHoursDesiredDate
                             ? 'd/m/Y'
@@ -1649,43 +1642,27 @@ class ApiController extends AbstractFOSRestController
         if ($rights['tracking']) {
             $trackingTaking = $trackingMovementService->getMobileUserPicking($entityManager, $user);
 
-            $natures = array_map(
-                function (Nature $nature) use ($natureService) {
-                    return $natureService->serializeNature($nature);
-                },
-                $natureRepository->findAll()
-            );
             $allowedNatureInLocations = $natureRepository->getAllowedNaturesIdByLocation();
             $trackingFreeFields = $freeFieldRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]);
 
-            $dispatchExpectedDateColors = [
-                'after' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EXPECTED_DATE_COLOR_AFTER),
-                'DDay' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EXPECTED_DATE_COLOR_D_DAY),
-                'before' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EXPECTED_DATE_COLOR_BEFORE)
-            ];
-
-            $dispatches = $dispatchRepository->getMobileDispatches($user);
-            $dispatches = Stream::from($dispatches)
-                ->map(function (array $dispatch) use ($dispatchExpectedDateColors) {
-                    $dispatch['color'] = $this->expectedDateColor($dispatch['endDate'] ?? null, $dispatchExpectedDateColors);
-                    $dispatch['startDate'] = $dispatch['startDate'] ? $dispatch['startDate']->format('d/m/Y') : null;
-                    $dispatch['endDate'] = $dispatch['endDate'] ? $dispatch['endDate']->format('d/m/Y') : null;
-                    return $dispatch;
-                })->toArray();
-            $dispatchPacks = array_map(function($dispatchPack) {
-                if(!empty($dispatchPack['comment'])) {
-                    $dispatchPack['comment'] = substr(strip_tags($dispatchPack['comment']), 0, 200);
-                }
-                return $dispatchPack;
-            }, $dispatchPackRepository->getMobilePacksFromDispatches(array_map(fn($dispatch) => $dispatch['id'], $dispatches)));
+            ['natures' => $natures] = $this->mobileApiService->getNaturesData($entityManager);
+            [
+                'dispatches' => $dispatches,
+                'dispatchPacks' => $dispatchPacks
+            ] = $this->mobileApiService->getDispatchesData($entityManager, $user);
         }
+
+        ['translations' => $translations] = $this->mobileApiService->getTranslationsData($entityManager);
+
         return [
             'locations' => $emplacementRepository->getLocationsArray(),
             'allowedNatureInLocations' => $allowedNatureInLocations ?? [],
-            'freeFields' => Stream::from($trackingFreeFields ?? [], $requestFreeFields ?? [], $deliveryFreeFields ?? [])
-                ->map(function (FreeField $freeField) {
-                    return $freeField->serialize();
-                })
+            'freeFields' => Stream::from(
+                $trackingFreeFields ?? [],
+                $requestFreeFields ?? [],
+                $deliveryFreeFields ?? []
+            )
+                ->map(fn (FreeField $freeField) => $freeField->serialize())
                 ->toArray(),
             'preparations' => $preparations ?? [],
             'articlesPrepa' => $articlesPrepa ?? [],
@@ -1715,7 +1692,7 @@ class ApiController extends AbstractFOSRestController
             'demandeLivraisonArticles' => $demandeLivraisonArticles ?? [],
             'natures' => $natures ?? [],
             'rights' => $rights,
-            'translations' => $translationsRepository->findAllObjects(),
+            'translations' => $translations,
             'dispatches' => $dispatches ?? [],
             'dispatchPacks' => $dispatchPacks ?? [],
             'status' => $status
@@ -1729,7 +1706,6 @@ class ApiController extends AbstractFOSRestController
      */
     public function getData(Request $request,
                             UserService $userService,
-                            NatureService $natureService,
                             TrackingMovementService $trackingMovementService,
                             EntityManagerInterface $entityManager)
     {
@@ -1737,7 +1713,7 @@ class ApiController extends AbstractFOSRestController
 
         return $this->json([
             "success" => true,
-            "data" => $this->getDataArray($nomadUser, $userService, $trackingMovementService, $natureService, $request, $entityManager)
+            "data" => $this->getDataArray($nomadUser, $userService, $trackingMovementService, $request, $entityManager)
         ]);
     }
 
@@ -2353,21 +2329,6 @@ class ApiController extends AbstractFOSRestController
         return $this->json([
             "success" => true
         ]);
-    }
-
-    private function getMenuRights($user, UserService $userService)
-    {
-        return [
-            'demoMode' => $userService->hasRightFunction(Menu::NOMADE, Action::DEMO_MODE, $user),
-            'notifications' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_NOTIFICATIONS, $user),
-            'stock' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_STOCK, $user),
-            'tracking' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_TRACA, $user),
-            'group' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_GROUP, $user),
-            'ungroup' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_UNGROUP, $user),
-            'demande' => $userService->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_HAND, $user),
-            'inventoryManager' => $userService->hasRightFunction(Menu::STOCK, Action::INVENTORY_MANAGER, $user),
-            'emptyRound' => $userService->hasRightFunction(Menu::TRACA, Action::EMPTY_ROUND, $user)
-        ];
     }
 
     private function expectedDateColor(?DateTime $date, array $colors): ?string {

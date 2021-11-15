@@ -2,12 +2,14 @@
 
 namespace App\Service;
 
+use App\Entity\Action;
 use App\Entity\Arrivage;
 use App\Entity\Dispatch;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Livraison;
 use App\Entity\Handling;
+use App\Entity\Menu;
 use App\Entity\OrdreCollecte;
 use App\Entity\Parametre;
 use App\Entity\ParametreRole;
@@ -197,6 +199,20 @@ class UserService
             FormatHelper::entity($user->getVisibilityGroups()->toArray(), "label", ' / '),
             $user->getStatus() ? 'Actif' : 'Inactif'
         ]);
+    }
+
+    public function getMobileRights(Utilisateur $user): array {
+        return [
+            'demoMode' => $this->hasRightFunction(Menu::NOMADE, Action::DEMO_MODE, $user),
+            'notifications' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_NOTIFICATIONS, $user),
+            'stock' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_STOCK, $user),
+            'tracking' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_TRACA, $user),
+            'group' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_GROUP, $user),
+            'ungroup' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_UNGROUP, $user),
+            'demande' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_HAND, $user),
+            'inventoryManager' => $this->hasRightFunction(Menu::STOCK, Action::INVENTORY_MANAGER, $user),
+            'emptyRound' => $this->hasRightFunction(Menu::TRACA, Action::EMPTY_ROUND, $user)
+        ];
     }
 
 }
