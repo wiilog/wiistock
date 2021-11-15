@@ -7,7 +7,7 @@ use FOS\RestBundle\Controller\AbstractFOSRestController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use FOS\RestBundle\Controller\Annotations as Rest;
 
-class KubernetesController extends AbstractFOSRestController {
+class ApiController extends AbstractFOSRestController {
 
     private ?Utilisateur $user = null;
 
@@ -20,7 +20,7 @@ class KubernetesController extends AbstractFOSRestController {
     }
 
     /**
-     * @Rest\Get("/api/kube-ping")
+     * @Rest\Get("/api/ping")
      * @Rest\View()
      */
     public function ping(): JsonResponse {

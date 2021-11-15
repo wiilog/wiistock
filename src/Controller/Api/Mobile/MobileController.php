@@ -165,19 +165,6 @@ class MobileController extends AbstractFOSRestController
     }
 
     /**
-     * @Rest\Get("/api/ping", condition="request.isXmlHttpRequest()")
-     * @Rest\View()
-     * @Wii\RestVersionChecked()
-     */
-    public function ping(): JsonResponse {
-        $response = new JsonResponse(['success' => true]);
-        $response->headers->set('Content-Type', 'application/json');
-        $response->headers->set('Access-Control-Allow-Origin', '*');
-        $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
-        return $response;
-    }
-
-    /**
      * @Rest\Post("/api/tracking-movements", name="api-post-tracking-movements", condition="request.isXmlHttpRequest()")
      * @Rest\View()
      * @Wii\RestAuthenticated()
