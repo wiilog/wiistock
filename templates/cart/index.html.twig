@@ -45,13 +45,15 @@
                 }) }}
             </div>
         </div>
-        <button class="remove-reference">
+        <button class="remove-reference"
+                data-id="{{ reference.id }}">
             <i class="wii-icon wii-icon-trash"></i>
         </button>
     </div>
 {% endmacro %}
 
 {% block page_content %}
+    {% set emptyCart = app.user.cart.references is empty %}
     <div class="d-flex justify-content-center align-items-center" style="margin-bottom: 50px;">
         <div class="row wii-form wii-large-column">
             <div class="col-12 col-xl-4">
@@ -238,7 +240,19 @@
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-xl-8 all-references">
+            <div class="col-12 col-xl-8 empty-cart {{ not emptyCart ? 'd-none' }}">
+                <div class="wii-box">
+                    <div class="row justify-content-center align-items-center">
+                        <div class="col-12 text-center">
+                            <div class="empty-cart-icon-container rounded-circle d-inline-flex justify-content-center align-items-center">
+                                <i class="wii-icon wii-icon-black-cart"></i>
+                            </div>
+                        </div>
+                        <div class="col-12 text-center">Votre panier est vide</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-xl-8 all-references {{ emptyCart ? 'd-none' }}">
                 <div class="wii-box">
                     <div class="header wii-title">Références</div>
                     <div class="content cart-reference-list">
@@ -251,7 +265,7 @@
                     Valider mon panier
                 </button>
             </div>
-            <div class="col-12 col-xl-8 references-by-buyer"
+            <div class="col-12 col-xl-8 references-by-buyer {{ emptyCart ? 'd-none' }}"
                  data-multiple-key="buyers"
                  data-multiple-object-index="{{ item.buyer.id ?? null }}"
                  style="display: none">

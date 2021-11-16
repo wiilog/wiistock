@@ -18,6 +18,9 @@ export default class Wiistock {
             }
 
             const value = parseInt($input.val()) || 0;
+            const min = parseInt($input.attr(`min`)) || 0;
+            const max = parseInt($input.attr(`max`)) || 0;
+
             if($button.hasClass('increase')){
                 $input.val(value + 1);
                 $input.removeClass('is-invalid');
@@ -28,12 +31,12 @@ export default class Wiistock {
                 $input.val(0);
             }
 
-            if($input.attr(`max`) < $input.val()) {
-                $input.val($input.attr(`max`));
+            if(min >= value) {
+                $input.val(min);
             }
 
-            if($input.attr(`min`) > $input.val()) {
-                $input.val($input.attr(`min`));
+            if(max <= value) {
+                $input.val(max);
             }
 
             $input.trigger(`change`);

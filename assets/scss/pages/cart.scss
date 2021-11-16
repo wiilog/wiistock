@@ -1,5 +1,30 @@
 @import "../variables";
 
+
+.empty-cart {
+    & > .wii-box {
+        height: calc(100% - #{$grid-gutter-width / 2});
+        & > .row {
+            height: 100%;
+
+            .empty-cart-icon-container {
+                background-color: #e8e8e8;
+                width: 120px;
+                height: 120px;
+
+                .wii-icon {
+                    display: block;
+                    background-color: $black;
+                    width: 80px;
+                    height: 80px;
+                    opacity: 35%;
+                }
+            }
+        }
+    }
+}
+
+
 .cart-reference-container {
     display: flex;
     margin: 10px 5px;
