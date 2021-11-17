@@ -216,6 +216,7 @@ function editRowArrivage(button) {
         initDateTimePicker('.date-cl');
         Select2Old.initFree($('.select2-free'));
         Select2Old.location(modal.find('.ajax-autocomplete-location'));
+        Select2Old.user(modal.find('.ajax-autocomplete-user'));
     }, 'json');
 
     modal.find(submit).attr('value', id);

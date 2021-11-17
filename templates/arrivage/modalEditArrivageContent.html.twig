@@ -106,7 +106,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group col-4">
             <label for="destinataire" title="destinataire">{{ 'arrivage.destinataire'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : '' }}</label>
-            <select class="form-control data select2 {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'needed' : '' }}" id="destinataire" name="destinataire">
+            <select class="form-control data ajax-autocomplete-user {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'needed' : '' }}" id="destinataire" name="destinataire">
                 <option disabled selected></option>
                 {% for utilisateur in utilisateurs %}
                     {% set selected = (arrivage.destinataire is not empty and utilisateur.id == arrivage.destinataire.id ? 'selected' : '') %}
