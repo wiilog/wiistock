@@ -17,7 +17,7 @@ export default class Wiistock {
                 return;
             }
 
-            const value = parseInt($input.val()) || 0;
+            let value = parseInt($input.val()) || 0;
             const min = parseInt($input.attr(`min`)) || 0;
             const max = parseInt($input.attr(`max`)) || 0;
 
@@ -31,6 +31,7 @@ export default class Wiistock {
                 $input.val(0);
             }
 
+            value = parseInt($input.val()) || 0;
             if(min >= value) {
                 $input.val(min);
             }

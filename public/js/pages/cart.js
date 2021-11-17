@@ -96,17 +96,14 @@ $(document).ready(() => {
 
                 $cartReferenceContainer.remove();
 
-                if ($wiiBox.exists()) {
-                    const $cartReferenceContainers = $wiiBox.find(`.cart-reference-container`);
-                    if ($cartReferenceContainers.length === 0) {
-                        const $wiiBoxContainer = $wiiBox.parent();
-                        $wiiBox.remove();
-                        const $remainingWiiBoxes = $wiiBoxContainer.find('.wii-box');
-                        if ($remainingWiiBoxes.length === 0) {
-                            $allReferences.addClass('d-none');
-                            $referencesByBuyer.addClass('d-none');
-                            $emptyCart.removeClass('d-none');
-                        }
+                if ($wiiBox.exists() && !containsReferences($wiiBox)) {
+                    const $wiiBoxContainer = $wiiBox.parent();
+                    $wiiBox.remove();
+                    const $remainingWiiBoxes = $wiiBoxContainer.find('.wii-box');
+                    if ($remainingWiiBoxes.length === 0) {
+                        const $cartContentContainers = $('.wii-form > .cart-content');
+                        $cartContentContainers.addClass('d-none');
+                        $emptyCart.removeClass('d-none');
                     }
                 }
             });
@@ -256,7 +253,7 @@ function onCollectChanged($select) {
 function handleRequestTypeChange($requestType, $addOrCreate, $existingPurchase) {
 
     const $cartContentContainers = $('.wii-form > .cart-content');
-    $cartContentContainers.hide();
+    $cartContentContainers.addClass('d-none');
 
     $cartContentContainers
         .find('.data')
@@ -270,20 +267,22 @@ function handleRequestTypeChange($requestType, $addOrCreate, $existingPurchase) 
 
     const $cartContentToShow = $cartContentContainers.filter(`[data-request-type="${requestType}"]`);
 
-    $cartContentToShow.show();
+    if (containsReferences($cartContentToShow)) {
+        $cartContentToShow.removeClass('d-none');
 
-    $cartContentToShow
-        .find('.data-save')
-        .removeClass("data-save")
-        .addClass('data');
+        $cartContentToShow
+            .find('.data-save')
+            .removeClass("data-save")
+            .addClass('data');
 
-    if(requestType === "delivery" || requestType === "collect") {
-        $addOrCreate.show();
-    } else if(requestType === "purchase") {
-        $addOrCreate.hide();
+        if (requestType === "delivery" || requestType === "collect") {
+            $addOrCreate.removeClass('d-none');
+        } else if (requestType === "purchase") {
+            $addOrCreate.addClass('d-none');
+        }
+
+        toggleSelectedPurchaseRequest($existingPurchase);
     }
-
-    toggleSelectedPurchaseRequest($existingPurchase);
 }
 
 function toggleSelectedPurchaseRequest($existingPurchase) {
@@ -294,4 +293,9 @@ function toggleSelectedPurchaseRequest($existingPurchase) {
     else {
         $existingPurchase.addClass('d-none');
     }
+}
+
+function containsReferences($container) {
+    const $cartReferenceContainers = $container.find(`.cart-reference-container`);
+    return ($cartReferenceContainers.length > 0);
 }

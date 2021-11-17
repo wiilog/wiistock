@@ -240,7 +240,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-xl-8 empty-cart {{ not emptyCart ? 'd-none' }}">
+            <div class="col-12 col-xl-8 empty-cart d-none">
                 <div class="wii-box">
                     <div class="row justify-content-center align-items-center">
                         <div class="col-12 text-center">
@@ -252,7 +252,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-xl-8 cart-content" data-request-type="delivery">
+            <div class="col-12 col-xl-8 cart-content d-none" data-request-type="delivery">
                 <div class="wii-box">
                     <div class="header wii-title">Références</div>
                     <div class="content cart-reference-list">
@@ -267,7 +267,7 @@
                     Valider mon panier
                 </button>
             </div>
-            <div class="col-12 col-xl-8 cart-content" data-request-type="collect">
+            <div class="col-12 col-xl-8 cart-content d-none" data-request-type="collect">
                 <div class="wii-box">
                     <div class="header wii-title">Références</div>
                     <div class="content cart-reference-list">
@@ -282,11 +282,10 @@
                     Valider mon panier
                 </button>
             </div>
-            <div class="col-12 col-xl-8 cart-content {{ emptyCart ? 'd-none' }}">
+            <div class="col-12 col-xl-8 cart-content d-none"
                  data-request-type="purchase"
                  data-multiple-key="buyers"
-                 data-multiple-object-index="{{ item.buyer.id ?? null }}"
-                 style="display: none">
+                 data-multiple-object-index="{{ item.buyer.id ?? null }}">
                 {% set referenceIndex = 0 %}
                 {% for item in referencesByBuyer %}
                     <div class="wii-box">
