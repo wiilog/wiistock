@@ -129,14 +129,6 @@ class CartController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="cart_api", options={"expose"=true})
-     */
-    public function api(Request $request, CartService $service): Response
-    {
-        return $this->json($service->getDataForDatatable($request->request->all()));
-    }
-
-    /**
      * @Route("/ajouter/{reference}", name="cart_add_reference", options={"expose"=true}, methods="GET|POST")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE}, mode=HasPermission::IN_JSON)
      */
@@ -202,199 +194,30 @@ class CartController extends AbstractController
      */
     public function validateCart(Request $request,
                                  EntityManagerInterface $entityManager,
-                                 DemandeLivraisonService $deliveryRequestService,
-                                 CartService $cartService,
-                                 FreeFieldService $freeFieldService,
-                                 PurchaseRequestService $purchaseRequestService)
-    {
+                                 CartService $cartService) {
         $data = json_decode($request->getContent(), true);
+
+        /** @var Utilisateur $loggedUser */
+        $loggedUser = $this->getUser();
+
         switch ($data["requestType"]) {
             case "delivery":
-                $response = $this->manageDeliveryRequest($data, $entityManager, $deliveryRequestService, $freeFieldService);
+                $response = $cartService->manageDeliveryRequest($data, $loggedUser, $entityManager);
                 break;
             case "collect":
-                $response = $this->manageCollectRequest($data, $entityManager, $freeFieldService);
+                $response = $cartService->manageCollectRequest($data, $loggedUser, $entityManager);
                 break;
             case "purchase":
-                $response = $cartService->managePurchaseRequest($data, $this->getUser(), $purchaseRequestService, $entityManager);
+                $response = $cartService->managePurchaseRequest($data, $loggedUser, $entityManager);
                 break;
             default:
                 throw new RuntimeException("Unsupported request type");
         }
 
-        if($response["success"]) {
+        if ($response["success"]) {
             $this->addFlash("success", $response['msg']);
         }
 
         return $this->json($response);
-    }
-
-    private function manageDeliveryRequest(array $data,
-                                           EntityManagerInterface $manager,
-                                           DemandeLivraisonService $demandeLivraisonService,
-                                           FreeFieldService $freeFieldService): array {
-        $cartContent = json_decode($data['cart'], true);
-
-        $msg = '';
-        $link = '';
-        if ($data['addOrCreate'] === "add") {
-            $deliveryRequest = $manager->find(Demande::class, $data['existingDelivery']);
-            $this->addReferencesToCurrentUserCart($manager, $deliveryRequest, $cartContent);
-
-            $manager->flush();
-
-            $link = $this->generateUrl('demande_show', ['id' => $deliveryRequest->getId()]);
-            $msg = "Les références ont bien été ajoutées dans la demande existante";
-        }
-        else if ($data['addOrCreate'] === "create") {
-            $statutRepository = $manager->getRepository(Statut::class);
-            $destination = $manager->find(Emplacement::class, $data['destination']);
-            $type = $manager->find(Type::class, $data['deliveryType']);
-            $draft = $statutRepository->findOneByCategorieNameAndStatutCode(
-                CategorieStatut::DEM_LIVRAISON,
-                Demande::STATUT_BROUILLON
-            );
-            $deliveryRequest = new Demande();
-
-            $deliveryRequest
-                ->setNumero($demandeLivraisonService->generateNumeroForNewDL($manager))
-                ->setUtilisateur($this->getUser())
-                ->setType($type)
-                ->setFilled(false)
-                ->setCreatedAt(new DateTime('now'))
-                ->setDestination($destination)
-                ->setStatut($draft);
-
-            $freeFieldService->manageFreeFields($deliveryRequest, $data, $manager);
-            $manager->persist($deliveryRequest);
-
-            $this->addReferencesToCurrentUserCart($manager, $deliveryRequest, $cartContent);
-
-            $manager->flush();
-
-            $link = $this->generateUrl('demande_show', ['id' => $deliveryRequest->getId()]);
-            $msg = "Les references ont bien été ajoutées dans une nouvelle demande de livraison";
-        }
-
-        return [
-            "success" => true,
-            "msg" => $msg,
-            "link" => $link
-        ];
-    }
-
-    private function manageCollectRequest(array $data,
-                                          EntityManagerInterface $manager, $freeFieldService) {
-        $cartContent = json_decode($data['cart'], true);
-
-        $msg = '';
-        $link = '';
-        if ($data['addOrCreate'] === "add") {
-            $collectRequest = $manager->find(Collecte::class, $data['existingCollect']);
-            $this->addReferencesToCurrentUserCart($manager, $collectRequest, $cartContent);
-
-            $link = $this->generateUrl('collecte_show', ['id' => $collectRequest->getId()]);
-            $msg = "Les références ont bien été ajoutées dans la demande existante";
-        }
-        else if ($data['addOrCreate'] === "create") {
-            $draftStatus = $manager->getRepository(Statut::class)->findOneByCategorieNameAndStatutCode(
-                CategorieStatut::DEM_COLLECTE,
-                Collecte::STATUT_BROUILLON
-            );
-            $type = $manager->find(Type::class, $data['collectType']);
-            $collectLocation = $manager->find(Emplacement::class, $data['location']);
-            $number = 'C-' . (new DateTime('now'))->format('YmdHis');
-            $collectRequest = new Collecte();
-
-            $collectRequest
-                ->setNumero($number)
-                ->setDate(new DateTime('now'))
-                ->setType($type)
-                ->setStatut($draftStatus)
-                ->setObjet($data['object'])
-                ->setStockOrDestruct(!($data['destination'] == 0))
-                ->setPointCollecte($collectLocation)
-                ->setCommentaire($data['comment'])
-                ->setDemandeur($this->getUser());
-
-            $freeFieldService->manageFreeFields($collectRequest, $data, $manager);
-            $manager->persist($collectRequest);
-
-            $this->addReferencesToCurrentUserCart($manager, $collectRequest, $cartContent);
-
-            $manager->flush();
-
-            $link = $this->generateUrl('collecte_show', ['id' => $collectRequest->getId()]);
-            $msg = "Les references ont bien été ajoutées dans une nouvelle demande de collecte";
-        }
-
-        return [
-            "success" => true,
-            "msg" => $msg,
-            "link" => $link
-        ];
-    }
-
-    private function addReferencesToCurrentUserCart(EntityManagerInterface $entityManager,
-                                                                           $request,
-                                                    array                  $cart)
-    {
-        $referenceRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $references = $referenceRepository->findByIds(
-            Stream::from($cart)
-                ->map(fn($referenceData) => $referenceData['reference'])
-                ->toArray()
-        );
-        foreach ($cart as $referenceData) {
-            $referenceId = $referenceData['reference'];
-            $quantity = $referenceData['quantity'];
-            $reference = $references[$referenceId];
-            if($request instanceof Demande) {
-                /** @var DeliveryRequestReferenceLine|null $alreadyInRequest */
-                $alreadyInRequest = Stream::from($request->getReferenceLines())
-                    ->filter(fn(DeliveryRequestReferenceLine $line) => $line->getReference() === $reference)
-                    ->first() ?: null;
-
-                if($alreadyInRequest) {
-                    if ($alreadyInRequest->getQuantityToPick() < $quantity) {
-                        $alreadyInRequest
-                            ->setQuantityToPick($quantity);
-                    }
-                } else {
-                    $deliveryRequestLine = (new DeliveryRequestReferenceLine())
-                        ->setReference($reference)
-                        ->setQuantityToPick($quantity);
-
-                    $request->addReferenceLine($deliveryRequestLine);
-                }
-            }
-            else if($request instanceof Collecte) {
-                /** @var CollecteReference|null $alreadyInRequest */
-                $alreadyInRequest = Stream::from($request->getCollecteReferences())
-                    ->filter(fn(CollecteReference $line) => $line->getReferenceArticle() === $reference)
-                    ->first() ?: null;
-
-                if ($alreadyInRequest) {
-                    if ($alreadyInRequest->getQuantite() < $quantity) {
-                        $alreadyInRequest
-                            ->setQuantite($quantity);
-                    }
-                } else {
-                    $collectRequestLine = new CollecteReference();
-                    $collectRequestLine
-                        ->setReferenceArticle($reference)
-                        ->setQuantite($quantity);
-                    $request->addCollecteReference($collectRequestLine);
-                }
-            }
-        }
-
-        /**
-         * @var Utilisateur $currentUser
-         */
-        $currentUser = $this->getUser();
-        foreach ($currentUser->getCart()->getReferences() as $reference) {
-            $currentUser->getCart()->removeReference($reference);
-        }
     }
 }
