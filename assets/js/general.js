@@ -18,8 +18,10 @@ export default class Wiistock {
             }
 
             let value = parseInt($input.val()) || 0;
-            const min = parseInt($input.attr(`min`)) || 0;
-            const max = parseInt($input.attr(`max`)) || 0;
+            const minInt = parseInt($input.attr(`min`));
+            const maxInt = parseInt($input.attr(`max`));
+            const min = !isNaN(minInt) ? minInt : null
+            const max = !isNaN(maxInt) ? maxInt : null
 
             if($button.hasClass('increase')){
                 $input.val(value + 1);
@@ -32,11 +34,11 @@ export default class Wiistock {
             }
 
             value = parseInt($input.val()) || 0;
-            if(min >= value) {
+            if(min !== null && min >= value) {
                 $input.val(min);
             }
 
-            if(max <= value) {
+            if(max !== null && max <= value) {
                 $input.val(max);
             }
 

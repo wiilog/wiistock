@@ -24,8 +24,12 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Security;
 use Twig\Environment;
+use  Symfony\Component\Routing\RouterInterface;
 
 class CartService {
+
+    /** @Required */
+    public RouterInterface $router;
 
     /** @Required */
     public EntityManagerInterface $manager;
@@ -253,6 +257,7 @@ class CartService {
         $treatedCartReferences = [];
 
         if ($status) {
+
             $requestsByBuyer = Stream::from(json_decode($data['buyers'], true))
                 ->keymap(fn(array $buyerData) => [
                     $buyerData['buyer'],
@@ -268,15 +273,22 @@ class CartService {
                 if ($reference) {
                     $buyer = $reference->getBuyer();
                     if ($buyer) {
-                        $quantity = (int) $referenceData['quantity'] ?? 0;
+                        $quantity = (int)$referenceData['quantity'] ?? 0;
                         $associatedPurchaseRequest = $requestsByBuyer[$buyer->getId()] ?? null;
 
                         if ($quantity > 0) {
                             if (!isset($associatedPurchaseRequest)) {
                                 $associatedPurchaseRequest = $purchaseRequestService->createPurchaseRequest($entityManager, $status, $user, null, null, $buyer);
                                 $entityManager->persist($associatedPurchaseRequest);
+
                                 $entityManager->flush();
                                 $requestsByBuyer[$buyer->getId()] = $associatedPurchaseRequest;
+                            }
+                            if (count(json_decode($data['buyers'], true)) === 1) {
+                                $idToRedirect = $associatedPurchaseRequest->getId();
+                                $redirect = $this->router->generate('purchase_request_show', ['id' => $idToRedirect]);
+                            } else {
+                                $redirect = $this->router->generate('purchase_request_index');
                             }
 
                             /** @var PurchaseRequestLine|null $associatedLine */
@@ -307,11 +319,11 @@ class CartService {
         }
         $this->emptyCart($user->getCart(), $treatedCartReferences);
         $entityManager->flush();
+
         return [
             "success" => true,
             "msg" => "Les références ont bien étées ajoutées dans des demandes d'achat",
-            /** TODO Cedric creer le redirect */
-//            "link" => $redirect,
+            "link" => $redirect,
         ];
     }
 

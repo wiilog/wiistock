@@ -36,12 +36,13 @@
                 </span>
             </div>
             <div class="cart-reference-quantity nowrap">
-                {{ form.number('quantity', {url: '/svg/reference_article/stock.svg', text: quantityLabel}, true, 0, {
-                    min: 0,
+                {{ form.number('quantity', {url: '/svg/reference_article/stock.svg', text: quantityLabel}, true, null, {
+                    min: 1,
                     max: maxIsAvailableQuantity ? reference.quantiteDisponible : null,
                     labelClass: 'd-flex flex-column align-items-center',
                     error: 'global',
                     disabled: disabled,
+                    required: true
                 }) }}
             </div>
         </div>

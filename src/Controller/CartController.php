@@ -233,13 +233,13 @@ class CartController extends AbstractController
                                            EntityManagerInterface $manager,
                                            DemandeLivraisonService $demandeLivraisonService,
                                            FreeFieldService $freeFieldService): array {
-        $referencesQuantities = json_decode($data['quantities'], true);
+        $cartContent = json_decode($data['cart'], true);
 
         $msg = '';
         $link = '';
         if ($data['addOrCreate'] === "add") {
             $deliveryRequest = $manager->find(Demande::class, $data['existingDelivery']);
-            $this->addReferencesToCurrentUserCart($manager, $deliveryRequest, $referencesQuantities);
+            $this->addReferencesToCurrentUserCart($manager, $deliveryRequest, $cartContent);
 
             $manager->flush();
 
@@ -268,7 +268,7 @@ class CartController extends AbstractController
             $freeFieldService->manageFreeFields($deliveryRequest, $data, $manager);
             $manager->persist($deliveryRequest);
 
-            $this->addReferencesToCurrentUserCart($manager, $deliveryRequest, $referencesQuantities);
+            $this->addReferencesToCurrentUserCart($manager, $deliveryRequest, $cartContent);
 
             $manager->flush();
 
@@ -285,13 +285,13 @@ class CartController extends AbstractController
 
     private function manageCollectRequest(array $data,
                                           EntityManagerInterface $manager, $freeFieldService) {
-        $referencesQuantities = json_decode($data['cart'], true);
+        $cartContent = json_decode($data['cart'], true);
 
         $msg = '';
         $link = '';
         if ($data['addOrCreate'] === "add") {
             $collectRequest = $manager->find(Collecte::class, $data['existingCollect']);
-            $this->addReferencesToCurrentUserCart($manager, $collectRequest, $referencesQuantities);
+            $this->addReferencesToCurrentUserCart($manager, $collectRequest, $cartContent);
 
             $link = $this->generateUrl('collecte_show', ['id' => $collectRequest->getId()]);
             $msg = "Les références ont bien été ajoutées dans la demande existante";
@@ -320,7 +320,7 @@ class CartController extends AbstractController
             $freeFieldService->manageFreeFields($collectRequest, $data, $manager);
             $manager->persist($collectRequest);
 
-            $this->addReferencesToCurrentUserCart($manager, $collectRequest, $referencesQuantities);
+            $this->addReferencesToCurrentUserCart($manager, $collectRequest, $cartContent);
 
             $manager->flush();
 
@@ -353,11 +353,13 @@ class CartController extends AbstractController
                 /** @var DeliveryRequestReferenceLine|null $alreadyInRequest */
                 $alreadyInRequest = Stream::from($request->getReferenceLines())
                     ->filter(fn(DeliveryRequestReferenceLine $line) => $line->getReference() === $reference)
-                    ->first();
+                    ->first() ?: null;
 
-                if(!empty($alreadyInRequest)) {
-                    $alreadyInRequest
-                        ->setQuantityToPick($cart[$reference->getId()]['quantity']);
+                if($alreadyInRequest) {
+                    if ($alreadyInRequest->getQuantityToPick() < $quantity) {
+                        $alreadyInRequest
+                            ->setQuantityToPick($quantity);
+                    }
                 } else {
                     $deliveryRequestLine = (new DeliveryRequestReferenceLine())
                         ->setReference($reference)
@@ -370,10 +372,13 @@ class CartController extends AbstractController
                 /** @var CollecteReference|null $alreadyInRequest */
                 $alreadyInRequest = Stream::from($request->getCollecteReferences())
                     ->filter(fn(CollecteReference $line) => $line->getReferenceArticle() === $reference)
-                    ->first();
+                    ->first() ?: null;
 
-                if (!empty($alreadyInRequest)) {
-                    $alreadyInRequest->setQuantite($cart[$reference->getId()]['quantity']);
+                if ($alreadyInRequest) {
+                    if ($alreadyInRequest->getQuantite() < $quantity) {
+                        $alreadyInRequest
+                            ->setQuantite($quantity);
+                    }
                 } else {
                     $collectRequestLine = new CollecteReference();
                     $collectRequestLine
