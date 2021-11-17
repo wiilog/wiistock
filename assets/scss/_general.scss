@@ -661,7 +661,7 @@ $grey: #CBCBCB;
     background: white;
     border-radius: 5px;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
-    margin-top: 15px;
+    margin-top: $grid-gutter-width / 2;
 
     .type-container {
         height: 20px;

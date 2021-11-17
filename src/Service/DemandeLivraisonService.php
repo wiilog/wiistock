@@ -120,6 +120,8 @@ class DemandeLivraisonService
         $row = [
             'createdAt' => FormatHelper::datetime($demande->getCreatedAt()),
             'validatedAt' => FormatHelper::datetime($demande->getValidatedAt()),
+            'destination' => FormatHelper::location($demande->getDestination()),
+            'comment' => $demande->getCommentaire(),
             'requester' => FormatHelper::deliveryRequester($demande),
             'number' => $demande->getNumero() ?? '',
             'status' => FormatHelper::status($demande->getStatut()),
@@ -608,6 +610,8 @@ class DemandeLivraisonService
             ['title' => 'Numéro', 'name' => 'number'],
             ['title' => 'Statut', 'name' => 'status'],
             ['title' => 'Type', 'name' => 'type'],
+            ['title' => 'Destination', 'name' => 'destination'],
+            ['title' => 'Commentaire', 'name' => 'comment', 'orderable' => false],
         ];
 
         return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);

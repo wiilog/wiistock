@@ -193,6 +193,8 @@ class DemandeRepository extends EntityRepository
                         "createdAt" => "DATE_FORMAT(delivery_request.createdAt, '%d/%m/%Y') LIKE :value",
                         "validatedAt" => "DATE_FORMAT(delivery_request.validatedAt, '%d/%m/%Y') LIKE :value",
                         "requester" => "search_user.username LIKE :value",
+                        "destination" => "search_location_destination.label LIKE :value",
+                        "comment" => "delivery_request.commentaire LIKE :value",
                         "number" => "delivery_request.numero LIKE :value",
                         "status" => "search_status.nom LIKE :value",
                         "type" => "search_type.label LIKE :value",
@@ -202,9 +204,10 @@ class DemandeRepository extends EntityRepository
 
                     $qb
                         ->andWhere($condition)
-                        ->join('delivery_request.statut', 'search_status')
-                        ->join('delivery_request.type', 'search_type')
-                        ->join('delivery_request.utilisateur', 'search_user')
+                        ->leftJoin('delivery_request.statut', 'search_status')
+                        ->leftJoin('delivery_request.type', 'search_type')
+                        ->leftJoin('delivery_request.utilisateur', 'search_user')
+                        ->leftJoin('delivery_request.destination', 'search_location_destination')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
@@ -227,6 +230,10 @@ class DemandeRepository extends EntityRepository
                         $qb
                             ->leftJoin('delivery_request.utilisateur', 'order_user')
                             ->orderBy('order_user.username', $order);
+                    } else if ($column === 'destination') {
+                        $qb
+                            ->leftJoin('delivery_request.destination', 'order_location_destination')
+                            ->orderBy('order_location_destination.label', $order);
                     } else {
                         if (property_exists(Demande::class, $column)) {
                             $qb->orderBy("delivery_request.$column", $order);

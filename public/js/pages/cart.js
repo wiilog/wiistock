@@ -8,22 +8,11 @@ window.addEventListener( "pageshow", function ( event ) {
 });
 
 $(document).ready(() => {
-    $(document).on(`click`, `.remove-reference`, function() {
-        const $button = $(this);
-        const route = Routing.generate(`cart_remove_reference`, {
-            reference: $button.data(`id`)
-        });
-
-        $.post(route, response => {
-            $button.closest(`.cart-reference-container`).remove();
-            $(`.header-icon.cart`).find(`.icon-figure`).text(response.count)[response.count ? `addClass` : `removeClass`](`d-none`);
-            showBSAlert(response.msg, `success`);
-        });
-    })
 
     const $addOrCreate = $(`[name="addOrCreate"]`).closest(`.wii-radio-container`);
 
     const $purchaseRequestInfosTemplate = $(`#purchase-request-infos-template`);
+    const $emptyCart = $(`.empty-cart`);
 
     const $existingDelivery = $(`.existing-delivery`);
     const $existingCollect = $(`.existing-collect`);
@@ -87,10 +76,45 @@ $(document).ready(() => {
                 .find(`.purchase-request-infos`)
                 .text(`${number} - ${requester}`);
             $(`.selected-purchase-requests`).append($purchaseInfos);
+            toggleSelectedPurchaseRequest($existingPurchase);
 
             initializePurchaseRequestInfos($purchaseInfos, id);
         });
     });
+
+    $(document).on(`click`, `.remove-reference`, function() {
+        const $currentButton = $(this);
+        const route = Routing.generate(`cart_remove_reference`, {
+            reference: $currentButton.data(`id`)
+        });
+
+        $.post(route, response => {
+            $(`.remove-reference[data-id="${$currentButton.data(`id`)}"]`).each(function() {
+                const $button = $(this);
+                const $cartReferenceContainer = $button.closest(`.cart-reference-container`);
+                const $wiiBox = $cartReferenceContainer.closest('.wii-box');
+
+                $cartReferenceContainer.remove();
+
+                if ($wiiBox.exists()) {
+                    const $cartReferenceContainers = $wiiBox.find(`.cart-reference-container`);
+                    if ($cartReferenceContainers.length === 0) {
+                        const $wiiBoxContainer = $wiiBox.parent();
+                        $wiiBox.remove();
+                        const $remainingWiiBoxes = $wiiBoxContainer.find('.wii-box');
+                        if ($remainingWiiBoxes.length === 0) {
+                            $allReferences.addClass('d-none');
+                            $referencesByBuyer.addClass('d-none');
+                            $emptyCart.removeClass('d-none');
+                        }
+                    }
+                }
+            });
+
+            $(`.header-icon.cart`).find(`.icon-figure`).text(response.count)[response.count ? `addClass` : `removeClass`](`d-none`);
+            showBSAlert(response.msg, `success`);
+        });
+    })
 
     Form.create(`.wii-form`).onSubmit(data => {
         const url = Routing.generate('cart_validate', true);
@@ -102,23 +126,6 @@ $(document).ready(() => {
             }
         });
     });
-
-    // $("select[name=existingPurchase]").on("change", function () {
-    //     const selectedValue = $(this).val();
-    //     const $selects = $("select[name=existingPurchase]").not($(this));
-    //
-    //     console.log($selects);
-    //     if (selectedValue !== "new") {
-    //         $selects.each(function () {
-    //             $(this).find("option").each(function () {
-    //                 $(this).toggleClass('d-none', selectedValue === $(this).val());
-    //             })
-    //         });
-    //     }
-    // })
-
-
-
 });
 
 function initializePurchaseRequestInfos($purchaseInfos, id) {
@@ -276,5 +283,15 @@ function handleRequestTypeChange($requestType, $addOrCreate, $existingPurchase) 
         $addOrCreate.hide();
     }
 
-    // TODO cedric toggleSelectedPurchaseRequest()
+    toggleSelectedPurchaseRequest($existingPurchase);
+}
+
+function toggleSelectedPurchaseRequest($existingPurchase) {
+    const $purchaseRequests = $('.selected-purchase-requests');
+    if ($purchaseRequests.children().length > 0) {
+        $existingPurchase.removeClass('d-none');
+    }
+    else {
+        $existingPurchase.addClass('d-none');
+    }
 }
