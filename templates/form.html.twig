@@ -129,19 +129,21 @@
 {% endmacro %}
 
 {% macro number(name, label, required, value = '', options = {}) %}
+    {% set disabled = options.disabled is defined and options.disabled ? 'disabled' %}
     <label class="{{ options.labelClass ?? '' }}">
-        <span>{{ _self.label(label) }}{{ required ? '*' }}</span>
+        <span>{{ _self.label(label) }}{{ required and not disabled ? '*' }}</span>
         <div class="increase-decrease-field" style="min-width: 120px;">
-            <button class="decrease"></button>
-            <input type="number" data-no-arrow class="form-control w-50 p-0 text-center data"
+            <button class="decrease" {{ disabled }}></button>
+            <input type="number" data-no-arrow class="form-control w-50 p-0 text-center {{ not disabled ? 'data' }}"
                    placeholder="{{ options.placeholder ?? '' }}"
                    value="{{ value }}"
-                {{ required ? 'required' }}
+                {{ required and not disabled ? 'required' }}
+                {{ disabled }}
                 {{ _self.common_attributes(name, options) }}
                 {{ _self.multiple_key(options) }}
                 {% if options.min is defined and options.min is not null %}min="{{ options.min }}"{% endif %}
                 {% if options.max is defined and options.max is not null %}max="{{ options.max }}"{% endif %}>
-            <button class="increase"></button>
+            <button class="increase" {{ disabled }}></button>
         </div>
     </label>
 {% endmacro %}

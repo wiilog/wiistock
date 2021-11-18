@@ -260,44 +260,45 @@ class CartService {
         );
         foreach ($cart as $referenceData) {
             $referenceId = $referenceData['reference'];
-            $quantity = $referenceData['quantity'];
+            $quantity = $referenceData['quantity'] ?? null;
             $reference = $references[$referenceId];
-            if($request instanceof Demande) {
-                /** @var DeliveryRequestReferenceLine|null $alreadyInRequest */
-                $alreadyInRequest = Stream::from($request->getReferenceLines())
-                    ->filter(fn(DeliveryRequestReferenceLine $line) => $line->getReference() === $reference)
-                    ->first() ?: null;
+            if($quantity) {
+                if ($request instanceof Demande) {
+                    /** @var DeliveryRequestReferenceLine|null $alreadyInRequest */
+                    $alreadyInRequest = Stream::from($request->getReferenceLines())
+                        ->filter(fn(DeliveryRequestReferenceLine $line) => $line->getReference() === $reference)
+                        ->first() ?: null;
 
-                if($alreadyInRequest) {
-                    if ($alreadyInRequest->getQuantityToPick() < $quantity) {
-                        $alreadyInRequest
+                    if ($alreadyInRequest) {
+                        if ($alreadyInRequest->getQuantityToPick() < $quantity) {
+                            $alreadyInRequest
+                                ->setQuantityToPick($quantity);
+                        }
+                    } else {
+                        $deliveryRequestLine = (new DeliveryRequestReferenceLine())
+                            ->setReference($reference)
                             ->setQuantityToPick($quantity);
+
+                        $request->addReferenceLine($deliveryRequestLine);
                     }
-                } else {
-                    $deliveryRequestLine = (new DeliveryRequestReferenceLine())
-                        ->setReference($reference)
-                        ->setQuantityToPick($quantity);
+                } else if ($request instanceof Collecte) {
+                    /** @var CollecteReference|null $alreadyInRequest */
+                    $alreadyInRequest = Stream::from($request->getCollecteReferences())
+                        ->filter(fn(CollecteReference $line) => $line->getReferenceArticle() === $reference)
+                        ->first() ?: null;
 
-                    $request->addReferenceLine($deliveryRequestLine);
-                }
-            }
-            else if($request instanceof Collecte) {
-                /** @var CollecteReference|null $alreadyInRequest */
-                $alreadyInRequest = Stream::from($request->getCollecteReferences())
-                    ->filter(fn(CollecteReference $line) => $line->getReferenceArticle() === $reference)
-                    ->first() ?: null;
-
-                if ($alreadyInRequest) {
-                    if ($alreadyInRequest->getQuantite() < $quantity) {
-                        $alreadyInRequest
+                    if ($alreadyInRequest) {
+                        if ($alreadyInRequest->getQuantite() < $quantity) {
+                            $alreadyInRequest
+                                ->setQuantite($quantity);
+                        }
+                    } else {
+                        $collectRequestLine = new CollecteReference();
+                        $collectRequestLine
+                            ->setReferenceArticle($reference)
                             ->setQuantite($quantity);
+                        $request->addCollecteReference($collectRequestLine);
                     }
-                } else {
-                    $collectRequestLine = new CollecteReference();
-                    $collectRequestLine
-                        ->setReferenceArticle($reference)
-                        ->setQuantite($quantity);
-                    $request->addCollecteReference($collectRequestLine);
                 }
             }
         }
