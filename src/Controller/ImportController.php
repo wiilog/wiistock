@@ -179,6 +179,8 @@ class ImportController extends AbstractController
                         'rechercheForArticle',
                         'recherche',
                         'roles',
+                        'createdAt',
+                        'validatedAt',
                     ];
 
                     $fieldNames = $attributes->getFieldNames();
