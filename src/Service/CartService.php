@@ -204,6 +204,8 @@ class CartService {
             $collectRequest = $manager->find(Collecte::class, $data['existingCollect']);
             $this->addReferencesToCurrentUserCart($manager, $user, $collectRequest, $cartContent);
 
+            $manager->flush();
+
             $link = $this->router->generate('collecte_show', ['id' => $collectRequest->getId()]);
             $msg = "Les références ont bien été ajoutées dans la demande existante";
         }
