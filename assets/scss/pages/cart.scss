@@ -46,6 +46,9 @@
             text-transform: uppercase;
             writing-mode: vertical-rl;
             transform: rotate(180deg);
+            border-top-right-radius: 5px;
+            border-bottom-right-radius: 5px;
+            margin: -1px 0 -1px -1px !important;
         }
 
         .cart-reference-infos, .cart-reference-current-quantity, .cart-reference-quantity {
