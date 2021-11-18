@@ -135,7 +135,7 @@ class CartService {
 
         return [
             "success" => true,
-            "msg" => "Les références ont bien étées ajoutées dans des demandes d'achat",
+            "msg" => "Les références ont bien été ajoutées dans des demandes d'achat",
             "link" => $link ?? null,
         ];
     }
