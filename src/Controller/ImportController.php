@@ -18,7 +18,7 @@ use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use WiiCommon\Helper\StringHelper;
+use WiiCommon\Helper\Stream;
 use App\Service\AttachmentService;
 use App\Service\ImportService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -192,6 +192,7 @@ class ImportController extends AbstractController
                             break;
                         case Import::ENTITY_REF:
                             $categoryCL = CategorieCL::REFERENCE_ARTICLE;
+                            $fieldsToHide = Stream::from($fieldsToHide)->filter(fn(string $field) => $field !== 'reference')->toArray();
                             $fieldsToAdd = ['type', 'emplacement', 'catégorie d\'inventaire', 'statut', 'reference', 'managers', 'buyer', 'visibilityGroups'];
                             $fieldNames = array_merge($fieldNames, $fieldsToAdd);
                             break;
