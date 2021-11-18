@@ -12,6 +12,28 @@ $(function () {
     $.post(path, params, function (data) {
         displayFiltersSup(data);
     }, `json`);
+
+    const $modalNewReceiptAssociation = $(`#modalNewReceiptAssociation`);
+    $modalNewReceiptAssociation.on('hide.bs.modal', function () {
+        $('.pack-code-container').not(':first').remove();
+        $('.reception-number-container').not(':first').remove();
+    });
+
+    $modalNewReceiptAssociation.on('shown.bs.modal', () => {
+        $('input[name=packCode]').trigger('focus');
+    });
+
+    $('input[name=packCode]').on('keypress', function(e) {
+        if(e.originalEvent.key === 'Enter') {
+            $('input[name=receptionNumber]').first().trigger('focus');
+        }
+    });
+
+    $('input[name=receptionNumber]').on('keypress', function(e) {
+        if(e.originalEvent.key === 'Enter') {
+            $('#submitNewReceiptAssociation').trigger('click');
+        }
+    });
 });
 
 function initDatatable() {
@@ -60,4 +82,41 @@ function initModals(tableReceiptAssociation) {
     let submitDeleteReceiptAssociation = $(`#submitDeleteReceiptAssociation`);
     let urlDeleteReceiptAssociation = Routing.generate(`receipt_association_delete`, true);
     InitModal(modalDeleteReceiptAssociation, submitDeleteReceiptAssociation, urlDeleteReceiptAssociation, {tables: [tableReceiptAssociation]});
+}
+
+function newLine($span) {
+    let $input = '';
+    if($span.siblings('div').first().hasClass('pack-code-container')) {
+        $input = $span.parent().find('.pack-code-container').first();
+    } else {
+        $input = $span.parent().find('.reception-number-container').first();
+    }
+
+    const $parent = $input.parent();
+    $input.clone().appendTo($parent).find('input[type=text]').val("");
+}
+
+function toggleArrivage(button) {
+    const $packCodeContainers = $('.pack-code-container');
+    const $packCodeInputs = $packCodeContainers.find('input[name=packCode]');
+    if (button.data('arrival')) {
+        $packCodeContainers.not(':first').remove();
+
+        const $firstPackCodeInput = $packCodeContainers.find('input').first();
+        $firstPackCodeInput.val('')
+        $firstPackCodeInput.removeClass('needed');
+
+        $packCodeContainers.addClass('d-none');
+        button.text('Avec arrivage');
+
+        $packCodeInputs.removeClass('data-array');
+    } else {
+        $packCodeContainers.find('input').each(function () {
+            $(this).addClass('needed');
+        });
+        $packCodeContainers.removeClass('d-none');
+        button.text('Sans arrivage');
+        $packCodeInputs.addClass('data-array');
+    }
+    button.data('arrival', !button.data('arrival'));
 }
