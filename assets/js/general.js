@@ -10,11 +10,15 @@ export default class Wiistock {
     }
 
     static initialize() {
-        $(document).on(`click`, `.increase-decrease-field .increase, .increase-decrease-field .decrease` , function(){
+        $(document).on(`click`, `.increase-decrease-field .increase, .increase-decrease-field .decrease, .increase-decrease-field input` , function(){
             const $button = $(this);
             const $input = $button.siblings('input').first();
             if($input.is(`[disabled], [readonly]`)) {
                 return;
+            }
+
+            if($(this).is(`input[name=quantity]`) && $(this).hasClass(`is-invalid`)) {
+                $(this).removeClass('is-invalid');
             }
 
             let value = parseInt($input.val()) || 0;
