@@ -242,7 +242,7 @@ class TransferOrderService {
                                         ?TransferRequest $request): TransferOrder {
         $now =  new DateTime("now");
 
-        $transferOrderNumber = $this->uniqueNumberService->createUniqueNumber($entityManager, TransferOrder::NUMBER_PREFIX, TransferOrder::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
+        $transferOrderNumber = $this->uniqueNumberService->create($entityManager, TransferOrder::NUMBER_PREFIX, TransferOrder::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 
         $transfer = new TransferOrder();
         $transfer

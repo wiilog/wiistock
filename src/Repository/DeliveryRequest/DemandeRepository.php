@@ -5,6 +5,7 @@ namespace App\Repository\DeliveryRequest;
 use App\Entity\Article;
 use App\Entity\AverageRequestTime;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Dispatch;
 use App\Entity\Reception;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
@@ -447,5 +448,17 @@ class DemandeRepository extends EntityRepository
             ->setParameter('status_draft', STATUT::DRAFT)
             ->getQuery()
             ->getResult();
+    }
+
+    public function getLastNumberByDate(string $date): ?string {
+        $result = $this->createQueryBuilder('delivery_request')
+            ->select('delivery_request.numero')
+            ->where('delivery_request.numero LIKE :value')
+            ->orderBy('delivery_request.createdAt', 'DESC')
+            ->addOrderBy('delivery_request.numero', 'DESC')
+            ->setParameter('value', Demande::PREFIX_NUMBER . '-' . $date . '%')
+            ->getQuery()
+            ->execute();
+        return $result ? $result[0]['numero'] : null;
     }
 }

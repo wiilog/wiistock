@@ -119,7 +119,7 @@ class TransferRequestService {
                                           ?string $comment = null): TransferRequest {
         $type = $entityManager->getRepository(Type::class)->findOneByCategoryLabel(CategoryType::TRANSFER_REQUEST);
         $now =  new DateTime("now");
-        $transferRequestNumber = $this->uniqueNumberService->createUniqueNumber($entityManager, TransferRequest::NUMBER_PREFIX, TransferRequest::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
+        $transferRequestNumber = $this->uniqueNumberService->create($entityManager, TransferRequest::NUMBER_PREFIX, TransferRequest::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 
         $transfer = new TransferRequest();
         $transfer

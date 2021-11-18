@@ -759,7 +759,7 @@ class ArrivageController extends AbstractController {
 
         $now = new DateTime('now');
 
-        $disputeNumber = $uniqueNumberService->createUniqueNumber($entityManager, Dispute::DISPUTE_ARRIVAL_PREFIX, Dispute::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
+        $disputeNumber = $uniqueNumberService->create($entityManager, Dispute::DISPUTE_ARRIVAL_PREFIX, Dispute::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 
         $dispute = new Dispute();
         $dispute

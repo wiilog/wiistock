@@ -93,6 +93,9 @@ class ImportService
     /** @Required */
     public FormService $formService;
 
+    /** @Required */
+    public UniqueNumberService $uniqueNumberService;
+
 
     private Import $currentImport;
     private EntityManagerInterface $em;
@@ -1623,12 +1626,21 @@ class ImportService
             $request->setCommentaire($commentaire);
         }
 
+        $number = $this->uniqueNumberService->create(
+            $this->em,
+            Demande::PREFIX_NUMBER,
+            Demande::class,
+            UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT
+        );
+
         $request
             ->setCreatedAt(new DateTime('now', new \DateTimeZone('Europe/Paris')))
             ->setUtilisateur($requester)
             ->setDestination($destination)
-            ->setNumero($this->demandeLivraisonService->generateNumeroForNewDL($this->em));
+            ->setNumero($number);
+
         $this->em->persist($request);
+
         if ($request->getStatut()->getCode() === Demande::STATUT_A_TRAITER && $newEntity) {
             $response = $this->demandeLivraisonService->validateDLAfterCheck($this->em, $request, true, false, false);
             if (!$response['success']) {
