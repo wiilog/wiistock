@@ -128,9 +128,8 @@ $(document).ready(() => {
 function initializePurchaseRequestInfos($purchaseInfos, id) {
     initDataTable($purchaseInfos.find(`table`), {
         destroy: true,
-        serverSide: true,
         processing: true,
-        paging: false,
+        paging: true,
         ajax: {
             url: Routing.generate("purchase_api_references", true),
             type: "POST",
@@ -146,7 +145,6 @@ function initializePurchaseRequestInfos($purchaseInfos, id) {
         filter: false,
         ordering: false,
         info: false
-
     });
 }
 
@@ -184,9 +182,8 @@ function onDeliveryChanged($select) {
         let pathReferences = Routing.generate("demande_api_references", true);
         let tableDeliveryReferencesConfig = {
             destroy: true,
-            serverSide: true,
             processing: true,
-            paging: false,
+            paging: true,
             ajax: {
                 url: pathReferences,
                 type: "POST",
@@ -202,7 +199,6 @@ function onDeliveryChanged($select) {
             filter: false,
             ordering: false,
             info: false
-
         }
         let tableDeliveryReferences = initDataTable('tableDeliveryReferences', tableDeliveryReferencesConfig);
         $('.delivery-request-content').removeClass("d-none");
@@ -224,9 +220,8 @@ function onCollectChanged($select) {
         let pathReferences = Routing.generate("collecte_api_references", true);
         let tableCollectReferencesConfig = {
             destroy: true,
-            serverSide: true,
             processing: true,
-            paging: false,
+            paging: true,
             ajax: {
                 url: pathReferences,
                 type: "POST",
@@ -242,7 +237,6 @@ function onCollectChanged($select) {
             filter: false,
             ordering: false,
             info: false
-
         }
         let tableCollectReferences = initDataTable('tableCollectReferences', tableCollectReferencesConfig);
         $('.collect-request-content').removeClass("d-none");
