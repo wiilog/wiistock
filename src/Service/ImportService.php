@@ -1506,7 +1506,7 @@ class ImportService
         $references = $this->em->getRepository(ReferenceArticle::class);
         $articles = $this->em->getRepository(Article::class);
 
-        $requester = $data['requester'] ? $users->findOneBy(['username' => $data['requester']]) : $utilisateur;
+        $requester = isset($data['requester']) && $data['requester'] ? $users->findOneBy(['username' => $data['requester']]) : $utilisateur;
         $destination = $data['destination'] ? $locations->findOneBy(['label' => $data['destination']]) : null;
         $type = $data['type'] ? $types->findOneByCategoryLabelAndLabel(CategoryType::DEMANDE_LIVRAISON, $data['type']) : null;
         $status = $data['status'] ? $statuses->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_LIVRAISON, $data['status']) : null;
