@@ -48,5 +48,13 @@ export default class Wiistock {
 
             $input.trigger(`change`);
         });
+
+        $(document).on(`change keyup`, `.increase-decrease-field input`, function () {
+            const maxInt = parseInt($(this).attr(`max`));
+            const max = !isNaN(maxInt) ? maxInt : null
+            const value = parseInt($(this).val()) || 0;
+
+            $(this).parent().find(`.increase`).prop(`disabled`, value === max);
+        });
     }
 }
