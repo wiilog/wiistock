@@ -1505,16 +1505,21 @@ class ImportService
         $statuses = $this->em->getRepository(Statut::class);
         $references = $this->em->getRepository(ReferenceArticle::class);
         $articles = $this->em->getRepository(Article::class);
+        $categorieStatusRepository = $this->em->getRepository(CategorieStatut::class);
 
         $requester = isset($data['requester']) && $data['requester'] ? $users->findOneBy(['username' => $data['requester']]) : $utilisateur;
         $destination = $data['destination'] ? $locations->findOneBy(['label' => $data['destination']]) : null;
+        $categorieStatus = $categorieStatusRepository->findOneBy(["nom" => CategorieStatut::DEM_LIVRAISON]);
+        $availableStatues = Stream::from($statuses->findAvailableStatuesForDeliveryImport($categorieStatus))
+            ->flatten()
+            ->values();
+
         $type = $data['type'] ? $types->findOneByCategoryLabelAndLabel(CategoryType::DEMANDE_LIVRAISON, $data['type']) : null;
         $status = $data['status'] ? $statuses->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_LIVRAISON, $data['status']) : null;
         $commentaire = $data['commentaire'] ?? null;
         $articleReference = $data['articleReference'] ? $references->findOneBy(['reference' => $data['articleReference']]) : null;
         $article = $data['articleCode'] ?? null;
         $quantityDelivery = $data['quantityDelivery'] ?? null;
-
         if(!$requester) {
             $this->throwError('Demandeur inconnu.');
         }
@@ -1539,7 +1544,7 @@ class ImportService
             $request->setType($type);
         }
 
-        if (!$status) {
+        if (!in_array($data['status'], $availableStatues)) {
             $this->throwError('Statut inconnu (valeurs possibles : brouillon, à traiter).');
         } else if (!$request->getStatut()) {
             $request->setStatut($status);

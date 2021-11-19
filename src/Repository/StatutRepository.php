@@ -438,4 +438,18 @@ class StatutRepository extends EntityRepository {
             return [];
         }
     }
+
+    public function findAvailableStatuesForDeliveryImport($id) {
+        $qb = $this->createQueryBuilder("statut")
+            ->select("statut.nom")
+
+            ->where("statut.categorie = :id")
+            ->andWhere("statut.code = 'à traiter' OR statut.code = 'brouillon'")
+
+            ->setParameter('id', $id);
+
+        return $qb
+            ->getQuery()
+            ->getResult();
+    }
 }
