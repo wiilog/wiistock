@@ -60,12 +60,16 @@ export function wrapLoadingOnActionButton($button, action = null, endLoading = t
 
         $button.pushLoader(loadingColor);
 
-        if(action) {
-            action().then((success) => {
-                if (endLoading || !success) {
+        if (action) {
+            action()
+                .then((success) => {
+                    if (endLoading || !success) {
+                        $button.popLoader();
+                    }
+                })
+                .catch(() => {
                     $button.popLoader();
-                }
-            });
+                });
         }
     } else {
         showBSAlert('L\'opération est en cours de traitement', 'info');
