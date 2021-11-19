@@ -258,7 +258,7 @@
                     <div class="header wii-title">Références</div>
                     <div class="content cart-reference-list">
                         {% for reference in app.user.cart.references %}
-                            {{ _self.reference_card(reference, loop.index0, 'Quantité à livrer', false, true) }}
+                            {{ _self.reference_card(reference, loop.index0, 'Quantité à livrer', reference.quantiteDisponible == 0, true) }}
                             {%  set buyerId = reference.buyer.id is defined ? reference.buyer.id : "null" %}
                             <input type="hidden" value="{{reference.id ~'/'~ buyerId }}" class="data" name="referenceBuyer"/>
                         {% endfor %}

@@ -33,6 +33,12 @@
             font-weight: bolder;
             font-size: 18px;
         }
+
+        &:disabled {
+            color: $grey;
+            border-color: $grey;
+            cursor: not-allowed;
+        }
     }
 }
 
