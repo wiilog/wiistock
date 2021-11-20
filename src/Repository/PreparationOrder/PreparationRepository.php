@@ -11,6 +11,7 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use DateTime;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -41,11 +42,13 @@ class PreparationRepository extends EntityRepository
      * @param array $preparationIdsFilter
      * @return array
      */
-    public function getMobilePreparations(Utilisateur $user, array $preparationIdsFilter = [])
+    public function getMobilePreparations(Utilisateur $user,
+                                          array $preparationIdsFilter = [],
+                                          ?int $maxResult = 100)
     {
         $queryBuilder = $this->createQueryBuilder('p');
         $queryBuilder
-            ->select('p.id')
+            ->select('p.id AS id')
             ->addSelect('p.numero as number')
             ->addSelect('dest.label as destination')
             ->addSelect('(CASE WHEN triggeringSensorWrapper.id IS NOT NULL THEN triggeringSensorWrapper.name ELSE user.username END) as requester')
@@ -59,6 +62,8 @@ class PreparationRepository extends EntityRepository
             ->leftJoin('d.triggeringSensorWrapper', 'triggeringSensorWrapper')
             ->andWhere('(s.nom = :toTreatStatusLabel OR (s.nom = :inProgressStatusLabel AND p.utilisateur = :user))')
             ->andWhere('t.id IN (:type)')
+            ->orderBy('t.label', Criteria::ASC)
+            ->setMaxResults($maxResult)
             ->setParameters([
                 'toTreatStatusLabel' => Preparation::STATUT_A_TRAITER,
                 'inProgressStatusLabel' => Preparation::STATUT_EN_COURS_DE_PREPARATION,
