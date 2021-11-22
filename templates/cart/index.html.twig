@@ -67,10 +67,12 @@
                             {label: {wiiIcon: 'cart-purchase', text: 'Achat'}, value: 'purchase'},
                         ]) }}
 
-                        {{ form.radio('addOrCreate', null, true, [
-                            {label: 'Ajouter à une de mes demandes en brouillon', value: 'add'},
-                            {label: 'Créer une nouvelle demande', value: 'create'},
-                        ]) }}
+                        <div class="mt-2">
+                            {{ form.radio('addOrCreate', null, true, [
+                                {label: 'Ajouter à une de mes demandes en brouillon', value: 'add'},
+                                {label: 'Créer une nouvelle demande', value: 'create'},
+                            ]) }}
+                        </div>
 
                         <div class="sub-form existing-delivery d-none">
                             <div class="my-delivery-requests pb-2">
@@ -189,7 +191,7 @@
                                         placeholder: 'Renseigner un objet',
                                     }) }}
                                 </div>
-                                <div class="col-md-6 col-12">
+                                <div class="col-md-6 col-12 mt-2">
                                     {{ form.select('location', 'Point de collecte', true, {
                                         type: 'location',
                                         placeholder: 'Sélectionnez un emplacement',
@@ -197,7 +199,7 @@
                                         disabled: true,
                                     }) }}
                                 </div>
-                                <div class="col-md-6 col-12">
+                                <div class="col-md-6 col-12 mt-2">
                                     {{ form.switch('destination', 'Destination', true, [
                                         {label: 'Destruction', value: 'destruction'},
                                         {label: 'Mise en stock', value: 'stock'},
@@ -293,24 +295,26 @@
                 {% for item in referencesByBuyer %}
                     <div class="wii-box">
                         <div class="header wii-title">
-                            {% if item.buyer %}
+                            {% if item and item.buyer %}
                                 Acheteur référence : {{ item.buyer.username }}
                             {% else %}
                                 Acheteur référence : aucun acheteur
                             {% endif %}
                         </div>
                         <div class="content">
-                            {% if not item.buyer %}
+                            {% if item and not item.buyer %}
                                 Aucun acheteur n'est définit pour les références suivantes. Elles seront
                                  ignorées lors de la validation du panier.
                             {% endif %}
 
-                            {% for reference in item.references %}
-                                {{ _self.reference_card(reference, referenceIndex, 'Quantité demandée', not item.buyer) }}
-                                {% set referenceIndex = referenceIndex + 1 %}
-                            {% endfor %}
+                            {% if item %}
+                                {% for reference in item.references %}
+                                    {{ _self.reference_card(reference, referenceIndex, 'Quantité demandée', not item.buyer) }}
+                                    {% set referenceIndex = referenceIndex + 1 %}
+                                {% endfor %}
+                            {% endif %}
 
-                            {% if item.buyer %}
+                            {% if item and item.buyer %}
                                 <div data-multiple-key="buyers"
                                      data-multiple-object-index="{{ loop.index0 }}">
                                     <input type="hidden" class="data" name="buyer" value="{{ item.buyer.id }}"/>
