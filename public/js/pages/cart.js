@@ -156,7 +156,7 @@ function cartTypeChange($type) {
     if($type.attr(`name`) === `deliveryType`) {
         const defaultDestinations = JSON.parse($(`#default-delivery-locations`).val());
         const type = $type.val();
-        const $destination = $type.closest(`.wii-form`).find(`select[name=destination]`);
+        const $destination = $type.closest(`.wii-form`).find(`select[name=location]`);
         const defaultDestination = defaultDestinations[type] || defaultDestinations['all'];
 
         $destination.attr(`disabled`, !type);
