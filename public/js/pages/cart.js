@@ -60,6 +60,7 @@ $(document).ready(() => {
 
     $(`select[name="existingPurchase"]`).on(`change`, function() {
         $(`.purchase-references`).remove();
+        const requestType = $('input[name="requestType"]:checked').val();
 
         $(`select[name="existingPurchase"]`).each(function() {
             const $option = $(this).find(`option:not([disabled], [readonly]):selected`);
@@ -76,7 +77,7 @@ $(document).ready(() => {
                 .find(`.purchase-request-infos`)
                 .text(`${number} - ${requester}`);
             $(`.selected-purchase-requests`).append($purchaseInfos);
-            toggleSelectedPurchaseRequest($existingPurchase);
+            toggleSelectedPurchaseRequest($existingPurchase, requestType);
 
             initializePurchaseRequestInfos($purchaseInfos, id);
         });
@@ -277,18 +278,12 @@ function handleRequestTypeChange($requestType, $addOrCreate, $existingPurchase) 
             $addOrCreate.addClass('d-none');
         }
 
-        toggleSelectedPurchaseRequest($existingPurchase);
+        toggleSelectedPurchaseRequest($existingPurchase, requestType);
     }
 }
 
-function toggleSelectedPurchaseRequest($existingPurchase) {
-    const $purchaseRequests = $('.selected-purchase-requests');
-    if ($purchaseRequests.children().length > 0) {
-        $existingPurchase.removeClass('d-none');
-    }
-    else {
-        $existingPurchase.addClass('d-none');
-    }
+function toggleSelectedPurchaseRequest($existingPurchase, requestType) {
+    $existingPurchase.toggleClass(`d-none`, (requestType !== "purchase") || ($('.selected-purchase-requests').children().length === 0));
 }
 
 function containsReferences($container) {
