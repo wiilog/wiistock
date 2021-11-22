@@ -1060,7 +1060,11 @@ class ImportService
             $isNewEntity = true;
         }
         if (isset($data['libelle'])) {
+            if ((strlen($data['libelle'])) > 255) {
+                $this->throwError('La valeur saisie pour le champ libellé ne doit pas dépasser 255 caractères');
+            } else {
             $refArt->setLibelle($data['libelle']);
+            }
         }
         if (isset($data['needsMobileSync'])) {
             $value = strtolower($data['needsMobileSync']);
