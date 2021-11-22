@@ -271,6 +271,10 @@ function handleRequestTypeChange($requestType, $addOrCreate, $existingPurchase) 
             .removeClass("data-save")
             .addClass('data');
 
+        $('.cart-content[data-request-type=purchase] input[type="number"]').each(function(){
+            $(this).prop('required', !$(this).is(':disabled'));
+        })
+
         if (requestType === "delivery" || requestType === "collect") {
             $addOrCreate.removeClass('d-none');
         } else if (requestType === "purchase") {
