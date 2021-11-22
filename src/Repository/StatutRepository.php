@@ -440,15 +440,15 @@ class StatutRepository extends EntityRepository {
     }
 
     public function findAvailableStatuesForDeliveryImport($id) {
-        $qb = $this->createQueryBuilder("statut")
+        return $this->createQueryBuilder("statut")
             ->select("statut.nom")
 
             ->where("statut.categorie = :id")
-            ->andWhere("statut.code = 'à traiter' OR statut.code = 'brouillon'")
+            ->andWhere("statut.state IN (:allowed_statuses)")
 
-            ->setParameter('id', $id);
+            ->setParameter("id", $id)
+            ->setParameter("allowed_statuses", [Statut::DRAFT, Statut::NOT_TREATED])
 
-        return $qb
             ->getQuery()
             ->getResult();
     }
