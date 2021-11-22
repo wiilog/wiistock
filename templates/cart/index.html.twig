@@ -67,10 +67,12 @@
                             {label: {wiiIcon: 'cart-purchase', text: 'Achat'}, value: 'purchase'},
                         ]) }}
 
-                        {{ form.radio('addOrCreate', null, true, [
-                            {label: 'Ajouter à une de mes demandes en brouillon', value: 'add'},
-                            {label: 'Créer une nouvelle demande', value: 'create'},
-                        ]) }}
+                        <div class="mt-2">
+                            {{ form.radio('addOrCreate', null, true, [
+                                {label: 'Ajouter à une de mes demandes en brouillon', value: 'add'},
+                                {label: 'Créer une nouvelle demande', value: 'create'},
+                            ]) }}
+                        </div>
 
                         <div class="sub-form existing-delivery d-none">
                             <div class="my-delivery-requests pb-2">
