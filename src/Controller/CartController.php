@@ -94,6 +94,12 @@ class CartController extends AbstractController
             $referencesByBuyer[$buyerId]["references"][] = $reference;
         }
 
+
+        ksort($referencesByBuyer);
+
+        //add no buyer references at the end
+        array_push($referencesByBuyer, array_shift($referencesByBuyer));
+
         $defaultDeliveryLocations = $globalParamService->getDefaultDeliveryLocationsByTypeId();
         $deliveryRequests = Stream::from($manager->getRepository(Demande::class)->getDeliveryRequestForSelect($currentUser))
             ->filter(fn(Demande $request) => $request->getType() && $request->getDestination())
