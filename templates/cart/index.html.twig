@@ -98,8 +98,8 @@
                         <div class="sub-form create-delivery d-none">
                             <div class="section">Ma nouvelle demande de livraison</div>
 
-                            <div class="row">
-                                <div class="col-md-6 col-12">
+                            <div class="row mt-2">
+                                <div class="col-md-6 col-12 mb-2">
                                     {{ form.select('deliveryType', 'Type', true, {
                                         type: 'deliveryType',
                                         placeholder: 'Sélectionnez un type',
@@ -142,7 +142,7 @@
                         </div>
 
                         <div class="sub-form existing-collect d-none">
-                            <div class="my-collect-requests">
+                            <div class="my-collect-requests mb-3">
                                 <div class="section">Ma demande de collecte</div>
                                 {{ form.select('existingCollect', 'Mes collectes', true, {
                                     placeholder: 'Sélectionnez une collecte',
@@ -151,14 +151,14 @@
                                 }) }}
                             </div>
                             <div class="collect-request-content mt-2 d-none">
-                                <div class="destination-objet d-flex">
-                                    <div class="col-6 p-0">
-                                        <span class="collect-title">Destination</span>
-                                        <span class="collect-destination"></span>
+                                <div class="d-flex">
+                                    <div class="col-6 p-0 box-item">
+                                        <span class="wii-field-name">Destination</span>
+                                        <span class="collect-destination wii-body-text"></span>
                                     </div>
-                                    <div class="col-6 p-0">
-                                        <span class="collect-title">Objet</span>
-                                        <span class="collect-object"></span>
+                                    <div class="col-6 p-0 box-item">
+                                        <span class="wii-field-name">Objet</span>
+                                        <span class="collect-object wii-body-text"></span>
                                     </div>
                                 </div>
                                 <div class="display-comment">
@@ -175,7 +175,7 @@
 
                         <div class="sub-form create-collect d-none">
                             <div class="section">Ma nouvelle demande de collecte</div>
-                            <div class="row">
+                            <div class="row mt-2">
                                 <div class="col-md-6 col-12">
                                     {{ form.select('collectType', 'Type', true, {
                                         type: 'collectType',
@@ -241,7 +241,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-xl-8 empty-cart {{ app.user.cart.references.count != 0 ? "d-none" : "" }}">
+            <div class="col-12 col-xl-8 empty-cart {{ not emptyCart ? 'd-none' }}">
                 <div class="wii-box">
                     <div class="row justify-content-center align-items-center">
                         <div>
@@ -260,7 +260,7 @@
                     <div class="header wii-title">Références</div>
                     <div class="content cart-reference-list">
                         {% for reference in app.user.cart.references %}
-                            {{ _self.reference_card(reference, loop.index0, 'Quantité à livrer', false, true) }}
+                            {{ _self.reference_card(reference, loop.index0, 'Quantité à livrer', reference.quantiteDisponible == 0, true) }}
                             {%  set buyerId = reference.buyer.id is defined ? reference.buyer.id : "null" %}
                             <input type="hidden" value="{{reference.id ~'/'~ buyerId }}" class="data" name="referenceBuyer"/>
                         {% endfor %}
@@ -296,7 +296,7 @@
                             {% if item.buyer %}
                                 Acheteur référence : {{ item.buyer.username }}
                             {% else %}
-                                Aucun acheteur référence
+                                Acheteur référence : aucun acheteur
                             {% endif %}
                         </div>
                         <div class="content">

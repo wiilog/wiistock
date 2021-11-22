@@ -130,12 +130,13 @@ class CartService {
                 $link = $this->router->generate('purchase_request_index');
             }
         }
+
         $this->emptyCart($user->getCart(), $treatedCartReferences);
         $entityManager->flush();
 
         return [
             "success" => true,
-            "msg" => "Les références ont bien étées ajoutées dans des demandes d'achat",
+            "msg" => "Les références ont bien été ajoutées dans des demandes d'achat",
             "link" => $link ?? null,
         ];
     }
@@ -145,8 +146,6 @@ class CartService {
                                           EntityManagerInterface $manager): array {
         $cartContent = json_decode($data['cart'], true);
 
-        $msg = '';
-        $link = '';
         if ($data['addOrCreate'] === "add") {
             $deliveryRequest = $manager->find(Demande::class, $data['existingDelivery']);
             $this->addReferencesToCurrentUserCart($manager, $user, $deliveryRequest, $cartContent);
@@ -155,8 +154,7 @@ class CartService {
 
             $link = $this->router->generate('demande_show', ['id' => $deliveryRequest->getId()]);
             $msg = "Les références ont bien été ajoutées dans la demande existante";
-        }
-        else if ($data['addOrCreate'] === "create") {
+        } else if ($data['addOrCreate'] === "create") {
             $statutRepository = $manager->getRepository(Statut::class);
             $destination = $manager->find(Emplacement::class, $data['destination']);
             $type = $manager->find(Type::class, $data['deliveryType']);
@@ -184,6 +182,8 @@ class CartService {
 
             $link = $this->router->generate('demande_show', ['id' => $deliveryRequest->getId()]);
             $msg = "Les references ont bien été ajoutées dans une nouvelle demande de livraison";
+        } else {
+            throw new \RuntimeException("Unknown parameter");
         }
 
         return [
@@ -198,11 +198,11 @@ class CartService {
                                          EntityManagerInterface $manager): array {
         $cartContent = json_decode($data['cart'], true);
 
-        $msg = '';
-        $link = '';
         if ($data['addOrCreate'] === "add") {
             $collectRequest = $manager->find(Collecte::class, $data['existingCollect']);
             $this->addReferencesToCurrentUserCart($manager, $user, $collectRequest, $cartContent);
+
+            $manager->flush();
 
             $link = $this->router->generate('collecte_show', ['id' => $collectRequest->getId()]);
             $msg = "Les références ont bien été ajoutées dans la demande existante";
@@ -237,6 +237,8 @@ class CartService {
 
             $link = $this->router->generate('collecte_show', ['id' => $collectRequest->getId()]);
             $msg = "Les references ont bien été ajoutées dans une nouvelle demande de collecte";
+        } else {
+            throw new \RuntimeException("Unknown parameter");
         }
 
         return [
@@ -258,44 +260,45 @@ class CartService {
         );
         foreach ($cart as $referenceData) {
             $referenceId = $referenceData['reference'];
-            $quantity = $referenceData['quantity'];
+            $quantity = $referenceData['quantity'] ?? null;
             $reference = $references[$referenceId];
-            if($request instanceof Demande) {
-                /** @var DeliveryRequestReferenceLine|null $alreadyInRequest */
-                $alreadyInRequest = Stream::from($request->getReferenceLines())
-                    ->filter(fn(DeliveryRequestReferenceLine $line) => $line->getReference() === $reference)
-                    ->first() ?: null;
+            if($quantity) {
+                if ($request instanceof Demande) {
+                    /** @var DeliveryRequestReferenceLine|null $alreadyInRequest */
+                    $alreadyInRequest = Stream::from($request->getReferenceLines())
+                        ->filter(fn(DeliveryRequestReferenceLine $line) => $line->getReference() === $reference)
+                        ->first() ?: null;
 
-                if($alreadyInRequest) {
-                    if ($alreadyInRequest->getQuantityToPick() < $quantity) {
-                        $alreadyInRequest
+                    if ($alreadyInRequest) {
+                        if ($alreadyInRequest->getQuantityToPick() < $quantity) {
+                            $alreadyInRequest
+                                ->setQuantityToPick($quantity);
+                        }
+                    } else {
+                        $deliveryRequestLine = (new DeliveryRequestReferenceLine())
+                            ->setReference($reference)
                             ->setQuantityToPick($quantity);
+
+                        $request->addReferenceLine($deliveryRequestLine);
                     }
-                } else {
-                    $deliveryRequestLine = (new DeliveryRequestReferenceLine())
-                        ->setReference($reference)
-                        ->setQuantityToPick($quantity);
+                } else if ($request instanceof Collecte) {
+                    /** @var CollecteReference|null $alreadyInRequest */
+                    $alreadyInRequest = Stream::from($request->getCollecteReferences())
+                        ->filter(fn(CollecteReference $line) => $line->getReferenceArticle() === $reference)
+                        ->first() ?: null;
 
-                    $request->addReferenceLine($deliveryRequestLine);
-                }
-            }
-            else if($request instanceof Collecte) {
-                /** @var CollecteReference|null $alreadyInRequest */
-                $alreadyInRequest = Stream::from($request->getCollecteReferences())
-                    ->filter(fn(CollecteReference $line) => $line->getReferenceArticle() === $reference)
-                    ->first() ?: null;
-
-                if ($alreadyInRequest) {
-                    if ($alreadyInRequest->getQuantite() < $quantity) {
-                        $alreadyInRequest
+                    if ($alreadyInRequest) {
+                        if ($alreadyInRequest->getQuantite() < $quantity) {
+                            $alreadyInRequest
+                                ->setQuantite($quantity);
+                        }
+                    } else {
+                        $collectRequestLine = new CollecteReference();
+                        $collectRequestLine
+                            ->setReferenceArticle($reference)
                             ->setQuantite($quantity);
+                        $request->addCollecteReference($collectRequestLine);
                     }
-                } else {
-                    $collectRequestLine = new CollecteReference();
-                    $collectRequestLine
-                        ->setReferenceArticle($reference)
-                        ->setQuantite($quantity);
-                    $request->addCollecteReference($collectRequestLine);
                 }
             }
         }

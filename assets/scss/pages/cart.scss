@@ -17,7 +17,7 @@
                     background-color: $black;
                     width: 80px;
                     height: 80px;
-                    opacity: 35%;
+                    opacity: 0.35;
                 }
             }
         }
@@ -46,6 +46,9 @@
             text-transform: uppercase;
             writing-mode: vertical-rl;
             transform: rotate(180deg);
+            border-top-right-radius: 5px;
+            border-bottom-right-radius: 5px;
+            margin: -1px 0 -1px -1px !important;
         }
 
         .cart-reference-infos, .cart-reference-current-quantity, .cart-reference-quantity {
@@ -90,5 +93,9 @@
             height: 20px;
         }
     }
+}
+
+#tableDeliveryReferences td, #tableCollectReferences td {
+    font-size: 13px !important;
 }
 

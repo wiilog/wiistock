@@ -77,7 +77,6 @@ class Import
             'status',
             'articleReference',
             'quantityDelivery',
-            'requester'
         ]
     ];
 

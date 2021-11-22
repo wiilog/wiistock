@@ -136,7 +136,7 @@ class PurchaseRequestService
                                           ?Utilisateur $buyer = null): PurchaseRequest {
         $now =  new DateTime("now");
         $purchase = new PurchaseRequest();
-        $purchaseRequestNumber = $this->uniqueNumberService->createUniqueNumber($entityManager, PurchaseRequest::NUMBER_PREFIX, PurchaseRequest::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
+        $purchaseRequestNumber = $this->uniqueNumberService->create($entityManager, PurchaseRequest::NUMBER_PREFIX, PurchaseRequest::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
         $purchase
             ->setCreationDate($now)
             ->setStatus($status)

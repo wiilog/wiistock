@@ -5,6 +5,7 @@ namespace App\Repository\DeliveryRequest;
 use App\Entity\Article;
 use App\Entity\AverageRequestTime;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Dispatch;
 use App\Entity\Reception;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
@@ -190,14 +191,14 @@ class DemandeRepository extends EntityRepository
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
                     $conditions = [
-                        "createdAt" => "DATE_FORMAT(delivery_request.createdAt, '%d/%m/%Y') LIKE :value",
-                        "validatedAt" => "DATE_FORMAT(delivery_request.validatedAt, '%d/%m/%Y') LIKE :value",
-                        "requester" => "search_user.username LIKE :value",
-                        "destination" => "search_location_destination.label LIKE :value",
-                        "comment" => "delivery_request.commentaire LIKE :value",
-                        "number" => "delivery_request.numero LIKE :value",
-                        "status" => "search_status.nom LIKE :value",
-                        "type" => "search_type.label LIKE :value",
+                        "createdAt" => "DATE_FORMAT(delivery_request.createdAt, '%d/%m/%Y') LIKE :search_value",
+                        "validatedAt" => "DATE_FORMAT(delivery_request.validatedAt, '%d/%m/%Y') LIKE :search_value",
+                        "requester" => "search_user.username LIKE :search_value",
+                        "destination" => "search_location_destination.label LIKE :search_value",
+                        "comment" => "delivery_request.commentaire LIKE :search_value",
+                        "number" => "delivery_request.numero LIKE :search_value",
+                        "status" => "search_status.nom LIKE :search_value",
+                        "type" => "search_type.label LIKE :search_value",
                     ];
 
                     $condition = VisibleColumnService::getSearchableColumns($conditions, 'deliveryRequest', $qb, $user);
@@ -208,7 +209,7 @@ class DemandeRepository extends EntityRepository
                         ->leftJoin('delivery_request.type', 'search_type')
                         ->leftJoin('delivery_request.utilisateur', 'search_user')
                         ->leftJoin('delivery_request.destination', 'search_location_destination')
-                        ->setParameter('value', '%' . $search . '%');
+                        ->setParameter('search_value', '%' . $search . '%');
                 }
             }
 
@@ -447,5 +448,17 @@ class DemandeRepository extends EntityRepository
             ->setParameter('status_draft', STATUT::DRAFT)
             ->getQuery()
             ->getResult();
+    }
+
+    public function getLastNumberByDate(string $date): ?string {
+        $result = $this->createQueryBuilder('delivery_request')
+            ->select('delivery_request.numero')
+            ->where('delivery_request.numero LIKE :value')
+            ->orderBy('delivery_request.createdAt', 'DESC')
+            ->addOrderBy('delivery_request.numero', 'DESC')
+            ->setParameter('value', Demande::PREFIX_NUMBER . '-' . $date . '%')
+            ->getQuery()
+            ->execute();
+        return $result ? $result[0]['numero'] : null;
     }
 }

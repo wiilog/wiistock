@@ -130,7 +130,7 @@ class ReceptionService
         $reception = new Reception();
         $date = new DateTime('now');
 
-        $numero = $this->uniqueNumberService->createUniqueNumber($entityManager, Reception::PREFIX_NUMBER, Reception::class, UniqueNumberService::DATE_COUNTER_FORMAT_RECEPTION);
+        $numero = $this->uniqueNumberService->create($entityManager, Reception::PREFIX_NUMBER, Reception::class, UniqueNumberService::DATE_COUNTER_FORMAT_RECEPTION);
 
         if(!empty($data['fournisseur'])) {
             if($fromImport) {

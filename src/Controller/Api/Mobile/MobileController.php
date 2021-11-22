@@ -2125,7 +2125,6 @@ class MobileController extends AbstractFOSRestController
 
     /**
      * @Rest\Get("/api/server-images", name="api_images", condition="request.isXmlHttpRequest()")
-     * @Wii\RestVersionChecked()
      */
     public function getLogos(EntityManagerInterface $entityManager,
                              KernelInterface $kernel,

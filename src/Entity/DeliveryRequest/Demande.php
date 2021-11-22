@@ -31,6 +31,8 @@ class Demande implements PairedEntity {
 
     const CATEGORIE = 'demande';
 
+    const PREFIX_NUMBER = 'DL';
+
     const STATUT_BROUILLON = 'brouillon';
     const STATUT_PREPARE = 'préparé';
     const STATUT_INCOMPLETE = 'partiellement préparé';
