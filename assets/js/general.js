@@ -10,6 +10,19 @@ export default class Wiistock {
     }
 
     static initialize() {
+        $(document).on(`change keyup`, `.increase-decrease-field input`, function () {
+            const maxInt = parseInt($(this).attr(`max`));
+            const max = !isNaN(maxInt) ? maxInt : null;
+
+            const minInt = parseInt($(this).attr(`min`));
+            const min = !isNaN(minInt) ? minInt : null;
+
+            const value = parseInt($(this).val()) || 0;
+
+            $(this).parent().find(`.decrease`).prop(`disabled`, value === min);
+            $(this).parent().find(`.increase`).prop(`disabled`, value === max);
+        });
+
         $(document).on(`click`, `.increase-decrease-field .increase, .increase-decrease-field .decrease, .increase-decrease-field input` , function(){
             const $button = $(this);
             const $input = $button.siblings('input').first();
