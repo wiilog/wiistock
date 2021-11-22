@@ -301,6 +301,13 @@ class ImportController extends AbstractController
 		unset($data['importId']);
 
 		$import = $importRepository->find($importId);
+        if(!$import) {
+            return $this->json([
+                "success" => false,
+                "msg" => "Une erreur est survenue lors de la création de l'import",
+            ]);
+        }
+
         $import->setColumnToField($data);
         $this->getDoctrine()->getManager()->flush();
 
