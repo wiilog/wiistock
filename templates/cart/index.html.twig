@@ -316,7 +316,7 @@
                                     <input type="hidden" class="data" name="buyer" value="{{ item.buyer.id }}"/>
                                     {{ form.select('existingPurchase', 'Mes demandes d\'achat', true, {
                                         placeholder: "Sélectionnez une demande d'achat",
-                                        items: purchaseRequests,
+                                        items: purchaseRequests | filter(r => r.buyer == item.buyer),
                                         emptyOption: {
                                             text: "Créer une demande d'achat",
                                             selected: true,

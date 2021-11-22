@@ -121,6 +121,7 @@ class CartController extends AbstractController
                 "text" => "{$request->getNumber()} - Créée le {$request->getCreationDate()->format('d/m/Y H:i')}",
                 "number" => $request->getNumber(),
                 "requester" => $request->getRequester(),
+                "buyer" => $request->getBuyer(),
             ]);
 
         return $this->render("cart/index.html.twig", [
