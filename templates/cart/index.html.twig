@@ -67,10 +67,12 @@
                             {label: {wiiIcon: 'cart-purchase', text: 'Achat'}, value: 'purchase'},
                         ]) }}
 
-                        {{ form.radio('addOrCreate', null, true, [
-                            {label: 'Ajouter à une de mes demandes en brouillon', value: 'add'},
-                            {label: 'Créer une nouvelle demande', value: 'create'},
-                        ]) }}
+                        <div class="mt-2">
+                            {{ form.radio('addOrCreate', null, true, [
+                                {label: 'Ajouter à une de mes demandes en brouillon', value: 'add'},
+                                {label: 'Créer une nouvelle demande', value: 'create'},
+                            ]) }}
+                        </div>
 
                         <div class="sub-form existing-delivery d-none">
                             <div class="my-delivery-requests pb-2">
@@ -189,7 +191,7 @@
                                         placeholder: 'Renseigner un objet',
                                     }) }}
                                 </div>
-                                <div class="col-md-6 col-12">
+                                <div class="col-md-6 col-12 mt-2">
                                     {{ form.select('location', 'Point de collecte', true, {
                                         type: 'location',
                                         placeholder: 'Sélectionnez un emplacement',
@@ -197,7 +199,7 @@
                                         disabled: true,
                                     }) }}
                                 </div>
-                                <div class="col-md-6 col-12">
+                                <div class="col-md-6 col-12 mt-2">
                                     {{ form.switch('destination', 'Destination', true, [
                                         {label: 'Destruction', value: 'destruction'},
                                         {label: 'Mise en stock', value: 'stock'},

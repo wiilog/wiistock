@@ -35,7 +35,7 @@
     {# TODO: add support for required #}
 
     <label class="{{ options.labelClass ?? '' }}">{{ _self.label(label, required) }}</label>
-    <div class="wii-switch mt-2" data-title="{{ label | striptags }}{{ required ? '*' }}">
+    <div class="wii-switch mt-1" data-title="{{ label | striptags }}{{ required ? '*' }}">
         {% for switch in switches %}
             {% set id = random(100000, 10000000) %}
 
