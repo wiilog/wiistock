@@ -73,7 +73,7 @@
                         ]) }}
 
                         <div class="sub-form existing-delivery d-none">
-                            <div class="my-delivery-requests">
+                            <div class="my-delivery-requests pb-2">
                                 <div class="section">Ma demande de livraison</div>
 
                                 {{ form.select('existingDelivery', 'Mes livraisons', true, {
@@ -241,15 +241,17 @@
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-xl-8 empty-cart d-none">
+            <div class="col-12 col-xl-8 empty-cart {{ app.user.cart.references.count != 0 ? "d-none" : "" }}">
                 <div class="wii-box">
                     <div class="row justify-content-center align-items-center">
-                        <div class="col-12 text-center">
-                            <div class="empty-cart-icon-container rounded-circle d-inline-flex justify-content-center align-items-center">
-                                <i class="wii-icon wii-icon-black-cart"></i>
+                        <div>
+                            <div class="col-12 text-center">
+                                <div class="empty-cart-icon-container rounded-circle d-inline-flex justify-content-center align-items-center">
+                                    <i class="wii-icon wii-icon-black-cart"></i>
+                                </div>
                             </div>
+                            <div class="col-12 text-center pt-2">Votre panier est vide</div>
                         </div>
-                        <div class="col-12 text-center">Votre panier est vide</div>
                     </div>
                 </div>
             </div>
