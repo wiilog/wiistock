@@ -35,12 +35,12 @@
     {# TODO: add support for required #}
 
     <label class="{{ options.labelClass ?? '' }}">{{ _self.label(label, required) }}</label>
-    <div class="wii-switch mt-2" data-title="{{ label | striptags }}{{ required ? '*' }}">
+    <div class="wii-switch mt-1" data-title="{{ label | striptags }}{{ required ? '*' }}">
         {% for switch in switches %}
             {% set id = random(100000, 10000000) %}
 
             <input type="radio" id="{{ name }}-{{ id }}" name="{{ name }}" class="data force-data" value="{{ switch.value ?? '' }}" {{ switch.checked ?? false ? 'checked' }}>
-            <label for="{{ name }}-{{ id }}">{{ _self.label(switch.label, required) }}</label>
+            <label for="{{ name }}-{{ id }}">{{ _self.label(switch.label, false) }}</label>
         {% endfor %}
     </div>
 {% endmacro %}
