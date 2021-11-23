@@ -17,6 +17,12 @@ $(function () {
     $modalNewReceiptAssociation.on('hide.bs.modal', function () {
         $('.pack-code-container').not(':first').remove();
         $('.reception-number-container').not(':first').remove();
+
+        const $toggleArrival = $('.toggle-arrival');
+
+        if(!$toggleArrival.data(`arrival`)) {
+            toggleArrivage($toggleArrival);
+        }
     });
 
     $modalNewReceiptAssociation.on('shown.bs.modal', () => {
