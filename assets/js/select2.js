@@ -24,6 +24,7 @@ const ROUTES = {
     supplierCode: `ajax_select_supplier_code`,
     supplierLabel: `ajax_select_supplier_label`,
     collectableArticles: `ajax_select_collectable_articles`,
+    purchaseRequest: `ajax_select_references_by_buyer`,
 }
 
 const INSTANT_SELECT_TYPES = {
@@ -103,7 +104,7 @@ export default class Select2 {
     static includeParams($element, params) {
         if($element.is(`[data-include-params]`)) {
             const selector = $element.data(`include-params`);
-            const closest = $element.data(`include-params-parent`) || `.modal`;
+            const closest = $element.data(`include-params-parent`) || `.modal, .wii-form`;
             const $fields = $element
                 .closest(closest)
                 .find(selector);

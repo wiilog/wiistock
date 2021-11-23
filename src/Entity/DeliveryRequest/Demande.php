@@ -27,13 +27,15 @@ use WiiCommon\Helper\Stream;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\DeliveryRequest\DemandeRepository")
  */
-class Demande implements PairedEntity
-{
+class Demande implements PairedEntity {
+
     const CATEGORIE = 'demande';
+
+    const PREFIX_NUMBER = 'DL';
 
     const STATUT_BROUILLON = 'brouillon';
     const STATUT_PREPARE = 'préparé';
-	const STATUT_INCOMPLETE = 'partiellement préparé';
+    const STATUT_INCOMPLETE = 'partiellement préparé';
     const STATUT_A_TRAITER = 'à traiter';
     const STATUT_LIVRE = 'livré';
     const STATUT_LIVRE_INCOMPLETE = 'livré partiellement';
@@ -48,133 +50,128 @@ class Demande implements PairedEntity
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=false, unique=true)
      */
-    private $numero;
+    private ?string $numero = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="demandes")
      */
-    private $destination;
+    private ?Emplacement $destination = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="demandes")
      */
-    private $utilisateur;
+    private ?Utilisateur $utilisateur = null;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private $date;
+    private ?DateTime $createdAt = null;
 
     /**
-     * @var Collection
      * @ORM\OneToMany(targetEntity="App\Entity\PreparationOrder\Preparation", mappedBy="demande")
      */
-    private $preparations;
+    private Collection $preparations;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="demandes")
      */
-    private $statut;
-
-	/**
-	 * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="demandesLivraison")
-	 */
-    private $type;
+    private ?Statut $statut = null;
 
     /**
-     * @ORM\OneToMany(targetEntity=DeliveryRequestReferenceLine::class, mappedBy="request")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="demandesLivraison")
      */
-    private Collection $referenceLines;
+    private ?Type $type = null;
+
+    /**
+     * @ORM\OneToMany(targetEntity=DeliveryRequestReferenceLine::class, mappedBy="request", cascade={"persist", "remove"})
+     */
+    private ?Collection $referenceLines;
 
     /**
      * @ORM\OneToMany(targetEntity=DeliveryRequestArticleLine::class, mappedBy="request")
      */
-    private Collection $articleLines;
+    private ?Collection $articleLines;
 
     /**
      * @ORM\Column(type="text", nullable=true)
      */
-    private $commentaire;
+    private ?string $commentaire = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="demandes")
      */
-    private $reception;
+    private ?Reception $reception = null;
 
     /**
      * @ORM\ManyToOne(targetEntity=SensorWrapper::class)
      */
     private ?SensorWrapper $triggeringSensorWrapper = null;
 
-	public function __construct() {
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private ?DateTime $validatedAt = null;
+
+    public function __construct() {
         $this->preparations = new ArrayCollection();
         $this->referenceLines = new ArrayCollection();
         $this->articleLines = new ArrayCollection();
     }
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
     public function getTriggeringSensorWrapper(): ?SensorWrapper {
-	    return $this->triggeringSensorWrapper;
+        return $this->triggeringSensorWrapper;
     }
 
     public function setTriggeringSensorWrapper(?SensorWrapper $triggeringSensorWrapper): self {
-	    $this->triggeringSensorWrapper = $triggeringSensorWrapper;
-	    return $this;
+        $this->triggeringSensorWrapper = $triggeringSensorWrapper;
+        return $this;
     }
 
-    public function getNumero(): ?string
-    {
+    public function getNumero(): ?string {
         return $this->numero;
     }
 
-    public function setNumero(?string $numero): self
-    {
+    public function setNumero(?string $numero): self {
         $this->numero = $numero;
 
         return $this;
     }
 
-    public function getDestination(): ?Emplacement
-    {
+    public function getDestination(): ?Emplacement {
         return $this->destination;
     }
 
-    public function setDestination(?Emplacement $destination): self
-    {
+    public function setDestination(?Emplacement $destination): self {
         $this->destination = $destination;
 
         return $this;
     }
 
-    public function getUtilisateur(): ?Utilisateur
-    {
+    public function getUtilisateur(): ?Utilisateur {
         return $this->utilisateur;
     }
 
-    public function setUtilisateur(?Utilisateur $utilisateur): self
-    {
+    public function setUtilisateur(?Utilisateur $utilisateur): self {
         $this->utilisateur = $utilisateur;
 
         return $this;
     }
 
-    public function getDate(): ?DateTimeInterface
-    {
-        return $this->date;
+    public function getCreatedAt(): ?DateTimeInterface {
+        return $this->createdAt;
     }
 
-    public function setDate(?DateTimeInterface $date): self
-    {
-        $this->date = $date;
+    public function setCreatedAt(?DateTimeInterface $createdAt): self {
+        $this->createdAt = $createdAt;
 
         return $this;
     }
@@ -186,9 +183,8 @@ class Demande implements PairedEntity
         return $this->preparations;
     }
 
-    public function addPreparation(?Preparation $preparation): self
-    {
-        if (!$this->preparations->contains($preparation)) {
+    public function addPreparation(?Preparation $preparation): self {
+        if(!$this->preparations->contains($preparation)) {
             $this->preparations[] = $preparation;
             $preparation->setDemande($this);
         }
@@ -196,37 +192,34 @@ class Demande implements PairedEntity
         return $this;
     }
 
-    public function removePreparation(?Preparation $preparation): self
-    {
-        if (!$this->preparations->contains($preparation)) {
+    public function removePreparation(?Preparation $preparation): self {
+        if(!$this->preparations->contains($preparation)) {
             $this->preparations->removeElement($preparation);
             // set the owning side to null (unless already changed)
-            if ($preparation->getDemande() === $this) {
+            if($preparation->getDemande() === $this) {
                 $preparation->setDemande(null);
             }
         }
 
         return $this;
     }
+
     /**
      * @return Livraison[]|Collection
      */
-    public function getLivraisons(): Collection
-    {
-        return $this->getPreparations()->map(function (Preparation $preparation) {
+    public function getLivraisons(): Collection {
+        return $this->getPreparations()->map(function(Preparation $preparation) {
             return $preparation->getLivraison();
         })->filter(function(?Livraison $livraison) {
             return isset($livraison);
         });
     }
 
-    public function getStatut(): ?Statut
-    {
+    public function getStatut(): ?Statut {
         return $this->statut;
     }
 
-    public function setStatut(?Statut $statut): self
-    {
+    public function setStatut(?Statut $statut): self {
         $this->statut = $statut;
 
         return $this;
@@ -235,21 +228,19 @@ class Demande implements PairedEntity
     public function getArticleLine(Article $article): DeliveryRequestArticleLine {
         $articleLines = Stream::from($this->articleLines->toArray());
         return $articleLines
-            ->filter(fn (DeliveryRequestArticleLine $line) => $line->getArticle() === $article)
+            ->filter(fn(DeliveryRequestArticleLine $line) => $line->getArticle() === $article)
             ->first();
     }
 
     /**
      * @return Collection|DeliveryRequestReferenceLine[]
      */
-    public function getReferenceLines(): Collection
-    {
+    public function getReferenceLines(): Collection {
         return $this->referenceLines;
     }
 
-    public function addReferenceLine(DeliveryRequestReferenceLine $line): self
-    {
-        if (!$this->referenceLines->contains($line)) {
+    public function addReferenceLine(DeliveryRequestReferenceLine $line): self {
+        if(!$this->referenceLines->contains($line)) {
             $this->referenceLines[] = $line;
             $line->setRequest($this);
         }
@@ -257,11 +248,10 @@ class Demande implements PairedEntity
         return $this;
     }
 
-    public function removeReferenceLine(DeliveryRequestReferenceLine $line): self
-    {
-        if ($this->referenceLines->contains($line)) {
+    public function removeReferenceLine(DeliveryRequestReferenceLine $line): self {
+        if($this->referenceLines->contains($line)) {
             $this->referenceLines->removeElement($line);
-            if ($line->getRequest() === $this) {
+            if($line->getRequest() === $this) {
                 $line->setRequest(null);
             }
         }
@@ -282,13 +272,11 @@ class Demande implements PairedEntity
         return $this;
     }
 
-    public function getCommentaire(): ?string
-    {
+    public function getCommentaire(): ?string {
         return $this->commentaire;
     }
 
-    public function setCommentaire(?string $commentaire): self
-    {
+    public function setCommentaire(?string $commentaire): self {
         $this->commentaire = $commentaire;
         $this->setCleanedComment($commentaire);
 
@@ -302,9 +290,8 @@ class Demande implements PairedEntity
         return $this->articleLines;
     }
 
-    public function addArticleLine(DeliveryRequestArticleLine $line): self
-    {
-        if (!$this->articleLines->contains($line)) {
+    public function addArticleLine(DeliveryRequestArticleLine $line): self {
+        if(!$this->articleLines->contains($line)) {
             $this->articleLines[] = $line;
             $line->setRequest($this);
         }
@@ -312,11 +299,10 @@ class Demande implements PairedEntity
         return $this;
     }
 
-    public function removeArticleLine(DeliveryRequestArticleLine $line): self
-    {
-        if ($this->articleLines->contains($line)) {
+    public function removeArticleLine(DeliveryRequestArticleLine $line): self {
+        if($this->articleLines->contains($line)) {
             $this->articleLines->removeElement($line);
-            if ($line->getRequest() === $this) {
+            if($line->getRequest() === $this) {
                 $line->setRequest(null);
             }
         }
@@ -337,25 +323,21 @@ class Demande implements PairedEntity
         return $this;
     }
 
-    public function getType(): ?Type
-    {
+    public function getType(): ?Type {
         return $this->type;
     }
 
-    public function setType(?Type $type): self
-    {
+    public function setType(?Type $type): self {
         $this->type = $type;
 
         return $this;
     }
 
-    public function getReception(): ?Reception
-    {
+    public function getReception(): ?Reception {
         return $this->reception;
     }
 
-    public function setReception(?Reception $reception): self
-    {
+    public function setReception(?Reception $reception): self {
         $this->reception = $reception;
 
         return $this;
@@ -372,13 +354,6 @@ class Demande implements PairedEntity
         );
     }
 
-    public function getValidationDate(): ?DateTime {
-        $preparationOrders = $this->getPreparations();
-        return (!$preparationOrders->isEmpty())
-            ? $preparationOrders->first()->getDate()
-            : null;
-    }
-
     public function getPairings(): Collection {
         $pairingsArray = Stream::from($this->getPreparations()->toArray())
             ->flatMap(fn(Preparation $preparation) => $preparation->getPairings()->toArray())
@@ -388,14 +363,23 @@ class Demande implements PairedEntity
 
     public function getActivePairing(): ?Pairing {
         $activePairing = null;
-        foreach ($this->getPreparations() as $preparation) {
+        foreach($this->getPreparations() as $preparation) {
             $activePairing = $preparation->getActivePairing();
-            if (isset($activePairing)) {
+            if(isset($activePairing)) {
                 break;
             }
         }
         return $activePairing;
     }
 
+    public function getValidatedAt(): ?DateTime {
+        return $this->validatedAt;
+    }
+
+    public function setValidatedAt(?DateTime $validatedAt): self {
+        $this->validatedAt = $validatedAt;
+
+        return $this;
+    }
 
 }

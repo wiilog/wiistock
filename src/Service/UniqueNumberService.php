@@ -18,12 +18,8 @@ class UniqueNumberService
         Reception::class
     ];
 
-    private $entityManager;
-
-    public function __construct(EntityManagerInterface $entityManager)
-    {
-        $this->entityManager = $entityManager;
-    }
+    /** @Required */
+    public EntityManagerInterface $entityManager;
 
     /**
      * getLastNumberByPrefixAndDate() function must be implemented in current entity repository with $prefix and $date params
@@ -34,10 +30,10 @@ class UniqueNumberService
      * @return string
      * @throws Exception
      */
-    public function createUniqueNumber(EntityManagerInterface $entityManager,
-                                       string $prefix,
-                                       string $entity,
-                                       string $format): string {
+    public function create(EntityManagerInterface $entityManager,
+                           string                 $prefix,
+                           string                 $entity,
+                           string                 $format): string {
 
         $date = new DateTime('now');
         $entityRepository = $entityManager->getRepository($entity);

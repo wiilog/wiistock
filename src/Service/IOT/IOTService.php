@@ -203,7 +203,7 @@ class IOTService
                                                 HandlingRequestTemplate $requestTemplate): Handling {
         $handling = new Handling();
         $date = new DateTime('now');
-        $handlingNumber = $this->uniqueNumberService->createUniqueNumber($entityManager, Handling::PREFIX_NUMBER, Handling::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
+        $handlingNumber = $this->uniqueNumberService->create($entityManager, Handling::PREFIX_NUMBER, Handling::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 
         $desiredDate = clone $date;
         $desiredDate = $desiredDate->add(new \DateInterval('PT' . $requestTemplate->getDelay() . 'H'));
@@ -239,7 +239,7 @@ class IOTService
         $request = new Demande();
         $request
             ->setStatut($statut)
-            ->setDate($date)
+            ->setCreatedAt($date)
             ->setCommentaire($requestTemplate->getComment())
             ->setTriggeringSensorWrapper($wrapper)
             ->setType($requestTemplate->getRequestType())

@@ -48,7 +48,7 @@ class LivraisonRepository extends EntityRepository
      * @param Utilisateur $user
      * @return array[]
      */
-	public function getMobileDelivery(Utilisateur $user)
+	public function getMobileDelivery(Utilisateur $user, ?int $maxResult = 100)
 	{
 	    $queryBuilder = $this->createQueryBuilder('delivery_order')
             ->select('delivery_order.id AS id')
@@ -70,6 +70,7 @@ class LivraisonRepository extends EntityRepository
             ->andWhere('(delivery_order.utilisateur IS NULL OR delivery_order.utilisateur = :user)')
             ->andWhere('join_type.id IN (:typeIds)')
             ->orderBy('delivery_order.date', Criteria::ASC)
+            ->setMaxResults($maxResult)
             ->setParameters([
                 'statusLabel' => Livraison::STATUT_A_TRAITER,
                 'user' => $user,

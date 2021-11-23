@@ -75,7 +75,7 @@ class TrackingMovementService
         $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MVT_TRACA, $this->security->getUser());
-        $queryResult = $trackingMovementRepository->findByParamsAndFilters($params, $filters);
+        $queryResult = $trackingMovementRepository->findByParamsAndFilters($params, $filters, $this->security->getUser());
 
         $mouvements = $queryResult['data'];
 
@@ -581,7 +581,7 @@ class TrackingMovementService
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
-        $columnsVisible = $currentUser->getColumnsVisibleForTrackingMovement();
+        $columnsVisible = $currentUser->getVisibleColumns()['trackingMovement'];
         $categorieCL = $categorieCLRepository->findOneBy(['label' => CategorieCL::MVT_TRACA]);
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::MOUVEMENT_TRACA, $categorieCL);
 

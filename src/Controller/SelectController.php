@@ -11,6 +11,7 @@ use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\LocationGroup;
 use App\Entity\Pack;
+use App\Entity\PurchaseRequest;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -313,6 +314,19 @@ class SelectController extends AbstractController {
 
         return $this->json([
             "results" => $articles
+        ]);
+    }
+
+    /**
+     * @Route("/select/references-par-acheteur", name="ajax_select_references_by_buyer", options={"expose"=true})
+     */
+    public function getPurchaseRequestForSelectByBuyer(EntityManagerInterface $entityManager): Response
+    {
+        $purchaseRequestRepository = $entityManager->getRepository(PurchaseRequest::class);
+        $purchaseRequest = $purchaseRequestRepository->getPurchaseRequestForSelect($this->getUser());
+
+        return $this->json([
+            "results" => $purchaseRequest
         ]);
     }
 }

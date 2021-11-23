@@ -1,9 +1,96 @@
 @import "variables";
 
+$buttonConfig: (
+    'primary': $primary,
+    'success': $success,
+    'danger': $danger
+);
+
+$outlineButtonConfig: (
+    'primary': (
+        'bg-color': $white,
+        'color': $primary,
+        'active-bg-color': #F2F3F7,
+        'disabled-color': $grey
+    ),
+    'secondary': (
+        'bg-color': transparent,
+        'color': $greyDashboard,
+        'active-bg-color': #E7E7E8,
+        'disabled-color': $grey
+    )
+);
+
 @mixin setColorLoader ($color) {
     border-top-color: $color !important;
     border-bottom-color: $color !important;
     border-left-color: $color !important;
+}
+
+@mixin button-disabled($border-color, $bg-color, $color) {
+    cursor: not-allowed;
+    border-color: $border-color !important;
+    background-color: $bg-color !important;
+    color: $color !important;
+    opacity: 1 !important;
+
+    svg {
+        color: $color !important;
+    }
+
+    &:hover {
+        box-shadow: none !important;
+    }
+}
+
+@mixin simple-button($color, $disabled-color) {
+    &:hover,
+    &:focus {
+        background-color: $color;
+        border-color: $color;
+        box-shadow: $buttonBoxShadow;
+    }
+
+    &:active {
+        box-shadow: none !important;
+    }
+
+    &:disabled {
+        @include button-disabled($grey, $grey, $disabled-color);
+    }
+}
+
+@mixin outline-button($bg-color, $color, $active-bg-color, $disabled-color) {
+    background-color: $bg-color !important;
+    border-color: $color;
+    color: $color;
+
+    svg {
+        color: $color !important;
+    }
+
+    .wii-icon {
+        background-color: $color;
+    }
+
+    &:hover,
+    &:focus {
+        background-color: $bg-color !important;
+        border-color: $color !important;
+        box-shadow: $buttonBoxShadow !important;
+        color: $color !important;
+    }
+
+    &:active {
+        border-color: $greyDashboard;
+        background-color: $active-bg-color !important;
+        box-shadow: none !important;
+        color: $color !important;
+    }
+
+    &:disabled {
+        @include button-disabled($grey, $bg-color, $disabled-color);
+    }
 }
 
 .btn-action {
@@ -48,12 +135,19 @@
     display: none;
 }
 
-.btn-outline-primary {
-    .wii-icon {
-        background-color: $primary;
+@each $name, $color in $buttonConfig {
+    .btn-#{$name} {
+        @include simple-button($color, $white);
     }
-    &:hover .wii-icon,
-    &:active .wii-icon {
-        background-color: $white !important;
+}
+
+@each $name, $config in $outlineButtonConfig {
+    .btn-outline-#{$name} {
+        @include outline-button(
+            map-get($config, 'bg-color'),
+            map-get($config, 'color'),
+            map-get($config, 'active-bg-color'),
+            map-get($config, 'disabled-color')
+        );
     }
 }

@@ -55,6 +55,7 @@ use App\Service\TransferRequestService;
 use App\Service\UniqueNumberService;
 
 use App\Service\FreeFieldService;
+use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -280,28 +281,34 @@ class ReceptionController extends AbstractController {
      * @Route("/colonne-visible", name="save_column_visible_for_reception", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE}, mode=HasPermission::IN_JSON)
      */
-    public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response {
+    public function saveColumnVisible(Request $request,
+                                      EntityManagerInterface $entityManager,
+                                      VisibleColumnService $visibleColumnService): Response {
         $data = json_decode($request->getContent(), true);
 
-        $champs = array_keys($data);
-        $user = $this->getUser();
+        $fields = array_keys($data);
         /** @var $user Utilisateur */
-        $champs[] = "actions";
-        $user->setColumnsVisibleForReception($champs);
+        $user = $this->getUser();
+        $fields[] = "actions";
+
+        $visibleColumnService->setVisibleColumns('reception', $fields, $user);
+
         $entityManager->flush();
 
-        return new JsonResponse();
+        return $this->json([
+            'success' => true,
+            'msg' => 'Vos préférences de colonnes à afficher ont bien été sauvegardées'
+        ]);
     }
 
     /**
      * @Route("/api-columns", name="reception_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE}, mode=HasPermission::IN_JSON)
      */
-    public function apiColumns(EntityManagerInterface $entityManager,
-                               ReceptionService $receptionService): Response {
+    public function apiColumns(ReceptionService $receptionService): Response {
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
-        $columns = $receptionService->getColumnVisibleConfig($entityManager, $currentUser);
+        $columns = $receptionService->getColumnVisibleConfig($currentUser);
         return $this->json($columns);
     }
 
@@ -400,7 +407,7 @@ class ReceptionController extends AbstractController {
         }
         /** @var Utilisateur $user */
         $user = $this->getUser();
-        $fields = $receptionService->getColumnVisibleConfig($entityManager, $user);
+        $fields = $receptionService->getColumnVisibleConfig($user);
 
         return $this->render('reception/index.html.twig', [
             'typeChampLibres' => $typeChampLibre,
@@ -1095,7 +1102,7 @@ class ReceptionController extends AbstractController {
 
         $now = new DateTime('now');
 
-        $disputeNumber = $uniqueNumberService->createUniqueNumber($entityManager, Dispute::DISPUTE_RECEPTION_PREFIX, Dispute::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
+        $disputeNumber = $uniqueNumberService->create($entityManager, Dispute::DISPUTE_RECEPTION_PREFIX, Dispute::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 
         $dispute
             ->setStatus($statutRepository->find($post->get('disputeStatus')))

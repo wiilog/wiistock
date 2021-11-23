@@ -26,6 +26,7 @@ $icons: (
     "export": "../../public/svg/export.svg",
     "filtre": "../../public/svg/filtre.svg",
     "menu": "../../public/svg/menu.svg",
+    "menu-achat": "../../public/svg/menu-achat.svg",
     "black-cart": "../../public/svg/black-cart.svg",
     "modif": "../../public/svg/modif.svg",
     "ordre": "../../public/svg/ordre.svg",
@@ -62,6 +63,9 @@ $icons: (
     'iot-historic': "../../public/svg/iot/historic.svg",
     'pairing':"../../public/svg/pairing.svg",
     'pin':"../../public/svg/pin.svg",
+    'cart-delivery': "../../public/svg/cart-delivery.svg",
+    'cart-collect': "../../public/svg/cart-collect.svg",
+    'cart-purchase': "../../public/svg/cart-purchase.svg",
 );
 
 @each $iconName, $iconPath in $icons {

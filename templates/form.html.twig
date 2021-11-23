@@ -1,0 +1,167 @@
+{% macro common_attributes(name, options) %}
+    name="{{ name }}"
+    {% if options.onChange is defined %}onchange="{{ options.onChange }}"{% endif %}
+    {{ (options.error ?? 'local') == 'global' ? 'data-global-error' }}
+    {{ options.readonly ?? false ? 'readonly' }}
+    {{ options.disabled ?? false ? 'disabled' }}
+{% endmacro %}
+
+{% macro multiple_key(options) %}
+    {% if options.multipleKey is defined %}
+        data-multiple-key="{{ options.multipleKey.key }}"
+        data-multiple-object-index="{{ options.multipleKey.index }}"
+    {% endif %}
+{% endmacro %}
+
+{% macro label(label, required) %}
+    <span class="d-inline-flex align-items-center field-label nowrap">
+        {% if label is iterable %}
+            {% if label.wiiIcon is defined %}
+                <span class="mr-2 wii-icon wii-icon-{{ label.wiiIcon }}"></span>
+            {% elseif label.faIcon is defined %}
+                <i class="mr-2 {{ label.faIcon }}"></i>
+            {% elseif label.url is defined %}
+                <img src="{{ label.url }}" alt="{{ label.alt ?? '' }}" width="15px" class="mr-2">
+            {% endif %}
+
+            {{ label.text | raw }}{{ required ? '*' }}
+        {% else %}
+            {{ label | raw }}{{ required ? '*' }}
+        {% endif %}
+    </span>
+{% endmacro %}
+
+{% macro switch(name, label, required, switches, options = {}) %}
+    {# TODO: add support for required #}
+
+    <label class="{{ options.labelClass ?? '' }}">{{ _self.label(label, required) }}</label>
+    <div class="wii-switch text-truncate w-100 mt-1" data-title="{{ label | striptags }}{{ required ? '*' }}">
+        {% for switch in switches %}
+            {% set id = random(100000, 10000000) %}
+
+            <input type="radio" id="{{ name }}-{{ id }}" name="{{ name }}" class="data force-data" value="{{ switch.value ?? '' }}" {{ switch.checked ?? false ? 'checked' }}>
+            <label for="{{ name }}-{{ id }}">{{ _self.label(switch.label, false) }}</label>
+        {% endfor %}
+    </div>
+{% endmacro %}
+
+{% macro slider(name, label, required, checked = false, options = {}) %}
+    <label class="{{ options.labelClass ?? '' }}">{{ _self.label(label, required) }}</label>
+    <label class="switch">
+        <input class="checkbox data" type="checkbox"
+            {{ required ? 'required' }}
+            {{ _self.common_attributes(name, options) }}
+            {{ _self.multiple_key(options) }}
+            {{ checked ? 'checked' }}>
+        <span class="slider round"></span>
+    </label>
+{% endmacro %}
+
+{% macro checkbox(name, label, required, value = 1, options = {}) %}
+    {% set id = random(100000, 10000000) %}
+    <div class="wii-checkbox">
+        <input type="checkbox" id="checkbox-{{ id }}" class="data"
+            {{ required ? 'required' }}
+            {{ _self.common_attributes(name, options) }}
+            {{ _self.multiple_key(options) }}
+               value="{{ value }}" {{ options.checked ?? false ? 'checked' }}>
+        <label class="{{ options.labelClass ?? '' }}" for="checkbox-{{ id }}"><span>{{ _self.label(label, required) }}</span></label>
+    </div>
+{% endmacro %}
+
+{% macro radio(name, label, required, items, options = {}) %}
+    <div class="wii-radio-container">
+        {% for item in items %}
+            {% set id = random(100000, 10000000) %}
+
+            <div class="wii-radio mt-1">
+                <input type="radio" id="radio-{{ id }}" class="data" value="{{ item.value ?? '' }}"
+                    {{ required ? 'required' }}
+                    {{ _self.common_attributes(name, options) }}
+                    {{ _self.multiple_key(options) }}
+                    {{ (item.checked ?? false) ? 'checked' }} />
+                <label class="{{ options.labelClass ?? '' }}" for="radio-{{ id }}">{{ _self.label(item.label, false) }}</label>
+            </div>
+        {% endfor %}
+    </div>
+{% endmacro %}
+
+{% macro select(name, label, required, options = {}) %}
+    {% set value = options.value ?? [] %}
+    {% set values = value is iterable ? value : [value] %}
+
+    <label class="{{ options.labelClass ?? '' }} {{ not options.search ?? true ? 'no-search' }}">
+        <span>{{ _self.label(label, required) }}</span>
+        <select class="form-control w-100 data"
+            {{ required ? 'required' }}
+            {% if options.type is defined %}
+                data-s2="{{ options.type }}"
+                {% if options.placeholder is defined %}data-placeholder="{{ options.placeholder }}"{% endif %}
+                {% if options.includeParams is defined %}data-include-params="{{ options.includeParams }}"{% endif %}
+            {% endif %}
+            {{ _self.common_attributes(name, options) }}
+            {{ _self.multiple_key(options) }}>
+            {% if options.emptyOption is defined and options.emptyOption is not empty %}
+                <option {{ options.emptyOption.selected ? "selected" }} value="{{ options.emptyOption.value }}">{{ options.emptyOption.text }}</option>
+            {% elseif options.type is not defined and options.placeholder ?? false %}
+                <option disabled selected>{{ options.placeholder }}</option>
+            {% endif %}
+            {% for item in options.items ?? [] %}
+                <option value="{{ item.value }}" {{ item.value in values ? 'selected' }}
+                    {% for dataKey, dataValue in item %}
+                        data-{{ dataKey }}="{{ dataValue }}"
+                    {% endfor %}>{{ item.text }}</option>
+            {% endfor %}
+        </select>
+    </label>
+{% endmacro %}
+
+{% macro input(name, label, required, value = '', options = {}) %}
+    <label class="{{ options.labelClass ?? '' }}">
+        <span>{{ _self.label(label, required) }}</span>
+        <input type="text" class="form-control w-100 data" value="{{ value }}"
+               placeholder="{{ options.placeholder ?? '' }}"
+            {{ required ? 'required' }}
+            {{ _self.common_attributes(name, options) }}
+            {{ _self.multiple_key(options) }}>
+    </label>
+{% endmacro %}
+
+{% macro number(name, label, required, value = '', options = {}) %}
+    {% set disabled = options.disabled is defined and options.disabled ? 'disabled' %}
+    <label class="{{ options.labelClass ?? '' }}">
+        <span>{{ _self.label(label, required and not disabled) }}</span>
+        <div class="increase-decrease-field" style="min-width: 120px;">
+            <button class="decrease" {{ disabled }}></button>
+            <input type="number" data-no-arrow class="form-control w-50 p-0 text-center {{ not disabled ? 'data' }}"
+                   placeholder="{{ options.placeholder ?? '' }}"
+                   value="{{ value }}"
+                {{ required and not disabled ? 'required' }}
+                {{ disabled }}
+                {{ _self.common_attributes(name, options) }}
+                {{ _self.multiple_key(options) }}
+                {% if options.min is defined and options.min is not null %}min="{{ options.min }}"{% endif %}
+                {% if options.max is defined and options.max is not null %}max="{{ options.max }}"{% endif %}>
+            <button class="increase" {{ disabled }}></button>
+        </div>
+    </label>
+{% endmacro %}
+
+{% macro textarea(name, label, required, value = '', options = {}) %}
+    <label class="{{ options.labelClass ?? '' }}">
+        <span>{{ _self.label(label, required) }}</span>
+        <textarea class="form-control w-100 data"
+            {{ required ? 'required' }}
+            {{ options.readonly ?? false ? 'readonly' }}
+            {{ options.disabled ?? false ? 'disabled' }}>
+            {{- value | raw -}}
+        </textarea>
+    </label>
+{% endmacro %}
+
+{% macro wysiwyg(name, label, required, value = '', options = {}) %}
+    {% set id = random(100000, 10000000) %}
+
+    <label class="wii-subtitle">{{ _self.label(label, required) }}</label>
+    <div class="data" data-wysiwyg="{{ name }}" {{ required ? 'data-required' }}>{{- value | raw -}}</div>
+{% endmacro %}

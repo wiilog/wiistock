@@ -12,7 +12,8 @@ Encore
     .setPublicPath('/build')
     .addEntry('app', './assets/js/app.js')
     .addEntry('dashboard', './assets/js/dashboard.js')
-    .addEntry('reference-article', './assets/js/reference-article.js')
+    .addEntry('reference-article', './assets/js/pages/reference-article.js')
+    .addEntry('cart', './assets/js/pages/cart.js')
     .autoProvidejQuery()
 
     // When enabled, Webpack "splits" your files into smaller pieces for greater optimization.

@@ -1,100 +1,300 @@
-let $modalAddToRequest = null;
+window.addEventListener( "pageshow", function ( event ) {
+    const historyTraversal = event.persisted ||
+        ( typeof window.performance != "undefined" &&
+            window.performance.navigation.type === 2 );
+    if ( historyTraversal ) {
+        window.location.reload();
+    }
+});
 
 $(document).ready(() => {
-    $modalAddToRequest = $('#modalAddToRequest');
 
-    $modalAddToRequest.on('hide.bs.modal', function() {
-        clearModal($modalAddToRequest);
-        $modalAddToRequest.find('.type-body').html('');
-        $('#submitAddToRequest').addClass('d-none');
+    const $addOrCreate = $(`[name="addOrCreate"]`).closest(`.wii-radio-container`);
+
+    const $purchaseRequestInfosTemplate = $(`#purchase-request-infos-template`);
+    const $emptyCart = $(`.empty-cart`);
+
+    const $existingDelivery = $(`.existing-delivery`);
+    const $existingCollect = $(`.existing-collect`);
+    const $existingPurchase = $(`.existing-purchase`);
+
+    const $createDelivery = $(`.create-delivery`);
+    const $createCollect = $(`.create-collect`);
+    const $createPurchase = $(`.create-purchase`);
+
+    const $requestTypeRadio = $(`[name="requestType"]`);
+    handleRequestTypeChange($requestTypeRadio, $addOrCreate, $existingPurchase)
+    $requestTypeRadio.on(`change`, function() {
+        handleRequestTypeChange($(this), $addOrCreate, $existingPurchase);
     });
 
-    let url = Routing.generate('cart_add_to_request', true);
+    $(`input[name="addOrCreate"][value="add"]`).on(`click`, function() {
+        $(`.sub-form`).addClass(`d-none`);
 
-    InitModal($modalAddToRequest, $('#submitAddToRequest'), url);
+        const requestType = $('input[name="requestType"]:checked').val();
+        if(requestType === "delivery"){
+            $('select[name="delivery-request"]').val("-").trigger('change');
+            $existingDelivery.removeClass('d-none');
+        } else if(requestType === "collect") {
+            $('select[name="collect-request"]').val("-").trigger('change');
+            $existingCollect.removeClass('d-none');
+        } else if(requestType === "purchase") {
+            $existingPurchase.removeClass('d-none');
+        }
+    })
 
-    const table = initDataTable(`cartTable`, {
-        responsive: true,
-        serverSide: true,
-        processing: true,
-        searching: false,
-        order: [[`label`, `desc`]],
-        ajax: {
-            url: Routing.generate(`cart_api`, true),
-            type: `POST`,
-        },
-        drawConfig: {
-            needsSearchOverride: true,
-        },
-        rowConfig: {
-            needsRowClickAction: true
-        },
-        columns: [
-            {data: `actions`, name: `actions`, title: ``, className: 'noVis', orderable: false, width: `10px`},
-            {data: `label`, name: `label`, title: `Libellé`},
-            {data: `reference`, name: `reference`, title: `Référence`},
-            {data: `supplierReference`, name: `supplierReference`, title: `Référence fournisseur`, orderable: false,},
-            {data: `type`, name: `type`, title: `Type`},
-            {data: `availableQuantity`, name: `availableQuantity`, title: `Quantité disponible`},
-        ],
+    $(`input[name="addOrCreate"][value="create"]`).on(`click`, function() {
+        $(`.sub-form`).addClass(`d-none`);
+
+        const requestType = $('input[name="requestType"]:checked').val();
+        if(requestType === "delivery"){
+            $('select[name="delivery-request"]').val("-").trigger('change');
+            $createDelivery.removeClass('d-none');
+        } else if(requestType === "collect") {
+            $('select[name="collect-request"]').val("-").trigger('change');
+            $createCollect.removeClass('d-none');
+        } else if(requestType === "purchase") {
+            $createPurchase.removeClass('d-none');
+        }
+    });
+
+    $(`select[name="existingPurchase"]`).on(`change`, function() {
+        $(`.purchase-references`).remove();
+        const requestType = $('input[name="requestType"]:checked').val();
+
+        $(`select[name="existingPurchase"]`).each(function() {
+            const $option = $(this).find(`option:not([disabled], [readonly]):selected`);
+            const id = $option.data(`value`);
+            const number = $option.data(`number`);
+            const requester = $option.data(`requester`);
+
+            if(!id || $(`.purchase-references[data-id="${id}"]`).exists()) {
+                return;
+            }
+
+            const $purchaseInfos = $($purchaseRequestInfosTemplate.html());
+            $purchaseInfos.attr(`data-number`, number)
+                .find(`.purchase-request-infos`)
+                .text(`${number} - ${requester}`);
+            $(`.selected-purchase-requests`).append($purchaseInfos);
+            toggleSelectedPurchaseRequest($existingPurchase, requestType);
+
+            initializePurchaseRequestInfos($purchaseInfos, id);
+        });
     });
 
     $(document).on(`click`, `.remove-reference`, function() {
+        const $currentButton = $(this);
         const route = Routing.generate(`cart_remove_reference`, {
-            reference: $(this).data(`id`)
+            reference: $currentButton.data(`id`)
         });
 
         $.post(route, response => {
+            $(`.remove-reference[data-id="${$currentButton.data(`id`)}"]`).each(function() {
+                const $button = $(this);
+                const $cartReferenceContainer = $button.closest(`.cart-reference-container`);
+                const $wiiBox = $cartReferenceContainer.closest('.wii-box');
+
+                $cartReferenceContainer.remove();
+
+                if ($wiiBox.exists() && !containsReferences($wiiBox)) {
+                    const $wiiBoxContainer = $wiiBox.parent();
+                    $wiiBox.remove();
+                    const $remainingWiiBoxes = $wiiBoxContainer.find('.wii-box');
+                    if ($remainingWiiBoxes.length === 0) {
+                        const $cartContentContainers = $('.wii-form > .cart-content');
+                        $cartContentContainers.addClass('d-none');
+                        $emptyCart.removeClass('d-none');
+                    }
+                }
+            });
+
             $(`.header-icon.cart`).find(`.icon-figure`).text(response.count)[response.count ? `addClass` : `removeClass`](`d-none`);
-            table.ajax.reload();
             showBSAlert(response.msg, `success`);
         });
     })
 
-    $('.request-type-container input[type="radio"]').on('click', function() {
-        retrieveAppropriateHtml($(this));
+    Form.create(`.wii-form`).onSubmit(data => {
+        const url = Routing.generate('cart_validate', true);
+        const params = JSON.stringify(data.asObject());
+        wrapLoadingOnActionButton($('.cart-content').find('button[type=submit]'), () => {
+            $.post(url, params, function (response) {
+                showBSAlert(response.msg, response.success ? 'success' : 'danger');
+                if (response.success && response.link) {
+                    window.location.href = response.link;
+                }
+            });
+        });
     });
-
-    const refsCount = $('#cart-refs-count').val();
-    if (refsCount && refsCount> 0) {
-        $('.add-cart-to-request').removeClass('d-none');
-    }
 });
 
-function onArticleSelectChange($select) {
-    const $selectedOption = $select.find('option:selected');
-    const $container = $select.parents('.row');
-    const $quantityInput = $container.find('.article-quantity');
-    const $quantityToPickInput = $container.find('input[type="number"]');
-    const quantity = $selectedOption.data('quantity');
-
-    $quantityInput.val(quantity);
-    $quantityToPickInput.attr('max', quantity);
-}
-
-function retrieveAppropriateHtml($input) {
-    const type = Number.parseInt($input.val());
-    const path = Routing.generate('cart_get_appropriate_html', {type});
-
-    $.get(path, function(response) {
-        $modalAddToRequest.find('.type-body').html(response.html);
-        if (response.count > 0) {
-            $('#submitAddToRequest').removeClass('d-none');
-        } else {
-            showBSAlert(response.message, 'danger');
-        }
+function initializePurchaseRequestInfos($purchaseInfos, id) {
+    initDataTable($purchaseInfos.find(`table`), {
+        destroy: true,
+        processing: true,
+        ajax: {
+            url: Routing.generate("purchase_api_references", true),
+            type: "POST",
+            data: {
+                purchaseId: () => id,
+            }
+        },
+        columns: [
+            {"data": "reference", "title": "Référence"},
+            {"data": "libelle", "title": "Libellé"},
+            {"data": "quantity", "title": "Quantité"},
+        ],
+        filter: false,
+        ordering: false,
+        info: false
     });
 }
 
-function onPurchaseRequestChange(){
-    const $option = $modalAddToRequest.find('option');
-    $option.removeClass('d-none');
-    const selectedOptionValues = $modalAddToRequest.find('option:selected')
-        .map((_, option) => $(option).val())
-        .toArray()
-        .filter((option) => option);
+function cartTypeChange($type) {
+    onTypeChange($type);
 
-    const notSelectedOptionSelectors = selectedOptionValues.map((value) => `[value="${value}"]:not(:selected)`).join(',');
-    const notSelectedOptions = $modalAddToRequest.find(notSelectedOptionSelectors);
-    notSelectedOptions.addClass('d-none');
+    if($type.attr(`name`) === `deliveryType`) {
+        const defaultDestinations = JSON.parse($(`#default-delivery-locations`).val());
+        const type = $type.val();
+        const $destination = $type.closest(`.wii-form`).find(`select[name=location]`);
+        const defaultDestination = defaultDestinations[type] || defaultDestinations['all'];
+
+        $destination.attr(`disabled`, !type);
+        $destination.val(null)
+        if(defaultDestination) {
+            $destination.append(new Option(defaultDestination.label, defaultDestination.id, true, true))
+        }
+
+        $destination.trigger(`change`);
+    } else if($type.attr(`name`) === `collectType`) {
+        const $destination = $type.closest(`.wii-form`).find(`select[name=location]`);
+        $destination.val(null).trigger(`change`);
+        $destination.attr(`disabled`, !$type.val());
+    }
+}
+
+function onDeliveryChanged($select) {
+    const val = $select.val();
+
+    if($select.val() !== "-") {
+        $.get(Routing.generate(`cart_delivery_data`, {request: val}), function(data) {
+            $('.delivery-comment').html(data.comment);
+        })
+
+        let pathReferences = Routing.generate("demande_api_references", true);
+        let tableDeliveryReferencesConfig = {
+            destroy: true,
+            processing: true,
+            ajax: {
+                url: pathReferences,
+                type: "POST",
+                data: {
+                    deliveryId: () => $select.val(),
+                }
+            },
+            columns: [
+                {"data": "reference", "title": "Référence"},
+                {"data": "libelle", "title": "Libellé"},
+                {"data": "quantity", "title": "Quantité"},
+            ],
+            filter: false,
+            ordering: false,
+            info: false,
+            drawConfig: {
+                hidePagingIfEmpty: true,
+            },
+        }
+        let tableDeliveryReferences = initDataTable('tableDeliveryReferences', tableDeliveryReferencesConfig);
+        $('.delivery-request-content').removeClass("d-none");
+    } else {
+        $('.delivery-request-content').addClass("d-none");
+    }
+}
+
+function onCollectChanged($select) {
+    const val = $select.val();
+
+    if($select.val() !== "-"){
+        $.get(Routing.generate(`cart_collect_data`, {request: val}), function(data) {
+            $('.collect-object').text(data.object);
+            $('.collect-destination').text(data.destination);
+            $('.collect-comment').html(data.comment);
+        })
+
+        let pathReferences = Routing.generate("collecte_api_references", true);
+        let tableCollectReferencesConfig = {
+            destroy: true,
+            processing: true,
+            paging: true,
+            ajax: {
+                url: pathReferences,
+                type: "POST",
+                data: {
+                    collectId: () => $select.val(),
+                }
+            },
+            columns: [
+                {"data": "reference", "title": "Référence"},
+                {"data": "libelle", "title": "Libellé"},
+                {"data": "quantity", "title": "Quantité"},
+            ],
+            filter: false,
+            ordering: false,
+            info: false,
+            drawConfig: {
+                hidePagingIfEmpty: true,
+            },
+        }
+        let tableCollectReferences = initDataTable('tableCollectReferences', tableCollectReferencesConfig);
+        $('.collect-request-content').removeClass("d-none");
+    } else {
+        $('.collect-request-content').addClass("d-none");
+    }
+}
+function handleRequestTypeChange($requestType, $addOrCreate, $existingPurchase) {
+
+    const $cartContentContainers = $('.wii-form > .cart-content');
+    $cartContentContainers.addClass('d-none');
+
+    $cartContentContainers
+        .find('.data')
+        .addClass("data-save")
+        .removeClass('data');
+
+    $(`.sub-form`).addClass(`d-none`);
+    $('input[name="addOrCreate"]').prop(`checked`, false);
+
+    const requestType = $requestType.val();
+
+    const $cartContentToShow = $cartContentContainers.filter(`[data-request-type="${requestType}"]`);
+
+    if (containsReferences($cartContentToShow)) {
+        $cartContentToShow.removeClass('d-none');
+
+        $cartContentToShow
+            .find('.data-save')
+            .removeClass("data-save")
+            .addClass('data');
+
+        $('.cart-content[data-request-type=purchase] input[type="number"]').each(function(){
+            $(this).prop('required', !$(this).is(':disabled'));
+        })
+
+        if (requestType === "delivery" || requestType === "collect") {
+            $addOrCreate.removeClass('d-none');
+        } else if (requestType === "purchase") {
+            $addOrCreate.addClass('d-none');
+        }
+
+        toggleSelectedPurchaseRequest($existingPurchase, requestType);
+    }
+}
+
+function toggleSelectedPurchaseRequest($existingPurchase, requestType) {
+    $existingPurchase.toggleClass(`d-none`, (requestType !== "purchase") || ($('.selected-purchase-requests').children().length === 0));
+}
+
+function containsReferences($container) {
+    const $cartReferenceContainers = $container.find(`.cart-reference-container`);
+    return ($cartReferenceContainers.length > 0);
 }

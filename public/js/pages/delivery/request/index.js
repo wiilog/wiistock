@@ -1,4 +1,5 @@
 let editorNewLivraisonAlreadyDone = false;
+let deliveryRequestTable = null;
 
 $(function () {
     $('.select2').select2();
@@ -75,63 +76,61 @@ function initPageModals(tableDemande) {
 }
 
 function initPageDatatable() {
-    let pathDemande = Routing.generate('demande_api', true);
-    let tableDemandeConfig = {
-        serverSide: true,
-        processing: true,
-        order: [['Date', 'desc']],
-        ajax: {
-            "url": pathDemande,
-            "type": "POST",
-            'data' : {
-                'filterStatus': $('#filterStatus').val(),
-                'filterReception': $('#receptionFilter').val()
-            },
-        },
-        drawConfig: {
-            needsSearchOverride: true,
-        },
-        rowConfig: {
-            needsRowClickAction: true,
-        },
-        columns: [
-            {data: 'Actions', name: 'Actions', title: '', className: 'noVis', orderable: false, width: '10px'},
-            {data: 'pairing', name: '', title: '', className: 'pairing-row', orderable: false},
-            {data: 'Date', name: 'Date', title: 'Date'},
-            {data: 'Demandeur', name: 'Demandeur', title: 'Demandeur'},
-            {data: 'Numéro', name: 'Numéro', title: 'Numéro'},
-            {data: 'Statut', name: 'Statut', title: 'Statut'},
-            {data: 'Type', name: 'Type', title: 'Type'},
-        ],
-        columnDefs: [
-            {
-                type: "customDate",
-                targets: 1
-            }
-        ],
+    const deliveryRequestPath = Routing.generate('demande_api', true);
+    return $
+        .get(Routing.generate('delivery_request_api_columns'))
+        .then((columns) => {
+            let deliveryRequestTableConfig = {
+                serverSide: true,
+                processing: true,
+                order: [['createdAt', 'desc']],
+                ajax: {
+                    "url": deliveryRequestPath,
+                    "type": "POST",
+                    'data': {
+                        'filterStatus': $('#filterStatus').val(),
+                        'filterReception': $('#receptionFilter').val()
+                    },
+                },
+                drawConfig: {
+                    needsSearchOverride: true,
+                },
+                rowConfig: {
+                    needsRowClickAction: true,
+                },
+                columns,
+                hideColumnConfig: {
+                    columns,
+                    tableFilter: 'table_demande'
+                },
+                columnDefs: [
+                    {
+                        type: "customDate",
+                        targets: 1
+                    }
+                ],
+                page: 'deliveryRequest',
+            };
 
-    };
+            deliveryRequestTable = initDataTable('table_demande', deliveryRequestTableConfig);
 
-    const tableDemande = initDataTable('table_demande', tableDemandeConfig);
+            $.fn.dataTable.ext.search.push(
+                function (settings, data) {
+                    let dateMin = $('#dateMin').val();
+                    let dateMax = $('#dateMax').val();
+                    let indexDate = deliveryRequestTable.column('date:name').index();
 
-    $.fn.dataTable.ext.search.push(
-        function (settings, data) {
-            let dateMin = $('#dateMin').val();
-            let dateMax = $('#dateMax').val();
-            let indexDate = tableDemande.column('Date:name').index();
+                    if (typeof indexDate === "undefined") return true;
 
-            if (typeof indexDate === "undefined") return true;
+                    let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
 
-            let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
-
-            return (
-                (dateMin == "" && dateMax == "")
-                || (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
-                || (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
-                || (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
+                    return (
+                        (dateMin === "" && dateMax === "")
+                        || (dateMin === "" && moment(dateInit).isSameOrBefore(dateMax))
+                        || (moment(dateInit).isSameOrAfter(dateMin) && dateMax === "")
+                        || (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
+                    );
+                }
             );
-        }
-    );
-
-    return tableDemande;
+        });
 }

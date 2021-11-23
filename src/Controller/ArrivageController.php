@@ -26,6 +26,7 @@ use App\Entity\Utilisateur;
 use App\Service\DashboardService;
 use App\Service\GlobalParamService;
 use App\Service\MailerService;
+use App\Service\VisibleColumnService;
 use WiiCommon\Helper\Stream;
 use App\Service\ArrivageService;
 use App\Service\AttachmentService;
@@ -441,6 +442,7 @@ class ArrivageController extends AbstractController {
      * @HasPermission({Menu::TRACA, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function edit(Request                $request,
+                         SpecificService        $specificService,
                          ArrivageService        $arrivageDataService,
                          FreeFieldService       $champLibreService,
                          EntityManagerInterface $entityManager): Response
@@ -456,8 +458,8 @@ class ArrivageController extends AbstractController {
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
 
         $post = $request->request;
-        $isSEDCurrentClient = $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)
-            || $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_NS);
+        $isSEDCurrentClient = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)
+            || $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_NS);
 
         $arrivage = $arrivageRepository->find($post->get('id'));
 
@@ -758,7 +760,7 @@ class ArrivageController extends AbstractController {
 
         $now = new DateTime('now');
 
-        $disputeNumber = $uniqueNumberService->createUniqueNumber($entityManager, Dispute::DISPUTE_ARRIVAL_PREFIX, Dispute::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
+        $disputeNumber = $uniqueNumberService->create($entityManager, Dispute::DISPUTE_ARRIVAL_PREFIX, Dispute::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 
         $dispute = new Dispute();
         $dispute
@@ -1366,30 +1368,23 @@ class ArrivageController extends AbstractController {
      * @Route("/colonne-visible", name="save_column_visible_for_arrivage", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI}, mode=HasPermission::IN_JSON)
      */
-    public function saveColumnVisible(Request $request, EntityManagerInterface $entityManager): Response
+    public function saveColumnVisible(Request $request,
+                                      EntityManagerInterface $entityManager,
+                                      VisibleColumnService $visibleColumnService): Response
     {
         $data = json_decode($request->getContent(), true);
 
-        $champs = array_keys($data);
-        $user = $this->getUser();
-        /** @var $user Utilisateur */
-        $champs[] = "actions";
-        $user->setColumnsVisibleForArrivage($champs);
-        $entityManager->flush();
-
-        return new JsonResponse();
-    }
-
-    /**
-     * @Route("/colonne-visible", name="get_column_visible_for_arrivage", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI}, mode=HasPermission::IN_JSON)
-     */
-    public function getColumnVisible(): Response
-    {
+        $fields = array_keys($data);
         /** @var Utilisateur $user */
         $user = $this->getUser();
 
-        return new JsonResponse($user->getColumnsVisibleForArrivage());
+        $visibleColumnService->setVisibleColumns('arrival', $fields, $user);
+        $entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'msg' => 'Vos préférences de colonnes à afficher ont bien été sauvegardées'
+        ]);
     }
 
     /**

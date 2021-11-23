@@ -8,6 +8,7 @@ use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\Fournisseur;
@@ -17,7 +18,7 @@ use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use WiiCommon\Helper\StringHelper;
+use WiiCommon\Helper\Stream;
 use App\Service\AttachmentService;
 use App\Service\ImportService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -134,7 +135,8 @@ class ImportController extends AbstractController
                         Import::ENTITY_FOU => Fournisseur::class,
                         Import::ENTITY_ART_FOU => ArticleFournisseur::class,
                         Import::ENTITY_RECEPTION => Reception::class,
-                        Import::ENTITY_USER => Utilisateur::class
+                        Import::ENTITY_USER => Utilisateur::class,
+                        Import::ENTITY_DELIVERY => Demande::class
                     ];
                     $attributes = $entityManager->getClassMetadata($entityCodeToClass[$entity]);
 
@@ -177,9 +179,11 @@ class ImportController extends AbstractController
                         'rechercheForArticle',
                         'recherche',
                         'roles',
+                        'createdAt',
+                        'validatedAt',
                     ];
 
-                    $fieldNames = array_diff($attributes->getFieldNames(), $fieldsToHide);
+                    $fieldNames = $attributes->getFieldNames();
                     switch ($entity) {
                         case Import::ENTITY_ART:
                             $categoryCL = CategorieCL::ARTICLE;
@@ -188,6 +192,7 @@ class ImportController extends AbstractController
                             break;
                         case Import::ENTITY_REF:
                             $categoryCL = CategorieCL::REFERENCE_ARTICLE;
+                            $fieldsToHide = Stream::from($fieldsToHide)->filter(fn(string $field) => $field !== 'reference')->toArray();
                             $fieldsToAdd = ['type', 'emplacement', 'catégorie d\'inventaire', 'statut', 'reference', 'managers', 'buyer', 'visibilityGroups'];
                             $fieldNames = array_merge($fieldNames, $fieldsToAdd);
                             break;
@@ -203,8 +208,14 @@ class ImportController extends AbstractController
                             $fieldsToAdd = ['role', 'secondaryEmail', 'lastEmail', 'phone', 'mobileLoginKey', 'address', 'deliveryTypes', 'dispatchTypes', 'handlingTypes', 'dropzone', 'visibilityGroup'];
                             $fieldNames = array_merge($fieldNames, $fieldsToAdd);
                             break;
+                        case Import::ENTITY_DELIVERY:
+                            $categoryCL = CategorieCL::DEMANDE_LIVRAISON;
+                            $fieldsToHide = array_merge($fieldsToHide, ['numero', 'filled']);
+                            $fieldsToAdd = ['articleReference', 'quantityDelivery', 'articleCode', 'status', 'type', 'requester', 'destination'];
+                            $fieldNames = array_merge($fieldNames, $fieldsToAdd);
+                            break;
                     }
-
+                    $fieldNames = array_diff($fieldNames, $fieldsToHide);
                     $fields = [];
                     foreach ($fieldNames as $fieldName) {
                         $fields[$fieldName] = Import::FIELDS_ENTITY[$fieldName] ?? $fieldName;
@@ -290,6 +301,13 @@ class ImportController extends AbstractController
 		unset($data['importId']);
 
 		$import = $importRepository->find($importId);
+        if(!$import) {
+            return $this->json([
+                "success" => false,
+                "msg" => "Une erreur est survenue lors de la création de l'import",
+            ]);
+        }
+
         $import->setColumnToField($data);
         $this->getDoctrine()->getManager()->flush();
 

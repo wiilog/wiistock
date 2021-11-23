@@ -83,7 +83,7 @@ class ReceptionService
             $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_RECEPTION, $user);
         }
 
-        $queryResult = $receptionRepository->findByParamAndFilters($params, $filters);
+        $queryResult = $receptionRepository->findByParamAndFilters($params, $filters, $user);
 
         $receptions = $queryResult['data'];
 
@@ -130,7 +130,7 @@ class ReceptionService
         $reception = new Reception();
         $date = new DateTime('now');
 
-        $numero = $this->uniqueNumberService->createUniqueNumber($entityManager, Reception::PREFIX_NUMBER, Reception::class, UniqueNumberService::DATE_COUNTER_FORMAT_RECEPTION);
+        $numero = $this->uniqueNumberService->create($entityManager, Reception::PREFIX_NUMBER, Reception::class, UniqueNumberService::DATE_COUNTER_FORMAT_RECEPTION);
 
         if(!empty($data['fournisseur'])) {
             if($fromImport) {
@@ -278,10 +278,9 @@ class ReceptionService
         ];
     }
 
-    public function getColumnVisibleConfig(EntityManagerInterface $entityManager,
-                                           Utilisateur $currentUser): array {
+    public function getColumnVisibleConfig(Utilisateur $currentUser): array {
 
-        $columnsVisible = $currentUser->getColumnsVisibleForReception();
+        $columnsVisible = $currentUser->getVisibleColumns()['reception'];
         $columns = [
             ['name' => "Actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true],
             ["title" => "Date création", "name" => "Date", 'searchable' => true],

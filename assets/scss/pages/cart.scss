@@ -1,0 +1,104 @@
+@import "../variables";
+
+
+.empty-cart {
+    & > .wii-box {
+        height: calc(100% - #{$grid-gutter-width / 2});
+        & > .row {
+            height: 100%;
+
+            .empty-cart-icon-container {
+                background-color: #e8e8e8;
+                width: 120px;
+                height: 120px;
+
+                .wii-icon {
+                    display: block;
+                    background-color: $black;
+                    width: 80px;
+                    height: 80px;
+                    opacity: 0.35;
+                }
+            }
+        }
+    }
+}
+
+
+.cart-reference-container {
+    display: flex;
+    margin: 10px 5px;
+
+    .cart-reference {
+        position: relative;
+        flex: 1;
+        display: flex;
+        flex-direction: row;
+        border: 1px solid var(--reference-color);
+        border-radius: 5px;
+
+        .cart-reference-type {
+            color: white;
+            background: var(--reference-color);
+            font-weight: bold;
+            font-size: 0.8rem;
+            text-align: center;
+            text-transform: uppercase;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            border-top-right-radius: 5px;
+            border-bottom-right-radius: 5px;
+            margin: -1px 0 -1px -1px !important;
+        }
+
+        .cart-reference-infos, .cart-reference-current-quantity, .cart-reference-quantity {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            margin: 20px 0;
+            padding: 0 20px;
+
+            &:not(:last-child) {
+                border-right: 1px solid $greyFormLight;
+            }
+
+            & .increase-decrease-field {
+                width: 60%;
+            }
+        }
+
+        .cart-reference-quantity {
+            max-width: 180px;
+        }
+
+        .wii-icon-stock {
+            color: $primary;
+            width: 15px;
+            height: 15px;
+        }
+    }
+
+    .remove-reference {
+        border: 1px solid $primary;
+        background: none;
+        padding: 4px;
+        margin-left: 3px;
+        border-radius: 5px;
+
+        .wii-icon-trash {
+            display: block;
+            background-color: $primary;
+            width: 20px;
+            height: 20px;
+        }
+    }
+}
+
+#tableDeliveryReferences td, #tableCollectReferences td {
+    font-size: 13px !important;
+}
+
+.wii-radio label {
+    font-size: 16px;
+}

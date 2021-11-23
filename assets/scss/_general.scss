@@ -146,24 +146,8 @@ a {
 
 //// COLORS ////
 
-.backDarkRed {
-    background-color: $redDark !important;
-}
-
-.backgreen {
-    background-color: $green !important;
-}
-
-.backblue {
-    background-color: $blueGT !important;
-}
-
-.backgrey {
-    background-color: $grey !important;
-}
-
 .backGreyFormLight {
-    background-color: $greyFormLight !important;
+    background-color: #e9ecef !important;
 }
 
 .red {
@@ -256,11 +240,28 @@ a {
 }
 
 //  reprise du form-control.is-invalid de bootstrap
-.is-invalid {
-    border: 2px solid #dc3545 !important;
+.is-invalid:not(label, .wii-radio, .wii-checkbox) {
+    border: 1px solid #dc3545 !important;
     background-repeat: no-repeat;
     background-position: center right calc(2.25rem / 4);
     background-size: calc(2.25rem / 2) calc(2.25rem / 2);
+
+    .select2-selection {
+        border: 1px solid red !important;
+    }
+}
+
+label.is-invalid, .wii-radio.is-invalid, .wii-checkbox.is-invalid {
+    input:not([type=radio]) {
+        border: 1px solid #dc3545 !important;
+        background-repeat: no-repeat;
+        background-position: center right calc(2.25rem / 4);
+        background-size: calc(2.25rem / 2) calc(2.25rem / 2);
+    }
+
+    input[type=radio] {
+        --radio-color: #dc3545 !important;
+    }
 
     .select2-selection {
         border: 1px solid red !important;
@@ -331,7 +332,7 @@ select.is-invalid {
 }
 
 .bg-primary-followgt {
-    background: rgb(46,84,146);
+    background: rgb(46, 84, 146);
     background: linear-gradient(-64deg, $backgroundBodyColorDark, #2e5391);
 }
 
@@ -360,7 +361,7 @@ label.required:after {
     }
 }
 
-.popover{
+.popover {
     max-width: 100%;
 }
 
@@ -395,7 +396,7 @@ label.required:after {
 }
 
 .stripped-blue-background {
-    background: repeating-linear-gradient( 45deg, #d6d6d6, #d6d6d6 10px, #606dbc 10px, #606dbc 20px);
+    background: repeating-linear-gradient(45deg, #d6d6d6, #d6d6d6 10px, #606dbc 10px, #606dbc 20px);
 }
 
 .overflow-y-hidden {
@@ -506,16 +507,17 @@ label.required:after {
 
 .wii-icon-iot-article, .wii-icon-iot-location, .wii-icon-iot-pack {
     background-color: white;
-    width:15px;
+    width: 15px;
     height: 15px;
-    display:inline-block;
+    display: inline-block;
 }
 
 .wii-icon-pairing {
     background-color: $blueGT;
-    width:15px;
+    width: 15px;
     height: 15px;
-    display:inline-block;
+    display: inline-block;
+
     .dropdown-item:active & {
         background-color: $white;
     }
@@ -572,15 +574,153 @@ label.required:after {
 
 @keyframes spin {
     from {
-        transform:rotate(0deg);
+        transform: rotate(0deg);
     }
     to {
-        transform:rotate(360deg);
+        transform: rotate(360deg);
     }
 }
 
 $blue: #3353D7;
 $grey: #CBCBCB;
+
+.wii-form {
+    label {
+        vertical-align: middle;
+        font-size: 14px;
+        color: black;
+        font-weight: bold;
+
+        &:not(:first-child) {
+            margin-top: 7px;
+        }
+
+        &:not(.switch) {
+            width: 100%;
+        }
+
+        .select2, .select2-container {
+            font-weight: normal;
+            width: 100%;
+        }
+
+        input[type="checkbox"] {
+            margin-right: 7px;
+            width: 20px;
+            height: 20px;
+            border-radius: 5px;
+        }
+
+        input, .select2.select2-container {
+            margin-top: 5px;
+        }
+
+        input[type="radio"] {
+            margin-top: 0px;
+        }
+    }
+
+    label.with-checkbox {
+        display: flex;
+        align-items: center;
+        font-weight: normal;
+        margin-top: 14px;
+    }
+
+    .increase-decrease-field .increase, .increase-decrease-field .decrease {
+        border-color: $blue;
+        color: $blue;
+    }
+
+    .content {
+        padding: 16px 20px;
+    }
+}
+
+.wii-column {
+    width: 1200px;
+    margin-top: 30px;
+    margin-bottom: 30px;
+
+    @media (max-width: $responsive-breakpoint) {
+        width: calc(100% - 20px);
+    }
+}
+
+.wii-large-column {
+    width: 90%;
+    margin-top: 30px;
+    margin-bottom: 30px;
+
+    @media (max-width: 1360px) {
+        width: 100%;
+    }
+}
+
+.wii-box {
+    background: white;
+    border-radius: 5px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+    margin-top: $grid-gutter-width / 2;
+
+    .type-container {
+        height: 20px;
+    }
+
+    .header {
+        padding: 16px 20px;
+        border-bottom: 1px solid $grey;
+    }
+
+    .content {
+        padding: 16px;
+
+        .box-item {
+            display: grid;
+        }
+
+        .section {
+            margin: 10px -16px 0;
+            background: #F2F3F7;
+            color: black;
+            font-weight: bold;
+            font-size: 0.9rem;
+            padding: 3px 20px;
+        }
+
+        .display-comment {
+            margin: 10px -16px 0;
+            padding: 10px 15px;
+            background-color: #E8E8E8;
+            color: black;
+            font-size: 0.9rem;
+
+            .comment-title {
+                display: block;
+                margin-bottom: 5px;
+                color: $darkGrey;
+                font-weight: bold;
+            }
+
+            img {
+                max-width: 100%;
+            }
+        }
+
+        .delivery-references, .collect-references, .purchase-references {
+            margin: 10px -16px 0;
+            padding: 10px 15px;
+            font-size: 0.9rem;
+
+            .references-title {
+                display: block;
+                margin-bottom: 5px;
+                color: $darkGrey;
+                font-weight: bold;
+            }
+        }
+    }
+}
 
 .wii-title {
     color: $blue;
@@ -589,8 +729,14 @@ $grey: #CBCBCB;
 }
 
 .wii-subtitle {
-    color: #666666;
-    font-size: 14px;
+    color: #666666 !important;
+    font-size: 14px !important;
+    font-weight: bold !important;
+}
+
+.wii-label {
+    color: #000000;
+    font-size: 18px;
     font-weight: bold;
 }
 
@@ -627,7 +773,12 @@ $grey: #CBCBCB;
     color: #666666;
     font-size: 12px;
 }
+
 .wii-medium-text {
     color: #666666;
     font-size: 14px;
+}
+
+.nowrap {
+    white-space: nowrap;
 }

@@ -25,6 +25,7 @@ class Import
     const ENTITY_ART_FOU = 'ART_FOU';
     const ENTITY_RECEPTION = 'RECEP';
     const ENTITY_USER = 'USER';
+    const ENTITY_DELIVERY = 'DELIVERY';
 
     const ENTITY_LABEL = [
         self::ENTITY_ART=>"Articles",
@@ -33,6 +34,7 @@ class Import
         self::ENTITY_RECEPTION => "Réceptions",
         self::ENTITY_ART_FOU => "Articles fournisseurs",
         self::ENTITY_USER => "Utilisateurs",
+        self::ENTITY_DELIVERY => "Livraisons",
     ];
 
 	const FIELDS_NEEDED = [
@@ -68,6 +70,13 @@ class Import
             'username',
             'email',
             'status',
+        ],
+        self::ENTITY_DELIVERY => [
+            'destination',
+            'type',
+            'status',
+            'articleReference',
+            'quantityDelivery',
         ]
     ];
 
@@ -78,6 +87,7 @@ class Import
         self::ENTITY_REF => 'reference',
         self::ENTITY_RECEPTION => null,
         self::ENTITY_USER => null,
+        self::ENTITY_DELIVERY => null,
     ];
 
 	const FIELDS_ENTITY = [
@@ -133,6 +143,10 @@ class Import
         'dropzone' => 'Dropzone',
         'visibilityGroup' => 'Groupes de visibilité',
         'status' => 'Statut',
+        'quantityDelivery' => 'Quantité à livrer',
+        'articleCode' => 'Code article',
+        'articleReference' => 'Référence',
+        'requester' => 'Demandeur'
 	];
 
 	public CONST IMPORT_FIELDS_TO_FIELDS_PARAM = [

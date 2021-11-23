@@ -5,6 +5,7 @@ namespace App\Service;
 
 use App\Entity\FiltreSup;
 use App\Entity\PurchaseRequest;
+use App\Entity\PurchaseRequestLine;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
@@ -135,7 +136,7 @@ class PurchaseRequestService
                                           ?Utilisateur $buyer = null): PurchaseRequest {
         $now =  new DateTime("now");
         $purchase = new PurchaseRequest();
-        $purchaseRequestNumber = $this->uniqueNumberService->createUniqueNumber($entityManager, PurchaseRequest::NUMBER_PREFIX, PurchaseRequest::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
+        $purchaseRequestNumber = $this->uniqueNumberService->create($entityManager, PurchaseRequest::NUMBER_PREFIX, PurchaseRequest::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
         $purchase
             ->setCreationDate($now)
             ->setStatus($status)
@@ -190,5 +191,28 @@ class PurchaseRequestService
                 );
             }
         }
+    }
+
+    public function getDataForReferencesDatatable($params = null) {
+        $demande = $this->em->find(PurchaseRequest::class, $params);
+        $referenceLines = $demande->getPurchaseRequestLines();
+
+        $rows = [];
+        foreach ($referenceLines as $referenceLine) {
+            $rows[] = $this->dataRowReference($referenceLine);
+        }
+
+        return [
+            'data' => $rows,
+            'recordsTotal' => count($rows),
+        ];
+    }
+
+    public function dataRowReference(PurchaseRequestLine $line) {
+        return [
+            'reference' => $line->getReference()->getReference(),
+            'libelle' => $line->getReference()->getLibelle(),
+            'quantity' => $line->getRequestedQuantity(),
+        ];
     }
 }
