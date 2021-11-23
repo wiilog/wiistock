@@ -219,7 +219,7 @@ class CollecteController extends AbstractController
             $status = $statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_BROUILLON);
             $numero = 'C-' . $date->format('YmdHis');
             $collecte = new Collecte();
-            $destination = ($data['destination'] == 0) ? false : true;
+            $destination = $data['destination'] == 0 ? Collecte::DESTRUCT_STATE : Collecte::STOCKPILLING_STATE;
             $type = $typeRepository->find($data['type']);
 
             $collecte
@@ -456,7 +456,7 @@ class CollecteController extends AbstractController
 			if ($requiredEdit) {
 				$collecte = $collecteRepository->find($data['collecte']);
 				$pointCollecte = $emplacementRepository->find($data['Pcollecte']);
-				$destination = ($data['destination'] == 0) ? false : true;
+				$destination = $data['destination'] == 0 ? Collecte::DESTRUCT_STATE : Collecte::STOCKPILLING_STATE;
 
 				$type = $typeRepository->find($data['type']);
 				$collecte

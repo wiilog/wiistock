@@ -28,6 +28,9 @@ class Collecte implements Serializable, PairedEntity {
     const STATUT_A_TRAITER = 'à traiter';
     const STATUT_BROUILLON = 'brouillon';
 
+    const DESTRUCT_STATE = 0;
+    const STOCKPILLING_STATE = 1;
+
     use CommentTrait;
     use SensorMessageTrait;
     use FreeFieldsManagerTrait;
