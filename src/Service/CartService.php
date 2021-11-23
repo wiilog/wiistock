@@ -15,6 +15,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use WiiCommon\Helper\Stream;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -44,6 +45,9 @@ class CartService {
 
     /** @Required */
     public PurchaseRequestService $purchaseRequestService;
+
+    /** @Required */
+    public UniqueNumberService $uniqueNumberService;
 
     private function emptyCart(Cart $cart, ?array $referencesToRemove = null): void {
         if ($referencesToRemove) {
@@ -162,10 +166,16 @@ class CartService {
                 CategorieStatut::DEM_LIVRAISON,
                 Demande::STATUT_BROUILLON
             );
+            $number = $this->uniqueNumberService->create(
+                $manager,
+                Demande::PREFIX_NUMBER,
+                Demande::class,
+                UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT
+            );
             $deliveryRequest = new Demande();
 
             $deliveryRequest
-                ->setNumero($this->demandeLivraisonService->generateNumeroForNewDL($manager))
+                ->setNumero($number)
                 ->setUtilisateur($user)
                 ->setType($type)
                 ->setFilled(false)
@@ -178,7 +188,16 @@ class CartService {
 
             $this->addReferencesToCurrentUserCart($manager, $user, $deliveryRequest, $cartContent);
 
-            $manager->flush();
+            try {
+                $manager->flush();
+            }
+            /** @noinspection PhpRedundantCatchClauseInspection */
+            catch (UniqueConstraintViolationException $e) {
+                return [
+                    'success' => false,
+                    'msg' => 'Une autre demande de livraison est en cours de création, veuillez réessayer.'
+                ];
+            }
 
             $link = $this->router->generate('demande_show', ['id' => $deliveryRequest->getId()]);
             $msg = "Les references ont bien été ajoutées dans une nouvelle demande de livraison";

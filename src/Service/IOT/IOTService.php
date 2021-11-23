@@ -233,7 +233,12 @@ class IOTService
                                                 SensorWrapper $wrapper,
                                                 DeliveryRequestTemplate $requestTemplate): Demande {
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
-        $numero = $this->demandeLivraisonService->generateNumeroForNewDL($entityManager);
+        $number = $this->uniqueNumberService->create(
+            $entityManager,
+            Demande::PREFIX_NUMBER,
+            Demande::class,
+            UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT
+        );
         $date = new DateTime('now');
 
         $request = new Demande();
@@ -244,7 +249,7 @@ class IOTService
             ->setTriggeringSensorWrapper($wrapper)
             ->setType($requestTemplate->getRequestType())
             ->setDestination($requestTemplate->getDestination())
-            ->setNumero($numero)
+            ->setNumero($number)
             ->setFreeFields($requestTemplate->getFreeFields());
 
         foreach ($requestTemplate->getLines() as $requestTemplateLine) {
