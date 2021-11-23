@@ -57,7 +57,7 @@ $wii-switch-height: 38px;
         appearance: none;
         -moz-appearance: none;
         outline: 0;
-        padding: 0 15px;
+        padding: 0 1px;
         border-radius: 0;
         color: $black;
         height: $wii-switch-height;
@@ -65,7 +65,7 @@ $wii-switch-height: 38px;
         margin: -1px 0 0 !important;
         font-weight: normal;
         transition: all 200ms linear;
-        font-size: 1rem;
+        font-size: 0.8rem;
 
         .wii-icon {
             display:inline-block;

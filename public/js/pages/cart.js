@@ -132,7 +132,6 @@ function initializePurchaseRequestInfos($purchaseInfos, id) {
     initDataTable($purchaseInfos.find(`table`), {
         destroy: true,
         processing: true,
-        paging: true,
         ajax: {
             url: Routing.generate("purchase_api_references", true),
             type: "POST",
@@ -157,7 +156,7 @@ function cartTypeChange($type) {
     if($type.attr(`name`) === `deliveryType`) {
         const defaultDestinations = JSON.parse($(`#default-delivery-locations`).val());
         const type = $type.val();
-        const $destination = $type.closest(`.wii-form`).find(`select[name=destination]`);
+        const $destination = $type.closest(`.wii-form`).find(`select[name=location]`);
         const defaultDestination = defaultDestinations[type] || defaultDestinations['all'];
 
         $destination.attr(`disabled`, !type);
@@ -186,7 +185,6 @@ function onDeliveryChanged($select) {
         let tableDeliveryReferencesConfig = {
             destroy: true,
             processing: true,
-            paging: true,
             ajax: {
                 url: pathReferences,
                 type: "POST",
@@ -201,7 +199,10 @@ function onDeliveryChanged($select) {
             ],
             filter: false,
             ordering: false,
-            info: false
+            info: false,
+            drawConfig: {
+                hidePagingIfEmpty: true,
+            },
         }
         let tableDeliveryReferences = initDataTable('tableDeliveryReferences', tableDeliveryReferencesConfig);
         $('.delivery-request-content').removeClass("d-none");
@@ -239,7 +240,10 @@ function onCollectChanged($select) {
             ],
             filter: false,
             ordering: false,
-            info: false
+            info: false,
+            drawConfig: {
+                hidePagingIfEmpty: true,
+            },
         }
         let tableCollectReferences = initDataTable('tableCollectReferences', tableCollectReferencesConfig);
         $('.collect-request-content').removeClass("d-none");
