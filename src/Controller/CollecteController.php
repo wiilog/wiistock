@@ -464,7 +464,6 @@ class CollecteController extends AbstractController
 					->setCommentaire($data['commentaire'])
 					->setObjet(substr($data['objet'], 0, 255))
 					->setPointCollecte($pointCollecte)
-                    ->setFilled(true)
 					->setType($type)
 					->setstockOrDestruct($destination);
 				$entityManager->flush();

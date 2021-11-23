@@ -168,7 +168,6 @@ class CartService {
                 ->setNumero($this->demandeLivraisonService->generateNumeroForNewDL($manager))
                 ->setUtilisateur($user)
                 ->setType($type)
-                ->setFilled(false)
                 ->setCreatedAt(new DateTime('now'))
                 ->setDestination($destination)
                 ->setStatut($draft);
