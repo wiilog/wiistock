@@ -55,9 +55,7 @@ function initDatatable() {
         columns: [
             {data: `Actions`, name: `Actions`, title: ``, className: `noVis`, orderable: false},
             {data: `creationDate`, name: `creationDate`, title: `Date`},
-            {data: `pack`, name: `pack`, title: `Colis`},
-            {data: `lastLocation`, name: `lastLocation`, title: `Dernier emplacement`},
-            {data: `lastMovementDate`, name: `lastMovementDate`, title: `Date dernier mouvement`},
+            {data: `packCode`, name: `pack`, title: `Colis`},
             {data: `receptionNumber`, name: `receptionNumber`, title: `réception.Réception`, translated: true},
             {data: `user`, name: `user`, title: `Utilisateur`},
         ],
@@ -73,8 +71,11 @@ function initModals(tableReceiptAssociation) {
         tables: [tableReceiptAssociation],
         keepModal: true,
         clearOnClose: true,
+        keepForm: true,
         success: () => {
             $('#beep')[0].play();
+            clearModal(modalNewReceiptAssociation);
+            $('input[name=packCode]').trigger('focus');
         }
     });
 
@@ -106,7 +107,7 @@ function toggleArrivage(button) {
         $firstPackCodeInput.val('')
         $firstPackCodeInput.removeClass('needed');
 
-        $packCodeContainers.addClass('d-none');
+        $packCodeContainers.parent().addClass('d-none');
         button.text('Avec arrivage');
 
         $packCodeInputs.removeClass('data-array');
@@ -114,7 +115,7 @@ function toggleArrivage(button) {
         $packCodeContainers.find('input').each(function () {
             $(this).addClass('needed');
         });
-        $packCodeContainers.removeClass('d-none');
+        $packCodeContainers.parent().removeClass('d-none');
         button.text('Sans arrivage');
         $packCodeInputs.addClass('data-array');
     }

@@ -138,12 +138,6 @@ class Pack implements PairedEntity
      */
     private Collection $pairings;
 
-    /**
-     * @ORM\OneToMany(targetEntity=ReceiptAssociation::class, mappedBy="pack")
-     */
-    private Collection $receiptAssociations;
-
-
     public function __construct() {
         $this->disputes = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
@@ -153,7 +147,6 @@ class Pack implements PairedEntity
         $this->childTrackingMovements = new ArrayCollection();
         $this->pairings = new ArrayCollection();
         $this->sensorMessages = new ArrayCollection();
-        $this->receiptAssociations = new ArrayCollection();
     }
 
     public function getId(): ?int
