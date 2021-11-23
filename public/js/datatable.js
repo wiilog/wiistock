@@ -215,7 +215,7 @@ function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, 
 
     if(hidePagingIfEmpty) {
         const data = table.rows().data();
-        $table.parents('.dataTables_wrapper').find(`.dataTables_paginate`).toggleClass(`d-none`, !data || data.length < 10);
+        $table.parents('.dataTables_wrapper').find(`.dataTables_paginate, .dataTables_length`).toggleClass(`d-none`, !data || data.length < 10);
     }
     if (callback) {
         callback();

@@ -146,7 +146,10 @@ function initializePurchaseRequestInfos($purchaseInfos, id) {
         ],
         filter: false,
         ordering: false,
-        info: false
+        info: false,
+        drawConfig: {
+            hidePagingIfEmpty: true,
+        },
     });
 }
 
