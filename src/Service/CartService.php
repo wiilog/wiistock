@@ -156,7 +156,7 @@ class CartService {
             $msg = "Les références ont bien été ajoutées dans la demande existante";
         } else if ($data['addOrCreate'] === "create") {
             $statutRepository = $manager->getRepository(Statut::class);
-            $destination = $manager->find(Emplacement::class, $data['destination']);
+            $destination = $manager->find(Emplacement::class, $data['location']);
             $type = $manager->find(Type::class, $data['deliveryType']);
             $draft = $statutRepository->findOneByCategorieNameAndStatutCode(
                 CategorieStatut::DEM_LIVRAISON,
