@@ -385,14 +385,14 @@ class ArticleController extends AbstractController
                  */
                 $lastPreparationOrderLine = $preparationOrderLines->last();
 
-                $isNotUsedInAssoc = ($articlesMvtTracaIsEmpty && $articlesMvtStockIsEmpty && $lastDeliveryRequestLine && $lastPreparationOrderLine);
+                $isNotUsedInAssoc = ($articlesMvtTracaIsEmpty && $articlesMvtStockIsEmpty && !$lastDeliveryRequestLine && !$lastPreparationOrderLine);
 
                 if (($hasRightToDeleteTraca || $articlesMvtTracaIsEmpty)
                     && ($hasRightToDeleteStock || $articlesMvtStockIsEmpty)
                     && ($hasRightToDeleteRequests || $lastDeliveryRequestLine)
                     && ($hasRightToDeleteOrders || $lastPreparationOrderLine)) {
                     return new JsonResponse([
-                        'delete' => $isFromReception || $isNotUsedInAssoc,
+                        'delete' => ($isFromReception || $isNotUsedInAssoc),
                         'html' => $this->renderView('article/modalDeleteArticleRight.html.twig', [
                             'prepa' => $lastPreparationOrderLine ? $lastPreparationOrderLine->getPreparation()->getNumero() : null,
                             'request' => $lastDeliveryRequestLine ? $lastDeliveryRequestLine->getRequest()->getNumero() : null,
