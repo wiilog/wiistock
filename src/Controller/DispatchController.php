@@ -1567,8 +1567,33 @@ class DispatchController extends AbstractController {
         $appLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::LABEL_LOGO);
         $overconsumptionLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::OVERCONSUMPTION_LOGO);
 
+        $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
+        $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($dispatch->getType(), CategorieCL::DEMANDE_DISPATCH);
+        $flow = "";
+        $requestType = "";
+
+        foreach ($freeFields as $freeField){
+            $field = $dispatch->getFreeFieldValue($freeField->getId());
+            $request = $freeField->getTypage() == FreeField::TYPE_BOOL ?
+                        ($field == 1 ? "Oui" : "Non"):
+                            ($freeField->getTypage() == FreeField::TYPE_DATETIME ?
+                                date("d/m/Y H:i", strtotime($field)):
+                                ($freeField->getTypage() == FreeField::TYPE_DATE ?
+                                    date("d/m/Y", strtotime($field)):
+                                    ($freeField->getTypage() == FreeField::TYPE_LIST_MULTIPLE ?
+                                        str_replace(";", ",", $field):
+                                            $field)));
+
+            $freeField->getLabel() == "Flux" ? $flow = $request : "";
+            $freeField->getLabel() == "Type de demande" ? $requestType = $request : "";
+        }
+        $freeFields = [
+            'flow' => $flow,
+            'requestType' => $requestType
+        ];
+
         return new PdfResponse(
-            $pdfService->generatePDFOverconsumption($dispatch, $appLogo, $overconsumptionLogo),
+            $pdfService->generatePDFOverconsumption($dispatch, $appLogo, $overconsumptionLogo, $freeFields),
             "{$dispatch->getNumber()}-bon-surconsommation.pdf"
         );
     }

@@ -34,7 +34,8 @@
         }
 
         .half {
-            width: 50%;
+            width: 35%;
+            margin-right: 50px;
             float: left;
         }
 
@@ -112,6 +113,22 @@
                 <td>{{ dispatch.requester ? dispatch.requester.username }}</td>
             </tr>
         </table>
+        <table class="half m-0 p-0">
+            {% for key, freeField in freeFields %}
+                {% if key == 'flow' and freeField is not empty %}
+                    <tr>
+                        <td><b>Flux</b></td>
+                        <td>{{ freeField }}</td>
+                    </tr>
+                {% endif %}
+                {% if key == 'requestType' and freeField is not empty %}
+                    <tr>
+                        <td><b>Type de demande</b></td>
+                        <td>{{ freeField }}</td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+        </table>
 
         <div class="right-codes">
             <div class="qr" style="margin-bottom: 5mm">
@@ -148,17 +165,33 @@
     <table class="packs">
         <thead>
         <tr>
-            <th style="width: 15%;">PN</th>
-            <th style="width: 10%;">Qté demandée</th>
-            <th style="width: 10%;">Qté livrée</th>
-            <th style="width: 20%;">Emplacement</th>
-            <th style="width: 50%">N° lot / Cure date / N°EASA si besoin / Commentaire</th>
+            <th style="width: 10%;">PN</th>
+            <th style="width: 20%;">Code Barre</th>
+            <th style="width: 5%;">Qté demandée</th>
+            <th style="width: 10%;">Nature</th>
+            <th style="width: 5%;">Qté livrée</th>
+            <th style="width: 15%;">Emplacement</th>
+            <th style="width: 20%">N° lot / Cure date / N°EASA si besoin / Commentaire</th>
         </tr>
         </thead>
         {% for pack in dispatch.dispatchPacks %}
             <tr>
                 <td>{{ pack.pack.code }}</td>
+                <td>
+                    <div class="qr">
+                        <div class="barcode">
+                            {{ printBarcode({
+                                code: pack.pack.code,
+                                type: 'c128',
+                                format: 'svg',
+                                height: 60,
+                                width: 1
+                            }) | raw }}
+                        </div>
+                    </div>
+                </td>
                 <td>{{ pack.quantity }}</td>
+                <td>{{ pack.pack.nature.label }}</td>
                 <td></td>
                 <td></td>
                 <td></td>
