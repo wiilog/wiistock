@@ -12,6 +12,7 @@ $(function () {
     $.post(path, params, function (data) {
         displayFiltersSup(data);
     }, 'json');
+
 });
 
 
@@ -76,6 +77,7 @@ let tableRefArticleConfig = {
         removeInfo: true
     },
     columns: [
+        {"data": 'Actions', 'name': 'actions', 'title': '', className: 'noVis', orderable: false},
         {"data": 'Ref', 'title': 'Reférence'},
         {"data": 'CodeBarre', 'title': 'Code barre'},
         {"data": 'Label', 'title': 'Libellé'},
@@ -98,3 +100,14 @@ InitModal(modalAddToMission, submitAddToMission, urlAddToMission, {
         }
     }
 );
+
+const $modalRemoveRefFromMission = $('#modalDeleteRefFromMission');
+const $submitRemoveRefFromMission = $('#submitDeleteRefFromMission');
+const urlRemoveRefFromMission = Routing.generate('mission_remove_ref', true);
+
+InitModal($modalRemoveRefFromMission, $submitRemoveRefFromMission, urlRemoveRefFromMission, {
+    success: () => {
+        console.log('success');
+        tableRefArticle.ajax.reload();
+    }
+});

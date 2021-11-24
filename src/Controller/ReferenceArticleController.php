@@ -423,6 +423,16 @@ class ReferenceArticleController extends AbstractController
 
             /** @var ReferenceArticle $refArticle */
             $refArticle = $referenceArticleRepository->find($data['refArticle']);
+            if(!empty($refArticle->getInventoryEntries())){
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => "
+                        Cette référence est liée à une ou plusieurs entrées d'inventaire.<br>
+                        Vous ne pouvez pas la supprimer.
+                    "
+                ]);
+            }
+
             if (!($refArticle->getCollecteReferences()->isEmpty())
                 || !($refArticle->getDeliveryRequestLines()->isEmpty())
                 || !($refArticle->getReceptionReferenceArticles()->isEmpty())

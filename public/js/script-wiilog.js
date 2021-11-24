@@ -126,9 +126,9 @@ function openQueryModal(query = null, event) {
 }
 
 //DELETE
-function deleteRow(button, modal, submit) {
+function deleteRow(button, $modal, submit) {
     let id = button.data('id');
-    modal.find(submit).attr('value', id);
+    $modal.find(submit).attr('value', id);
 }
 
 //SHOW
