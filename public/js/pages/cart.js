@@ -178,8 +178,10 @@ function onDeliveryChanged($select) {
 
     if($select.val() !== "-") {
         $.get(Routing.generate(`cart_delivery_data`, {request: val}), function(data) {
-            $('.delivery-comment').html(data.comment);
-        })
+            const $subForm = $select.closest('.sub-form');
+            $subForm.find('.delivery-comment').html(data.comment);
+            $subForm.find('.request-free-fields-section .free-fields-container').html(data.freeFields);
+        });
 
         let pathReferences = Routing.generate("demande_api_references", true);
         let tableDeliveryReferencesConfig = {
@@ -216,10 +218,12 @@ function onCollectChanged($select) {
 
     if($select.val() !== "-"){
         $.get(Routing.generate(`cart_collect_data`, {request: val}), function(data) {
-            $('.collect-object').text(data.object);
-            $('.collect-destination').text(data.destination);
-            $('.collect-comment').html(data.comment);
-        })
+            const $subForm = $select.closest('.sub-form');
+            $subForm.find('.collect-object').text(data.object);
+            $subForm.find('.collect-destination').text(data.destination);
+            $subForm.find('.collect-comment').html(data.comment);
+            $subForm.find('.request-free-fields-section .free-fields-container').html(data.freeFields);
+        });
 
         let pathReferences = Routing.generate("collecte_api_references", true);
         let tableCollectReferencesConfig = {
