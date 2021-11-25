@@ -106,9 +106,9 @@ class NatureColisParamController extends AbstractController
                     break;
                 }
             }
-
+            $defaultForDispatchIsDefined = $data['defaultForDispatch'] ?? false;
             if(!$isDefaultForDispatch || $data['defaultForDispatch'] == false){
-                $nature->setDefaultForDispatch($data['defaultForDispatch'] ?? false);
+                $nature->setDefaultForDispatch($defaultForDispatchIsDefined);
             } else {
                 return new JsonResponse([
                     'success' => false,
@@ -177,9 +177,9 @@ class NatureColisParamController extends AbstractController
                     break;
                 }
             }
-
+            $defaultForDispatchIsDefined = $data['defaultForDispatch'] ?? false;
             if(!$isDefaultForDispatch || $data['defaultForDispatch'] == false || $nature->getDefaultForDispatch()){
-                $nature->setDefaultForDispatch($data['defaultForDispatch'] ?? false);
+                $nature->setDefaultForDispatch($defaultForDispatchIsDefined);
             } else {
                 return new JsonResponse([
                     'success' => false,
