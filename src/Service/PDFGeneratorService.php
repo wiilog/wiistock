@@ -149,10 +149,10 @@ class PDFGeneratorService {
         return $fileName;
     }
 
-    public function generatePDFOverconsumption(Dispatch $dispatch, ?string $appLogo, ?string $overconsumptionLogo, array $freeFields): string {
+    public function generatePDFOverconsumption(Dispatch $dispatch, ?string $appLogo, ?string $overconsumptionLogo, array $additionalFields = []): string {
         $content = $this->templating->render("prints/overconsumption-template.html.twig", [
             "dispatch" => $dispatch,
-            "freeFields" => $freeFields
+            "additionalFields" => $additionalFields
         ]);
 
         $header = $this->templating->render("prints/overconsumption-template-header.html.twig", [

@@ -23,6 +23,7 @@ use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
+use App\Helper\FormatHelper;
 use App\Service\NotificationService;
 use App\Service\VisibleColumnService;
 use WiiCommon\Helper\Stream;
@@ -1562,40 +1563,33 @@ class DispatchController extends AbstractController {
      */
     public function printOverconsumptionBill(Dispatch $dispatch,
                                              PDFGeneratorService $pdfService,
-                                                 EntityManagerInterface $entityManager): Response {
+                                             SpecificService $specificService,
+                                             EntityManagerInterface $entityManager): Response {
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
+
         $appLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::LABEL_LOGO);
         $overconsumptionLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::OVERCONSUMPTION_LOGO);
 
-        $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
-        $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($dispatch->getType(), CategorieCL::DEMANDE_DISPATCH);
-        $flow = "";
-        $requestType = "";
+        if ($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS_VERNON)) {
+            $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($dispatch->getType(), CategorieCL::DEMANDE_DISPATCH);
 
-        foreach ($freeFields as $freeField){
-            $field = $dispatch->getFreeFieldValue($freeField->getId());
-            $request = $freeField->getTypage() == FreeField::TYPE_BOOL ?
-                        ($field == 1 ? "Oui" : "Non"):
-                            ($freeField->getTypage() == FreeField::TYPE_DATETIME ?
-                                date("d/m/Y H:i", strtotime($field)):
-                                ($freeField->getTypage() == FreeField::TYPE_DATE ?
-                                    date("d/m/Y", strtotime($field)):
-                                    ($freeField->getTypage() == FreeField::TYPE_LIST_MULTIPLE ?
-                                        str_replace(";", ",", $field):
-                                            $field)));
-
-            $freeField->getLabel() == "Flux" ? $flow = $request : "";
-            $freeField->getLabel() == "Type de demande" ? $requestType = $request : "";
+            $freeFieldValues = $dispatch->getFreeFields();
+            $additionalField = Stream::from($freeFields)
+                ->filter(fn(FreeField $freeField) => in_array($freeField->getLabel(), ["Flux", "Type de demande"]))
+                ->map(fn(FreeField $freeField) => [
+                    'label' => $freeField->getLabel(),
+                    'value' => FormatHelper::freeField($freeFieldValues[$freeField->getId()] ?? null, $freeField)
+                ])
+                ->toArray();
         }
-        $freeFields = [
-            'flow' => $flow,
-            'requestType' => $requestType
-        ];
+        else {
+            $additionalField = [];
+        }
 
         return new PdfResponse(
-            $pdfService->generatePDFOverconsumption($dispatch, $appLogo, $overconsumptionLogo, $freeFields),
+            $pdfService->generatePDFOverconsumption($dispatch, $appLogo, $overconsumptionLogo, $additionalField),
             "{$dispatch->getNumber()}-bon-surconsommation.pdf"
         );
     }
-
 }

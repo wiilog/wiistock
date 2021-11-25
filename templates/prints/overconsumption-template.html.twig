@@ -150,19 +150,11 @@
             </tr>
         </table>
         <table class="half m-0 p-0">
-            {% for key, freeField in freeFields %}
-                {% if key == 'flow' and freeField is not empty %}
-                    <tr>
-                        <td><b>Flux</b></td>
-                        <td>{{ freeField }}</td>
-                    </tr>
-                {% endif %}
-                {% if key == 'requestType' and freeField is not empty %}
-                    <tr>
-                        <td><b>Type de demande</b></td>
-                        <td>{{ freeField }}</td>
-                    </tr>
-                {% endif %}
+            {% for field in additionalFields %}
+                <tr>
+                    <td><b>{{ field.label }}</b></td>
+                    <td>{{ field.value }}</td>
+                </tr>
             {% endfor %}
         </table>
 
