@@ -195,7 +195,7 @@ class DashboardSettingsService {
                 $values += $this->serializeSimpleCounter($componentType, $example, $meter);
                 break;
             case Dashboard\ComponentType::DAILY_DISPATCHES:
-                $values += $this->serializeDailyDispatches($componentType, $config, $example, $meter);
+                $values += $this->serializeDailyDispatches($entityManager, $componentType, $config, $example, $meter);
                 break;
             case Dashboard\ComponentType::DAILY_HANDLING:
             case Dashboard\ComponentType::DAILY_OPERATIONS:
@@ -786,23 +786,59 @@ class DashboardSettingsService {
      * @param DashboardMeter\Chart|null $chart
      * @return array
      */
-    private function serializeDailyDispatches(Dashboard\ComponentType $componentType,
+    private function serializeDailyDispatches(EntityManagerInterface $entityManager,
+                                              Dashboard\ComponentType $componentType,
                                               array $config,
                                               bool $example = false,
                                               DashboardMeter\Chart $chart = null): array {
-
+        $separateType = isset($config['separateType']) && $config['separateType'];
         if (!$example) {
             if ($chart) {
-                $values = ["chartData" => $chart->getData()];
+                $values = ["chartData" => $chart->getData(), 'chartColors' => $chart->getChartColors()];
             } else {
                 $values = ["chartData" => []];
             }
         } else {
             $values = $componentType->getExampleValues();
+            $values['separateType'] = $config['separateType'] ?? '';
+            $values['dispatchTypes'] = $config['dispatchTypes'] ?? '';
+            if (!empty($config['handlingTypes']) && $separateType) {
+                $dispatchTypes = $entityManager->getRepository(Type::class)->findBy(['id' => $config['dispatchTypes']]);
+                $counter = 0;
+                $chartColors = Stream::from($dispatchTypes)
+                    ->reduce(function (array $carry, Type $type) use ($config, &$counter, $values) {
+                        $carry[$type->getLabel()] = $config['chartColors'][$type->getLabel()] ?? Dashboard\ComponentType::DEFAULT_CHART_COLOR;
+                        $counter++;
+                        return $carry;
+                    }, []);
+                $values['chartColors'] = $chartColors;
+
+                $chartColorsLabels = Stream::from($dispatchTypes)
+                    ->map(function (Type $type) {
+                        return $type->getLabel();
+                    })->toArray();
+                $values['chartColorsLabels'] = $chartColorsLabels;
+
+                $chartValues = Stream::from($dispatchTypes)
+                    ->reduce(function (array $carry, Type $type) {
+                        $carry[$type->getLabel()] = rand(10, 18);
+                        return $carry;
+                    }, []);
+
+                $chartDataMultiple = Stream::from($values['chartDataMultiple'])
+                    ->map(function () use ($chartValues) {
+                        return $chartValues;
+                    })->toArray();
+                $values['chartDataMultiple'] = $chartDataMultiple;
+            } else {
+                $values['chartColors'] = (isset($config['chartColors']) && isset($config['chartColors'][0]))
+                    ? [$config['chartColors'][0]]
+                    : [Dashboard\ComponentType::DEFAULT_CHART_COLOR];
+            }
 
             $scale = $config['scale'] ?? DashboardService::DEFAULT_WEEKLY_REQUESTS_SCALE;
 
-            $chartData = $values['chartData'] ?? [];
+            $chartData = $separateType ? ($values['chartDataMultiple'] ?? []) : ($values['chartData'] ?? []);
             $keysToKeep = array_slice(array_keys($chartData), 0, $scale);
             $chartData = Stream::from($keysToKeep)
                 ->reduce(function(array $carry, string $key) use ($chartData) {
@@ -818,6 +854,7 @@ class DashboardSettingsService {
 
             $values['date'] = $config['date'] ?? "";
         }
+        $values['multiple'] = $separateType;
         return $values;
     }
 

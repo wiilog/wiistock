@@ -8,6 +8,7 @@ use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use phpDocumentor\Reflection\Types\Boolean;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 use App\Service\VisibleColumnService;
@@ -409,6 +410,7 @@ class DispatchRepository extends EntityRepository
     public function countByDates(DateTime $dateMin,
                                  DateTime $dateMax,
                                  string $date,
+                                 bool $separateType,
                                  array $dispatchStatusesFilter = [],
                                  array $dispatchTypesFilter = []): int
     {
@@ -417,6 +419,12 @@ class DispatchRepository extends EntityRepository
             ->andWhere('dispatch.' . $date . ' BETWEEN :dateMin AND :dateMax')
             ->setParameter('dateMin', $dateMin)
             ->setParameter('dateMax', $dateMax);
+
+        if ($separateType) {
+            $qb
+                ->groupBy('type.id')
+                ->addSelect('type.label as typeLabel');
+        }
         if (!empty($dispatchStatusesFilter)) {
             $qb
                 ->andWhere('dispatch.statut IN (:dispatchStatuses)')
