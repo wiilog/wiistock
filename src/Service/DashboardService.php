@@ -890,6 +890,7 @@ class DashboardService {
         $dispatchTypesFilter = $config['dispatchTypes'] ?? [];
         $scale = $config['scale'] ?? self::DEFAULT_DAILY_REQUESTS_SCALE;
         $period = $config['period'] ?? self::DAILY_PERIOD_PREVIOUS_DAYS;
+        $date = $config['date'] ?? 'validationDate';
 
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
 
@@ -899,8 +900,8 @@ class DashboardService {
         $chartData = $this->getDailyObjectsStatistics(
             $entityManager,
             $scale,
-            function(DateTime $dateMin, DateTime $dateMax) use ($dispatchRepository, $dispatchStatusesFilter, $dispatchTypesFilter) {
-                return $dispatchRepository->countByDates($dateMin, $dateMax, $dispatchStatusesFilter, $dispatchTypesFilter);
+            function(DateTime $dateMin, DateTime $dateMax) use ($dispatchRepository, $dispatchStatusesFilter, $dispatchTypesFilter, $date) {
+                return $dispatchRepository->countByDates($dateMin, $dateMax, $date, $dispatchStatusesFilter, $dispatchTypesFilter);
             },
             $workFreeDays,
             $period

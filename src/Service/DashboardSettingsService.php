@@ -815,6 +815,8 @@ class DashboardSettingsService {
             $values['chartColors'] = $config['chartColors'] ?? $values['chartColors'] ?? [];
 
             $values['chartData'] = $chartData;
+
+            $values['date'] = $config['date'] ?? "";
         }
         return $values;
     }

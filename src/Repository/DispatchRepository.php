@@ -408,12 +408,13 @@ class DispatchRepository extends EntityRepository
      */
     public function countByDates(DateTime $dateMin,
                                  DateTime $dateMax,
+                                 string $date,
                                  array $dispatchStatusesFilter = [],
                                  array $dispatchTypesFilter = []): int
     {
         $qb = $this->createQueryBuilder('dispatch')
             ->select('COUNT(dispatch) AS count')
-            ->where('dispatch.endDate BETWEEN :dateMin AND :dateMax')
+            ->andWhere('dispatch.' . $date . ' BETWEEN :dateMin AND :dateMax')
             ->setParameter('dateMin', $dateMin)
             ->setParameter('dateMax', $dateMax);
         if (!empty($dispatchStatusesFilter)) {
