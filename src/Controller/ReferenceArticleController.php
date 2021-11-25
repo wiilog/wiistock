@@ -432,8 +432,7 @@ class ReferenceArticleController extends AbstractController
                     "
                 ]);
             }
-
-            if (!($refArticle->getCollecteReferences()->isEmpty())
+            else if (!($refArticle->getCollecteReferences()->isEmpty())
                 || !($refArticle->getDeliveryRequestLines()->isEmpty())
                 || !($refArticle->getReceptionReferenceArticles()->isEmpty())
                 || !($refArticle->getMouvements()->isEmpty())

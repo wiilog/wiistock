@@ -21,6 +21,7 @@ use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\Stream;
 
 class InvMissionService
 {
@@ -149,7 +150,6 @@ class InvMissionService
         $refDateAndQuantity = $referenceArticleRepository->getEntryByMission($mission, $ref);
 
         $row = $this->dataRowMissionArtRef(
-
             $ref->getEmplacement(),
             $ref->getReference(),
             $ref->getBarCode(),
@@ -159,11 +159,22 @@ class InvMissionService
             $ref->getQuantiteStock(),
             (!empty($refDateAndQuantity) && isset($refDateAndQuantity['quantity'])) ? $refDateAndQuantity['quantity'] : null,
         );
+
+        $actionData = [
+            "referenceId" => $ref->getId(),
+            "missionId" => $mission->getId()
+        ];
+
+        if ($inventoryEntry) {
+            $actionData['inventoryEntryId'] = $inventoryEntry->getId();
+        }
+
         $row['Actions'] = $this->templating->render('saisie_inventaire/inventoryEntryRefArticleRow.html.twig', [
-            'inventoryData' => $inventoryEntry
-                ? "inventoryEntryId:" . $inventoryEntry->getId() . ";" . "referenceId:" . $ref->getId() . ";" . "missionId:" . $mission->getId()
-                : "referenceId:" . $ref->getId() . ";" . "missionId:" . $mission->getId(),
+            'inventoryData' => Stream::from($actionData)
+                ->map(fn(string $value, string $key) => "${key}: ${value}")
+                ->join(';')
         ]);
+
         return $row;
     }
 
