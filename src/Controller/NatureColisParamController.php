@@ -101,7 +101,7 @@ class NatureColisParamController extends AbstractController
 
             $isDefaultForDispatch = false;
             foreach ($natures as $checkNature){
-                $checkNature->getDefaultForDispatch() ? $isDefaultForDispatch = true :  $isDefaultForDispatch = false;
+                $isDefaultForDispatch = $checkNature->getDefaultForDispatch();
                 if($isDefaultForDispatch){
                     break;
                 }
@@ -172,13 +172,13 @@ class NatureColisParamController extends AbstractController
 
             $isDefaultForDispatch = false;
             foreach ($natures as $checkNature){
-                $checkNature->getDefaultForDispatch() ? $isDefaultForDispatch = true :  $isDefaultForDispatch = false;
+                $isDefaultForDispatch = $checkNature->getDefaultForDispatch();
                 if($isDefaultForDispatch){
                     break;
                 }
             }
 
-            if(!$isDefaultForDispatch | $data['defaultForDispatch'] == false){
+            if(!$isDefaultForDispatch | $data['defaultForDispatch'] == false | $nature->getDefaultForDispatch()){
                 $nature->setDefaultForDispatch($data['defaultForDispatch'] ?? false);
             } else {
                 return new JsonResponse([
