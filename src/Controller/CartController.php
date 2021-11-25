@@ -4,39 +4,25 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
-use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
-use App\Entity\CollecteReference;
-use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
-use App\Entity\Emplacement;
 use App\Entity\FreeField;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Menu;
 use App\Entity\Cart;
 use App\Entity\PurchaseRequest;
 use App\Entity\ReferenceArticle;
-use App\Entity\Statut;
-use App\Entity\TransferRequest;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Service\CartService;
-use App\Service\DemandeLivraisonService;
-use App\Service\FreeFieldService;
 use App\Service\GlobalParamService;
-use App\Service\PurchaseRequestService;
-use App\Service\RefArticleDataService;
-use App\Service\UniqueNumberService;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Mapping\Entity;
 use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 
@@ -163,9 +149,17 @@ class CartController extends AbstractController
      * @Route("/infos/livraison/{request}", name="cart_delivery_data", options={"expose"=true}, methods="GET")
      */
     public function deliveryRequestData(Demande $request): JsonResponse {
+        $type = $request->getType();
+
         return $this->json([
             "success" => true,
             "comment" => $request->getCommentaire(),
+            "freeFields" => $this->renderView('free_field/freeFieldsShow.html.twig', [
+                'containerClass' => null,
+                'freeFields' => $type ? $type->getChampsLibres()->toArray() : [],
+                'values' => $request->getFreeFields() ?? [],
+                'emptyLabel' => 'Cette demande ne contient aucun champ libre'
+            ])
         ]);
     }
 
@@ -173,11 +167,18 @@ class CartController extends AbstractController
      * @Route("/infos/collecte/{request}", name="cart_collect_data", options={"expose"=true}, methods="GET")
      */
     public function collectRequestData(Collecte $request): JsonResponse {
+        $type = $request->getType();
         return $this->json([
             "success" => true,
             "destination" => $request->isDestruct() ? "Destruction" : "Mise en stock",
             "object" => $request->getObjet(),
             "comment" => $request->getCommentaire(),
+            "freeFields" => $this->renderView('free_field/freeFieldsShow.html.twig', [
+                'containerClass' => null,
+                'freeFields' => $type ? $type->getChampsLibres()->toArray() : [],
+                'values' => $request->getFreeFields() ?? [],
+                'emptyLabel' => 'Cette demande ne contient aucun champ libre'
+            ])
         ]);
     }
 

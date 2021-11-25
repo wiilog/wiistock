@@ -38,7 +38,7 @@
     <!-- CHAMPS LIBRES -->
     <span class="toggle-collapsible expanded">Champs libres</span>
     <div class="collapsible expanded free-fields-container mb-2">
-        {% include 'free_field/freeFieldsViewing.html.twig' with {
+        {% include 'free_field/freeFieldsEdit.html.twig' with {
             freeFields: demande.type is not null and freeFieldsGroupedByTypes[demande.type.id] is defined ? freeFieldsGroupedByTypes[demande.type.id] : [],
             freeFieldValues: demande.freeFields,
             colType: 'col-md-4 col-12',
@@ -90,7 +90,7 @@
         {% for type in typeChampsLibres %}
             <div class="d-none"
                  data-type="{{ type.typeId }}">
-                {% include 'free_field/freeFieldsViewing.html.twig' with {
+                {% include 'free_field/freeFieldsEdit.html.twig' with {
                     freeFields: type.champsLibres,
                     freeFieldValues: [],
                     colType: 'col-12',
