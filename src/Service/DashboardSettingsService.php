@@ -802,7 +802,7 @@ class DashboardSettingsService {
             $values = $componentType->getExampleValues();
             $values['separateType'] = $config['separateType'] ?? '';
             $values['dispatchTypes'] = $config['dispatchTypes'] ?? '';
-            if (!empty($config['handlingTypes']) && $separateType) {
+            if (!empty($config['dispatchTypes']) && $separateType) {
                 $dispatchTypes = $entityManager->getRepository(Type::class)->findBy(['id' => $config['dispatchTypes']]);
                 $counter = 0;
                 $chartColors = Stream::from($dispatchTypes)
@@ -848,7 +848,7 @@ class DashboardSettingsService {
                     return $carry;
                 }, []);
 
-            $values['chartColors'] = $config['chartColors'] ?? $values['chartColors'] ?? [];
+            $values['chartColors'] = $values['chartColors'] ?? $config['chartColors'] ?? [];
 
             $values['chartData'] = $chartData;
 

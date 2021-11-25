@@ -412,10 +412,11 @@ class DispatchRepository extends EntityRepository
                                  string $date,
                                  bool $separateType,
                                  array $dispatchStatusesFilter = [],
-                                 array $dispatchTypesFilter = []): int
+                                 array $dispatchTypesFilter = [])
     {
         $qb = $this->createQueryBuilder('dispatch')
-            ->select('COUNT(dispatch) AS count')
+            ->select('COUNT(dispatch) ' . ($separateType ? ' AS count' : ''))
+            ->join('dispatch.type','type')
             ->andWhere('dispatch.' . $date . ' BETWEEN :dateMin AND :dateMax')
             ->setParameter('dateMin', $dateMin)
             ->setParameter('dateMax', $dateMax);
@@ -436,10 +437,7 @@ class DispatchRepository extends EntityRepository
                 ->andWhere('dispatch.type IN (:dispatchTypes)')
                 ->setParameter('dispatchTypes', $dispatchTypesFilter);
         }
-
-        return $qb
-            ->getQuery()
-            ->getSingleScalarResult();
+        return $separateType ? $qb->getQuery()->getResult() : $qb->getQuery()->getSingleScalarResult();
     }
 
     public function getProcessingTime() {

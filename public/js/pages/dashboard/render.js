@@ -1145,7 +1145,6 @@ function withStyle(data, numberingConfig, backendNumber, value, overrides = {}) 
 }
 
 function generateColorPickerElement(data, key = 0) {
-    console.log(data);
     return $(`<div/>`, {
         class: 'd-flex justify-content-between align-items-center mx-5',
         html: $(`<input/>`, {
@@ -1166,11 +1165,6 @@ function resetColorPickersElementsToForm($modal, data) {
 
     $chartColorPickersContainer.empty();
     $colorPickerAccordion.removeClass('d-none');
-
-    console.log('separateType: '+data.separateType);
-    console.log('chartColors: '+data.chartColors);
-    console.log('handlingTypes: '+data.handlingTypes);
-    console.log('dispatchTypes: '+data.dispatchTypes);
 
     if(data.separateType) {
         if ((data.chartColors && (data.handlingTypes ?? data.dispatchTypes))) {
