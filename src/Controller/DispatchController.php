@@ -684,7 +684,10 @@ class DispatchController extends AbstractController {
         }
 
         if($edit) {
-            $data[] = $service->packRow(null, true, true);
+            if(empty($data)) {
+                $data[] = $service->packRow(null, true, true);
+            }
+
             $data[] = [
                 "actions" => "<span class='d-flex justify-content-center align-items-center'><span class='wii-icon wii-icon-plus add-pack-row'></span></span>",
                 "code" => null,

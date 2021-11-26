@@ -114,12 +114,12 @@ export default class Select2 {
         });
 
         $element.on(`change`, () => {
-            if($element.val() === `new-item`) {
+            if($element.val() === `new-item` && search && search.length) {
                 $element.append(new Option(search, search, true, true)).trigger('change');
             }
         })
 
-        $element.parent().arrive(`[data-highlighted]`, function() {
+        $(document).arrive(`.select2-dropdown [data-highlighted]`, function() {
             const $highlighted = $(this);
             const $results = $highlighted.closest('.select2-results__options');
 
@@ -139,13 +139,18 @@ export default class Select2 {
                 }
             });
 
-            const $select2Parent = $element.parent();
-            const $searchField = $select2Parent.find('.select2-search--dropdown .select2-search__field');
+            const $searchField = $('.select2-dropdown .select2-search__field');
+            console.log($searchField);
             if ($searchField.exists()) {
                 setTimeout(() => $searchField[0].focus(), 300);
             }
 
-            $searchField.on(`keydown`, () => search = $searchField.val());
+            search = null;
+            $(document).on(`keyup`, `.select2-dropdown .select2-search__field`, () => {
+                console.log("huh");
+                console.error(search, $searchField.val())
+                search = $searchField.val();
+            });
         });
 
         if($element.is(`[autofocus]:visible`)) {

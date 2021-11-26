@@ -162,6 +162,30 @@ console.log(values, grouping);
     return values;
 }
 
+jQuery.deepEquals = function (x, y) {
+    if (x === y) {
+        return true;
+    } else if ((typeof x == "object" && x != null) && (typeof y == "object" && y != null)) {
+        if (Object.keys(x).length !== Object.keys(y).length) {
+            return false;
+        }
+
+        for (const prop in x) {
+            if (y.hasOwnProperty(prop)) {
+                if (!jQuery.deepEquals(x[prop], y[prop])) {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+
+        return true;
+    } else {
+        return false;
+    }
+}
+
 jQuery.deepCopy = function(object) {
     return object !== undefined ? JSON.parse(JSON.stringify(object)) : object;
 };

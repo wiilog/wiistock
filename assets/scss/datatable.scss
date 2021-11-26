@@ -170,7 +170,7 @@ thead th, thead td {
     border-bottom: 1px solid $grey !important;
 }
 
-.dataTables_scrollBody tbody tr {
+.hover-shadow .dataTables_scrollBody tbody tr {
     position: relative;
     transition: box-shadow 150ms ease-in-out;
 

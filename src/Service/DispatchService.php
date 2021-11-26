@@ -657,7 +657,7 @@ class DispatchService {
                 "actions" => $actions,
                 "code" => isset($code)
                     ? "<span title='$code'>$code</span> <input type='hidden' name='pack' class='data' value='$code'/>"
-                    : "<select name='pack' data-s2='keyboardPacks' data-include-params-parent='.wii-box' data-include-params='[name=pack], [name=searchPrefix]' class='w-300px' $autofocus></select>",
+                    : "<select name='pack' data-s2='keyboardPacks' data-parent='body' data-include-params-parent='.wii-box' data-include-params='[name=pack], [name=searchPrefix]' class='w-300px' $autofocus></select>",
                 "quantity" => "<input name='quantity' step='1' type='number' class='$class' data-global-error='Quantité' value='$quantity' required/>",
                 "nature" => "<select name='nature' class='$class minw-150px' data-global-error='Nature' required>{$natureOptions}</select>",
                 "weight" => "<input name='weight' type='number' class='$class' step='0.001' value='$weight'/>",

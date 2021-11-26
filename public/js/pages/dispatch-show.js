@@ -200,6 +200,30 @@ function reverseFields($button, inputName1, inputName2) {
     $field2.val(val1);
 }
 
+function savePackLine(dispatchId, $row, async = true) {
+    let data = Form.process($row);
+    data = data instanceof FormData ? data.asObject() : data;
+
+    if(data && !jQuery.deepEquals(data, JSON.parse($row.data(`data`)))) {
+        $.ajax({
+            type: `POST`,
+            url: Routing.generate(`dispatch_new_pack`, {dispatch: dispatchId}),
+            data,
+            async,
+            success: response => {
+                $row.find(`.delete-pack-row`).data(`id`, response.id);
+                showBSAlert(response.msg, response.success ? `success` : `danger`);
+
+                $row.data(`data`, JSON.stringify(data));
+            },
+        });
+
+        return true;
+    }
+
+    return false;
+}
+
 function initializePacksTable(dispatchId, isEdit, packPrefix) {
     const $table = $(`#packTable`);
     const table = initDataTable($table, {
@@ -217,14 +241,16 @@ function initializePacksTable(dispatchId, isEdit, packPrefix) {
         paging: false,
         searching: false,
         scrollY: false,
-        scrollX: false,
+        scrollX: true,
         drawCallback: () => {
-            $(`.dataTables_scrollBody, .dataTables_scrollHead`)
-                .css('overflow', '')
-                .css('overflow-y', 'visible')
-                .css('margin-right', '15px');
-
             const $rows = $(table.rows().nodes());
+
+            $rows.each(function() {
+                const $row = $(this);
+                const data = Form.process($row);
+
+                $row.data(`data`, JSON.stringify(data instanceof FormData ? data.asObject() : data));
+            })
 
             $rows.off(`focusout.keyboardNavigation`).on(`focusout.keyboardNavigation`, function(event) {
                 const $row = $(this);
@@ -234,14 +260,7 @@ function initializePacksTable(dispatchId, isEdit, packPrefix) {
                     return;
                 }
 
-                const data = Form.process($row);
-                if(data) {
-                    const route = Routing.generate(`dispatch_new_pack`, {dispatch: dispatchId});
-                    $.post(route, data.asObject(), function(response) {
-                        $row.find(`.delete-pack-row`).data(`id`, response.id);
-                        showBSAlert(response.msg, response.success ? `success` : `danger`);
-                    });
-                }
+                savePackLine(dispatchId, $row);
             });
         },
         columnDefs: [
@@ -343,6 +362,16 @@ function initializePacksTable(dispatchId, isEdit, packPrefix) {
             })
         }
     }
+
+
+    $(window).on(`beforeunload`, () =>  {
+        const $focus = $(`tr :focus`);
+        if($focus.exists()) {
+            if(savePackLine(dispatchId, $focus.closest(`tr`), false)) {
+                return `Enregistrement des données en cours`;
+            }
+        }
+    });
 
     return table;
 }
