@@ -43,3 +43,4 @@ doctrine:
                 REGEXP: DoctrineExtensions\Query\Mysql\Regexp
                 IFNULL: DoctrineExtensions\Query\Mysql\IfNull
                 NOW: DoctrineExtensions\Query\Mysql\Now
+                STR_TO_DATE: DoctrineExtensions\Query\Mysql\StrToDate
