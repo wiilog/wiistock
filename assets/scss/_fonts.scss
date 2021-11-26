@@ -1,5 +1,17 @@
 @import "variables";
 
+/**
+ * 100	Thin (Hairline)
+ * 200	Extra Light (Ultra Light)
+ * 300	Light
+ * 400	Normal
+ * 500	Medium
+ * 600	Semi Bold (Demi Bold)
+ * 700	Bold
+ * 800	Extra Bold (Ultra Bold)
+ * 900	Black (Heavy)
+ */
+
 @font-face {
     font-family: "Montserrat";
     src: url("../../public/font/Montserrat-Regular.ttf");
@@ -9,6 +21,12 @@
     font-family: "Montserrat";
     src: url("../../public/font/Montserrat-Bold.ttf");
     font-weight: bold;
+}
+
+@font-face {
+    font-family: "Montserrat";
+    src: url("../../public/font/Montserrat-SemiBold.ttf");
+    font-weight: 600;
 }
 
 @font-face {
@@ -30,6 +48,12 @@
 
 @font-face {
     font-family: "Tahoma";
+    src: url("../../public/font/Tahoma-Bold.ttf");
+    font-weight: 600;
+}
+
+@font-face {
+    font-family: "Tahoma";
     src: url("../../public/font/Tahoma-Italic.ttf");
     font-style: italic;
 }
@@ -43,6 +67,18 @@
     font-family: "Myriad";
     src: url("../../public/font/MyriadPro-Bold.otf");
     font-weight: bold;
+}
+
+@font-face {
+    font-family: "Myriad";
+    src: url("../../public/font/MyriadPro-SemiBold.ttf");
+    font-weight: 600;
+}
+
+@font-face {
+    font-family: "Myriad";
+    src: url("../../public/font/MyriadPro-Italic.ttf");
+    font-style: italic;
 }
 
 @each $name, $color in $wiiStockTextColors {

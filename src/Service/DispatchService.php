@@ -11,11 +11,13 @@ use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
+use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
 use App\Entity\TrackingMovement;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Helper\FormatHelper;
 use App\Repository\FreeFieldRepository;
 use App\Repository\FieldsParamRepository;
 use App\Repository\ParametrageGlobalRepository;
@@ -596,6 +598,92 @@ class DispatchService {
             'progressBarColor' => '#2ec2ab',
             'progressBarBGColor' => $requestState === Statut::DRAFT ? 'white' : 'lightGrey',
         ];
+    }
+
+    public function packRow(?DispatchPack $dispatchPack, bool $autofocus, bool $isEdit): array {
+        if(!isset($this->prefixPackCodeWithDispatchNumber, $this->natures)) {
+            $this->prefixPackCodeWithDispatchNumber = $this->entityManager->getRepository(ParametrageGlobal::class)->getOneParamByLabel(ParametrageGlobal::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
+            $this->natures = $this->entityManager->getRepository(Nature::class)->findAll();
+        }
+
+        if($dispatchPack) {
+            $pack = $dispatchPack->getPack();
+            $lastTracking = $pack->getLastTracking();
+
+            $code = $pack->getCode();
+            $quantity = $dispatchPack->getQuantity();
+            $nature = FormatHelper::nature($pack->getNature());
+            $weight = $pack->getWeight();
+            $volume = $pack->getVolume();
+            $comment = $pack->getComment();
+            $lastMvtDate = $lastTracking ? FormatHelper::datetime($lastTracking->getDatetime()) : null;
+            $lastLocation = $lastTracking ? FormatHelper::location($lastTracking->getEmplacement()) : null;
+            $operator = $lastTracking ? FormatHelper::user($lastTracking->getOperateur()) : null;
+            $status = $dispatchPack->isTreated() ? "Traité" : "À traiter";
+        } else {
+            $quantity = null;
+            $nature = null;
+            $weight = null;
+            $volume = null;
+            $comment = null;
+            $lastMvtDate = null;
+            $lastLocation = null;
+            $operator = null;
+            $status = null;
+        }
+
+        $actions = $this->templating->render("dispatch/datatablePackRow.html.twig", [
+            "dispatchPack" => $dispatchPack ?? null,
+            "edit" => $isEdit,
+        ]);
+
+        if($isEdit) {
+            $class = isset($dispatchPack) ? "form-control data" : "form-control data d-none";
+            $autofocus = $autofocus ? "autofocus" : "";
+            $strippedComment = $comment ? strip_tags(str_replace("<br>", "\n", $comment)) : "";
+
+            $natureOptions = Stream::from($this->natures)
+                ->map(fn(Nature $n) => [
+                    "id" => $n->getId(),
+                    "label" => $n->getLabel(),
+                    "selected" => $n->getLabel() === $nature ? "selected" : "",
+                ])
+                ->map(fn(array $n) => "<option value='{$n["id"]}' {$n["selected"]}>{$n["label"]}</option>")
+                ->prepend(!$nature ? "<option disabled selected>Sélectionnez une nature</option>" : null)
+                ->join("");
+
+            $data = [
+                "actions" => $actions,
+                "code" => isset($code)
+                    ? "<span title='$code'>$code</span> <input type='hidden' name='pack' class='data' value='$code'/>"
+                    : "<select name='pack' data-s2='keyboardPacks' data-include-params-parent='.wii-box' data-include-params='[name=pack], [name=searchPrefix]' class='w-300px' $autofocus></select>",
+                "quantity" => "<input name='quantity' type='number' class='$class' data-global-error='Quantité' value='$quantity' required/>",
+                "nature" => "<select name='nature' class='$class minw-150px' data-global-error='Nature' required>{$natureOptions}</select>",
+                "weight" => "<input name='weight' type='number' class='$class' value='$weight'/>",
+                "volume" => "<input name='volume' type='number' class='$class' value='$volume'/>",
+                "comment" => "<input name='comment' class='$class minw-200px' value='$strippedComment'/>",
+                "lastMvtDate" => $lastMvtDate ?? "<span class='lastMvtDate'></span>",
+                "lastLocation" => $lastLocation ?? "<span class='lastLocation'></span>",
+                "operator" => $operator ?? "<span class='operator'></span>",
+                "status" => $status ?? "<span class='status'></span>",
+            ];
+        } else if($dispatchPack) {
+            $data = [
+                "actions" => $actions,
+                "code" => $code,
+                "nature" => $nature,
+                "quantity" => $quantity,
+                "weight" => $weight,
+                "volume" => $volume,
+                "comment" => $comment,
+                "lastMvtDate" => $lastMvtDate,
+                "lastLocation" => $lastLocation,
+                "operator" => $operator,
+                "status" => $status,
+            ];
+        }
+
+        return $data ?? [];
     }
 
 }

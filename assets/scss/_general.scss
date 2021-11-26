@@ -185,7 +185,7 @@ a {
 }
 
 .minw-150px {
-    min-width: 300px !important;
+    min-width: 150px !important;
 }
 
 .minw-100px {
@@ -196,12 +196,20 @@ a {
     min-width: 200px !important;
 }
 
+.minw-300px {
+    min-width: 300px !important;
+}
+
 .minw-450px {
     min-width: 450px !important;
 }
 
 .w-120px {
     width: 120px;
+}
+
+.w-300px, .w-300px + .select2.select2-container {
+    width: 300px !important;
 }
 
 .w-49 {
@@ -436,7 +444,7 @@ label.required:after {
         }
 
         .type {
-            background-color: #CBCBCB;
+            background-color: $grey;
             width: 100%;
             border-top-left-radius: 5px;
 
@@ -581,9 +589,6 @@ label.required:after {
     }
 }
 
-$blue: #3353D7;
-$grey: #CBCBCB;
-
 .wii-form {
     label {
         vertical-align: middle;
@@ -628,8 +633,8 @@ $grey: #CBCBCB;
     }
 
     .increase-decrease-field .increase, .increase-decrease-field .decrease {
-        border-color: $blue;
-        color: $blue;
+        border-color: $primary;
+        color: $primary;
     }
 
     .content {
@@ -723,7 +728,7 @@ $grey: #CBCBCB;
 }
 
 .wii-title {
-    color: $blue;
+    color: $primary;
     font-size: 18px;
     font-weight: bold;
 }
@@ -781,4 +786,24 @@ $grey: #CBCBCB;
 
 .nowrap {
     white-space: nowrap;
+}
+
+.wii-icon-plus.add-pack-row {
+    display: inline-block;
+    background-color: $grey;
+    width: 18px;
+    height: 18px;
+}
+
+.delete-pack-row .wii-icon-trash {
+    display: block;
+    background-color: $primary;
+    width: 18px;
+    height: 18px;
+}
+
+.p-sticky {
+    position: sticky !important;
+    top: 0;
+    left: 0;
 }

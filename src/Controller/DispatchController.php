@@ -26,6 +26,7 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Service\NotificationService;
 use App\Service\VisibleColumnService;
+use Symfony\Bundle\MakerBundle\Str;
 use WiiCommon\Helper\Stream;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
@@ -379,6 +380,7 @@ class DispatchController extends AbstractController {
                          EntityManagerInterface $entityManager,
                          DispatchService $dispatchService,
                          RedirectService $redirectService,
+                         UserService $userService,
                          bool $printBL) {
         $extra = $redirectService->load();
 
@@ -386,14 +388,18 @@ class DispatchController extends AbstractController {
         $natureRepository = $entityManager->getRepository(Nature::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
 
+        $prefixPackCodeWithDispatchNumber = $paramRepository->getOneParamByLabel(ParametrageGlobal::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
+        if($prefixPackCodeWithDispatchNumber) {
+            $packPrefix = $dispatch->getNumber();
+        }
+
         $dispatchStatus = $dispatch->getStatut();
 
         return $this->render('dispatch/show.html.twig', [
             'dispatch' => $dispatch,
-            'keep_pack_modal_open' => $paramRepository->getOneParamByLabel(ParametrageGlobal::KEEP_DISPATCH_PACK_MODAL_OPEN),
-            'open_pack_modal' => $extra === self::EXTRA_OPEN_PACK_MODAL && $paramRepository->getOneParamByLabel(ParametrageGlobal::OPEN_DISPATCH_ADD_PACK_MODAL_ON_CREATION),
             'detailsConfig' => $dispatchService->createHeaderDetailsConfig($dispatch),
-            'modifiable' => !$dispatchStatus || $dispatchStatus->isDraft(),
+            'modifiable' => (!$dispatchStatus || $dispatchStatus->isDraft()) && $userService->hasRightFunction(Menu::DEM, Action::ADD_OR_EDIT_PACK),
+            "packPrefix" => $packPrefix ?? null,
             'newPackConfig' => [
                 'natures' => $natureRepository->findBy([], ['label' => 'ASC'])
             ],
@@ -404,7 +410,8 @@ class DispatchController extends AbstractController {
                 'treatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::TREATED])
             ],
             'printBL' => $printBL,
-            'prefixPackCodeWithDispatchNumber' => $paramRepository->getOneParamByLabel(ParametrageGlobal::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER)
+            'prefixPackCodeWithDispatchNumber' => $paramRepository->getOneParamByLabel(ParametrageGlobal::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER),
+            'newPackRow' => $dispatchService->packRow(null, true, true),
         ]);
     }
 
@@ -661,32 +668,40 @@ class DispatchController extends AbstractController {
     /**
      * @Route("/packs/api/{dispatch}", name="dispatch_pack_api", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
      */
-    public function apiPack(Dispatch $dispatch, EntityManagerInterface $manager): Response {
-        $prefixPackCodeWithDispatchNumber = $manager->getRepository(ParametrageGlobal::class)->getOneParamByLabel(ParametrageGlobal::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
-        return new JsonResponse([
-            'data' => $dispatch->getDispatchPacks()
-                ->map(function(DispatchPack $dispatchPack) use ($dispatch, $prefixPackCodeWithDispatchNumber) {
-                    $pack = $dispatchPack->getPack();
-                    $lastTracking = $pack->getLastTracking();
-                    return [
-                        'nature' => $pack->getNature() ? $pack->getNature()->getLabel() : '',
-                        'code' => $pack->getCode(),
-                        'quantity' => $dispatchPack->getQuantity(),
-                        'lastMvtDate' => $lastTracking ? ($lastTracking->getDatetime() ? $lastTracking->getDatetime()->format('d/m/Y H:i') : '') : '',
-                        'lastLocation' => $lastTracking ? ($lastTracking->getEmplacement() ? $lastTracking->getEmplacement()->getLabel() : '') : '',
-                        'operator' => $lastTracking ? ($lastTracking->getOperateur() ? $lastTracking->getOperateur()->getUsername() : '') : '',
-                        'status' => $dispatchPack->isTreated() ? 'Traité' : 'A traiter',
-                        'actions' => $this->renderView('dispatch/datatablePackRow.html.twig', [
-                            'pack' => $pack,
-                            'pack_code' => $prefixPackCodeWithDispatchNumber
-                                ? str_replace($dispatch->getNumber() . '-', '', $pack->getCode())
-                                : $pack->getCode(),
-                            'packDispatch' => $dispatchPack,
-                            'modifiable' => $dispatchPack->getDispatch()->getStatut()->isDraft()
-                        ])
-                    ];
-                })
-                ->toArray()
+    public function apiPack(Request $request, TranslatorInterface $translator, DispatchService $service, Dispatch $dispatch): Response {
+        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
+
+        if($edit && !$dispatch->getStatut()->isDraft()) {
+            return $this->json([
+                "success" => false,
+                "msg" => "Vous ne pouvez pas modifier cet {$translator->trans("acheminement.acheminement")}",
+            ]);
+        }
+
+        $data = [];
+        foreach($dispatch->getDispatchPacks() as $dispatchPack) {
+            $data[] = $service->packRow($dispatchPack, false, $edit);
+        }
+
+        if($edit) {
+            $data[] = $service->packRow(null, true, true);
+            $data[] = [
+                "actions" => "<span class='d-flex justify-content-center align-items-center'><span class='wii-icon wii-icon-plus add-pack-row'></span></span>",
+                "code" => null,
+                "quantity" => null,
+                "nature" => null,
+                "weight" => null,
+                "volume" => null,
+                "comment" => null,
+                "lastMvtDate" => null,
+                "lastLocation" => null,
+                "operator" => null,
+                "status" => null,
+            ];
+        }
+
+        return $this->json([
+            "data" => $data
         ]);
     }
 
@@ -698,84 +713,82 @@ class DispatchController extends AbstractController {
                             TranslatorInterface $translator,
                             PackService $packService,
                             Dispatch $dispatch): Response {
-        $data = json_decode($request->getContent(), true);
+        $data = $request->request->all();
 
-        $packCode = trim($data['pack']);
-        $natureId = $data['nature'];
-        $quantity = $data['quantity'];
-        $comment = $data['comment'];
-        $weight = (floatval(str_replace(',', '.', $data['weight'])) ?: null);
-        $volume = (floatval(str_replace(',', '.', $data['volume'])) ?: null);
+        $noPrefixPackCode = trim($data["pack"]);
+        $natureId = $data["nature"];
+        $quantity = $data["quantity"];
+        $comment = $data["comment"] ?? "";
+        $weight = (floatval(str_replace(',', '.', $data["weight"] ?? "")) ?: null);
+        $volume = (floatval(str_replace(',', '.', $data["volume"] ?? "")) ?: null);
 
         $globalSettingsRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
         $prefixPackCodeWithDispatchNumber = $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
-        if($prefixPackCodeWithDispatchNumber) {
-            $packCode = $dispatch->getNumber() . '-' . $packCode;
+        if($prefixPackCodeWithDispatchNumber && !str_starts_with($noPrefixPackCode, $dispatch->getNumber())) {
+            $packCode = "{$dispatch->getNumber()}-$noPrefixPackCode";
+        } else {
+            $packCode = $noPrefixPackCode;
+        }
+
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $packRepository = $entityManager->getRepository(Pack::class);
+
+        if(!empty($packCode)) {
+            $pack = Stream::from($dispatch->getDispatchPacks())
+                ->filter(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack()->getCode() === $noPrefixPackCode)
+                ->map(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack())
+                ->firstOr(fn() => $packRepository->findOneBy(["code" => $packCode]));
         }
 
         $packMustBeNew = $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::PACK_MUST_BE_NEW);
-        if($packMustBeNew) {
-            $existingPack = $entityManager->getRepository(Pack::class)->findOneBy(['code' => $packCode]);
-            if($existingPack) {
+        if($packMustBeNew && isset($pack)) {
+            dump($pack);
+            $isNotInDispatch = $dispatch->getDispatchPacks()
+                ->filter(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack() === $pack)
+                ->isEmpty();
+
+            if($isNotInDispatch) {
                 return $this->json([
-                    'success' => false,
-                    'msg' => "Le colis <strong>${packCode}</strong> existe déjà en base de données"
+                    "success" => false,
+                    "msg" => "Le colis <strong>${packCode}</strong> existe déjà en base de données"
                 ]);
             }
         }
 
-        $alreadyCreated = !$dispatch
-            ->getDispatchPacks()
-            ->filter(function(DispatchPack $dispatchPack) use ($packCode) {
-                $pack = $dispatchPack->getPack();
-                return $pack->getCode() === $packCode;
-            })
-            ->isEmpty();
-
-        if($alreadyCreated) {
-            $success = false;
-            $message = $translator->trans('acheminement.Le colis {numéro} existe déjà dans cet acheminement', [
-                    "{numéro}" => '<strong>' . $packCode . '</strong>'
-                ]) . '.';
-        } else {
-            $natureRepository = $entityManager->getRepository(Nature::class);
-            $packRepository = $entityManager->getRepository(Pack::class);
-
-            if(!empty($packCode)) {
-                $pack = $packRepository->findOneBy(['code' => $packCode]);
-            }
-
-            if(empty($pack)) {
-                $pack = $packService->createPack(['code' => $packCode]);
-                $entityManager->persist($pack);
-            }
-
-            $packDispatch = new DispatchPack();
-            $packDispatch
-                ->setPack($pack)
-                ->setTreated(false)
-                ->setDispatch($dispatch);
-            $entityManager->persist($packDispatch);
-
-            $nature = $natureRepository->find($natureId);
-            $pack->setNature($nature);
-            $pack->setComment($comment);
-            $packDispatch->setQuantity($quantity);
-            $pack->setWeight($weight);
-            $pack->setVolume($volume);
-
-            $entityManager->flush();
-
-            $success = true;
-            $message = $translator->trans('colis.Le colis {numéro} a bien été ajouté', [
-                    "{numéro}" => '<strong>' . $pack->getCode() . '</strong>'
-                ]) . '.';
+        if(empty($pack)) {
+            $pack = $packService->createPack(['code' => $packCode]);
+            $entityManager->persist($pack);
         }
 
-        return new JsonResponse([
-            'success' => $success,
-            'msg' => $message
+        $dispatchPack = Stream::from($dispatch->getDispatchPacks())
+            ->filter(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack() === $pack)
+            ->first(new DispatchPack());
+
+        $dispatchPack
+            ->setPack($pack)
+            ->setTreated(false)
+            ->setDispatch($dispatch);
+        $entityManager->persist($dispatchPack);
+
+        $nature = $natureRepository->find($natureId);
+        $pack->setNature($nature);
+        $pack->setComment($comment);
+        $dispatchPack->setQuantity($quantity);
+        $pack->setWeight($weight);
+        $pack->setVolume($volume);
+
+        $success = true;
+        $message = $translator->trans("colis.Le colis {numéro} a bien été " . ($dispatchPack->getId() ? "modifié" : "ajouté"), [
+            "{numéro}" => "<strong>{$pack->getCode()}</strong>"
+        ]);
+
+        $entityManager->flush();
+
+        return $this->json([
+            "success" => $success,
+            "msg" => $message,
+            "id" => $dispatchPack->getId(),
         ]);
     }
 
@@ -841,15 +854,19 @@ class DispatchController extends AbstractController {
             $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
 
             $pack = $dispatchPackRepository->find($data['pack']);
-            $packCode = $pack->getPack()->getCode();
-            $entityManager->remove($pack);
-            $entityManager->flush();
+            if($pack) {
+                $packCode = $pack->getPack()->getCode();
+                $entityManager->remove($pack);
+                $entityManager->flush();
+            } else {
+                $packCode = $data['pack'];
+            }
 
-            return new JsonResponse([
-                'success' => true,
-                'msg' => $translator->trans('colis.Le colis {numéro} a bien été supprimé', [
-                        "{numéro}" => '<strong>' . $packCode . '</strong>'
-                    ]) . '.'
+            return $this->json([
+                "success" => true,
+                "msg" => $translator->trans("colis.Le colis {numéro} a bien été supprimé", [
+                    "{numéro}" => $pack ? "<strong>$packCode</strong>" : "",
+                ])
             ]);
         }
 

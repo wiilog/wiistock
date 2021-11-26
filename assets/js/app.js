@@ -122,9 +122,9 @@ function importRouting() {
     global.Routing = Routing;
 }
 
-export const NO_GROUPING = 0;
-export const GROUP_EVERYTHING = 0;
-export const GROUP_WHEN_NEEDED = 0;
+export const NO_GROUPING = 1;
+export const GROUP_EVERYTHING = 2;
+export const GROUP_WHEN_NEEDED = 3;
 
 jQuery.fn.keymap = function(callable, grouping = NO_GROUPING) {
     return keymap(this, callable, grouping);
@@ -153,9 +153,9 @@ export function keymap(array, callable, grouping = NO_GROUPING) {
             }
         }
     }
-
+console.log(values, grouping);
     if(grouping === GROUP_WHEN_NEEDED) {
-        for(const[key, value] of Object.entries(values)) {
+        for(const [key, value] of Object.entries(values)) {
             values[key] = value.__single_value !== undefined ? value.__single_value : value;
         }
     }

@@ -523,14 +523,35 @@ class PackRepository extends EntityRepository
         return $res[0]['count'] ?? 0;
     }
 
-    public function getForSelect(?string $term) {
-        $qb = $this->createQueryBuilder("pack");
+    public function getForSelect(?string $term, $exclude) {
+        if($exclude && !is_array($exclude)) {
+            $exclude = [$exclude];
+        }
 
-        return $qb->select("pack.id AS id")
+        $qb = $this->createQueryBuilder("pack")
+            ->select("pack.id AS id")
             ->addSelect("pack.code AS text")
-            ->where("pack.code LIKE :term")
-            ->setParameter("term", "%$term%")
-            ->getQuery()
-            ->getResult();
+            ->addSelect("pack.quantity AS quantity")
+            ->addSelect("nature.id AS nature_id")
+            ->addSelect("nature.label AS nature_label")
+            ->addSelect("pack.weight AS weight")
+            ->addSelect("pack.volume AS volume")
+            ->addSelect("pack.comment AS comment")
+            ->addSelect("DATE_FORMAT(last_tracking.datetime, '%d/%m/%Y %H:%i') AS lastMvtDate")
+            ->addSelect("last_tracking_location.label AS lastLocation")
+            ->addSelect("last_tracking_user.username AS operator")
+            ->andWhere("pack.code LIKE :term")
+            ->leftJoin("pack.nature", "nature")
+            ->leftJoin("pack.lastTracking", "last_tracking")
+            ->leftJoin("last_tracking.emplacement", "last_tracking_location")
+            ->leftJoin("last_tracking.operateur", "last_tracking_user")
+            ->setParameter("term", "%$term%");
+
+        if($exclude) {
+            $qb->andWhere("pack.code NOT IN (:exclude)")
+                ->setParameter("exclude", $exclude);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 }

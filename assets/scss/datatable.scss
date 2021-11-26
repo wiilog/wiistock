@@ -21,10 +21,6 @@
     }
 }
 
-.split-button {
-    margin-right: 2px;
-}
-
 .split-button-container {
     margin-top: 10px;
     margin-bottom: 10px;
@@ -37,14 +33,14 @@ table.wii-table {
         }
     }
 
-    td,
-    td > *,
-    th,
-    th > * {
+    td, td > *, th, th > * {
         max-width: 20vw;
         white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+
+        &:not(.select2-container):not(select) {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
 
         &.allow-expand {
             max-width: initial;
@@ -160,4 +156,26 @@ div.DTCR_pointer {
     width: 2px;
     background-color: #0259c4;
     z-index: 201
+}
+
+thead th, thead td {
+    border-bottom: none !important;
+}
+
+.dataTables_scrollHead thead th, .dataTables_scrollHead thead td {
+    border-bottom: 1px solid $grey !important;
+}
+
+.dataTables_scrollBody tbody th, .dataTables_scrollBody tbody td {
+    border-bottom: 1px solid $grey !important;
+}
+
+.dataTables_scrollBody tbody tr {
+    position: relative;
+    transition: box-shadow 150ms ease-in-out;
+
+    &:focus, &:hover {
+        box-shadow: 0 1px 20px lighten(#000000, 80%);
+        z-index: 500;
+    }
 }

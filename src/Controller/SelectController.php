@@ -11,6 +11,7 @@ use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\LocationGroup;
 use App\Entity\Pack;
+use App\Entity\ParametrageGlobal;
 use App\Entity\PurchaseRequest;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
@@ -327,6 +328,65 @@ class SelectController extends AbstractController {
 
         return $this->json([
             "results" => $purchaseRequest
+        ]);
+    }
+
+    /**
+     * @Route("/select/keyboard/pack", name="ajax_select_keyboard_pack", options={"expose"=true})
+     */
+    public function keyboardPack(Request $request, EntityManagerInterface $manager): Response
+    {
+        $globalSettingsRepository = $manager->getRepository(ParametrageGlobal::class);
+        $packRepository = $manager->getRepository(Pack::class);
+        $packMustBeNew = $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::PACK_MUST_BE_NEW);
+
+        $packCode = $request->query->get("term");
+        if($request->query->has("searchPrefix")) {
+            $packCode = $request->query->has("searchPrefix") . "-" . $packCode;
+        }
+
+        if($packMustBeNew) {
+            if($packRepository->findOneBy(["code" => $packCode])) {
+                return $this->json([
+                    "error" => "Ce colis existe déjà en base de données"
+                ]);
+            } else {
+                $results = [];
+            }
+        } else {
+            dump($request->query->get("pack"));
+            $results = $packRepository->getForSelect(
+                $packCode,
+                $request->query->get("pack")
+            );
+
+            foreach($results as $result) {
+                $result["stripped_comment"] = strip_tags($result["comment"]);
+            }
+        }
+
+        array_unshift($results, [
+            "id" => "new-item",
+            "html" => "<div class='new-item-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouveau colis</b></div>",
+        ]);
+
+        if(isset($results[1])) {
+            $results[1]["highlighted"] = true;
+        } else {
+            $results[0]["highlighted"] = true;
+
+            if(!$packMustBeNew) {
+                $results[1] = [
+                    "id" => "no-result",
+                    "text" => "Aucun résultat",
+                    "disabled" => true,
+                ];
+            }
+        }
+
+        return $this->json([
+            "results" => $results ?? null,
+            "error" => $error ?? null,
         ]);
     }
 }

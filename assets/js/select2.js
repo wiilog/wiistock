@@ -25,6 +25,7 @@ const ROUTES = {
     supplierLabel: `ajax_select_supplier_label`,
     collectableArticles: `ajax_select_collectable_articles`,
     purchaseRequest: `ajax_select_references_by_buyer`,
+    keyboardPacks: `ajax_select_keyboard_pack`,
 }
 
 const INSTANT_SELECT_TYPES = {
@@ -41,6 +42,8 @@ const INSTANT_SELECT_TYPES = {
 export default class Select2 {
     static init($element) {
         const type = $element.data(`s2`);
+        let search = null;
+
         if(!$element.find(`option[selected]`).exists()
             && !type
             && !$element.is(`[data-no-empty-option]`)
@@ -48,8 +51,8 @@ export default class Select2 {
             $element.prepend(`<option selected>`);
         }
 
-        $element.removeAttr(`data-s2`);
         $element.attr(`data-s2-initialized`, ``);
+        $element.removeAttr(`data-s2`);
 
         const config = {};
         if(type) {
@@ -59,8 +62,26 @@ export default class Select2 {
 
             config.ajax = {
                 url: Routing.generate(ROUTES[type]),
+                dataType: `json`,
                 data: params => Select2.includeParams($element, params),
-                dataType: `json`
+                processResults: (data, params) => {
+                    const $search = $element.parent().find(`.select2-search__field`);
+
+                    if(data.error) {
+                        $search.addClass(`is-invalid`);
+
+                        return {
+                            results: [{
+                                id: `error`,
+                                html: `<span class="text-danger">${data.error}</span>`,
+                                disabled: true,
+                            }],
+                        };
+                    } else {
+                        $search.removeClass(`is-invalid`);
+                        return data;
+                    }
+                }
             };
         }
 
@@ -72,14 +93,39 @@ export default class Select2 {
             placeholder: $element.data(`placeholder`),
             tags: $element.is('[data-editable]'),
             allowClear: !$element.is(`[multiple]`),
-            dropdownParent: $element.parent(),
+            dropdownParent: $element.is(`[data-parent]`) ? $($element.data(`parent`)) : $element.parent(),
             language: {
                 inputTooShort: () => 'Veuillez entrer au moins 1 caractère.',
                 noResults: () => `Aucun résultat`,
                 searching: () => null,
             },
+            escapeMarkup: markup => markup,
+            templateResult: (data, container) => {
+                if(data.highlighted) {
+                    $(container).attr(`data-highlighted`, true);
+                }
+
+                return data.html || data.text;
+            },
+            templateSelection: function (data, container) {
+                return data.html || data.text;
+            },
             ...config,
         });
+
+        $element.on(`change`, () => {
+            if($element.val() === `new-item`) {
+                $element.append(new Option(search, search, true, true)).trigger('change');
+            }
+        })
+
+        $element.parent().arrive(`[data-highlighted]`, function() {
+            const $highlighted = $(this);
+            const $results = $highlighted.closest('.select2-results__options');
+
+            $results.find(`.select2-results__option--highlighted`).removeClass(`select2-results__option--highlighted`);
+            $highlighted.addClass("select2-results__option--highlighted");
+        })
 
         $element.on('select2:open', function (e) {
             const evt = "scroll.select2";
@@ -98,7 +144,13 @@ export default class Select2 {
             if ($searchField.exists()) {
                 setTimeout(() => $searchField[0].focus(), 300);
             }
+
+            $searchField.on(`keydown`, () => search = $searchField.val());
         });
+
+        if($element.is(`[autofocus]:visible`)) {
+            $element.select2(`open`);
+        }
     }
 
     static includeParams($element, params) {
@@ -126,6 +178,7 @@ export default class Select2 {
 $(document).ready(() => $(`[data-s2]`).each((id, elem) => {
     Select2.init($(elem))
 }));
+
 $(document).arrive(`[data-s2]`, function() {
     Select2.init($(this));
 });
