@@ -1,0 +1,18 @@
+{% if values | length > 0 %}
+    <div class="{{ containerClass }} row">
+        {% for freeField in freeFields %}
+            {% set value = values[freeField.id] ?? (freeField.defaultValue ?? '') %}
+            <div class="col-6 box-item mb-3">
+                <span class="wii-field-name">{{ freeField.label }}</span>
+                <span class="wii-body-text">{{ value | format_helper('freeField', freeField) }}</span>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="{{ containerClass }} ml-3">
+        <span class="wii-small-text"
+              title="{{ emptyTitle is defined ? emptyTitle }}">
+            {{ emptyLabel }}
+        </span>
+    </div>
+{% endif %}
