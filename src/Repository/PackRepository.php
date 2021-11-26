@@ -531,7 +531,6 @@ class PackRepository extends EntityRepository
         $qb = $this->createQueryBuilder("pack")
             ->select("pack.id AS id")
             ->addSelect("pack.code AS text")
-            ->addSelect("pack.quantity AS quantity")
             ->addSelect("nature.id AS nature_id")
             ->addSelect("nature.label AS nature_label")
             ->addSelect("pack.weight AS weight")

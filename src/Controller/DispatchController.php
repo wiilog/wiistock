@@ -743,7 +743,6 @@ class DispatchController extends AbstractController {
 
         $packMustBeNew = $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::PACK_MUST_BE_NEW);
         if($packMustBeNew && isset($pack)) {
-            dump($pack);
             $isNotInDispatch = $dispatch->getDispatchPacks()
                 ->filter(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack() === $pack)
                 ->isEmpty();
@@ -775,8 +774,8 @@ class DispatchController extends AbstractController {
         $pack->setNature($nature);
         $pack->setComment($comment);
         $dispatchPack->setQuantity($quantity);
-        $pack->setWeight($weight);
-        $pack->setVolume($volume);
+        $pack->setWeight(round($weight, 3));
+        $pack->setVolume(round($volume, 3));
 
         $success = true;
         $message = $translator->trans("colis.Le colis {numéro} a bien été " . ($dispatchPack->getId() ? "modifié" : "ajouté"), [

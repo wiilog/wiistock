@@ -642,7 +642,7 @@ class DispatchService {
             $class = isset($dispatchPack) ? "form-control data" : "form-control data d-none";
             $autofocus = $autofocus ? "autofocus" : "";
             $strippedComment = $comment ? strip_tags(str_replace("<br>", "\n", $comment)) : "";
-dump($this->defaultNature);
+
             $natureOptions = Stream::from($this->natures)
                 ->map(fn(Nature $n) => [
                     "id" => $n->getId(),
@@ -658,10 +658,10 @@ dump($this->defaultNature);
                 "code" => isset($code)
                     ? "<span title='$code'>$code</span> <input type='hidden' name='pack' class='data' value='$code'/>"
                     : "<select name='pack' data-s2='keyboardPacks' data-include-params-parent='.wii-box' data-include-params='[name=pack], [name=searchPrefix]' class='w-300px' $autofocus></select>",
-                "quantity" => "<input name='quantity' type='number' class='$class' data-global-error='Quantité' value='$quantity' required/>",
+                "quantity" => "<input name='quantity' step='1' type='number' class='$class' data-global-error='Quantité' value='$quantity' required/>",
                 "nature" => "<select name='nature' class='$class minw-150px' data-global-error='Nature' required>{$natureOptions}</select>",
-                "weight" => "<input name='weight' type='number' class='$class' value='$weight'/>",
-                "volume" => "<input name='volume' type='number' class='$class' value='$volume'/>",
+                "weight" => "<input name='weight' type='number' class='$class' step='0.001' value='$weight'/>",
+                "volume" => "<input name='volume' type='number' class='$class' step='0.001' value='$volume'/>",
                 "comment" => "<input name='comment' class='$class minw-200px' value='$strippedComment'/>",
                 "lastMvtDate" => $lastMvtDate ?? "<span class='lastMvtDate'></span>",
                 "lastLocation" => $lastLocation ?? "<span class='lastLocation'></span>",

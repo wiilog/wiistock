@@ -325,6 +325,15 @@ function initializePacksTable(dispatchId, isEdit, packPrefix) {
         // TODO: décommenter pour la WIIS-6177
         // Form.initializeWYSIWYG($table);
 
+        $table.on(`keydown`, `[name="quantity"]`, function(event) {
+            console.warn(event.keyCode);
+            if(event.keyCode === 188 || event.keyCode === 190) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+        })
+
+
         $table.on(`change`, `select[name="pack"]`, function() {
             const $select = $(this);
             const $row = $select.closest(`tr`);
@@ -340,7 +349,7 @@ function initializePacksTable(dispatchId, isEdit, packPrefix) {
                 .append(`<span title="${code}">${code}</span> <input type="hidden" name="pack" class="data" value="${code}"/>`);
 console.log(value);
             $row.find(`.d-none`).removeClass(`d-none`);
-            $row.find(`[name=quantity]`).val(value.quantity).focus();
+            $row.find(`[name=quantity]`).focus();
             $row.find(`[name=weight]`).val(value.weight);
             $row.find(`[name=volume]`).val(value.volume);
             $row.find(`[name=comment]`).val(value.stripped_comment);
@@ -362,7 +371,14 @@ console.log(value);
                 event.preventDefault();
                 event.stopPropagation();
 
-                addPackRow(table, $(`.add-pack-row`));
+                const $nextRow = $(this).closest(`tr`).next();
+                if($nextRow.find(`.add-pack-row`).exists()) {
+                    addPackRow(table, $(`.add-pack-row`));
+                } else if($nextRow.find(`select[name=pack]`).exists()) {
+                    $nextRow.find(`select[name=pack]`).select2(`open`);
+                } else {
+                    $nextRow.find(`[name=quantity]`).focus();
+                }
             }
         });
 

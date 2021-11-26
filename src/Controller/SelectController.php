@@ -354,7 +354,6 @@ class SelectController extends AbstractController {
                 $results = [];
             }
         } else {
-            dump($request->query->get("pack"));
             $results = $packRepository->getForSelect(
                 $packCode,
                 $request->query->get("pack")
