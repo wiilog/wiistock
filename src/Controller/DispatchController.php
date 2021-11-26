@@ -774,8 +774,8 @@ class DispatchController extends AbstractController {
         $pack->setNature($nature);
         $pack->setComment($comment);
         $dispatchPack->setQuantity($quantity);
-        $pack->setWeight(round($weight, 3));
-        $pack->setVolume(round($volume, 3));
+        $pack->setWeight($weight ? round($weight, 3) : null);
+        $pack->setVolume($volume ? round($volume, 3) : null);
 
         $success = true;
         $message = $translator->trans("colis.Le colis {numéro} a bien été " . ($dispatchPack->getId() ? "modifié" : "ajouté"), [

@@ -105,63 +105,6 @@ function forbiddenPhoneNumberValidator($modal) {
     };
 }
 
-function togglePackDetails(emptyDetails = false) {
-    const $modal = $('#modalPack');
-    const packCode = $modal.find('[name="pack"]').val();
-    const prefix = $modal.find(`.pack-code-prefix`).val() || ``;
-
-    $modal.find('.pack-details').addClass('d-none');
-    $modal.find('.spinner-border').removeClass('d-none');
-    $modal.find('.error-msg').empty();
-
-    const $natureField = $modal.find('[name="nature"]');
-    $natureField.val(null).trigger('change');
-    const $quantityField = $modal.find('[name="quantity"]');
-    $quantityField.val(null);
-    const $packQuantityField = $modal.find('[name="pack-quantity"]');
-    $packQuantityField.val(null);
-    const $weightField = $modal.find('[name="weight"]');
-    $weightField.val(null);
-    const $volumeField = $modal.find('[name="volume"]');
-    $volumeField.val(null);
-    const $commentField = $modal.find('.ql-editor');
-    $commentField.html(null);
-
-    if(packCode && !emptyDetails) {
-        $.get(Routing.generate('get_pack_intel', {packCode: prefix + packCode}))
-            .then(({success, pack}) => {
-                if(success) {
-                    if(pack.nature) {
-                        $natureField.val(pack.nature.id).trigger('change');
-                    }
-                    if(pack.quantity || pack.quantity === 0) {
-                        $quantityField.val(pack.quantity);
-                        $packQuantityField.val(pack.quantity);
-                        $weightField.val(pack.weight);
-                        $volumeField.val(pack.volume);
-                    }
-
-                    $commentField.html(pack.comment);
-                }
-
-                $modal.find('.pack-details').removeClass('d-none');
-                $modal.find('.spinner-border').addClass('d-none');
-            })
-            .catch(() => {
-                $modal.find('.pack-details').removeClass('d-none');
-                $modal.find('.spinner-border').addClass('d-none');
-            });
-    } else {
-        $modal.find('.spinner-border').addClass('d-none');
-        if(packCode || emptyDetails) {
-            $modal.find('.pack-details').removeClass('d-none');
-        }
-    }
-    setTimeout(function() {
-        $('input[name="pack"]').focus();
-    }, 500);
-}
-
 function openValidateDispatchModal() {
     const modalSelector = '#modalValidateDispatch';
     const $modal = $(modalSelector);
@@ -326,13 +269,19 @@ function initializePacksTable(dispatchId, isEdit, packPrefix) {
         // Form.initializeWYSIWYG($table);
 
         $table.on(`keydown`, `[name="quantity"]`, function(event) {
-            console.warn(event.keyCode);
-            if(event.keyCode === 188 || event.keyCode === 190) {
+            if(event.key === `.` || event.key === `,`) {
                 event.preventDefault();
                 event.stopPropagation();
             }
-        })
+        });
 
+        $table.on(`keydown`, `[name="weight"], [name="volume"]`, function(event) {
+            const digits = $(this).val().split('.')[1];
+            if(event.key.length === 1 && digits && digits.length >= 3) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+        });
 
         $table.on(`change`, `select[name="pack"]`, function() {
             const $select = $(this);
@@ -347,9 +296,8 @@ function initializePacksTable(dispatchId, isEdit, packPrefix) {
             $select.closest(`td, th`)
                 .empty()
                 .append(`<span title="${code}">${code}</span> <input type="hidden" name="pack" class="data" value="${code}"/>`);
-console.log(value);
+
             $row.find(`.d-none`).removeClass(`d-none`);
-            $row.find(`[name=quantity]`).focus();
             $row.find(`[name=weight]`).val(value.weight);
             $row.find(`[name=volume]`).val(value.volume);
             $row.find(`[name=comment]`).val(value.stripped_comment);
@@ -360,6 +308,9 @@ console.log(value);
             if(value.nature_id && value.nature_label) {
                 $row.find(`[name=nature]`).append(new Option(value.nature_label, value.nature_id, true, true)).trigger('change');
             }
+
+            table.columns.adjust().draw();
+            $row.find(`[name=quantity]`).focus();
         });
 
         $table.on(`click`, `.add-pack-row`, function() {
