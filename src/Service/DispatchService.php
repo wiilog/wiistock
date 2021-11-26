@@ -601,10 +601,11 @@ class DispatchService {
     }
 
     public function packRow(?DispatchPack $dispatchPack, bool $autofocus, bool $isEdit): array {
-        if(!isset($this->prefixPackCodeWithDispatchNumber, $this->natures)) {
+        if(!isset($this->prefixPackCodeWithDispatchNumber, $this->natures, $this->defaultNature)) {
             $this->prefixPackCodeWithDispatchNumber = $this->entityManager->getRepository(ParametrageGlobal::class)->getOneParamByLabel(ParametrageGlobal::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
             $this->natures = $this->entityManager->getRepository(Nature::class)->findAll();
-        }
+            $this->defaultNature = $this->entityManager->getRepository(Nature::class)->findOneBy(["defaultForDispatch" => true]);
+         }
 
         if($dispatchPack) {
             $pack = $dispatchPack->getPack();
@@ -641,15 +642,15 @@ class DispatchService {
             $class = isset($dispatchPack) ? "form-control data" : "form-control data d-none";
             $autofocus = $autofocus ? "autofocus" : "";
             $strippedComment = $comment ? strip_tags(str_replace("<br>", "\n", $comment)) : "";
-
+dump($this->defaultNature);
             $natureOptions = Stream::from($this->natures)
                 ->map(fn(Nature $n) => [
                     "id" => $n->getId(),
                     "label" => $n->getLabel(),
-                    "selected" => $n->getLabel() === $nature ? "selected" : "",
+                    "selected" => $n->getLabel() === $nature || !$nature && $this->defaultNature === $n ? "selected" : "",
                 ])
                 ->map(fn(array $n) => "<option value='{$n["id"]}' {$n["selected"]}>{$n["label"]}</option>")
-                ->prepend(!$nature ? "<option disabled selected>Sélectionnez une nature</option>" : null)
+                ->prepend(!$nature && !$this->defaultNature ? "<option disabled selected>Sélectionnez une nature</option>" : null)
                 ->join("");
 
             $data = [
