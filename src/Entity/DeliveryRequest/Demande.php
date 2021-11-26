@@ -14,7 +14,6 @@ use App\Entity\Reception;
 use App\Entity\Statut;
 use App\Entity\Traits\CommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
-use App\Entity\Traits\RequestTrait;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use DateTime;
@@ -41,7 +40,6 @@ class Demande implements PairedEntity {
     const STATUT_LIVRE_INCOMPLETE = 'livré partiellement';
 
     use CommentTrait;
-    use RequestTrait;
     use SensorMessageTrait;
     use FreeFieldsManagerTrait;
 

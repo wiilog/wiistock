@@ -168,7 +168,6 @@ class CartService {
                 ->setNumero($this->demandeLivraisonService->generateNumeroForNewDL($manager))
                 ->setUtilisateur($user)
                 ->setType($type)
-                ->setFilled(false)
                 ->setCreatedAt(new DateTime('now'))
                 ->setDestination($destination)
                 ->setStatut($draft);
@@ -223,7 +222,7 @@ class CartService {
                 ->setType($type)
                 ->setStatut($draftStatus)
                 ->setObjet($data['object'])
-                ->setStockOrDestruct(!($data['destination'] == 0))
+                ->setStockOrDestruct($data['destination'] === 'destruction' ? Collecte::DESTRUCT_STATE : Collecte::STOCKPILLING_STATE)
                 ->setPointCollecte($collectLocation)
                 ->setCommentaire($data['comment'])
                 ->setDemandeur($user);

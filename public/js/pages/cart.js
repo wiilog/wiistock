@@ -117,14 +117,14 @@ $(document).ready(() => {
     Form.create(`.wii-form`).onSubmit(data => {
         const url = Routing.generate('cart_validate', true);
         const params = JSON.stringify(data.asObject());
-        wrapLoadingOnActionButton($('.cart-content').find('button[type=submit]'), () => {
+        wrapLoadingOnActionButton($('.cart-content').find('button[type=submit]'), () => (
             $.post(url, params, function (response) {
                 showBSAlert(response.msg, response.success ? 'success' : 'danger');
                 if (response.success && response.link) {
                     window.location.href = response.link;
                 }
-            });
-        });
+            })
+        ));
     });
 });
 
@@ -146,7 +146,10 @@ function initializePurchaseRequestInfos($purchaseInfos, id) {
         ],
         filter: false,
         ordering: false,
-        info: false
+        info: false,
+        drawConfig: {
+            hidePagingIfEmpty: true,
+        },
     });
 }
 

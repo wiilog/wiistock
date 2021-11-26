@@ -146,7 +146,6 @@ class DemandeController extends AbstractController
                 $demande
                     ->setUtilisateur($utilisateur)
                     ->setDestination($emplacement)
-                    ->setFilled(true)
                     ->setType($type)
                     ->setCommentaire($data['commentaire']);
                 $em = $this->getDoctrine()->getManager();

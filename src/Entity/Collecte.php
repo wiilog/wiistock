@@ -9,7 +9,6 @@ use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\Traits\CommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
-use App\Entity\Traits\RequestTrait;
 use App\Helper\FormatHelper;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -29,8 +28,10 @@ class Collecte implements Serializable, PairedEntity {
     const STATUT_A_TRAITER = 'à traiter';
     const STATUT_BROUILLON = 'brouillon';
 
+    const DESTRUCT_STATE = 0;
+    const STOCKPILLING_STATE = 1;
+
     use CommentTrait;
-    use RequestTrait;
     use SensorMessageTrait;
     use FreeFieldsManagerTrait;
 
