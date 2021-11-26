@@ -798,7 +798,22 @@ function newChart($canvasId, data, redForLastData = false, disableAnimation = fa
                         top: 30
                     }
                 },
-                tooltips: false,
+                tooltips: data.multiple && data.stackValues  ?
+                    {
+                        position: 'middle',
+                        callbacks: {
+                            title: function(){
+                                return null;
+                            },
+                            label: function(t, d) {
+                                var typeLabel = d.datasets[t.datasetIndex].label;
+                                var typeQuantity = t.yLabel;
+                                return typeLabel + ': ' + typeQuantity;
+                            },
+                        },
+                        xAlign: 'center',
+                        yAlign: 'center',
+                    } : false,
                 responsive: true,
                 maintainAspectRatio: false,
                 legend: {
@@ -830,7 +845,11 @@ function newChart($canvasId, data, redForLastData = false, disableAnimation = fa
                         stacked: data.stackValues,
                     }]
                 },
-                hover: {mode: null},
+                hover: data.multiple && data.stackValues ?
+                    {
+                        mode: 'nearest',
+                        intersect: true,
+                    } : true,
                 animation: {
                     duration: disableAnimation ? 0 : 1000,
                     onComplete() {
@@ -1189,3 +1208,11 @@ function hideOrShowStackButton(){
     $('.stack-button').toggleClass('d-none');
     $('input[name="stackValues"]').prop('checked',false);
 }
+
+Chart.Tooltip.positioners.middle = elements => {
+    let model = elements[0]._model;
+    return {
+        x: model.x,
+        y: (model.base + model.y) / 2
+    };
+};
