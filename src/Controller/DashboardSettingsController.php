@@ -156,6 +156,8 @@ class DashboardSettingsController extends AbstractController {
             "handlingStatuses" => [],
             "dispatchStatuses" => [],
             "entityTypes" => [],
+            "separateType" => false,
+            "stackValues" => false,
             "entityStatuses" => [],
             "entity" => '',
             "treatmentDelay" => null,

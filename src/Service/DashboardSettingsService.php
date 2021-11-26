@@ -727,7 +727,7 @@ class DashboardSettingsService {
             }
         } else {
             $values = $componentType->getExampleValues();
-            $values['separateType'] = $config['separateType'] ?? '';
+            $values['separateType'] = $config['separateType'] ?? false;
             $values['handlingTypes'] = $config['handlingTypes'] ?? '';
             if (!empty($config['handlingTypes']) && $separateType) {
                 $handlingTypes = $entityManager->getRepository(Type::class)->findBy(['id' => $config['handlingTypes']]);
@@ -792,6 +792,7 @@ class DashboardSettingsService {
                                               bool $example = false,
                                               DashboardMeter\Chart $chart = null): array {
         $separateType = isset($config['separateType']) && $config['separateType'];
+        $stackValues = isset($config['stackValues']) && $config['stackValues'];
         if (!$example) {
             if ($chart) {
                 $values = ["chartData" => $chart->getData(), 'chartColors' => $chart->getChartColors()];
@@ -855,6 +856,7 @@ class DashboardSettingsService {
             $values['date'] = $config['date'] ?? "";
         }
         $values['multiple'] = $separateType;
+        $values['stackValues'] = $stackValues;
         return $values;
     }
 
