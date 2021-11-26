@@ -438,8 +438,9 @@ class DemandeLivraisonService
 
         // modification du statut articles => en transit
         $articles = $demande->getArticleLines();
+        $statutArticleIntransit = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT);
         foreach ($articles as $article) {
-            $article->getArticle()->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
+            $article->getArticle()->setStatut($statutArticleIntransit);
             $ligneArticlePreparation = new PreparationOrderArticleLine();
             $ligneArticlePreparation
                 ->setPickedQuantity($article->getPickedQuantity())

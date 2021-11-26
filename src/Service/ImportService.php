@@ -353,7 +353,8 @@ class ImportService
                                     array &$receptionsWithCommand,
                                     array &$deliveries,
                                     ?Utilisateur $user,
-                                    int $rowIndex): array
+                                    int $rowIndex,
+                                    int $retry = 0): array
     {
         try {
             $emptyCells = count(array_filter($row, fn(string $value) => $value === ""));
@@ -406,9 +407,24 @@ class ImportService
 
             if ($throwable instanceof ImportException) {
                 $message = $throwable->getMessage();
-            }
-            else if ($throwable instanceof UniqueConstraintViolationException) {
-                $message = 'Une autre entité est en cours de création, veuillez réessayer.';
+            } else if ($throwable instanceof UniqueConstraintViolationException) {
+                if ($retry <= 3) {
+                    $retry++;
+                    return $this->treatImportRow($row,
+                        $headers,
+                        $dataToCheck,
+                        $colChampsLibres,
+                        $refToUpdate,
+                        $stats,
+                        $needsUnitClear,
+                        $receptionsWithCommand,
+                        $deliveries,
+                            $user,
+                             $rowIndex,
+                             $retry);
+                } else {
+                    $message = 'Une autre entité est en cours de création, veuillez réessayer.';
+                }
             } else {
                 $message = 'Une erreur est survenue.';
                 $file = $throwable->getFile();
