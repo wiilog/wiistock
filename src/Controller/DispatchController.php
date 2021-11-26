@@ -792,58 +792,6 @@ class DispatchController extends AbstractController {
     }
 
     /**
-     * @Route("/packs/edit", name="dispatch_edit_pack", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param PackService $packService
-     * @param TranslatorInterface $translator
-     * @param EntityManagerInterface $entityManager
-     * @return Response
-     */
-    public function editPack(Request $request,
-                             PackService $packService,
-                             TranslatorInterface $translator,
-                             EntityManagerInterface $entityManager): Response {
-        $data = json_decode($request->getContent(), true);
-
-        $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
-        $natureRepository = $entityManager->getRepository(Nature::class);
-
-        $packDispatchId = $data['packDispatchId'];
-        /** @var DispatchPack $dispatchPack */
-        $dispatchPack = $dispatchPackRepository->find($packDispatchId);
-        if(empty($dispatchPack)) {
-            $response = [
-                'success' => false,
-                'msg' => $translator->trans("colis.Le colis n''existe pas")
-            ];
-        } else {
-            $pack = $dispatchPack->getPack();
-
-            $packDataIsValid = $packService->checkPackDataBeforeEdition($data);
-
-            if($packDataIsValid['success']) {
-                $quantity = $data['quantity'];
-                $packService
-                    ->editPack($data, $natureRepository, $pack);
-                $dispatchPack
-                    ->setQuantity($quantity);
-
-                $entityManager->flush();
-
-                $response = [
-                    'success' => true,
-                    'msg' => $translator->trans('colis.Le colis {numéro} a bien été modifié', [
-                            "{numéro}" => '<strong>' . $pack->getCode() . '</strong>'
-                        ]) . '.'
-                ];
-            } else {
-                $response = $packDataIsValid;
-            }
-        }
-        return new JsonResponse($response);
-    }
-
-    /**
      * @Route("/packs/delete", name="dispatch_delete_pack", options={"expose"=true},methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
      */
     public function deletePack(Request $request,
@@ -874,13 +822,6 @@ class DispatchController extends AbstractController {
 
     /**
      * @Route("/{id}/validate", name="dispatch_validate_request", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @param TranslatorInterface $translator
-     * @param Dispatch $dispatch
-     * @param DispatchService $dispatchService
-     * @return Response
-     * @throws Exception
      */
     public function validateDispatchRequest(Request $request,
                                             EntityManagerInterface $entityManager,
@@ -1421,18 +1362,6 @@ class DispatchController extends AbstractController {
      *     condition="request.isXmlHttpRequest()",
      *     methods="POST"
      * )
-     * @param EntityManagerInterface $entityManager
-     * @param Dispatch $dispatch
-     * @param PDFGeneratorService $pdf
-     * @param DispatchService $dispatchService
-     * @param TranslatorInterface $translator
-     * @param Request $request
-     * @return JsonResponse
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     * @throws NonUniqueResultException
-     * @throws Exception
      */
     public function postDispatchWaybill(EntityManagerInterface $entityManager,
                                         Dispatch $dispatch,
@@ -1512,11 +1441,6 @@ class DispatchController extends AbstractController {
      *     options={"expose"=true},
      *     methods="GET"
      * )
-     * @param TranslatorInterface $trans
-     * @param Dispatch $dispatch
-     * @param Attachment $attachment
-     * @param KernelInterface $kernel
-     * @return JsonResponse
      */
     public function printWaybillNote(TranslatorInterface $trans,
                                      Dispatch $dispatch,
