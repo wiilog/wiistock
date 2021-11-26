@@ -197,7 +197,6 @@ function overrideSearch($input, table, callback = null) {
 }
 
 function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, needsColumnShow, needsResize, needsEmplacementSearchOverride, callback, table, $table, hidePagingIfEmpty}) {
-    console.log(table);
     let $searchInputContainer = $table.parents('.dataTables_wrapper ').find('.dataTables_filter');
     let $searchInput = $searchInputContainer.find('input');
 
@@ -216,7 +215,7 @@ function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, 
 
     if(hidePagingIfEmpty) {
         const data = table.rows().data();
-        $table.parents('.dataTables_wrapper').find(`.dataTables_paginate`).toggleClass(`d-none`, !data || data.length < 10);
+        $table.parents('.dataTables_wrapper').find(`.dataTables_paginate, .dataTables_length`).toggleClass(`d-none`, !data || data.length < 10);
     }
     if (callback) {
         callback();

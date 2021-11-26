@@ -11,97 +11,41 @@
     </select>
 </div>
 
-{% if demande.filled %}
-    <div class="form-group">
-        <label for="typeEdit">Type</label>
-        <select name="type"
-                id="typeEdit"
-                disabled
-                class="form-control d-block">
-            {% if demande.type is not null %}
-                <option selected value="{{ demande.type.id }}">{{ demande.type.label }}</option>
-            {% else %}
-                <option selected value=''></option>
-            {% endif %}
-        </select>
-    </div>
+<div class="form-group">
+    <label for="typeEdit">Type</label>
+    <select name="type"
+            id="typeEdit"
+            disabled
+            class="form-control d-block">
+        {% if demande.type is not null %}
+            <option selected value="{{ demande.type.id }}">{{ demande.type.label }}</option>
+        {% else %}
+            <option selected value=''></option>
+        {% endif %}
+    </select>
+</div>
 
-    <div class="form-group w-100">
-        <label for="destination">Destination</label>
-        <select name="destination" class="form-control data">
-            {% if demande.destination is defined and demande.destination != null %}
-                <option value="{{ demande.destination.id }}" selected>{{ demande.destination.label }}</option>
-            {% endif %}
-        </select>
-    </div>
+<div class="form-group w-100">
+    <label for="destination">Destination</label>
+    <select name="destination" class="form-control data">
+        {% if demande.destination is defined and demande.destination != null %}
+            <option value="{{ demande.destination.id }}" selected>{{ demande.destination.label }}</option>
+        {% endif %}
+    </select>
+</div>
 
-    <!-- CHAMPS LIBRES -->
-    <span class="toggle-collapsible expanded">Champs libres</span>
-    <div class="collapsible expanded free-fields-container mb-2">
-        {% include 'free_field/freeFieldsEdit.html.twig' with {
-            freeFields: demande.type is not null and freeFieldsGroupedByTypes[demande.type.id] is defined ? freeFieldsGroupedByTypes[demande.type.id] : [],
-            freeFieldValues: demande.freeFields,
-            colType: 'col-md-4 col-12',
-            requiredType: 'requiredEdit',
-            actionType: 'edit'
-        } %}
-    </div>
-{% else %}
-    <input type="hidden"
-           name="defaultDeliveryLocations"
-           data-value="{{ defaultDeliveryLocations|json_encode }}"/>
-    <input type="hidden"
-           name="userDropzone"
-           data-value="{{ app.user.dropzone ? {'label': app.user.dropzone.label, 'id': app.user.dropzone.id}|json_encode }}"/>
+<!-- CHAMPS LIBRES -->
+<span class="toggle-collapsible expanded">Champs libres</span>
+<div class="collapsible expanded free-fields-container mb-2">
+    {% include 'free_field/freeFieldsEdit.html.twig' with {
+        freeFields: demande.type is not null and freeFieldsGroupedByTypes[demande.type.id] is defined ? freeFieldsGroupedByTypes[demande.type.id] : [],
+        freeFieldValues: demande.freeFields,
+        colType: 'col-md-4 col-12',
+        requiredType: 'requiredEdit',
+        actionType: 'edit'
+    } %}
+</div>
 
-    {% set uniqueType = types|length == 1 %}
-    <div class="form-group">
-        <label for="type">Type*</label>
-        <select name="type" class="form-control data d-block type needed
-                            {{ uniqueType ? 'needs-default' }}"
-                onclick="typeChoice($(this))"
-                onchange="onDeliveryTypeChange($(this), `edit`)"
-            {{ uniqueType ? 'disabled' }}
-            {{ uniqueType ? ('data-init="' ~ (types|first).id ~ '"')|raw }}>
-            {% if not uniqueType %}
-                <option value="">Type à choisir...</option>
-                {% for type in types %}
-                    <option value="{{ type.id }}">{{ type.label }}</option>
-                {% endfor %}
-            {% else %}
-                {% set typeToDisplay = types|first %}
-                <option selected value={{ typeToDisplay.id }}>{{ typeToDisplay.label }}</option>
-            {% endif %}
-        </select>
-    </div>
-
-    <div class="form-group w-100">
-        <label for="destination">Destination*</label>
-        <select name="destination" class="form-control data needed">
-            {% if demande.destination is defined and demande.destination != null %}
-                <option value="{{ demande.destination.id }}" selected>{{ demande.destination.label }}</option>
-            {% endif %}
-        </select>
-    </div>
-
-    <!-- CHAMPS LIBRES -->
-    <span class="toggle-collapsible expanded">Champs libres</span>
-    <div class="collapsible expanded free-fields-container mb-2">
-        {% for type in typeChampsLibres %}
-            <div class="d-none"
-                 data-type="{{ type.typeId }}">
-                {% include 'free_field/freeFieldsEdit.html.twig' with {
-                    freeFields: type.champsLibres,
-                    freeFieldValues: [],
-                    colType: 'col-12',
-                    requiredType: 'requiredEdit',
-                    actionType: 'edit',
-                    disabledNeeded: true
-                } %}
-            </div>
-        {% endfor %}
-    </div>
-{% endif %}
 <div class="form-group">
     <label for="commentaire">Commentaire</label>
     <input id="commentaire" class="form-control data" name="commentaire" type="hidden" value="{{ demande.commentaire }}">
