@@ -1001,7 +1001,7 @@ function createAndUpdateMultipleCharts($canvas,
                                        redForLastData = true,
                                        disableAnimation = false) {
     if(forceCreation || !chart) {
-        chart = newChart($canvas,data, redForLastData, disableAnimation);
+        chart = newChart($canvas, data, redForLastData, disableAnimation);
     }
     if(data) {
         updateMultipleChartData(chart, data);
@@ -1187,5 +1187,5 @@ function resetColorPickersElementsToForm($modal, data) {
 
 function hideOrShowStackButton(){
     $('.stack-button').toggleClass('d-none');
-    $('input[name="stackValues"]').prop('checked',false);
+    $('input[name="stackValues"]').prop('checked', false);
 }
