@@ -8,6 +8,7 @@ use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use phpDocumentor\Reflection\Types\Boolean;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 use App\Service\VisibleColumnService;
@@ -408,14 +409,23 @@ class DispatchRepository extends EntityRepository
      */
     public function countByDates(DateTime $dateMin,
                                  DateTime $dateMax,
+                                 string $date,
+                                 bool $separateType,
                                  array $dispatchStatusesFilter = [],
-                                 array $dispatchTypesFilter = []): int
+                                 array $dispatchTypesFilter = [])
     {
         $qb = $this->createQueryBuilder('dispatch')
-            ->select('COUNT(dispatch) AS count')
-            ->where('dispatch.endDate BETWEEN :dateMin AND :dateMax')
+            ->select('COUNT(dispatch) ' . ($separateType ? ' AS count' : ''))
+            ->join('dispatch.type','type')
+            ->andWhere('dispatch.' . $date . ' BETWEEN :dateMin AND :dateMax')
             ->setParameter('dateMin', $dateMin)
             ->setParameter('dateMax', $dateMax);
+
+        if ($separateType) {
+            $qb
+                ->groupBy('type.id')
+                ->addSelect('type.label as typeLabel');
+        }
         if (!empty($dispatchStatusesFilter)) {
             $qb
                 ->andWhere('dispatch.statut IN (:dispatchStatuses)')
@@ -427,10 +437,7 @@ class DispatchRepository extends EntityRepository
                 ->andWhere('dispatch.type IN (:dispatchTypes)')
                 ->setParameter('dispatchTypes', $dispatchTypesFilter);
         }
-
-        return $qb
-            ->getQuery()
-            ->getSingleScalarResult();
+        return $separateType ? $qb->getQuery()->getResult() : $qb->getQuery()->getSingleScalarResult();
     }
 
     public function getProcessingTime() {

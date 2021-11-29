@@ -27,6 +27,20 @@
             </div>
         </div>
     </div>
+    <div class="row form-group align-items-center">
+        <div class="col-auto">
+            <label class="switch">
+                <input class="checkbox"
+                       type="checkbox"
+                       name="separateType"
+                    {{ values.separateType ?? false ? 'checked' }}/>
+                <span class="slider round"></span>
+            </label>
+        </div>
+        <div class="col">
+            Distinguer les acheminements par type
+        </div>
+    </div>
 
     <div class="row">
         <div class="col-12">

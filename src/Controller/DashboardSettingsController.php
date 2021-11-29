@@ -352,6 +352,9 @@ class DashboardSettingsController extends AbstractController {
                 if (isset($valuesDecoded['natures']) && isset($values['natures'])) {
                     $valuesDecoded['natures'] = $values['natures'];
                 }
+                if (isset($valuesDecoded['dispatchTypes']) && isset($values['dispatchTypes'])) {
+                    $valuesDecoded['dispatchTypes'] = $values['dispatchTypes'];
+                }
                 if (isset($valuesDecoded['handlingTypes']) && isset($values['handlingTypes'])) {
                     $valuesDecoded['handlingTypes'] = $values['handlingTypes'];
                 }

@@ -160,6 +160,12 @@ $wii-switch-height: 38px;
     padding: 0 5px;
 }
 
+.wii-switch-no-style{
+    label {
+        color: #495057;
+    }
+}
+
 .lite-picker {
     width: 30%;
 }
