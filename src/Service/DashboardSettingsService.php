@@ -801,7 +801,7 @@ class DashboardSettingsService {
             }
         } else {
             $values = $componentType->getExampleValues();
-            $values['separateType'] = $config['separateType'] ?? '';
+            $values['separateType'] = $config['separateType'] ?? false;
             $values['dispatchTypes'] = $config['dispatchTypes'] ?? '';
             if (!empty($config['dispatchTypes']) && $separateType) {
                 $dispatchTypes = $entityManager->getRepository(Type::class)->findBy(['id' => $config['dispatchTypes']]);
