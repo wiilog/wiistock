@@ -195,7 +195,7 @@ class DashboardSettingsService {
                 $values += $this->serializeSimpleCounter($componentType, $example, $meter);
                 break;
             case Dashboard\ComponentType::DAILY_DISPATCHES:
-                $values += $this->serializeDailyDispatches($componentType, $config, $example, $meter);
+                $values += $this->serializeDailyDispatches($entityManager, $componentType, $config, $example, $meter);
                 break;
             case Dashboard\ComponentType::DAILY_HANDLING:
             case Dashboard\ComponentType::DAILY_OPERATIONS:
@@ -727,7 +727,7 @@ class DashboardSettingsService {
             }
         } else {
             $values = $componentType->getExampleValues();
-            $values['separateType'] = $config['separateType'] ?? '';
+            $values['separateType'] = $config['separateType'] ?? false;
             $values['handlingTypes'] = $config['handlingTypes'] ?? '';
             if (!empty($config['handlingTypes']) && $separateType) {
                 $handlingTypes = $entityManager->getRepository(Type::class)->findBy(['id' => $config['handlingTypes']]);
@@ -786,23 +786,60 @@ class DashboardSettingsService {
      * @param DashboardMeter\Chart|null $chart
      * @return array
      */
-    private function serializeDailyDispatches(Dashboard\ComponentType $componentType,
+    private function serializeDailyDispatches(EntityManagerInterface $entityManager,
+                                              Dashboard\ComponentType $componentType,
                                               array $config,
                                               bool $example = false,
                                               DashboardMeter\Chart $chart = null): array {
-
+        $separateType = isset($config['separateType']) && $config['separateType'];
+        $stackValues = isset($config['stackValues']) && $config['stackValues'];
         if (!$example) {
             if ($chart) {
-                $values = ["chartData" => $chart->getData()];
+                $values = ["chartData" => $chart->getData(), 'chartColors' => $chart->getChartColors()];
             } else {
                 $values = ["chartData" => []];
             }
         } else {
             $values = $componentType->getExampleValues();
+            $values['separateType'] = $config['separateType'] ?? false;
+            $values['dispatchTypes'] = $config['dispatchTypes'] ?? '';
+            if (!empty($config['dispatchTypes']) && $separateType) {
+                $dispatchTypes = $entityManager->getRepository(Type::class)->findBy(['id' => $config['dispatchTypes']]);
+                $counter = 0;
+                $chartColors = Stream::from($dispatchTypes)
+                    ->reduce(function (array $carry, Type $type) use ($config, &$counter, $values) {
+                        $carry[$type->getLabel()] = $config['chartColors'][$type->getLabel()] ?? Dashboard\ComponentType::DEFAULT_CHART_COLOR;
+                        $counter++;
+                        return $carry;
+                    }, []);
+                $values['chartColors'] = $chartColors;
+
+                $chartColorsLabels = Stream::from($dispatchTypes)
+                    ->map(function (Type $type) {
+                        return $type->getLabel();
+                    })->toArray();
+                $values['chartColorsLabels'] = $chartColorsLabels;
+
+                $chartValues = Stream::from($dispatchTypes)
+                    ->reduce(function (array $carry, Type $type) {
+                        $carry[$type->getLabel()] = rand(10, 18);
+                        return $carry;
+                    }, []);
+
+                $chartDataMultiple = Stream::from($values['chartDataMultiple'])
+                    ->map(function () use ($chartValues) {
+                        return $chartValues;
+                    })->toArray();
+                $values['chartDataMultiple'] = $chartDataMultiple;
+            } else {
+                $values['chartColors'] = (isset($config['chartColors']) && isset($config['chartColors'][0]))
+                    ? [$config['chartColors'][0]]
+                    : [Dashboard\ComponentType::DEFAULT_CHART_COLOR];
+            }
 
             $scale = $config['scale'] ?? DashboardService::DEFAULT_WEEKLY_REQUESTS_SCALE;
 
-            $chartData = $values['chartData'] ?? [];
+            $chartData = $separateType ? ($values['chartDataMultiple'] ?? []) : ($values['chartData'] ?? []);
             $keysToKeep = array_slice(array_keys($chartData), 0, $scale);
             $chartData = Stream::from($keysToKeep)
                 ->reduce(function(array $carry, string $key) use ($chartData) {
@@ -812,10 +849,14 @@ class DashboardSettingsService {
                     return $carry;
                 }, []);
 
-            $values['chartColors'] = $config['chartColors'] ?? $values['chartColors'] ?? [];
+            $values['chartColors'] = $values['chartColors'] ?? $config['chartColors'] ?? [];
 
             $values['chartData'] = $chartData;
+
+            $values['date'] = $config['date'] ?? "";
         }
+        $values['multiple'] = $separateType;
+        $values['stackValues'] = $stackValues;
         return $values;
     }
 

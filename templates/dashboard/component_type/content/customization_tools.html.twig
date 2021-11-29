@@ -117,4 +117,28 @@
             </div>
         </div>
     {% endif %}
+    {% if componentType.meterKey == constant('App\\Entity\\Dashboard\\ComponentType::DAILY_DISPATCHES') %}
+        <div class="form-group">
+            {% set defined = values.date is defined %}
+            <label>Date de référence*</label>
+            <div class="wii-switch-no-style needed mt-2" data-title="Date de référence">
+                <div>
+                    <input type="radio" class="data" name="date" value="startDate" {{ defined and (values.date == "startDate") ? 'checked' }}>
+                    <label for="dueDate1">Date d'échéance "Du"</label>
+                </div>
+                <div>
+                    <input type="radio" class="data" name="date" value="endDate" {{ defined and (values.date == "endDate") ? 'checked' }}>
+                    <label for="dueDate2">Date d'échéance "Au"</label>
+                </div>
+                <div>
+                    <input type="radio" class="data" name="date" value="validationDate" {{ defined and (values.date == "validationDate") ? 'checked' }}>
+                    <label for="validationDate">Date de validation</label>
+                </div>
+                <div>
+                    <input type="radio" class="data" name="date" value="treatmentDate" {{ defined and (values.date == "treatmentDate") ? 'checked' }}>
+                    <label for="treatmentDate">Date de traitement</label>
+                </div>
+            </div>
+        </div>
+    {% endif %}
 </div>

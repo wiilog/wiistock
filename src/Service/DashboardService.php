@@ -824,6 +824,7 @@ class DashboardService {
         if ($chartColors) {
             $meter->setChartColors($chartColors);
         }
+
         return $chartData;
     }
 
@@ -890,8 +891,28 @@ class DashboardService {
         $dispatchTypesFilter = $config['dispatchTypes'] ?? [];
         $scale = $config['scale'] ?? self::DEFAULT_DAILY_REQUESTS_SCALE;
         $period = $config['period'] ?? self::DAILY_PERIOD_PREVIOUS_DAYS;
+        $date = $config['date'] ?? 'validationDate';
+        $separateType = isset($config['separateType']) && $config['separateType'];
+
+        switch ($date) {
+            case 'treatmentDate':
+                $type = "de traitement";
+                break;
+            case 'dueDate1':
+                $type = "d'échéances Du";
+                break;
+            case 'dueDate2':
+                $type = "d'échéances Au";
+                break;
+            default:
+                $type = "de validation";
+                break;
+        }
+
+        $hint = "Nombre d'acheminements ayant leurs dates $type sur les jours présentés";
 
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
 
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
         $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
@@ -899,15 +920,37 @@ class DashboardService {
         $chartData = $this->getDailyObjectsStatistics(
             $entityManager,
             $scale,
-            function(DateTime $dateMin, DateTime $dateMax) use ($dispatchRepository, $dispatchStatusesFilter, $dispatchTypesFilter) {
-                return $dispatchRepository->countByDates($dateMin, $dateMax, $dispatchStatusesFilter, $dispatchTypesFilter);
+            function(DateTime $dateMin, DateTime $dateMax) use ($dispatchRepository, $dispatchStatusesFilter, $dispatchTypesFilter, $date, $separateType) {
+                return $dispatchRepository->countByDates($dateMin, $dateMax, $date,$separateType, $dispatchStatusesFilter, $dispatchTypesFilter);
             },
             $workFreeDays,
             $period
         );
+
+        if ($separateType) {
+            $types = $typeRepository->findBy(['id' => $dispatchTypesFilter]);
+            $chartData = Stream::from($chartData)
+                ->reduce(function ($carry, $data, $date) use ($types) {
+                    foreach ($types as $type) {
+                        $carry[$date][$type->getLabel()] = 0;
+                    }
+                    foreach ($data as $datum) {
+                        if (isset($datum['typeLabel']) && $datum['typeLabel']) {
+                            $carry[$date][$datum['typeLabel']] = $datum['count'];
+                        }
+                    }
+                    return $carry;
+                }, []);
+        }
+        $chartColors = $config['chartColors'] ?? [];
+
+        $chartData['hint'] = $hint;
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
         $meter
             ->setData($chartData);
+        if ($chartColors) {
+            $meter->setChartColors($chartColors);
+        }
     }
 
     /**
