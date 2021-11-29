@@ -68,6 +68,7 @@ $icons: (
     'cart-purchase': "../../public/svg/cart-purchase.svg",
     'plus': "../../public/svg/plus.svg",
     'check': "../../public/svg/check.svg",
+    'wysiwyg-edit': "../../public/svg/wysiwyg-edit.svg",
 );
 
 @each $iconName, $iconPath in $icons {

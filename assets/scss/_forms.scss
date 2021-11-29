@@ -20,7 +20,7 @@
         color: $primary;
         width: 37px;
         min-width: 37px;
-        height: 38px;
+        height: $input-height;
 
         &.decrease:before {
             content: "-";
@@ -131,10 +131,6 @@ $wii-switch-height: 38px;
     input:last-of-type, input:last-of-type + label {
         border-radius: 0 4px 4px 0;
     }
-}
-
-.form-control {
-    height: 38px;
 }
 
 .form-control, .select2-search__field, .select2-selection__placeholder {
@@ -282,5 +278,69 @@ label, .wii-checkbox, .wii-radio {
         font-size: 0.9rem;
         font-weight: normal;
         color: $red;
+    }
+}
+
+$wysiwyg-dropdown-button-size: 20px;
+
+.wii-one-line-wysiwyg-popover {
+    background-color: $white;
+    position: absolute;
+    min-height: $input-height;
+    z-index: 10000;
+
+    @include border-radius($input-border-radius, 0);
+
+    .validate-button {
+        position: absolute;
+        right: 5px;
+        bottom: 5px;
+
+        .wii-icon {
+            width: 18px;
+            height: 18px;
+            display: block;
+            background-color: $white;
+        }
+    }
+}
+
+.wii-one-line-wysiwyg {
+    min-width: 240px;
+}
+
+.wii-one-line-wysiwyg-wrapper {
+    position: relative;
+
+    .wii-one-line-wysiwyg {
+        @extend .form-control;
+        height: auto !important;
+        word-break: break-word;
+        min-height: $input-height;
+        min-width: 240px;
+    }
+
+    &.focused,
+    &.active {
+        .wii-one-line-wysiwyg {
+            color: $input-focus-color;
+            background-color: $input-focus-bg;
+            border-color: $input-focus-border-color;
+            outline: 0;
+        }
+        .dropdown-button {
+            background-color: $primary;
+        }
+    }
+
+    .dropdown-button {
+        height: $wysiwyg-dropdown-button-size;
+        width: $wysiwyg-dropdown-button-size;
+
+        background-color: $grey;
+        position: absolute;
+        right: 4px;
+        top: calc(50% - (#{$wysiwyg-dropdown-button-size / 2}));
+        cursor: pointer;
     }
 }

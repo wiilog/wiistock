@@ -689,7 +689,8 @@ class DispatchController extends AbstractController {
             }
 
             $data[] = [
-                "actions" => "<span class='d-flex justify-content-center align-items-center'><span class='wii-icon wii-icon-plus add-pack-row'></span></span>",
+                'createRow' => true,
+                "actions" => "<span class='d-flex justify-content-start align-items-center'><span class='wii-icon wii-icon-plus'></span></span>",
                 "code" => null,
                 "quantity" => null,
                 "nature" => null,

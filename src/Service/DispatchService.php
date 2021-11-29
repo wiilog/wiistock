@@ -603,8 +603,9 @@ class DispatchService {
     public function packRow(?DispatchPack $dispatchPack, bool $autofocus, bool $isEdit): array {
         if(!isset($this->prefixPackCodeWithDispatchNumber, $this->natures, $this->defaultNature)) {
             $this->prefixPackCodeWithDispatchNumber = $this->entityManager->getRepository(ParametrageGlobal::class)->getOneParamByLabel(ParametrageGlobal::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
-            $this->natures = $this->entityManager->getRepository(Nature::class)->findAll();
-            $this->defaultNature = $this->entityManager->getRepository(Nature::class)->findOneBy(["defaultForDispatch" => true]);
+            $natureRepository = $this->entityManager->getRepository(Nature::class);
+            $this->natures = $natureRepository->findAll();
+            $this->defaultNature = $natureRepository->findOneBy(["defaultForDispatch" => true]);
          }
 
         if($dispatchPack) {
@@ -639,15 +640,15 @@ class DispatchService {
         ]);
 
         if($isEdit) {
-            $class = isset($dispatchPack) ? "form-control data" : "form-control data d-none";
+            $creationMode = !isset($dispatchPack) ? "d-none" : "";
+            $class = "form-control data $creationMode";
             $autofocus = $autofocus ? "autofocus" : "";
-            $strippedComment = $comment ? strip_tags(str_replace("<br>", "\n", $comment)) : "";
 
             $natureOptions = Stream::from($this->natures)
                 ->map(fn(Nature $n) => [
                     "id" => $n->getId(),
                     "label" => $n->getLabel(),
-                    "selected" => $n->getLabel() === $nature || !$nature && $this->defaultNature === $n ? "selected" : "",
+                    "selected" => ($n->getLabel() === $nature || (!$nature && $this->defaultNature === $n)) ? "selected" : "",
                 ])
                 ->map(fn(array $n) => "<option value='{$n["id"]}' {$n["selected"]}>{$n["label"]}</option>")
                 ->prepend(!$nature && !$this->defaultNature ? "<option disabled selected>Sélectionnez une nature</option>" : null)
@@ -662,7 +663,7 @@ class DispatchService {
                 "nature" => "<select name='nature' class='$class minw-150px' data-global-error='Nature' required>{$natureOptions}</select>",
                 "weight" => "<input name='weight' type='number' class='$class' step='0.001' value='$weight'/>",
                 "volume" => "<input name='volume' type='number' class='$class' step='0.001' value='$volume'/>",
-                "comment" => "<input name='comment' class='$class minw-200px' value='$strippedComment'/>",
+                "comment" => "<div class='wii-one-line-wysiwyg $creationMode'>$comment</div>",
                 "lastMvtDate" => $lastMvtDate ?? "<span class='lastMvtDate'></span>",
                 "lastLocation" => $lastLocation ?? "<span class='lastLocation'></span>",
                 "operator" => $operator ?? "<span class='operator'></span>",
@@ -670,7 +671,7 @@ class DispatchService {
             ];
         } else if($dispatchPack) {
             $data = [
-                "actions" => $actions,
+                "createRow" => $actions,
                 "code" => $code,
                 "nature" => $nature,
                 "quantity" => $quantity,

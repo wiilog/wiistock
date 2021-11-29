@@ -1,20 +1,6 @@
-export default class Form {
+import WysiwygManager from "./wysiwyg-manager";
 
-    static QUILL_CONFIG = {
-        modules: {
-            toolbar: [
-                [{header: [1, 2, 3, false]}],
-                ['bold', 'italic', 'underline', 'image'],
-                [{'list': 'ordered'}, {'list': 'bullet'}]
-            ]
-        },
-        formats: [
-            'header',
-            'bold', 'italic', 'underline', 'strike', 'blockquote',
-            'list', 'bullet', 'indent', 'link', 'image'
-        ],
-        theme: 'snow'
-    };
+export default class Form {
 
     submitCallback;
     processors = [];
@@ -24,7 +10,7 @@ export default class Form {
         const form = new Form();
         form.element = $(selector);
 
-        Form.initializeWYSIWYG(form.element);
+        WysiwygManager.initializeWYSIWYG(form.element);
         form.element.on(`click`, `[type="submit"]`, function() {
             const result = Form.process(form, $(this));
             if(result && form.submitCallback) {
@@ -43,17 +29,6 @@ export default class Form {
     onSubmit(callback = null) {
         this.submitCallback = callback;
         return this;
-    }
-
-    static initializeWYSIWYG(container) {
-        const initializer = function() {
-            if(!$(this).is(`.ql-container`)) {
-                new Quill(this, Form.QUILL_CONFIG)
-            }
-        };
-
-        container.find(`[data-wysiwyg]`).each(initializer);
-        container.arrive(`[data-wysiwyg]`, initializer);
     }
 
     static process(form, $button = null, classes = {data: `data`, array: `data-array`}) {
@@ -150,7 +125,9 @@ export default class Form {
             if($input.attr(`name`) || $input.attr(`data-wysiwyg`)) {
                 let value;
                 if($input.is(`[data-wysiwyg]`)) {
-                    value = $input.find(`.ql-editor`).html();
+                    const $qlEditor = $input.find(`.ql-editor`);
+                    const $wrapper = $qlEditor.exists() ? $qlEditor : $input;
+                    value = $wrapper.html();
                 } else if($input.attr(`type`) === `checkbox`) {
                     value = $input.is(`:checked`) ? `1` : `0`;
                 } else {

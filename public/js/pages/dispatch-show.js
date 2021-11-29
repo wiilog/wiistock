@@ -204,21 +204,26 @@ function savePackLine(dispatchId, $row, async = true) {
     let data = Form.process($row);
     data = data instanceof FormData ? data.asObject() : data;
 
-    if(data && !jQuery.deepEquals(data, JSON.parse($row.data(`data`)))) {
-        $.ajax({
-            type: `POST`,
-            url: Routing.generate(`dispatch_new_pack`, {dispatch: dispatchId}),
-            data,
-            async,
-            success: response => {
-                $row.find(`.delete-pack-row`).data(`id`, response.id);
-                showBSAlert(response.msg, response.success ? `success` : `danger`);
+    if(data) {
+        if (!jQuery.deepEquals(data, JSON.parse($row.data(`data`)))) {
+            $.ajax({
+                type: `POST`,
+                url: Routing.generate(`dispatch_new_pack`, {dispatch: dispatchId}),
+                data,
+                async,
+                success: response => {
+                    $row.find(`.delete-pack-row`).data(`id`, response.id);
+                    showBSAlert(response.msg, response.success ? `success` : `danger`);
 
-                $row.data(`data`, JSON.stringify(data));
-            },
-        });
+                    $row.data(`data`, JSON.stringify(data));
+                },
+            });
 
-        return true;
+            return true;
+        }
+    }
+    else {
+        $row.find('.is-invalid').first().trigger('focus');
     }
 
     return false;
@@ -254,14 +259,39 @@ function initializePacksTable(dispatchId, isEdit, packPrefix) {
 
             $rows.off(`focusout.keyboardNavigation`).on(`focusout.keyboardNavigation`, function(event) {
                 const $row = $(this);
-                const target = event.relatedTarget;
-                const wasPackSelect = $(event.target).closest(`td`).find(`select[name="pack"]`).exists();
-                if(target && $.contains(this, target) || $(event.relatedTarget).is(`button`) || wasPackSelect) {
+                const relatedTarget = event.relatedTarget;
+                const $relatedTarget = $(relatedTarget);
+
+                const wasPackSelect = (
+                    $(event.target).closest(`td`).find(`select[name="pack"]`).exists()
+                    && $relatedTarget.closest('.select2-container').exists()
+                );
+                const wasCommentSelect = $relatedTarget.closest('.wii-one-line-wysiwyg-popover').exists();
+
+                if ((relatedTarget && $.contains(this, relatedTarget))
+                    || $relatedTarget.is(`button`)
+                    || wasPackSelect
+                    || wasCommentSelect) {
                     return;
                 }
 
                 savePackLine(dispatchId, $row);
             });
+        },
+
+        createdRow: (row, data) => {
+            // we display only + td on this line
+            if (data && data.createRow) {
+                const $row = $(row);
+                const $tds = $row.children();
+                const $tdAction = $tds.first();
+                const $tdOther = $tds.slice(1);
+
+                $tdAction
+                    .attr('colspan', $tds.length)
+                    .addClass('add-pack-row');
+                $tdOther.addClass('d-none');
+            }
         },
         columnDefs: [
             {targets: 1, width: '300px'},
@@ -284,8 +314,7 @@ function initializePacksTable(dispatchId, isEdit, packPrefix) {
     if(isEdit) {
         scrollToBottom();
 
-        // TODO: décommenter pour la WIIS-6177
-        // Form.initializeWYSIWYG($table);
+        WysiwygManager.initializeOneLineWYSIWYG($table);
 
         $table.on(`keydown`, `[name="quantity"]`, function(event) {
             if(event.key === `.` || event.key === `,`) {
@@ -336,7 +365,7 @@ function initializePacksTable(dispatchId, isEdit, packPrefix) {
             addPackRow(table, $(this));
         });
 
-        $table.on(`keydown`, `[name="comment"]`, function(event) {
+        $table.on(`keydown`, `[data-wysiwyg="comment"]`, function(event) {
             if(event.keyCode === 9) {
                 event.preventDefault();
                 event.stopPropagation();
@@ -377,15 +406,20 @@ function initializePacksTable(dispatchId, isEdit, packPrefix) {
 }
 
 function addPackRow(table, $button) {
-    const row = table.row($button.closest(`tr`));
-    const data = row.data();
+    const $table = $button.closest('table');
+    const $isInvalid = $table.find('.is-invalid');
 
-    row.remove();
-    table.row.add(JSON.parse($(`#newPackRow`).val()));
-    table.row.add(data);
-    table.draw();
+    if ($isInvalid.length === 0) {
+        const row = table.row($button.closest(`tr`));
+        const data = row.data();
 
-    scrollToBottom();
+        row.remove();
+        table.row.add(JSON.parse($(`#newPackRow`).val()));
+        table.row.add(data);
+        table.draw();
+
+        scrollToBottom();
+    }
 }
 
 function scrollToBottom() {

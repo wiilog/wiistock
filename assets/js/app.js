@@ -22,6 +22,7 @@ import "./utils";
 
 import BrowserSupport from './support';
 import Wiistock from './general';
+import WysiwygManager from './wysiwyg-manager';
 import {LOADING_CLASS, wrapLoadingOnActionButton} from './loading';
 
 import '../scss/app.scss';
@@ -52,6 +53,7 @@ function importWiistock() {
 
     global.Wiistock = Wiistock;
     global.wrapLoadingOnActionButton = wrapLoadingOnActionButton;
+    global.WysiwygManager = WysiwygManager;
 
     Wiistock.initialize();
 }

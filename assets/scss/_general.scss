@@ -787,11 +787,14 @@ label.required:after {
     white-space: nowrap;
 }
 
-.wii-icon-plus.add-pack-row {
-    display: inline-block;
-    background-color: $grey;
-    width: 18px;
-    height: 18px;
+.add-pack-row {
+    cursor: pointer;
+    .wii-icon-plus {
+        display: inline-block;
+        background-color: $grey;
+        width: 18px;
+        height: 18px;
+    }
 }
 
 .delete-pack-row .wii-icon-trash {

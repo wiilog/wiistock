@@ -140,17 +140,16 @@ export default class Select2 {
             });
 
             const $searchField = $('.select2-dropdown .select2-search__field');
-            console.log($searchField);
             if ($searchField.exists()) {
                 setTimeout(() => $searchField[0].focus(), 300);
             }
 
             search = null;
-            $(document).on(`keyup`, `.select2-dropdown .select2-search__field`, () => {
-                console.log("huh");
-                console.error(search, $searchField.val())
-                search = $searchField.val();
-            });
+            $(document)
+                .off(`keyup.select2-save-search`)
+                .on(`keyup.select2-save-search`, `.select2-dropdown .select2-search__field`, () => {
+                    search = $searchField.val();
+                });
         });
 
         if($element.is(`[autofocus]:visible`)) {
