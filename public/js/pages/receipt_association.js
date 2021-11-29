@@ -101,6 +101,7 @@ function newLine($span) {
 
     const $parent = $input.parent();
     $input.clone().appendTo($parent).find('input[type=text]').val("");
+    $input.parent().find('input[type=text]').trigger('focus');
 }
 
 function toggleArrivage(button) {

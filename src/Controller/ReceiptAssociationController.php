@@ -117,13 +117,15 @@ class ReceiptAssociationController extends AbstractController
         $user = $this->userService->getUser();
         $now = new DateTime('now');
 
-        $receiptAssociation = (new ReceiptAssociation())
-            ->setReceptionNumber(str_replace(",", ", ", $receptionsStr))
-            ->setUser($user)
-            ->setCreationDate($now)
-            ->setPackCode(str_replace(",", ", ", $packsStr));
+        foreach ($receptions as $reception) {
+            $receiptAssociation = (new ReceiptAssociation())
+                ->setReceptionNumber($reception)
+                ->setUser($user)
+                ->setCreationDate($now)
+                ->setPackCode(str_replace(",", ", ", $packsStr));
 
-        $manager->persist($receiptAssociation);
+            $manager->persist($receiptAssociation);
+        }
 
         $manager->flush();
         return $this->json([
