@@ -162,7 +162,7 @@ class DashboardSettingsController extends AbstractController {
             "entity" => '',
             "treatmentDelay" => null,
             "natures" => [],
-            'tooltip' => $componentType->getHint()
+            "tooltip" => $componentType->getHint()
         ];
 
         $entities = [];

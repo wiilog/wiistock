@@ -894,6 +894,23 @@ class DashboardService {
         $date = $config['date'] ?? 'validationDate';
         $separateType = isset($config['separateType']) && $config['separateType'];
 
+        switch ($date) {
+            case 'treatmentDate':
+                $type = "de traitement";
+                break;
+            case 'dueDate1':
+                $type = "d'échéances Du";
+                break;
+            case 'dueDate2':
+                $type = "d'échéances Au";
+                break;
+            default:
+                $type = "de validation";
+                break;
+        }
+
+        $hint = "Nombre d'acheminements ayant leurs dates $type sur les jours présentés";
+
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $typeRepository = $entityManager->getRepository(Type::class);
 
@@ -927,6 +944,7 @@ class DashboardService {
         }
         $chartColors = $config['chartColors'] ?? [];
 
+        $chartData['hint'] = $hint;
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
         $meter
             ->setData($chartData);
