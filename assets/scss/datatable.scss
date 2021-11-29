@@ -33,6 +33,16 @@ table.wii-table {
         }
     }
 
+    th {
+        .dataTables_scrollBody & {
+            padding: 0 10px !important;
+        }
+
+        .dataTables_scrollHead & {
+            padding: 8px 10px !important;
+        }
+    }
+
     td, td > *, th, th > * {
         max-width: 20vw;
         white-space: nowrap;

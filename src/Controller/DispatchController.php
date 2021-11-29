@@ -814,9 +814,9 @@ class DispatchController extends AbstractController {
 
             return $this->json([
                 "success" => true,
-                "msg" => $translator->trans("colis.Le colis {numéro} a bien été supprimé", [
-                    "{numéro}" => $pack ? "<strong>$packCode</strong>" : "",
-                ])
+                "msg" => $pack ? $translator->trans("colis.Le colis {numéro} a bien été supprimé", [
+                    "{numéro}" => "<strong>$packCode</strong>",
+                ]) : "La ligne a bien été supprimée",
             ]);
         }
 
