@@ -16,7 +16,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
     private $specificService;
     private $output;
 
-    private const COMPONENT_TYPES = [
+    public const COMPONENT_TYPES = [
         'Image externe' => [
             'hint' => 'Image statique',
             'exampleValues' => [
@@ -711,7 +711,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             ],
         ],
         'Nombre d\'acheminements quotidiens' => [
-            'hint' => 'Nombre d\'acheminements ayant leurs dates d\'échéances sur les jours présentés',
+            'hint' => 'Nombre d\'acheminements avec date de référence paramétrable sur les jours présentés',
             'exampleValues' => [
                 'chartColors' => [
                     Dashboard\ComponentType::DEFAULT_CHART_COLOR

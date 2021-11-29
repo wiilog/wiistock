@@ -494,11 +494,11 @@ function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass
 
 
     return $(`
-        <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container' + dashboardBoxContainerClass)}>
+        <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container ' + dashboardBoxContainerClass)}>
             <div class="title">
                 ${withStyle(data, redefinedNumberingConfig || numberingConfig, 1, title.split('(')[0])}
             </div>
-            ${createTooltip(data.tooltip)}
+            ${createTooltip(data.chartData.hint || data.tooltip)}
             <div class="flex-fill content">
                 <canvas class="${cssClass || ''}"></canvas>
             </div>

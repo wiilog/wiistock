@@ -892,6 +892,23 @@ class DashboardService {
         $period = $config['period'] ?? self::DAILY_PERIOD_PREVIOUS_DAYS;
         $date = $config['date'] ?? 'validationDate';
 
+        switch ($date) {
+            case 'treatmentDate':
+                $type = "de traitement";
+                break;
+            case 'dueDate1':
+                $type = "d'échéances Du";
+                break;
+            case 'dueDate2':
+                $type = "d'échéances Au";
+                break;
+            default:
+                $type = "de validation";
+                break;
+        }
+
+        $hint = "Nombre d'acheminements ayant leurs dates $type sur les jours présentés";
+
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
 
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
@@ -906,6 +923,7 @@ class DashboardService {
             $workFreeDays,
             $period
         );
+        $chartData['hint'] = $hint;
         $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
         $meter
             ->setData($chartData);
