@@ -766,7 +766,7 @@ function updateSimpleChartData(chart, data, label, stack = false,
 
 function createAndUpdateSimpleChart($canvas, chart, data, forceCreation = false, disableAnimation = false) {
     if(forceCreation || !chart) {
-        chart = newChart($canvas, false, disableAnimation);
+        chart = newChart($canvas, data, false, disableAnimation);
     }
     if(data) {
         updateSimpleChartData(
@@ -785,7 +785,7 @@ function createAndUpdateSimpleChart($canvas, chart, data, forceCreation = false,
     return chart;
 }
 
-function newChart($canvasId, redForLastData = false, disableAnimation = false) {
+function newChart($canvasId, data, redForLastData = false, disableAnimation = false) {
     if($canvasId.length) {
         const fontSize = currentChartsFontSize;
 
@@ -820,12 +820,14 @@ function newChart($canvasId, redForLastData = false, disableAnimation = false) {
                                     return value;
                                 }
                             }
-                        }
+                        },
+                        stacked: data.stackValues,
                     }],
                     xAxes: [{
                         ticks: {
                             fontSize
-                        }
+                        },
+                        stacked: data.stackValues,
                     }]
                 },
                 hover: {mode: null},
@@ -999,7 +1001,7 @@ function createAndUpdateMultipleCharts($canvas,
                                        redForLastData = true,
                                        disableAnimation = false) {
     if(forceCreation || !chart) {
-        chart = newChart($canvas, redForLastData, disableAnimation);
+        chart = newChart($canvas, data, redForLastData, disableAnimation);
     }
     if(data) {
         updateMultipleChartData(chart, data);
@@ -1181,4 +1183,9 @@ function resetColorPickersElementsToForm($modal, data) {
             }
         }
     }
+}
+
+function hideOrShowStackButton(){
+    $('.stack-button').toggleClass('d-none');
+    $('input[name="stackValues"]').prop('checked', false);
 }
