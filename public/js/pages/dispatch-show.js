@@ -366,7 +366,8 @@ function initializePacksTable(dispatchId, isEdit, packPrefix) {
         });
 
         $table.on(`keydown`, `[data-wysiwyg="comment"]`, function(event) {
-            if(event.keyCode === 9) {
+            const tabulationKeyCode = 9;
+            if(event.keyCode === tabulationKeyCode) {
                 event.preventDefault();
                 event.stopPropagation();
 
