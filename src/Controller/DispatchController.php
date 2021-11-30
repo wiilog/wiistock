@@ -798,8 +798,7 @@ class DispatchController extends AbstractController {
         if($data = json_decode($request->getContent(), true)) {
             $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
 
-            $pack = $dispatchPackRepository->find($data['pack']);
-            if($pack) {
+            if($data['pack'] && $pack = $dispatchPackRepository->find($data['pack'])) {
                 $packCode = $pack->getPack()->getCode();
                 $entityManager->remove($pack);
                 $entityManager->flush();
@@ -809,7 +808,7 @@ class DispatchController extends AbstractController {
 
             return $this->json([
                 "success" => true,
-                "msg" => $pack ? $translator->trans("colis.Le colis {numéro} a bien été supprimé", [
+                "msg" => isset($pack) ? $translator->trans("colis.Le colis {numéro} a bien été supprimé", [
                     "{numéro}" => "<strong>$packCode</strong>",
                 ]) : "La ligne a bien été supprimée",
             ]);
