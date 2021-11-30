@@ -4,7 +4,6 @@
         <title>Bon de surconsommation en-tête</title>
         <meta charset="UTF-8"/>
         <style>
-
             * {
                 font-family: Arial, sans-serif;
             }
@@ -26,16 +25,24 @@
             .logos img:last-of-type {
                 float: right;
             }
+
+            h1, h2 {
+                margin: 0;
+            }
+
+            h2 {
+                padding-bottom: 5mm;
+            }
         </style>
     </head>
     <body>
         <div class="logos">
             {% if app_logo %}
-                <img src="{{ 'https://' ~ app.request.httpHost ~ '/uploads/attachements/' ~ app_logo }}"
+                <img src="{{ 'http://' ~ app.request.httpHost ~ '/uploads/attachements/' ~ app_logo }}"
                     alt="Logo de l'application"/>
             {% endif %}
             {% if overconsumption_logo %}
-                <img src="{{ 'https://' ~ app.request.httpHost ~ '/' ~ overconsumption_logo }}"
+                <img src="{{ 'http://' ~ app.request.httpHost ~ '/' ~ overconsumption_logo }}"
                     alt="Logo de surconsommation"/>
             {% endif %}
         </div>
