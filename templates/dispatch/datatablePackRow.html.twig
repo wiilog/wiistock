@@ -1,11 +1,13 @@
-{% if not edit and dispatchPack and dispatchPack.pack.arrivage %}
-    <a href="{{ path('arrivage_show', {id: dispatchPack.pack.arrivage.id}) }}">
-        <i class="fas fa-exchange-alt" title="Arrivage lié N°{{ dispatchPack.pack.arrivage.numeroArrivage }}"></i>
-    </a>
-{% endif %}
-
-{% if edit and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_PACK')) %}
-    <button class="btn btn-silent delete-pack-row" data-id="{{ dispatchPack ? dispatchPack.id }}">
-        <i class="wii-icon wii-icon-trash text-primary"></i>
-    </button>
+{% if dispatch.statut and dispatch.statut.draft %}
+    {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_PACK')) %}
+        <button class="btn btn-silent delete-pack-row" data-id="{{ dispatchPack ? dispatchPack.id }}">
+            <i class="wii-icon wii-icon-trash text-primary"></i>
+        </button>
+    {% endif %}
+{% else %}
+    {% if dispatchPack and dispatchPack.pack.arrivage %}
+        <a href="{{ path('arrivage_show', {id: dispatchPack.pack.arrivage.id}) }}">
+            <i class="fas fa-exchange-alt" title="Arrivage lié N°{{ dispatchPack.pack.arrivage.numeroArrivage }}"></i>
+        </a>
+    {% endif %}
 {% endif %}

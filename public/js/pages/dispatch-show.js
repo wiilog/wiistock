@@ -225,7 +225,7 @@ function initializePacksTable(dispatchId, isEdit) {
         serverSide: !isEdit,
         ajax: {
             type: "GET",
-            url: Routing.generate('dispatch_pack_api', {dispatch: dispatchId, edit: isEdit}, true),
+            url: Routing.generate('dispatch_pack_api', {dispatch: dispatchId}, true),
         },
         rowConfig: {
             needsRowClickAction: true,
@@ -269,7 +269,6 @@ function initializePacksTable(dispatchId, isEdit) {
                 savePackLine(dispatchId, $row);
             });
         },
-
         createdRow: (row, data) => {
             // we display only + td on this line
             if (data && data.createRow) {
@@ -388,14 +387,13 @@ function initializePacksTable(dispatchId, isEdit) {
             });
 
             $.post(Routing.generate('dispatch_delete_pack', true), data, response => {
-                console.log(this, $(this).closest(`tr`));
                 table.row($(this).closest(`tr`))
                     .remove()
                     .draw();
 
                 showBSAlert(response.msg, response.success ? `success` : `danger`)
-            })
-        })
+            });
+        });
     });
 
     $(window).on(`beforeunload`, () =>  {

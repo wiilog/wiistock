@@ -662,15 +662,14 @@ class DispatchController extends AbstractController {
     /**
      * @Route("/packs/api/{dispatch}", name="dispatch_pack_api", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
      */
-    public function apiPack(Request $request, TranslatorInterface $translator, DispatchService $service, Dispatch $dispatch): Response {
-        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
-
-        if($edit && !$dispatch->getStatut()->isDraft()) {
-            return $this->json([
-                "success" => false,
-                "msg" => "Vous ne pouvez pas modifier cet {$translator->trans("acheminement.acheminement")}",
-            ]);
-        }
+    public function apiPack(UserService $userService,
+                            DispatchService $service,
+                            Dispatch $dispatch): Response {
+        $dispatchStatus = $dispatch->getStatut();
+        $edit = (
+            $dispatchStatus->isDraft()
+            && $userService->hasRightFunction(Menu::DEM, Action::ADD_OR_EDIT_PACK)
+        );
 
         $data = [];
         foreach($dispatch->getDispatchPacks() as $dispatchPack) {
@@ -799,18 +798,13 @@ class DispatchController extends AbstractController {
             $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
 
             if($data['pack'] && $pack = $dispatchPackRepository->find($data['pack'])) {
-                $packCode = $pack->getPack()->getCode();
                 $entityManager->remove($pack);
                 $entityManager->flush();
-            } else {
-                $packCode = $data['pack'];
             }
 
             return $this->json([
                 "success" => true,
-                "msg" => isset($pack) ? $translator->trans("colis.Le colis {numéro} a bien été supprimé", [
-                    "{numéro}" => "<strong>$packCode</strong>",
-                ]) : "La ligne a bien été supprimée",
+                "msg" => "La ligne a bien été supprimée",
             ]);
         }
 

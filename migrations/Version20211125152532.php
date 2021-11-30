@@ -21,13 +21,15 @@ final class Version20211125152532 extends AbstractMigration {
             ->map(fn(array $row) => $row["id"])
             ->join(",");
 
-        $roles = $this->connection->executeQuery("SELECT role.id FROM role
-            LEFT JOIN action_role ar ON role.id = ar.role_id
-            LEFT JOIN action a on ar.action_id = a.id
+        $roles = $this->connection->executeQuery("
+            SELECT role.id
+            FROM role
+                LEFT JOIN action_role ar ON role.id = ar.role_id
+                LEFT JOIN action a on ar.action_id = a.id
             WHERE a.menu_id = $demande AND a.id IN (:previousActions)
             GROUP BY role.id", ["previousActions" => $previousActions]);
 
-        $this->addSql("INSERT INTO action(menu_id, label) VALUES(:demande, :label)", [
+        $this->addSql("INSERT INTO action(menu_id, label) VALUES (:demande, :label)", [
             "demande" => $demande,
             "label" => Action::ADD_OR_EDIT_PACK,
         ]);

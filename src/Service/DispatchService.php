@@ -600,7 +600,10 @@ class DispatchService {
         ];
     }
 
-    public function packRow(Dispatch $dispatch, ?DispatchPack $dispatchPack, bool $autofocus, bool $isEdit): array {
+    public function packRow(Dispatch $dispatch,
+                            ?DispatchPack $dispatchPack,
+                            bool $autofocus,
+                            bool $isEdit): array {
         if(!isset($this->prefixPackCodeWithDispatchNumber, $this->natures, $this->defaultNature)) {
             $this->prefixPackCodeWithDispatchNumber = $this->entityManager->getRepository(ParametrageGlobal::class)->getOneParamByLabel(ParametrageGlobal::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
             $natureRepository = $this->entityManager->getRepository(Nature::class);
@@ -636,7 +639,7 @@ class DispatchService {
 
         $actions = $this->templating->render("dispatch/datatablePackRow.html.twig", [
             "dispatchPack" => $dispatchPack ?? null,
-            "edit" => $isEdit,
+            "dispatch" => $dispatch
         ]);
 
         if($isEdit) {
@@ -682,7 +685,7 @@ class DispatchService {
             ];
         } else if($dispatchPack) {
             $data = [
-                "createRow" => $actions,
+                "actions" => $actions,
                 "code" => $code,
                 "nature" => $nature,
                 "quantity" => $quantity,
