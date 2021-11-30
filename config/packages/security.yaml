@@ -86,6 +86,7 @@ security:
         - { path: ^/verifier-email, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/check_last_login, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/dashboard/sync, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/informations-patient, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/dashboard/statistics, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/dashboard/externe, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/verification-connexion, role: IS_AUTHENTICATED_ANONYMOUSLY }

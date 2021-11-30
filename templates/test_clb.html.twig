@@ -1,0 +1,16 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Paramétrage | Information dossier patient{% endblock %}
+
+{% block page_content %}
+<div class="m-4 wii-page-card">
+    <div>Token API {{ validToken ? 'valide' : 'non valide' }}</div>
+    {% if informations and validToken %}
+        {% for key, information in informations %}
+            <div>{{ key }} : {{ information }}</div>
+        {% endfor %}
+    {% elseif validToken%}
+        <div>Erreur lors de la lecture du fichier information patient.</div>
+    {% endif %}
+</div>
+{% endblock %}
