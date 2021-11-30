@@ -1,7 +1,7 @@
 @import "variables";
 
 #alerts-container {
-    position: absolute;
+    position: fixed;
     z-index: 10000;
     bottom: 0;
     right: 0;

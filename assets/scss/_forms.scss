@@ -328,19 +328,25 @@ $wysiwyg-dropdown-button-size: 20px;
             border-color: $input-focus-border-color;
             outline: 0;
         }
-        .dropdown-button {
+        .dropdown-button i {
             background-color: $primary;
         }
     }
 
     .dropdown-button {
-        height: $wysiwyg-dropdown-button-size;
-        width: $wysiwyg-dropdown-button-size;
-
-        background-color: $grey;
+        border: 0;
+        background-color: transparent;
         position: absolute;
         right: 4px;
         top: calc(50% - (#{$wysiwyg-dropdown-button-size / 2}));
         cursor: pointer;
+        display: flex;
+
+        i {
+            height: $wysiwyg-dropdown-button-size;
+            width: $wysiwyg-dropdown-button-size;
+
+            background-color: $grey;
+        }
     }
 }

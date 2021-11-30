@@ -35,7 +35,8 @@ export default class WysiwygManager {
             const alreadyInit = $element.closest(`.${wrapperClass}`).exists();
             if (!alreadyInit) {
                 const $dropdownButton = $('<button/>', {
-                    class: 'dropdown-button wii-icon wii-icon-wysiwyg-edit',
+                    class: 'dropdown-button',
+                    html: '<i class="wii-icon wii-icon-wysiwyg-edit"></i>',
                     tabindex: '-1',
                     click: function() {
                         const $button = $(this);
