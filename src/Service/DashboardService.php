@@ -891,21 +891,22 @@ class DashboardService {
         $dispatchTypesFilter = $config['dispatchTypes'] ?? [];
         $scale = $config['scale'] ?? self::DEFAULT_DAILY_REQUESTS_SCALE;
         $period = $config['period'] ?? self::DAILY_PERIOD_PREVIOUS_DAYS;
-        $date = $config['date'] ?? 'validationDate';
+        $date = $config['date'] ?? 'endDate';
         $separateType = isset($config['separateType']) && $config['separateType'];
 
         switch ($date) {
             case 'treatmentDate':
                 $type = "de traitement";
                 break;
-            case 'dueDate1':
+            case 'startDate':
                 $type = "d'échéances Du";
                 break;
-            case 'dueDate2':
-                $type = "d'échéances Au";
-                break;
-            default:
+            case 'validationDate':
                 $type = "de validation";
+                break;
+            case 'endDate':
+            default:
+                $type = "d'échéances Au";
                 break;
         }
 
@@ -921,7 +922,7 @@ class DashboardService {
             $entityManager,
             $scale,
             function(DateTime $dateMin, DateTime $dateMax) use ($dispatchRepository, $dispatchStatusesFilter, $dispatchTypesFilter, $date, $separateType) {
-                return $dispatchRepository->countByDates($dateMin, $dateMax, $date,$separateType, $dispatchStatusesFilter, $dispatchTypesFilter);
+                return $dispatchRepository->countByDates($dateMin, $dateMax, $separateType, $dispatchStatusesFilter, $dispatchTypesFilter, $date);
             },
             $workFreeDays,
             $period
