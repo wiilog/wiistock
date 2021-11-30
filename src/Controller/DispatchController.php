@@ -393,7 +393,7 @@ class DispatchController extends AbstractController {
         return $this->render('dispatch/show.html.twig', [
             'dispatch' => $dispatch,
             'detailsConfig' => $dispatchService->createHeaderDetailsConfig($dispatch),
-            'modifiable' => (!$dispatchStatus || $dispatchStatus->isDraft()) && $userService->hasRightFunction(Menu::DEM, Action::ADD_OR_EDIT_PACK),
+            'modifiable' => (!$dispatchStatus || $dispatchStatus->isDraft()) && $userService->hasRightFunction(Menu::DEM, Action::MANAGE_PACK),
             'newPackConfig' => [
                 'natures' => $natureRepository->findBy([], ['label' => 'ASC'])
             ],
@@ -668,7 +668,7 @@ class DispatchController extends AbstractController {
         $dispatchStatus = $dispatch->getStatut();
         $edit = (
             $dispatchStatus->isDraft()
-            && $userService->hasRightFunction(Menu::DEM, Action::ADD_OR_EDIT_PACK)
+            && $userService->hasRightFunction(Menu::DEM, Action::MANAGE_PACK)
         );
 
         $data = [];

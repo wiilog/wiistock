@@ -17,7 +17,7 @@ final class Version20211125152532 extends AbstractMigration {
     public function up(Schema $schema): void
     {
         $demande = $this->connection->executeQuery("SELECT id FROM menu WHERE label = 'demande'")->fetchOne();
-        $previousActions = Stream::from($this->connection->executeQuery("SELECT id FROM action WHERE menu_id = $demande AND label IN ('ajouter colis', 'modifier colis')"))
+        $previousActions = Stream::from($this->connection->executeQuery("SELECT id FROM action WHERE menu_id = $demande AND label IN ('ajouter colis', 'modifier colis', 'supprimer colis')"))
             ->map(fn(array $row) => $row["id"])
             ->join(",");
 
@@ -31,10 +31,10 @@ final class Version20211125152532 extends AbstractMigration {
 
         $this->addSql("INSERT INTO action(menu_id, label) VALUES (:demande, :label)", [
             "demande" => $demande,
-            "label" => Action::ADD_OR_EDIT_PACK,
+            "label" => Action::MANAGE_PACK,
         ]);
 
-        $newAction = "(SELECT id FROM action WHERE label = '" . Action::ADD_OR_EDIT_PACK . "')";
+        $newAction = "(SELECT id FROM action WHERE label = '" . Action::MANAGE_PACK . "')";
 
         foreach($roles as $role) {
             $this->addSql("INSERT INTO action_role(action_id, role_id) VALUES ($newAction, {$role["id"]})");
