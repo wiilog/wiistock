@@ -522,9 +522,9 @@ class DemandeController extends AbstractController
             $livraisonRepository = $entityManager->getRepository(Livraison::class);
             $referenceLineRepository = $entityManager->getRepository(DeliveryRequestReferenceLine::class);
             $articleLineRepository = $entityManager->getRepository(DeliveryRequestArticleLine::class);
+            $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
 
             $demandes = $demandeRepository->findByDates($dateTimeMin, $dateTimeMax);
-
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_LIVRAISON]);
 
             // en-têtes champs fixes
@@ -570,7 +570,8 @@ class DemandeController extends AbstractController
                     $articleLines,
                     $referenceLines,
                     $freeFieldsConfig,
-                    $freeFieldService
+                    $freeFieldService,
+                    $freeFieldsRepository
                 ) {
                     $rows = [];
                     $demandeId = $demande->getId();
@@ -595,12 +596,9 @@ class DemandeController extends AbstractController
                         $demandeData[] = $availableQuantity;
                         $demandeData[] = $line->getQuantityToPick();
 
-                        $freeFields = $demande->getFreeFields();
-                        foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
-                            $demandeData[] = $freeFieldService->serializeValue([
-                                'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
-                                'valeur' => $freeFields[$freeFieldId] ?? ''
-                            ]);
+                        foreach($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
+                            $freeField = $freeFieldsRepository->find($freeFieldId);
+                            $demandeData[] = FormatHelper::freeField($demandeData['freeFields'][$freeFieldId] ?? '',$freeField);
                         }
                         $rows[] = $demandeData;
                     }
@@ -618,12 +616,10 @@ class DemandeController extends AbstractController
                         $demandeData[] = '';
                         $demandeData[] = $article->getQuantite();
                         $demandeData[] = $line->getQuantityToPick();
-                        $freeFields = $demande->getFreeFields();
+
                         foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
-                            $demandeData[] = $freeFieldService->serializeValue([
-                                'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
-                                'valeur' => $freeFields[$freeFieldId] ?? ''
-                            ]);
+                            $freeField = $freeFieldsRepository->find($freeFieldId);
+                            $demandeData[] = FormatHelper::freeField($demandeData['freeFields'][$freeFieldId] ?? '', $freeField);
                         }
                         $rows[] = $demandeData;
                     }

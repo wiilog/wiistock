@@ -678,7 +678,7 @@ class ArrivageController extends AbstractController {
         $today = $today->format("d-m-Y H:i:s");
         return $csvService->streamResponse(function($output) use ($arrivageDataService, $csvService, $fieldsParam, $freeFieldService, $ffConfig, $arrivals, $buyersByArrival, $natureLabels, $packs) {
             foreach($arrivals as $arrival) {
-                $arrivageDataService->putArrivalLine($output, $csvService, $freeFieldService, $ffConfig, $arrival, $buyersByArrival, $natureLabels, $packs, $fieldsParam);
+                $arrivageDataService->putArrivalLine($output, $csvService, $ffConfig, $arrival, $buyersByArrival, $natureLabels, $packs, $fieldsParam);
             }
         }, "export-arrivages-$today.csv", $header);
     }

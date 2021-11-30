@@ -10,6 +10,7 @@ use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
+use App\Entity\FreeField;
 use App\Entity\IOT\Pairing;
 use App\Entity\OrdreCollecte;
 use App\Entity\ReferenceArticle;
@@ -270,14 +271,13 @@ class DemandeCollecteService
                                        FreeFieldService $freeFieldService,
                                        callable $getSpecificColumn) {
 
+        $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
         $collecteData = $collect->serialize();
 
         $freeFieldsData = [];
-        foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
-            $freeFieldsData[] = $freeFieldService->serializeValue([
-                'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
-                'valeur' => $collecteData['freeFields'][$freeFieldId] ?? ""
-            ]);
+        foreach($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
+            $freeField = $freeFieldsRepository->find($freeFieldId);
+            $freeFieldsData[] = FormatHelper::freeField($collecteData['freeFields'][$freeFieldId] ?? '',$freeField);
         }
 
         unset($collecteData['freeFields']);

@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\ArticleFournisseur;
+use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\FreeField;
@@ -40,6 +41,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Helper\FormatHelper;
 
 /**
  * @Route("/article")
@@ -610,8 +612,12 @@ class ArticleController extends AbstractController
                                       FreeFieldService $freeFieldService,
                                       CSVExportService $csvService): Response
     {
-        $ffConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARTICLE]);
+        $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
+        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
+        $ffConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARTICLE]);
+        $ffCategory = $categorieCLRepository->findOneBy(['label' => CategorieCL::ARTICLE]);
+        $freeFields = $freeFieldsRepository->findByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, $ffCategory);
         $header = array_merge([
             'reference',
             'libelle',
@@ -632,12 +638,12 @@ class ArticleController extends AbstractController
         $today = $today->format("d-m-Y H:i:s");
         $user = $this->userService->getUser();
 
-        return $csvService->streamResponse(function($output) use ($entityManager, $csvService, $freeFieldService, $ffConfig, $user) {
+        return $csvService->streamResponse(function($output) use ($freeFields, $entityManager, $csvService, $freeFieldService, $user) {
             $articleRepository = $entityManager->getRepository(Article::class);
 
             $articles = $articleRepository->iterateAll($user);
             foreach($articles as $article) {
-                $this->putArticleLine($output, $csvService, $freeFieldService, $ffConfig, $article);
+                $this->putArticleLine($output, $csvService, $article, $freeFields);
             }
         }, "export-articles-$today.csv", $header);
     }
@@ -645,9 +651,8 @@ class ArticleController extends AbstractController
 
     private function putArticleLine($handle,
                                     CSVExportService $csvService,
-                                    FreeFieldService $freeFieldService,
-                                    array $ffConfig,
-                                    array $article) {
+                                    array $article,
+                                    array $freeFields) {
         $line = [
             $article['reference'],
             $article['label'],
@@ -664,11 +669,8 @@ class ArticleController extends AbstractController
             $article['visibilityGroup'],
         ];
 
-        foreach ($ffConfig['freeFieldIds'] as $freeFieldId) {
-            $line[] = $freeFieldService->serializeValue([
-                'typage' => $ffConfig['freeFieldsIdToTyping'][$freeFieldId],
-                'valeur' => $article['freeFields'][$freeFieldId] ?? ''
-            ]);
+        foreach($freeFields as $freeField) {
+            $line[] = FormatHelper::freeField($article['freeFields'][$freeField->getId()] ?? '', $freeField);
         }
 
         $csvService->putLine($handle, $line);

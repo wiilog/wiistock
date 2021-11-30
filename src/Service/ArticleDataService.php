@@ -23,6 +23,7 @@ use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Entity\CategorieCL;
+use App\Helper\FormatHelper;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 use DateTime;
@@ -373,11 +374,11 @@ class ArticleDataService
     {
         $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
         $deliveryRequestRepository = $this->entityManager->getRepository(Demande::class);
-        $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
+        $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
         $categorieCL = $categorieCLRepository->findOneBy(['label' => CategorieCL::ARTICLE]);
 
         $category = CategoryType::ARTICLE;
-        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
+        $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
 
         $url['edit'] = $this->router->generate('demande_article_edit', ['id' => $article->getId()]);
         $status = $article->getStatut() ? $article->getStatut()->getNom() : 'Non défini';
@@ -425,11 +426,9 @@ class ArticleDataService
 
         foreach ($freeFields as $field) {
             $freeFieldId = $field["id"];
-            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
-            $row[$freeFieldName] = $this->freeFieldService->serializeValue([
-                "valeur" => $article->getFreeFieldValue($freeFieldId),
-                "typage" => $field["typage"],
-            ]);
+            $freeFieldEntity = $freeFieldsRepository->find($freeFieldId);
+            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldEntity->getId());
+            $row[$freeFieldName] = FormatHelper::freeField($article->getFreeFieldValue($freeFieldId) ?? '', $freeFieldEntity);
         }
 
         return $row;

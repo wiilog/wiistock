@@ -1008,6 +1008,7 @@ class DispatchController extends AbstractController {
         }
 
         if(isset($dateTimeMin) && isset($dateTimeMax)) {
+            $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
             $dispatchRepository = $entityManager->getRepository(Dispatch::class);
             $dispatches = $dispatchRepository->getByDates($dateTimeMin, $dateTimeMax);
 
@@ -1049,7 +1050,7 @@ class DispatchController extends AbstractController {
                 'export_acheminements.csv',
                 $dispatches,
                 $csvHeader,
-                function($dispatch) use ($freeFieldsConfig, $freeFieldService, $nbPacksByDispatch, $receivers) {
+                function($dispatch) use ($freeFieldsConfig, $nbPacksByDispatch, $receivers, $freeFieldsRepository, $dispatchRepository) {
                     $id = $dispatch['id'];
                     $receiversStr = Stream::from($receivers[$id] ?? [])
                         ->join(", ");
@@ -1081,10 +1082,8 @@ class DispatchController extends AbstractController {
                     $row[] = $dispatch['treatedBy'] ?? '';
 
                     foreach($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
-                        $row[] = $freeFieldService->serializeValue([
-                            'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
-                            'valeur' => $dispatch['freeFields'][$freeFieldId] ?? ''
-                        ]);
+                        $freeField = $freeFieldsRepository->find($freeFieldId);
+                        $row[] = FormatHelper::freeField($dispatch['freeFields'][$freeFieldId] ?? '', $freeField);
                     }
 
                     return [$row];

@@ -623,6 +623,10 @@ class ReferenceArticleController extends AbstractController
                                   CSVExportService $csvService,
                                   FreeFieldService $ffService): Response {
         $ffConfig = $ffService->createExportArrayConfig($manager, [CategorieCL::REFERENCE_ARTICLE]);
+        $freeFieldsRepository = $manager->getRepository(FreeField::class);
+        $categorieCLRepository = $manager->getRepository(CategorieCL::class);
+        $ffCategory = $categorieCLRepository->findOneBy(['label' => CategorieCL::REFERENCE_ARTICLE]);
+        $freeFields = $freeFieldsRepository->findByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, $ffCategory);
 
         $header = array_merge([
             'reference',
@@ -652,7 +656,7 @@ class ReferenceArticleController extends AbstractController
         $today = $today->format("d-m-Y H:i:s");
         $user = $this->userService->getUser();
 
-        return $csvService->streamResponse(function($output) use ($manager, $csvService, $ffService, $ffConfig, $user) {
+        return $csvService->streamResponse(function($output) use ($manager, $csvService, $ffService, $user, $freeFields) {
             $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
             $managersByReference = $manager
                 ->getRepository(Utilisateur::class)
@@ -664,18 +668,17 @@ class ReferenceArticleController extends AbstractController
 
             $references = $referenceArticleRepository->iterateAll($user);
             foreach($references as $reference) {
-                $this->putReferenceLine($output, $csvService, $ffService, $ffConfig, $managersByReference, $reference, $suppliersByReference);
+                $this->putReferenceLine($output, $csvService, $managersByReference, $reference, $suppliersByReference, $freeFields);
             }
         }, "export-references-$today.csv", $header);
     }
 
     private function putReferenceLine($handle,
                                       CSVExportService $csvService,
-                                      FreeFieldService $ffService,
-                                      array $ffConfig,
                                       array $managersByReference,
                                       array $reference,
-                                      array $suppliersByReference) {
+                                      array $suppliersByReference,
+                                      array $freeFields) {
         $id = (int)$reference['id'];
         $line = [
             $reference['reference'],
@@ -701,11 +704,8 @@ class ReferenceArticleController extends AbstractController
             $reference['visibilityGroup'],
         ];
 
-        foreach($ffConfig['freeFieldIds'] as $freeFieldId) {
-            $line[] = $ffService->serializeValue([
-                'typage' => $ffConfig['freeFieldsIdToTyping'][$freeFieldId],
-                'valeur' => $reference['freeFields'][$freeFieldId] ?? ''
-            ]);
+        foreach($freeFields as $freeField) {
+            $line[] = FormatHelper::freeField( $reference['freeFields'][$freeField->getId()] ?? '', $freeField);
         }
 
         $csvService->putLine($handle, $line);

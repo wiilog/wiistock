@@ -138,7 +138,7 @@ class TrackingMovementService
         $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
         $trackingPack = $movement->getPack();
 
-        $rows = [
+        $row = [
             'id' => $movement->getId(),
             'date' => FormatHelper::datetime($movement->getDatetime()),
             'code' => FormatHelper::pack($trackingPack),
@@ -171,14 +171,13 @@ class TrackingMovementService
         ];
 
         foreach ($freeFields as $freeField) {
-            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeField['id']);
-            $rows[$freeFieldName] = $this->freeFieldService->serializeValue([
-                "valeur" => $movement->getFreeFieldValue($freeField["id"]),
-                "typage" => $freeField["typage"],
-            ]);
+            $freeFieldId = $freeField["id"];
+            $freeFieldEntity = $freeFieldsRepository->find($freeFieldId);
+            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
+            $row[$freeFieldName] = FormatHelper::freeField($movement->getFreeFieldValue($freeFieldId) ?? '', $freeFieldEntity);
         }
 
-        return $rows;
+        return $row;
     }
 
     public function handleGroups(array $data, EntityManagerInterface $entityManager, Utilisateur $operator, DateTime $date): array {
@@ -664,10 +663,9 @@ class TrackingMovementService
         ];
 
         foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
-            $data[] = $freeFieldService->serializeValue([
-                'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
-                'valeur' => $movement['freeFields'][$freeFieldId] ?? ''
-            ]);
+             $freeFieldEntity = $this->entityManager->getRepository(FreeField::class)->find($freeFieldId);
+            $data[] = FormatHelper::freeField($movement['freeFields'][$freeFieldId] ?? '', $freeFieldEntity);
+
         }
         $CSVExportService->putLine($handle, $data);
     }

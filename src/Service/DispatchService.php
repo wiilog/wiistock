@@ -147,11 +147,10 @@ class DispatchService {
         ];
 
         foreach ($freeFields as $freeField) {
-            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeField['id']);
-            $row[$freeFieldName] = $this->freeFieldService->serializeValue([
-                "valeur" => $dispatch->getFreeFieldValue($freeField["id"]),
-                "typage" => $freeField["typage"],
-            ]);
+            $freeFieldId = $freeField['id'];
+            $freeFieldEntity = $freeFieldsRepository->find($freeFieldId);
+            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
+            $row[$freeFieldName] = FormatHelper::freeField($dispatch->getFreeFieldValue($freeFieldId)?? '', $freeFieldEntity);
         }
 
         return $row;

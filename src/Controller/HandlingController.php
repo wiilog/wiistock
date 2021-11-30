@@ -490,6 +490,7 @@ class HandlingController extends AbstractController
             $handlingsRepository = $entityManager->getRepository(Handling::class);
             $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+            $freeFieldRepository = $entityManager->getRepository(FreeField::class);
 
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_HANDLING]);
             $includeDesiredTime = !$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME);
@@ -533,7 +534,7 @@ class HandlingController extends AbstractController
                 $globalTitle,
                 $handlings,
                 $csvHeader,
-                function ($handling) use ($freeFieldService, $freeFieldsConfig, $dateService, $includeDesiredTime, $receivers) {
+                function ($handling) use ($freeFieldsConfig, $dateService, $includeDesiredTime, $receivers, $freeFieldRepository) {
 //                    $treatmentDelay = $handling['treatmentDelay'];
 //                    $treatmentDelayInterval = $treatmentDelay ? $dateService->secondsToDateInterval($treatmentDelay) : null;
 //                    $treatmentDelayStr = $treatmentDelayInterval ? $dateService->intervalToStr($treatmentDelayInterval) : '';
@@ -560,16 +561,13 @@ class HandlingController extends AbstractController
                     $row[] = $receiversStr ?? '';
 //                    $row[] = $treatmentDelayStr;
 
-                    foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
-                        $row[] = $freeFieldService->serializeValue([
-                            'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
-                            'valeur' => $handling['freeFields'][$freeFieldId] ?? ''
-                        ]);
+                    foreach($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
+                        $freefield = $freeFieldRepository->find($freeFieldId);
+                        $row[] = FormatHelper::freeField($row['freeFields'][$freeFieldId] ?? '', $freefield);
                     }
 
                     return [$row];
-                }
-            );
+                });
         } else {
             throw new BadRequestHttpException();
         }

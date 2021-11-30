@@ -103,10 +103,8 @@ class ArrivageService {
         /** @var FreeField $freeField */
         foreach ($freeFields as $freeField) {
             $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeField['id']);
-            $rowCL[$freeFieldName] = $this->freeFieldService->serializeValue([
-                'valeur' => $arrival->getFreeFieldValue($freeField['id']),
-                "typage" => $freeField['typage'],
-            ]);
+            $freeFieldEntity = $freeFieldsRepository->find($freeField['id']);
+            $rowCL[$freeFieldName] = FormatHelper::freeField($arrival->getFreeFieldValue($freeField['id']) ?? '', $freeFieldEntity);
         }
 
         $acheteursUsernames = [];
@@ -508,13 +506,13 @@ class ArrivageService {
 
     public function putArrivalLine($handle,
                                     CSVExportService $csvService,
-                                    FreeFieldService $freeFieldService,
                                     array $ffConfig,
                                     array $arrival,
                                     array $buyersByArrival,
                                     array $natureLabels,
                                     array $packs,
                                     array $fieldsParam) {
+        $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
         $id = (int)$arrival['id'];
 
         $line = [
@@ -548,10 +546,8 @@ class ArrivageService {
         }
 
         foreach($ffConfig["freeFieldIds"] as $freeFieldId) {
-            $line[] = $freeFieldService->serializeValue([
-                "typage" => $ffConfig["freeFieldsIdToTyping"][$freeFieldId],
-                "valeur" => $arrival["freeFields"][$freeFieldId] ?? ""
-            ]);
+            $freeField = $freeFieldsRepository->find($freeFieldId);
+            $line[] = FormatHelper::freeField($arrival["freeFields"][$freeFieldId] ?? '', $freeField);
         }
 
         $csvService->putLine($handle, $line);

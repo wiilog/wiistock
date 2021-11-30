@@ -385,10 +385,10 @@ class RefArticleDataService {
 
     public function dataRowRefArticle(ReferenceArticle $refArticle) {
         $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
-        $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
+        $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
 
         $ffCategory = $categorieCLRepository->findOneBy(['label' => CategorieCL::REFERENCE_ARTICLE]);
-        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, $ffCategory);
+        $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, $ffCategory);
 
         $providerCodes = Stream::from($refArticle->getArticlesFournisseur())
             ->map(function(ArticleFournisseur $articleFournisseur) {
@@ -453,11 +453,9 @@ class RefArticleDataService {
 
         foreach($freeFields as $freeField) {
             $freeFieldId = $freeField["id"];
+            $freeFieldEntity = $freeFieldsRepository->find($freeFieldId);
             $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
-            $row[$freeFieldName] = $this->freeFieldService->serializeValue([
-                "valeur" => $refArticle->getFreeFieldValue($freeFieldId),
-                "typage" => $freeField["typage"],
-            ]);
+            $row[$freeFieldName] = FormatHelper::freeField($refArticle->getFreeFieldValue($freeFieldId) ?? '', $freeFieldEntity);
         }
 
         return $row;

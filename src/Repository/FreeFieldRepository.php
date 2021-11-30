@@ -63,8 +63,20 @@ class FreeFieldRepository extends EntityRepository
             ->getResult();
     }
 
-	/**
-	 * @param string $label
+    public function findByCategoryTypeAndCategoryCL($typeCategory, $ffCategory)    {
+        return $this->createQueryBuilder("f")
+            ->join("f.type", "t")
+            ->join("t.category", "c")
+            ->where("c.label = :type")
+            ->andWhere("f.categorieCL = :category")
+            ->setParameter("type", $typeCategory)
+            ->setParameter("category", $ffCategory)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @param string $label
 	 * @return FreeField|null
 	 * @throws NonUniqueResultException
 	 */

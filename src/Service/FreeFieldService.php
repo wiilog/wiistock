@@ -6,30 +6,10 @@ use App\Entity\CategorieCL;
 use App\Entity\FreeField;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Helper\FormatHelper;
 use Throwable;
 
 class FreeFieldService {
-
-    public function serializeValue(array $valeurChampLibre): ?string {
-        if (in_array($valeurChampLibre['typage'], [FreeField::TYPE_DATE, FreeField::TYPE_DATETIME])
-            && !empty($valeurChampLibre['valeur'])) {
-            try {
-                $valeurChampLibre['valeur'] = str_replace('T', ' ', $valeurChampLibre['valeur']);
-                $champLibreDateTime = new DateTime($valeurChampLibre['valeur']);
-                $hourFormat = ($valeurChampLibre['typage'] === FreeField::TYPE_DATETIME) ? ' H:i' : '';
-                $formattedValue = $champLibreDateTime->format("d/m/Y$hourFormat");
-            } catch(Throwable $ignored) {
-                $formattedValue = $valeurChampLibre['valeur'];
-            }
-        } else if($valeurChampLibre['typage'] == FreeField::TYPE_BOOL) {
-            $formattedValue = ($valeurChampLibre['valeur'] === null || $valeurChampLibre['valeur'] === '')
-                ? ''
-                : ($valeurChampLibre['valeur'] ? "Oui" : "Non");
-        } else {
-            $formattedValue = $valeurChampLibre['valeur'];
-        }
-        return $formattedValue;
-    }
 
     public function createExportArrayConfig(EntityManagerInterface $entityManager,
                                             array $freeFieldCategoryLabels): array
@@ -109,15 +89,15 @@ class FreeFieldService {
                                                                    $freeFieldEntity,
                                             ?string                $categoryCLLabel,
                                             string                 $category) {
-        $champLibreRepository = $entityManager->getRepository(FreeField::class);
+        $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
 
         if (!empty($categoryCLLabel)) {
             $categorieCL = $categorieCLRepository->findOneBy(['label' => $categoryCLLabel]);
-            $freeFieldResult = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
+            $freeFieldResult = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
         }
         else {
-            $freeFieldResult = $champLibreRepository->findByCategoryTypeLabels([$category]);
+            $freeFieldResult = $freeFieldsRepository->findByCategoryTypeLabels([$category]);
         }
 
         $freeFields = array_reduce($freeFieldResult, function(array $acc, $freeField) {
@@ -136,12 +116,10 @@ class FreeFieldService {
         $detailsChampLibres = [];
         foreach ($freeFieldEntity->getFreeFields() as $freeFieldId => $freeFieldValue) {
             if ($freeFieldValue !== "" && $freeFieldValue !== null && isset($freeFields[$freeFieldId])) {
+                $freeFieldEntity = $freeFieldsRepository->find($freeFieldId);
                 $detailsChampLibres[] = [
                     'label' => $freeFields[$freeFieldId]['label'],
-                    'value' => $this->serializeValue([
-                        'valeur' => $freeFieldValue,
-                        'typage' => $freeFields[$freeFieldId]['typage']
-                    ])
+                    'value' => FormatHelper::freeField($freeFieldValue ?? '', $freeFieldEntity)
                 ];
             }
         }
