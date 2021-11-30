@@ -342,7 +342,7 @@ class SelectController extends AbstractController {
 
         $packCode = $request->query->get("term");
         if($request->query->has("searchPrefix")) {
-            $packCode = $request->query->has("searchPrefix") . "-" . $packCode;
+            $packCode = $request->query->get("searchPrefix") . $packCode;
         }
 
         if($packMustBeNew) {

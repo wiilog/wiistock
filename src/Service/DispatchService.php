@@ -600,7 +600,7 @@ class DispatchService {
         ];
     }
 
-    public function packRow(?DispatchPack $dispatchPack, bool $autofocus, bool $isEdit): array {
+    public function packRow(Dispatch $dispatch, ?DispatchPack $dispatchPack, bool $autofocus, bool $isEdit): array {
         if(!isset($this->prefixPackCodeWithDispatchNumber, $this->natures, $this->defaultNature)) {
             $this->prefixPackCodeWithDispatchNumber = $this->entityManager->getRepository(ParametrageGlobal::class)->getOneParamByLabel(ParametrageGlobal::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
             $natureRepository = $this->entityManager->getRepository(Nature::class);
@@ -643,6 +643,10 @@ class DispatchService {
             $creationMode = !isset($dispatchPack) ? "d-none" : "";
             $class = "form-control data $creationMode";
             $autofocus = $autofocus ? "autofocus" : "";
+            $packPrefix = $this->prefixPackCodeWithDispatchNumber ? $dispatch->getNumber() : null;
+            $searchPrefix = $this->prefixPackCodeWithDispatchNumber
+                ? "data-search-prefix='$packPrefix-' data-search-prefix-displayed='$packPrefix' "
+                : "";
 
             $natureOptions = Stream::from($this->natures)
                 ->map(fn(Nature $n) => [
@@ -658,7 +662,14 @@ class DispatchService {
                 "actions" => $actions,
                 "code" => isset($code)
                     ? "<span title='$code'>$code</span> <input type='hidden' name='pack' class='data' value='$code'/>"
-                    : "<select name='pack' data-s2='keyboardPacks' data-parent='body' data-include-params-parent='.wii-box' data-include-params='[name=pack], [name=searchPrefix]' class='w-300px' $autofocus></select>",
+                    : "<select name='pack'
+                               data-s2='keyboardPacks'
+                               data-parent='body'
+                               data-include-params-parent='.wii-box'
+                               data-include-params='[name=pack]'
+                               class='w-300px'
+                               $searchPrefix
+                               $autofocus></select>",
                 "quantity" => "<input name='quantity' step='1' type='number' class='$class' data-global-error='Quantité' value='$quantity' required/>",
                 "nature" => "<select name='nature' class='$class minw-150px' data-global-error='Nature' required>{$natureOptions}</select>",
                 "weight" => "<input name='weight' type='number' class='$class' step='0.001' value='$weight'/>",

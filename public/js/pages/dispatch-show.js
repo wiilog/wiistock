@@ -1,7 +1,7 @@
 $(function() {
     const dispatchId = $('#dispatchId').val();
 
-    const packTable = initializePacksTable(dispatchId, $(`#isEdit`).val(), $(`#packPrefix`).val());
+    const packTable = initializePacksTable(dispatchId, $(`#isEdit`).val());
 
     const $modalEditDispatch = $('#modalEditDispatch');
     const $submitEditDispatch = $('#submitEditDispatch');
@@ -229,7 +229,7 @@ function savePackLine(dispatchId, $row, async = true) {
     return false;
 }
 
-function initializePacksTable(dispatchId, isEdit, packPrefix) {
+function initializePacksTable(dispatchId, isEdit) {
     const $table = $(`#packTable`);
     const table = initDataTable($table, {
         ajax: {
@@ -334,11 +334,12 @@ function initializePacksTable(dispatchId, isEdit, packPrefix) {
         $table.on(`change`, `select[name="pack"]`, function() {
             const $select = $(this);
             const $row = $select.closest(`tr`);
-            const value = $select.select2(`data`)[0];
+            const [value] = $select.select2(`data`);
 
-            let code = value.text;
-            if(packPrefix && !value.startsWith(packPrefix)) {
-                code = `${packPrefix}-${value}`;
+            let code = value.text || '';
+            const packPrefix = $select.data('search-prefix');
+            if(packPrefix && !code.startsWith(packPrefix)) {
+                code = `${packPrefix}${code}`;
             }
 
             $select.closest(`td, th`)
@@ -354,7 +355,9 @@ function initializePacksTable(dispatchId, isEdit, packPrefix) {
             $row.find(`.operator`).text(value.operator);
             $row.find(`.status`).text(`À traiter`);
             if(value.nature_id && value.nature_label) {
-                $row.find(`[name=nature]`).append(new Option(value.nature_label, value.nature_id, true, true)).trigger('change');
+                $row.find(`[name=nature]`)
+                    .append(new Option(value.nature_label, value.nature_id, true, true))
+                    .trigger('change');
             }
 
             table.columns.adjust().draw();
@@ -381,18 +384,7 @@ function initializePacksTable(dispatchId, isEdit, packPrefix) {
                 }
             }
         });
-
-        if(packPrefix && packPrefix.length) {
-            $table.arrive(`.select2-search`, function() {
-                const $container = $(this);
-                $container.addClass(`d-flex`);
-                $container.prepend(`
-                    <input class="search-prefix" name="searchPrefix" size=${packPrefix.length} value="${packPrefix}" disabled/>
-                `);
-            })
-        }
     }
-
 
     $(window).on(`beforeunload`, () =>  {
         const $focus = $(`tr :focus`);

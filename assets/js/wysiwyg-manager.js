@@ -166,8 +166,9 @@ function toggleWysiwygPopover($wysiwyg) {
         const popoverHeight = $newPopover.height();
         const bodyHeight = $body.height();
 
-        if (bodyHeight < yPopover + popoverHeight) {
-            $newPopover.css('top', yPopover - popoverHeight - inputHeight);
+        // check if modal is outside body ?
+        if ((yPopover + popoverHeight) > bodyHeight) {
+            $newPopover.css('top', window.scrollY + yPopover - popoverHeight - inputHeight);
         }
 
         const bodyFocusoutEvent = 'focusout.oneLineWysiwyg';

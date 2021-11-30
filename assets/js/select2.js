@@ -155,9 +155,27 @@ export default class Select2 {
         if($element.is(`[autofocus]:visible`)) {
             $element.select2(`open`);
         }
+
+        if ($element.is('[data-search-prefix]')) {
+            const searchPrefixDisplayed = ($element.data('search-prefix-displayed') || $element.data('search-prefix'));
+            const {$dropdown} = $element.data('select2');
+            const $prefixContainer = $dropdown.find('.select2-search');
+            $prefixContainer.addClass(`d-flex`);
+            $prefixContainer.prepend(`
+                <input class="search-prefix" name="searchPrefix" size=${searchPrefixDisplayed.length} value="${searchPrefixDisplayed}" disabled/>
+            `);
+        }
     }
 
     static includeParams($element, params) {
+        if ($element.is('[data-search-prefix]')) {
+            const searchPrefix = $element.data('search-prefix');
+            params = {
+                ...params,
+                searchPrefix,
+            };
+        }
+
         if($element.is(`[data-include-params]`)) {
             const selector = $element.data(`include-params`);
             const closest = $element.data(`include-params-parent`) || `.modal, .wii-form`;

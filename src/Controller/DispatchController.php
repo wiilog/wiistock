@@ -388,18 +388,12 @@ class DispatchController extends AbstractController {
         $natureRepository = $entityManager->getRepository(Nature::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
 
-        $prefixPackCodeWithDispatchNumber = $paramRepository->getOneParamByLabel(ParametrageGlobal::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
-        if($prefixPackCodeWithDispatchNumber) {
-            $packPrefix = $dispatch->getNumber();
-        }
-
         $dispatchStatus = $dispatch->getStatut();
 
         return $this->render('dispatch/show.html.twig', [
             'dispatch' => $dispatch,
             'detailsConfig' => $dispatchService->createHeaderDetailsConfig($dispatch),
             'modifiable' => (!$dispatchStatus || $dispatchStatus->isDraft()) && $userService->hasRightFunction(Menu::DEM, Action::ADD_OR_EDIT_PACK),
-            "packPrefix" => $packPrefix ?? null,
             'newPackConfig' => [
                 'natures' => $natureRepository->findBy([], ['label' => 'ASC'])
             ],
@@ -411,7 +405,7 @@ class DispatchController extends AbstractController {
             ],
             'printBL' => $printBL,
             'prefixPackCodeWithDispatchNumber' => $paramRepository->getOneParamByLabel(ParametrageGlobal::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER),
-            'newPackRow' => $dispatchService->packRow(null, true, true),
+            'newPackRow' => $dispatchService->packRow($dispatch, null, true, true),
         ]);
     }
 
@@ -680,12 +674,12 @@ class DispatchController extends AbstractController {
 
         $data = [];
         foreach($dispatch->getDispatchPacks() as $dispatchPack) {
-            $data[] = $service->packRow($dispatchPack, false, $edit);
+            $data[] = $service->packRow($dispatch, $dispatchPack, false, $edit);
         }
 
         if($edit) {
             if(empty($data)) {
-                $data[] = $service->packRow(null, true, true);
+                $data[] = $service->packRow($dispatch, null, true, true);
             }
 
             $data[] = [
