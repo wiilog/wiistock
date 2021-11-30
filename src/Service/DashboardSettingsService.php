@@ -808,10 +808,13 @@ class DashboardSettingsService {
                 $counter = 0;
                 $chartColors = Stream::from($dispatchTypes)
                     ->reduce(function (array $carry, Type $type) use ($config, &$counter, $values) {
-                        $carry[$type->getLabel()] = $config['chartColors'][$type->getLabel()] ?? Dashboard\ComponentType::DEFAULT_CHART_COLOR;
+                        srand($type->getId());
+                        $carry[$type->getLabel()] = $config['chartColors'][$type->getLabel()] ?? sprintf('#%06X', mt_rand(0, 0xFFFFFF));
                         $counter++;
                         return $carry;
                     }, []);
+
+                srand();
                 $values['chartColors'] = $chartColors;
 
                 $chartColorsLabels = Stream::from($dispatchTypes)
