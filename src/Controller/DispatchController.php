@@ -798,8 +798,7 @@ class DispatchController extends AbstractController {
         if($data = json_decode($request->getContent(), true)) {
             $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
 
-            $pack = $dispatchPackRepository->find($data['pack']);
-            if($pack) {
+            if($data['pack'] && $pack = $dispatchPackRepository->find($data['pack'])) {
                 $packCode = $pack->getPack()->getCode();
                 $entityManager->remove($pack);
                 $entityManager->flush();
@@ -809,7 +808,7 @@ class DispatchController extends AbstractController {
 
             return $this->json([
                 "success" => true,
-                "msg" => $pack ? $translator->trans("colis.Le colis {numéro} a bien été supprimé", [
+                "msg" => isset($pack) ? $translator->trans("colis.Le colis {numéro} a bien été supprimé", [
                     "{numéro}" => "<strong>$packCode</strong>",
                 ]) : "La ligne a bien été supprimée",
             ]);
@@ -1509,20 +1508,28 @@ class DispatchController extends AbstractController {
         $appLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::LABEL_LOGO);
         $overconsumptionLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::OVERCONSUMPTION_LOGO);
 
+        $additionalField = [];
         if ($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS_VERNON)) {
             $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($dispatch->getType(), CategorieCL::DEMANDE_DISPATCH);
-
             $freeFieldValues = $dispatch->getFreeFields();
-            $additionalField = Stream::from($freeFields)
-                ->filter(fn(FreeField $freeField) => in_array($freeField->getLabel(), ["Flux", "Type de demande"]))
-                ->map(fn(FreeField $freeField) => [
-                    'label' => $freeField->getLabel(),
-                    'value' => FormatHelper::freeField($freeFieldValues[$freeField->getId()] ?? null, $freeField)
-                ])
-                ->toArray();
-        }
-        else {
-            $additionalField = [];
+
+            $flow = current(array_filter($freeFields, function($field) {
+                return $field->getLabel() === "Flux";
+            }));
+
+            $additionalField[] = [
+                "label" => "Flux",
+                "value" => $flow ? FormatHelper::freeField($freeFieldValues[$flow->getId()] ?? null, $flow) : null,
+            ];
+
+            $requestType = current(array_filter($freeFields, function($field) {
+                return $field->getLabel() === "Flux";
+            }));
+
+            $additionalField[] = [
+                "label" => "Type de demande",
+                "value" => $requestType ? FormatHelper::freeField($freeFieldValues[$requestType->getId()] ?? null, $requestType) : null,
+            ];
         }
 
         return new PdfResponse(

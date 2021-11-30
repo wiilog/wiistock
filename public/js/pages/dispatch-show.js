@@ -23,11 +23,6 @@ $(function() {
     const urlDispatchDelete = Routing.generate('dispatch_delete', true);
     InitModal($modalDeleteDispatch, $submitDeleteDispatch, urlDispatchDelete);
 
-    let $modalDeletePack = $('#modalDeletePack');
-    let $submitDeletePack = $('#submitDeletePack');
-    let urlDeletePack = Routing.generate('dispatch_delete_pack', true);
-    InitModal($modalDeletePack, $submitDeletePack, urlDeletePack, {tables: [packTable]});
-
     let $modalPrintDeliveryNote = $('#modalPrintDeliveryNote');
     let $submitPrintDeliveryNote = $modalPrintDeliveryNote.find('.submit');
     let urlPrintDeliveryNote = Routing.generate('delivery_note_dispatch', {dispatch: $('#dispatchId').val()}, true);
@@ -61,11 +56,6 @@ $(function() {
         SetRequestQuery(queryParams);
         $('#generateDeliveryNoteButton').click();
     }
-
-    $(document).on(`click`, `.delete-pack-row`, function() {
-        $modalDeletePack.modal(`show`);
-        $submitDeletePack.attr(`value`, $(this).data(`id`));
-    });
 });
 
 function generateOverconsumptionBill(dispatchId) {
@@ -232,6 +222,7 @@ function savePackLine(dispatchId, $row, async = true) {
 function initializePacksTable(dispatchId, isEdit) {
     const $table = $(`#packTable`);
     const table = initDataTable($table, {
+        serverSide: !isEdit,
         ajax: {
             type: "GET",
             url: Routing.generate('dispatch_pack_api', {dispatch: dispatchId, edit: isEdit}, true),
@@ -386,11 +377,32 @@ function initializePacksTable(dispatchId, isEdit) {
         });
     }
 
+    let $modalDeletePack = $('#modalDeletePack');
+    let $submitDeletePack = $('#submitDeletePack');
+    $table.on(`click`, `.delete-pack-row`, function() {
+        $modalDeletePack.modal(`show`);
+
+        $submitDeletePack.off(`click.deleteRow`).on(`click.deleteRow`, () => {
+            const data = JSON.stringify({
+                pack: $(this).data(`id`) || null,
+            });
+
+            $.post(Routing.generate('dispatch_delete_pack', true), data, response => {
+                console.log(this, $(this).closest(`tr`));
+                table.row($(this).closest(`tr`))
+                    .remove()
+                    .draw();
+
+                showBSAlert(response.msg, response.success ? `success` : `danger`)
+            })
+        })
+    });
+
     $(window).on(`beforeunload`, () =>  {
         const $focus = $(`tr :focus`);
         if($focus.exists()) {
             if(savePackLine(dispatchId, $focus.closest(`tr`), false)) {
-                return `Enregistrement des données en cours`;
+                return ``;
             }
         }
     });

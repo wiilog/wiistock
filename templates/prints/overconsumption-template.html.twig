@@ -86,7 +86,7 @@
         }
 
         table.packs tbody th:nth-child(2), table.packs thead th:nth-child(2) {
-            width: 25%;
+            width: 20%;
         }
 
         table.packs tbody th:nth-child(3), table.packs thead th:nth-child(3) {
@@ -124,6 +124,10 @@
 
         .header td {
             padding: 2mm;
+        }
+
+        h2 {
+            margin-top: 0;
         }
     </style>
 </head>
@@ -194,7 +198,7 @@
         <thead>
             <tr>
                 <th>PN</th>
-                <th>Code Barre</th>
+                <th>Code barre</th>
                 <th>Qté demandée</th>
                 <th>Nature</th>
                 <th>Qté livrée</th>
@@ -215,7 +219,7 @@
                     }) | raw }}
                 </td>
                 <td>{{ pack.quantity }}</td>
-                <td style="word-break: break-all">{{ pack.pack.nature.label }}</td>
+                <td>{{ pack.pack.nature.label }}</td>
                 <td></td>
                 <td></td>
                 <td></td>
