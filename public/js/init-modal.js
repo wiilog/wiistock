@@ -653,11 +653,13 @@ function processDataArrayForm($modal, data) {
                 dataArray[name][$input.data('id')] = val;
             }
         } else {
-            const name = $input.attr("name");
-            if (!dataArray[name]) {
-                dataArray[name] = [];
+            if(val) {
+                const name = $input.attr("name");
+                if (!dataArray[name]) {
+                    dataArray[name] = [];
+                }
+                dataArray[name].push(val);
             }
-            dataArray[name].push(val);
         }
         if (type === 'number' && $input.hasClass('needed-positiv')) {
             if (!dataArrayNeedPositive[name]) {
