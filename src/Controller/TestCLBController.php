@@ -18,21 +18,9 @@ class TestCLBController extends AbstractController
     public function getInformations(Request $request): Response
     {
 
-        $now = new \DateTime();
-
-        $encryption_key = "66cc97446d49e21ef96837ea9dcfcc26";
-        $encryption_iv = "2beff89f332630c6";
-
         $token = $request->query->get('x-api-key');
-        $tokenDecrypted = openssl_decrypt(
-            $token,
-            'AES-256-CBC',
-            $encryption_key,
-            0,
-            $encryption_iv
-        );
 
-        $tokenIsValid = $tokenDecrypted === $now->format('Ymd');
+        $tokenIsValid = $token === $_SERVER['CLB_API_KEY'];
         $content = $request->query->get('content');
         if (!$content) {
             $response = false;
@@ -43,7 +31,8 @@ class TestCLBController extends AbstractController
 
         return $this->render('test_clb.html.twig', [
             'informations' => $response,
-            'validToken' => $tokenIsValid
+            'validToken' => $tokenIsValid,
+            'rawContent' => $content
         ]);
     }
 
