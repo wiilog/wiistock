@@ -1735,9 +1735,19 @@ class ReceptionController extends AbstractController {
 
                             $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
                             $mouvements = $mouvementRepository->findByPreparation($preparation);
-                            $entityManager->flush();
-                            if($delivery->getDemande()->getType()->isNotificationsEnabled()) {
-                                $this->notificationService->toTreat($delivery);
+
+                            try {
+                                $entityManager->flush();
+                                if($delivery->getDemande()->getType()->isNotificationsEnabled()) {
+                                    $this->notificationService->toTreat($delivery);
+                                }
+                            }
+                            /** @noinspection PhpRedundantCatchClauseInspection */
+                            catch (UniqueConstraintViolationException $e) {
+                                return new JsonResponse([
+                                    'success' => false,
+                                    'msg' => 'Une autre demande de livraison est en cours de création, veuillez réessayer.'
+                                ]);
                             }
                             foreach ($mouvements as $mouvement) {
                                 $preparationsManagerService->createMouvementLivraison(
