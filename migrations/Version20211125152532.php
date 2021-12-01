@@ -43,9 +43,7 @@ final class Version20211125152532 extends AbstractMigration {
             ]);
         }
 
-        $this->addSql("DELETE FROM action WHERE id IN (:actions)", [
-            "actions" => $previousActions,
-        ]);
+        $this->addSql("DELETE FROM action WHERE id IN ($previousActions)");
     }
 
     public function down(Schema $schema): void
