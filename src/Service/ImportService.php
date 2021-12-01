@@ -1360,11 +1360,19 @@ class ImportService
         }
 
         if(isset($data['deliveryTypes'])) {
+            $deliveryTypesRaw = array_map('trim', explode(',', $data['deliveryTypes']));
             $deliveryCategory = $this->em->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::DEMANDE_LIVRAISON]);
             $deliveryTypes = $this->em->getRepository(Type::class)->findBy([
-                'label' => array_map('trim', explode(',', $data['deliveryTypes'])),
+                'label' => $deliveryTypesRaw,
                 'category' => $deliveryCategory
             ]);
+
+            $deliveryTypesLabel = Stream::from($deliveryTypes)->map(fn(Type $type) => $type->getLabel())->toArray();
+            $invalidTypes = Stream::diff($deliveryTypesLabel, $deliveryTypesRaw)->toArray();
+            if(count($invalidTypes) > 0) {
+                $invalidTypesStr = implode(", ", $invalidTypes);
+                $this->throwError("Les types de demandes de livraison suivants sont invalides : $invalidTypesStr");
+            }
 
             foreach ($user->getDeliveryTypes() as $type) {
                 $user->removeDeliveryType($type);
@@ -1376,11 +1384,19 @@ class ImportService
         }
 
         if(isset($data['dispatchTypes'])) {
+            $dispatchTypesRaw = array_map('trim', explode(',', $data['dispatchTypes']));
             $dispatchCategory = $this->em->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::DEMANDE_DISPATCH]);
             $dispatchTypes = $this->em->getRepository(Type::class)->findBy([
-                'label' => array_map('trim', explode(',', $data['dispatchTypes'])),
+                'label' => $dispatchTypesRaw,
                 'category' => $dispatchCategory
             ]);
+
+            $dispatchTypesLabel = Stream::from($dispatchTypes)->map(fn(Type $type) => $type->getLabel())->toArray();
+            $invalidTypes = Stream::diff($dispatchTypesLabel, $dispatchTypesRaw)->toArray();
+            if(count($invalidTypes) > 0) {
+                $invalidTypesStr = implode(", ", $invalidTypes);
+                $this->throwError("Les types d'acheminements suivants sont invalides : $invalidTypesStr");
+            }
 
             foreach ($user->getDispatchTypes() as $type) {
                 $user->removeDispatchType($type);
@@ -1392,11 +1408,19 @@ class ImportService
         }
 
         if(isset($data['handlingTypes'])) {
+            $handlingTypesRaw = array_map('trim', explode(',', $data['handlingTypes']));
             $handlingCategory = $this->em->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::DEMANDE_HANDLING]);
             $handlingTypes = $this->em->getRepository(Type::class)->findBy([
-                'label' => array_map('trim', explode(',', $data['handlingTypes'])),
+                'label' => $handlingTypesRaw,
                 'category' => $handlingCategory
             ]);
+
+            $handlingTypesLabel = Stream::from($handlingTypes)->map(fn(Type $type) => $type->getLabel())->toArray();
+            $invalidTypes = Stream::diff($handlingTypesLabel, $handlingTypesRaw)->toArray();
+            if(count($invalidTypes) > 0) {
+                $invalidTypesStr = implode(", ", $invalidTypes);
+                $this->throwError("Les types de services suivants sont invalides : $invalidTypesStr");
+            }
 
             foreach ($user->getHandlingTypes() as $type) {
                 $user->removeHandlingType($type);
