@@ -99,7 +99,7 @@
             <div class="col-12">
                 <span class="toggle-collapsible expanded">Champs libres</span>
                 <div class="collapsible expanded free-fields-container mb-2">
-                    {% include 'free_field/freeFieldsViewing.html.twig' with {
+                    {% include 'free_field/freeFieldsEdit.html.twig' with {
                         freeFields: request_template.requestType.champsLibres,
                         freeFieldValues: request_template.freeFields,
                         colType: 'col-md-6 col-12',
@@ -116,7 +116,7 @@
                 {% for type in handling_free_fields_types %}
                     <div class="d-none"
                          data-type="{{ type.typeId }}">
-                        {% include 'free_field/freeFieldsViewing.html.twig' with {
+                        {% include 'free_field/freeFieldsEdit.html.twig' with {
                             freeFields: type.freeFields,
                             freeFieldValues: [],
                             colType: 'col-md-6 col-12',

@@ -135,7 +135,7 @@
                             {% for type in freeFieldsTypes %}
                                 <div class="d-none"
                                      data-type="{{ type.typeId }}">
-                                    {% include 'free_field/freeFieldsViewing.html.twig' with {
+                                    {% include 'free_field/freeFieldsEdit.html.twig' with {
                                         freeFields: type.freeFields,
                                         freeFieldValues: [],
                                         colType: 'col-md-6 col-12',

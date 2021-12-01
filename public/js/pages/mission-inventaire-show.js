@@ -12,6 +12,7 @@ $(function () {
     $.post(path, params, function (data) {
         displayFiltersSup(data);
     }, 'json');
+
 });
 
 
@@ -76,6 +77,7 @@ let tableRefArticleConfig = {
         removeInfo: true
     },
     columns: [
+        {"data": 'Actions', 'name': 'actions', 'title': '', className: 'noVis', orderable: false},
         {"data": 'Ref', 'title': 'Reférence'},
         {"data": 'CodeBarre', 'title': 'Code barre'},
         {"data": 'Label', 'title': 'Libellé'},
@@ -92,9 +94,13 @@ let modalAddToMission = $("#modalAddToMission");
 let submitAddToMission = $("#submitAddToMission");
 let urlAddToMission = Routing.generate('add_to_mission', true);
 InitModal(modalAddToMission, submitAddToMission, urlAddToMission, {
-        success: () => {
-            tableArticle.ajax.reload();
-            tableRefArticle.ajax.reload();
-        }
-    }
-);
+    tables: [tableArticle, tableRefArticle]
+});
+
+const $modalRemoveRefFromMission = $('#modalDeleteRefFromMission');
+const $submitRemoveRefFromMission = $('#submitDeleteRefFromMission');
+const urlRemoveRefFromMission = Routing.generate('mission_remove_ref', true);
+
+InitModal($modalRemoveRefFromMission, $submitRemoveRefFromMission, urlRemoveRefFromMission, {
+    tables: [tableRefArticle]
+});

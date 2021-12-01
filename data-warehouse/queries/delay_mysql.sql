@@ -25,7 +25,7 @@ CREATE TABLE TEMP_worked_days SELECT IF(days_worked.day = 'monday', 'lundi',
 CREATE TABLE TEMP_non_worked_days SELECT day AS jour
                                   FROM work_free_day;
 
-SELECT (NBLUN * DURLUN
+SELECT demande.id as demandeId, (NBLUN * DURLUN
     + NBMAR * DURMAR
     + NBMER * DURMER
     + NBJEU * DURJEU

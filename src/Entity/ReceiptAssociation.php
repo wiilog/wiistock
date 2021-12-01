@@ -3,7 +3,7 @@
 namespace App\Entity;
 
 use App\Helper\FormatHelper;
-use Doctrine\Common\Collections\ArrayCollection;
+use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -16,32 +16,27 @@ class ReceiptAssociation
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private $creationDate;
+    private ?DateTime $creationDate = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="receptionsTraca")
      */
-    private $user;
-
-    /**
-     * @ORM\ManyToOne(targetEntity=Pack::class, inversedBy="receiptAssociations")
-     */
-    private $pack;
+    private ?Utilisateur $user = null;
 
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private $receptionNumber;
+    private ?string $packCode = null;
 
-    public function __construct()
-    {
-        $this->packs = new ArrayCollection();
-    }
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private ?string $receptionNumber = null;
 
     public function getId(): ?int
     {
@@ -76,18 +71,8 @@ class ReceiptAssociation
     public function serialize(): array {
         return [
             'creationDate' => FormatHelper::datetime($this->getCreationDate()),
-            'pack' => $this->getPack() ? $this->getPack()->getCode() : '',
-            'lastLocation' => $this->getPack()
-                ? ($this->getPack()->getLastDrop()
-                    ? FormatHelper::location($this->getPack()->getLastDrop()->getEmplacement())
-                    : '')
-                : '',
-            'lastTrackingDate' => $this->getPack()
-                ? ($this->getPack()->getLastTracking()
-                    ? FormatHelper::datetime($this->getPack()->getLastTracking()->getDatetime())
-                    : '')
-                : '',
-            'reception' => $this->getReceptionNumber() ?? '',
+            'packCode' => $this->getPackCode() ?? '',
+            'receptionNumber' => $this->getReceptionNumber() ?? '',
             'user' => FormatHelper::user($this->getUser()),
         ];
     }
@@ -104,14 +89,14 @@ class ReceiptAssociation
         return $this;
     }
 
-    public function getPack(): ?Pack
+    public function getPackCode(): ?string
     {
-        return $this->pack;
+        return $this->packCode;
     }
 
-    public function setPack(?Pack $pack): self
+    public function setPackCode(?string $packCode): self
     {
-        $this->pack = $pack;
+        $this->packCode = $packCode;
 
         return $this;
     }
