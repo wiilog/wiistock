@@ -11,17 +11,7 @@ SELECT
     handling.destination AS emplacement_depose,
     handling.number AS numero,
     statut.nom AS statut,
-    handling.emergency AS urgence,
-    IF(handling.validation_date IS NOT NULL AND handling.desired_date IS NOT NULL,
-       ROUND(TIME_FORMAT(TIMEDIFF(handling.validation_date, handling.desired_date), '%H')
-                 + TIME_FORMAT(TIMEDIFF(handling.validation_date, handling.desired_date), '%i') / 60
-                 + TIME_FORMAT(TIMEDIFF(handling.validation_date, handling.desired_date), '%s') / 3600, 4),
-       NULL) AS delais_traitement_attendu,
-    IF(handling.validation_date IS NOT NULL AND handling.creation_date IS NOT NULL,
-       ROUND(TIME_FORMAT(TIMEDIFF(handling.validation_date, handling.creation_date), '%H')
-                 + TIME_FORMAT(TIMEDIFF(handling.validation_date, handling.creation_date), '%i') / 60
-                 + TIME_FORMAT(TIMEDIFF(handling.validation_date, handling.creation_date), '%s') / 3600, 4),
-       NULL) AS delais_traitement_validation
+    handling.emergency AS urgence
 
 FROM handling
 
