@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Reception;
 use DateTime;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\Entity;
 use Exception;
@@ -65,4 +66,27 @@ class UniqueNumberService
 
         return ($smartPrefix . $dateStr . $currentCounterStr);
     }
+
+    public function createWithRetry(EntityManagerInterface $entityManager,
+                                    string                 $prefix,
+                                    string                 $entity,
+                                    string                 $format,
+                                    callable               $flush,
+                                    int                    $maxNbRetry = 5): void {
+
+        $nbTry = 0;
+        do {
+            try {
+                $number = $this->create($entityManager, $prefix, $entity, $format);
+
+                $nbTry++;
+                $flush($number);
+                $stopTrying = true;
+            } catch (UniqueConstraintViolationException $e) {
+                $stopTrying = ($nbTry >= $maxNbRetry);
+            }
+        }
+        while (!$stopTrying);
+    }
+
 }

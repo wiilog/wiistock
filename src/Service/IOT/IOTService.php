@@ -173,9 +173,20 @@ class IOTService
 
         if ($requestTemplate instanceof DeliveryRequestTemplate) {
             $request = $this->cleanCreateDeliveryRequest($statutRepository, $entityManager, $wrapper, $requestTemplate);
-            $entityManager->persist($request);
+
+            $this->uniqueNumberService->createWithRetry(
+                $entityManager,
+                Demande::PREFIX_NUMBER,
+                Demande::class,
+                UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT,
+                function (string $number) use ($request, $entityManager) {
+                    $request->setNumero($number);
+                    $entityManager->persist($request);
+                    $entityManager->flush();
+                }
+            );
+
             $valid = true;
-            $entityManager->flush();
             foreach ($request->getReferenceLines() as $ligneArticle) {
                 $reference = $ligneArticle->getReference();
                 if ($reference->getQuantiteDisponible() < $ligneArticle->getQuantityToPick()) {
@@ -192,18 +203,26 @@ class IOTService
             $entityManager->persist($request);
             $entityManager->flush();
         } else if ($requestTemplate instanceof HandlingRequestTemplate) {
-            $request = $this->cleanCreateHandlingRequest($entityManager, $wrapper, $requestTemplate);
-            $entityManager->persist($request);
-            $entityManager->flush();
+            $request = $this->cleanCreateHandlingRequest($wrapper, $requestTemplate);
+
+            $this->uniqueNumberService->createWithRetry(
+                $entityManager,
+                Handling::PREFIX_NUMBER,
+                Handling::class,
+                UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT,
+                function (string $number) use ($request, $entityManager) {
+                    $request->setNumber($number);
+                    $entityManager->persist($request);
+                    $entityManager->flush();
+                }
+            );
         }
     }
 
-    private function cleanCreateHandlingRequest(EntityManagerInterface $entityManager,
-                                                SensorWrapper $sensorWrapper,
+    private function cleanCreateHandlingRequest(SensorWrapper $sensorWrapper,
                                                 HandlingRequestTemplate $requestTemplate): Handling {
         $handling = new Handling();
         $date = new DateTime('now');
-        $handlingNumber = $this->uniqueNumberService->create($entityManager, Handling::PREFIX_NUMBER, Handling::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 
         $desiredDate = clone $date;
         $desiredDate = $desiredDate->add(new \DateInterval('PT' . $requestTemplate->getDelay() . 'H'));
@@ -217,7 +236,6 @@ class IOTService
             ->setType($requestTemplate->getRequestType())
             ->setCreationDate($date)
             ->setTriggeringSensorWrapper($sensorWrapper)
-            ->setNumber($handlingNumber)
             ->setStatus($requestTemplate->getRequestStatus())
             ->setComment($requestTemplate->getComment())
             ->setAttachments($requestTemplate->getAttachments())
@@ -233,7 +251,6 @@ class IOTService
                                                 SensorWrapper $wrapper,
                                                 DeliveryRequestTemplate $requestTemplate): Demande {
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
-        $numero = $this->demandeLivraisonService->generateNumeroForNewDL($entityManager);
         $date = new DateTime('now');
 
         $request = new Demande();
@@ -244,7 +261,6 @@ class IOTService
             ->setTriggeringSensorWrapper($wrapper)
             ->setType($requestTemplate->getRequestType())
             ->setDestination($requestTemplate->getDestination())
-            ->setNumero($numero)
             ->setFreeFields($requestTemplate->getFreeFields());
 
         foreach ($requestTemplate->getLines() as $requestTemplateLine) {
