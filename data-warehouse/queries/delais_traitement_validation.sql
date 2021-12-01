@@ -25,14 +25,14 @@ CREATE TABLE TEMP_worked_days SELECT IF(days_worked.day = 'monday', 'lundi',
 CREATE TABLE TEMP_non_worked_days SELECT day AS jour
                                   FROM work_free_day;
 
-SELECT number,NBLUN, DURLUN, CORR_DEB_LUN, CORR_FIN_LUN, NBMAR, DURMAR, CORR_DEB_MAR, CORR_FIN_MAR, NBMER, DURMER, CORR_DEB_MER, CORR_FIN_MER, NBJEU, DURJEU, CORR_DEB_JEU, CORR_FIN_JEU, NBVEN, DURVEN, CORR_DEB_VEN, CORR_FIN_VEN, NBSAM, DURSAM, CORR_DEB_SAM, CORR_FIN_SAM, NBDIM, DURDIM, CORR_DEB_DIM, CORR_FIN_DIM,
+SELECT serviceId,
        (((NBLUN*DURLUN)-CORR_DEB_LUN-CORR_FIN_LUN)
            + ((NBMAR*DURMAR)-CORR_DEB_MAR-CORR_FIN_MAR)
            + ((NBMER*DURMER)-CORR_DEB_MER-CORR_FIN_MER)
            + ((NBJEU*DURJEU)-CORR_DEB_JEU-CORR_FIN_JEU)
            + ((NBVEN*DURVEN)-CORR_DEB_VEN-CORR_FIN_VEN)
            + ((NBSAM*DURSAM)-CORR_DEB_SAM-CORR_FIN_SAM)
-           + ((NBDIM*DURDIM)-CORR_DEB_DIM-CORR_FIN_DIM))/3600 AS delais_traitement
+           + ((NBDIM*DURDIM)-CORR_DEB_DIM-CORR_FIN_DIM))/3600 AS delais_traitement_validation
 FROM (SELECT
           ((DATEDIFF((validation_date - INTERVAL WEEKDAY(validation_date) DAY), (creation_date - INTERVAL WEEKDAY(creation_date) DAY)))/7 + 1
               - (IF(DAYOFWEEK(creation_date) <> 2, 1, 0))
@@ -240,7 +240,7 @@ FROM (SELECT
                                    THEN (TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME)))+(TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(validation_date AS TIME)))
                                ELSE ((TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME)))+(TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME))))
                                END FROM TEMP_worked_days WHERE jour = 'dimanche' AND DAYOFWEEK(validation_date) = 1), 0) CORR_FIN_DIM,
-          handling.number AS number
+          handling.id AS serviceId
       FROM handling) AS data;
 
 DROP TABLE IF EXISTS TEMP_non_worked_days;

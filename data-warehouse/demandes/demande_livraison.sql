@@ -14,8 +14,7 @@ SELECT id,
        libelle,
        code_barre,
        quantite_disponible,
-       quantite_a_prelever,
-       delais_traitement
+       quantite_a_prelever
 FROM (
          SELECT demande.id                                     AS id,
                 demande.numero                                 AS numero,
@@ -47,32 +46,7 @@ FROM (
                 article.label                                  AS libelle,
                 article.bar_code                               AS code_barre,
                 article.quantite                               AS quantite_disponible,
-                delivery_request_article_line.quantity_to_pick AS quantite_a_prelever,
-                IF((SELECT MAX(livraison.date_fin)
-                    FROM demande AS sub_demande
-                             LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                             LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                    WHERE sub_demande.id = demande.id) IS NOT NULL AND demande.validated_at IS NOT NULL,
-                   ROUND(TIME_FORMAT(TIMEDIFF((SELECT MAX(livraison.date_fin)
-                                               FROM demande AS sub_demande
-                                                        LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                                                        LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                               WHERE sub_demande.id = demande.id), demande.validated_at), '%H')
-                             +
-                         TIME_FORMAT(TIMEDIFF((SELECT MAX(livraison.date_fin)
-                                               FROM demande AS sub_demande
-                                                        LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                                                        LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                               WHERE sub_demande.id = demande.id), demande.validated_at), '%i') /
-                         60
-                             +
-                         TIME_FORMAT(TIMEDIFF((SELECT MAX(livraison.date_fin)
-                                               FROM demande AS sub_demande
-                                                        LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                                                        LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                               WHERE sub_demande.id = demande.id), demande.validated_at), '%s') /
-                         3600, 4),
-                   NULL)                                       AS delais_traitement
+                delivery_request_article_line.quantity_to_pick AS quantite_a_prelever
 
          FROM demande
 
@@ -119,32 +93,7 @@ FROM (
                 reference_article.libelle                        AS libelle,
                 reference_article.bar_code                       AS code_barre,
                 reference_article.quantite_disponible            AS quantite_disponible,
-                delivery_request_reference_line.quantity_to_pick AS quantite_a_prelever,
-                IF((SELECT MAX(livraison.date_fin)
-                    FROM demande AS sub_demande
-                             LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                             LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                    WHERE sub_demande.id = demande.id) IS NOT NULL AND demande.validated_at IS NOT NULL,
-                   ROUND(TIME_FORMAT(TIMEDIFF((SELECT MAX(livraison.date_fin)
-                                               FROM demande AS sub_demande
-                                                        LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                                                        LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                               WHERE sub_demande.id = demande.id), demande.validated_at), '%H')
-                             +
-                         TIME_FORMAT(TIMEDIFF((SELECT MAX(livraison.date_fin)
-                                               FROM demande AS sub_demande
-                                                        LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                                                        LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                               WHERE sub_demande.id = demande.id), demande.validated_at), '%i') /
-                         60
-                             +
-                         TIME_FORMAT(TIMEDIFF((SELECT MAX(livraison.date_fin)
-                                               FROM demande AS sub_demande
-                                                        LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                                                        LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                               WHERE sub_demande.id = demande.id), demande.validated_at), '%s') /
-                         3600, 4),
-                   NULL)                                         AS delais_traitement
+                delivery_request_reference_line.quantity_to_pick AS quantite_a_prelever
 
          FROM demande
 
