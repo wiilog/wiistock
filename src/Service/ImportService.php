@@ -408,7 +408,7 @@ class ImportService
             if ($throwable instanceof ImportException) {
                 $message = $throwable->getMessage();
             } else if ($throwable instanceof UniqueConstraintViolationException) {
-                if ($retry <= 3) {
+                if ($retry <= UniqueNumberService::MAX_RETRY) {
                     $retry++;
                     return $this->treatImportRow($row,
                         $headers,
@@ -419,9 +419,10 @@ class ImportService
                         $needsUnitClear,
                         $receptionsWithCommand,
                         $deliveries,
-                            $user,
-                             $rowIndex,
-                             $retry);
+                        $user,
+                        $rowIndex,
+                        $retry
+                    );
                 } else {
                     $message = 'Une autre entité est en cours de création, veuillez réessayer.';
                 }

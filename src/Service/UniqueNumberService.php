@@ -11,7 +11,7 @@ use Exception;
 
 class UniqueNumberService
 {
-
+    const MAX_RETRY = 5;
     const DATE_COUNTER_FORMAT_DEFAULT = 'YmdCCCC';
     const DATE_COUNTER_FORMAT_RECEPTION = 'ymdCCCC';
 
@@ -72,7 +72,7 @@ class UniqueNumberService
                                     string                 $entity,
                                     string                 $format,
                                     callable               $flush,
-                                    int                    $maxNbRetry = 5): void {
+                                    int                    $maxNbRetry = self::MAX_RETRY): void {
 
         $nbTry = 0;
         do {
