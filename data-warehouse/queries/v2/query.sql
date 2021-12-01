@@ -34,8 +34,7 @@ SELECT number,NBLUN, DURLUN, CORR_DEB_LUN, CORR_FIN_LUN, NBMAR, DURMAR, CORR_DEB
            + ((NBSAM*DURSAM)-CORR_DEB_SAM-CORR_FIN_SAM)
            + ((NBDIM*DURDIM)-CORR_DEB_DIM-CORR_FIN_DIM))/3600 AS delais_traitement
 FROM (SELECT
-          ((DATE_FORMAT((validation_date - INTERVAL WEEKDAY(validation_date) DAY), '%d')
-              - DATE_FORMAT((creation_date - INTERVAL WEEKDAY(creation_date) DAY), '%d'))/7 + 1
+          ((DATEDIFF((validation_date - INTERVAL WEEKDAY(validation_date) DAY), (creation_date - INTERVAL WEEKDAY(creation_date) DAY)))/7 + 1
               - (IF(DAYOFWEEK(creation_date) <> 2, 1, 0))
               - (SELECT count(*) FROM TEMP_non_worked_days WHERE jour BETWEEN creation_date AND validation_date AND DAYOFWEEK(jour) = 2)) AS NBLUN,
           (SELECT (SELECT(IF(horaire1 IS NOT NULL AND horaire2 IS NOT NULL, TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME)), 0)) FROM TEMP_worked_days WHERE jour = 'lundi')+
@@ -64,8 +63,7 @@ FROM (SELECT
                                END FROM TEMP_worked_days WHERE jour = 'lundi' AND DAYOFWEEK(validation_date) = 2), 0) CORR_FIN_LUN,
 
 
-          ((DATE_FORMAT((validation_date - INTERVAL WEEKDAY(validation_date) DAY), '%d')
-              - DATE_FORMAT((creation_date - INTERVAL WEEKDAY(creation_date) DAY), '%d'))/7 + 1
+          ((DATEDIFF((validation_date - INTERVAL WEEKDAY(validation_date) DAY), (creation_date - INTERVAL WEEKDAY(creation_date) DAY)))/7 + 1
               - (IF(DAYOFWEEK(creation_date) NOT IN (2, 3), 1, 0))
               - (IF(DAYOFWEEK(validation_date) = 2, 1, 0))
               - (SELECT count(*) FROM TEMP_non_worked_days WHERE jour BETWEEN creation_date AND validation_date AND DAYOFWEEK(jour) = 3)) AS NBMAR,
@@ -95,8 +93,7 @@ FROM (SELECT
                                END FROM TEMP_worked_days WHERE jour = 'mardi' AND DAYOFWEEK(validation_date) = 3), 0) CORR_FIN_MAR,
 
 
-          ((DATE_FORMAT((validation_date - INTERVAL WEEKDAY(validation_date) DAY), '%d')
-              - DATE_FORMAT((creation_date - INTERVAL WEEKDAY(creation_date) DAY), '%d'))/7 + 1
+          ((DATEDIFF((validation_date - INTERVAL WEEKDAY(validation_date) DAY), (creation_date - INTERVAL WEEKDAY(creation_date) DAY)))/7 + 1
               - (IF(DAYOFWEEK(creation_date) NOT IN (2, 3, 4), 1, 0))
               - (IF(DAYOFWEEK(validation_date) IN (2, 3), 1, 0))
               - (SELECT count(*) FROM TEMP_non_worked_days WHERE jour BETWEEN creation_date AND validation_date AND DAYOFWEEK(jour) = 4)) AS NBMER,
@@ -126,8 +123,7 @@ FROM (SELECT
                                END FROM TEMP_worked_days WHERE jour = 'mercredi' AND DAYOFWEEK(validation_date) = 4),0) CORR_FIN_MER,
 
 
-          ((DATE_FORMAT((validation_date - INTERVAL WEEKDAY(validation_date) DAY), '%d')
-              - DATE_FORMAT((creation_date - INTERVAL WEEKDAY(creation_date) DAY), '%d'))/7 + 1
+          ((DATEDIFF((validation_date - INTERVAL WEEKDAY(validation_date) DAY), (creation_date - INTERVAL WEEKDAY(creation_date) DAY)))/7 + 1
               - (IF(DAYOFWEEK(creation_date) IN (6, 7, 1), 1, 0))
               - (IF(DAYOFWEEK(validation_date) IN (2, 3, 4), 1, 0))
               - (SELECT count(*) FROM TEMP_non_worked_days WHERE jour BETWEEN creation_date AND validation_date AND DAYOFWEEK(jour) = 5)) AS NBJEU,
@@ -157,8 +153,7 @@ FROM (SELECT
                                END FROM TEMP_worked_days WHERE jour = 'jeudi' AND DAYOFWEEK(validation_date) = 5), 0) CORR_FIN_JEU,
 
 
-          ((DATE_FORMAT((validation_date - INTERVAL WEEKDAY(validation_date) DAY), '%d')
-              - DATE_FORMAT((creation_date - INTERVAL WEEKDAY(creation_date) DAY), '%d'))/7 + 1
+          ((DATEDIFF((validation_date - INTERVAL WEEKDAY(validation_date) DAY), (creation_date - INTERVAL WEEKDAY(creation_date) DAY)))/7 + 1
               - (IF(DAYOFWEEK(creation_date) IN (7, 1), 1, 0))
               - (IF(DAYOFWEEK(validation_date) NOT IN (6, 7, 1), 1, 0))
               - (SELECT count(*) FROM TEMP_non_worked_days WHERE jour BETWEEN creation_date AND validation_date AND DAYOFWEEK(jour) = 6)) AS NBVEN,
@@ -188,8 +183,7 @@ FROM (SELECT
                                END FROM TEMP_worked_days WHERE jour = 'vendredi' AND DAYOFWEEK(validation_date) = 6), 0) CORR_FIN_VEN,
 
 
-          ((DATE_FORMAT((validation_date - INTERVAL WEEKDAY(validation_date) DAY), '%d')
-              - DATE_FORMAT((creation_date - INTERVAL WEEKDAY(creation_date) DAY), '%d'))/7 + 1
+          ((DATEDIFF((validation_date - INTERVAL WEEKDAY(validation_date) DAY), (creation_date - INTERVAL WEEKDAY(creation_date) DAY)))/7 + 1
               - (IF(DAYOFWEEK(creation_date) = 1, 1, 0))
               - (IF(DAYOFWEEK(validation_date) NOT IN (7, 1), 1, 0))
               - (SELECT count(*) FROM TEMP_non_worked_days WHERE jour BETWEEN creation_date AND validation_date AND DAYOFWEEK(jour) = 7)) AS NBSAM,
@@ -219,8 +213,7 @@ FROM (SELECT
                                END FROM TEMP_worked_days WHERE jour = 'samedi' AND DAYOFWEEK(validation_date) = 7), 0) CORR_FIN_SAM,
 
 
-          ((DATE_FORMAT((validation_date - INTERVAL WEEKDAY(validation_date) DAY), '%d')
-              - DATE_FORMAT((creation_date - INTERVAL WEEKDAY(creation_date) DAY), '%d'))/7 + 1
+          ((DATEDIFF((validation_date - INTERVAL WEEKDAY(validation_date) DAY), (creation_date - INTERVAL WEEKDAY(creation_date) DAY)))/7 + 1
               - (IF(DAYOFWEEK(validation_date) <> 1, 1, 0))
               - (SELECT count(*) FROM TEMP_non_worked_days WHERE jour BETWEEN creation_date AND validation_date AND DAYOFWEEK(jour) = 1)) AS NBDIM,
           (SELECT (SELECT(IF(horaire1 IS NOT NULL AND horaire2 IS NOT NULL, TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME)), 0)) FROM TEMP_worked_days WHERE jour = 'dimanche')+
