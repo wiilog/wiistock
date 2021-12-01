@@ -77,7 +77,6 @@
                         <div class="sub-form existing-delivery d-none">
                             <div class="my-delivery-requests pb-2">
                                 <div class="section">Ma demande de livraison</div>
-
                                 {{ form.select('existingDelivery', 'Mes livraisons', true, {
                                     placeholder: 'Sélectionnez une livraison',
                                     items: deliveryRequests,
@@ -85,6 +84,11 @@
                                 }) }}
                             </div>
                             <div class="delivery-request-content d-none">
+                                <div class="request-free-fields-section">
+                                    <span class="toggle-collapsible wii-subtitle mt-2 expanded">Champs libres</span>
+                                    <div class="collapsible expanded free-fields-container mb-2">
+                                    </div>
+                                </div>
                                 <div class="display-comment">
                                     <span class="comment-title">Commentaire</span>
                                     <div class="delivery-comment"></div>
@@ -122,7 +126,7 @@
                                     <div class="collapsible expanded free-fields-container mb-2">
                                         {% for type in deliveryFreeFieldsTypes %}
                                             <div class="d-none" data-type="{{ type.typeId }}">
-                                                {% include 'free_field/freeFieldsViewing.html.twig' with {
+                                                {% include 'free_field/freeFieldsEdit.html.twig' with {
                                                     freeFields: type.champsLibres,
                                                     freeFieldValues: [],
                                                     colType: 'col-md-6 col-12',
@@ -153,14 +157,23 @@
                                 }) }}
                             </div>
                             <div class="collect-request-content mt-2 d-none">
-                                <div class="d-flex">
-                                    <div class="col-6 p-0 box-item">
+                                <div class="row">
+                                    <div class="col-6 box-item">
                                         <span class="wii-field-name">Destination</span>
                                         <span class="collect-destination wii-body-text"></span>
                                     </div>
-                                    <div class="col-6 p-0 box-item">
+                                    <div class="col-6 box-item">
                                         <span class="wii-field-name">Objet</span>
                                         <span class="collect-object wii-body-text"></span>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="request-free-fields-section">
+                                            <span class="toggle-collapsible wii-subtitle mt-2 expanded ">Champs libres</span>
+                                            <div class="collapsible expanded free-fields-container mb-2">
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="display-comment">
@@ -210,7 +223,7 @@
                                     <div class="collapsible expanded free-fields-container mb-2">
                                         {% for type in collectFreeFieldsTypes %}
                                             <div class="d-none" data-type="{{ type.typeId }}">
-                                                {% include 'free_field/freeFieldsViewing.html.twig' with {
+                                                {% include 'free_field/freeFieldsEdit.html.twig' with {
                                                     freeFields: type.champsLibres,
                                                     freeFieldValues: [],
                                                     colType: 'col-md-6 col-12',

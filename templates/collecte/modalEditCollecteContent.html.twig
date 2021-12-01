@@ -73,7 +73,7 @@
 
 <span class="toggle-collapsible expanded">Champs libres</span>
 <div class="collapsible expanded free-fields-container mb-2">
-    {% include 'free_field/freeFieldsViewing.html.twig' with {
+    {% include 'free_field/freeFieldsEdit.html.twig' with {
         freeFields: freeFieldsGroupedByTypes[collecte.type.id] is defined ? freeFieldsGroupedByTypes[collecte.type.id] : [],
         freeFieldValues: collecte.freeFields,
         colType: 'col-12',

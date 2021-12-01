@@ -1,8 +1,9 @@
-<div class="wii-page-card">
+<div class="wii-box details-header-container p-4">
     {% block showHiddenInputs %}{% endblock %}
-    <div class="row align-items-center wii-page-card-header mb-0">
-        <div class="col-auto">
-            <h5 class="my-0 h5" title="{% block showTitleTooltip '' %}">{% block showTitle '' %}</h5>
+    <div class="row wii-page-card-header mb-0">
+        <div class="col-auto" title="{% block showTitleTooltip '' %}">
+            <h5 class="details-header-title">{% block showTitle '' %}</h5>
+            <span>{% block showSubtitle '' %}</span>
         </div>
 
         {% if titleLogo is defined%}

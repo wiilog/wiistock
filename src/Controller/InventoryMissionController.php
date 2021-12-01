@@ -163,7 +163,7 @@ class InventoryMissionController extends AbstractController
     public function show(InventoryMission $mission)
     {
         return $this->render('inventaire/show.html.twig', [
-            'missionId' => $mission->getId()
+            'missionId' => $mission->getId(),
         ]);
     }
 
@@ -321,4 +321,39 @@ class InventoryMissionController extends AbstractController
             ]
         );
     }
+
+    /**
+     * @Route("/remove_reference_from_inventory/", name="mission_remove_ref", options={"expose"=true}, condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::STOCK, Action::DELETE}, mode=HasPermission::IN_JSON)
+     */
+    public function removeReferenceFromInventoryMission(Request                $request,
+                                                        EntityManagerInterface $entityManager): Response
+    {
+
+        $inventoryEntryRepository = $entityManager->getRepository(InventoryEntry::class);
+        $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+
+        $data = json_decode($request->getContent(), true);
+        $missionData = Stream::explode(";", $data['missionData'])
+            ->keymap(fn($data) => explode(":", $data))
+            ->toArray();
+
+        $mission = $inventoryMissionRepository->find($missionData['missionId']);
+        $referenceArticle = $referenceArticleRepository->find($missionData['referenceId']);
+
+        if (isset($missionData['inventoryEntryId'])) {
+            $inventoryEntry = $inventoryEntryRepository->find($missionData['inventoryEntryId']);
+            $mission->removeEntry($inventoryEntry);
+        }
+        $mission->removeRefArticle($referenceArticle);
+
+        $entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'msg' => "La référence a bien été supprimée de l'inventaire"
+        ]);
+    }
+
 }

@@ -147,15 +147,11 @@ class ReceiptAssociationRepository extends EntityRepository
                                    DateTime $end) {
         $queryBuilder = $this->createQueryBuilder('receipt_association');
         $exprBuilder = $queryBuilder->expr();
-        $iterator = $this->createQueryBuilder('receipt_association')
+        return $this->createQueryBuilder('receipt_association')
             ->where($exprBuilder->between('receipt_association.creationDate', ':start', ':end'))
             ->setParameter('start', $start)
             ->setParameter('end', $end)
             ->getQuery()
-            ->iterate();
-
-        foreach($iterator as $item) {
-            yield array_pop($item);
-        }
+            ->toIterable();
     }
 }

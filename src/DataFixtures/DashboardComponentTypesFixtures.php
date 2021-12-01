@@ -16,7 +16,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
     private $specificService;
     private $output;
 
-    private const COMPONENT_TYPES = [
+    public const COMPONENT_TYPES = [
         'Image externe' => [
             'hint' => 'Image statique',
             'exampleValues' => [
@@ -711,7 +711,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
             ],
         ],
         'Nombre d\'acheminements quotidiens' => [
-            'hint' => 'Nombre d\'acheminements ayant leurs dates d\'échéances sur les jours présentés',
+            'hint' => 'Nombre d\'acheminements avec date de référence paramétrable sur les jours présentés',
             'exampleValues' => [
                 'chartColors' => [
                     Dashboard\ComponentType::DEFAULT_CHART_COLOR
@@ -727,6 +727,36 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     '08/01' => 10,
                     '09/01' => 8,
                     '10/01' => 5,
+                ],
+                'chartDataMultiple' => [
+                    '04/01' => [
+                        'Type1' => 25,
+                        'Type2' => 12,
+                    ],
+                    '05/01' => [
+                        'Type1' => 10,
+                        'Type2' => 12,
+                    ],
+                    '06/01' => [
+                        'Type1' => 4,
+                        'Type2' => 12,
+                    ],
+                    '07/01' => [
+                        'Type1' => 25,
+                        'Type2' => 9,
+                    ],
+                    '08/01' => [
+                        'Type1' => 15,
+                        'Type2' => 12,
+                    ],
+                    '09/01' => [
+                        'Type1' => 2,
+                        'Type2' => 12,
+                    ],
+                    '10/01' => [
+                        'Type1' => 23,
+                        'Type2' => 8,
+                    ]
                 ],
                 'textColor-1' => "#000000",
                 'textBold-1' => false,

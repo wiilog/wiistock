@@ -18,21 +18,15 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use WiiCommon\Helper\Stream;
 
 /**
  * @Route("/nature-colis")
  */
-class NatureColisParamController extends AbstractController
+class NatureController extends AbstractController
 {
-    /**
-     * @var UserService
-     */
-    private $userService;
-
-    public function __construct(UserService $userService)
-    {
-        $this->userService = $userService;
-    }
+    /** @Required */
+    public UserService $userService;
 
     /**
      * @Route("/", name="nature_param_index")
@@ -80,7 +74,7 @@ class NatureColisParamController extends AbstractController
      * @Route("/creer", name="nature_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function new(Request $request, TranslatorInterface $translator): Response
+    public function new(Request $request, TranslatorInterface $translator, EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getManager();
@@ -95,6 +89,20 @@ class NatureColisParamController extends AbstractController
                 ->setDefaultQuantity($data['quantity'])
                 ->setDescription($data['description'] ?? null)
                 ->setCode($data['code']);
+
+            $natures = $entityManager->getRepository(Nature::class)->findAll();
+
+            $isAlreadyDefaultForDispatch = !Stream::from($natures)
+                ->filter(fn(Nature $nature) => $nature->getDefaultForDispatch())
+                ->isEmpty();
+            if(!$isAlreadyDefaultForDispatch){
+                $nature->setDefaultForDispatch($data['defaultForDispatch'] ?? false);
+            } else {
+                return $this->json([
+                    'success' => false,
+                    'msg' => 'Une nature par défaut pour les acheminements a déjà été sélectionnée'
+                ]);
+            }
 
             $em->persist($nature);
             $em->flush();
@@ -136,10 +144,10 @@ class NatureColisParamController extends AbstractController
     {
         if ($data = json_decode($request->getContent(), true)) {
             $natureRepository = $entityManager->getRepository(Nature::class);
-            $nature = $natureRepository->find($data['nature']);
-            $natureLabel = $nature->getLabel();
+            $currentNature = $natureRepository->find($data['nature']);
+            $natureLabel = $currentNature->getLabel();
 
-            $nature
+            $currentNature
                 ->setLabel($data['label'])
                 ->setPrefix($data['prefix'] ?? null)
                 ->setDefaultQuantity($data['quantity'])
@@ -149,7 +157,20 @@ class NatureColisParamController extends AbstractController
                 ->setColor($data['color'])
                 ->setCode($data['code']);
 
-            $entityManager->persist($nature);
+            $natures = $natureRepository->findAll();
+
+            $isAlreadyDefaultForDispatch = !Stream::from($natures)
+                ->filter(fn(Nature $nature) => $nature->getDefaultForDispatch() && $nature->getId() !== $currentNature->getId())
+                ->isEmpty();
+            if(!$isAlreadyDefaultForDispatch){
+                $currentNature->setDefaultForDispatch($data['defaultForDispatch'] ?? false);
+            } else {
+                return $this->json([
+                    'success' => false,
+                    'msg' => 'Une nature par défaut pour les acheminements a déjà été sélectionnée'
+                ]);
+            }
+
             $entityManager->flush();
 
             return new JsonResponse([

@@ -5,11 +5,8 @@ namespace App\Service;
 
 use App\Entity\FiltreSup;
 
-use App\Entity\Pack;
 use App\Entity\ReceiptAssociation;
-use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
-use DateTime;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -17,37 +14,21 @@ use Twig\Environment as Twig_Environment;
 
 class ReceiptAssociationService
 {
-    /**
-     * @var Twig_Environment
-     */
-    private $templating;
+    /** @Required */
+    public Twig_Environment $templating;
 
-    /**
-     * @var RouterInterface
-     */
-    private $router;
+    /** @Required */
+    public RouterInterface $router;
 
-    /**
-     * @var UserService
-     */
-    private $userService;
+    /** @Required */
+    public UserService $userService;
 
-    private $security;
+    /** @Required */
+    public Security $security;
 
-    private $entityManager;
+    /** @Required */
+    public EntityManagerInterface $entityManager;
 
-    public function __construct(UserService $userService,
-                                RouterInterface $router,
-                                EntityManagerInterface $entityManager,
-                                Twig_Environment $templating,
-                                Security $security)
-    {
-        $this->templating = $templating;
-        $this->entityManager = $entityManager;
-        $this->router = $router;
-        $this->userService = $userService;
-        $this->security = $security;
-    }
 
     public function getDataForDatatable($params = null)
     {
@@ -76,37 +57,12 @@ class ReceiptAssociationService
         return [
             'id' => $receiptAssocation->getId(),
             'creationDate' => FormatHelper::datetime($receiptAssocation->getCreationDate()),
-            'pack' => $receiptAssocation->getPack() ? $receiptAssocation->getPack()->getCode() : '',
-            'lastLocation' => $receiptAssocation->getPack()
-                ? ($receiptAssocation->getPack()->getLastTracking()
-                    ? FormatHelper::location($receiptAssocation->getPack()->getLastTracking()->getEmplacement())
-                    : '')
-                : '',
-            'lastMovementDate' => $receiptAssocation->getPack()
-                ? ($receiptAssocation->getPack()->getLastTracking()
-                    ? FormatHelper::datetime($receiptAssocation->getPack()->getLastTracking()->getDatetime())
-                    : '')
-                : '',
+            'packCode' => $receiptAssocation->getPackCode() ?? '',
             'receptionNumber' => $receiptAssocation->getReceptionNumber() ?? '',
             'user' => FormatHelper::user($receiptAssocation->getUser()),
             'Actions' => $this->templating->render('receipt_association/datatableRowActions.html.twig', [
                 'receipt_association' => $receiptAssocation,
             ])
         ];
-    }
-
-    public function persistReceiptAssociation(EntityManagerInterface $manager,
-                                              ?Pack $pack,
-                                              string $reception,
-                                              Utilisateur $user) {
-        $now = new DateTime('now');
-
-        $receiptAssociation = (new ReceiptAssociation())
-            ->setReceptionNumber($reception)
-            ->setUser($user)
-            ->setCreationDate($now)
-            ->setPack($pack);
-
-        $manager->persist($receiptAssociation);
     }
 }

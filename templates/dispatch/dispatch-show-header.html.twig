@@ -1,7 +1,8 @@
 {% extends 'utils/show-header.html.twig' %}
 
 {% block showTitleTooltip ('Acheminement' ~ ' n°' ~ dispatch.number) %}
-{% block showTitle ('acheminement.Acheminement'|trans ~ ' n°' ~ dispatch.number) %}
+{% block showTitle ('acheminement.Acheminement'|trans) %}
+{% block showSubtitle ('n°' ~ dispatch.number) %}
 
 {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
 {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
@@ -37,16 +38,16 @@
                 <button type="button"
                         data-id='{{ dispatch.id }}'
                         onclick="openValidateDispatchModal()"
-                        class="btn btn-primary split-button">
-                    <i class="fa fa-check mr-2"></i>
+                        class="btn btn-primary d-flex align-items-center justify-content-center split-button mr-0">
+                    <i class="wii-icon wii-icon-check mr-2"></i>
                     Valider la demande
                 </button>
             {% elseif not dispatch.statut.treated %}
                 <button type="button"
                         data-id='{{ dispatch.id }}'
                         onclick="openTreatDispatchModal()"
-                        class="btn btn-primary split-button">
-                    <i class="fa fa-check mr-2"></i>
+                        class="btn btn-primary align-items-center justify-content-center split-button mr-0">
+                    <i class="wii-icon wii-icon-check mr-2"></i>
                     Terminer la demande
                 </button>
             {% endif %}

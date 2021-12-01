@@ -149,9 +149,17 @@ class CartController extends AbstractController
      * @Route("/infos/livraison/{request}", name="cart_delivery_data", options={"expose"=true}, methods="GET")
      */
     public function deliveryRequestData(Demande $request): JsonResponse {
+        $type = $request->getType();
+
         return $this->json([
             "success" => true,
             "comment" => $request->getCommentaire(),
+            "freeFields" => $this->renderView('free_field/freeFieldsShow.html.twig', [
+                'containerClass' => null,
+                'freeFields' => $type ? $type->getChampsLibres()->toArray() : [],
+                'values' => $request->getFreeFields() ?? [],
+                'emptyLabel' => 'Cette demande ne contient aucun champ libre'
+            ])
         ]);
     }
 
@@ -159,11 +167,18 @@ class CartController extends AbstractController
      * @Route("/infos/collecte/{request}", name="cart_collect_data", options={"expose"=true}, methods="GET")
      */
     public function collectRequestData(Collecte $request): JsonResponse {
+        $type = $request->getType();
         return $this->json([
             "success" => true,
             "destination" => $request->isDestruct() ? "Destruction" : "Mise en stock",
             "object" => $request->getObjet(),
             "comment" => $request->getCommentaire(),
+            "freeFields" => $this->renderView('free_field/freeFieldsShow.html.twig', [
+                'containerClass' => null,
+                'freeFields' => $type ? $type->getChampsLibres()->toArray() : [],
+                'values' => $request->getFreeFields() ?? [],
+                'emptyLabel' => 'Cette demande ne contient aucun champ libre'
+            ])
         ]);
     }
 

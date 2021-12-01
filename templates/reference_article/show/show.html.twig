@@ -247,34 +247,15 @@
                 <div class="wii-box mt-3">
                     {% set plural = freeFields | length > 1 ? 's' : '' %}
                     <div class="header wii-title">Champ{{ plural }} libre{{ plural }}</div>
-                    {% if referenceArticle.freeFields | length > 0 %}
-                        <div class="content d-flex flex-wrap">
-                            {% for freeField in freeFields %}
-                                {% set value = referenceArticle.freeFields[freeField.id] ?? (freeField.defaultValue ?? '') %}
-                                <div class="col-6 box-item mb-3">
-                                    <span class="wii-field-name">{{ freeField.label }}</span>
-                                    {% if freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATE') %}
-                                        <span class="wii-body-text">{{ value | replace({'/': '-'}) | date('d/m/Y') }}</span>
-                                    {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATETIME') %}
-                                        <span class="wii-body-text">{{ value | replace({'/': '-'}) | date('d/m/Y H:i') }}</span>
-                                    {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_BOOL') %}
-                                        <span class="wii-body-text">{{ value == 1 ? 'Oui' : 'Non' }}</span>
-                                    {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_LIST_MULTIPLE') %}
-                                        {% set entityValuesArray = value|split(';') %}
-                                        {% set valids = freeField.elements | filter(element => element in entityValuesArray) %}
-                                        {% set values = valids | join (', ') %}
-                                        <span class="wii-body-text">{{ values }}</span>
-                                    {% else %}
-                                        <span class="wii-body-text">{{ value }}</span>
-                                    {% endif %}
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="content ml-3">
-                            <span class="wii-small-text" title="Cette référence n'a aucun champ libre">Cette {{ 'reference.référence' | trans }} n'a aucun champ libre</span>
-                        </div>
-                    {% endif %}
+                    <div class="px-3">
+                        {% include 'free_field/freeFieldsShow.html.twig' with {
+                            containerClass: 'content',
+                            values: referenceArticle.freeFields,
+                            freeFields: freeFields,
+                            emptyTitle: "Cette référence n'a aucun champ libre",
+                            emptyLabel: "Cette " ~ ('reference.référence' | trans) ~ " n'a aucun champ libre",
+                        } %}
+                    </div>
                 </div>
                 <div class="d-flex justify-content-end mt-4">
                     <a href="{{ path('reference_article_edit_page', {'reference': referenceArticle.id, 'from': 'show'}) }}" class="btn btn-success">Modifier</a>

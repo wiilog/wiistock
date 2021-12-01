@@ -468,7 +468,7 @@
                 <div class="header wii-title">Champs libres</div>
                 <div class="content free-fields-container">
                     {% if reference.id %}
-                        {% include 'free_field/freeFieldsViewing.html.twig' with {
+                        {% include 'free_field/freeFieldsEdit.html.twig' with {
                             freeFields: freeFieldsGroupedByTypes[reference.type.id] is defined ? freeFieldsGroupedByTypes[reference.type.id] : [],
                             freeFieldValues: reference.freeFields,
                             colType: 'col-md-6 col-12',
@@ -480,7 +480,7 @@
                         {% for type in freeFieldTypes %}
                             <div class="d-none"
                                  data-type="{{ type.typeId }}">
-                                {% include 'free_field/freeFieldsViewing.html.twig' with {
+                                {% include 'free_field/freeFieldsEdit.html.twig' with {
                                     freeFields: type.champsLibres,
                                     freeFieldValues: [],
                                     colType: 'col-md-6 col-12',

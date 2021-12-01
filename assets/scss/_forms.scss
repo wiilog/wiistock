@@ -20,7 +20,7 @@
         color: $primary;
         width: 37px;
         min-width: 37px;
-        height: 38px;
+        height: $input-height;
 
         &.decrease:before {
             content: "-";
@@ -133,10 +133,6 @@ $wii-switch-height: 38px;
     }
 }
 
-.form-control {
-    height: 38px;
-}
-
 .form-control, .select2-search__field, .select2-selection__placeholder {
     border-radius: 5px;
     padding: 5px 15px;
@@ -158,6 +154,12 @@ $wii-switch-height: 38px;
 
 .checkbox-filter .row {
     padding: 0 5px;
+}
+
+.wii-switch-no-style{
+    label {
+        color: #495057;
+    }
 }
 
 .lite-picker {
@@ -277,4 +279,92 @@ label, .wii-checkbox, .wii-radio {
         font-weight: normal;
         color: $red;
     }
+}
+
+$wysiwyg-dropdown-button-size: 20px;
+
+.wii-one-line-wysiwyg-popover {
+    background-color: $white;
+    position: absolute;
+    z-index: 10000;
+    width: 400px;
+    max-width: 400px;
+
+    @include border-radius($input-border-radius, 0);
+
+    .ql-container {
+        height: 120px !important;
+    }
+
+    .ql-editor {
+        overflow-y: scroll;
+    }
+
+    .validate-button {
+        position: absolute;
+        right: 25px;
+        bottom: 5px;
+
+        .wii-icon {
+            width: 18px;
+            height: 18px;
+            display: block;
+            background-color: $white;
+        }
+    }
+}
+
+.wii-one-line-wysiwyg {
+    min-width: 240px;
+}
+
+.wii-one-line-wysiwyg-wrapper {
+    position: relative;
+
+    .wii-one-line-wysiwyg {
+        @extend .form-control;
+        height: auto !important;
+        word-break: break-word;
+        min-height: $input-height;
+        min-width: 240px;
+    }
+
+    &.focused,
+    &.active {
+        .wii-one-line-wysiwyg {
+            color: $input-focus-color;
+            background-color: $input-focus-bg;
+            border-color: $input-focus-border-color;
+            outline: 0;
+        }
+        .dropdown-button i {
+            background-color: $primary;
+        }
+    }
+
+    .dropdown-button {
+        border: 0;
+        background-color: transparent;
+        position: absolute;
+        right: 4px;
+        top: calc(50% - (#{$wysiwyg-dropdown-button-size / 2}));
+        cursor: pointer;
+        display: flex;
+
+        i {
+            height: $wysiwyg-dropdown-button-size;
+            width: $wysiwyg-dropdown-button-size;
+
+            background-color: $grey;
+        }
+    }
+}
+
+input.no-overflow {
+    text-overflow: initial !important;
+    padding-right: 5px !important;
+}
+
+.input-group-prepend {
+    height: 35.59px;
 }

@@ -94,6 +94,7 @@ class VisibleColumnService {
             if(str_starts_with($column, "free_field_")) {
                 $id = str_replace("free_field_", "", $column);
                 $condition->add("JSON_EXTRACT(${queryBuilderAlias}.freeFields, '$.\"$id\"') LIKE :search_value");
+                $condition->add("DATE_FORMAT(STR_TO_DATE(TRIM('\"' FROM JSON_EXTRACT(${queryBuilderAlias}.freeFields, '$.\"$id\"')), '%Y-%m-%dT%H:%i'), '%d/%m/%Y %H:%i') LIKE :search_value");
             } else if(isset($conditions[$column])) {
                 $condition->add($conditions[$column]);
             }
