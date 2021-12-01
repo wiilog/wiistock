@@ -243,23 +243,20 @@ function initializePacksTable(dispatchId, isEdit) {
 
             $rows.each(function() {
                 const $row = $(this);
-                const data = Form.process($row);
+                const data = Form.process($row, null, null, true);
 
                 $row.data(`data`, JSON.stringify(data instanceof FormData ? data.asObject() : data));
             })
 
             $rows.off(`focusout.keyboardNavigation`).on(`focusout.keyboardNavigation`, function(event) {
                 const $row = $(this);
-                const relatedTarget = event.relatedTarget;
-                const $relatedTarget = $(relatedTarget);
+                const $target = $(event.target);
+                const $relatedTarget = $(event.relatedTarget);
 
-                const wasPackSelect = (
-                    $(event.target).closest(`td`).find(`select[name="pack"]`).exists()
-                    && $relatedTarget.closest('.select2-container').exists()
-                );
+                const wasPackSelect = $target.closest(`td`).find(`select[name="pack"]`).exists();
                 const wasCommentSelect = $relatedTarget.closest('.wii-one-line-wysiwyg-popover').exists();
-
-                if ((relatedTarget && $.contains(this, relatedTarget))
+console.log(event.target, event.relatedTarget);
+                if ((event.relatedTarget && $.contains(this, event.relatedTarget))
                     || $relatedTarget.is(`button`)
                     || wasPackSelect
                     || wasCommentSelect) {

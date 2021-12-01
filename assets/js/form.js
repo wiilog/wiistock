@@ -31,7 +31,9 @@ export default class Form {
         return this;
     }
 
-    static process(form, $button = null, classes = {data: `data`, array: `data-array`}) {
+    static process(form, $button = null, classes = null, ignoreErrors = false) {
+        classes = classes || {data: `data`, array: `data-array`};
+
         let $form;
         if(form instanceof Form)  {
             $form = form.element;
@@ -171,6 +173,10 @@ export default class Form {
             for(const processor of form.processors) {
                 processor(data, errors, $form);
             }
+        }
+
+        if(ignoreErrors) {
+            return data;
         }
 
         // display errors under each field

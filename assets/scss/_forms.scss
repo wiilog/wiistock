@@ -286,14 +286,23 @@ $wysiwyg-dropdown-button-size: 20px;
 .wii-one-line-wysiwyg-popover {
     background-color: $white;
     position: absolute;
-    min-height: $input-height;
     z-index: 10000;
+    width: 400px;
+    max-width: 400px;
 
     @include border-radius($input-border-radius, 0);
 
+    .ql-container {
+        height: 120px !important;
+    }
+
+    .ql-editor {
+        overflow-y: scroll;
+    }
+
     .validate-button {
         position: absolute;
-        right: 5px;
+        right: 25px;
         bottom: 5px;
 
         .wii-icon {
@@ -349,4 +358,13 @@ $wysiwyg-dropdown-button-size: 20px;
             background-color: $grey;
         }
     }
+}
+
+input.no-overflow {
+    text-overflow: initial !important;
+    padding-right: 5px !important;
+}
+
+.input-group-prepend {
+    height: 35.59px;
 }
