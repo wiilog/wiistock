@@ -21,6 +21,7 @@ use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\Stream;
 
 class InvMissionService
 {
@@ -142,18 +143,13 @@ class InvMissionService
         ];
     }
 
-    /**
-     * @param ReferenceArticle $ref
-     * @param InventoryMission $mission
-     * @return array
-     */
-    public function dataRowRefMission($ref, $mission)
+    public function dataRowRefMission(ReferenceArticle $ref, InventoryMission $mission): array
     {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
-
+        $inventoryEntry = $this->entityManager->getRepository(InventoryEntry::class)->findOneBy(['refArticle' => $ref, 'mission' => $mission]);
         $refDateAndQuantity = $referenceArticleRepository->getEntryByMission($mission, $ref);
 
-        return $this->dataRowMissionArtRef(
+        $row = $this->dataRowMissionArtRef(
             $ref->getEmplacement(),
             $ref->getReference(),
             $ref->getBarCode(),
@@ -161,8 +157,25 @@ class InvMissionService
             (!empty($refDateAndQuantity) && isset($refDateAndQuantity['date'])) ? $refDateAndQuantity['date'] : null,
             $referenceArticleRepository->countInventoryAnomaliesByRef($ref) > 0 ? 'oui' : ($refDateAndQuantity ? 'non' : '-'),
             $ref->getQuantiteStock(),
-            (!empty($refDateAndQuantity) && isset($refDateAndQuantity['quantity'])) ? $refDateAndQuantity['quantity'] : null
+            (!empty($refDateAndQuantity) && isset($refDateAndQuantity['quantity'])) ? $refDateAndQuantity['quantity'] : null,
         );
+
+        $actionData = [
+            "referenceId" => $ref->getId(),
+            "missionId" => $mission->getId()
+        ];
+
+        if ($inventoryEntry) {
+            $actionData['inventoryEntryId'] = $inventoryEntry->getId();
+        }
+
+        $row['Actions'] = $this->templating->render('saisie_inventaire/inventoryEntryRefArticleRow.html.twig', [
+            'inventoryData' => Stream::from($actionData)
+                ->map(fn(string $value, string $key) => "${key}: ${value}")
+                ->join(';')
+        ]);
+
+        return $row;
     }
 
 	/**

@@ -549,7 +549,7 @@ function processCheckboxesForm($modal, data, isAttachmentForm) {
  * @return {{errorMessages: Array<string>, success: boolean, $isInvalidElements: Array<*>}}
  */
 function processSwitchesForm($modal, data, isAttachmentForm) {
-    const $switches = $modal.find('.wii-switch');
+    const $switches = $modal.find('.wii-switch, .wii-switch-no-style');
     const $invalidElements = [];
     const messages = [];
 
@@ -653,11 +653,13 @@ function processDataArrayForm($modal, data) {
                 dataArray[name][$input.data('id')] = val;
             }
         } else {
-            const name = $input.attr("name");
-            if (!dataArray[name]) {
-                dataArray[name] = [];
+            if(val) {
+                const name = $input.attr("name");
+                if (!dataArray[name]) {
+                    dataArray[name] = [];
+                }
+                dataArray[name].push(val);
             }
-            dataArray[name].push(val);
         }
         if (type === 'number' && $input.hasClass('needed-positiv')) {
             if (!dataArrayNeedPositive[name]) {

@@ -1007,7 +1007,7 @@ class MobileController extends AbstractFOSRestController
 
                 /** @var Pack $parent */
                 $parent = $packRepository->findOneBy(['code' => $serializedGroup['code']]);
-                if ($parent && !$parent->getChildren()->isEmpty()) {
+                if ($parent) {
                     if (isset($serializedGroup['nature_id'])) {
                         $nature = $natureRepository->find($serializedGroup['nature_id']);
                         $parent->setNature($nature);

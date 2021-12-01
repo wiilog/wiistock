@@ -126,9 +126,9 @@ function openQueryModal(query = null, event) {
 }
 
 //DELETE
-function deleteRow(button, modal, submit) {
+function deleteRow(button, $modal, submit) {
     let id = button.data('id');
-    modal.find(submit).attr('value', id);
+    $modal.find(submit).attr('value', id);
 }
 
 //SHOW
@@ -526,7 +526,7 @@ function checkAndDeleteRow(icon, modalName, route, submit, getParams = null) {
 
     $.post(Routing.generate(route) + (getParamsStr ? `?${getParamsStr}` : ''), param, function (resp) {
         $modalBody.html(resp.html);
-        if (resp.delete == false) {
+        if (!resp.delete) {
             $submit.hide();
         } else {
             $submit.show();

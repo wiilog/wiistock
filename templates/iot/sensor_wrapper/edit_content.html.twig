@@ -41,7 +41,7 @@
 {% if sensor.type.champsLibres.count > 0 %}
     <span class="toggle-collapsible expanded">Champs libres</span>
     <div class="collapsible expanded free-fields-container mb-2">
-        {% include 'free_field/freeFieldsViewing.html.twig' with {
+        {% include 'free_field/freeFieldsEdit.html.twig' with {
             freeFields: sensorWrapper.sensor.type.champsLibres,
             freeFieldValues: sensorWrapper.freeFields,
             colType: 'col-md-6 col-12',
