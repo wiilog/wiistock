@@ -1,20 +1,6 @@
-export default class Form {
+import WysiwygManager from "./wysiwyg-manager";
 
-    static QUILL_CONFIG = {
-        modules: {
-            toolbar: [
-                [{header: [1, 2, 3, false]}],
-                ['bold', 'italic', 'underline', 'image'],
-                [{'list': 'ordered'}, {'list': 'bullet'}]
-            ]
-        },
-        formats: [
-            'header',
-            'bold', 'italic', 'underline', 'strike', 'blockquote',
-            'list', 'bullet', 'indent', 'link', 'image'
-        ],
-        theme: 'snow'
-    };
+export default class Form {
 
     submitCallback;
     processors = [];
@@ -24,9 +10,9 @@ export default class Form {
         const form = new Form();
         form.element = $(selector);
 
-        form.initializeWYSIWYG();
+        WysiwygManager.initializeWYSIWYG(form.element);
         form.element.on(`click`, `[type="submit"]`, function() {
-            const result = form.process($(this));
+            const result = Form.process(form, $(this));
             if(result && form.submitCallback) {
                 form.submitCallback(result);
             }
@@ -45,23 +31,23 @@ export default class Form {
         return this;
     }
 
-    initializeWYSIWYG() {
-        const initializer = function() {
-            new Quill(this, Form.QUILL_CONFIG)
-        };
+    static process(form, $button = null, classes = null, ignoreErrors = false) {
+        classes = classes || {data: `data`, array: `data-array`};
 
-        this.element.find(`[data-wysiwyg]`).each(initializer);
-        this.element.arrive(`[data-wysiwyg]`, initializer);
-    }
+        let $form;
+        if(form instanceof Form)  {
+            $form = form.element;
+        } else {
+            $form = form;
+        }
 
-    process($button = null, classes = {data: `data`, array: `data-array`}) {
         const errors = [];
         const data = new FormData();
-        const $inputs = this.element.find(`select.${classes.data}, input.${classes.data}, input[data-repeat], textarea.${classes.data}, .data[data-wysiwyg]`);
+        const $inputs = $form.find(`select.${classes.data}, input.${classes.data}, input[data-repeat], textarea.${classes.data}, .data[data-wysiwyg]`);
 
         //clear previous errors
-        this.element.find(`.is-invalid`).removeClass(`is-invalid`);
-        this.element.find(`.invalid-feedback`).remove();
+        $form.find(`.is-invalid`).removeClass(`is-invalid`);
+        $form.find(`.invalid-feedback`).remove();
 
         for(const input of $inputs) {
             let $input = $(input);
@@ -71,11 +57,11 @@ export default class Form {
             }
 
             if($input.attr(`type`) === `radio`) {
-                const $checked = this.element.find(`input[type="radio"][name="${input.name}"]:checked`);
+                const $checked = $form.find(`input[type="radio"][name="${input.name}"]:checked`);
                 if($checked.exists()) {
                     $input = $checked;
                 } else {
-                    $input = this.element.find(`input[type="radio"][name="${input.name}"]`);
+                    $input = $form.find(`input[type="radio"][name="${input.name}"]`);
                 }
             } else if($input.attr(`type`) === `number`) {
                 let val = parseInt($input.val());
@@ -112,7 +98,7 @@ export default class Form {
             }
 
             if($input.data(`repeat`)) {
-                const $toRepeat = this.element.find(`input[name="${$input.data(`repeat`)}"`);
+                const $toRepeat = $form.find(`input[name="${$input.data(`repeat`)}"`);
 
                 if($input.val() !== $toRepeat.val()) {
                     errors.push({
@@ -129,7 +115,7 @@ export default class Form {
                         message: `Vous devez sélectionner au moins un élément`,
                     });
                 } else if($input.is(`[data-wysiwyg]`) && !$input.find(`.ql-editor`).text() || !$input.is(`[data-wysiwyg]`) && !$input.val()) {
-                    if(!$input.is(`[type="file"]`) || !this.uploads[$input.attr(`name`)]) {
+                    if(!$input.is(`[type="file"]`) || form instanceof Form && !form.uploads[$input.attr(`name`)]) {
                         errors.push({
                             elements: [$input],
                             message: `Ce champ est requis`,
@@ -141,7 +127,9 @@ export default class Form {
             if($input.attr(`name`) || $input.attr(`data-wysiwyg`)) {
                 let value;
                 if($input.is(`[data-wysiwyg]`)) {
-                    value = $input.find(`.ql-editor`).html();
+                    const $qlEditor = $input.find(`.ql-editor`);
+                    const $wrapper = $qlEditor.exists() ? $qlEditor : $input;
+                    value = $wrapper.html();
                 } else if($input.attr(`type`) === `checkbox`) {
                     value = $input.is(`:checked`) ? `1` : `0`;
                 } else {
@@ -170,32 +158,38 @@ export default class Form {
             }
         }
 
-        this.addDataArray(data, classes);
+        Form.addDataArray($form, data, classes);
 
         if($button && $button.attr(`name`)) {
             data.append($button.attr(`name`), $button.val());
         }
 
-        // add uploads
-        for(const [name, file] of Object.entries(this.uploads)) {
-            data.append(name, file)
+        if(form instanceof Form) {
+            // add uploads
+            for(const [name, file] of Object.entries(this.uploads)) {
+                data.append(name, file)
+            }
+
+            for(const processor of form.processors) {
+                processor(data, errors, $form);
+            }
         }
 
-        for(const processor of this.processors) {
-            processor(data, errors, this.element);
+        if(ignoreErrors) {
+            return data;
         }
 
         // display errors under each field
-        this.element.find(`.global-error`).remove();
+        $form.find(`.global-error`).remove();
         for(const error of errors) {
-            error.elements.forEach($elem => this.showInvalid($elem, error.message));
+            error.elements.forEach($elem => Form.showInvalid($elem, error.message));
         }
 
         return errors.length === 0 ? data : false;
     }
 
-    addDataArray(data, classes) {
-        const $arrays = this.element.find(`select.${classes.array}, input.${classes.array}`);
+    static addDataArray($form, data, classes) {
+        const $arrays = $form.find(`select.${classes.array}, input.${classes.array}`);
         const grouped = {};
         for(const element of $arrays) {
             if(grouped[element.name] === undefined) {
@@ -219,7 +213,7 @@ export default class Form {
         }
     }
 
-    showInvalid($field, message) {
+    static showInvalid($field, message) {
         let $parent;
         if($field.is(`[data-s2-initialized]`)) {
             $field = $field.parent().find(`.select2-selection`);
@@ -236,7 +230,8 @@ export default class Form {
         $field.addClass(`is-invalid`);
         $parent.find(`.invalid-feedback`).remove();
         if($field.is(`[data-global-error]`)) {
-            showBSAlert(`${$parent.find(`.field-label`).text()} : ${message}`, `danger`);
+            const label = $field.data(`global-error`) || $parent.find(`.field-label`).text();
+            showBSAlert(`${label} : ${message}`, `danger`);
         } else {
             $parent.append(`<span class="invalid-feedback">${message}</span>`);
         }

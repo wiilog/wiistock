@@ -7,9 +7,9 @@
 {% block page_content %}
     <input type="hidden" id="forbiddenPhoneNumbers" value="{{ app_forbidden_phones }}"/>
     <input type="hidden" id="dispatchId" value="{{ dispatch.id }}"/>
-    <input type="hidden" id="keepPackModalOpen" value="{{ keep_pack_modal_open }}"/>
-    <input type="hidden" id="openPackModal" value="{{ open_pack_modal }}"/>
     <input type="hidden" id="printBL" value="{{ printBL }}"/>
+    <input type="hidden" id="newPackRow" value="{{ newPackRow | json_encode }}"/>
+    <input type="hidden" id="isEdit" value="{{ modifiable }}"/>
 
     <div class="m-4">
         <div class="row">
@@ -25,29 +25,10 @@
         </div>
         <div class="row mt-3">
             <div class="col-12">
-                <div class="wii-page-card">
-                    <div class="row mb-2">
-                        <h5 class="col-auto h5" title="Liste des colis">{{ 'colis.Liste des colis'|trans }}</h5>
-                    </div>
-                    {% if modifiable
-                          and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::ADD_PACK'))
-                        %}
-                        <div class="row wii-page-card-header">
-                            <div class="col-auto ml-auto">
-                                <button onclick="openNewPackModal()"
-                                        class="btn btn-primary"
-                                        name="newPack"
-                                        title="Ajouter un colis">
-                                    <i class="fa fa-plus mr-2"></i>
-                                    {{ 'colis.Ajouter un colis'|trans }}
-                                </button>
-                            </div>
-                        </div>
-                    {% endif %}
-                    <div class="row">
-                        <div class="col-12">
-                            <table id="packTable" class="table w-100"></table>
-                        </div>
+                <div class="wii-box hover-shadow">
+                    <div class="header wii-title" title="Liste des colis">{{ 'colis.Liste des colis'|trans }}</div>
+                    <div class="p-3">
+                        <table id="packTable" class="wii-table w-100"></table>
                     </div>
                 </div>
             </div>
@@ -56,8 +37,6 @@
 
     {% include "dispatch/modalDeleteDispatch.html.twig" with {dispatch: dispatch} %}
     {% include "dispatch/modalEditDispatch.html.twig" %}
-    {% include "dispatch/modalShowPack.html.twig" with newPackConfig %}
-    {% include "dispatch/modalPack.html.twig" with newPackConfig %}
     {% include "dispatch/modalValidateDispatch.html.twig" with dispatchValidate %}
     {% include "dispatch/modalTreatDispatch.html.twig" with dispatchTreat %}
     {% include "dispatch/modalDeletePack.html.twig" %}

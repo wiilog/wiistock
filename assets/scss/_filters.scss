@@ -49,6 +49,12 @@
         }
     }
 
+    .minw-300px {
+        .select2-container {
+            min-width: 300px !important;
+        }
+    }
+
     .minw-100px {
         .select2-container {
             min-width: 100px !important;
