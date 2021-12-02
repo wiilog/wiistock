@@ -245,6 +245,11 @@ function initializePacksTable(dispatchId, isEdit) {
         scrollY: false,
         scrollX: true,
         drawCallback: () => {
+            $(`#packTable_wrapper`).css(`overflow-x`, `scroll`);
+            $(`.dataTables_scrollBody, .dataTables_scrollHead`)
+                .css('overflow', 'visible')
+                .css('overflow-y', 'visible');
+
             const $rows = $(table.rows().nodes());
 
             $rows.each(function() {
@@ -255,7 +260,21 @@ function initializePacksTable(dispatchId, isEdit) {
             })
 
             $rows.off(`focusout.keyboardNavigation`).on(`focusout.keyboardNavigation`, function(event) {
+                const $row = $(this);
+                const $target = $(event.target);
+                const $relatedTarget = $(event.relatedTarget);
 
+                const wasPackSelect = $target.closest(`td`).find(`select[name="pack"]`).exists();
+                const wasCommentSelect = $target.closest(`.wii-one-line-wysiwyg-wrapper`).exists() ||
+                    $relatedTarget.closest('.wii-one-line-wysiwyg-popover').exists();
+                if ((event.relatedTarget && $.contains(this, event.relatedTarget))
+                    || $relatedTarget.is(`button`)
+                    || wasPackSelect
+                    || wasCommentSelect) {
+                    return;
+                }
+
+                savePackLine(dispatchId, $row);
             });
             if(isEdit) {
                 scrollToBottom();
@@ -412,22 +431,6 @@ function initializePacksTable(dispatchId, isEdit) {
     });
 
     return table;
-}
-
-function saveRow($row, event, dispatchId) {
-    const $target = $(event.target);
-    const $relatedTarget = $(event.relatedTarget);
-
-    const wasPackSelect = $target.closest(`td`).find(`select[name="pack"]`).exists();
-    const wasCommentSelect = $relatedTarget.closest('.wii-one-line-wysiwyg-popover').exists();
-    if ((event.relatedTarget && $.contains(this, event.relatedTarget))
-        || $relatedTarget.is(`button`)
-        || wasPackSelect
-        || wasCommentSelect) {
-        return;
-    }
-
-    savePackLine(dispatchId, $row);
 }
 
 function addPackRow(table, $button) {
