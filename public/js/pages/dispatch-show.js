@@ -1,7 +1,8 @@
 $(function() {
     const dispatchId = $('#dispatchId').val();
+    const isEdit = $(`#isEdit`).val();
 
-    const packTable = initializePacksTable(dispatchId, $(`#isEdit`).val());
+    initializePacksTable(dispatchId, isEdit);
 
     const $modalEditDispatch = $('#modalEditDispatch');
     const $submitEditDispatch = $('#submitEditDispatch');
@@ -25,11 +26,11 @@ $(function() {
 
     let $modalPrintDeliveryNote = $('#modalPrintDeliveryNote');
     let $submitPrintDeliveryNote = $modalPrintDeliveryNote.find('.submit');
-    let urlPrintDeliveryNote = Routing.generate('delivery_note_dispatch', {dispatch: $('#dispatchId').val()}, true);
+    let urlPrintDeliveryNote = Routing.generate('delivery_note_dispatch', {dispatch: dispatchId}, true);
     InitModal($modalPrintDeliveryNote, $submitPrintDeliveryNote, urlPrintDeliveryNote, {
         success: ({attachmentId}) => {
             window.location.href = Routing.generate('print_delivery_note_dispatch', {
-                dispatch: $('#dispatchId').val(),
+                dispatch: dispatchId,
                 attachment: attachmentId,
             });
         },
@@ -38,11 +39,11 @@ $(function() {
 
     let $modalPrintWaybill = $('#modalPrintWaybill');
     let $submitPrintWayBill = $modalPrintWaybill.find('.submit');
-    let urlPrintWaybill = Routing.generate('post_dispatch_waybill', {dispatch: $('#dispatchId').val()}, true);
+    let urlPrintWaybill = Routing.generate('post_dispatch_waybill', {dispatch: dispatchId}, true);
     InitModal($modalPrintWaybill, $submitPrintWayBill, urlPrintWaybill, {
         success: ({attachmentId}) => {
             window.location.href = Routing.generate('print_waybill_dispatch', {
-                dispatch: $('#dispatchId').val(),
+                dispatch: dispatchId,
                 attachment: attachmentId,
             });
         },
@@ -255,7 +256,6 @@ function initializePacksTable(dispatchId, isEdit) {
 
                 const wasPackSelect = $target.closest(`td`).find(`select[name="pack"]`).exists();
                 const wasCommentSelect = $relatedTarget.closest('.wii-one-line-wysiwyg-popover').exists();
-console.log(event.target, event.relatedTarget);
                 if ((event.relatedTarget && $.contains(this, event.relatedTarget))
                     || $relatedTarget.is(`button`)
                     || wasPackSelect
@@ -265,6 +265,9 @@ console.log(event.target, event.relatedTarget);
 
                 savePackLine(dispatchId, $row);
             });
+            if(isEdit) {
+                scrollToBottom();
+            }
         },
         createdRow: (row, data) => {
             // we display only + td on this line
