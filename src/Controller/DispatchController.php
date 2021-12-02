@@ -1453,7 +1453,7 @@ class DispatchController extends AbstractController {
     /**
      * @Route("/bon-de-surconsommation/{dispatch}", name="generate_overconsumption_bill", options={"expose"=true}, methods="POST")
      */
-    public function updateOverconsumption(DispatchService $dispatchService, Dispatch $dispatch): Response {
+    public function updateOverconsumption(DispatchService $dispatchService, UserService $userService, Dispatch $dispatch): Response {
         $entityManager = $this->getDoctrine()->getManager();
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
@@ -1478,13 +1478,15 @@ class DispatchController extends AbstractController {
         }
 
         $detailsConfig = $dispatchService->createHeaderDetailsConfig($dispatch);
+        $dispatchStatus = $dispatch->getStatut();
 
         return $this->json([
             'entete' => $this->renderView("dispatch/dispatch-show-header.html.twig", [
                 'dispatch' => $dispatch,
                 'showDetails' => $detailsConfig,
                 'modifiable' => !$dispatch->getStatut() || $dispatch->getStatut()->isDraft(),
-            ])
+            ]),
+           'modifiable' => (!$dispatchStatus || $dispatchStatus->isDraft()) && $userService->hasRightFunction(Menu::DEM, Action::MANAGE_PACK),
         ]);
     }
 

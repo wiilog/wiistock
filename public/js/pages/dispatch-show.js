@@ -1,8 +1,10 @@
+let packsTable;
+
 $(function() {
     const dispatchId = $('#dispatchId').val();
     const isEdit = $(`#isEdit`).val();
 
-    initializePacksTable(dispatchId, isEdit);
+    packsTable = initializePacksTable(dispatchId, isEdit);
 
     const $modalEditDispatch = $('#modalEditDispatch');
     const $submitEditDispatch = $('#submitEditDispatch');
@@ -64,6 +66,9 @@ function generateOverconsumptionBill(dispatchId) {
         $('.zone-entete').html(data.entete);
         $('.zone-entete [data-toggle="popover"]').popover();
         $('button[name="newPack"]').addClass('d-none');
+
+        packsTable.destroy();
+        packsTable = initializePacksTable(dispatchId, data.modifiable);
 
         Wiistock.download(Routing.generate('print_overconsumption_bill', {dispatch: dispatchId}));
     });
@@ -250,20 +255,7 @@ function initializePacksTable(dispatchId, isEdit) {
             })
 
             $rows.off(`focusout.keyboardNavigation`).on(`focusout.keyboardNavigation`, function(event) {
-                const $row = $(this);
-                const $target = $(event.target);
-                const $relatedTarget = $(event.relatedTarget);
 
-                const wasPackSelect = $target.closest(`td`).find(`select[name="pack"]`).exists();
-                const wasCommentSelect = $relatedTarget.closest('.wii-one-line-wysiwyg-popover').exists();
-                if ((event.relatedTarget && $.contains(this, event.relatedTarget))
-                    || $relatedTarget.is(`button`)
-                    || wasPackSelect
-                    || wasCommentSelect) {
-                    return;
-                }
-
-                savePackLine(dispatchId, $row);
             });
             if(isEdit) {
                 scrollToBottom();
@@ -295,7 +287,14 @@ function initializePacksTable(dispatchId, isEdit) {
             {data: 'volume', name: 'volume', title: 'Volume (m3)'},
             {data: 'comment', name: 'comment', title: 'Commentaire'},
             {data: 'lastMvtDate', name: 'lastMvtDate', title: 'Date dernier mouvement', render: function(data, type) {
-                return type === 'sort' ? data : (data ? moment(data, 'YYYY/MM/DD HH:mm').format('DD/MM/YYYY HH:mm') : data);
+                if(type !== `sort`) {
+                    const date = moment(data, 'YYYY/MM/DD HH:mm');
+                    if(date.isValid()) {
+                        return date.format('DD/MM/YYYY HH:mm');
+                    }
+                }
+
+                return data;
             }},
             {data: 'lastLocation', name: 'lastLocation', title: 'Dernier emplacement'},
             {data: 'operator', name: 'operator', title: 'Opérateur'},
@@ -310,7 +309,7 @@ function initializePacksTable(dispatchId, isEdit) {
         WysiwygManager.initializeOneLineWYSIWYG($table);
 
         $table.on(`keydown`, `[name="quantity"]`, function(event) {
-            if(event.key === `.` || event.key === `,`) {
+            if(event.key === `.` || event.key === `,` || event.key === `-` || event.key === `+` || event.key === `e`) {
                 event.preventDefault();
                 event.stopPropagation();
             }
@@ -336,6 +335,7 @@ function initializePacksTable(dispatchId, isEdit) {
                 code = `${packPrefix}${code}`;
             }
 
+            $row.removeClass(`focus-within`);
             $select.closest(`td, th`)
                 .empty()
                 .append(`<span title="${code}">${code}</span> <input type="hidden" name="pack" class="data" value="${code}"/>`);
@@ -367,6 +367,8 @@ function initializePacksTable(dispatchId, isEdit) {
             if(event.keyCode === tabulationKeyCode) {
                 event.preventDefault();
                 event.stopPropagation();
+
+                savePackLine(dispatchId, $(this).closest(`tr`));
 
                 const $nextRow = $(this).closest(`tr`).next();
                 if($nextRow.find(`.add-pack-row`).exists()) {
@@ -410,6 +412,22 @@ function initializePacksTable(dispatchId, isEdit) {
     });
 
     return table;
+}
+
+function saveRow($row, event, dispatchId) {
+    const $target = $(event.target);
+    const $relatedTarget = $(event.relatedTarget);
+
+    const wasPackSelect = $target.closest(`td`).find(`select[name="pack"]`).exists();
+    const wasCommentSelect = $relatedTarget.closest('.wii-one-line-wysiwyg-popover').exists();
+    if ((event.relatedTarget && $.contains(this, event.relatedTarget))
+        || $relatedTarget.is(`button`)
+        || wasPackSelect
+        || wasCommentSelect) {
+        return;
+    }
+
+    savePackLine(dispatchId, $row);
 }
 
 function addPackRow(table, $button) {

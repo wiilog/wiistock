@@ -74,8 +74,7 @@ class NatureController extends AbstractController
      * @Route("/creer", name="nature_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function new(Request $request, TranslatorInterface $translator, EntityManagerInterface $entityManager): Response
-    {
+    public function new(Request $request, TranslatorInterface $translator, EntityManagerInterface $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getManager();
 
@@ -92,16 +91,22 @@ class NatureController extends AbstractController
 
             $natures = $entityManager->getRepository(Nature::class)->findAll();
 
-            $isAlreadyDefaultForDispatch = !Stream::from($natures)
-                ->filter(fn(Nature $nature) => $nature->getDefaultForDispatch())
-                ->isEmpty();
-            if(!$isAlreadyDefaultForDispatch){
-                $nature->setDefaultForDispatch($data['defaultForDispatch'] ?? false);
+            $defaultForDispatch = filter_var($data['defaultForDispatch'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            if($defaultForDispatch) {
+                $isAlreadyDefaultForDispatch = !Stream::from($natures)
+                    ->filter(fn(Nature $nature) => $nature->getDefaultForDispatch())
+                    ->isEmpty();
+
+                if(!$isAlreadyDefaultForDispatch) {
+                    $nature->setDefaultForDispatch($defaultForDispatch);
+                } else {
+                    return $this->json([
+                        'success' => false,
+                        'msg' => 'Une nature par défaut pour les acheminements a déjà été sélectionnée'
+                    ]);
+                }
             } else {
-                return $this->json([
-                    'success' => false,
-                    'msg' => 'Une nature par défaut pour les acheminements a déjà été sélectionnée'
-                ]);
+                $nature->setDefaultForDispatch(false);
             }
 
             $em->persist($nature);
@@ -159,16 +164,22 @@ class NatureController extends AbstractController
 
             $natures = $natureRepository->findAll();
 
-            $isAlreadyDefaultForDispatch = !Stream::from($natures)
-                ->filter(fn(Nature $nature) => $nature->getDefaultForDispatch() && $nature->getId() !== $currentNature->getId())
-                ->isEmpty();
-            if(!$isAlreadyDefaultForDispatch){
-                $currentNature->setDefaultForDispatch($data['defaultForDispatch'] ?? false);
+            $defaultForDispatch = filter_var($data['defaultForDispatch'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            if($defaultForDispatch) {
+                $isAlreadyDefaultForDispatch = !Stream::from($natures)
+                    ->filter(fn(Nature $nature) => $nature->getDefaultForDispatch() && $nature->getId() !== $currentNature->getId())
+                    ->isEmpty();
+
+                if(!$isAlreadyDefaultForDispatch) {
+                    $currentNature->setDefaultForDispatch($defaultForDispatch);
+                } else {
+                    return $this->json([
+                        'success' => false,
+                        'msg' => 'Une nature par défaut pour les acheminements a déjà été sélectionnée'
+                    ]);
+                }
             } else {
-                return $this->json([
-                    'success' => false,
-                    'msg' => 'Une nature par défaut pour les acheminements a déjà été sélectionnée'
-                ]);
+                $currentNature->setDefaultForDispatch(false);
             }
 
             $entityManager->flush();
