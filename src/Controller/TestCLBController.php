@@ -26,7 +26,6 @@ class TestCLBController extends AbstractController
             $response = false;
         } else {
             $response = json_decode($content, true);
-            $response = json_decode($response, true);
         }
 
         return $this->render('test_clb.html.twig', [
