@@ -65,10 +65,11 @@ $wii-switch-height: 38px;
         margin: -1px 0 0 !important;
         font-weight: normal;
         transition: all 200ms linear;
-        font-size: 0.8rem;
+        font-size: 1rem;
 
         .wii-switch-compact & {
             padding: 0 1px;
+            font-size: 0.8rem;
         }
 
         .wii-icon {
