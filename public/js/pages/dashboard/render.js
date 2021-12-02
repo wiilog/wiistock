@@ -727,6 +727,9 @@ function updateSimpleChartData(chart, data, label, stack = false,
     chart.data.datasets = [{data: [], label}];
     chart.data.labels = [];
     const dataKeys = Object.keys(data).filter((key) => key !== 'stack');
+    if(data.chartData) {
+        delete data.chartData.hint;
+    }
     for(const key of dataKeys) {
         chart.data.labels.push(key);
         chart.data.datasets[0].data.push(data[key]);
@@ -1020,6 +1023,9 @@ function createAndUpdateMultipleCharts($canvas,
                                        redForLastData = true,
                                        disableAnimation = false) {
     if(forceCreation || !chart) {
+        if(data.chartData) {
+            delete data.chartData.hint;
+        }
         chart = newChart($canvas, data, redForLastData, disableAnimation);
     }
     if(data) {
