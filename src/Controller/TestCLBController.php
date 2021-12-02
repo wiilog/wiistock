@@ -25,6 +25,8 @@ class TestCLBController extends AbstractController
         if (!$content) {
             $response = false;
         } else {
+            $content = str_replace(["\r"], '\\r', $content);
+            $content = str_replace(["\n"], '\\n', $content);
             $response = json_decode($content, true);
         }
 
