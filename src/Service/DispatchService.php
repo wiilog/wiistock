@@ -691,7 +691,7 @@ class DispatchService {
                 "quantity" => $quantity,
                 "weight" => $weight,
                 "volume" => $volume,
-                "comment" => $comment,
+                "comment" => "<div class='ql-editor'>$comment</div>",
                 "lastMvtDate" => $lastMvtDate,
                 "lastLocation" => $lastLocation,
                 "operator" => $operator,
