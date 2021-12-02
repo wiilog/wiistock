@@ -1,8 +1,10 @@
+let packsTable;
+
 $(function() {
     const dispatchId = $('#dispatchId').val();
     const isEdit = $(`#isEdit`).val();
 
-    initializePacksTable(dispatchId, isEdit);
+    packsTable = initializePacksTable(dispatchId, isEdit);
 
     const $modalEditDispatch = $('#modalEditDispatch');
     const $submitEditDispatch = $('#submitEditDispatch');
@@ -64,6 +66,9 @@ function generateOverconsumptionBill(dispatchId) {
         $('.zone-entete').html(data.entete);
         $('.zone-entete [data-toggle="popover"]').popover();
         $('button[name="newPack"]').addClass('d-none');
+
+        packsTable.destroy();
+        packsTable = initializePacksTable(dispatchId, data.modifiable);
 
         Wiistock.download(Routing.generate('print_overconsumption_bill', {dispatch: dispatchId}));
     });
