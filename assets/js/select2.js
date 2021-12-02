@@ -139,6 +139,11 @@ export default class Select2 {
                 }
             });
 
+            const $focusShadowParent = $element.closest(`.focus-shadow`);
+            if($focusShadowParent.exists()) {
+                $element.closest(`tr`).addClass(`focus-within`);
+            }
+
             const $searchField = $('.select2-dropdown .select2-search__field');
             if ($searchField.exists()) {
                 setTimeout(() => $searchField[0].focus(), 300);
@@ -150,6 +155,10 @@ export default class Select2 {
                 .on(`keyup.select2-save-search`, `.select2-dropdown .select2-search__field`, () => {
                     search = $searchField.val();
                 });
+        });
+
+        $element.on('select2:close', function (e) {
+            $element.closest(`tr`).removeClass(`focus-within`);
         });
 
         if($element.is(`[autofocus]:visible`)) {

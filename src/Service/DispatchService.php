@@ -621,7 +621,7 @@ class DispatchService {
             $weight = $pack->getWeight();
             $volume = $pack->getVolume();
             $comment = $pack->getComment();
-            $lastMvtDate = $lastTracking ? FormatHelper::datetime($lastTracking->getDatetime()) : null;
+            $lastMvtDate = $lastTracking && $lastTracking->getDatetime() ? $lastTracking->getDatetime()->format("Y-m-d H:i") : null;
             $lastLocation = $lastTracking ? FormatHelper::location($lastTracking->getEmplacement()) : null;
             $operator = $lastTracking ? FormatHelper::user($lastTracking->getOperateur()) : null;
             $status = $dispatchPack->isTreated() ? "Traité" : "À traiter";
@@ -691,7 +691,7 @@ class DispatchService {
                 "quantity" => $quantity,
                 "weight" => $weight,
                 "volume" => $volume,
-                "comment" => $comment,
+                "comment" => "<div class='ql-editor'>$comment</div>",
                 "lastMvtDate" => $lastMvtDate,
                 "lastLocation" => $lastLocation,
                 "operator" => $operator,

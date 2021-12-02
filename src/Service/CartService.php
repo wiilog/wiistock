@@ -145,9 +145,7 @@ class CartService {
         ];
     }
 
-    public function manageDeliveryRequest(array $data,
-                                          Utilisateur $user,
-                                          EntityManagerInterface $manager): array {
+    public function manageDeliveryRequest(array $data, Utilisateur $user, EntityManagerInterface $manager): array {
         $cartContent = json_decode($data['cart'], true);
 
         if ($data['addOrCreate'] === "add") {

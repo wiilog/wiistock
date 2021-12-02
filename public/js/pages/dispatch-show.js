@@ -212,9 +212,9 @@ function savePackLine(dispatchId, $row, async = true) {
 
             return true;
         }
-    }
-    else {
+    } else {
         $row.find('.is-invalid').first().trigger('focus');
+        return true;
     }
 
     return false;
@@ -223,7 +223,7 @@ function savePackLine(dispatchId, $row, async = true) {
 function initializePacksTable(dispatchId, isEdit) {
     const $table = $(`#packTable`);
     const table = initDataTable($table, {
-        serverSide: !isEdit,
+        serverSide: false,
         ajax: {
             type: "GET",
             url: Routing.generate('dispatch_pack_api', {dispatch: dispatchId}, true),
@@ -289,16 +289,19 @@ function initializePacksTable(dispatchId, isEdit) {
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},
             {data: 'code', name: 'code', title: 'Code'},
-            {data: 'quantity', name: 'quantity', title: 'acheminement.Quantité à acheminer', translated: true},
-            {data: 'nature', name: 'nature', title: 'natures.nature', translated: true},
+            {data: 'quantity', name: 'quantity', title: Trans.translated('acheminement.Quantité à acheminer') + (isEdit ? '*' : ''), tooltip: 'Quantité à acheminer'},
+            {data: 'nature', name: 'nature', title: Trans.translated('natures.nature') + (isEdit ? '*' : ''), tooltip: 'nature'},
             {data: 'weight', name: 'weight', title: 'Poids (kg)'},
             {data: 'volume', name: 'volume', title: 'Volume (m3)'},
             {data: 'comment', name: 'comment', title: 'Commentaire'},
-            {data: 'lastMvtDate', name: 'lastMvtDate', title: 'Date dernier mouvement'},
+            {data: 'lastMvtDate', name: 'lastMvtDate', title: 'Date dernier mouvement', render: function(data, type) {
+                return type === 'sort' ? data : (data ? moment(data, 'YYYY/MM/DD HH:mm').format('DD/MM/YYYY HH:mm') : data);
+            }},
             {data: 'lastLocation', name: 'lastLocation', title: 'Dernier emplacement'},
             {data: 'operator', name: 'operator', title: 'Opérateur'},
             {data: 'status', name: 'status', title: 'Statut'},
         ],
+        order: [[`code`, `asc`]],
     });
 
     if(isEdit) {
@@ -313,11 +316,12 @@ function initializePacksTable(dispatchId, isEdit) {
             }
         });
 
-        $table.on(`keydown`, `[name="weight"], [name="volume"]`, function(event) {
-            const digits = $(this).val().split('.')[1];
-            if(event.key.length === 1 && digits && digits.length >= 3) {
-                event.preventDefault();
-                event.stopPropagation();
+        $table.on(`input`, `[name="weight"], [name="volume"]`, function(event) {
+            const value = event.target.value;
+            const digits = value.split('.')[1];
+            if(digits && digits.length > 3) {
+                $(event.target).val(Math.floor(value * 1000) / 1000)
+                document.execCommand(`undo`);
             }
         });
 
@@ -400,7 +404,7 @@ function initializePacksTable(dispatchId, isEdit) {
         const $focus = $(`tr :focus`);
         if($focus.exists()) {
             if(savePackLine(dispatchId, $focus.closest(`tr`), false)) {
-                return ``;
+                return true;
             }
         }
     });
