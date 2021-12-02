@@ -38,14 +38,10 @@ final class Version20211125152532 extends AbstractMigration {
 
         foreach($roles as $role) {
             $this->addSql("INSERT INTO action_role(action_id, role_id) VALUES ($newAction, {$role["id"]})");
-            $this->addSql("DELETE FROM action_role WHERE action_id IN (:actions)", [
-                "actions" => $previousActions
-            ]);
+            $this->addSql("DELETE FROM action_role WHERE action_id IN ($previousActions)");
         }
 
-        $this->addSql("DELETE FROM action WHERE id IN (:actions)", [
-            "actions" => $previousActions,
-        ]);
+        $this->addSql("DELETE FROM action WHERE id IN ($previousActions)");
     }
 
     public function down(Schema $schema): void
