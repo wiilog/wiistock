@@ -180,11 +180,11 @@ thead th, thead td {
     border-bottom: 1px solid $grey !important;
 }
 
-.hover-shadow .dataTables_scrollBody tbody tr {
+.focus-shadow .dataTables_scrollBody tbody tr {
     position: relative;
     transition: box-shadow 150ms ease-in-out;
 
-    &:focus, &:hover {
+    &.focus-within, &:focus-within {
         box-shadow: 0 1px 20px lighten(#000000, 80%);
         z-index: 500;
     }
