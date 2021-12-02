@@ -1517,7 +1517,7 @@ class DispatchController extends AbstractController {
             ];
 
             $requestType = current(array_filter($freeFields, function($field) {
-                return $field->getLabel() === "Flux";
+                return $field->getLabel() === "Type de demande";
             }));
 
             $additionalField[] = [

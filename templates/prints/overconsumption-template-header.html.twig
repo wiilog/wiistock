@@ -38,11 +38,11 @@
     <body>
         <div class="logos">
             {% if app_logo %}
-                <img src="{{ 'http://' ~ app.request.httpHost ~ '/uploads/attachements/' ~ app_logo }}"
+                <img src="{{ 'https://' ~ app.request.httpHost ~ '/uploads/attachements/' ~ app_logo }}"
                     alt="Logo de l'application"/>
             {% endif %}
             {% if overconsumption_logo %}
-                <img src="{{ 'http://' ~ app.request.httpHost ~ '/' ~ overconsumption_logo }}"
+                <img src="{{ 'https://' ~ app.request.httpHost ~ '/' ~ overconsumption_logo }}"
                     alt="Logo de surconsommation"/>
             {% endif %}
         </div>
