@@ -191,17 +191,16 @@ class FormatHelper {
         switch ($freeField->getTypage()) {
             case FreeField::TYPE_DATE:
             case FreeField::TYPE_DATETIME:
-                $valueStr = str_replace($value, '/', '-');
-                $valueDate = new DateTime($valueStr ?: 'now');
+                $valueDate = self::parseDatetime($value, ["Y-m-dTH:i", "Y-m-d", "d/m/Y H:i", "Y-m-d H:i", "d/m/Y"]);
                 $hourFormat = ($freeField->getTypage() === FreeField::TYPE_DATETIME ? ' H:i' : '');
-                $formatted = $valueDate->format('d/m/Y' . $hourFormat);
+                $formatted = $valueDate ? $valueDate->format('d/m/Y' . $hourFormat) : $value;
                 break;
             case FreeField::TYPE_BOOL:
                 $formatted = self::bool($value == 1);
                 break;
             case FreeField::TYPE_LIST_MULTIPLE:
                 $formatted = Stream::explode(';', $value)
-                    ->filter(fn(string $val) => strpos($freeField->getElements() ?? '', $val) !== false)
+                    ->filter(fn(string $val) => in_array($val, $freeField->getElements() ?: []))
                     ->join(', ');
                 break;
             default:
