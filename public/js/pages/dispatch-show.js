@@ -316,11 +316,12 @@ function initializePacksTable(dispatchId, isEdit) {
             }
         });
 
-        $table.on(`keydown`, `[name="weight"], [name="volume"]`, function(event) {
-            const digits = $(this).val().split('.')[1];
-            if(event.key.length === 1 && digits && digits.length >= 3) {
-                event.preventDefault();
-                event.stopPropagation();
+        $table.on(`input`, `[name="weight"], [name="volume"]`, function(event) {
+            const value = event.target.value;
+            const digits = value.split('.')[1];
+            if(digits && digits.length > 3) {
+                $(event.target).val(Math.floor(value * 1000) / 1000)
+                document.execCommand(`undo`);
             }
         });
 
