@@ -282,7 +282,14 @@ function initializePacksTable(dispatchId, isEdit) {
             {data: 'volume', name: 'volume', title: 'Volume (m3)'},
             {data: 'comment', name: 'comment', title: 'Commentaire'},
             {data: 'lastMvtDate', name: 'lastMvtDate', title: 'Date dernier mouvement', render: function(data, type) {
-                return type === 'sort' ? data : (data ? moment(data, 'YYYY/MM/DD HH:mm').format('DD/MM/YYYY HH:mm') : data);
+                if(type !== `sort`) {
+                    const date = moment(data, 'YYYY/MM/DD HH:mm');
+                    if(date.isValid()) {
+                        return date.format('DD/MM/YYYY HH:mm');
+                    }
+                }
+
+                return data;
             }},
             {data: 'lastLocation', name: 'lastLocation', title: 'Dernier emplacement'},
             {data: 'operator', name: 'operator', title: 'Opérateur'},
