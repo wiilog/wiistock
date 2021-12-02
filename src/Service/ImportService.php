@@ -284,7 +284,6 @@ class ImportService
                     false,
                     $receptionsWithCommand,
                     $deliveries,
-                    $user,
                     $index
                 );
                 $index++;
@@ -304,7 +303,6 @@ class ImportService
                         ($index % self::NB_ROW_WITHOUT_CLEARING === 0),
                         $receptionsWithCommand,
                         $deliveries,
-                        $user,
                         $index
                     );
                     $index++;
@@ -352,7 +350,6 @@ class ImportService
                                     bool $needsUnitClear,
                                     array &$receptionsWithCommand,
                                     array &$deliveries,
-                                    ?Utilisateur $user,
                                     int $rowIndex,
                                     int $retry = 0): array
     {
@@ -372,7 +369,7 @@ class ImportService
                         $this->importReferenceEntity($data, $colChampsLibres, $row, $dataToCheck, $stats);
                         break;
                     case Import::ENTITY_RECEPTION:
-                        $this->importReceptionEntity($data, $receptionsWithCommand, $user, $stats, $this->receptionService);
+                        $this->importReceptionEntity($data, $receptionsWithCommand, $this->currentImport->getUser(), $stats, $this->receptionService);
                         break;
                     case Import::ENTITY_ART:
                         $referenceArticle = $this->importArticleEntity($data, $colChampsLibres, $row, $stats, $rowIndex);
@@ -382,7 +379,7 @@ class ImportService
                         $this->importUserEntity($data, $stats);
                         break;
                     case Import::ENTITY_DELIVERY:
-                        $insertedDelivery = $this->importDeliveryEntity($data, $stats, $deliveries, $user ?? $this->currentImport->getUser(), $refToUpdate, $colChampsLibres, $row);
+                        $insertedDelivery = $this->importDeliveryEntity($data, $stats, $deliveries, $this->currentImport->getUser(), $refToUpdate, $colChampsLibres, $row);
                         break;
                 }
 
@@ -419,7 +416,6 @@ class ImportService
                         $needsUnitClear,
                         $receptionsWithCommand,
                         $deliveries,
-                        $user,
                         $rowIndex,
                         $retry
                     );
