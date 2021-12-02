@@ -166,7 +166,7 @@ export default class Form {
 
         if(form instanceof Form) {
             // add uploads
-            for(const [name, file] of Object.entries(this.uploads)) {
+            for(const [name, file] of Object.entries(this.uploads ?? {})) {
                 data.append(name, file)
             }
 
