@@ -673,7 +673,7 @@ class DispatchService {
                                class='w-300px'
                                $searchPrefix
                                $autofocus></select>",
-                "quantity" => "<input name='quantity' step='1' type='number' class='$class' data-global-error='Quantité' value='$quantity' required/>",
+                "quantity" => "<input name='quantity' min=1 step=1 type='number' class='$class' data-global-error='Quantité' value='$quantity' required/>",
                 "nature" => "<select name='nature' class='$class minw-150px' data-global-error='Nature' required>{$natureOptions}</select>",
                 "weight" => "<input name='weight' type='number' class='$class no-overflow' data-no-arrow step='0.001' value='$weight'/>",
                 "volume" => "<input name='volume' type='number' class='$class no-overflow' data-no-arrow step='0.001' value='$volume'/>",

@@ -297,7 +297,7 @@ function initializePacksTable(dispatchId, isEdit) {
         WysiwygManager.initializeOneLineWYSIWYG($table);
 
         $table.on(`keydown`, `[name="quantity"]`, function(event) {
-            if(event.key === `.` || event.key === `,`) {
+            if(event.key === `.` || event.key === `,` || event.key === `-` || event.key === `+` || event.key === `e`) {
                 event.preventDefault();
                 event.stopPropagation();
             }
