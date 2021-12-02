@@ -107,9 +107,7 @@ class CartService {
                             $treatedCartReferences[] = $reference->getId();
 
                             if ($associatedLine) {
-                                if ($associatedLine->getRequestedQuantity() < $quantity) {
-                                    $associatedLine->setRequestedQuantity($quantity);
-                                }
+                                $associatedLine->setRequestedQuantity($associatedLine->getRequestedQuantity() + $quantity);
                             } else {
                                 $line = new PurchaseRequestLine();
                                 $line
@@ -286,10 +284,7 @@ class CartService {
                         ->first() ?: null;
 
                     if ($alreadyInRequest) {
-                        if ($alreadyInRequest->getQuantityToPick() < $quantity) {
-                            $alreadyInRequest
-                                ->setQuantityToPick($quantity);
-                        }
+                        $alreadyInRequest->setQuantityToPick($alreadyInRequest->getQuantityToPick() + $quantity);
                     } else {
                         $deliveryRequestLine = (new DeliveryRequestReferenceLine())
                             ->setReference($reference)
@@ -304,10 +299,7 @@ class CartService {
                         ->first() ?: null;
 
                     if ($alreadyInRequest) {
-                        if ($alreadyInRequest->getQuantite() < $quantity) {
-                            $alreadyInRequest
-                                ->setQuantite($quantity);
-                        }
+                        $alreadyInRequest->setQuantite($alreadyInRequest->getQuantite() + $quantity);
                     } else {
                         $collectRequestLine = new CollecteReference();
                         $collectRequestLine
