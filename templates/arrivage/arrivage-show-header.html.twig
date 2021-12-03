@@ -9,7 +9,8 @@
 {% endblock %}
 
 {% block showTitleTooltip 'arrivage' %}
-{% block showTitle (('arrivage.arrivage'|trans) ~ ' ' ~ arrivage.numeroarrivage) %}
+{% block showTitle ('arrivage.arrivage'|trans) %}
+{% block showSubtitle (arrivage.numeroArrivage) %}
 
 {% block showActions %}
     <div class="btn-group">

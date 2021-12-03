@@ -1,6 +1,7 @@
 {% extends 'utils/show-header.html.twig' %}
 
-{% block showTitle ('Préparation n°' ~ preparation.numero) %}
+{% block showTitle ('Préparation') %}
+{% block showSubtitle ('n°' ~ preparation.numero) %}
 
 {% block showActions %}
     <div class="btn-group">

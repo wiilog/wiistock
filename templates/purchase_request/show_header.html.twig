@@ -1,6 +1,7 @@
 {% extends 'utils/show-header.html.twig' %}
 
-{% block showTitle ('Demande d\'achat ' ~ request.number) %}
+{% block showTitle ('Demande d\'achat ') %}
+{% block showSubtitle ('n°' ~ request.number) %}
 
 {% set hasRightEdit = (
     (request.status.draft or request.status.notTreated or request.status.inProgress)

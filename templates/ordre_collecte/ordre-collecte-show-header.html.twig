@@ -1,6 +1,8 @@
 {% extends 'utils/show-header.html.twig' %}
 
-{% block showTitle ('Ordre de collecte n°' ~ collecte.numero) %}
+{% block showTitle ('Ordre de collecte') %}
+{% block showSubtitle ('n°' ~ collecte.numero) %}
+
 {% block showActions %}
     <div class="btn-group">
         {% set hasRightDemandeCollecte = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_COLL')) %}
