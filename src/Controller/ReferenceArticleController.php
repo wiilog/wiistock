@@ -423,7 +423,7 @@ class ReferenceArticleController extends AbstractController
 
             /** @var ReferenceArticle $refArticle */
             $refArticle = $referenceArticleRepository->find($data['refArticle']);
-            if(!empty($refArticle->getInventoryEntries())){
+            if(!$refArticle->getInventoryEntries()->isEmpty()){
                 return new JsonResponse([
                     'success' => false,
                     'msg' => "
@@ -431,8 +431,7 @@ class ReferenceArticleController extends AbstractController
                         Vous ne pouvez pas la supprimer.
                     "
                 ]);
-            }
-            else if (!($refArticle->getCollecteReferences()->isEmpty())
+            } else if (!($refArticle->getCollecteReferences()->isEmpty())
                 || !($refArticle->getDeliveryRequestLines()->isEmpty())
                 || !($refArticle->getReceptionReferenceArticles()->isEmpty())
                 || !($refArticle->getMouvements()->isEmpty())
@@ -444,8 +443,8 @@ class ReferenceArticleController extends AbstractController
                 return new JsonResponse([
                     'success' => false,
                     'msg' => '
-                        Cet article est lié à un colis, des mouvements, une collecte, une livraison, une réception ou un article fournisseur.<br>
-                        Vous ne pouvez donc pas le supprimer.
+                        Cette référence article est lié à un colis, des mouvements, une collecte,
+                        une livraison, une réception ou un article fournisseur et ne peut pas être supprimée.
                     '
                 ]);
             }
