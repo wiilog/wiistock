@@ -5,6 +5,8 @@
 </a>
 
 <div class="collapse col-12" id="deliveryRequestSettings">
+    <p class="bold">Création livraison</p>
+    <hr class="thick-line">
     <div class="row">
         <div class="col-12">
             {% set checked = (DLAfterRecep == 1) ? 'checked' : '' %}
@@ -54,12 +56,27 @@
             <label class="pl-1" for="param-manage-livraison-location">Gérer le champ "Destination" en liste déroulante</label>
         </div>
     </div>
-    <div class="float-right btn btn-success" onclick="updateDeliveryRequestDefaultLocations()">
-        <i class='fas fa-check'></i>
+    <p class="bold mt-3">Emplacement de livraison par défaut</p>
+    <hr class="thick-line">
+    <div class="row mt-2 mb-2">
+        <div class="col-12">
+            {% set checked = (displayPickingLocation == 1) ? 'checked' : '' %}
+            <label class="switch">
+                <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-display-picking-location"
+                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::DISPLAY_PICKING_LOCATION') }}"
+                       onchange="updateToggledParam($(this))">
+                <span class="slider round"></span>
+            </label>
+            <label class="pl-1" for="param-demandeur-livraison">Faire apparaitre l'emplacement cible de picking à l'ajout d'une référence et dans son traitement</label>
+        </div>
     </div>
-    <div class="row mt-2">
-        <div class="ml-3 my-3">Emplacements de livraison par défaut</div>
+    <div class="d-flex flex-row-reverse justify-content-between align-items-end">
+        <div class="float-right btn btn-success" onclick="updateDeliveryRequestDefaultLocations()">
+            <i class='fas fa-check'></i>
+        </div>
+        <p class="bold">Emplacement de livraison par défaut</p>
     </div>
+    <hr class="thick-line">
     <div class="row setting-type-association">
     </div>
     <div class="form-group col-1">
