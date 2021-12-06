@@ -17,6 +17,7 @@ use App\Entity\Fournisseur;
 use App\Entity\Import;
 use App\Entity\InventoryCategory;
 use App\Entity\MouvementStock;
+use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
@@ -56,6 +57,8 @@ class ImportService
     public const IMPORT_MODE_FORCE_PLAN = 2; // réaliser l'import rapidement (dans le cron qui s'exécute toutes les 30min)
     public const IMPORT_MODE_PLAN = 3; // réaliser l'import dans la nuit (dans le cron à 23h59)
     public const IMPORT_MODE_NONE = 4; // rien n'a été réalisé sur l'import
+
+    public const POSITIVE_ARRAY = ['oui', 'Oui', 'OUI'];
 
     /** @Required */
     public Twig_Environment $templating;
@@ -382,6 +385,9 @@ class ImportService
                         break;
                     case Import::ENTITY_DELIVERY:
                         $insertedDelivery = $this->importDeliveryEntity($data, $stats, $deliveries, $user ?? $this->currentImport->getUser(), $refToUpdate, $colChampsLibres, $row);
+                        break;
+                    case Import::ENTITY_LOCATION:
+                        $this->importLocationEntity($data, $stats);
                         break;
                 }
 
@@ -743,6 +749,47 @@ class ImportService
                     ],
                 ];
                 break;
+            case Import::ENTITY_LOCATION:
+                $dataToCheck = [
+                    'label' => [
+                        'needed' => $this->fieldIsNeeded('label', Import::ENTITY_LOCATION),
+                        'value' => isset($corresp['label']) ? $corresp['label'] : null,
+                    ],
+
+                    'description' => [
+                        'needed' => $this->fieldIsNeeded('description', Import::ENTITY_LOCATION),
+                        'value' => isset($corresp['description']) ? $corresp['description'] : null,
+                    ],
+                    'dateMaxTime' => [
+                        'needed' => $this->fieldIsNeeded('dateMaxTime', Import::ENTITY_LOCATION),
+                        'value' => isset($corresp['dateMaxTime']) ? $corresp['dateMaxTime'] : null,
+                    ],
+                    'authorizedPackNature' => [
+                        'needed' => $this->fieldIsNeeded('authorizedPackNature', Import::ENTITY_LOCATION),
+                        'value' => isset($corresp['authorizedPackNature']) ? $corresp['authorizedPackNature'] : null,
+                    ],
+                    'authorizedDeliveriesTypes' => [
+                        'needed' => $this->fieldIsNeeded('authorizedDeliveriesTypes', Import::ENTITY_LOCATION),
+                        'value' => isset($corresp['authorizedDeliveriesTypes']) ? $corresp['authorizedDeliveriesTypes'] : null,
+                    ],
+                    'authorizedCollectTypes' => [
+                        'needed' => $this->fieldIsNeeded('authorizedCollectTypes', Import::ENTITY_LOCATION),
+                        'value' => isset($corresp['authorizedCollectTypes']) ? $corresp['authorizedCollectTypes'] : null,
+                    ],
+                    'isDeliveryPoint' => [
+                        'needed' => $this->fieldIsNeeded('isDeliveryPoint', Import::ENTITY_LOCATION),
+                        'value' => isset($corresp['isDeliveryPoint']) ? $corresp['isDeliveryPoint'] : null,
+                    ],
+                    'isOngoingVisibleOnMobile' => [
+                        'needed' => $this->fieldIsNeeded('isOngoingVisibleOnMobile', Import::ENTITY_LOCATION),
+                        'value' => isset($corresp['isOngoingVisibleOnMobile']) ? $corresp['isOngoingVisibleOnMobile'] : null,
+                    ],
+                    'isActive' => [
+                        'needed' => $this->fieldIsNeeded('isActive', Import::ENTITY_LOCATION),
+                        'value' => isset($corresp['isActive']) ? $corresp['isActive'] : null,
+                    ],
+                ];
+                break;
             default:
                 $dataToCheck = [];
         }
@@ -978,7 +1025,7 @@ class ImportService
                 isset($data['anomalie'])
                 && (
                     filter_var($data['anomalie'], FILTER_VALIDATE_BOOLEAN)
-                    || in_array($data['anomalie'], ['oui', 'Oui', 'OUI'])
+                    || in_array($data['anomalie'], SELF::POSITIVE_ARRAY)
                 )
             );
             if ($anomaly || $reception->getStatut()->getCode() === Reception::STATUT_ANOMALIE) {
@@ -998,7 +1045,7 @@ class ImportService
                 isset($data['manualUrgent'])
                 && (
                     filter_var($data['manualUrgent'], FILTER_VALIDATE_BOOLEAN)
-                    || in_array($data['manualUrgent'], ['oui', 'Oui', 'OUI'])
+                    || in_array($data['manualUrgent'], SELF::POSITIVE_ARRAY)
                 )
             );
         }
@@ -1018,7 +1065,7 @@ class ImportService
                         isset($data['anomalie'])
                         && (
                             filter_var($data['anomalie'], FILTER_VALIDATE_BOOLEAN)
-                            || in_array($data['anomalie'], ['oui', 'Oui', 'OUI'])
+                            || in_array($data['anomalie'], SELF::POSITIVE_ARRAY)
                         )
                     );
                     $receptionRefArticle->setAnomalie($anomaly ? 1 : 0);
@@ -1506,7 +1553,7 @@ class ImportService
         $users = $this->em->getRepository(Utilisateur::class);
         $locations = $this->em->getRepository(Emplacement::class);
         $types = $this->em->getRepository(Type::class);
-        $statuses = $this->em->getRepository(Statut::class);
+        $statusRepository = $this->em->getRepository(Statut::class);
         $references = $this->em->getRepository(ReferenceArticle::class);
         $articles = $this->em->getRepository(Article::class);
         $categorieStatusRepository = $this->em->getRepository(CategorieStatut::class);
@@ -1514,21 +1561,21 @@ class ImportService
         $requester = isset($data['requester']) && $data['requester'] ? $users->findOneBy(['username' => $data['requester']]) : $utilisateur;
         $destination = $data['destination'] ? $locations->findOneBy(['label' => $data['destination']]) : null;
         $categorieStatus = $categorieStatusRepository->findOneBy(["nom" => CategorieStatut::DEM_LIVRAISON]);
-        $availableStatues = Stream::from($statuses->findAvailableStatuesForDeliveryImport($categorieStatus))
+        $availableStatues = Stream::from($statusRepository->findAvailableStatuesForDeliveryImport($categorieStatus))
             ->flatten()
             ->values();
 
         $type = $data['type'] ? $types->findOneByCategoryLabelAndLabel(CategoryType::DEMANDE_LIVRAISON, $data['type']) : null;
-        $status = $data['status'] ? $statuses->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_LIVRAISON, $data['status']) : null;
+        $status = $data['status'] ? $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_LIVRAISON, $data['status']) : null;
         $commentaire = $data['commentaire'] ?? null;
         $articleReference = $data['articleReference'] ? $references->findOneBy(['reference' => $data['articleReference']]) : null;
         $article = $data['articleCode'] ?? null;
         $quantityDelivery = $data['quantityDelivery'] ?? null;
-        if(!$requester) {
+        if (!$requester) {
             $this->throwError('Demandeur inconnu.');
         }
 
-        if(!$destination) {
+        if (!$destination) {
             $this->throwError('Destination inconnue.');
         } else if ($type && !$destination->getAllowedDeliveryTypes()->contains($type)) {
             $this->throwError('Type non autorisé sur l\'emplacement fourni.');
@@ -1576,7 +1623,7 @@ class ImportService
                             $request->addArticleLine($line);
                             if (!$request->getPreparations()->isEmpty()) {
                                 $preparation = $request->getPreparations()->first();
-                                $article->setStatut($statuses->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
+                                $article->setStatut($statusRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
                                 $ligneArticlePreparation = new PreparationOrderArticleLine();
                                 $ligneArticlePreparation
                                     ->setPickedQuantity($line->getPickedQuantity())
@@ -1664,8 +1711,154 @@ class ImportService
         return $request;
     }
 
+    private function importLocationEntity(array $data, array &$stats)
+    {
+        $locationRepository = $this->em->getRepository(Emplacement::class);
+        $natureRepository = $this->em->getRepository(Nature::class);
+        $typeRepository = $this->em->getRepository(Type::class);
+        $categoryTypeRepository = $this->em->getRepository(CategoryType::class);
+
+        $deliveryCategory = $categoryTypeRepository->findOneBy(['label' => CategoryType::DEMANDE_LIVRAISON]);
+        $deliveryTypesAllowed = $typeRepository->findBy(['category' => $deliveryCategory]);
+        $deliveryTypeAllowedLabels = Stream::from($deliveryTypesAllowed)
+            ->map(fn(Type $type) => $type->getLabel())
+            ->toArray();
+
+        $collecteCategoie = $categoryTypeRepository->findOneBy(['label' => CategoryType::DEMANDE_COLLECTE]);
+        $collecteTypeAllowed = $typeRepository->findBy(['category' => $collecteCategoie]);
+        $collecteTypeAllowedLabels = Stream::from($collecteTypeAllowed)
+            ->map(fn(Type $type) => $type->getLabel())
+            ->toArray();
+
+        $isNewEntity = false;
+        $location = $locationRepository->findOneBy(['label' => $data['label']]);
+
+        if (!$location) {
+            $location = new Emplacement();
+            $isNewEntity = true;
+        }
+
+        if ($isNewEntity) {
+            if (isset($data['label'])) {
+                if ((strlen($data['label'])) > 21) {
+                    $this->throwError("La valeur saisie pour le champ libellé ne doit pas dépasser 21 caractères");
+                } else {
+                    $location->setLabel($data['label']);
+                }
+            } else {
+                $this->throwError("Le champ libellé est obligatoire lors de la creation d'un emplacement");
+            }
+
+            if (isset($data['description'])) {
+                if ((strlen($data['description'])) > 255) {
+                    $this->throwError("La valeur saisie pour le champ description ne doit pas dépasser 255 caractères");
+                } else {
+                    $location->setDescription($data['description']);
+                }
+            } else {
+                $this->throwError("Le champ description est obligatoire lors de la creation d'un emplacement");
+            }
+        } else {
+            if (isset($data['description'])) {
+                if ((strlen($data['description'])) > 255) {
+                    $this->throwError("La valeur saisie pour le champ description ne doit pas dépasser 255 caractères");
+                }
+            }
+        }
+
+        if ($data['dateMaxTime']) {
+            if (preg_match("/\d+:[0-5]\d/", $data['dateMaxTime'])) {
+                $location->setDateMaxTime($data['dateMaxTime']);
+            } else {
+                $this->throwError("Le champ Délais Traça HH:MM ne respecte pas le bon format");
+            }
+        }
+
+        if (isset($data['authorizedPackNature'])) {
+            $elements = explode(";", $data['authorizedPackNature']);
+            $natures = $natureRepository->findBy(['label' => $elements]);
+            $natureLabels = Stream::from($natures)
+                ->map(fn(Nature $nature) => $nature->getLabel())
+                ->toArray();
+            $diff = Stream::diff($elements, $natureLabels)->toArray();
+
+            if (!empty($diff)) {
+                $invalidNatures = implode(", ", $diff);
+                $this->throwError("Les natures suivantes n'existent pas : $invalidNatures");
+            } else {
+                $location->setAllowedNatures($natures);
+            }
+        }
+
+        if (isset($data['authorizedDeliveriesTypes'])) {
+            $elements = explode(";", $data['authorizedDeliveriesTypes']);
+            $deliveryTypes = $typeRepository->findBy(['label' => $elements]);
+
+            $diff = Stream::diff($elements, $deliveryTypeAllowedLabels)->toArray();
+
+            if (!empty($diff)) {
+                $invalideTypes = implode(", ", $diff);
+                $this->throwError("Les types de demandes de livraison suivants n'existent pas : $invalideTypes");
+            } else {
+                $location->setAllowedDeliveryTypes($deliveryTypes);
+            }
+        }
+
+        if (isset($data['authorizedCollectTypes'])) {
+            $elements = explode(";", $data['authorizedCollectTypes']);
+            $collecteTypes = $typeRepository->findBy(['label' => $elements]);
+            $diff = Stream::diff($elements, $collecteTypeAllowedLabels)->toArray();
+
+            if (!empty($diff)) {
+                $invalideTypes = implode(", ", $diff);
+                $this->throwError("Les types de demandes de collectes suivants n'existent pas : $invalideTypes");
+            } else {
+                $location->setAllowedCollectTypes($collecteTypes);
+            }
+        }
+
+        if (!empty($data['isDeliveryPoint'])) {
+            $isDeliveryPoint = (
+                isset($data['isDeliveryPoint'])
+                && (
+                    filter_var($data['isDeliveryPoint'], FILTER_VALIDATE_BOOLEAN)
+                    || in_array($data['isDeliveryPoint'], SELF::POSITIVE_ARRAY)
+                )
+            );
+            $location->setIsDeliveryPoint($isDeliveryPoint ? 1 : 0);
+        }
+
+        if (!empty($data['isOngoingVisibleOnMobile'])) {
+            $isOngoingVisibleOnMobile = (
+                isset($data['isOngoingVisibleOnMobile'])
+                && (
+                    filter_var($data['isOngoingVisibleOnMobile'], FILTER_VALIDATE_BOOLEAN)
+                    || in_array($data['isOngoingVisibleOnMobile'], SELF::POSITIVE_ARRAY)
+                )
+            );
+            $location->setIsOngoingVisibleOnMobile($isOngoingVisibleOnMobile ? 1 : 0);
+        }
+
+        if (!empty($data['isActive'])) {
+            $isActive = (
+                isset($data['isActive'])
+                && (
+                    filter_var($data['isActive'], FILTER_VALIDATE_BOOLEAN)
+                    || in_array($data['isActive'], SELF::POSITIVE_ARRAY)
+                )
+            );
+            $location->setIsActive($isActive ? 1 : 0);
+        }
+
+        $this->em->persist($location);
+        $this->updateStats($stats, $isNewEntity);
+
+        return $location;
+
+    }
+
     private function checkAndSetChampsLibres(array $colChampsLibres,
-                                             $freeFieldEntity,
+                                                   $freeFieldEntity,
                                              bool $isNewEntity,
                                              array $row)
     {

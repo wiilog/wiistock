@@ -472,6 +472,17 @@ class Emplacement implements PairedEntity
         return $this;
     }
 
+ public function setAllowedNatures(?array $allowedNatures): self {
+        foreach ($this->getAllowedNatures()->toArray() as $nature) {
+         $this->removeAllowedNature($nature);
+        }
+        $this->allowedNatures = new ArrayCollection();
+        foreach ($allowedNatures as $allowedNature) {
+            $this->addAllowedNature($allowedNature);
+        }
+        return $this;
+ }
+
     public function ableToBeDropOff(?Pack $pack): bool
     {
         return (
