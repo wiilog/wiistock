@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Menu;
+use App\Entity\Pack;
 use App\Entity\ReceiptAssociation;
 use App\Service\CSVExportService;
 use App\Service\ReceiptAssociationService;
@@ -92,6 +93,17 @@ class ReceiptAssociationController extends AbstractController
 
         $packs = Stream::explode(",", $packsStr)->toArray();
         $receptions = Stream::explode(",", $receptionsStr)->toArray();
+
+        $existingPacks = $manager->getRepository(Pack::class)->findBy(['code' => $packs]);
+        $existingPacks = Stream::from($existingPacks)->map(fn(Pack $pack) => $pack->getCode())->toArray();
+        $invalidPacks = Stream::diff($existingPacks, $packs)->toArray();
+        if(!empty($invalidPacks)) {
+            $invalidPacksStr = implode(", ", $invalidPacks);
+            return $this->json([
+                'success' => false,
+                'msg' => "Les colis suivants n'existent pas : $invalidPacksStr"
+            ]);
+        }
 
         if(empty($receptions)) {
             return $this->json([

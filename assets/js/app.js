@@ -22,6 +22,7 @@ import "./utils";
 
 import BrowserSupport from './support';
 import Wiistock from './general';
+import WysiwygManager from './wysiwyg-manager';
 import {LOADING_CLASS, wrapLoadingOnActionButton} from './loading';
 
 import '../scss/app.scss';
@@ -52,6 +53,7 @@ function importWiistock() {
 
     global.Wiistock = Wiistock;
     global.wrapLoadingOnActionButton = wrapLoadingOnActionButton;
+    global.WysiwygManager = WysiwygManager;
 
     Wiistock.initialize();
 }
@@ -121,9 +123,9 @@ function importRouting() {
     global.Routing = Routing;
 }
 
-export const NO_GROUPING = 0;
-export const GROUP_EVERYTHING = 0;
-export const GROUP_WHEN_NEEDED = 0;
+export const NO_GROUPING = 1;
+export const GROUP_EVERYTHING = 2;
+export const GROUP_WHEN_NEEDED = 3;
 
 jQuery.fn.keymap = function(callable, grouping = NO_GROUPING) {
     return keymap(this, callable, grouping);
@@ -152,14 +154,37 @@ export function keymap(array, callable, grouping = NO_GROUPING) {
             }
         }
     }
-
     if(grouping === GROUP_WHEN_NEEDED) {
-        for(const[key, value] of Object.entries(values)) {
+        for(const [key, value] of Object.entries(values)) {
             values[key] = value.__single_value !== undefined ? value.__single_value : value;
         }
     }
 
     return values;
+}
+
+jQuery.deepEquals = function (x, y) {
+    if (x === y) {
+        return true;
+    } else if ((typeof x == "object" && x != null) && (typeof y == "object" && y != null)) {
+        if (Object.keys(x).length !== Object.keys(y).length) {
+            return false;
+        }
+
+        for (const prop in x) {
+            if (y.hasOwnProperty(prop)) {
+                if (!jQuery.deepEquals(x[prop], y[prop])) {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+
+        return true;
+    } else {
+        return false;
+    }
 }
 
 jQuery.deepCopy = function(object) {

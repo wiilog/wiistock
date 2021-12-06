@@ -287,7 +287,6 @@ class ImportService
                     false,
                     $receptionsWithCommand,
                     $deliveries,
-                    $user,
                     $index
                 );
                 $index++;
@@ -307,7 +306,6 @@ class ImportService
                         ($index % self::NB_ROW_WITHOUT_CLEARING === 0),
                         $receptionsWithCommand,
                         $deliveries,
-                        $user,
                         $index
                     );
                     $index++;
@@ -355,8 +353,8 @@ class ImportService
                                     bool $needsUnitClear,
                                     array &$receptionsWithCommand,
                                     array &$deliveries,
-                                    ?Utilisateur $user,
-                                    int $rowIndex): array
+                                    int $rowIndex,
+                                    int $retry = 0): array
     {
         try {
             $emptyCells = count(array_filter($row, fn(string $value) => $value === ""));
@@ -374,7 +372,7 @@ class ImportService
                         $this->importReferenceEntity($data, $colChampsLibres, $row, $dataToCheck, $stats);
                         break;
                     case Import::ENTITY_RECEPTION:
-                        $this->importReceptionEntity($data, $receptionsWithCommand, $user, $stats, $this->receptionService);
+                        $this->importReceptionEntity($data, $receptionsWithCommand, $this->currentImport->getUser(), $stats, $this->receptionService);
                         break;
                     case Import::ENTITY_ART:
                         $referenceArticle = $this->importArticleEntity($data, $colChampsLibres, $row, $stats, $rowIndex);
@@ -384,7 +382,7 @@ class ImportService
                         $this->importUserEntity($data, $stats);
                         break;
                     case Import::ENTITY_DELIVERY:
-                        $insertedDelivery = $this->importDeliveryEntity($data, $stats, $deliveries, $user ?? $this->currentImport->getUser(), $refToUpdate, $colChampsLibres, $row);
+                        $insertedDelivery = $this->importDeliveryEntity($data, $stats, $deliveries, $this->currentImport->getUser(), $refToUpdate, $colChampsLibres, $row);
                         break;
                     case Import::ENTITY_LOCATION:
                         $this->importLocationEntity($data, $stats);
@@ -412,9 +410,24 @@ class ImportService
 
             if ($throwable instanceof ImportException) {
                 $message = $throwable->getMessage();
-            }
-            else if ($throwable instanceof UniqueConstraintViolationException) {
-                $message = 'Une autre entité est en cours de création, veuillez réessayer.';
+            } else if ($throwable instanceof UniqueConstraintViolationException) {
+                if ($retry <= UniqueNumberService::MAX_RETRY) {
+                    $retry++;
+                    return $this->treatImportRow($row,
+                        $headers,
+                        $dataToCheck,
+                        $colChampsLibres,
+                        $refToUpdate,
+                        $stats,
+                        $needsUnitClear,
+                        $receptionsWithCommand,
+                        $deliveries,
+                        $rowIndex,
+                        $retry
+                    );
+                } else {
+                    $message = 'Une autre entité est en cours de création, veuillez réessayer.';
+                }
             } else {
                 $message = 'Une erreur est survenue.';
                 $file = $throwable->getFile();
@@ -1462,11 +1475,19 @@ class ImportService
         }
 
         if(isset($data['deliveryTypes'])) {
+            $deliveryTypesRaw = array_map('trim', explode(',', $data['deliveryTypes']));
             $deliveryCategory = $this->em->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::DEMANDE_LIVRAISON]);
             $deliveryTypes = $this->em->getRepository(Type::class)->findBy([
-                'label' => array_map('trim', explode(',', $data['deliveryTypes'])),
+                'label' => $deliveryTypesRaw,
                 'category' => $deliveryCategory
             ]);
+
+            $deliveryTypesLabel = Stream::from($deliveryTypes)->map(fn(Type $type) => $type->getLabel())->toArray();
+            $invalidTypes = Stream::diff($deliveryTypesLabel, $deliveryTypesRaw)->toArray();
+            if(!empty($invalidTypes)) {
+                $invalidTypesStr = implode(", ", $invalidTypes);
+                $this->throwError("Les types de demandes de livraison suivants sont invalides : $invalidTypesStr");
+            }
 
             foreach ($user->getDeliveryTypes() as $type) {
                 $user->removeDeliveryType($type);
@@ -1478,11 +1499,19 @@ class ImportService
         }
 
         if(isset($data['dispatchTypes'])) {
+            $dispatchTypesRaw = array_map('trim', explode(',', $data['dispatchTypes']));
             $dispatchCategory = $this->em->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::DEMANDE_DISPATCH]);
             $dispatchTypes = $this->em->getRepository(Type::class)->findBy([
-                'label' => array_map('trim', explode(',', $data['dispatchTypes'])),
+                'label' => $dispatchTypesRaw,
                 'category' => $dispatchCategory
             ]);
+
+            $dispatchTypesLabel = Stream::from($dispatchTypes)->map(fn(Type $type) => $type->getLabel())->toArray();
+            $invalidTypes = Stream::diff($dispatchTypesLabel, $dispatchTypesRaw)->toArray();
+            if(!empty($invalidTypes)) {
+                $invalidTypesStr = implode(", ", $invalidTypes);
+                $this->throwError("Les types d'acheminements suivants sont invalides : $invalidTypesStr");
+            }
 
             foreach ($user->getDispatchTypes() as $type) {
                 $user->removeDispatchType($type);
@@ -1494,11 +1523,19 @@ class ImportService
         }
 
         if(isset($data['handlingTypes'])) {
+            $handlingTypesRaw = array_map('trim', explode(',', $data['handlingTypes']));
             $handlingCategory = $this->em->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::DEMANDE_HANDLING]);
             $handlingTypes = $this->em->getRepository(Type::class)->findBy([
-                'label' => array_map('trim', explode(',', $data['handlingTypes'])),
+                'label' => $handlingTypesRaw,
                 'category' => $handlingCategory
             ]);
+
+            $handlingTypesLabel = Stream::from($handlingTypes)->map(fn(Type $type) => $type->getLabel())->toArray();
+            $invalidTypes = Stream::diff($handlingTypesLabel, $handlingTypesRaw)->toArray();
+            if(!empty($invalidTypes)) {
+                $invalidTypesStr = implode(", ", $invalidTypes);
+                $this->throwError("Les types de services suivants sont invalides : $invalidTypesStr");
+            }
 
             foreach ($user->getHandlingTypes() as $type) {
                 $user->removeHandlingType($type);

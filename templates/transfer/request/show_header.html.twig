@@ -1,6 +1,7 @@
 {% extends 'utils/show-header.html.twig' %}
 
-{% block showTitle ('Demande de transfert ' ~ transfer.number) %}
+{% block showTitle ('Demande de transfert') %}
+{% block showSubtitle ('n°' ~ transfer.number) %}
 
 {% block showActions %}
     <div class="btn-group">

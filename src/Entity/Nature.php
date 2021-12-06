@@ -68,6 +68,11 @@ class Nature
      */
     private $displayed;
 
+    /**
+     * @ORM\Column(type="boolean", nullable=true, options={"default": 0})
+     */
+    private $defaultForDispatch;
+
     public function __construct()
     {
         $this->packs = new ArrayCollection();
@@ -202,6 +207,18 @@ class Nature
     public function setDisplayed(?bool $displayed): self
     {
         $this->displayed = $displayed;
+
+        return $this;
+    }
+
+    public function getDefaultForDispatch(): ?bool
+    {
+        return $this->defaultForDispatch;
+    }
+
+    public function setDefaultForDispatch(?bool $defaultForDispatch): self
+    {
+        $this->defaultForDispatch = $defaultForDispatch;
 
         return $this;
     }

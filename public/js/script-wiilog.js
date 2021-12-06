@@ -526,7 +526,7 @@ function checkAndDeleteRow(icon, modalName, route, submit, getParams = null) {
 
     $.post(Routing.generate(route) + (getParamsStr ? `?${getParamsStr}` : ''), param, function (resp) {
         $modalBody.html(resp.html);
-        if (resp.delete == false) {
+        if (!resp.delete) {
             $submit.hide();
         } else {
             $submit.show();

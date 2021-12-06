@@ -194,9 +194,6 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface {
             ParametrageGlobal::EMERGENCY_TEXT_LABEL => [],
             ParametrageGlobal::DELIVERY_NOTE_LOGO => [],
             ParametrageGlobal::WAYBILL_LOGO => [],
-            ParametrageGlobal::KEEP_DISPATCH_PACK_MODAL_OPEN => [
-                "default" => false
-            ],
             ParametrageGlobal::DISPATCH_EXPECTED_DATE_COLOR_AFTER => [
                 'default' => null,
                 SpecificService::CLIENT_ARKEMA_SERQUIGNY => '#2b78e4'

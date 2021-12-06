@@ -4,7 +4,6 @@
         <title>Bon de surconsommation en-tête</title>
         <meta charset="UTF-8"/>
         <style>
-
             * {
                 font-family: Arial, sans-serif;
             }
@@ -26,6 +25,14 @@
             .logos img:last-of-type {
                 float: right;
             }
+
+            h1, h2 {
+                margin: 0;
+            }
+
+            h2 {
+                padding-bottom: 5mm;
+            }
         </style>
     </head>
     <body>
@@ -41,7 +48,7 @@
         </div>
         <div class="content">
             <h1>Added parts request OF : {{ commandNumber }}</h1>
-            <h2>Demande de surconsommation OF : {{ commandNumber }}</h2>
+            <h2>Demande de surconsommation OF / complément : {{ commandNumber }}</h2>
         </div>
     </body>
 </html>

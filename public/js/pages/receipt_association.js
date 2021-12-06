@@ -29,15 +29,25 @@ $(function () {
         $('input[name=packCode]').trigger('focus');
     });
 
-    $('input[name=packCode]').on('keypress', function(e) {
+    $('.packs-wrapper').on('keypress', 'input[name=packCode]', function(e) {
         if(e.originalEvent.key === 'Enter') {
-            $('input[name=receptionNumber]').first().trigger('focus');
+            const $nextParent = $(this).parent().next();
+            if($nextParent.is('.pack-code-container')) {
+                $nextParent.find('input[name=packCode]').trigger('focus');
+            } else {
+                $('input[name=receptionNumber]').first().trigger('focus');
+            }
         }
     });
 
-    $('input[name=receptionNumber]').on('keypress', function(e) {
+    $('.receptions-wrapper').on('keypress', 'input[name=receptionNumber]', function(e) {
         if(e.originalEvent.key === 'Enter') {
-            $('#submitNewReceiptAssociation').trigger('click');
+            const $nextParent = $(this).parent().next();
+            if($nextParent.is('.reception-number-container')) {
+                $nextParent.find('input[name=receptionNumber]').trigger('focus');
+            } else {
+                $('#submitNewReceiptAssociation').trigger('click');
+            }
         }
     });
 });
@@ -81,6 +91,8 @@ function initModals(tableReceiptAssociation) {
         success: () => {
             $('#beep')[0].play();
             clearModal(modalNewReceiptAssociation);
+            $('.packs-wrapper').find('.pack-code-container').not(':first').remove();
+            $('.receptions-wrapper').find('.reception-number-container').not(':first').remove();
             $('input[name=packCode]').trigger('focus');
         }
     });

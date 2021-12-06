@@ -494,11 +494,11 @@ function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass
 
 
     return $(`
-        <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container' + dashboardBoxContainerClass)}>
+        <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container ' + dashboardBoxContainerClass)}>
             <div class="title">
                 ${withStyle(data, redefinedNumberingConfig || numberingConfig, 1, title.split('(')[0])}
             </div>
-            ${createTooltip(data.tooltip)}
+            ${createTooltip(data.chartData.hint || data.tooltip)}
             <div class="flex-fill content">
                 <canvas class="${cssClass || ''}"></canvas>
             </div>
@@ -727,6 +727,9 @@ function updateSimpleChartData(chart, data, label, stack = false,
     chart.data.datasets = [{data: [], label}];
     chart.data.labels = [];
     const dataKeys = Object.keys(data).filter((key) => key !== 'stack');
+    if(data.chartData) {
+        delete data.chartData.hint;
+    }
     for(const key of dataKeys) {
         chart.data.labels.push(key);
         chart.data.datasets[0].data.push(data[key]);
@@ -766,7 +769,7 @@ function updateSimpleChartData(chart, data, label, stack = false,
 
 function createAndUpdateSimpleChart($canvas, chart, data, forceCreation = false, disableAnimation = false) {
     if(forceCreation || !chart) {
-        chart = newChart($canvas, false, disableAnimation);
+        chart = newChart($canvas, data, false, disableAnimation);
     }
     if(data) {
         updateSimpleChartData(
@@ -785,7 +788,7 @@ function createAndUpdateSimpleChart($canvas, chart, data, forceCreation = false,
     return chart;
 }
 
-function newChart($canvasId, redForLastData = false, disableAnimation = false) {
+function newChart($canvasId, data, redForLastData = false, disableAnimation = false) {
     if($canvasId.length) {
         const fontSize = currentChartsFontSize;
 
@@ -798,7 +801,22 @@ function newChart($canvasId, redForLastData = false, disableAnimation = false) {
                         top: 30
                     }
                 },
-                tooltips: false,
+                tooltips: data.multiple && data.stackValues  ?
+                    {
+                        position: 'middle',
+                        callbacks: {
+                            title: function(){
+                                return null;
+                            },
+                            label: function(t, d) {
+                                var typeLabel = d.datasets[t.datasetIndex].label;
+                                var typeQuantity = t.yLabel;
+                                return typeLabel + ': ' + typeQuantity;
+                            },
+                        },
+                        xAlign: 'center',
+                        yAlign: 'center',
+                    } : false,
                 responsive: true,
                 maintainAspectRatio: false,
                 legend: {
@@ -820,15 +838,21 @@ function newChart($canvasId, redForLastData = false, disableAnimation = false) {
                                     return value;
                                 }
                             }
-                        }
+                        },
+                        stacked: data.stackValues,
                     }],
                     xAxes: [{
                         ticks: {
                             fontSize
-                        }
+                        },
+                        stacked: data.stackValues,
                     }]
                 },
-                hover: {mode: null},
+                hover: data.multiple && data.stackValues ?
+                    {
+                        mode: 'nearest',
+                        intersect: true,
+                    } : true,
                 animation: {
                     duration: disableAnimation ? 0 : 1000,
                     onComplete() {
@@ -999,7 +1023,10 @@ function createAndUpdateMultipleCharts($canvas,
                                        redForLastData = true,
                                        disableAnimation = false) {
     if(forceCreation || !chart) {
-        chart = newChart($canvas, redForLastData, disableAnimation);
+        if(data.chartData) {
+            delete data.chartData.hint;
+        }
+        chart = newChart($canvas, data, redForLastData, disableAnimation);
     }
     if(data) {
         updateMultipleChartData(chart, data);
@@ -1167,7 +1194,7 @@ function resetColorPickersElementsToForm($modal, data) {
     $colorPickerAccordion.removeClass('d-none');
 
     if(data.separateType) {
-        if (data.chartColors && data.handlingTypes) {
+        if ((data.chartColors && (data.handlingTypes ?? data.dispatchTypes))) {
             for (let key in data.chartColors) {
                 $chartColorPickersContainer.append(generateColorPickerElement(data, key));
             }
@@ -1182,3 +1209,16 @@ function resetColorPickersElementsToForm($modal, data) {
         }
     }
 }
+
+function hideOrShowStackButton(){
+    $('.stack-button').toggleClass('d-none');
+    $('input[name="stackValues"]').prop('checked', false);
+}
+
+Chart.Tooltip.positioners.middle = elements => {
+    let model = elements[0]._model;
+    return {
+        x: model.x,
+        y: (model.base + model.y) / 2
+    };
+};

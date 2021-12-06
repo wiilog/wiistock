@@ -549,7 +549,7 @@ function processCheckboxesForm($modal, data, isAttachmentForm) {
  * @return {{errorMessages: Array<string>, success: boolean, $isInvalidElements: Array<*>}}
  */
 function processSwitchesForm($modal, data, isAttachmentForm) {
-    const $switches = $modal.find('.wii-switch');
+    const $switches = $modal.find('.wii-switch, .wii-switch-no-style');
     const $invalidElements = [];
     const messages = [];
 

@@ -125,7 +125,9 @@ class UserController extends AbstractController
 				]);
 			}
 
-            $secondaryEmails = json_decode($data['secondaryEmails']);
+            $secondaryEmails = isset($data['secondaryEmails'])
+                ? json_decode($data['secondaryEmails'])
+                : [];
             foreach($secondaryEmails as $email) {
                 if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
                     return $this->json([
@@ -307,7 +309,9 @@ class UserController extends AbstractController
 				]);
 			}
 
-            $secondaryEmails = json_decode($data['secondaryEmails']);
+            $secondaryEmails = isset($data['secondaryEmails'])
+                ? json_decode($data['secondaryEmails'])
+                : [];
             foreach($secondaryEmails as $email) {
                 if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
                     return $this->json([

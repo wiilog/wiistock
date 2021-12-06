@@ -27,6 +27,7 @@ class Action {
     const LIST_ALL = 'lister tous les arrivages';
     const ADD_PACK = 'ajouter colis';
     const EDIT_PACK = 'modifier colis';
+    const MANAGE_PACK = 'gérer colis';
     const DELETE_PACK = 'supprimer colis';
     const EDIT_ARRI = 'modifier arrivage';
     const DELETE_ARRI = 'supprimer arrivage';

@@ -15,6 +15,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use WiiCommon\Helper\Stream;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -44,6 +45,9 @@ class CartService {
 
     /** @Required */
     public PurchaseRequestService $purchaseRequestService;
+
+    /** @Required */
+    public UniqueNumberService $uniqueNumberService;
 
     private function emptyCart(Cart $cart, ?array $referencesToRemove = null): void {
         if ($referencesToRemove) {
@@ -103,9 +107,7 @@ class CartService {
                             $treatedCartReferences[] = $reference->getId();
 
                             if ($associatedLine) {
-                                if ($associatedLine->getRequestedQuantity() < $quantity) {
-                                    $associatedLine->setRequestedQuantity($quantity);
-                                }
+                                $associatedLine->setRequestedQuantity($associatedLine->getRequestedQuantity() + $quantity);
                             } else {
                                 $line = new PurchaseRequestLine();
                                 $line
@@ -141,9 +143,7 @@ class CartService {
         ];
     }
 
-    public function manageDeliveryRequest(array $data,
-                                          Utilisateur $user,
-                                          EntityManagerInterface $manager): array {
+    public function manageDeliveryRequest(array $data, Utilisateur $user, EntityManagerInterface $manager): array {
         $cartContent = json_decode($data['cart'], true);
 
         if ($data['addOrCreate'] === "add") {
@@ -162,10 +162,16 @@ class CartService {
                 CategorieStatut::DEM_LIVRAISON,
                 Demande::STATUT_BROUILLON
             );
+            $number = $this->uniqueNumberService->create(
+                $manager,
+                Demande::PREFIX_NUMBER,
+                Demande::class,
+                UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT
+            );
             $deliveryRequest = new Demande();
 
             $deliveryRequest
-                ->setNumero($this->demandeLivraisonService->generateNumeroForNewDL($manager))
+                ->setNumero($number)
                 ->setUtilisateur($user)
                 ->setType($type)
                 ->setCreatedAt(new DateTime('now'))
@@ -177,7 +183,16 @@ class CartService {
 
             $this->addReferencesToCurrentUserCart($manager, $user, $deliveryRequest, $cartContent);
 
-            $manager->flush();
+            try {
+                $manager->flush();
+            }
+            /** @noinspection PhpRedundantCatchClauseInspection */
+            catch (UniqueConstraintViolationException $e) {
+                return [
+                    'success' => false,
+                    'msg' => 'Une autre demande de livraison est en cours de création, veuillez réessayer.'
+                ];
+            }
 
             $link = $this->router->generate('demande_show', ['id' => $deliveryRequest->getId()]);
             $msg = "Les references ont bien été ajoutées dans une nouvelle demande de livraison";
@@ -269,10 +284,7 @@ class CartService {
                         ->first() ?: null;
 
                     if ($alreadyInRequest) {
-                        if ($alreadyInRequest->getQuantityToPick() < $quantity) {
-                            $alreadyInRequest
-                                ->setQuantityToPick($quantity);
-                        }
+                        $alreadyInRequest->setQuantityToPick($alreadyInRequest->getQuantityToPick() + $quantity);
                     } else {
                         $deliveryRequestLine = (new DeliveryRequestReferenceLine())
                             ->setReference($reference)
@@ -287,10 +299,7 @@ class CartService {
                         ->first() ?: null;
 
                     if ($alreadyInRequest) {
-                        if ($alreadyInRequest->getQuantite() < $quantity) {
-                            $alreadyInRequest
-                                ->setQuantite($quantity);
-                        }
+                        $alreadyInRequest->setQuantite($alreadyInRequest->getQuantite() + $quantity);
                     } else {
                         $collectRequestLine = new CollecteReference();
                         $collectRequestLine
