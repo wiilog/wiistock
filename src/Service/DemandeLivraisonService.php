@@ -317,7 +317,7 @@ class DemandeLivraisonService
                     $referenceArticle = $referenceArticleRepository->findOneBy([
                         'barCode' => $reference['barCode']
                     ]);
-                    $this->refArticleDataService->addRefToDemand(
+                    $this->refArticleDataService->addReferenceToRequest(
                         $reference,
                         $referenceArticle,
                         $demandeArray['demandeur'],
@@ -429,6 +429,7 @@ class DemandeLivraisonService
             $ligneArticlePreparation
                 ->setPickedQuantity($article->getPickedQuantity())
                 ->setQuantityToPick($article->getQuantityToPick())
+                ->setTargetLocationPicking($article->getTargetLocationPicking())
                 ->setArticle($article->getArticle())
                 ->setPreparation($preparation);
             $entityManager->persist($ligneArticlePreparation);
@@ -442,6 +443,7 @@ class DemandeLivraisonService
             $lignesArticlePreparation
                 ->setPickedQuantity($ligneArticle->getPickedQuantity())
                 ->setQuantityToPick($ligneArticle->getQuantityToPick())
+                ->setTargetLocationPicking($ligneArticle->getTargetLocationPicking())
                 ->setReference($referenceArticle)
                 ->setPreparation($preparation);
             $entityManager->persist($lignesArticlePreparation);

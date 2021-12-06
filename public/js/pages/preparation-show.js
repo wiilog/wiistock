@@ -27,13 +27,14 @@ $(function () {
 let tableArticleConfig = {
     ajax: pathArticle,
     columns: [
-        {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
-        {"data": 'Référence', 'title': 'Référence'},
-        {"data": 'Libellé', 'title': 'Libellé'},
-        {"data": 'Emplacement', 'title': 'Emplacement'},
-        {"data": 'Quantité', 'title': 'Quantité en stock'},
-        {"data": 'quantityToPick', 'title': 'Quantité à prélever'},
-        {"data": 'pickedQuantity', 'title': 'Quantité prélevée'},
+        {data: 'Actions', title: '', className: 'noVis', orderable: false},
+        {data: 'reference', title: 'Référence'},
+        {data: 'label', title: 'Libellé'},
+        {data: 'location', title: 'Emplacement'},
+        {data: 'targetLocationPicking', title: 'Emplacement cible picking', visible: Number($(`input[name=showTargetLocationPicking]`).val())},
+        {data: 'quantity', title: 'Quantité en stock'},
+        {data: 'quantityToPick', title: 'Quantité à prélever'},
+        {data: 'pickedQuantity', title: 'Quantité prélevée'},
     ],
     rowConfig: {
         needsRowClickAction: true,
@@ -41,7 +42,7 @@ let tableArticleConfig = {
         color: 'success',
         dataToCheck: 'active'
     },
-    order: [['Référence', "asc"]]
+    order: [['reference', "asc"]]
 };
 
 let tableArticle = initDataTable('tableArticle_id', tableArticleConfig);

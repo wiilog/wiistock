@@ -10,6 +10,7 @@ use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorWrapper;
+use App\Entity\ParametrageGlobal;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Menu;
@@ -181,10 +182,11 @@ class PreparationController extends AbstractController
                 if ($referenceLine->getPickedQuantity() > 0 ||
                     ($preparationStatut !== Preparation::STATUT_PREPARE && $preparationStatut !== Preparation::STATUT_INCOMPLETE)) {
                     $rows[] = [
-                        "Référence" => $articleRef->getReference(),
-                        "Libellé" => $articleRef->getLibelle(),
-                        "Emplacement" => FormatHelper::location($articleRef->getEmplacement()),
-                        "Quantité" => $articleRef->getQuantiteStock(),
+                        "reference" => $articleRef->getReference(),
+                        "label" => $articleRef->getLibelle(),
+                        "location" => FormatHelper::location($articleRef->getEmplacement()),
+                        "targetLocationPicking" => FormatHelper::location($referenceLine->getTargetLocationPicking()),
+                        "quantity" => $articleRef->getQuantiteStock(),
                         "quantityToPick" => $referenceLine->getQuantityToPick() ?: ' ',
                         "pickedQuantity" => $referenceLine->getPickedQuantity() ?: ' ',
                         'active' => !empty($referenceLine->getPickedQuantity()),
@@ -207,10 +209,11 @@ class PreparationController extends AbstractController
                 if ($articleLine->getPickedQuantity() > 0 ||
                     ($preparationStatut !== Preparation::STATUT_PREPARE && $preparationStatut !== Preparation::STATUT_INCOMPLETE)) {
                     $rows[] = [
-                        "Référence" => ($article->getArticleFournisseur() && $article->getArticleFournisseur()->getReferenceArticle()) ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
-                        "Libellé" => $article->getLabel() ?? '',
-                        "Emplacement" => FormatHelper::location($article->getEmplacement()),
-                        "Quantité" => $article->getQuantite() ?? '',
+                        "reference" => ($article->getArticleFournisseur() && $article->getArticleFournisseur()->getReferenceArticle()) ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
+                        "label" => $article->getLabel() ?? '',
+                        "location" => FormatHelper::location($article->getEmplacement()),
+                        "targetLocationPicking" => FormatHelper::location($articleLine->getTargetLocationPicking()),
+                        "quantity" => $article->getQuantite() ?? '',
                         "quantityToPick" => $articleLine->getQuantityToPick() ?? ' ',
                         "pickedQuantity" => $articleLine->getPickedQuantity() ?? ' ',
                         'active' => !empty( $articleLine->getPickedQuantity()),
@@ -248,7 +251,6 @@ class PreparationController extends AbstractController
                     return $pairing->isActive();
                 })->isEmpty();
             });
-        $articleRepository = $entityManager->getRepository(Article::class);
 
         $preparationStatus = $preparation->getStatut() ? $preparation->getStatut()->getNom() : null;
 
@@ -260,6 +262,7 @@ class PreparationController extends AbstractController
         return $this->render('preparation/show.html.twig', [
             "sensorWrappers" => $sensorWrappers,
             'demande' => $demande,
+            'showTargetLocationPicking' => $entityManager->getRepository(ParametrageGlobal::class)->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION),
             'livraison' => $preparation->getLivraison(),
             'preparation' => $preparation,
             'isPrepaEditable' => $preparationStatus === Preparation::STATUT_A_TRAITER || ($preparationStatus == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser()),

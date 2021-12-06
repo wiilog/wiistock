@@ -14,6 +14,7 @@ use App\Entity\FreeField;
 use App\Entity\Fournisseur;
 use App\Entity\Import;
 use App\Entity\Menu;
+use App\Entity\ParametrageGlobal;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
@@ -212,6 +213,11 @@ class ImportController extends AbstractController
                             $categoryCL = CategorieCL::DEMANDE_LIVRAISON;
                             $fieldsToHide = array_merge($fieldsToHide, ['numero', 'filled']);
                             $fieldsToAdd = ['articleReference', 'quantityDelivery', 'articleCode', 'status', 'type', 'requester', 'destination'];
+
+                            $showTargetLocationPicking = $entityManager->getRepository(ParametrageGlobal::class)->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION);
+                            if($showTargetLocationPicking) {
+                                $fieldsToAdd[] = 'targetLocationPicking';
+                            }
                             $fieldNames = array_merge($fieldNames, $fieldsToAdd);
                             break;
                     }

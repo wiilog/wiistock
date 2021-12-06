@@ -3,6 +3,7 @@
 namespace App\Entity\DeliveryRequest;
 
 use App\Entity\Article;
+use App\Entity\Emplacement;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\DeliveryRequest\DeliveryRequestArticleLineRepository;
 
@@ -38,6 +39,11 @@ class DeliveryRequestArticleLine
      * @ORM\JoinColumn(onDelete="CASCADE")
      */
     private ?Demande $request = null;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Emplacement::class, inversedBy="deliveryRequestArticleLines")
+     */
+    private ?Emplacement $targetLocationPicking = null;
 
     public function getId(): ?int {
         return $this->id;
@@ -97,6 +103,25 @@ class DeliveryRequestArticleLine
 
         if($request) {
             $request->addArticleLine($this);
+        }
+
+        return $this;
+    }
+
+    public function getTargetLocationPicking(): ?Emplacement {
+        return $this->targetLocationPicking;
+    }
+
+    public function setTargetLocationPicking(?Emplacement $targetLocationPicking): self
+    {
+        if($this->targetLocationPicking && $this->targetLocationPicking !== $targetLocationPicking) {
+            $this->targetLocationPicking->removeDeliveryRequestArticleLine($this);
+        }
+
+        $this->targetLocationPicking = $targetLocationPicking;
+
+        if($targetLocationPicking) {
+            $targetLocationPicking->addDeliveryRequestArticleLine($this);
         }
 
         return $this;

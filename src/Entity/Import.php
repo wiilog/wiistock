@@ -146,7 +146,8 @@ class Import
         'quantityDelivery' => 'Quantité à livrer',
         'articleCode' => 'Code article',
         'articleReference' => 'Référence',
-        'requester' => 'Demandeur'
+        'requester' => 'Demandeur',
+        'targetLocationPicking' => 'Emplacement cible picking'
 	];
 
 	public CONST IMPORT_FIELDS_TO_FIELDS_PARAM = [
