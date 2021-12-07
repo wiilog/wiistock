@@ -267,7 +267,7 @@ function initializePacksTable(dispatchId, isEdit) {
                 const wasPackSelect = $target.closest(`td`).find(`select[name="pack"]`).exists();
                 const wasCommentSelect = $relatedTarget.closest('.wii-one-line-wysiwyg-popover').exists();
                 if ((event.relatedTarget && $.contains(this, event.relatedTarget))
-                    || $relatedTarget.is(`button`)
+                    || $relatedTarget.is(`button.delete-pack-row`)
                     || wasPackSelect
                     || wasCommentSelect) {
                     return;
