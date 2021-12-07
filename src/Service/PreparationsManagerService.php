@@ -196,10 +196,6 @@ class PreparationsManagerService
             $line = $preparationOrderArticleLineRepository->find($lineId);
             $newPreparation->addArticleLine($line);
             $preparation->removeArticleLine($line);
-            if($line->getPreparation() === null) {
-                $entityManager->remove($line);
-            }
-
             $articleToKeep = $line->getArticle();
             $articleToKeep
                 ->setStatut($statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_EN_TRANSIT));
@@ -448,10 +444,7 @@ class PreparationsManagerService
                                 $splitArticleLineIds[] = $line->getId();
                             } else {
                                 $preparation->removeArticleLine($line);
-                                if($line->getPreparation() === null) {
-                                    $entityManager->remove($line);
-                                }
-
+                                $entityManager->remove($line);
                                 $article->setStatut($articleActiveStatus);
                             }
                             $article->setQuantite($article->getQuantite() - $pickedQuantity);
@@ -487,10 +480,6 @@ class PreparationsManagerService
                         }
                         else {
                             $preparation->removeArticleLine($line);
-                            if($line->getPreparation() === null) {
-                                $entityManager->remove($line);
-                            }
-
                             $splitArticleLineIds[] = $line->getId();
                         }
                     }
