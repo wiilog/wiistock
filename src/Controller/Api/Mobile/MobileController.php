@@ -37,6 +37,7 @@ use App\Service\ArrivageService;
 use App\Service\EmplacementDataService;
 use App\Service\MobileApiService;
 use App\Service\NotificationService;
+use PhpParser\Node\Param;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use WiiCommon\Helper\Stream;
 
@@ -113,6 +114,7 @@ class MobileController extends AbstractFOSRestController
     {
 
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $globalParametersRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $mobileKey = $request->request->get('loginKey');
 
         $loggedUser = $utilisateurRepository->findOneBy(['mobileLoginKey' => $mobileKey, 'status' => true]);
@@ -124,6 +126,7 @@ class MobileController extends AbstractFOSRestController
             $entityManager->flush();
 
             $rights = $userService->getMobileRights($loggedUser);
+            $parameters = $this->mobileApiService->getMobileParameters($globalParametersRepository);
             $channels = Stream::from($rights)
                 ->filter(fn($val, $key) => $val && in_array($key, ["stock", "tracking", "group", "ungroup", "demande", "notifications"]))
                 ->takeKeys()
@@ -154,6 +157,7 @@ class MobileController extends AbstractFOSRestController
                 'apiKey' => $apiKey,
                 'notificationChannels' => $channels,
                 'rights' => $rights,
+                'parameters' => $parameters,
                 'username' => $loggedUser->getUsername(),
                 'userId' => $loggedUser->getId()
             ];
@@ -1497,6 +1501,7 @@ class MobileController extends AbstractFOSRestController
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
         $rights = $userService->getMobileRights($user);
+        $parameters = $this->mobileApiService->getMobileParameters($parametrageGlobalRepository);
 
         $status = $statutRepository->getMobileStatus($rights['tracking'], $rights['demande']);
 
@@ -1679,6 +1684,7 @@ class MobileController extends AbstractFOSRestController
             'demandeLivraisonArticles' => $demandeLivraisonArticles ?? [],
             'natures' => $natures ?? [],
             'rights' => $rights,
+            'parameters' => $parameters,
             'translations' => $translations,
             'dispatches' => $dispatches ?? [],
             'dispatchPacks' => $dispatchPacks ?? [],

@@ -1,0 +1,110 @@
+<a data-toggle="collapse" href="#mobileConfiguration" role="button" aria-expanded="false"
+   aria-controls="mobileConfiguration" class="col-12 mb-4">
+    <h1 class="btn btn-primary m-0 w-100 border-radius-light">Configuration Terminal mobile
+        <i class="fas fa-arrow-alt-circle-down ml-2"></i></h1>
+</a>
+
+<div class="collapse col-12 px-4" id="mobileConfiguration">
+    <p class="bold">Gestion des validations</p>
+    <hr class="thick-line">
+    <div class="mb-2">
+        L'activation sur un menu de ce paramétrage permet d'enlever toutes les étapes de validation et/ou de confirmation de quantité. La sélection de
+        tous les éléments (par flash ou appui sur une
+        flèche) permet de valider une dépose ou de passer à l'étape de sélection d'emplacement pour une demande. L'étape de sélection d'emplacement se
+        valide directement par flash du bon emplacement ou sélection via la loupe.
+    </div>
+    <div class="row mx-2 align-items-center mb-2">
+        {% set checked = (skipValidationsTransferToTreat == 1) ? 'checked' : '' %}
+        <input class="checkbox" type="checkbox" name="param-transfer-to-treat-skip-validations"
+            {{ checked }}
+               data-param="{{ constant('App\\Entity\\ParametrageGlobal::TRANSFER_TO_TREAT_SKIP_VALIDATIONS') }}"
+               onchange="updateToggledParam($(this))">
+        <span class="font-size-mini pointer ml-2"
+              onclick="$(this).closest('div').find('.checkbox').click();"><span class="bold">Transfert | Transfert à traiter : </span>désactiver les validations</span>
+    </div>
+    <div class="row mx-2 align-items-center mb-2">
+        {% set checked = (skipValidationsManualTransfer == 1) ? 'checked' : '' %}
+        <input class="checkbox" type="checkbox" name="param-manual-transfer-skip-validations"
+            {{ checked }}
+               data-param="{{ constant('App\\Entity\\ParametrageGlobal::MANUAL_TRANSFER_TO_TREAT_SKIP_VALIDATIONS') }}"
+               onchange="updateToggledParam($(this))">
+        <span class="font-size-mini pointer ml-2"
+              onclick="$(this).closest('div').find('.checkbox').click();"><span class="bold">Transfert | Transfert manuel : </span>désactiver les validations</span>
+    </div>
+    <div class="row mx-2 align-items-center mb-2">
+        {% set checked = (skipValidationsPreparations == 1) ? 'checked' : '' %}
+        <input class="checkbox" type="checkbox" name="param-preparation-skip-validations"
+               data-param="{{ constant('App\\Entity\\ParametrageGlobal::PREPARATION_SKIP_VALIDATIONS') }}"
+               {{ checked }}
+               onchange="updateToggledParam($(this))">
+        <span class="font-size-mini pointer ml-2"
+              onclick="$(this).closest('div').find('.checkbox').click();"><span class="bold">Préparation : </span>désactiver les validations</span>
+    </div>
+    <div class="row mx-2 align-items-center mb-2">
+        {% set checked = (skipQuantitiesPreparations == 1) ? 'checked' : '' %}
+        <input class="checkbox" type="checkbox" name="param-preparation-skip-quantities"
+            {{ checked }}
+               data-param="{{ constant('App\\Entity\\ParametrageGlobal::PREPARATION_SKIP_QUANTITIES') }}"
+               onchange="updateToggledParam($(this))">
+        <span class="font-size-mini pointer ml-2"
+              onclick="$(this).closest('div').find('.checkbox').click();"><span class="bold">Préparation : </span>désactiver les confirmations de quantité</span>
+    </div>
+    <div class="row mx-2 align-items-center mb-2">
+        {% set checked = (skipValidationsLivraisons == 1) ? 'checked' : '' %}
+        <input class="checkbox" type="checkbox" name="param-livraison-skip-validations"
+            {{ checked }}
+               data-param="{{ constant('App\\Entity\\ParametrageGlobal::LIVRAISON_SKIP_VALIDATIONS') }}"
+               onchange="updateToggledParam($(this))">
+        <span class="font-size-mini pointer ml-2"
+              onclick="$(this).closest('div').find('.checkbox').click();"><span class="bold">Livraison : </span>désactiver les validations</span>
+    </div>
+    <div class="row mx-2 align-items-center mb-4">
+        {% set checked = (skipQuantitiesLivraisons == 1) ? 'checked' : '' %}
+        <input class="checkbox" type="checkbox" name="param-livraison-skip-quantities"
+            {{ checked }}
+               data-param="{{ constant('App\\Entity\\ParametrageGlobal::LIVRAISON_SKIP_QUANTITIES') }}"
+               onchange="updateToggledParam($(this))">
+        <span class="font-size-mini pointer ml-2"
+              onclick="$(this).closest('div').find('.checkbox').click();"><span class="bold">Livraison : </span>désactiver les confirmations de quantité</span>
+    </div>
+    <p class="bold">Transfert à traiter</p>
+    <hr class="thick-line">
+    <div class="row my-2">
+        <div class="col-12">
+            {% set checked = (displayReferencesInTransferCard == 1) ? 'checked' : '' %}
+            <label class="switch">
+                <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-display-references-in-card"
+                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::TRANSFER_DISPLAY_REFERENCES_ON_CARDS') }}"
+                       onchange="updateToggledParam($(this))">
+                <span class="slider round"></span>
+            </label>
+            <label class="pl-1" for="param-display-references-in-card">Afficher les références contenues sur les étiquettes de transfert</label>
+        </div>
+    </div>
+    <div class="row my-2">
+        <div class="col-12">
+            {% set checked = (allowFreeDropTransfer == 1) ? 'checked' : '' %}
+            <label class="switch">
+                <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-allow-free-drop"
+                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::TRANSFER_FREE_DROP') }}"
+                       onchange="updateToggledParam($(this))">
+                <span class="slider round"></span>
+            </label>
+            <label class="pl-1" for="param-allow-free-drop">Autoriser la dépose des articles sur un emplacement libre</label>
+        </div>
+    </div>
+    <p class="bold mt-4">Préparation</p>
+    <hr class="thick-line">
+    <div class="row my-2 mb-3">
+        <div class="col-12">
+            {% set checked = (displayArticleSelectionWithoutManual == 1) ? 'checked' : '' %}
+            <label class="switch">
+                <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-display-articles-without-manual"
+                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::PREPARATION_DISPLAY_ARTICLES_WITHOUT_MANUAL') }}"
+                       onchange="updateToggledParam($(this))">
+                <span class="slider round"></span>
+            </label>
+            <label class="pl-1" for="param-display-articles-without-manual">Afficher l'écran de suggestion d'article sans sélection manuelle de l'article</label>
+        </div>
+    </div>
+</div>
