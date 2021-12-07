@@ -265,8 +265,7 @@ function initializePacksTable(dispatchId, isEdit) {
                 const $relatedTarget = $(event.relatedTarget);
 
                 const wasPackSelect = $target.closest(`td`).find(`select[name="pack"]`).exists();
-                const wasCommentSelect = $target.closest(`.wii-one-line-wysiwyg-wrapper`).exists() ||
-                    $relatedTarget.closest('.wii-one-line-wysiwyg-popover').exists();
+                const wasCommentSelect = $relatedTarget.closest('.wii-one-line-wysiwyg-popover').exists();
                 if ((event.relatedTarget && $.contains(this, event.relatedTarget))
                     || $relatedTarget.is(`button`)
                     || wasPackSelect
@@ -386,8 +385,6 @@ function initializePacksTable(dispatchId, isEdit) {
             if(event.keyCode === tabulationKeyCode) {
                 event.preventDefault();
                 event.stopPropagation();
-
-                savePackLine(dispatchId, $(this).closest(`tr`));
 
                 const $nextRow = $(this).closest(`tr`).next();
                 if($nextRow.find(`.add-pack-row`).exists()) {

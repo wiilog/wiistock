@@ -1,3 +1,10 @@
+///
+/// Ce fichier étant utilisé sur les dashboards et donc possiblement
+/// sur MagicInfo, les opérateurs suivants ne peuvent pas être utilisés
+///  - ?? à remplacer par ||
+///  - ... dans les objets, à remplacer par un ajout "manuel
+///
+
 let currentChartsFontSize;
 let fontSizeYAxes;
 
@@ -1194,7 +1201,7 @@ function resetColorPickersElementsToForm($modal, data) {
     $colorPickerAccordion.removeClass('d-none');
 
     if(data.separateType) {
-        if ((data.chartColors && (data.handlingTypes ?? data.dispatchTypes))) {
+        if ((data.chartColors && (data.handlingTypes || data.dispatchTypes))) {
             for (let key in data.chartColors) {
                 $chartColorPickersContainer.append(generateColorPickerElement(data, key));
             }
