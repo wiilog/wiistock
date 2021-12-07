@@ -209,7 +209,9 @@ function savePackLine(dispatchId, $row, async = true) {
                 async,
                 success: response => {
                     $row.find(`.delete-pack-row`).data(`id`, response.id);
-                    showBSAlert(response.msg, response.success ? `success` : `danger`);
+                    if(!response.success) {
+                        showBSAlert(response.msg, `danger`);
+                    }
 
                     $row.data(`data`, JSON.stringify(data));
                 },
@@ -265,11 +267,9 @@ function initializePacksTable(dispatchId, isEdit) {
                 const $relatedTarget = $(event.relatedTarget);
 
                 const wasPackSelect = $target.closest(`td`).find(`select[name="pack"]`).exists();
-                const wasCommentSelect = $relatedTarget.closest('.wii-one-line-wysiwyg-popover').exists();
                 if ((event.relatedTarget && $.contains(this, event.relatedTarget))
                     || $relatedTarget.is(`button.delete-pack-row`)
-                    || wasPackSelect
-                    || wasCommentSelect) {
+                    || wasPackSelect) {
                     return;
                 }
 
