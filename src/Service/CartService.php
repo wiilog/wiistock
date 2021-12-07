@@ -272,10 +272,15 @@ class CartService {
                 ->map(fn($referenceData) => $referenceData['reference'])
                 ->toArray()
         );
+
         foreach ($cart as $referenceData) {
             $referenceId = $referenceData['reference'];
             $quantity = $referenceData['quantity'] ?? null;
             $reference = $references[$referenceId];
+
+            $targetLocationPicking = isset($referenceData['targetLocationPicking'])
+                ? $entityManager->find(Emplacement::class, $referenceData['targetLocationPicking'])
+                : null;
             if($quantity) {
                 if ($request instanceof Demande) {
                     /** @var DeliveryRequestReferenceLine|null $alreadyInRequest */
@@ -288,7 +293,8 @@ class CartService {
                     } else {
                         $deliveryRequestLine = (new DeliveryRequestReferenceLine())
                             ->setReference($reference)
-                            ->setQuantityToPick($quantity);
+                            ->setQuantityToPick($quantity)
+                            ->setTargetLocationPicking($targetLocationPicking);
 
                         $request->addReferenceLine($deliveryRequestLine);
                     }

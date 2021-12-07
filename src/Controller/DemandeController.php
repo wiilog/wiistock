@@ -305,7 +305,8 @@ class DemandeController extends AbstractController
      */
     public function show(EntityManagerInterface $entityManager,
                          DemandeLivraisonService $demandeLivraisonService,
-                         Demande $demande): Response {
+                         Demande $demande,
+                         EntityManagerInterface $manager): Response {
 
         $statutRepository = $entityManager->getRepository(Statut::class);
 
@@ -315,6 +316,7 @@ class DemandeController extends AbstractController
             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
             'finished' => ($demande->getStatut()->getNom() === Demande::STATUT_A_TRAITER),
             'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande),
+            'showTargetLocationPicking' => $manager->getRepository(ParametrageGlobal::class)->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION)
         ]);
     }
 
@@ -328,9 +330,10 @@ class DemandeController extends AbstractController
         $rowsRC = [];
         foreach ($referenceLines as $line) {
             $rowsRC[] = [
-                "Référence" => ($line->getReference()->getReference() ? $line->getReference()->getReference() : ''),
-                "Libellé" => ($line->getReference()->getLibelle() ? $line->getReference()->getLibelle() : ''),
-                "Emplacement" => ($line->getReference()->getEmplacement() ? $line->getReference()->getEmplacement()->getLabel() : ' '),
+                "reference" => $line->getReference()->getReference() ?: '',
+                "label" => $line->getReference()->getLibelle() ?: '',
+                "location" => FormatHelper::location($line->getReference()->getEmplacement()),
+                "targetLocationPicking" => FormatHelper::location($line->getTargetLocationPicking()),
                 "quantityToPick" => $line->getQuantityToPick() ?? '',
                 "barcode" => $line->getReference() ? $line->getReference()->getBarCode() : '',
                 "error" => $line->getReference()->getQuantiteDisponible() < $line->getQuantityToPick()
@@ -352,9 +355,12 @@ class DemandeController extends AbstractController
         foreach ($articleLines as $line) {
             $article = $line->getArticle();
             $rowsCA[] = [
-                "Référence" => ($article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
-                "Libellé" => ($article->getLabel() ?: ''),
-                "Emplacement" => ($article->getEmplacement() ? $article->getEmplacement()->getLabel() : ' '),
+                "reference" => $article->getArticleFournisseur()->getReferenceArticle()
+                    ? $article->getArticleFournisseur()->getReferenceArticle()->getReference()
+                    : '',
+                "label" => $article->getLabel() ?: '',
+                "location" => FormatHelper::location($article->getEmplacement()),
+                "targetLocationPicking" => FormatHelper::location($line->getTargetLocationPicking()),
                 "quantityToPick" => $line->getQuantityToPick() ?: '',
                 "barcode" => $article->getBarCode() ?? '',
                 "error" => $article->getQuantite() < $line->getQuantityToPick() && $demande->getStatut()->getCode() === Demande::STATUT_BROUILLON,
@@ -394,7 +400,7 @@ class DemandeController extends AbstractController
 
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
-            $resp = $refArticleDataService->addRefToDemand(
+            $resp = $refArticleDataService->addReferenceToRequest(
                 $data,
                 $referenceArticle,
                 $currentUser,
