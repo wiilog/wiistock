@@ -1194,7 +1194,7 @@ function resetColorPickersElementsToForm($modal, data) {
     $colorPickerAccordion.removeClass('d-none');
 
     if(data.separateType) {
-        if ((data.chartColors && (data.handlingTypes ?? data.dispatchTypes))) {
+        if ((data.chartColors && (data.handlingTypes || data.dispatchTypes))) {
             for (let key in data.chartColors) {
                 $chartColorPickersContainer.append(generateColorPickerElement(data, key));
             }
