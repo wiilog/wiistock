@@ -416,6 +416,7 @@ class ImportService
             else if ($throwable instanceof UniqueConstraintViolationException) {
                 $message = 'Une autre entité est en cours de création, veuillez réessayer.';
             } else {
+                dump($throwable);
                 $message = 'Une erreur est survenue.';
                 $file = $throwable->getFile();
                 $line = $throwable->getLine();
@@ -1766,7 +1767,7 @@ class ImportService
             }
         }
 
-        if ($data['dateMaxTime']) {
+        if (isset($data['dateMaxTime'])) {
             if (preg_match("/\d+:[0-5]\d/", $data['dateMaxTime'])) {
                 $location->setDateMaxTime($data['dateMaxTime']);
             } else {
@@ -1851,6 +1852,7 @@ class ImportService
         }
 
         $this->em->persist($location);
+
         $this->updateStats($stats, $isNewEntity);
 
         return $location;
