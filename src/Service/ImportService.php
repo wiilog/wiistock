@@ -1555,8 +1555,9 @@ class ImportService
         $requester = isset($data['requester']) && $data['requester'] ? $users->findOneBy(['username' => $data['requester']]) : $utilisateur;
         $destination = $data['destination'] ? $locations->findOneBy(['label' => $data['destination']]) : null;
         $categorieStatus = $categorieStatusRepository->findOneBy(["nom" => CategorieStatut::DEM_LIVRAISON]);
-        $availableStatues = Stream::from($statuses->findAvailableStatuesForDeliveryImport($categorieStatus))
+        $availableStatuses = Stream::from($statuses->findAvailableStatuesForDeliveryImport($categorieStatus))
             ->flatten()
+            ->map(fn($status) => strtolower($status))
             ->values();
 
         $type = $data['type'] ? $types->findOneByCategoryLabelAndLabel(CategoryType::DEMANDE_LIVRAISON, $data['type']) : null;
@@ -1602,7 +1603,7 @@ class ImportService
             $request->setType($type);
         }
 
-        if (!in_array($data['status'], $availableStatues)) {
+        if (!in_array(strtolower($data['status']), $availableStatuses)) {
             $this->throwError('Statut inconnu (valeurs possibles : brouillon, à traiter).');
         } else if (!$request->getStatut()) {
             $request->setStatut($status);

@@ -56,7 +56,7 @@ function startPicking($button, managementType) {
         $.post(path, JSON.stringify(ligneArticleId), function (html) {
             $('#splittingContent').html(html);
             let tableSplittingArticlesConfig = {
-                'lengthMenu': [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'tous']],
+                'lengthMenu': [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'Tout']],
                 domConfig: {
                     needsPaginationRemoval: true
                 },
