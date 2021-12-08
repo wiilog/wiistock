@@ -23,6 +23,7 @@ use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Entity\CategorieCL;
+use App\Helper\FormatHelper;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 use DateTime;
@@ -42,11 +43,15 @@ class ArticleDataService
 	private $clWantedOnLabel;
 	private $clIdWantedOnLabel;
 	private $typeCLOnLabel;
-	private $freeFieldService;
+
+    /** @Required */
+    public FreeFieldService $freeFieldService;
+
     private $visibleColumnService;
 
-    public function __construct(FreeFieldService $champLibreService,
-                                RouterInterface $router,
+    private ?array $freeFieldsConfig = null;
+
+    public function __construct(RouterInterface $router,
                                 UserService $userService,
                                 RefArticleDataService $refArticleDataService,
                                 EntityManagerInterface $entityManager,
@@ -57,7 +62,6 @@ class ArticleDataService
         $this->entityManager = $entityManager;
         $this->userService = $userService;
         $this->router = $router;
-        $this->freeFieldService = $champLibreService;
         $this->visibleColumnService = $visibleColumnService;
     }
 
@@ -371,17 +375,10 @@ class ArticleDataService
 
     public function dataRowArticle(Article $article, Reception $reception = null)
     {
-        $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
         $deliveryRequestRepository = $this->entityManager->getRepository(Demande::class);
-        $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
-        $categorieCL = $categorieCLRepository->findOneBy(['label' => CategorieCL::ARTICLE]);
-
-        $category = CategoryType::ARTICLE;
-        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
 
         $url['edit'] = $this->router->generate('demande_article_edit', ['id' => $article->getId()]);
         $status = $article->getStatut() ? $article->getStatut()->getNom() : 'Non défini';
-
 
         $supplierArticle = $article->getArticleFournisseur();
         $referenceArticle = $supplierArticle ? $supplierArticle->getReferenceArticle() : null;
@@ -391,6 +388,10 @@ class ArticleDataService
         $hasPairing = !$article->getSensorMessages()->isEmpty() || !$article->getPairings()->isEmpty();
 
         $lastDeliveryRequest = $deliveryRequestRepository->findOneByArticle($article, $reception);
+
+        if (!isset($this->freeFieldsConfig)) {
+            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::ARTICLE, CategoryType::ARTICLE);
+        }
 
         $row = [
             "id" => $article->getId() ?? "Non défini",
@@ -423,13 +424,10 @@ class ArticleDataService
             ]),
         ];
 
-        foreach ($freeFields as $field) {
-            $freeFieldId = $field["id"];
+        foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
             $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
-            $row[$freeFieldName] = $this->freeFieldService->serializeValue([
-                "valeur" => $article->getFreeFieldValue($freeFieldId),
-                "typage" => $field["typage"],
-            ]);
+            $freeFieldValue = $article->getFreeFieldValue($freeFieldId);
+            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField);
         }
 
         return $row;

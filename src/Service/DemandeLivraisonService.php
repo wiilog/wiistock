@@ -67,6 +67,8 @@ class DemandeLivraisonService
     /** @Required */
     public NotificationService $notificationService;
 
+    private ?array $freeFieldsConfig = null;
+
     public function __construct(FreeFieldService $freeFieldService,
                                 TokenStorageInterface $tokenStorage,
                                 StringService $stringService,
@@ -94,7 +96,7 @@ class DemandeLivraisonService
         $this->appURL = $appURL;
     }
 
-    public function getDataForDatatable($params = null, $statusFilter = null, $receptionFilter = null)
+    public function getDataForDatatable($params = null, $statusFilter = null, $receptionFilter = null, Utilisateur $user)
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $demandeRepository = $this->entityManager->getRepository(Demande::class);
@@ -125,33 +127,46 @@ class DemandeLivraisonService
         ];
     }
 
-    public function dataRowDemande(Demande $demande)
-    {
+    public function dataRowDemande(Demande $demande): array {
         $idDemande = $demande->getId();
         $url = $this->router->generate('demande_show', ['id' => $idDemande]);
 
         $prepas = Stream::from($demande->getPreparations())
-                ->filter(fn(Preparation $preparation) => $preparation->getPairings()->count() > 0)
-                ->first();
+            ->filter(fn(Preparation $preparation) => $preparation->getPairings()->count() > 0)
+            ->first();
         $pairing = $prepas ? $prepas->getPairings()->first() : null;
         $sensorCode = $pairing ? $pairing->getSensorWrapper()->getName() : null;
-        return [
-            'Date' => $demande->getDate() ? $demande->getDate()->format('d/m/Y') : '',
-            'Demandeur' => FormatHelper::deliveryRequester($demande),
-            'Numéro' => $demande->getNumero() ?? '',
-            'Statut' => $demande->getStatut() ? $demande->getStatut()->getNom() : '',
-            'Type' => $demande->getType() ? $demande->getType()->getLabel() : '',
-            'Actions' => $this->templating->render('demande/datatableDemandeRow.html.twig',
-                [
-                    'idDemande' => $idDemande,
-                    'url' => $url,
-                ]
-            ),
+
+        if (!isset($this->freeFieldsConfig)) {
+            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::DEMANDE_LIVRAISON, CategoryType::DEMANDE_LIVRAISON);
+        }
+
+        $row = [
+            'createdAt' => FormatHelper::datetime($demande->getCreatedAt()),
+            'validatedAt' => FormatHelper::datetime($demande->getValidatedAt()),
+            'destination' => FormatHelper::location($demande->getDestination()),
+            'comment' => $demande->getCommentaire(),
+            'requester' => FormatHelper::deliveryRequester($demande),
+            'number' => $demande->getNumero() ?? '',
+            'status' => FormatHelper::status($demande->getStatut()),
+            'type' => FormatHelper::type($demande->getType()),
+            'actions' => $this->templating->render('demande/datatableDemandeRow.html.twig', [
+                'idDemande' => $idDemande,
+                'url' => $url,
+            ]),
             'pairing' => $this->templating->render('pairing-icon.html.twig', [
                 'sensorCode' => $sensorCode,
                 'hasPairing' => (bool)$pairing,
             ]),
         ];
+
+        foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
+            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
+            $freeFieldValue = $demande->getFreeFieldValue($freeFieldId);
+            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField);
+        }
+
+        return $row;
     }
 
     /**

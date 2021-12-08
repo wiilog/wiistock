@@ -62,6 +62,8 @@ class ArrivageService {
     /** @Required */
     public VisibleColumnService $visibleColumnService;
 
+    private ?array $freeFieldsConfig = null;
+
     public function getDataForDatatable(InputBag $params, $userId) {
         $arrivalRepository = $this->entityManager->getRepository(Arrivage::class);
         $supFilterRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -86,27 +88,15 @@ class ArrivageService {
         ];
     }
 
-    public function dataRowArrivage($arrival)
+    public function dataRowArrivage(Arrivage $arrival)
     {
         $url = $this->router->generate('arrivage_show', [
             'id' => $arrival->getId(),
         ]);
         $arrivalRepository = $this->entityManager->getRepository(Arrivage::class);
-        $categoryFFRepository = $this->entityManager->getRepository(CategorieCL::class);
-        $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
-        $categoryFF = $categoryFFRepository->findOneBy(['label' => CategorieCL::ARRIVAGE]);
 
-        $category = CategoryType::ARRIVAGE;
-        $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
-
-        $rowCL = [];
-        /** @var FreeField $freeField */
-        foreach ($freeFields as $freeField) {
-            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeField['id']);
-            $rowCL[$freeFieldName] = $this->freeFieldService->serializeValue([
-                'valeur' => $arrival->getFreeFieldValue($freeField['id']),
-                "typage" => $freeField['typage'],
-            ]);
+        if (!isset($this->freeFieldsConfig)) {
+            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::ARRIVAGE, CategoryType::ARRIVAGE);
         }
 
         $acheteursUsernames = [];
@@ -142,7 +132,13 @@ class ArrivageService {
             )
         ];
 
-        return array_merge($rowCL, $row);
+        foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
+            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
+            $freeFieldValue = $arrival->getFreeFieldValue($freeFieldId);
+            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField);
+        }
+
+        return $row;
     }
 
     public function sendArrivalEmails(Arrivage $arrival, array $emergencies = []): void {
@@ -506,15 +502,14 @@ class ArrivageService {
         return $location;
     }
 
-    public function putArrivalLine($handle,
-                                    CSVExportService $csvService,
-                                    FreeFieldService $freeFieldService,
-                                    array $ffConfig,
-                                    array $arrival,
-                                    array $buyersByArrival,
-                                    array $natureLabels,
-                                    array $packs,
-                                    array $fieldsParam) {
+    public function putArrivalLine(                 $handle,
+                                   CSVExportService $csvService,
+                                   array            $freeFieldsConfig,
+                                   array            $arrival,
+                                   array            $buyersByArrival,
+                                   array            $natureLabels,
+                                   array            $packs,
+                                   array            $fieldsParam) {
         $id = (int)$arrival['id'];
 
         $line = [
@@ -547,11 +542,8 @@ class ArrivageService {
             $line[] = $packs[$id][$natureLabel] ?? 0;
         }
 
-        foreach($ffConfig["freeFieldIds"] as $freeFieldId) {
-            $line[] = $freeFieldService->serializeValue([
-                "typage" => $ffConfig["freeFieldsIdToTyping"][$freeFieldId],
-                "valeur" => $arrival["freeFields"][$freeFieldId] ?? ""
-            ]);
+        foreach($freeFieldsConfig["freeFields"] as $freeFieldId => $freeField) {
+            $line[] = FormatHelper::freeField($arrival["freeFields"][$freeFieldId] ?? '', $freeField);
         }
 
         $csvService->putLine($handle, $line);

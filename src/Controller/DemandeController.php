@@ -524,7 +524,6 @@ class DemandeController extends AbstractController
             $articleLineRepository = $entityManager->getRepository(DeliveryRequestArticleLine::class);
 
             $demandes = $demandeRepository->findByDates($dateTimeMin, $dateTimeMax);
-
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_LIVRAISON]);
 
             // en-têtes champs fixes
@@ -569,8 +568,7 @@ class DemandeController extends AbstractController
                     $livraisonOrders,
                     $articleLines,
                     $referenceLines,
-                    $freeFieldsConfig,
-                    $freeFieldService
+                    $freeFieldsConfig
                 ) {
                     $rows = [];
                     $demandeId = $demande->getId();
@@ -595,12 +593,9 @@ class DemandeController extends AbstractController
                         $demandeData[] = $availableQuantity;
                         $demandeData[] = $line->getQuantityToPick();
 
-                        $freeFields = $demande->getFreeFields();
-                        foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
-                            $demandeData[] = $freeFieldService->serializeValue([
-                                'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
-                                'valeur' => $freeFields[$freeFieldId] ?? ''
-                            ]);
+                        $freeFieldValues = $demande->getFreeFields();
+                        foreach($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
+                            $demandeData[] = FormatHelper::freeField($freeFieldValues[$freeFieldId] ?? '', $freeField);
                         }
                         $rows[] = $demandeData;
                     }
@@ -618,12 +613,9 @@ class DemandeController extends AbstractController
                         $demandeData[] = '';
                         $demandeData[] = $article->getQuantite();
                         $demandeData[] = $line->getQuantityToPick();
-                        $freeFields = $demande->getFreeFields();
-                        foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
-                            $demandeData[] = $freeFieldService->serializeValue([
-                                'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
-                                'valeur' => $freeFields[$freeFieldId] ?? ''
-                            ]);
+
+                        foreach ($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
+                            $demandeData[] = FormatHelper::freeField($demandeData['freeFields'][$freeFieldId] ?? '', $freeField);
                         }
                         $rows[] = $demandeData;
                     }

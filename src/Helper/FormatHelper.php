@@ -6,6 +6,7 @@ use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
+use App\Entity\FreeField;
 use App\Entity\Handling;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;
@@ -57,6 +58,10 @@ class FormatHelper {
     ];
 
     public static function parseDatetime(?string $date, array $expectedFormats = ["Y-m-d H:i:s", "d/m/Y H:i:s", "Y-m-d H:i", "d/m/Y H:i"]): ?DateTimeInterface {
+        if (empty($date)) {
+            return null;
+        }
+
         foreach($expectedFormats as $format) {
             if($out = DateTime::createFromFormat($format, $date)) {
                 return $out;
@@ -183,6 +188,33 @@ class FormatHelper {
 
     public static function html(?string $comment, $else = "") {
         return $comment ? strip_tags($comment) : $else;
+    }
+
+    public static function freeField(?string $value, FreeField $freeField): ?string {
+        $value = ($value ?? $freeField->getDefaultValue()) ?? '';
+        switch ($freeField->getTypage()) {
+            case FreeField::TYPE_DATE:
+            case FreeField::TYPE_DATETIME:
+                $valueStr = str_replace( '/', '-', $value);
+                $valueDate = new DateTime($valueStr ?: 'now');
+                $hourFormat = ($freeField->getTypage() === FreeField::TYPE_DATETIME ? ' H:i' : '');
+                $formatted = $valueDate->format('d/m/Y' . $hourFormat);
+                break;
+            case FreeField::TYPE_BOOL:
+                $formatted = ($value !== '' && $value !== null)
+                    ? self::bool($value == 1)
+                    : '';
+                break;
+            case FreeField::TYPE_LIST_MULTIPLE:
+                $formatted = Stream::explode(';', $value)
+                    ->filter(fn(string $val) => in_array($val, $freeField->getElements() ?: []))
+                    ->join(', ');
+                break;
+            default:
+                $formatted = $value;
+                break;
+        }
+        return $formatted;
     }
 
     public static function messageContent(SensorMessage $sensorMessage) {

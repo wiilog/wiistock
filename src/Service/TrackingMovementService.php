@@ -40,7 +40,10 @@ class TrackingMovementService
     private $security;
     private $entityManager;
     private $attachmentService;
-    private $freeFieldService;
+
+    /** @Required */
+    public FreeFieldService $freeFieldService;
+
     private $locationClusterService;
     private $visibleColumnService;
     private $groupService;
@@ -50,10 +53,11 @@ class TrackingMovementService
 
     private array $stockStatuses = [];
 
+    private ?array $freeFieldsConfig = null;
+
     public function __construct(EntityManagerInterface $entityManager,
                                 LocationClusterService $locationClusterService,
                                 Twig_Environment $templating,
-                                FreeFieldService $freeFieldService,
                                 Security $security,
                                 GroupService $groupService,
                                 VisibleColumnService $visibleColumnService,
@@ -64,7 +68,6 @@ class TrackingMovementService
         $this->security = $security;
         $this->attachmentService = $attachmentService;
         $this->locationClusterService = $locationClusterService;
-        $this->freeFieldService = $freeFieldService;
         $this->visibleColumnService = $visibleColumnService;
         $this->groupService = $groupService;
     }
@@ -126,19 +129,16 @@ class TrackingMovementService
         return $data;
     }
 
-    public function dataRowMouvement(TrackingMovement $movement)
-    {
+    public function dataRowMouvement(TrackingMovement $movement): array {
         $fromColumnData = $this->getFromColumnData($movement);
 
-        $categoryFFRepository = $this->entityManager->getRepository(CategorieCL::class);
-        $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
-
-        $categoryFF = $categoryFFRepository->findOneBy(['label' => CategorieCL::MVT_TRACA]);
-        $category = CategoryType::MOUVEMENT_TRACA;
-        $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
         $trackingPack = $movement->getPack();
 
-        $rows = [
+        if (!isset($this->freeFieldsConfig)) {
+            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::MVT_TRACA, CategoryType::MOUVEMENT_TRACA);
+        }
+
+        $row = [
             'id' => $movement->getId(),
             'date' => FormatHelper::datetime($movement->getDatetime()),
             'code' => FormatHelper::pack($trackingPack),
@@ -170,15 +170,13 @@ class TrackingMovementService
             ])
         ];
 
-        foreach ($freeFields as $freeField) {
-            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeField['id']);
-            $rows[$freeFieldName] = $this->freeFieldService->serializeValue([
-                "valeur" => $movement->getFreeFieldValue($freeField["id"]),
-                "typage" => $freeField["typage"],
-            ]);
+        foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
+            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
+            $freeFieldValue = $movement->getFreeFieldValue($freeFieldId);
+            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField);
         }
 
-        return $rows;
+        return $row;
     }
 
     public function handleGroups(array $data, EntityManagerInterface $entityManager, Utilisateur $operator, DateTime $date): array {
@@ -664,10 +662,9 @@ class TrackingMovementService
         ];
 
         foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
-            $data[] = $freeFieldService->serializeValue([
-                'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
-                'valeur' => $movement['freeFields'][$freeFieldId] ?? ''
-            ]);
+             $freeFieldEntity = $this->entityManager->getRepository(FreeField::class)->find($freeFieldId);
+            $data[] = FormatHelper::freeField($movement['freeFields'][$freeFieldId] ?? '', $freeFieldEntity);
+
         }
         $CSVExportService->putLine($handle, $data);
     }

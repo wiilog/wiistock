@@ -25,9 +25,7 @@ use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\DateService;
 use App\Service\FreeFieldService;
-use App\Service\MailerService;
 use App\Service\UniqueNumberService;
-use App\Service\UserService;
 use App\Service\HandlingService;
 
 use DateTime;
@@ -52,23 +50,6 @@ use Twig\Error\SyntaxError;
  */
 class HandlingController extends AbstractController
 {
-
-    /**
-     * @var UserService
-     */
-    private $userService;
-
-    /**
-     * @var MailerService
-     */
-    private $mailerService;
-
-    public function __construct(UserService $userService,
-                                MailerService $mailerService)
-    {
-        $this->userService = $userService;
-        $this->mailerService = $mailerService;
-    }
 
     /**
      * @Route("/api", name="handling_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
@@ -533,7 +514,7 @@ class HandlingController extends AbstractController
                 $globalTitle,
                 $handlings,
                 $csvHeader,
-                function ($handling) use ($freeFieldService, $freeFieldsConfig, $dateService, $includeDesiredTime, $receivers) {
+                function ($handling) use ($freeFieldsConfig, $dateService, $includeDesiredTime, $receivers) {
 //                    $treatmentDelay = $handling['treatmentDelay'];
 //                    $treatmentDelayInterval = $treatmentDelay ? $dateService->secondsToDateInterval($treatmentDelay) : null;
 //                    $treatmentDelayStr = $treatmentDelayInterval ? $dateService->intervalToStr($treatmentDelayInterval) : '';
@@ -560,16 +541,12 @@ class HandlingController extends AbstractController
                     $row[] = $receiversStr ?? '';
 //                    $row[] = $treatmentDelayStr;
 
-                    foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
-                        $row[] = $freeFieldService->serializeValue([
-                            'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
-                            'valeur' => $handling['freeFields'][$freeFieldId] ?? ''
-                        ]);
+                    foreach($freeFieldsConfig['freeFields'] as $freeFieldId => $freefield) {
+                        $row[] = FormatHelper::freeField($handling['freeFields'][$freeFieldId] ?? '', $freefield);
                     }
 
                     return [$row];
-                }
-            );
+                });
         } else {
             throw new BadRequestHttpException();
         }

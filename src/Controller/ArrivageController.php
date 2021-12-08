@@ -640,7 +640,7 @@ class ArrivageController extends AbstractController {
 
         $arrivals = $arrivageRepository->iterateBetween($from, $to);
 
-        $ffConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARRIVAGE]);
+        $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARRIVAGE]);
 
         $packs = $packRepository->countColisByArrivageAndNature($from->format($FORMAT), $to->format($FORMAT));
         $buyersByArrival = $utilisateurRepository->getUsernameBuyersGroupByArrival();
@@ -673,12 +673,12 @@ class ArrivageController extends AbstractController {
             $baseHeader[] = 'Emplacement de dépose';
         }
 
-        $header = array_merge($baseHeader, $natureLabels, $ffConfig["freeFieldsHeader"]);
+        $header = array_merge($baseHeader, $natureLabels, $freeFieldsConfig["freeFieldsHeader"]);
         $today = new DateTime();
         $today = $today->format("d-m-Y H:i:s");
-        return $csvService->streamResponse(function($output) use ($arrivageDataService, $csvService, $fieldsParam, $freeFieldService, $ffConfig, $arrivals, $buyersByArrival, $natureLabels, $packs) {
+        return $csvService->streamResponse(function($output) use ($arrivageDataService, $csvService, $fieldsParam, $freeFieldService, $freeFieldsConfig, $arrivals, $buyersByArrival, $natureLabels, $packs) {
             foreach($arrivals as $arrival) {
-                $arrivageDataService->putArrivalLine($output, $csvService, $freeFieldService, $ffConfig, $arrival, $buyersByArrival, $natureLabels, $packs, $fieldsParam);
+                $arrivageDataService->putArrivalLine($output, $csvService, $freeFieldsConfig, $arrival, $buyersByArrival, $natureLabels, $packs, $fieldsParam);
             }
         }, "export-arrivages-$today.csv", $header);
     }
