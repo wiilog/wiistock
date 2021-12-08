@@ -541,8 +541,8 @@ class HandlingController extends AbstractController
                     $row[] = $receiversStr ?? '';
 //                    $row[] = $treatmentDelayStr;
 
-                    foreach($freeFieldsConfig['freeFields'] as $freeFieldId => $freefield) {
-                        $row[] = FormatHelper::freeField($handling['freeFields'][$freeFieldId] ?? '', $freefield);
+                    foreach($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
+                        $row[] = FormatHelper::freeField($handling['freeFields'][$freeFieldId] ?? '', $freeField);
                     }
 
                     return [$row];

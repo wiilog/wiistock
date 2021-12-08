@@ -623,7 +623,6 @@ class TrackingMovementService
 
     public function putMovementLine($handle,
                                     CSVExportService $CSVExportService,
-                                    FreeFieldService $freeFieldService,
                                     array $movement,
                                     array $attachement,
                                     array $freeFieldsConfig)
@@ -661,10 +660,8 @@ class TrackingMovementService
             $movement['packParent'],
         ];
 
-        foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
-             $freeFieldEntity = $this->entityManager->getRepository(FreeField::class)->find($freeFieldId);
-            $data[] = FormatHelper::freeField($movement['freeFields'][$freeFieldId] ?? '', $freeFieldEntity);
-
+        foreach ($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
+            $data[] = FormatHelper::freeField($movement['freeFields'][$freeFieldId] ?? '', $freeField);
         }
         $CSVExportService->putLine($handle, $data);
     }
