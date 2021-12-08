@@ -94,6 +94,8 @@ class MobileApiService {
     public function getMobileParameters(ParametrageGlobalRepository $globalsParameters) {
         return [
             "skipValidationsManualTransfer" => $globalsParameters->getOneParamByLabel(ParametrageGlobal::MANUAL_TRANSFER_TO_TREAT_SKIP_VALIDATIONS),
+            "skipValidationsLivraisons" => $globalsParameters->getOneParamByLabel(ParametrageGlobal::LIVRAISON_SKIP_VALIDATIONS),
+            "skipQuantitiesLivraisons" => $globalsParameters->getOneParamByLabel(ParametrageGlobal::LIVRAISON_SKIP_QUANTITIES),
         ];
     }
 }
