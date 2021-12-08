@@ -110,8 +110,13 @@ class TypeController extends AbstractController
             if (!$labelExist) {
                 $type = new Type();
 
-                $typeService->editType($type, $entityManager, $data);
-
+                $error = $typeService->editType($type, $entityManager, $data);
+                if($error) {
+                    return $this->json([
+                        "success" => false,
+                        "msg" => $error,
+                    ]);
+                }
                 $em->persist($type);
                 $em->flush();
 

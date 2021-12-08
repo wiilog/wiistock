@@ -26,6 +26,7 @@ class Import
     const ENTITY_RECEPTION = 'RECEP';
     const ENTITY_USER = 'USER';
     const ENTITY_DELIVERY = 'DELIVERY';
+    const ENTITY_LOCATION = 'LOCATION';
 
     const ENTITY_LABEL = [
         self::ENTITY_ART=>"Articles",
@@ -35,6 +36,7 @@ class Import
         self::ENTITY_ART_FOU => "Articles fournisseurs",
         self::ENTITY_USER => "Utilisateurs",
         self::ENTITY_DELIVERY => "Livraisons",
+        self::ENTITY_LOCATION => "Emplacements",
     ];
 
 	const FIELDS_NEEDED = [
@@ -77,7 +79,10 @@ class Import
             'status',
             'articleReference',
             'quantityDelivery',
-        ]
+        ],
+        self::ENTITY_LOCATION => [
+            'name',
+        ],
     ];
 
 	const FIELD_PK = [
@@ -88,6 +93,7 @@ class Import
         self::ENTITY_RECEPTION => null,
         self::ENTITY_USER => null,
         self::ENTITY_DELIVERY => null,
+        self::ENTITY_LOCATION => 'name'
     ];
 
 	const FIELDS_ENTITY = [
@@ -147,7 +153,17 @@ class Import
         'articleCode' => 'Code article',
         'articleReference' => 'Référence',
         'requester' => 'Demandeur',
-        'targetLocationPicking' => 'Emplacement cible picking'
+
+        'targetLocationPicking' => 'Emplacement cible picking',
+        'name' => 'Nom',
+        'description' => 'Description',
+        'dateMaxTime' => 'Délais traça HH:MM',
+        'allowedPackNatures' => 'Natures de colis autorisées',
+        'allowedDeliveryTypes' => 'Types de livraisons autorisés',
+        'allowedCollectTypes' => 'Types de collectes autorisés',
+        'isDeliveryPoint' => 'Point de livraison',
+        'isOngoingVisibleOnMobile' => 'Encours visible nomade',
+        'isActive' => 'Actif'
 	];
 
 	public CONST IMPORT_FIELDS_TO_FIELDS_PARAM = [
