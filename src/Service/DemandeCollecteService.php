@@ -268,16 +268,13 @@ class DemandeCollecteService
 
     public function serialiseExportRow(Collecte $collect,
                                        array $freeFieldsConfig,
-                                       FreeFieldService $freeFieldService,
                                        callable $getSpecificColumn) {
-
-        $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
         $collecteData = $collect->serialize();
 
         $freeFieldsData = [];
-        foreach($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
-            $freeField = $freeFieldsRepository->find($freeFieldId);
-            $freeFieldsData[] = FormatHelper::freeField($collecteData['freeFields'][$freeFieldId] ?? '',$freeField);
+
+        foreach($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
+            $freeFieldsData[] = FormatHelper::freeField($collecteData['freeFields'][$freeFieldId] ?? '', $freeField);
         }
 
         unset($collecteData['freeFields']);

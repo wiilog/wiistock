@@ -522,7 +522,6 @@ class DemandeController extends AbstractController
             $livraisonRepository = $entityManager->getRepository(Livraison::class);
             $referenceLineRepository = $entityManager->getRepository(DeliveryRequestReferenceLine::class);
             $articleLineRepository = $entityManager->getRepository(DeliveryRequestArticleLine::class);
-            $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
 
             $demandes = $demandeRepository->findByDates($dateTimeMin, $dateTimeMax);
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_LIVRAISON]);
@@ -569,9 +568,7 @@ class DemandeController extends AbstractController
                     $livraisonOrders,
                     $articleLines,
                     $referenceLines,
-                    $freeFieldsConfig,
-                    $freeFieldService,
-                    $freeFieldsRepository
+                    $freeFieldsConfig
                 ) {
                     $rows = [];
                     $demandeId = $demande->getId();
@@ -596,9 +593,9 @@ class DemandeController extends AbstractController
                         $demandeData[] = $availableQuantity;
                         $demandeData[] = $line->getQuantityToPick();
 
-                        foreach($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
-                            $freeField = $freeFieldsRepository->find($freeFieldId);
-                            $demandeData[] = FormatHelper::freeField($demandeData['freeFields'][$freeFieldId] ?? '',$freeField);
+                        $freeFieldValues = $demande->getFreeFields();
+                        foreach($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
+                            $demandeData[] = FormatHelper::freeField($freeFieldValues[$freeFieldId] ?? '', $freeField);
                         }
                         $rows[] = $demandeData;
                     }
@@ -617,8 +614,7 @@ class DemandeController extends AbstractController
                         $demandeData[] = $article->getQuantite();
                         $demandeData[] = $line->getQuantityToPick();
 
-                        foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
-                            $freeField = $freeFieldsRepository->find($freeFieldId);
+                        foreach ($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
                             $demandeData[] = FormatHelper::freeField($demandeData['freeFields'][$freeFieldId] ?? '', $freeField);
                         }
                         $rows[] = $demandeData;

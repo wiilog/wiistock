@@ -612,12 +612,7 @@ class ArticleController extends AbstractController
                                       FreeFieldService $freeFieldService,
                                       CSVExportService $csvService): Response
     {
-        $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
-        $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
-
-        $ffConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARTICLE]);
-        $ffCategory = $categorieCLRepository->findOneBy(['label' => CategorieCL::ARTICLE]);
-        $freeFields = $freeFieldsRepository->findByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, $ffCategory);
+        $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARTICLE], [CategoryType::ARTICLE]);
         $header = array_merge([
             'reference',
             'libelle',
@@ -632,27 +627,27 @@ class ArticleController extends AbstractController
             'date d\'entrée en stock',
             'date de péremption',
             'groupe de visibilité'
-        ], $ffConfig['freeFieldsHeader']);
+        ], $freeFieldsConfig['freeFieldsHeader']);
 
         $today = new DateTime();
         $today = $today->format("d-m-Y H:i:s");
         $user = $this->userService->getUser();
 
-        return $csvService->streamResponse(function($output) use ($freeFields, $entityManager, $csvService, $freeFieldService, $user) {
+        return $csvService->streamResponse(function($output) use ($freeFieldsConfig, $entityManager, $csvService, $freeFieldService, $user) {
             $articleRepository = $entityManager->getRepository(Article::class);
 
             $articles = $articleRepository->iterateAll($user);
             foreach($articles as $article) {
-                $this->putArticleLine($output, $csvService, $article, $freeFields);
+                $this->putArticleLine($output, $csvService, $article, $freeFieldsConfig);
             }
         }, "export-articles-$today.csv", $header);
     }
 
 
-    private function putArticleLine($handle,
+    private function putArticleLine(                 $handle,
                                     CSVExportService $csvService,
-                                    array $article,
-                                    array $freeFields) {
+                                    array            $article,
+                                    array            $freeFieldsConfig) {
         $line = [
             $article['reference'],
             $article['label'],
@@ -669,8 +664,8 @@ class ArticleController extends AbstractController
             $article['visibilityGroup'],
         ];
 
-        foreach($freeFields as $freeField) {
-            $line[] = FormatHelper::freeField($article['freeFields'][$freeField->getId()] ?? '', $freeField);
+        foreach($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
+            $line[] = FormatHelper::freeField($article['freeFields'][$freeFieldId] ?? '', $freeField);
         }
 
         $csvService->putLine($handle, $line);

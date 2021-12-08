@@ -67,6 +67,8 @@ class DemandeLivraisonService
     /** @Required */
     public NotificationService $notificationService;
 
+    private ?array $freeFieldsConfig = null;
+
     public function __construct(FreeFieldService $freeFieldService,
                                 TokenStorageInterface $tokenStorage,
                                 StringService $stringService,
@@ -94,7 +96,7 @@ class DemandeLivraisonService
         $this->appURL = $appURL;
     }
 
-    public function getDataForDatatable($params = null, $statusFilter = null, $receptionFilter = null)
+    public function getDataForDatatable($params = null, $statusFilter = null, $receptionFilter = null, Utilisateur $user)
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $demandeRepository = $this->entityManager->getRepository(Demande::class);
@@ -125,9 +127,7 @@ class DemandeLivraisonService
         ];
     }
 
-    public function dataRowDemande(Demande $demande)
-    {
-        $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
+    public function dataRowDemande(Demande $demande): array {
         $idDemande = $demande->getId();
         $url = $this->router->generate('demande_show', ['id' => $idDemande]);
 
@@ -137,8 +137,9 @@ class DemandeLivraisonService
         $pairing = $prepas ? $prepas->getPairings()->first() : null;
         $sensorCode = $pairing ? $pairing->getSensorWrapper()->getName() : null;
 
-        $categoryFF = $this->entityManager->getRepository(CategorieCL::class)->findOneBy(['label' => CategorieCL::DEMANDE_LIVRAISON]);
-        $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL(CategoryType::DEMANDE_LIVRAISON, $categoryFF);
+        if (!isset($this->freeFieldsConfig)) {
+            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::DEMANDE_LIVRAISON, CategoryType::DEMANDE_LIVRAISON);
+        }
 
         $row = [
             'createdAt' => FormatHelper::datetime($demande->getCreatedAt()),
@@ -149,23 +150,23 @@ class DemandeLivraisonService
             'number' => $demande->getNumero() ?? '',
             'status' => FormatHelper::status($demande->getStatut()),
             'type' => FormatHelper::type($demande->getType()),
-            'actions' => $this->templating->render('demande/datatableDemandeRow.html.twig',
-                [
-                    'idDemande' => $idDemande,
-                    'url' => $url,
-                ]
-            ),
+            'actions' => $this->templating->render('demande/datatableDemandeRow.html.twig', [
+                'idDemande' => $idDemande,
+                'url' => $url,
+            ]),
             'pairing' => $this->templating->render('pairing-icon.html.twig', [
                 'sensorCode' => $sensorCode,
                 'hasPairing' => (bool)$pairing,
             ]),
         ];
 
-        foreach ($freeFields as $freeField) {
-            $freeFieldEntity = $freeFieldsRepository->find($freeField['id']);
-            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeField['id']);
-            $row[$freeFieldName] = FormatHelper::freeField($demande->getFreeFieldValue($freeField["id"]), $freeFieldEntity);
+        foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
+            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
+            $freeFieldValue = $demande->getFreeFieldValue($freeFieldId);
+            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField);
         }
+
+        return $row;
     }
 
     /**

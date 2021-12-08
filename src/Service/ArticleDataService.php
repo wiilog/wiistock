@@ -43,11 +43,15 @@ class ArticleDataService
 	private $clWantedOnLabel;
 	private $clIdWantedOnLabel;
 	private $typeCLOnLabel;
-	private $freeFieldService;
+
+    /** @Required */
+    public FreeFieldService $freeFieldService;
+
     private $visibleColumnService;
 
-    public function __construct(FreeFieldService $champLibreService,
-                                RouterInterface $router,
+    private ?array $freeFieldsConfig = null;
+
+    public function __construct(RouterInterface $router,
                                 UserService $userService,
                                 RefArticleDataService $refArticleDataService,
                                 EntityManagerInterface $entityManager,
@@ -58,7 +62,6 @@ class ArticleDataService
         $this->entityManager = $entityManager;
         $this->userService = $userService;
         $this->router = $router;
-        $this->freeFieldService = $champLibreService;
         $this->visibleColumnService = $visibleColumnService;
     }
 
@@ -372,17 +375,10 @@ class ArticleDataService
 
     public function dataRowArticle(Article $article, Reception $reception = null)
     {
-        $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
         $deliveryRequestRepository = $this->entityManager->getRepository(Demande::class);
-        $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
-        $categorieCL = $categorieCLRepository->findOneBy(['label' => CategorieCL::ARTICLE]);
-
-        $category = CategoryType::ARTICLE;
-        $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
 
         $url['edit'] = $this->router->generate('demande_article_edit', ['id' => $article->getId()]);
         $status = $article->getStatut() ? $article->getStatut()->getNom() : 'Non défini';
-
 
         $supplierArticle = $article->getArticleFournisseur();
         $referenceArticle = $supplierArticle ? $supplierArticle->getReferenceArticle() : null;
@@ -392,6 +388,10 @@ class ArticleDataService
         $hasPairing = !$article->getSensorMessages()->isEmpty() || !$article->getPairings()->isEmpty();
 
         $lastDeliveryRequest = $deliveryRequestRepository->findOneByArticle($article, $reception);
+
+        if (!isset($this->freeFieldsConfig)) {
+            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::ARTICLE, CategoryType::ARTICLE);
+        }
 
         $row = [
             "id" => $article->getId() ?? "Non défini",
@@ -424,11 +424,10 @@ class ArticleDataService
             ]),
         ];
 
-        foreach ($freeFields as $field) {
-            $freeFieldId = $field["id"];
-            $freeFieldEntity = $freeFieldsRepository->find($freeFieldId);
-            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldEntity->getId());
-            $row[$freeFieldName] = FormatHelper::freeField($article->getFreeFieldValue($freeFieldId) ?? '', $freeFieldEntity);
+        foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
+            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
+            $freeFieldValue = $article->getFreeFieldValue($freeFieldId);
+            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField);
         }
 
         return $row;

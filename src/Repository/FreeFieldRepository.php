@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\CategorieCL;
 use App\Entity\FreeField;
 use App\Entity\Type;
 use Doctrine\DBAL\Connection;
@@ -39,20 +40,11 @@ class FreeFieldRepository extends EntityRepository
         return $query->getResult();
     }
 
-    public function getLabelAndIdAndTypage()
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT c.label, c.id, c.typage
-            FROM App\Entity\FreeField c
-            "
-        );
-        return $query->getResult();
-    }
-
-    public function getByCategoryTypeAndCategoryCL($typeCategory, $ffCategory) {
+    public function getByCategoryTypeAndCategoryCL(string $typeCategory, CategorieCL $ffCategory): array {
         return $this->createQueryBuilder("f")
-            ->select("f.id, f.label, f.typage")
+            ->select("f.id AS id")
+            ->addSelect("f.label AS label")
+            ->addSelect("f.typage AS typage")
             ->join("f.type", "t")
             ->join("t.category", "c")
             ->where("c.label = :type")
@@ -63,7 +55,10 @@ class FreeFieldRepository extends EntityRepository
             ->getResult();
     }
 
-    public function findByCategoryTypeAndCategoryCL($typeCategory, $ffCategory)    {
+    /**
+     * @return FreeField[]
+     */
+    public function findByCategoryTypeAndCategoryCL(string $typeCategory, CategorieCL $ffCategory): array {
         return $this->createQueryBuilder("f")
             ->join("f.type", "t")
             ->join("t.category", "c")
@@ -241,12 +236,22 @@ class FreeFieldRepository extends EntityRepository
      * @param string[] $categoryCLLabels
      * @return FreeField[]
      */
-	public function findByFreeFieldCategoryLabels(array $categoryCLLabels)
+	public function findByFreeFieldCategoryLabels(array $categoryCLLabels, ?array $typeCategories = [])
 	{
-		return $this->createQueryBuilder('freeField')
+		$queryBuilder = $this->createQueryBuilder('freeField')
             ->join('freeField.categorieCL', 'categorieCL')
             ->where('categorieCL.label IN (:categoryCLLabels)')
-            ->setParameter('categoryCLLabels', $categoryCLLabels, Connection::PARAM_STR_ARRAY)
+            ->setParameter('categoryCLLabels', $categoryCLLabels, Connection::PARAM_STR_ARRAY);
+
+        if (!empty($typeCategories)) {
+            $queryBuilder
+                ->join("freeField.type", "join_type")
+                ->join("join_type.category", "join_type_category")
+                ->andWhere("join_type_category.label IN (:typeCategories)")
+                ->setParameter('typeCategories', $typeCategories);
+        }
+
+        return $queryBuilder
             ->getQuery()
             ->getResult();
 	}

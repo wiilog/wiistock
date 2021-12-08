@@ -620,13 +620,9 @@ class ReferenceArticleController extends AbstractController
      * @Route("/exporter-refs", name="export_all_refs", options={"expose"=true}, methods="GET|POST")
      */
     public function exportAllRefs(EntityManagerInterface $manager,
-                                  CSVExportService $csvService,
-                                  FreeFieldService $ffService): Response {
-        $ffConfig = $ffService->createExportArrayConfig($manager, [CategorieCL::REFERENCE_ARTICLE]);
-        $freeFieldsRepository = $manager->getRepository(FreeField::class);
-        $categorieCLRepository = $manager->getRepository(CategorieCL::class);
-        $ffCategory = $categorieCLRepository->findOneBy(['label' => CategorieCL::REFERENCE_ARTICLE]);
-        $freeFields = $freeFieldsRepository->findByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, $ffCategory);
+                                  CSVExportService       $csvService,
+                                  FreeFieldService       $freeFieldService): Response {
+        $freeFieldsConfig = $freeFieldService->createExportArrayConfig($manager, [CategorieCL::REFERENCE_ARTICLE], [CategoryType::ARTICLE]);
 
         $header = array_merge([
             'reference',
@@ -650,13 +646,13 @@ class ReferenceArticleController extends AbstractController
             'Labels Fournisseurs',
             'Codes Fournisseurs',
             'Groupe de visibilité'
-        ], $ffConfig['freeFieldsHeader']);
+        ], $freeFieldsConfig['freeFieldsHeader']);
 
         $today = new DateTime();
         $today = $today->format("d-m-Y H:i:s");
         $user = $this->userService->getUser();
 
-        return $csvService->streamResponse(function($output) use ($manager, $csvService, $ffService, $user, $freeFields) {
+        return $csvService->streamResponse(function($output) use ($manager, $csvService, $user, $freeFieldsConfig) {
             $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
             $managersByReference = $manager
                 ->getRepository(Utilisateur::class)
@@ -668,17 +664,17 @@ class ReferenceArticleController extends AbstractController
 
             $references = $referenceArticleRepository->iterateAll($user);
             foreach($references as $reference) {
-                $this->putReferenceLine($output, $csvService, $managersByReference, $reference, $suppliersByReference, $freeFields);
+                $this->putReferenceLine($output, $csvService, $managersByReference, $reference, $suppliersByReference, $freeFieldsConfig);
             }
         }, "export-references-$today.csv", $header);
     }
 
-    private function putReferenceLine($handle,
+    private function putReferenceLine(                 $handle,
                                       CSVExportService $csvService,
-                                      array $managersByReference,
-                                      array $reference,
-                                      array $suppliersByReference,
-                                      array $freeFields) {
+                                      array            $managersByReference,
+                                      array            $reference,
+                                      array            $suppliersByReference,
+                                      array            $freeFieldsConfig) {
         $id = (int)$reference['id'];
         $line = [
             $reference['reference'],
@@ -704,8 +700,8 @@ class ReferenceArticleController extends AbstractController
             $reference['visibilityGroup'],
         ];
 
-        foreach($freeFields as $freeField) {
-            $line[] = FormatHelper::freeField( $reference['freeFields'][$freeField->getId()] ?? '', $freeField);
+        foreach($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
+            $line[] = FormatHelper::freeField( $reference['freeFields'][$freeFieldId] ?? '', $freeField);
         }
 
         $csvService->putLine($handle, $line);

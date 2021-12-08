@@ -7,29 +7,38 @@ use App\Entity\FreeField;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Helper\FormatHelper;
-use Throwable;
+use WiiCommon\Helper\Stream;
 
 class FreeFieldService {
 
     public function createExportArrayConfig(EntityManagerInterface $entityManager,
-                                            array $freeFieldCategoryLabels): array
+                                            array $freeFieldCategoryLabels,
+                                            ?array $typeCategories = []): array
     {
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
-        $freeFields = $freeFieldsRepository->findByFreeFieldCategoryLabels($freeFieldCategoryLabels);
+        $freeFields = $freeFieldsRepository->findByFreeFieldCategoryLabels($freeFieldCategoryLabels, $typeCategories);
 
         $config = [
-            'freeFieldIds' => [],
-            'freeFieldsHeader' => [],
-            'freeFieldsIdToTyping' => []
+            'freeFields' => [],
+            'freeFieldsHeader' => []
         ];
 
         foreach ($freeFields as $freeField) {
-            $config['freeFieldIds'][] = $freeField->getId();
             $config['freeFieldsHeader'][] = $freeField->getLabel();
-            $config['freeFieldsIdToTyping'][$freeField->getId()] = $freeField->getTypage();
+            $config['freeFields'][$freeField->getId()] = $freeField;
         }
 
         return $config;
+    }
+
+    public function getListFreeFieldConfig(EntityManagerInterface $entityManager, string $freeFieldCategoryLabel, string $typeCategoryLabel): array {
+        $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
+        $freeFieldCategoryRepository = $entityManager->getRepository(CategorieCL::class);
+
+        $freeFieldCategory = $freeFieldCategoryRepository->findOneBy(['label' => $freeFieldCategoryLabel]);
+        return Stream::from($freeFieldsRepository->findByCategoryTypeAndCategoryCL($typeCategoryLabel, $freeFieldCategory))
+            ->keymap(fn(FreeField $freeField) => [$freeField->getId(), $freeField])
+            ->toArray();
     }
 
 

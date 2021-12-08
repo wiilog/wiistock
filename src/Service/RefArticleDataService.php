@@ -103,6 +103,8 @@ class RefArticleDataService {
     /** @Required */
     public AttachmentService $attachmentService;
 
+    private ?array $freeFieldsConfig = null;
+
     public function __construct(TokenStorageInterface $tokenStorage,
                                 EntityManagerInterface $entityManager) {
         $this->user = $tokenStorage->getToken() ? $tokenStorage->getToken()->getUser() : null;
@@ -383,12 +385,10 @@ class RefArticleDataService {
         return $response;
     }
 
-    public function dataRowRefArticle(ReferenceArticle $refArticle) {
-        $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
-        $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
-
-        $ffCategory = $categorieCLRepository->findOneBy(['label' => CategorieCL::REFERENCE_ARTICLE]);
-        $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, $ffCategory);
+    public function dataRowRefArticle(ReferenceArticle $refArticle): array {
+        if (!isset($this->freeFieldsConfig)) {
+            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::REFERENCE_ARTICLE, CategoryType::ARTICLE);
+        }
 
         $providerCodes = Stream::from($refArticle->getArticlesFournisseur())
             ->map(function(ArticleFournisseur $articleFournisseur) {
@@ -451,11 +451,10 @@ class RefArticleDataService {
             ),
         ];
 
-        foreach($freeFields as $freeField) {
-            $freeFieldId = $freeField["id"];
-            $freeFieldEntity = $freeFieldsRepository->find($freeFieldId);
+        foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
             $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
-            $row[$freeFieldName] = FormatHelper::freeField($refArticle->getFreeFieldValue($freeFieldId) ?? '', $freeFieldEntity);
+            $freeFieldValue = $refArticle->getFreeFieldValue($freeFieldId);
+            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField);
         }
 
         return $row;

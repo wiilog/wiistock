@@ -49,18 +49,22 @@ class DispatchService {
     private $user;
 
     private $entityManager;
-    private $freeFieldService;
+
+    /** @Required */
+    public FreeFieldService $freeFieldService;
+
     private $translator;
     private $mailerService;
     private $trackingMovementService;
     private $fieldsParamService;
     private $visibleColumnService;
 
+    private ?array $freeFieldsConfig = null;
+
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
                                 EntityManagerInterface $entityManager,
                                 Twig_Environment $templating,
-                                FreeFieldService $champLibreService,
                                 TranslatorInterface $translator,
                                 TrackingMovementService $trackingMovementService,
                                 MailerService $mailerService,
@@ -71,7 +75,6 @@ class DispatchService {
         $this->entityManager = $entityManager;
         $this->router = $router;
         $this->user = $tokenStorage->getToken()->getUser();
-        $this->freeFieldService = $champLibreService;
         $this->translator = $translator;
         $this->mailerService = $mailerService;
         $this->fieldsParamService = $fieldsParamService;
@@ -104,14 +107,12 @@ class DispatchService {
     public function dataRowDispatch(Dispatch $dispatch) {
 
         $url = $this->router->generate('dispatch_show', ['id' => $dispatch->getId()]);
-
-        $categoryFFRepository = $this->entityManager->getRepository(CategorieCL::class);
-        $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
-
-        $categoryFF = $categoryFFRepository->findOneBy(['label' => CategorieCL::DEMANDE_DISPATCH]);
-        $category = CategoryType::DEMANDE_DISPATCH;
-        $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
         $receivers = $dispatch->getReceivers() ?? null;
+
+        if (!isset($this->freeFieldsConfig)) {
+            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::DEMANDE_DISPATCH, CategoryType::DEMANDE_DISPATCH);
+        }
+
         if ($receivers) {
             $receiversUsernames = Stream::from($receivers->toArray())
                 ->map(function (Utilisateur $receiver) {
@@ -146,11 +147,10 @@ class DispatchService {
             ]),
         ];
 
-        foreach ($freeFields as $freeField) {
-            $freeFieldId = $freeField['id'];
-            $freeFieldEntity = $freeFieldsRepository->find($freeFieldId);
+        foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
             $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
-            $row[$freeFieldName] = FormatHelper::freeField($dispatch->getFreeFieldValue($freeFieldId)?? '', $freeFieldEntity);
+            $freeFieldValue = $dispatch->getFreeFieldValue($freeFieldId);
+            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField);
         }
 
         return $row;

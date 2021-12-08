@@ -58,6 +58,10 @@ class FormatHelper {
     ];
 
     public static function parseDatetime(?string $date, array $expectedFormats = ["Y-m-d H:i:s", "d/m/Y H:i:s", "Y-m-d H:i", "d/m/Y H:i"]): ?DateTimeInterface {
+        if (empty($date)) {
+            return null;
+        }
+
         foreach($expectedFormats as $format) {
             if($out = DateTime::createFromFormat($format, $date)) {
                 return $out;
@@ -197,7 +201,9 @@ class FormatHelper {
                 $formatted = $valueDate->format('d/m/Y' . $hourFormat);
                 break;
             case FreeField::TYPE_BOOL:
-                $formatted = self::bool($value == 1);
+                $formatted = ($value !== '' && $value !== null)
+                    ? self::bool($value == 1)
+                    : '';
                 break;
             case FreeField::TYPE_LIST_MULTIPLE:
                 $formatted = Stream::explode(';', $value)
