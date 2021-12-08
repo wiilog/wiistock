@@ -217,8 +217,8 @@ class ImportController extends AbstractController
                             $fieldNames = array_merge($fieldNames, $fieldsToAdd);
                             break;
                         case Import::ENTITY_LOCATION:
-                            $fieldsToAdd = ['authorizedDeliveriesTypes','authorizedCollectTypes' , 'authorizedPackNature'];
-                            $fieldsRaw = ['label'];
+                            $fieldsToAdd = ['name', 'allowedDeliveryTypes','allowedCollectTypes' , 'allowedPackNatures'];
+                            $fieldsToHide = array_merge($fieldsToHide, ['label']);
                             $fieldNames = array_merge($fieldNames, $fieldsToAdd);
                             break;
                     }

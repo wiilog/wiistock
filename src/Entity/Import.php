@@ -81,7 +81,7 @@ class Import
             'quantityDelivery',
         ],
         self::ENTITY_LOCATION => [
-            'titre',
+            'name',
         ],
     ];
 
@@ -93,7 +93,7 @@ class Import
         self::ENTITY_RECEPTION => null,
         self::ENTITY_USER => null,
         self::ENTITY_DELIVERY => null,
-        self::ENTITY_LOCATION => 'titre'
+        self::ENTITY_LOCATION => 'name'
     ];
 
 	const FIELDS_ENTITY = [
@@ -154,12 +154,12 @@ class Import
         'articleReference' => 'Référence',
         'requester' => 'Demandeur',
 
-        'titre' => 'libellé',
+        'name' => 'Nom',
         'description' => 'Description',
-        'dateMaxTime' => 'Délais Traça HH:MM',
-        'authorizedPackNature' => 'Natures de colis autorisées',
-        'authorizedDeliveriesTypes' => 'Types de livraisons autorisés',
-        'authorizedCollectTypes' => 'Types de collectes autorisés',
+        'dateMaxTime' => 'Délais traça HH:MM',
+        'allowedPackNatures' => 'Natures de colis autorisées',
+        'allowedDeliveryTypes' => 'Types de livraisons autorisés',
+        'allowedCollectTypes' => 'Types de collectes autorisés',
         'isDeliveryPoint' => 'Point de livraison',
         'isOngoingVisibleOnMobile' => 'Encours visible nomade',
         'isActive' => 'Actif'
