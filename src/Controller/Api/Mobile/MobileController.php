@@ -1460,18 +1460,20 @@ class MobileController extends AbstractFOSRestController
         $nomadUser = $this->getUser();
 
         $dataResponse = [];
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
         $transferOrderRepository = $entityManager->getRepository(TransferOrder::class);
 
         $httpCode = Response::HTTP_OK;
-        $transferToTreat = json_decode($request->request->get('transfers'), true) ?: [];
-        Stream::from($transferToTreat)
-            ->each(function ($transferId) use ($transferOrderRepository, $transferOrderService, $nomadUser, $entityManager) {
-                $transfer = $transferOrderRepository->find($transferId);
-                $transferOrderService->finish($transfer, $nomadUser, $entityManager);
+        $transfersToTreat = json_decode($request->request->get('transfers'), true) ?: [];
+        Stream::from($transfersToTreat)
+            ->each(function ($transfer) use ($locationRepository, $transferOrderRepository, $transferOrderService, $nomadUser, $entityManager) {
+                $destination = $locationRepository->findOneBy(['label' => $transfer['destination']]);
+                $transfer = $transferOrderRepository->find($transfer['id']);
+                $transferOrderService->finish($transfer, $nomadUser, $entityManager, $destination);
             });
 
         $entityManager->flush();
-        $dataResponse['success'] = $transferToTreat;
+        $dataResponse['success'] = $transfersToTreat;
 
         return new JsonResponse($dataResponse, $httpCode);
     }
