@@ -137,7 +137,8 @@ class ArticleDataService
             if ($byRef) {
                 $data = [
                     'selection' => $this->templating->render('demande/choiceContent.html.twig', [
-                        'maximum' => $availableQuantity
+                        'maximum' => $availableQuantity,
+                        'showTargetLocationPicking' => $this->entityManager->getRepository(ParametrageGlobal::class)->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION)
                     ])];
             } else {
                 $management = $refArticle->getStockManagement();

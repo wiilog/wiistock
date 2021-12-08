@@ -293,6 +293,8 @@ function handleRequestTypeChange($requestType, $addOrCreate, $existingPurchase) 
             $addOrCreate.addClass('d-none');
         }
 
+        $('.target-location-picking-container').toggleClass('d-none', requestType !== "delivery")
+
         toggleSelectedPurchaseRequest($existingPurchase, requestType);
     }
 }

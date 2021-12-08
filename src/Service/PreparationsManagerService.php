@@ -479,7 +479,6 @@ class PreparationsManagerService
                             $entityManager->persist($transferMovement);
                         }
                         else {
-                            $preparation->removeArticleLine($line);
                             $splitArticleLineIds[] = $line->getId();
                         }
                     }

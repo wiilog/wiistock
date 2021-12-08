@@ -11,6 +11,7 @@ use App\Entity\FreeField;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Menu;
 use App\Entity\Cart;
+use App\Entity\ParametrageGlobal;
 use App\Entity\PurchaseRequest;
 use App\Entity\ReferenceArticle;
 use App\Entity\Type;
@@ -118,6 +119,7 @@ class CartController extends AbstractController
             "deliveryFreeFieldsTypes" => $deliveryFreeFields,
             "collectFreeFieldsTypes" => $collectFreeFields,
             "referencesByBuyer" => $referencesByBuyer,
+            "showTargetLocationPicking" => $manager->getRepository(ParametrageGlobal::class)->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION)
         ]);
     }
 
