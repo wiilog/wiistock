@@ -78,6 +78,13 @@ class NatureController extends AbstractController
         if ($data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getManager();
 
+            if(preg_match("[[,;]]", $data['label'])) {
+                return $this->json([
+                    "success" => false,
+                    "msg" => "Le label d'une nature ne peut pas contenir ; ou ,",
+                ]);
+            }
+
             $nature = new Nature();
             $nature
                 ->setLabel($data['label'])
@@ -151,6 +158,13 @@ class NatureController extends AbstractController
             $natureRepository = $entityManager->getRepository(Nature::class);
             $currentNature = $natureRepository->find($data['nature']);
             $natureLabel = $currentNature->getLabel();
+
+            if(preg_match("[[,;]]", $data['label'])) {
+                return $this->json([
+                    "success" => false,
+                    "msg" => "Le label d'une nature ne peut pas contenir ; ou ,",
+                ]);
+            }
 
             $currentNature
                 ->setLabel($data['label'])

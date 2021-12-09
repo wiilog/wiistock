@@ -1002,7 +1002,7 @@ class DispatchController extends AbstractController {
                 'export_acheminements.csv',
                 $dispatches,
                 $csvHeader,
-                function($dispatch) use ($freeFieldsConfig, $freeFieldService, $nbPacksByDispatch, $receivers) {
+                function($dispatch) use ($freeFieldsConfig, $nbPacksByDispatch, $receivers, $dispatchRepository) {
                     $id = $dispatch['id'];
                     $receiversStr = Stream::from($receivers[$id] ?? [])
                         ->join(", ");
@@ -1033,11 +1033,8 @@ class DispatchController extends AbstractController {
                     $row[] = $dispatch['operator'] ?? '';
                     $row[] = $dispatch['treatedBy'] ?? '';
 
-                    foreach($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
-                        $row[] = $freeFieldService->serializeValue([
-                            'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
-                            'valeur' => $dispatch['freeFields'][$freeFieldId] ?? ''
-                        ]);
+                    foreach($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
+                        $row[] = FormatHelper::freeField($dispatch['freeFields'][$freeFieldId] ?? '', $freeField);
                     }
 
                     return [$row];

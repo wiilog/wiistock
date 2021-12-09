@@ -19,7 +19,6 @@ use App\Entity\Utilisateur;
 use App\Entity\Article;
 use App\Helper\FormatHelper;
 use DateTime;
-use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
 use App\Service\DemandeCollecteService;
 use App\Service\RefArticleDataService;
@@ -54,11 +53,6 @@ class CollecteController extends AbstractController
     private $userService;
 
     /**
-     * @var ArticleDataService
-     */
-    private $articleDataService;
-
-    /**
      * @var DemandeCollecteService
      */
     private $collecteService;
@@ -66,12 +60,10 @@ class CollecteController extends AbstractController
 
     public function __construct(RefArticleDataService $refArticleDataService,
                                 UserService $userService,
-                                ArticleDataService $articleDataService,
                                 DemandeCollecteService $collecteService)
     {
         $this->refArticleDataService = $refArticleDataService;
         $this->userService = $userService;
-        $this->articleDataService = $articleDataService;
         $this->collecteService = $collecteService;
     }
 
@@ -593,10 +585,10 @@ class CollecteController extends AbstractController
                 $fileName,
                 $collectes,
                 $csvHeader,
-                function (Collecte $collecte) use ($freeFieldsConfig, $freeFieldService, $demandeCollecteService) {
+                function (Collecte $collecte) use ($freeFieldsConfig, $demandeCollecteService) {
                     $rows = [];
                     foreach ($collecte->getArticles() as $article) {
-                        $rows[] = $demandeCollecteService->serialiseExportRow($collecte, $freeFieldsConfig, $freeFieldService, function () use ($article) {
+                        $rows[] = $demandeCollecteService->serialiseExportRow($collecte, $freeFieldsConfig, function () use ($article) {
                             return [
                                 $article->getBarCode(),
                                 $article->getQuantite()
@@ -605,7 +597,7 @@ class CollecteController extends AbstractController
                     }
 
                     foreach ($collecte->getCollecteReferences() as $collecteReference) {
-                        $rows[] = $demandeCollecteService->serialiseExportRow($collecte, $freeFieldsConfig, $freeFieldService, function () use ($collecteReference) {
+                        $rows[] = $demandeCollecteService->serialiseExportRow($collecte, $freeFieldsConfig, function () use ($collecteReference) {
                             return [
                                 $collecteReference->getReferenceArticle() ? $collecteReference->getReferenceArticle()->getBarCode() : '',
                                 $collecteReference->getQuantite()

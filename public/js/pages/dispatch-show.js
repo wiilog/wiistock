@@ -297,7 +297,7 @@ function initializePacksTable(dispatchId, isEdit) {
             {targets: 1, width: '300px'},
         ],
         columns: [
-            {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
             {data: 'code', name: 'code', title: 'Code'},
             {data: 'quantity', name: 'quantity', title: Trans.translated('acheminement.Quantité à acheminer') + (isEdit ? '*' : ''), tooltip: 'Quantité à acheminer'},
             {data: 'nature', name: 'nature', title: Trans.translated('natures.nature') + (isEdit ? '*' : ''), tooltip: 'nature'},
@@ -318,7 +318,6 @@ function initializePacksTable(dispatchId, isEdit) {
             {data: 'operator', name: 'operator', title: 'Opérateur'},
             {data: 'status', name: 'status', title: 'Statut'},
         ],
-        order: [[`code`, `asc`]],
     });
 
     if(isEdit) {

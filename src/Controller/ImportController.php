@@ -9,6 +9,7 @@ use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\Fournisseur;
@@ -137,7 +138,8 @@ class ImportController extends AbstractController
                         Import::ENTITY_ART_FOU => ArticleFournisseur::class,
                         Import::ENTITY_RECEPTION => Reception::class,
                         Import::ENTITY_USER => Utilisateur::class,
-                        Import::ENTITY_DELIVERY => Demande::class
+                        Import::ENTITY_DELIVERY => Demande::class,
+                        Import::ENTITY_LOCATION => Emplacement::class
                     ];
                     $attributes = $entityManager->getClassMetadata($entityCodeToClass[$entity]);
 
@@ -220,13 +222,21 @@ class ImportController extends AbstractController
                             }
                             $fieldNames = array_merge($fieldNames, $fieldsToAdd);
                             break;
+                        case Import::ENTITY_LOCATION:
+                            $fieldsToAdd = ['name', 'allowedDeliveryTypes','allowedCollectTypes' , 'allowedPackNatures'];
+                            $fieldsToHide = array_merge($fieldsToHide, ['label']);
+                            $fieldNames = array_merge($fieldNames, $fieldsToAdd);
+                            break;
                     }
                     $fieldNames = array_diff($fieldNames, $fieldsToHide);
+                    $fieldNames = array_diff($fieldNames, $fieldsRaw ?? []);
                     $fields = [];
                     foreach ($fieldNames as $fieldName) {
                         $fields[$fieldName] = Import::FIELDS_ENTITY[$fieldName] ?? $fieldName;
                     }
-
+                    foreach ($fieldsRaw ?? [] as $fieldRaw) {
+                        $fields[$fieldRaw] = $fieldRaw;
+                    }
                     if (isset($categoryCL)) {
                         $champsLibres = $entityManager->getRepository(FreeField::class)->getLabelAndIdByCategory($categoryCL);
 
