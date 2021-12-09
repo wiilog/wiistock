@@ -657,6 +657,7 @@ class DispatchService {
                     "label" => $n->getLabel(),
                     "selected" => ($n->getLabel() === $nature || (!$nature && $this->defaultNature === $n)) ? "selected" : "",
                 ])
+                ->sort(fn(array $a, array $b) => $a["label"] <=> $b["label"])
                 ->map(fn(array $n) => "<option value='{$n["id"]}' {$n["selected"]}>{$n["label"]}</option>")
                 ->prepend(!$nature && !$this->defaultNature ? "<option disabled selected>Sélectionnez une nature</option>" : null)
                 ->join("");
