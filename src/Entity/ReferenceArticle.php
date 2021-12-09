@@ -278,12 +278,12 @@ class ReferenceArticle {
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private ?DateTime $lastEntryAt = null;
+    private ?DateTime $lastStockEntry = null;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private ?DateTime $lastRemovedAt = null;
+    private ?DateTime $lastStockExit = null;
 
     public function __construct()
     {
@@ -1197,12 +1197,12 @@ class ReferenceArticle {
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeInterface
+    public function getCreatedAt(): ?DateTime
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(?\DateTimeInterface $createdAt): self
+    public function setCreatedAt(?DateTime $createdAt): self
     {
         $this->createdAt = $createdAt;
 
@@ -1226,38 +1226,38 @@ class ReferenceArticle {
         return $this;
     }
 
-    public function getEditedAt(): ?\DateTimeInterface
+    public function getEditedAt(): ?DateTime
     {
         return $this->editedAt;
     }
 
-    public function setEditedAt(?\DateTimeInterface $editedAt): self
+    public function setEditedAt(?DateTime $editedAt): self
     {
         $this->editedAt = $editedAt;
 
         return $this;
     }
 
-    public function getLastEntryAt(): ?\DateTimeInterface
+    public function getLastStockEntry(): ?DateTime
     {
-        return $this->lastEntryAt;
+        return $this->lastStockEntry;
     }
 
-    public function setLastEntryAt(?\DateTimeInterface $lastEntryAt): self
+    public function setLastStockEntry(?DateTime $lastStockEntry): self
     {
-        $this->lastEntryAt = $lastEntryAt;
+        $this->lastStockEntry = $lastStockEntry;
 
         return $this;
     }
 
-    public function getLastRemovedAt(): ?\DateTimeInterface
+    public function getLastStockExit(): ?DateTime
     {
-        return $this->lastRemovedAt;
+        return $this->lastStockExit;
     }
 
-    public function setLastRemovedAt(?\DateTimeInterface $lastRemovedAt): self
+    public function setLastStockExit(?DateTime $lastStockExit): self
     {
-        $this->lastRemovedAt = $lastRemovedAt;
+        $this->lastStockExit = $lastStockExit;
 
         return $this;
     }
