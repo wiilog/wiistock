@@ -369,6 +369,11 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
      */
     private Collection $editedByReferenceArticles;
 
+    /**
+     * @ORM\OneToMany(targetEntity=ReferenceArticle::class, mappedBy="createdBy")
+     */
+    private Collection $createdByReferenceArticles;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -407,6 +412,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->unreadNotifications = new ArrayCollection();
         $this->visibilityGroups = new ArrayCollection();
         $this->editedByReferenceArticles = new ArrayCollection();
+        $this->createdByReferenceArticles = new ArrayCollection();
 
         $this->recherche = Utilisateur::SEARCH_DEFAULT;
         $this->rechercheForArticle = Utilisateur::SEARCH_DEFAULT;
@@ -1905,6 +1911,42 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->editedByReferenceArticles = new ArrayCollection();
         foreach($referenceArticles as $referenceArticle) {
             $this->addEditedByReferenceArticle($referenceArticle);
+        }
+
+        return $this;
+    }
+
+    public function getCreatedByReferenceArticles(): Collection {
+        return $this->createdByReferenceArticles;
+    }
+
+    public function addCreatedByReferenceArticle(ReferenceArticle $referenceArticle): self {
+        if (!$this->createdByReferenceArticles->contains($referenceArticle)) {
+            $this->createdByReferenceArticles[] = $referenceArticle;
+            $referenceArticle->setCreatedBy($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCreatedByReferenceArticle(ReferenceArticle $referenceArticle): self {
+        if ($this->createdByReferenceArticles->removeElement($referenceArticle)) {
+            if ($referenceArticle->getCreatedBy() === $this) {
+                $referenceArticle->setCreatedBy(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setCreatedByReferenceArticles(?array $referenceArticles): self {
+        foreach($this->getCreatedByReferenceArticles()->toArray() as $referenceArticle) {
+            $this->removeCreatedByReferenceArticle($referenceArticle);
+        }
+
+        $this->editedByReferenceArticles = new ArrayCollection();
+        foreach($referenceArticles as $referenceArticle) {
+            $this->addCreatedByReferenceArticle($referenceArticle);
         }
 
         return $this;

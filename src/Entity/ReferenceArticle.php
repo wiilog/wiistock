@@ -261,6 +261,11 @@ class ReferenceArticle {
     private ?Attachment $image = null;
 
     /**
+     * @ORM\ManyToOne(targetEntity=Utilisateur::class, inversedBy="createdByReferenceArticles")
+     */
+    private ?Utilisateur $createdBy = null;
+
+    /**
      * @ORM\Column(type="datetime", nullable=true)
      */
     private ?DateTime $createdAt = null;
@@ -1192,6 +1197,23 @@ class ReferenceArticle {
         $this->image = $image;
         if($this->image && $this->image->getReferenceArticle() !== $this) {
             $this->image->setReferenceArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function getCreatedBy(): ?Utilisateur
+    {
+        return $this->createdBy;
+    }
+
+    public function setCreatedBy(?Utilisateur $createdBy): self {
+        if($this->createdBy && $this->createdBy !== $createdBy) {
+            $this->createdBy->removeCreatedByReferenceArticle($this);
+        }
+        $this->createdBy = $createdBy;
+        if($createdBy) {
+            $createdBy->addCreatedByReferenceArticle($this);
         }
 
         return $this;
