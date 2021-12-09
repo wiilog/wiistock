@@ -334,6 +334,22 @@ class PreparationController extends AbstractController
                 ])
                 ->toArray();
 
+            $displayTargetPickingLocation = $entityManager->getRepository(ParametrageGlobal::class)->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION);
+            $targetLocationPicking = $ligneArticle->getTargetLocationPicking();
+
+            if($targetLocationPicking && $displayTargetPickingLocation) {
+                $articlesOnTargetPickingLocation = Stream::from($articles)
+                    ->filter(fn(Article $article) => $article->getEmplacement() === $targetLocationPicking)
+                    ->sort(fn(Article $a1, Article $a2) => $a1->getStockEntryDate() <=> $a2->getStockEntryDate())
+                    ->toArray();
+
+                $articles = Stream::from($articles)
+                    ->filter(fn(Article $article) => $article->getEmplacement() !== $targetLocationPicking)
+                    ->sort(fn(Article $a1, Article $a2) => $a1->getStockEntryDate() <=> $a2->getStockEntryDate())
+                    ->toArray();
+
+                $articles = Stream::from($articlesOnTargetPickingLocation)->concat($articles)->toArray();
+            }
 
             $response = $this->renderView('preparation/modalSplitting.html.twig', [
                 'reference' => $refArticle->getReference(),
@@ -343,7 +359,8 @@ class PreparationController extends AbstractController
                 'quantite' => $ligneArticle->getQuantityToPick(),
                 'preparation' => $preparation,
                 'demande' => $preparation->getDemande(),
-                'managementType' => $refArticle->getStockManagement()
+                'managementType' => $refArticle->getStockManagement(),
+                'displayTargetLocationPicking' => $displayTargetPickingLocation
             ]);
 
             return new JsonResponse($response);
