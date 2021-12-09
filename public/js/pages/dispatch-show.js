@@ -366,10 +366,9 @@ function initializePacksTable(dispatchId, isEdit) {
             $row.find(`.lastLocation`).text(value.lastLocation);
             $row.find(`.operator`).text(value.operator);
             $row.find(`.status`).text(`À traiter`);
+
             if(value.nature_id && value.nature_label) {
-                $row.find(`[name=nature]`)
-                    .append(new Option(value.nature_label, value.nature_id, true, true))
-                    .trigger('change');
+                $row.find(`[name=nature]`).val(value.nature_id).trigger(`change`);
             }
 
             table.columns.adjust().draw();
