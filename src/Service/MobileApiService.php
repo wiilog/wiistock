@@ -99,6 +99,7 @@ class MobileApiService {
             "skipValidationsToTreatTransfer" => $globalsParameters->getOneParamByLabel(ParametrageGlobal::TRANSFER_TO_TREAT_SKIP_VALIDATIONS),
             "displayReferencesOnTransferCards" => $globalsParameters->getOneParamByLabel(ParametrageGlobal::TRANSFER_DISPLAY_REFERENCES_ON_CARDS),
             "dropOnFreeLocation" => $globalsParameters->getOneParamByLabel(ParametrageGlobal::TRANSFER_FREE_DROP),
+            "displayTargetLocationPicking" => $globalsParameters->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION),
         ];
     }
 }
