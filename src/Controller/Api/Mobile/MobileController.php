@@ -1645,7 +1645,6 @@ class MobileController extends AbstractFOSRestController
         }
 
         ['translations' => $translations] = $this->mobileApiService->getTranslationsData($entityManager);
-
         return [
             'locations' => $emplacementRepository->getLocationsArray(),
             'allowedNatureInLocations' => $allowedNatureInLocations ?? [],
