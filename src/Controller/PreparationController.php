@@ -325,7 +325,6 @@ class PreparationController extends AbstractController
 
             $refArticle = $ligneArticle->getReference();
             $preparation = $ligneArticle->getPreparation();
-            $articles = $articleRepository->findActiveArticles($refArticle);
 
             $pickedQuantitiesByArticle = Stream::from($preparation->getArticleLines())
                 ->keymap(fn(PreparationOrderArticleLine $articleLine) => [
@@ -334,21 +333,36 @@ class PreparationController extends AbstractController
                 ])
                 ->toArray();
 
+
             $displayTargetPickingLocation = $entityManager->getRepository(ParametrageGlobal::class)->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION);
             $targetLocationPicking = $ligneArticle->getTargetLocationPicking();
-
+            $management = $refArticle->getStockManagement();
             if($targetLocationPicking && $displayTargetPickingLocation) {
-                $articlesOnTargetPickingLocation = Stream::from($articles)
-                    ->filter(fn(Article $article) => $article->getEmplacement() === $targetLocationPicking)
-                    ->sort(fn(Article $a1, Article $a2) => $a1->getStockEntryDate() <=> $a2->getStockEntryDate())
-                    ->toArray();
+                $articlesOnTargetPickingLocation = $articleRepository->findActiveArticles(
+                    $refArticle,
+                    $targetLocationPicking,
+                    true,
+                    'ASC',
+                    $management === ReferenceArticle::STOCK_MANAGEMENT_FEFO ? 'expiryDate' : 'stockEntryDate'
+                );
 
-                $articles = Stream::from($articles)
-                    ->filter(fn(Article $article) => $article->getEmplacement() !== $targetLocationPicking)
-                    ->sort(fn(Article $a1, Article $a2) => $a1->getStockEntryDate() <=> $a2->getStockEntryDate())
-                    ->toArray();
+                $articles = $articleRepository->findActiveArticles(
+                    $refArticle,
+                    $targetLocationPicking,
+                    false,
+                    'ASC',
+                    $management === ReferenceArticle::STOCK_MANAGEMENT_FEFO ? 'expiryDate' : 'stockEntryDate'
+                );
 
                 $articles = Stream::from($articlesOnTargetPickingLocation)->concat($articles)->toArray();
+            } else {
+                $articles = $articleRepository->findActiveArticles(
+                    $refArticle,
+                    null,
+                    false,
+                    'ASC',
+                    $management === ReferenceArticle::STOCK_MANAGEMENT_FEFO ? 'expiryDate' : 'stockEntryDate'
+                );
             }
 
             $response = $this->renderView('preparation/modalSplitting.html.twig', [

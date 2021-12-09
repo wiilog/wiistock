@@ -205,9 +205,13 @@ class ArticleRepository extends EntityRepository {
             ->execute();
 	}
 
-	public function findActiveArticles(ReferenceArticle $referenceArticle): array
+	public function findActiveArticles(ReferenceArticle $referenceArticle,
+                                       ?Emplacement $location = null,
+                                       bool $needsSameLocation = false,
+                                       ?string $order = null,
+                                       ?string $fieldToOrder = null): array
 	{
-	    return $this->createQueryBuilder('article')
+	    $queryBuilder = $this->createQueryBuilder('article')
             ->join('article.articleFournisseur', 'articleFournisseur')
             ->join('articleFournisseur.referenceArticle', 'referenceArticle')
             ->join('article.statut', 'articleStatus')
@@ -216,9 +220,24 @@ class ArticleRepository extends EntityRepository {
             ->andWhere('article.quantite > 0')
             ->andWhere('referenceArticle = :refArticle')
             ->setParameter('refArticle', $referenceArticle)
-            ->setParameter('activeStatus', Article::STATUT_ACTIF)
+            ->setParameter('activeStatus', Article::STATUT_ACTIF);
+
+	    if ($location) {
+	        $queryBuilder
+                ->leftJoin('article.emplacement', 'emplacement')
+                ->andWhere($needsSameLocation ? 'emplacement = :location' : 'emplacement != :location')
+                ->setParameter('location', $location);
+        }
+
+	    if ($order && $fieldToOrder) {
+	        $queryBuilder
+                ->orderBy("article.$fieldToOrder", $order);
+        }
+
+	    return $queryBuilder
             ->getQuery()
             ->getResult();
+
 	}
 
     public function findByParamsAndFilters(InputBag $params, $filters, Utilisateur $user)
