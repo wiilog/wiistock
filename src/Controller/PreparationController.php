@@ -325,7 +325,6 @@ class PreparationController extends AbstractController
 
             $refArticle = $ligneArticle->getReference();
             $preparation = $ligneArticle->getPreparation();
-            $articles = $articleRepository->findActiveArticles($refArticle);
 
             $pickedQuantitiesByArticle = Stream::from($preparation->getArticleLines())
                 ->keymap(fn(PreparationOrderArticleLine $articleLine) => [
@@ -335,6 +334,37 @@ class PreparationController extends AbstractController
                 ->toArray();
 
 
+            $displayTargetPickingLocation = $entityManager->getRepository(ParametrageGlobal::class)->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION);
+            $targetLocationPicking = $ligneArticle->getTargetLocationPicking();
+            $management = $refArticle->getStockManagement();
+            if($targetLocationPicking && $displayTargetPickingLocation) {
+                $articlesOnTargetPickingLocation = $articleRepository->findActiveArticles(
+                    $refArticle,
+                    $targetLocationPicking,
+                    true,
+                    'ASC',
+                    $management === ReferenceArticle::STOCK_MANAGEMENT_FEFO ? 'expiryDate' : 'stockEntryDate'
+                );
+
+                $articles = $articleRepository->findActiveArticles(
+                    $refArticle,
+                    $targetLocationPicking,
+                    false,
+                    'ASC',
+                    $management === ReferenceArticle::STOCK_MANAGEMENT_FEFO ? 'expiryDate' : 'stockEntryDate'
+                );
+
+                $articles = Stream::from($articlesOnTargetPickingLocation)->concat($articles)->toArray();
+            } else {
+                $articles = $articleRepository->findActiveArticles(
+                    $refArticle,
+                    null,
+                    false,
+                    'ASC',
+                    $management === ReferenceArticle::STOCK_MANAGEMENT_FEFO ? 'expiryDate' : 'stockEntryDate'
+                );
+            }
+
             $response = $this->renderView('preparation/modalSplitting.html.twig', [
                 'reference' => $refArticle->getReference(),
                 'referenceId' => $refArticle->getId(),
@@ -343,7 +373,8 @@ class PreparationController extends AbstractController
                 'quantite' => $ligneArticle->getQuantityToPick(),
                 'preparation' => $preparation,
                 'demande' => $preparation->getDemande(),
-                'managementType' => $refArticle->getStockManagement()
+                'managementType' => $refArticle->getStockManagement(),
+                'displayTargetLocationPicking' => $displayTargetPickingLocation
             ]);
 
             return new JsonResponse($response);

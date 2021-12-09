@@ -5,6 +5,7 @@ let prepaHasBegun = false;
 let $preparationId = $('#prepa-id');
 let $modalSubmitPreparation = $('#modal-select-location');
 let pathArticle = Routing.generate('preparation_article_api', {'preparation': $preparationId.val()});
+const showTargetLocationPicking = Number($(`input[name=showTargetLocationPicking]`).val());
 
 $(function () {
     const $locationSelect = $modalSubmitPreparation.find('select[name="location"]');
@@ -31,7 +32,7 @@ let tableArticleConfig = {
         {data: 'reference', title: 'Référence'},
         {data: 'label', title: 'Libellé'},
         {data: 'location', title: 'Emplacement'},
-        {data: 'targetLocationPicking', title: 'Emplacement cible picking', visible: Number($(`input[name=showTargetLocationPicking]`).val())},
+        {data: 'targetLocationPicking', title: 'Emplacement cible picking', visible: showTargetLocationPicking},
         {data: 'quantity', title: 'Quantité en stock'},
         {data: 'quantityToPick', title: 'Quantité à prélever'},
         {data: 'pickedQuantity', title: 'Quantité prélevée'},
@@ -60,8 +61,9 @@ function startPicking($button, managementType) {
                 domConfig: {
                     needsPaginationRemoval: true
                 },
+                ordering: !showTargetLocationPicking
             };
-            if (managementType) {
+            if (!showTargetLocationPicking && managementType) {
                 tableSplittingArticlesConfig.order = [
                     4, "asc"
                 ];
