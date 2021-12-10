@@ -17,6 +17,7 @@ use App\Entity\Fournisseur;
 use App\Entity\Import;
 use App\Entity\InventoryCategory;
 use App\Entity\MouvementStock;
+use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
@@ -56,6 +57,8 @@ class ImportService
     public const IMPORT_MODE_FORCE_PLAN = 2; // réaliser l'import rapidement (dans le cron qui s'exécute toutes les 30min)
     public const IMPORT_MODE_PLAN = 3; // réaliser l'import dans la nuit (dans le cron à 23h59)
     public const IMPORT_MODE_NONE = 4; // rien n'a été réalisé sur l'import
+
+    public const POSITIVE_ARRAY = ['oui', 'Oui', 'OUI'];
 
     /** @Required */
     public Twig_Environment $templating;
@@ -380,6 +383,9 @@ class ImportService
                         break;
                     case Import::ENTITY_DELIVERY:
                         $insertedDelivery = $this->importDeliveryEntity($data, $stats, $deliveries, $this->currentImport->getUser(), $refToUpdate, $colChampsLibres, $row);
+                        break;
+                    case Import::ENTITY_LOCATION:
+                        $this->importLocationEntity($data, $stats);
                         break;
                 }
 
@@ -754,6 +760,50 @@ class ImportService
                         'needed' => $this->fieldIsNeeded('commentaire', Import::ENTITY_DELIVERY),
                         'value' => $corresp['commentaire'] ?? null
                     ],
+                    'targetLocationPicking' => [
+                        'needed' => $this->fieldIsNeeded('targetLocationPicking', Import::ENTITY_DELIVERY),
+                        'value' => $corresp['targetLocationPicking'] ?? null,
+                    ],
+                ];
+                break;
+            case Import::ENTITY_LOCATION:
+                $dataToCheck = [
+                    'name' => [
+                        'needed' => $this->fieldIsNeeded('name', Import::ENTITY_LOCATION),
+                        'value' => isset($corresp['name']) ? $corresp['name'] : null,
+                    ],
+                    'description' => [
+                        'needed' => $this->fieldIsNeeded('description', Import::ENTITY_LOCATION),
+                        'value' => isset($corresp['description']) ? $corresp['description'] : null,
+                    ],
+                    'dateMaxTime' => [
+                        'needed' => $this->fieldIsNeeded('dateMaxTime', Import::ENTITY_LOCATION),
+                        'value' => isset($corresp['dateMaxTime']) ? $corresp['dateMaxTime'] : null,
+                    ],
+                    'allowedPackNatures' => [
+                        'needed' => $this->fieldIsNeeded('allowedPackNatures', Import::ENTITY_LOCATION),
+                        'value' => isset($corresp['allowedPackNatures']) ? $corresp['allowedPackNatures'] : null,
+                    ],
+                    'allowedDeliveryTypes' => [
+                        'needed' => $this->fieldIsNeeded('allowedDeliveryTypes', Import::ENTITY_LOCATION),
+                        'value' => isset($corresp['allowedDeliveryTypes']) ? $corresp['allowedDeliveryTypes'] : null,
+                    ],
+                    'allowedCollectTypes' => [
+                        'needed' => $this->fieldIsNeeded('allowedCollectTypes', Import::ENTITY_LOCATION),
+                        'value' => isset($corresp['allowedCollectTypes']) ? $corresp['allowedCollectTypes'] : null,
+                    ],
+                    'isDeliveryPoint' => [
+                        'needed' => $this->fieldIsNeeded('isDeliveryPoint', Import::ENTITY_LOCATION),
+                        'value' => isset($corresp['isDeliveryPoint']) ? $corresp['isDeliveryPoint'] : null,
+                    ],
+                    'isOngoingVisibleOnMobile' => [
+                        'needed' => $this->fieldIsNeeded('isOngoingVisibleOnMobile', Import::ENTITY_LOCATION),
+                        'value' => isset($corresp['isOngoingVisibleOnMobile']) ? $corresp['isOngoingVisibleOnMobile'] : null,
+                    ],
+                    'isActive' => [
+                        'needed' => $this->fieldIsNeeded('isActive', Import::ENTITY_LOCATION),
+                        'value' => isset($corresp['isActive']) ? $corresp['isActive'] : null,
+                    ],
                 ];
                 break;
             default:
@@ -991,7 +1041,7 @@ class ImportService
                 isset($data['anomalie'])
                 && (
                     filter_var($data['anomalie'], FILTER_VALIDATE_BOOLEAN)
-                    || in_array($data['anomalie'], ['oui', 'Oui', 'OUI'])
+                    || in_array($data['anomalie'], SELF::POSITIVE_ARRAY)
                 )
             );
             if ($anomaly || $reception->getStatut()->getCode() === Reception::STATUT_ANOMALIE) {
@@ -1011,7 +1061,7 @@ class ImportService
                 isset($data['manualUrgent'])
                 && (
                     filter_var($data['manualUrgent'], FILTER_VALIDATE_BOOLEAN)
-                    || in_array($data['manualUrgent'], ['oui', 'Oui', 'OUI'])
+                    || in_array($data['manualUrgent'], SELF::POSITIVE_ARRAY)
                 )
             );
         }
@@ -1031,7 +1081,7 @@ class ImportService
                         isset($data['anomalie'])
                         && (
                             filter_var($data['anomalie'], FILTER_VALIDATE_BOOLEAN)
-                            || in_array($data['anomalie'], ['oui', 'Oui', 'OUI'])
+                            || in_array($data['anomalie'], SELF::POSITIVE_ARRAY)
                         )
                     );
                     $receptionRefArticle->setAnomalie($anomaly ? 1 : 0);
@@ -1543,7 +1593,7 @@ class ImportService
         $users = $this->em->getRepository(Utilisateur::class);
         $locations = $this->em->getRepository(Emplacement::class);
         $types = $this->em->getRepository(Type::class);
-        $statuses = $this->em->getRepository(Statut::class);
+        $statusRepository = $this->em->getRepository(Statut::class);
         $references = $this->em->getRepository(ReferenceArticle::class);
         $articles = $this->em->getRepository(Article::class);
         $categorieStatusRepository = $this->em->getRepository(CategorieStatut::class);
@@ -1551,21 +1601,35 @@ class ImportService
         $requester = isset($data['requester']) && $data['requester'] ? $users->findOneBy(['username' => $data['requester']]) : $utilisateur;
         $destination = $data['destination'] ? $locations->findOneBy(['label' => $data['destination']]) : null;
         $categorieStatus = $categorieStatusRepository->findOneBy(["nom" => CategorieStatut::DEM_LIVRAISON]);
-        $availableStatues = Stream::from($statuses->findAvailableStatuesForDeliveryImport($categorieStatus))
+        $availableStatuses = Stream::from($statusRepository->findAvailableStatuesForDeliveryImport($categorieStatus))
             ->flatten()
+            ->map(fn($status) => strtolower($status))
             ->values();
 
         $type = $data['type'] ? $types->findOneByCategoryLabelAndLabel(CategoryType::DEMANDE_LIVRAISON, $data['type']) : null;
-        $status = $data['status'] ? $statuses->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_LIVRAISON, $data['status']) : null;
+        $status = $data['status'] ? $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::DEM_LIVRAISON, $data['status']) : null;
         $commentaire = $data['commentaire'] ?? null;
         $articleReference = $data['articleReference'] ? $references->findOneBy(['reference' => $data['articleReference']]) : null;
         $article = $data['articleCode'] ?? null;
         $quantityDelivery = $data['quantityDelivery'] ?? null;
-        if(!$requester) {
+
+        $showTargetLocationPicking = $this->em->getRepository(ParametrageGlobal::class)->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION);
+        $targetLocationPicking = null;
+        if($showTargetLocationPicking) {
+            if(isset($data['targetLocationPicking'])) {
+                $targetLocationPickingStr = $data['targetLocationPicking'];
+                $targetLocationPicking = $locations->findOneBy(['label' => $targetLocationPickingStr]);
+                if(!$targetLocationPicking) {
+                    $this->throwError("L'emplacement cible picking $targetLocationPickingStr n'existe pas.");
+                }
+            }
+        }
+
+        if (!$requester) {
             $this->throwError('Demandeur inconnu.');
         }
 
-        if(!$destination) {
+        if (!$destination) {
             $this->throwError('Destination inconnue.');
         } else if ($type && !$destination->getAllowedDeliveryTypes()->contains($type)) {
             $this->throwError('Type non autorisé sur l\'emplacement fourni.');
@@ -1585,7 +1649,7 @@ class ImportService
             $request->setType($type);
         }
 
-        if (!in_array($data['status'], $availableStatues)) {
+        if (!in_array(strtolower($data['status']), $availableStatuses)) {
             $this->throwError('Statut inconnu (valeurs possibles : brouillon, à traiter).');
         } else if (!$request->getStatut()) {
             $request->setStatut($status);
@@ -1608,17 +1672,19 @@ class ImportService
                             $line = new DeliveryRequestArticleLine();
                             $line
                                 ->setArticle($article)
-                                ->setQuantityToPick(intval($quantityDelivery));
+                                ->setQuantityToPick(intval($quantityDelivery))
+                                ->setTargetLocationPicking($targetLocationPicking);
                             $this->em->persist($line);
                             $request->addArticleLine($line);
                             if (!$request->getPreparations()->isEmpty()) {
                                 $preparation = $request->getPreparations()->first();
-                                $article->setStatut($statuses->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
+                                $article->setStatut($statusRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
                                 $ligneArticlePreparation = new PreparationOrderArticleLine();
                                 $ligneArticlePreparation
                                     ->setPickedQuantity($line->getPickedQuantity())
                                     ->setQuantityToPick($line->getQuantityToPick())
-                                    ->setArticle($article);
+                                    ->setArticle($article)
+                                    ->setTargetLocationPicking($targetLocationPicking);
                                 $this->em->persist($ligneArticlePreparation);
                                 $preparation->addArticleLine($ligneArticlePreparation);
                             }
@@ -1640,7 +1706,8 @@ class ImportService
                     $line = new DeliveryRequestReferenceLine();
                     $line
                         ->setReference($articleReference)
-                        ->setQuantityToPick($quantityDelivery);
+                        ->setQuantityToPick($quantityDelivery)
+                        ->setTargetLocationPicking($targetLocationPicking);
                     $this->em->persist($line);
                     $request->addReferenceLine($line);
                     if (!$request->getPreparations()->isEmpty()) {
@@ -1649,7 +1716,8 @@ class ImportService
                         $lignesArticlePreparation
                             ->setPickedQuantity($line->getPickedQuantity())
                             ->setQuantityToPick($line->getQuantityToPick())
-                            ->setReference($articleReference);
+                            ->setReference($articleReference)
+                            ->setTargetLocationPicking($targetLocationPicking);
                         $this->em->persist($lignesArticlePreparation);
                         if ($articleReference->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                             $articleReference->setQuantiteReservee(($articleReference->getQuantiteReservee() ?? 0) + $line->getQuantityToPick());
@@ -1701,8 +1769,131 @@ class ImportService
         return $request;
     }
 
+    private function importLocationEntity(array $data, array &$stats)
+    {
+        $locationRepository = $this->em->getRepository(Emplacement::class);
+        $natureRepository = $this->em->getRepository(Nature::class);
+        $typeRepository = $this->em->getRepository(Type::class);
+
+        $isNewEntity = false;
+        $location = $locationRepository->findOneBy(['label' => $data['name']]);
+
+        if (!$location) {
+            $location = new Emplacement();
+            $isNewEntity = true;
+        }
+
+        if ($isNewEntity) {
+            if (isset($data['name'])) {
+                if ((strlen($data['name'])) > 21) {
+                    $this->throwError("La valeur saisie pour le champ nom ne doit pas dépasser 21 caractères");
+                } else {
+                    $location->setLabel($data['name']);
+                }
+            } else {
+                $this->throwError("Le champ nom est obligatoire lors de la création d'un emplacement");
+            }
+
+            if (isset($data['description'])) {
+                if ((strlen($data['description'])) > 255) {
+                    $this->throwError("La valeur saisie pour le champ description ne doit pas dépasser 255 caractères");
+                } else {
+                    $location->setDescription($data['description']);
+                }
+            } else {
+                $this->throwError("Le champ description est obligatoire lors de la création d'un emplacement");
+            }
+        } else {
+            if (isset($data['description'])) {
+                if ((strlen($data['description'])) > 255) {
+                    $this->throwError("La valeur saisie pour le champ description ne doit pas dépasser 255 caractères");
+                }
+            }
+        }
+
+        if (isset($data['dateMaxTime'])) {
+            if (preg_match("/^\d+:[0-5]\d$/", $data['dateMaxTime'])) {
+                $location->setDateMaxTime($data['dateMaxTime']);
+            } else {
+                $this->throwError("Le champ Délais traça HH:MM ne respecte pas le bon format");
+            }
+        }
+
+        if (isset($data['allowedPackNatures'])) {
+            $elements = Stream::explode([";", ","], $data['allowedPackNatures'])->toArray();
+            $natures = $natureRepository->findBy(['label' => $elements]);
+            $natureLabels = Stream::from($natures)
+                ->map(fn(Nature $nature) => $nature->getLabel())
+                ->toArray();
+
+            $diff = Stream::diff($elements, $natureLabels, true);
+            if (!$diff->isEmpty()) {
+                $this->throwError("Les natures suivantes n'existent pas : {$diff->join(", ")}");
+            } else {
+                $location->setAllowedNatures($natures);
+            }
+        }
+
+        if (isset($data['allowedDeliveryTypes'])) {
+            $elements = Stream::explode([";", ","], $data['allowedDeliveryTypes'])->toArray();
+            $allowedDeliveryTypes = $typeRepository->findByCategoryLabelsAndLabels([CategoryType::DEMANDE_LIVRAISON], $elements);
+            $allowedDeliveryTypesLabels = Stream::from($allowedDeliveryTypes)
+                ->map(fn(Type $type) => $type->getLabel())
+                ->toArray();
+
+            $diff = Stream::diff($elements, $allowedDeliveryTypesLabels, true);
+            if (!$diff->isEmpty()) {
+                $this->throwError("Les types de demandes de livraison suivants n'existent pas : {$diff->join(", ")}");
+            } else {
+                $location->setAllowedDeliveryTypes($typeRepository->findBy(['label' => $elements]));
+            }
+        }
+
+        if (isset($data['allowedCollectTypes'])) {
+            $elements =  Stream::explode([";", ","], $data['allowedCollectTypes'])->toArray();
+            $allowedCollectTypes = $typeRepository->findByCategoryLabelsAndLabels([CategoryType::DEMANDE_COLLECTE], $elements);
+            $allowedCollectTypesLabels = Stream::from($allowedCollectTypes)
+                ->map(fn(Type $type) => $type->getLabel())
+                ->toArray();
+
+            $diff = Stream::diff($elements, $allowedCollectTypesLabels, true);
+            if (!$diff->isEmpty()) {
+                $this->throwError("Les types de demandes de collectes suivants n'existent pas : {$diff->join(", ")}");
+            } else {
+                $location->setAllowedCollectTypes($typeRepository->findBy(['label' => $elements]));
+            }
+        }
+
+        if (!empty($data['isDeliveryPoint'])) {
+            $location->setIsDeliveryPoint(
+                filter_var($data['isDeliveryPoint'], FILTER_VALIDATE_BOOLEAN)
+                || strtolower($data['isDeliveryPoint']) === "oui"
+            );
+        }
+
+        if (!empty($data['isOngoingVisibleOnMobile'])) {
+            $location->setIsOngoingVisibleOnMobile(
+                filter_var($data['isOngoingVisibleOnMobile'], FILTER_VALIDATE_BOOLEAN)
+                || strtolower($data['isOngoingVisibleOnMobile']) === "oui"
+            );
+        }
+
+        if (!empty($data['isActive'])) {
+            $location->setIsActive(
+                filter_var($data['isActive'], FILTER_VALIDATE_BOOLEAN)
+                || strtolower($data['isActive']) === "oui"
+            );
+        }
+
+        $this->em->persist($location);
+
+        $this->updateStats($stats, $isNewEntity);
+
+        return $location;
+    }
+
     private function checkAndSetChampsLibres(array $colChampsLibres,
-                                             $freeFieldEntity,
+                                                   $freeFieldEntity,
                                              bool $isNewEntity,
                                              array $row)
     {

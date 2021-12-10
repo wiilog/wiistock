@@ -13,7 +13,7 @@ class TypeService {
 
     public function editType(Type $type,
                              EntityManagerInterface $entityManager,
-                             array $data) {
+                             array $data): ?string {
         $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
@@ -21,6 +21,10 @@ class TypeService {
 
         $isDispatch = ($category->getLabel() === CategoryType::DEMANDE_DISPATCH);
         $isArticle = ($category->getLabel() === CategoryType::ARTICLE);
+
+        if(preg_match("[[,;]]", $data['label'])) {
+            return "Le label d'un type ne peut pas contenir ; ou ,";
+        }
 
         $type
             ->setLabel($data['label'])
@@ -40,5 +44,7 @@ class TypeService {
         } else if ($isArticle) {
             $type->setColor($data['color']);
         }
+
+        return null;
     }
 }

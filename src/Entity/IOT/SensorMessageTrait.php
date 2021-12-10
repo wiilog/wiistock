@@ -5,6 +5,7 @@ namespace App\Entity\IOT;
 
 
 use App\Helper\FormatHelper;
+use DateTime;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
@@ -33,11 +34,11 @@ trait SensorMessageTrait
     {
         $criteria = Criteria::create();
         if($start) {
-            $criteria->andWhere(Criteria::expr()->gte("date", $start));
+            $criteria->andWhere(Criteria::expr()->gte("date", DateTime::createFromFormat("Y-m-d\TH:i", $start, new \DateTimeZone('Europe/Paris'))));
         }
 
         if($end) {
-            $criteria->andWhere(Criteria::expr()->lte("date", $end));
+            $criteria->andWhere(Criteria::expr()->lte("date", DateTime::createFromFormat("Y-m-d\TH:i", $end, new \DateTimeZone('Europe/Paris'))));
         }
 
         $criteria->orderBy(['date' => Criteria::ASC]);

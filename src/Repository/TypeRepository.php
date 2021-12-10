@@ -48,6 +48,26 @@ class TypeRepository extends EntityRepository
             : [];
     }
 
+    public function findByCategoryLabelsAndLabels(array $categoryLabels, array $labels, $order = null): array {
+        $queryBuilder = $this
+            ->createQueryBuilder('type')
+            ->join('type.category', 'category')
+            ->andWhere('category.label IN (:categoryLabels)')
+            ->andWhere('type.label IN (:labels)')
+            ->setParameter('categoryLabels', $categoryLabels)
+            ->setParameter('labels', $labels);
+
+        if ($order) {
+            $queryBuilder->orderBy('type.label', $order);
+        }
+
+        return !empty($categoryLabels)
+            ? $queryBuilder
+                ->getQuery()
+                ->execute()
+            : [];
+    }
+
     public function getForSelect(?string $category, ?string $term) {
         return $this->createQueryBuilder("type")
             ->select("type.id AS id, type.label AS text")

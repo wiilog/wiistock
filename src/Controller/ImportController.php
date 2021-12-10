@@ -9,11 +9,13 @@ use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\Fournisseur;
 use App\Entity\Import;
 use App\Entity\Menu;
+use App\Entity\ParametrageGlobal;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
@@ -136,7 +138,8 @@ class ImportController extends AbstractController
                         Import::ENTITY_ART_FOU => ArticleFournisseur::class,
                         Import::ENTITY_RECEPTION => Reception::class,
                         Import::ENTITY_USER => Utilisateur::class,
-                        Import::ENTITY_DELIVERY => Demande::class
+                        Import::ENTITY_DELIVERY => Demande::class,
+                        Import::ENTITY_LOCATION => Emplacement::class
                     ];
                     $attributes = $entityManager->getClassMetadata($entityCodeToClass[$entity]);
 
@@ -212,15 +215,28 @@ class ImportController extends AbstractController
                             $categoryCL = CategorieCL::DEMANDE_LIVRAISON;
                             $fieldsToHide = array_merge($fieldsToHide, ['numero', 'filled']);
                             $fieldsToAdd = ['articleReference', 'quantityDelivery', 'articleCode', 'status', 'type', 'requester', 'destination'];
+
+                            $showTargetLocationPicking = $entityManager->getRepository(ParametrageGlobal::class)->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION);
+                            if($showTargetLocationPicking) {
+                                $fieldsToAdd[] = 'targetLocationPicking';
+                            }
+                            $fieldNames = array_merge($fieldNames, $fieldsToAdd);
+                            break;
+                        case Import::ENTITY_LOCATION:
+                            $fieldsToAdd = ['name', 'allowedDeliveryTypes','allowedCollectTypes' , 'allowedPackNatures'];
+                            $fieldsToHide = array_merge($fieldsToHide, ['label']);
                             $fieldNames = array_merge($fieldNames, $fieldsToAdd);
                             break;
                     }
                     $fieldNames = array_diff($fieldNames, $fieldsToHide);
+                    $fieldNames = array_diff($fieldNames, $fieldsRaw ?? []);
                     $fields = [];
                     foreach ($fieldNames as $fieldName) {
                         $fields[$fieldName] = Import::FIELDS_ENTITY[$fieldName] ?? $fieldName;
                     }
-
+                    foreach ($fieldsRaw ?? [] as $fieldRaw) {
+                        $fields[$fieldRaw] = $fieldRaw;
+                    }
                     if (isset($categoryCL)) {
                         $champsLibres = $entityManager->getRepository(FreeField::class)->getLabelAndIdByCategory($categoryCL);
 

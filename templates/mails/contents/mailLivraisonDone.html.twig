@@ -35,7 +35,7 @@
         </tr>
         </thead>
         <tbody>
-        {% for line in request.referenceLines %}
+        {% for line in preparation.referenceLines %}
             <tr>
                 <td class="td"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
@@ -47,11 +47,11 @@
                 </td>
                 <td class="td"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ line.quantityToPick }}
+                    {{ line.pickedQuantity }}
                 </td>
             </tr>
         {% endfor %}
-        {% for articleLine in request.articleLines %}
+        {% for articleLine in preparation.articleLines %}
             <tr>
                 <td class="td"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
@@ -63,7 +63,7 @@
                 </td>
                 <td class="td"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ articleLine.quantityToPick }}
+                    {{ articleLine.pickedQuantity }}
                 </td>
             </tr>
         {% endfor %}

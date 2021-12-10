@@ -209,7 +209,9 @@ function savePackLine(dispatchId, $row, async = true) {
                 async,
                 success: response => {
                     $row.find(`.delete-pack-row`).data(`id`, response.id);
-                    showBSAlert(response.msg, response.success ? `success` : `danger`);
+                    if(!response.success) {
+                        showBSAlert(response.msg, `danger`);
+                    }
 
                     $row.data(`data`, JSON.stringify(data));
                 },
@@ -265,12 +267,9 @@ function initializePacksTable(dispatchId, isEdit) {
                 const $relatedTarget = $(event.relatedTarget);
 
                 const wasPackSelect = $target.closest(`td`).find(`select[name="pack"]`).exists();
-                const wasCommentSelect = $target.closest(`.wii-one-line-wysiwyg-wrapper`).exists() ||
-                    $relatedTarget.closest('.wii-one-line-wysiwyg-popover').exists();
                 if ((event.relatedTarget && $.contains(this, event.relatedTarget))
-                    || $relatedTarget.is(`button`)
-                    || wasPackSelect
-                    || wasCommentSelect) {
+                    || $relatedTarget.is(`button.delete-pack-row`)
+                    || wasPackSelect) {
                     return;
                 }
 
@@ -298,7 +297,7 @@ function initializePacksTable(dispatchId, isEdit) {
             {targets: 1, width: '300px'},
         ],
         columns: [
-            {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
             {data: 'code', name: 'code', title: 'Code'},
             {data: 'quantity', name: 'quantity', title: Trans.translated('acheminement.Quantité à acheminer') + (isEdit ? '*' : ''), tooltip: 'Quantité à acheminer'},
             {data: 'nature', name: 'nature', title: Trans.translated('natures.nature') + (isEdit ? '*' : ''), tooltip: 'nature'},
@@ -319,7 +318,6 @@ function initializePacksTable(dispatchId, isEdit) {
             {data: 'operator', name: 'operator', title: 'Opérateur'},
             {data: 'status', name: 'status', title: 'Statut'},
         ],
-        order: [[`code`, `asc`]],
     });
 
     if(isEdit) {
@@ -386,8 +384,6 @@ function initializePacksTable(dispatchId, isEdit) {
             if(event.keyCode === tabulationKeyCode) {
                 event.preventDefault();
                 event.stopPropagation();
-
-                savePackLine(dispatchId, $(this).closest(`tr`));
 
                 const $nextRow = $(this).closest(`tr`).next();
                 if($nextRow.find(`.add-pack-row`).exists()) {

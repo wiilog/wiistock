@@ -94,6 +94,8 @@ function toggleWysiwygPopover($wysiwyg) {
         $input.attr(`contenteditable`, true);
         $wrapper.removeClass('active');
         $popover.remove();
+
+        $input.trigger(`focusout`);
     };
 
     if(!popoverId) {
