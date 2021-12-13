@@ -16,15 +16,29 @@
                 <i class="fas fa-arrow-alt-circle-down ml-2"></i>
             </div>
 
-            <div class="collapse col-12 row" id="menu-{{ menu.id }}">
-                {% for action in menu.actions %}
-                    {% set checked = (action.id in actionsIdOfRole) ? 'checked' : '' %}
-                    <div class="col-4 mb-2">
-                        <label class="switch mini-switch">
+            <div class="collapse col-12" id="menu-{{ menu.id }}">
+                <div class="row">
+                    {% for action in menu.actions | filter(a => not a.subMenu)| sort((a, b) => a.displayOrder <=> b.displayOrder) %}
+                        {% set checked = (action.id in actionsIdOfRole) ? 'checked' : '' %}
+                        <div class="col-4 d-flex align-items-center mb-2">
                             <input class="checkbox" type="checkbox" {{ checked }} name="{{ menu.label~'/'~action.label }}">
-                            <span class="slider round"></span>
-                        </label>
-                        <span class="font-size-mini pointer" onclick="$(this).closest('div').find('.checkbox').click();">{{ action.label }}</span>
+                            <span class="font-size-mini pointer ml-2"
+                                  onclick="$(this).closest('div').find('.checkbox').click();">{{ action.label | capitalize }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                {% for subMenu in menu.subMenus %}
+                    <span class="toggle-collapsible">{{ subMenu.label | capitalize }}</span>
+                    <div class="collapsible row my-2">
+                        {% for action in subMenu.actions | sort((a, b) => a.displayOrder <=> b.displayOrder) %}
+                            {% set checked = (action.id in actionsIdOfRole) ? 'checked' : '' %}
+                            <div class="col-4 d-flex align-items-center mb-2">
+                                <input class="checkbox" type="checkbox" {{ checked }} name="{{ menu.label~'/'~action.label }}">
+                                <span class="font-size-mini pointer ml-2"
+                                      onclick="$(this).closest('div').find('.checkbox').click();">{{ action.label | capitalize }}</span>
+                            </div>
+                        {% endfor %}
                     </div>
                 {% endfor %}
             </div>
@@ -43,10 +57,7 @@
 
             {% if param.typage == 'bool' %}
                 {% set checked = param.value ? 'checked' : '' %}
-                <label class="switch">
-                    <input type="checkbox" class="data checkbox col-3" {{ checked }} name="{{ param.id }}" id="{{ param.id }}">
-                    <span class="slider round"></span>
-                </label>
+                <input type="checkbox" class="data checkbox col-3" {{ checked }} name="{{ param.id }}" id="{{ param.id }}">
 
             {% elseif param.typage == 'number' %}
                 <input type="number" id="{{ param.id }}" class="form-control data col-3"
@@ -69,10 +80,7 @@
     {% endfor %}
     <div class="input-group mb-3">
         {% set checked = role.isMailSendAccountCreation ? 'checked' : '' %}
-        <span class="mr-2 my-auto" onclick="$(this).closest('div').find('.checkbox').click();">Réception mail création nouveau compte</span>
-        <label class="switch">
-            <input type="checkbox" class="data checkbox col-3" {{ checked }} name="role/isMailSendAccountCreation">
-            <span class="slider round"></span>
-        </label>
+        <input type="checkbox" class="data checkbox" {{ checked }} name="role/isMailSendAccountCreation">
+        <span class="ml-2 my-auto" onclick="$(this).closest('div').find('.checkbox').click();">Réception mail création nouveau compte</span>
     </div>
 </div>
