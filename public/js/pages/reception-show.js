@@ -19,6 +19,13 @@ $(function () {
             $(this).val('');
         }
     });
+
+    $('#modalNewLitige').on('change', 'select[name=disputePacks]', function () {
+        const data = $(this).select2('data');
+        const isUrgent = data.some((article) => article.isUrgent);
+        $(this).parents('.modal').first().find('input[name=emergency]').prop('checked', isUrgent);
+    });
+
 });
 
 function initPageModals() {

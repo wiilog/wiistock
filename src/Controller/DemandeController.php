@@ -455,7 +455,14 @@ class DemandeController extends AbstractController
         if ($data = json_decode($request->getContent(), true)) {
             $referenceLineRepository = $entityManager->getRepository(DeliveryRequestReferenceLine::class);
             $line = $referenceLineRepository->find($data['ligneArticle']);
-            $line->setQuantityToPick(max($data["quantite"], 0)); // protection contre quantités négatives
+            $targetLocationPicking = isset($data['target-location-picking'])
+                ? $entityManager->find(Emplacement::class, $data['target-location-picking'])
+                : null;
+
+            $line
+                ->setQuantityToPick(max($data["quantite"], 0)) // protection contre quantités négatives
+                ->setTargetLocationPicking($targetLocationPicking);
+
             $entityManager->flush();
 
             return new JsonResponse();
@@ -479,7 +486,8 @@ class DemandeController extends AbstractController
             $maximumQuantity = $articleRef->getQuantiteStock();
             $json = $this->renderView('demande/modalEditArticleContent.html.twig', [
                 'line' => $referenceLine,
-                'maximum' => $maximumQuantity
+                'maximum' => $maximumQuantity,
+                "showTargetLocationPicking" => $entityManager->getRepository(ParametrageGlobal::class)->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION)
             ]);
 
             return new JsonResponse($json);
