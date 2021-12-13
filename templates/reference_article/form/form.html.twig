@@ -23,12 +23,12 @@
                     {% endif %}
                 </select>
             </div>
-            <div class="form-group col-md-6 col-12 {{ not reference.id ? 'd-none newContent' }}">
+            <div class="form-group col-md-6 col-12">
                 <label class="wii-field-name">Ref article fournisseur*</label>
                 <input class="form-control data w-100 {{ editable ? 'data needed' }}" {{ not editable ? 'disabled readonly' }} type="text"
                        name="referenceFournisseur" value="{{ line ? line.reference }}">
             </div>
-            <div class="form-group col-md-6 col-12 {{ not reference.id ? 'd-none newContent' }}">
+            <div class="form-group col-md-6 col-12">
                 <label class="wii-field-name">Libellé*</label>
                 <input class="form-control w-100 {{ editable ? 'data needed' }}" {{ not editable ? 'disabled readonly' }} type="text"
                        name="labelFournisseur" value="{{ line ? line.label }}">
@@ -129,6 +129,8 @@
                             <input type="radio" name="statut" value="{{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') }}"
                                    content="Inactif"
                                 {{ reference.statut and reference.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') ? 'checked' }}>
+                            <input type="radio" name="statut" value="{{ constant('App\\Entity\\ReferenceArticle::STATUT_BROUILLON') }}" content="Brouillon"
+                                {{ reference.statut and reference.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_BROUILLON') ? 'checked' }}>
                         </div>
 
                         <label class="with-checkbox">
@@ -149,74 +151,8 @@
                 <div class="header wii-title">Informations</div>
                 <div class="content">
                     <div class="row">
-                        <div class="col-12 col-md-6">
-                            <label class="w-100">
-                                <span class="icon wii-field-name">
-                                    <img src="{{ asset('svg/reference_article/manager.svg') }}" class="icon" alt="Image gestionnaire">
-                                    Gestionnaires
-                                </span>
-                                <select name="managers" class="form-control w-100 data" data-s2="user"
-                                        data-placeholder="Sélectionnez des gestionnaires" multiple>
-                                    {% for manager in reference.managers %}
-                                    <option value="{{ manager.id }}" selected>{{ manager.username }}</option>
-                                    {% endfor %}>
-                                </select>
-                            </label>
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <label>
-                                    <span class="icon wii-field-name">
-                                        <img src="{{ asset('svg/reference_article/manager.svg') }}" class="icon" alt="Image acheteur">
-                                        Acheteur
-                                    </span>
-                                <select name="buyer" class="form-control data w-100" data-s2="user"
-                                        data-placeholder="Sélectionnez un utilisateur">
-                                    {% if reference.buyer %}
-                                    <option value="{{ reference.buyer.id }}" selected>{{ reference.buyer.username }}</option>
-                                    {% endif %}>
-                                </select>
-                            </label>
-                        </div>
+                        {{ macros.visibility_group_input(reference) }}
                     </div>
-                    <div class="row">
-                        <div class="col-12 col-md-6 mt-3">
-                            <label class="w-100">
-                                    <span class="icon wii-field-name">
-                                        <img src="{{ asset('svg/reference_article/warehouse.svg') }}" class="icon" alt="Image entrepôt">
-                                        Catégorie d'inventaire
-                                    </span>
-                                {% if editable %}
-                                    <select name="categorie" data-s2 class="form-control data {{ disabled }}">
-                                        {% for category in categories %}
-                                            <option value="{{ category.id }}"
-                                                {{ reference.category and reference.category.id == category.id ? 'selected' }}>
-                                                {{ category.label }}
-                                            </option>
-                                        {% endfor %}
-                                    </select>
-                                {% else %}
-                                    <input class="form-control" type="text"
-                                           value="{{ reference.category ? reference.category.label }}" {{ disabled }}>
-                                {% endif %}
-                            </label>
-                        </div>
-                        {% if reference.id %}
-                            <div class="col-12 col-md-6 mt-3 d-flex flex-column justify-content-around">
-                                <span class="icon wii-field-name"><img src="{{ asset('svg/reference_article/calendar.svg') }}" class="icon" alt="Image calendrier">
-                                    Date de dernier inventaire</span>
-                                <span class="wii-field-text">
-                                    {{ lastInventoryDate is defined and lastInventoryDate is not null and lastInventoryDate != '' ? lastInventoryDate : '-' }}
-                                </span>
-                            </div>
-                        {% else %}
-                            {{ macros.visibility_group_input(reference) }}
-                        {% endif %}
-                    </div>
-                    {% if reference.id %}
-                        <div class="row">
-                            {{ macros.visibility_group_input(reference) }}
-                        </div>
-                    {% endif %}
                     <div class="row mt-3">
                         <div class="col-12">
                             {% include 'attachment/attachment.html.twig' with {
@@ -286,7 +222,8 @@
                                     {% if reference.id %}
                                         <div class="col-12 col-md-4 reference mt-3">
                                             <div class="d-flex">
-                                                <img src="{{ asset('svg/reference_article/location.svg') }}" class="icon" alt="Image emplacement" width="20px">
+                                                <img src="{{ asset('svg/reference_article/location.svg') }}" class="icon" alt="Image emplacement"
+                                                     width="20px">
                                                 <label class="box-item ml-3">
                                                     <span class="wii-field-name">Emplacement</span>
                                                     <span class="wii-body-text">
@@ -312,7 +249,10 @@
                                                     Emplacement*
                                                 </span>
                                                 <select name="emplacement" id="emplacement" class="form-control w-100 data needed"
-                                                        data-s2="location" data-placeholder="Sélectionnez un emplacement">
+                                                        data-s2="location" data-placeholder="Sélectionnez un emplacement" {{ defaultLocation ? 'disabled' : ' ' }}>
+                                                    {% if defaultLocation is defined and defaultLocation %}
+                                                        <option id="{{ defaultLocation.id }}">{{ defaultLocation.text }}</option>
+                                                    {% endif %}
                                                 </select>
                                             </label>
                                         </div>
@@ -328,7 +268,8 @@
                                                            id="quantite"
                                                            name="quantite"
                                                            class="form-control data needed w-50"
-                                                           min="0">
+                                                           min="0"
+                                                           {# TODO vérifier si le statut est en brouillon si c'est le cas mettre disabled et afficher 0 sinon voir quoi faire #}>
                                                     <button class="increase"></button>
                                                 </div>
                                             </label>
@@ -336,17 +277,82 @@
                                     {% endif %}
                                     <div class="col"></div>
                                 </div>
+                                <div class="row mt-3">
+                                    <div class="col-12 col-md-6">
+                                        <label class="w-100">
+                                            <span class="icon wii-field-name">
+                                                <img src="{{ asset('svg/reference_article/manager.svg') }}" class="icon" alt="Image gestionnaire">
+                                                Gestionnaires
+                                            </span>
+                                            <select name="managers" class="form-control w-100 data" data-s2="user"
+                                                    data-placeholder="Sélectionnez des gestionnaires" multiple>
+                                                {% for manager in reference.managers %}
+                                                <option value="{{ manager.id }}" selected>{{ manager.username }}</option>
+                                                {% endfor %}>
+                                            </select>
+                                        </label>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <label>
+                                    <span class="icon wii-field-name">
+                                        <img src="{{ asset('svg/reference_article/manager.svg') }}" class="icon" alt="Image acheteur">
+                                        Acheteur
+                                    </span>
+                                            <select name="buyer" class="form-control data w-100" data-s2="user"
+                                                    data-placeholder="Sélectionnez un utilisateur">
+                                                {% if reference.buyer %}
+                                                <option value="{{ reference.buyer.id }}" selected>{{ reference.buyer.username }}</option>
+                                                {% endif %}>
+                                            </select>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-12 col-md-4 mt-3">
+                                        <div class="reference">
+                                            <label>
+                                                <span class="icon wii-field-name">
+                                                    <img src="{{ asset('svg/reference_article/euro.svg') }}" class="icon" alt="Image euro">
+                                                    Prix unitaire (€)
+                                                </span>
+                                                <input type="number" name="prix" class="form-control w-100 data" value="{{ reference.prixUnitaire }}" min="0">
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-4 mt-3">
+                                        <label>
+                                    <span class="icon wii-field-name">
+                                        <img src="{{ asset('svg/reference_article/threshold.svg') }}" class="icon" alt="Image seuil d'alerte">
+                                        Seuil d'alerte
+                                    </span>
+                                            <div class="increase-decrease-field">
+                                                <button class="decrease"></button>
+                                                <input type="number" data-no-arrow
+                                                       name="limitWarning" class="form-control data w-50"
+                                                       value="{{ reference.limitWarning ?? '' }}" min="0">
+                                                <button class="increase"></button>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div class="col-12 col-md-4 mt-3">
+                                        <label>
+                                    <span class="icon wii-field-name">
+                                        <img src="{{ asset('svg/reference_article/threshold_red.svg') }}" class="icon"
+                                             alt="Image seuil de sécurité">
+                                        Seuil de sécurité
+                                    </span>
+                                            <div class="increase-decrease-field">
+                                                <button class="decrease"></button>
+                                                <input type="number" data-no-arrow
+                                                       name="limitSecurity" class="form-control data w-50"
+                                                       value="{{ reference.limitSecurity ?? '' }}" min="0">
+                                                <button class="increase"></button>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="col-12 col-md-4 reference mt-3">
-                                <label>
-                                    <span class="icon wii-field-name">
-                                        <img src="{{ asset('svg/reference_article/euro.svg') }}" class="icon" alt="Image euro">
-                                        Prix unitaire (€)
-                                    </span>
-                                    <input type="number" name="prix" class="form-control w-100 data" value="{{ reference.prixUnitaire }}" min="0">
-                                </label>
-                            </div>
                             <div class="col-12 col-md-4 article mt-3">
                                 <label>
                                         <span class="icon wii-field-name">
@@ -362,37 +368,6 @@
                                             </option>
                                         {% endfor %}
                                     </select>
-                                </label>
-                            </div>
-                            <div class="col-12 col-md-4 mt-3">
-                                <label>
-                                    <span class="icon wii-field-name">
-                                        <img src="{{ asset('svg/reference_article/threshold.svg') }}" class="icon" alt="Image seuil d'alerte">
-                                        Seuil d'alerte
-                                    </span>
-                                    <div class="increase-decrease-field">
-                                        <button class="decrease"></button>
-                                        <input type="number" data-no-arrow
-                                               name="limitWarning" class="form-control data w-50"
-                                               value="{{ reference.limitWarning ?? '' }}" min="0">
-                                        <button class="increase"></button>
-                                    </div>
-                                </label>
-                            </div>
-                            <div class="col-12 col-md-4 mt-3">
-                                <label>
-                                    <span class="icon wii-field-name">
-                                        <img src="{{ asset('svg/reference_article/threshold_red.svg') }}" class="icon"
-                                             alt="Image seuil de sécurité">
-                                        Seuil de sécurité
-                                    </span>
-                                    <div class="increase-decrease-field">
-                                        <button class="decrease"></button>
-                                        <input type="number" data-no-arrow
-                                               name="limitSecurity" class="form-control data w-50"
-                                               value="{{ reference.limitSecurity ?? '' }}" min="0">
-                                        <button class="increase"></button>
-                                    </div>
                                 </label>
                             </div>
 
@@ -462,6 +437,30 @@
                     <div class="d-flex justify-content-end add-supplier-article mt-3">
                         <button class="btn btn-primary"><i class="fa fa-plus mr-2"></i>Ajouter un article fournisseur</button>
                     </div>
+                </div>
+            </div>
+            <div class="wii-box">
+                <div class="header wii-title">Inventaires</div>
+                <div class="content col-6">
+                    <label class="w-100">
+                        <span class="icon wii-field-name">
+                            <img src="{{ asset('svg/reference_article/warehouse.svg') }}" class="icon" alt="Image entrepôt">
+                            Catégorie d'inventaire
+                        </span>
+                        {% if editable %}
+                            <select name="categorie" data-s2 class="form-control data {{ disabled }}">
+                                {% for category in categories %}
+                                    <option value="{{ category.id }}"
+                                        {{ reference.category and reference.category.id == category.id ? 'selected' }}>
+                                        {{ category.label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        {% else %}
+                            <input class="form-control" type="text"
+                                   value="{{ reference.category ? reference.category.label }}" {{ disabled }}>
+                        {% endif %}
+                    </label>
                 </div>
             </div>
             <div class="wii-box">

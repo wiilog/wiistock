@@ -932,7 +932,7 @@ class ReferenceArticleController extends AbstractController
     /**
      * @Route("/nouveau-page", name="reference_article_new_page", options={"expose"=true})
      */
-    public function newTemplate(EntityManagerInterface $manager) {
+    public function newTemplate(EntityManagerInterface $manager, GlobalParamService $globalParamService) {
         $typeRepository = $manager->getRepository(Type::class);
         $inventoryCategoryRepository = $manager->getRepository(InventoryCategory::class);
         $freeFieldRepository = $manager->getRepository(FreeField::class);
@@ -957,6 +957,7 @@ class ReferenceArticleController extends AbstractController
             "new_reference" => new ReferenceArticle(),
             "submit_url" => $this->generateUrl("reference_article_new"),
             "types" => $types,
+            'defaultLocation' => $globalParamService->getParamLocation(ParametrageGlobal::DEFAULT_LOCATION_REFERENCE),
             "stockManagement" => [
                 ReferenceArticle::STOCK_MANAGEMENT_FEFO,
                 ReferenceArticle::STOCK_MANAGEMENT_FIFO
