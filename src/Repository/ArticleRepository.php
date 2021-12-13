@@ -500,11 +500,11 @@ class ArticleRepository extends EntityRepository {
             ->getResult();
 	}
 
-    public function getArticlePrepaForPickingByUser($user, array $preparationIdsFilter = []) {
+    public function getArticlePrepaForPickingByUser($user, array $preparationIdsFilter = [], bool $displayPickingLocation = false) {
         $queryBuilder = $this->createQueryBuilder('article')
             ->select('DISTINCT article.reference AS reference')
             ->addSelect('article.label AS label')
-            ->addSelect('emplacement.label AS location')
+            ->addSelect('join_article_location.label AS location')
             ->addSelect('article.quantite AS quantity')
             ->addSelect('referenceArticle.reference AS reference_article')
             ->addSelect('article.barCode AS barCode')
@@ -523,11 +523,13 @@ class ArticleRepository extends EntityRepository {
                     ELSE :null
                 END) AS management_order
             ')
+            ->addSelect('IF(:displayPickingLocation = true AND join_targetLocationPicking.id = join_article_location.id, 1, 0) AS pickingPriority')
             ->join('article.articleFournisseur', 'articleFournisseur')
             ->join('articleFournisseur.referenceArticle', 'referenceArticle')
             ->join('article.statut', 'articleStatut')
-            ->leftJoin('article.emplacement', 'emplacement')
+            ->leftJoin('article.emplacement', 'join_article_location')
             ->join('referenceArticle.preparationOrderReferenceLines', 'preparationOrderReferenceLines')
+            ->leftJoin('preparationOrderReferenceLines.targetLocationPicking', 'join_targetLocationPicking')
             ->join('preparationOrderReferenceLines.preparation', 'preparation')
             ->join('preparation.statut', 'statutPreparation')
             ->andWhere('(statutPreparation.nom = :preparationToTreat OR (statutPreparation.nom = :preparationInProgress AND preparation.utilisateur = :preparationOperator))')
@@ -540,7 +542,8 @@ class ArticleRepository extends EntityRepository {
             ->setParameter('preparationOperator', $user)
             ->setParameter('fifoStockManagement', ReferenceArticle::STOCK_MANAGEMENT_FIFO)
             ->setParameter('fefoStockManagement', ReferenceArticle::STOCK_MANAGEMENT_FEFO)
-            ->setParameter('null', null);
+            ->setParameter('null', null)
+            ->setParameter('displayPickingLocation', $displayPickingLocation);
 
         if (!empty($preparationIdsFilter)) {
             $queryBuilder

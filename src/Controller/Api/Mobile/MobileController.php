@@ -708,7 +708,10 @@ class MobileController extends AbstractFOSRestController
         }
 
         if (!empty($insertedPrepasIds)) {
-            $resData['data']['preparations'] = Stream::from($preparationRepository->getMobilePreparations($nomadUser, $insertedPrepasIds))
+            $globalsParametersRepository = $entityManager->getRepository(ParametrageGlobal::class);
+            $displayPickingLocation = $globalsParametersRepository->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION);
+
+            $resData['data']['preparations'] = Stream::from($preparationRepository->getMobilePreparations($nomadUser, $insertedPrepasIds, $displayPickingLocation))
                 ->map(function ($preparationArray) {
                     if (!empty($preparationArray['comment'])) {
                         $preparationArray['comment'] = substr(strip_tags($preparationArray['comment']), 0, 200);
@@ -1542,8 +1545,9 @@ class MobileController extends AbstractFOSRestController
                 })
                 ->toArray();
 
+            $displayPickingLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION);
             // get article linked to a ReferenceArticle where type_quantite === 'article'
-            $articlesPrepaByRefArticle = $articleRepository->getArticlePrepaForPickingByUser($user);
+            $articlesPrepaByRefArticle = $articleRepository->getArticlePrepaForPickingByUser($user, [], $displayPickingLocation);
 
             $articlesPrepa = $this->getArticlesPrepaArrays($preparations);
             /// collecte
