@@ -15,6 +15,7 @@ use App\Entity\Utilisateur;
 
 use App\Entity\VisibilityGroup;
 use App\Helper\QueryCounter;
+use Doctrine\Common\Collections\Criteria;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 use App\Service\VisibleColumnService;
@@ -206,10 +207,9 @@ class ArticleRepository extends EntityRepository {
 	}
 
 	public function findActiveArticles(ReferenceArticle $referenceArticle,
-                                       ?Emplacement $location = null,
-                                       bool $needsSameLocation = false,
-                                       ?string $order = null,
-                                       ?string $fieldToOrder = null): array
+                                       ?Emplacement     $targetLocationPicking = null,
+                                       ?string          $fieldToOrder = null,
+                                       ?string          $order = null): array
 	{
 	    $queryBuilder = $this->createQueryBuilder('article')
             ->join('article.articleFournisseur', 'articleFournisseur')
@@ -222,22 +222,20 @@ class ArticleRepository extends EntityRepository {
             ->setParameter('refArticle', $referenceArticle)
             ->setParameter('activeStatus', Article::STATUT_ACTIF);
 
-	    if ($location) {
+	    if ($targetLocationPicking) {
 	        $queryBuilder
-                ->leftJoin('article.emplacement', 'emplacement')
-                ->andWhere($needsSameLocation ? 'emplacement = :location' : 'emplacement != :location')
-                ->setParameter('location', $location);
+                ->addOrderBy('IF(article.emplacement = :targetLocationPicking, 1, 0)', Criteria::DESC)
+                ->setParameter('targetLocationPicking', $targetLocationPicking);
         }
 
 	    if ($order && $fieldToOrder) {
 	        $queryBuilder
-                ->orderBy("article.$fieldToOrder", $order);
+                ->addOrderBy("article.$fieldToOrder", $order);
         }
 
 	    return $queryBuilder
             ->getQuery()
             ->getResult();
-
 	}
 
     public function findByParamsAndFilters(InputBag $params, $filters, Utilisateur $user)
