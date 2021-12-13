@@ -13,6 +13,7 @@ use App\Entity\FiltreRef;
 use App\Entity\InventoryCategory;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
+use App\Entity\ParametrageGlobal;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -23,6 +24,7 @@ use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Helper\FormatHelper;
 use App\Service\AttachmentService;
+use App\Service\GlobalParamService;
 use App\Service\VisibleColumnService;
 use WiiCommon\Helper\Stream;
 use App\Service\MouvementStockService;
@@ -282,6 +284,7 @@ class ReferenceArticleController extends AbstractController
      * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE})
      */
     public function index(RefArticleDataService $refArticleDataService,
+                          GlobalParamService $globalParamService,
                           EntityManagerInterface $entityManager): Response {
 
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
@@ -331,6 +334,7 @@ class ReferenceArticleController extends AbstractController
             "searches" => $user->getRecherche(),
             'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
             'columnsVisibles' => $currentUser->getVisibleColumns()['reference'],
+            'defaultLocation' => $globalParamService->getParamLocation(ParametrageGlobal::DEFAULT_LOCATION_REFERENCE),
             'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
             'typeQuantite' => $typeQuantite,
