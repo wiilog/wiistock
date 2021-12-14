@@ -193,13 +193,13 @@ class TrackingMovementService
             ];
         } else {
             $errors = [];
-            $colisArray = explode(',', $data['colis']);
-            foreach ($colisArray as $colis) {
-                $pack = $packRepository->findOneBy(['code' => $colis]);
+            $packCodes = explode(',', $data['colis']);
+            foreach ($packCodes as $packCode) {
+                $pack = $packRepository->findOneBy(['code' => $packCode]);
                 $isParentPack = $pack && $pack->isGroup();
                 $isChildPack = $pack && $pack->getParent();
                 if ($isParentPack || $isChildPack) {
-                    $errors[] = $colis;
+                    $errors[] = $packCode;
                 }
             }
 
@@ -239,9 +239,12 @@ class TrackingMovementService
                     $createdMovements[] = $groupingTrackingMovement;
                 }
 
-                foreach ($colisArray as $colis) {
+                foreach ($packCodes as $packCode) {
+                    $pack = $this->persistPack($entityManager, $packCode, 1, null);
+                    $location = $location ?? ($pack->getLastTracking() ? $pack->getLastTracking()->getEmplacement() : null);
+
                     $groupingTrackingMovement = $this->createTrackingMovement(
-                        $colis,
+                        $pack,
                         null,
                         $operator,
                         $date,
@@ -254,10 +257,7 @@ class TrackingMovementService
                         ]
                     );
 
-                    $pack = $groupingTrackingMovement->getPack();
-                    if ($pack) {
-                        $pack->setParent($parentPack);
-                    }
+                    $pack->setParent($parentPack);
 
                     $entityManager->persist($groupingTrackingMovement);
                     $createdMovements[] = $groupingTrackingMovement;
