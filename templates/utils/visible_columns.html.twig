@@ -37,7 +37,7 @@
                                     <div class="checkbox d-inline-block pointer no-data">
                                         <input class="form-check-input {{ field.isColumnVisible ? 'data' }}"
                                                name="{{ name }}"
-                                               onchange="showOrHideColumn($(this), {{ table }})"
+                                               onchange="showOrHideColumn($(this))"
                                                type="checkbox"
                                                {{ field.isColumnVisible ? 'checked' }}
                                                id="cv_{{ table }}_{{ loop.index }}"
@@ -61,16 +61,33 @@
 
 <script>
     window.addEventListener("load", function() {
-        const modal = $('#modalColumnVisible');
-        const button = $('#submitColumnVisible');
+        const $modal = $('#modalColumnVisible');
+        const $submitButton = $('#submitColumnVisible');
         let initialized = false;
 
-        $('[data-target="#modalColumnVisible"]').click(() => {
+        $('[data-target="#modalColumnVisible"]').on('click', function() {
             if(initialized || {{ table }} === undefined) {
                 return;
             }
-            InitModal(modal, button, '{{ path(route) }}', {tables: [{{ table }}]});
+
+            let config = {};
+            {% if reload is defined and reload == "1" %}
+                config.success = () => {
+                    window.location.reload();
+                };
+            {% else %}
+                config.success = () => {
+                    $modal.find('input[type="checkbox"]').each((_, check) => {
+                        const $check = $(check);
+                        let columnName = $check.data('name');
+                        let column = {{ table }}.column(columnName + ':name');
+                        column.visible($check.hasClass('data'));
+                    });
+                    {{ table }}.ajax.reload();
+                };
+            {% endif %}
+            InitModal($modal, $submitButton, '{{ path(route) }}', config);
             initialized = true;
-        })
+        });
     });
 </script>
