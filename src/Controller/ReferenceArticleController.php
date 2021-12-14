@@ -169,7 +169,8 @@ class ReferenceArticleController extends AbstractController
                 ->setIsUrgent(filter_var($data['urgence'] ?? false, FILTER_VALIDATE_BOOLEAN))
                 ->setEmplacement($emplacement)
 				->setBarCode($this->refArticleDataService->generateBarCode())
-                ->setBuyer(isset($data['buyer']) ? $userRepository->find($data['buyer']) : null);
+                ->setBuyer(isset($data['buyer']) ? $userRepository->find($data['buyer']) : null)
+                ->setCreatedBy($loggedUser);
 
             if ($refArticle->getIsUrgent()) {
                 $refArticle->setUserThatTriggeredEmergency($loggedUser);
@@ -390,6 +391,8 @@ class ReferenceArticleController extends AbstractController
                     /** @var Utilisateur $currentUser */
                     $currentUser = $this->getUser();
                     $refArticle->removeIfNotIn($data['files'] ?? []);
+                    $refArticle->setEditedBy($currentUser);
+                    $refArticle->setEditedAt(new DateTime());
                     $response = $this->refArticleDataService->editRefArticle($refArticle, $data, $currentUser, $champLibreService, $request);
                 }
                 catch (ArticleNotAvailableException $exception) {
@@ -663,7 +666,13 @@ class ReferenceArticleController extends AbstractController
             'gestionnaire(s)',
             'Labels Fournisseurs',
             'Codes Fournisseurs',
-            'Groupe de visibilité'
+            'Groupe de visibilité',
+            'date de création',
+            'crée par',
+            'date de dérniere modification',
+            'modifié par',
+            "date dernier mouvement d'entrée",
+            "date dernier mouvement de sortie",
         ], $ffConfig['freeFieldsHeader']);
 
         $today = new DateTime();
@@ -694,35 +703,41 @@ class ReferenceArticleController extends AbstractController
                                       array $managersByReference,
                                       array $reference,
                                       array $suppliersByReference) {
-        $id = (int)$reference['id'];
+        $id = (int)$reference["id"];
         $line = [
-            $reference['reference'],
-            $reference['libelle'],
-            $reference['quantiteStock'],
-            $reference['type'],
-            $reference['buyer'],
-            $reference['typeQuantite'],
-            $reference['statut'],
-            $reference['commentaire'] ? strip_tags($reference['commentaire']) : "",
-            $reference['emplacement'],
-            $reference['limitSecurity'],
-            $reference['limitWarning'],
-            $reference['prixUnitaire'],
-            $reference['barCode'],
-            $reference['category'],
-            $reference['dateLastInventory'] ? $reference['dateLastInventory']->format("d/m/Y H:i:s") : "",
-            $reference['needsMobileSync'],
-            $reference['stockManagement'],
+            $reference["reference"],
+            $reference["libelle"],
+            $reference["quantiteStock"],
+            $reference["type"],
+            $reference["buyer"],
+            $reference["typeQuantite"],
+            $reference["statut"],
+            $reference["commentaire"] ? strip_tags($reference["commentaire"]) : "",
+            $reference["emplacement"],
+            $reference["limitSecurity"],
+            $reference["limitWarning"],
+            $reference["prixUnitaire"],
+            $reference["barCode"],
+            $reference["category"],
+            $reference["dateLastInventory"] ? $reference["dateLastInventory"]->format("d/m/Y H:i:s") : "",
+            $reference["needsMobileSync"],
+            $reference["stockManagement"],
             $managersByReference[$id] ?? "",
-            $suppliersByReference[$id]['supplierLabels'] ?? "",
-            $suppliersByReference[$id]['supplierCodes'] ?? "",
-            $reference['visibilityGroup'],
+            $suppliersByReference[$id]["supplierLabels"] ?? "",
+            $suppliersByReference[$id]["supplierCodes"] ?? "",
+            $reference["visibilityGroup"],
+            $reference["createdAt"] ? $reference["createdAt"]->format("d/m/Y H:i:s") : "",
+            $reference["createdBy"] ?? "-",
+            $reference["editedAt"] ? $reference["editedAt"]->format("d/m/Y H:i:s") : "",
+            $reference["editedBy"] ?? "",
+            $reference["lastStockEntry"] ? $reference["lastStockEntry"]->format("d/m/Y H:i:s") : "",
+            $reference["lastStockExit"] ? $reference["lastStockExit"]->format("d/m/Y H:i:s") : "",
         ];
 
-        foreach($ffConfig['freeFieldIds'] as $freeFieldId) {
+        foreach($ffConfig["freeFieldIds"] as $freeFieldId) {
             $line[] = $ffService->serializeValue([
-                'typage' => $ffConfig['freeFieldsIdToTyping'][$freeFieldId],
-                'valeur' => $reference['freeFields'][$freeFieldId] ?? ''
+                "typage" => $ffConfig["freeFieldsIdToTyping"][$freeFieldId],
+                "valeur" => $reference["freeFields"][$freeFieldId] ?? ""
             ]);
         }
 
