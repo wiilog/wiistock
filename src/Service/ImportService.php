@@ -1486,7 +1486,7 @@ class ImportService
             ]);
 
             $deliveryTypesLabel = Stream::from($deliveryTypes)->map(fn(Type $type) => $type->getLabel())->toArray();
-            $invalidTypes = Stream::diff($deliveryTypesLabel, $deliveryTypesRaw)->toArray();
+            $invalidTypes = Stream::diff($deliveryTypesLabel, $deliveryTypesRaw, false, true)->toArray();
             if(!empty($invalidTypes)) {
                 $invalidTypesStr = implode(", ", $invalidTypes);
                 $this->throwError("Les types de demandes de livraison suivants sont invalides : $invalidTypesStr");
@@ -1510,7 +1510,7 @@ class ImportService
             ]);
 
             $dispatchTypesLabel = Stream::from($dispatchTypes)->map(fn(Type $type) => $type->getLabel())->toArray();
-            $invalidTypes = Stream::diff($dispatchTypesLabel, $dispatchTypesRaw)->toArray();
+            $invalidTypes = Stream::diff($dispatchTypesLabel, $dispatchTypesRaw, false, true)->toArray();
             if(!empty($invalidTypes)) {
                 $invalidTypesStr = implode(", ", $invalidTypes);
                 $this->throwError("Les types d'acheminements suivants sont invalides : $invalidTypesStr");
@@ -1534,7 +1534,7 @@ class ImportService
             ]);
 
             $handlingTypesLabel = Stream::from($handlingTypes)->map(fn(Type $type) => $type->getLabel())->toArray();
-            $invalidTypes = Stream::diff($handlingTypesLabel, $handlingTypesRaw)->toArray();
+            $invalidTypes = Stream::diff($handlingTypesLabel, $handlingTypesRaw, false, true)->toArray();
             if(!empty($invalidTypes)) {
                 $invalidTypesStr = implode(", ", $invalidTypes);
                 $this->throwError("Les types de services suivants sont invalides : $invalidTypesStr");
