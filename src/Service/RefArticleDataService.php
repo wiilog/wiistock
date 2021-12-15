@@ -446,7 +446,7 @@ class RefArticleDataService {
                 ->unique()
                 ->join(", "),
             "createdAt" => FormatHelper::datetime($refArticle->getCreatedAt()),
-            "createdBy" => FormatHelper::user($refArticle->getCreatedBy()),
+            "createdBy" => $refArticle->getCreatedBy() ? FormatHelper::user($refArticle->getCreatedBy()) : "-",
             "lastStockEntry" => FormatHelper::datetime($refArticle->getLastStockEntry()),
             "editedAt" => FormatHelper::datetime($refArticle->getEditedAt()),
             "editedBy" => FormatHelper::user($refArticle->getEditedBy()),
