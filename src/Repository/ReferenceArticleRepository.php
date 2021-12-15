@@ -47,7 +47,11 @@ class ReferenceArticleRepository extends EntityRepository {
     ];
 
     private const FIELDS_TYPE_DATE = [
-        "dateLastInventory"
+        "dateLastInventory",
+        "createdAt",
+        "editedAt",
+        "lastStockEntry",
+        "lastStockExit",
     ];
 
     private const CART_COLUMNS_ASSOCIATION = [
@@ -246,7 +250,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->execute();
     }
 
-    public function findByFiltersAndParams($filters, InputBag $params, Utilisateur $user)
+    public function findByFiltersAndParams(array $filters, InputBag $params, Utilisateur $user): array
     {
         $em = $this->getEntityManager();
         $index = 0;
@@ -268,7 +272,10 @@ class ReferenceArticleRepository extends EntityRepository {
             'Seuil de sécurité' => ['field' => 'limitSecurity', 'typage' => 'number'],
             'Urgence' => ['field' => 'isUrgent', 'typage' => 'boolean'],
             'Synchronisation nomade' => ['field' => 'needsMobileSync', 'typage' => 'sync'],
-            'Gestion de stock' => ['field' => 'stockManagement', 'typage' => 'text']
+            'Gestion de stock' => ['field' => 'stockManagement', 'typage' => 'text'],
+            'Dernière modification le' => ['field' => 'editedAt', 'typage' => 'text'],
+            'Dernière sortie le' => ['field' => 'lastStockExit', 'typage' => 'text'],
+            'Dernière entrée le' => ['field' => 'lastStockEntry', 'typage' => 'text']
         ];
 
         $queryBuilder = $this->createQueryBuilder("ra");
@@ -284,7 +291,7 @@ class ReferenceArticleRepository extends EntityRepository {
 
         foreach ($filters as $filter) {
             $index++;
-            if ($filter['champFixe'] === FiltreRef::FIXED_FIELD_STATUT) {
+            if ($filter['champFixe'] === FiltreRef::FIXED_FIELD_ACTIVE_ONLY) {
                 if ($filter['value'] === ReferenceArticle::STATUT_ACTIF) {
                     $queryBuilder->leftJoin('ra.statut', 'filter_sra');
                     $queryBuilder->andWhere('filter_sra.nom LIKE \'' . $filter['value'] . '\'');
@@ -310,6 +317,29 @@ class ReferenceArticleRepository extends EntityRepository {
                     ->leftJoin('filter_af_provider_label.fournisseur', 'filter_provider_label')
                     ->andWhere('filter_provider_label.nom LIKE :providerLabel')
                     ->setParameter('providerLabel', '%' . $filter['value'] . '%');
+            } else if(in_array($filter['champFixe'], [FiltreRef::FIXED_FIELD_CREATED_BY, FiltreRef::FIXED_FIELD_EDITED_BY, FiltreRef::FIXED_FIELD_BUYER])) {
+                $field = $filter['champFixe'];
+                switch ($field) {
+                    case FiltreRef::FIXED_FIELD_CREATED_BY:
+                        $field = 'createdBy';
+                        break;
+                    case FiltreRef::FIXED_FIELD_EDITED_BY:
+                        $field = 'editedBy';
+                        break;
+                    case FiltreRef::FIXED_FIELD_BUYER:
+                        $field = 'buyer';
+                        break;
+                }
+
+                $queryBuilder
+                    ->leftJoin("ra.$field", "filter_$field")
+                    ->andWhere("filter_$field.username LIKE :$field")
+                    ->setParameter($field, '%' . $filter['value'] . '%');
+            } else if($filter['champFixe'] === FiltreRef::FIXED_FIELD_STATUS) {
+                $queryBuilder
+                    ->leftJoin("ra.statut", "filter_status")
+                    ->andWhere("filter_status.nom = :status")
+                    ->setParameter("status", $filter['value']);
             }
             else {
                 // cas particulier champ référence article fournisseur
@@ -597,6 +627,18 @@ class ReferenceArticleRepository extends EntityRepository {
                         $queryBuilder
                             ->leftJoin('ra.buyer', 'order_buyer')
                             ->orderBy('order_buyer.username', $order);
+                        break;
+                    case "createdBy":
+                        $orderAddSelect[] = 'order_createdBy.username';
+                        $queryBuilder
+                            ->leftJoin('ra.createdBy', 'order_createdBy')
+                            ->orderBy('order_createdBy.username', $order);
+                        break;
+                    case "editedBy":
+                        $orderAddSelect[] = 'order_editedBy.username';
+                        $queryBuilder
+                            ->leftJoin('ra.editedBy', 'order_editedBy')
+                            ->orderBy('order_editedBy.username', $order);
                         break;
                     default:
                         $freeFieldId = VisibleColumnService::extractFreeFieldId($column);

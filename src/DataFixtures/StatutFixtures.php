@@ -50,7 +50,8 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
         $categoriesStatus = [
     		CategorieStatut::REFERENCE_ARTICLE => [
     			ReferenceArticle::STATUT_ACTIF,
-				ReferenceArticle::STATUT_INACTIF
+				ReferenceArticle::STATUT_INACTIF,
+                ReferenceArticle::DRAFT_STATUS
 			],
 			CategorieStatut::ARTICLE => [
 				Article::STATUT_ACTIF,
