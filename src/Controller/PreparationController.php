@@ -28,6 +28,7 @@ use App\Service\PDFGeneratorService;
 use App\Service\PreparationsManagerService;
 use App\Service\RefArticleDataService;
 use DateTime;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
@@ -315,11 +316,11 @@ class PreparationController extends AbstractController
      * @Route("/commencer-scission", name="start_splitting", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function startSplitting(EntityManagerInterface $entityManager,
-                                   Request $request): Response
-    {
+                                   Request $request): Response {
         if ($ligneArticleId = json_decode($request->getContent(), true)) {
             $ligneArticlePreparationRepository = $entityManager->getRepository(PreparationOrderReferenceLine::class);
             $articleRepository = $entityManager->getRepository(Article::class);
+            $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
             $ligneArticle = $ligneArticlePreparationRepository->find($ligneArticleId);
 
@@ -334,36 +335,16 @@ class PreparationController extends AbstractController
                 ->toArray();
 
 
-            $displayTargetPickingLocation = $entityManager->getRepository(ParametrageGlobal::class)->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION);
+            $displayTargetPickingLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION);
             $targetLocationPicking = $ligneArticle->getTargetLocationPicking();
             $management = $refArticle->getStockManagement();
-            if($targetLocationPicking && $displayTargetPickingLocation) {
-                $articlesOnTargetPickingLocation = $articleRepository->findActiveArticles(
-                    $refArticle,
-                    $targetLocationPicking,
-                    true,
-                    'ASC',
-                    $management === ReferenceArticle::STOCK_MANAGEMENT_FEFO ? 'expiryDate' : 'stockEntryDate'
-                );
 
-                $articles = $articleRepository->findActiveArticles(
-                    $refArticle,
-                    $targetLocationPicking,
-                    false,
-                    'ASC',
-                    $management === ReferenceArticle::STOCK_MANAGEMENT_FEFO ? 'expiryDate' : 'stockEntryDate'
-                );
-
-                $articles = Stream::from($articlesOnTargetPickingLocation)->concat($articles)->toArray();
-            } else {
-                $articles = $articleRepository->findActiveArticles(
-                    $refArticle,
-                    null,
-                    false,
-                    'ASC',
-                    $management === ReferenceArticle::STOCK_MANAGEMENT_FEFO ? 'expiryDate' : 'stockEntryDate'
-                );
-            }
+            $articles = $articleRepository->findActiveArticles(
+                $refArticle,
+                $displayTargetPickingLocation ? $targetLocationPicking : null,
+                $management === ReferenceArticle::STOCK_MANAGEMENT_FEFO ? 'expiryDate' : 'stockEntryDate',
+                Criteria::ASC
+            );
 
             $response = $this->renderView('preparation/modalSplitting.html.twig', [
                 'reference' => $refArticle->getReference(),

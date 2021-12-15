@@ -42,7 +42,7 @@
     }
 }
 
-$wii-switch-height: 38px;
+$wii-switch-height: $input-height;
 
 .wii-switch {
     display: inline-flex;

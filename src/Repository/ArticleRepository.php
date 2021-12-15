@@ -15,6 +15,7 @@ use App\Entity\Utilisateur;
 
 use App\Entity\VisibilityGroup;
 use App\Helper\QueryCounter;
+use Doctrine\Common\Collections\Criteria;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 use App\Service\VisibleColumnService;
@@ -206,10 +207,9 @@ class ArticleRepository extends EntityRepository {
 	}
 
 	public function findActiveArticles(ReferenceArticle $referenceArticle,
-                                       ?Emplacement $location = null,
-                                       bool $needsSameLocation = false,
-                                       ?string $order = null,
-                                       ?string $fieldToOrder = null): array
+                                       ?Emplacement     $targetLocationPicking = null,
+                                       ?string          $fieldToOrder = null,
+                                       ?string          $order = null): array
 	{
 	    $queryBuilder = $this->createQueryBuilder('article')
             ->join('article.articleFournisseur', 'articleFournisseur')
@@ -222,22 +222,20 @@ class ArticleRepository extends EntityRepository {
             ->setParameter('refArticle', $referenceArticle)
             ->setParameter('activeStatus', Article::STATUT_ACTIF);
 
-	    if ($location) {
+	    if ($targetLocationPicking) {
 	        $queryBuilder
-                ->leftJoin('article.emplacement', 'emplacement')
-                ->andWhere($needsSameLocation ? 'emplacement = :location' : 'emplacement != :location')
-                ->setParameter('location', $location);
+                ->addOrderBy('IF(article.emplacement = :targetLocationPicking, 1, 0)', Criteria::DESC)
+                ->setParameter('targetLocationPicking', $targetLocationPicking);
         }
 
 	    if ($order && $fieldToOrder) {
 	        $queryBuilder
-                ->orderBy("article.$fieldToOrder", $order);
+                ->addOrderBy("article.$fieldToOrder", $order);
         }
 
 	    return $queryBuilder
             ->getQuery()
             ->getResult();
-
 	}
 
     public function findByParamsAndFilters(InputBag $params, $filters, Utilisateur $user)
@@ -502,11 +500,11 @@ class ArticleRepository extends EntityRepository {
             ->getResult();
 	}
 
-    public function getArticlePrepaForPickingByUser($user, array $preparationIdsFilter = []) {
+    public function getArticlePrepaForPickingByUser($user, array $preparationIdsFilter = [], ?bool $displayPickingLocation = false) {
         $queryBuilder = $this->createQueryBuilder('article')
             ->select('DISTINCT article.reference AS reference')
             ->addSelect('article.label AS label')
-            ->addSelect('emplacement.label AS location')
+            ->addSelect('join_article_location.label AS location')
             ->addSelect('article.quantite AS quantity')
             ->addSelect('referenceArticle.reference AS reference_article')
             ->addSelect('article.barCode AS barCode')
@@ -525,11 +523,13 @@ class ArticleRepository extends EntityRepository {
                     ELSE :null
                 END) AS management_order
             ')
+            ->addSelect('IF(:displayPickingLocation = true AND join_targetLocationPicking.id = join_article_location.id, 1, 0) AS pickingPriority')
             ->join('article.articleFournisseur', 'articleFournisseur')
             ->join('articleFournisseur.referenceArticle', 'referenceArticle')
             ->join('article.statut', 'articleStatut')
-            ->leftJoin('article.emplacement', 'emplacement')
+            ->leftJoin('article.emplacement', 'join_article_location')
             ->join('referenceArticle.preparationOrderReferenceLines', 'preparationOrderReferenceLines')
+            ->leftJoin('preparationOrderReferenceLines.targetLocationPicking', 'join_targetLocationPicking')
             ->join('preparationOrderReferenceLines.preparation', 'preparation')
             ->join('preparation.statut', 'statutPreparation')
             ->andWhere('(statutPreparation.nom = :preparationToTreat OR (statutPreparation.nom = :preparationInProgress AND preparation.utilisateur = :preparationOperator))')
@@ -542,7 +542,8 @@ class ArticleRepository extends EntityRepository {
             ->setParameter('preparationOperator', $user)
             ->setParameter('fifoStockManagement', ReferenceArticle::STOCK_MANAGEMENT_FIFO)
             ->setParameter('fefoStockManagement', ReferenceArticle::STOCK_MANAGEMENT_FEFO)
-            ->setParameter('null', null);
+            ->setParameter('null', null)
+            ->setParameter('displayPickingLocation', $displayPickingLocation);
 
         if (!empty($preparationIdsFilter)) {
             $queryBuilder
