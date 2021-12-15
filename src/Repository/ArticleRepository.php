@@ -500,7 +500,7 @@ class ArticleRepository extends EntityRepository {
             ->getResult();
 	}
 
-    public function getArticlePrepaForPickingByUser($user, array $preparationIdsFilter = [], bool $displayPickingLocation = false) {
+    public function getArticlePrepaForPickingByUser($user, array $preparationIdsFilter = [], ?bool $displayPickingLocation = false) {
         $queryBuilder = $this->createQueryBuilder('article')
             ->select('DISTINCT article.reference AS reference')
             ->addSelect('article.label AS label')
