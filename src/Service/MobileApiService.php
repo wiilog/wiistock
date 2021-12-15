@@ -96,6 +96,10 @@ class MobileApiService {
             "skipValidationsManualTransfer" => $globalsParameters->getOneParamByLabel(ParametrageGlobal::MANUAL_TRANSFER_TO_TREAT_SKIP_VALIDATIONS),
             "skipValidationsLivraisons" => $globalsParameters->getOneParamByLabel(ParametrageGlobal::LIVRAISON_SKIP_VALIDATIONS),
             "skipQuantitiesLivraisons" => $globalsParameters->getOneParamByLabel(ParametrageGlobal::LIVRAISON_SKIP_QUANTITIES),
+            "skipValidationsToTreatTransfer" => $globalsParameters->getOneParamByLabel(ParametrageGlobal::TRANSFER_TO_TREAT_SKIP_VALIDATIONS),
+            "displayReferencesOnTransferCards" => $globalsParameters->getOneParamByLabel(ParametrageGlobal::TRANSFER_DISPLAY_REFERENCES_ON_CARDS),
+            "dropOnFreeLocation" => $globalsParameters->getOneParamByLabel(ParametrageGlobal::TRANSFER_FREE_DROP),
+            "displayTargetLocationPicking" => $globalsParameters->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION),
         ];
     }
 }

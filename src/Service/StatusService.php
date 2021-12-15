@@ -31,7 +31,6 @@ class StatusService {
     public function updateStatus(EntityManagerInterface $entityManager, Statut $status, array $data): Statut {
         $typeRepository = $entityManager->getRepository(Type::class);
         $type = $typeRepository->find($data['type']);
-
         $status
             ->setNom($data['label'])
             ->setState($data['state'])

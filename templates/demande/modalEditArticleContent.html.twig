@@ -19,3 +19,11 @@
            required
            max={{ maximum }}/>
 </div>
+{% if showTargetLocationPicking is defined and showTargetLocationPicking and line.reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_ARTICLE') %}
+<div class="form-group mt-2">
+    <label>Emplacement cible picking</label>
+    <select data-s2="location" class="form-control data" name="target-location-picking">
+        <option selected value="{{ line.targetLocationPicking.id }}">{{ line.targetLocationPicking.label }}</option>
+    </select>
+</div>
+{% endif %}
