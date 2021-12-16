@@ -1,0 +1,49 @@
+{% extends 'mails/template.html.twig' %}
+
+{% block content %}
+    <ul>
+        <li>Référence : <strong>{{ refArticle.reference }}</strong></li>
+
+        <li>Libellé : <strong>{{ refArticle.libelle }}</strong></li>
+
+        <li>Type : <strong>{{ refArticle.type.label }}</strong></li>
+
+        <li>Gestion Quantité : <strong>{{ refArticle.typeQuantite }}</strong></li>
+    </ul>
+    <table class="table" style="border: 1px solid black;border-collapse: collapse;">
+        <thead>
+        <tr>
+            <th class="th" style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Nom Fournisseur
+            </th>
+            <th class="th" style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Code Fournisseur
+            <th class="th" style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Ref Article Fournisseur
+            </th>
+            <th class="th" style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Libellé
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for articleFournisseur in articlesFournisseur %}
+            <tr>
+                <td class="td" style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ articleFournisseur.fournisseur.nom }}
+                </td>
+                <td class="td" style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ articleFournisseur.fournisseur.codeReference }}
+                </td>
+                <td class="td" style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ articleFournisseur.reference }}
+                </td>
+                <td class="td" style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ articleFournisseur.label }}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <br>
+{% endblock %}

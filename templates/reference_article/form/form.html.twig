@@ -42,7 +42,7 @@
 {% endmacro %}
 
 {% macro visibility_group_input(reference) %}
-    <div class="col-12 col-md-6 mt-3">
+    <div class="col-12 col-md-6">
         <label for="visibility-group" class="wii-field-name w-100">Groupe de visibilité
             <select name="visibility-group" class="form-control data" data-s2="visibilityGroup">
                 {% if reference.visibilityGroup %}
@@ -56,6 +56,7 @@
 {% import _self as macros %}
 
 {% set editable = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
+{% set hasRightCreateDraft = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_DRAFT_REFERENCE')) %}
 {% set disabled = editable ? '' : 'disabled' %}
 {% set isReferenceManagementQuantity = reference.id and reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_REFERENCE') %}
 <div class="d-flex justify-content-center align-items-center" style="margin-bottom: 50px;">
@@ -99,7 +100,8 @@
                         <label class="wii-field-name" title="Référence">
                             Référence*
                             <input type="text" name="reference" class="form-control data needed" placeholder="Référence"
-                                   value="{{ reference.reference }}">
+                                   value="{{ reference.reference ? reference.reference : (hasRightCreateDraft ? refNumber : ' ') }}"
+                                   {{ hasRightCreateDraft ? 'disabled' }}>
                         </label>
                         <label class="mt-3 wii-field-name" title="Libellé">
                             Libellé*
@@ -124,13 +126,15 @@
                             Statut*
                         </label>
                         <div class="wii-switch needed" data-title="Statut">
-                            <input type="radio" name="statut" value="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}" content="Actif"
-                                {{ reference.statut and reference.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') ? 'checked' }}>
-                            <input type="radio" name="statut" value="{{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') }}"
-                                   content="Inactif"
-                                {{ reference.statut and reference.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') ? 'checked' }}>
                             <input type="radio" name="statut" value="{{ constant('App\\Entity\\ReferenceArticle::STATUT_BROUILLON') }}" content="Brouillon"
-                                {{ reference.statut and reference.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_BROUILLON') ? 'checked' }}>
+                                {{ (reference.statut and reference.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_BROUILLON')) ? 'checked' : (hasRightCreateDraft ? 'checked')}} onchange="changeNewReferenceStatus($(this))">
+                            {% if not hasRightCreateDraft %}
+                                <input type="radio" name="statut" value="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}" content="Actif"
+                                    {{ reference.statut and reference.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') ? 'checked' }} onchange="changeNewReferenceStatus($(this))">
+                                <input type="radio" name="statut" value="{{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') }}" content="Inactif"
+                                    {{ reference.statut and reference.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') ? 'checked' }} onchange="changeNewReferenceStatus($(this))">
+                            {% endif %}
+
                         </div>
 
                         <label class="with-checkbox">
@@ -269,6 +273,8 @@
                                                            name="quantite"
                                                            class="form-control data needed w-50"
                                                            min="0"
+                                                           value="{{ hasRightCreateDraft ? 0 : '' }}"
+                                                           {{ hasRightCreateDraft ? 'disabled' }}
                                                            {# TODO vérifier si le statut est en brouillon si c'est le cas mettre disabled et afficher 0 sinon voir quoi faire #}>
                                                     <button class="increase"></button>
                                                 </div>
@@ -319,6 +325,23 @@
                                             </label>
                                         </div>
                                     </div>
+                                    <div class="col-12 col-md-4 article mt-3">
+                                        <label>
+                                        <span class="icon wii-field-name">
+                                            <img src="{{ asset('svg/reference_article/stock-management.svg') }}" class="icon"
+                                                 alt="Image gestion de stock">
+                                            Gestion de stock
+                                        </span>
+                                            <select name="stockManagement" data-s2 data-placeholder="Sélectionnez une gestion de stock"
+                                                    class="form-control data">
+                                                {% for value in stockManagement %}
+                                                    <option value="{{ value }}" {{ reference.stockManagement == value ? 'selected' }}>
+                                                        {{ value }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                        </label>
+                                    </div>
                                     <div class="col-12 col-md-4 mt-3">
                                         <label>
                                     <span class="icon wii-field-name">
@@ -353,23 +376,7 @@
                                 </div>
                             </div>
 
-                            <div class="col-12 col-md-4 article mt-3">
-                                <label>
-                                        <span class="icon wii-field-name">
-                                            <img src="{{ asset('svg/reference_article/stock-management.svg') }}" class="icon"
-                                                 alt="Image gestion de stock">
-                                            Gestion de stock
-                                        </span>
-                                    <select name="stockManagement" data-s2 data-placeholder="Sélectionnez une gestion de stock"
-                                            class="form-control data">
-                                        {% for value in stockManagement %}
-                                            <option value="{{ value }}" {{ reference.stockManagement == value ? 'selected' }}>
-                                                {{ value }}
-                                            </option>
-                                        {% endfor %}
-                                    </select>
-                                </label>
-                            </div>
+
 
                             <div class="col-12">
                                 <div class="row">

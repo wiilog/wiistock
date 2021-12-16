@@ -26,6 +26,7 @@ use App\Helper\FormatHelper;
 use App\Service\AttachmentService;
 use App\Service\GlobalParamService;
 use App\Service\VisibleColumnService;
+use PhpParser\Node\Param;
 use WiiCommon\Helper\Stream;
 use App\Service\MouvementStockService;
 use App\Service\FreeFieldService;
@@ -111,6 +112,7 @@ class ReferenceArticleController extends AbstractController
                         FreeFieldService $champLibreService,
                         EntityManagerInterface $entityManager,
                         MouvementStockService $mouvementStockService,
+                        RefArticleDataService $refArticleDataService,
                         ArticleFournisseurService $articleFournisseurService,
                         AttachmentService $attachmentService): Response
     {
@@ -122,10 +124,12 @@ class ReferenceArticleController extends AbstractController
             $statutRepository = $entityManager->getRepository(Statut::class);
             $typeRepository = $entityManager->getRepository(Type::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+            $actionRepository = $entityManager->getRepository(Action::class);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
             $userRepository = $entityManager->getRepository(Utilisateur::class);
             $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
+            $sendMail = $userRepository->getUserMailByReferenceValidatorAction();
 
             // on vérifie que la référence n'existe pas déjà
             $refAlreadyExist = $referenceArticleRepository->countByReference($data['reference']);
@@ -214,14 +218,15 @@ class ReferenceArticleController extends AbstractController
                 foreach ($supplierReferenceLines as $supplierReferenceLine) {
                     $referenceArticleFournisseur = $supplierReferenceLine['referenceFournisseur'];
                     try {
-                        $supplierArticle = $articleFournisseurService->createArticleFournisseur([
-                            'fournisseur' => $supplierReferenceLine['fournisseur'],
-                            'article-reference' => $refArticle,
-                            'label' => $supplierReferenceLine['labelFournisseur'],
-                            'reference' => $referenceArticleFournisseur
-                        ]);
-
-                        $entityManager->persist($supplierArticle);
+                        if ($refArticle->getStatut() !== ReferenceArticle::STATUT_BROUILLON){
+                            $supplierArticle = $articleFournisseurService->createArticleFournisseur([
+                                'fournisseur' => $supplierReferenceLine['fournisseur'],
+                                'article-reference' => $refArticle,
+                                'label' => $supplierReferenceLine['labelFournisseur'],
+                                'reference' => $referenceArticleFournisseur
+                            ]);
+                            $entityManager->persist($supplierArticle);
+                        }
                     } catch (Exception $exception) {
                         if ($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
                             return new JsonResponse([
@@ -234,7 +239,8 @@ class ReferenceArticleController extends AbstractController
             }
 
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE &&
-                $refArticle->getQuantiteStock() > 0) {
+                $refArticle->getQuantiteStock() > 0 &&
+                $refArticle->getStatut() !== ReferenceArticle::STATUT_BROUILLON) {
                 $mvtStock = $mouvementStockService->createMouvementStock(
                     $loggedUser,
                     null,
@@ -264,6 +270,12 @@ class ReferenceArticleController extends AbstractController
                 $request->files->remove('image');
             }
             $attachmentService->manageAttachments($entityManager, $refArticle, $request->files);
+
+            $entityManager->flush();
+
+            if (!empty($sendMail)){
+                $refArticleDataService->sendMailCreateDraftOrDraftToActive($refArticle, $sendMail, true);
+            }
 
             $entityManager->flush();
             return $this->json([
@@ -940,6 +952,14 @@ class ReferenceArticleController extends AbstractController
         $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $inventoryCategories = $inventoryCategoryRepository->findAll();
 
+        $refNumber = $manager->getRepository(ReferenceArticle::class)
+                ->createQueryBuilder('refA')
+                ->select('COUNT(refA) as refNumber')
+                ->where('refA.reference LIKE :stringDefined')
+                ->setParameter('stringDefined', 'A DEFINIR%')
+                ->getQuery()
+                ->getResult();
+
         $typeChampLibre =  [];
         $freeFieldsGroupedByTypes = [];
 
@@ -958,6 +978,7 @@ class ReferenceArticleController extends AbstractController
             "submit_url" => $this->generateUrl("reference_article_new"),
             "types" => $types,
             'defaultLocation' => $globalParamService->getParamLocation(ParametrageGlobal::DEFAULT_LOCATION_REFERENCE),
+            'refNumber' => $refNumber ? ("A DEFINIR".strval($refNumber[0]['refNumber']+1)) : ' ',
             "stockManagement" => [
                 ReferenceArticle::STOCK_MANAGEMENT_FEFO,
                 ReferenceArticle::STOCK_MANAGEMENT_FIFO

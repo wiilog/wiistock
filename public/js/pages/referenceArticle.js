@@ -417,3 +417,11 @@ function updateFilters() {
             }
         });
 }
+
+function changeNewReferenceStatus(select){
+    if(select.val() === 'brouillon'){
+        $('input[name="quantite"]').prop('disabled', true);
+    } else {
+        $('input[name="quantite"]').prop('disabled', false);
+    }
+}

@@ -32,6 +32,7 @@ use App\Repository\ReceptionReferenceArticleRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use Google\Collection;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -102,6 +103,9 @@ class RefArticleDataService {
 
     /** @Required */
     public AttachmentService $attachmentService;
+
+    /** @Required */
+    public MailerService $mailerService;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 EntityManagerInterface $entityManager) {
@@ -800,6 +804,31 @@ class RefArticleDataService {
                 $reference->setOrderState(null);
             }
         }
+    }
+
+    public function sendMailCreateDraftOrDraftToActive(ReferenceArticle $refArticle, ?array $destinataires ,bool $state = false)
+    {
+        /**
+         * @var ArticleFournisseur[] $articlesFournisseur
+         */
+        $articlesFournisseur = $refArticle->getArticlesFournisseur();
+        $title = $state ?
+            "Une nouvelle référence vient d'être créée et attend d'être validée :" :
+            "Votre référence vient d'être validée avec les informations suivantes :";
+
+        $this->mailerService->sendMail(
+            'FOLLOW GT // ' . ($state ? "Création d'une nouvelle référence" : "Validation de votre référence"),
+            $this->templating->render(
+                'mails/contents/mailCreateDraftOrDraftToActive.html.twig',
+                [
+                    'title' => $title,
+                    'refArticle' => $refArticle,
+                    'articlesFournisseur' => $articlesFournisseur,
+                    'urlSuffix' => $this->router->generate("reference_article_show_page", ["id" => $refArticle->getId()])
+                ]
+            ),
+            $destinataires
+        );
     }
 
 }
