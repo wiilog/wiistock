@@ -153,6 +153,8 @@ class FreeFieldController extends AbstractController {
                     ->filter()
                     ->unique()
                     ->values();
+
+                $elements = array_map('trim', $elements);
 				$champLibre->setElements($elements);
 
 				if($champLibre->getTypage() == FreeField::TYPE_LIST
