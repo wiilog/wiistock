@@ -571,7 +571,7 @@ class ArticleRepository extends EntityRepository {
             ->join('article.preparationOrderLines', 'join_preparationOrderLines')
             ->join('join_preparationOrderLines.preparation', 'join_preparation')
             ->join('join_preparation.livraison', 'join_delivery')
-            ->join('join_preparationOrderLines.targetLocationPicking', 'join_targetLocationPicking')
+            ->leftJoin('join_preparationOrderLines.targetLocationPicking', 'join_targetLocationPicking')
             ->andWhere('join_delivery.id IN (:deliveryIds)')
             ->andWhere('article.quantite > 0')
             ->setParameter('deliveryIds', $livraisonsIds, Connection::PARAM_STR_ARRAY)
