@@ -222,7 +222,7 @@ class StatutRepository extends EntityRepository {
             ->getResult();
     }
 
-    public function countSimilarLabels($category, $label, $type, $current = null) {
+    public function countSimilarLabels($category, $label, $type, $current = null): int {
         $qb = $this->createQueryBuilder("s")
             ->select("COUNT(s)")
             ->where("s.nom LIKE :label")
