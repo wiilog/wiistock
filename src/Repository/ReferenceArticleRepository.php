@@ -428,6 +428,7 @@ class ReferenceArticleRepository extends EntityRepository {
                 $search = "%$searchValue%";
                 $ids = [];
                 $query = [];
+                $freeFieldRepository = $em->getRepository(FreeField::class);
                 foreach ($user->getRecherche() as $key => $searchField) {
                     $searchField = self::DtToDbLabels[$searchField] ?? $searchField;
                     switch ($searchField) {
@@ -503,6 +504,12 @@ class ReferenceArticleRepository extends EntityRepository {
                             $field = self::DtToDbLabels[$searchField] ?? $searchField;
                             $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
                             if(is_numeric($freeFieldId)) {
+                                if ($freeFieldRepository->find($freeFieldId)->getTypage() === FreeField::TYPE_BOOL) {
+                                    $booleanValue = strtolower(str_replace("%", "", $search) === "oui" ? 1 : 0);
+                                    $query[] = "JSON_SEARCH(LOWER(ra.freeFields), 'one', '${booleanValue}', NULL, '$.\"${freeFieldId}\"') IS NOT NULL";
+                                    $queryBuilder->setParameter("search", $booleanValue );
+                                }
+
                                 $query[] = "JSON_SEARCH(LOWER(ra.freeFields), 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
                                 $queryBuilder->setParameter("search", $date ?: strtolower($search));
                             } else if (property_exists(ReferenceArticle::class, $field)) {
