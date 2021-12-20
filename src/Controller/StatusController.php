@@ -163,36 +163,11 @@ class StatusController extends AbstractController {
                          StatusService $statusService): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $statusRepository = $entityManager->getRepository(Statut::class);
-            $categoryStatusRepository = $entityManager->getRepository(CategorieStatut::class);
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $validation = [];
-            /** @var Statut $status */
             $status = $statusRepository->find($data['status']);
 
-            $type = $typeRepository->find($data['type']);
-            $category = $status
-                ? $status->getCategorie()
-                : $categoryStatusRepository->find($data['category']);
-            $defaults = $statusRepository->countDefaults($category, $type, $status);
+            $validation = $statusService->validateStatusData($entityManager, $data, $status);
 
-            $drafts = $statusRepository->countDrafts($category, $type, $status);
-
-            $errorCount = $drafts + $defaults;
-
-            if ($errorCount != 0) {
-                $validation['success'] = false;
-
-                if ($data['defaultForCategory'] && $defaults != 0) {
-                    $validation['message'] = 'Vous ne pouvez pas définir ce statut par défaut pour cette entité et ce type, il en existe déjà un.';
-                } else if (((int)$data['state']) && $drafts != 0) {
-                    $validation['message'] = 'Vous ne pouvez pas définir ce statut à brouillon pour cette entité et ce type, il en existe déjà un.';
-                } else if (((int) $data['state']) === Statut::DISPUTE ) {
-                    $validation['message'] = 'Vous ne pouvez pas définir ce statut à litige pour cette entité et ce type, il en existe déjà un.';
-                }
-            }
-
-
-            if ($errorCount === 0) {
+            if ($validation['success']) {
                 $status = $statusService->updateStatus($entityManager, $status, $data);
 
                 $entityManager->persist($status);
