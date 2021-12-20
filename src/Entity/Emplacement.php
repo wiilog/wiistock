@@ -1016,33 +1016,33 @@ class Emplacement implements PairedEntity
         return $this->transferOrders;
     }
 
-    public function addTransfertOrder(TransferOrder $transferOrder): self {
+    public function addTransferOrder(TransferOrder $transferOrder): self {
         if (!$this->transferOrders->contains($transferOrder)) {
             $this->transferOrders[] = $transferOrder;
-            $transferOrder->setLocation($this);
+            $transferOrder->setDropLocation($this);
         }
 
         return $this;
     }
 
-    public function removeTransfertOrder (TransferOrder $transferOrder): self {
+    public function removeTransferOrder (TransferOrder $transferOrder): self {
         if ($this->transferOrders->removeElement($transferOrder)) {
-            if ($transferOrder->getLocation() === $this) {
-                $transferOrder->setLocation(null);
+            if ($transferOrder->getDropLocation() === $this) {
+                $transferOrder->setDropLocation(null);
             }
         }
 
         return $this;
     }
 
-    public function setTransertOrder (?array $transferOrders): self {
+    public function setTransferOrder (?array $transferOrders): self {
         foreach($this->gettransferOrders()->toArray() as $transferOrder) {
-            $this->removeTransfertOrder($transferOrder);
+            $this->removeTransferOrder($transferOrder);
         }
 
         $this->transferOrders = new ArrayCollection();
         foreach($transferOrders as $transferOrder) {
-            $this->addtransferOrder($transferOrder);
+            $this->addTransferOrder($transferOrder);
         }
 
         return $this;

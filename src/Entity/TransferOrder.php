@@ -69,7 +69,7 @@ class TransferOrder implements Serializable {
      * @ORM\ManyToOne(targetEntity=Emplacement::class, inversedBy="transferOrders")
      * @ORM\JoinColumn(nullable=true)
      */
-    private ?Emplacement $location;
+    private ?Emplacement $dropLocation = null;
 
     public function __construct()
     {
@@ -181,13 +181,19 @@ class TransferOrder implements Serializable {
         return $this;
     }
 
-    public function getLocation(): ?Emplacement {
-        return $this->location;
+    public function getDropLocation(): ?Emplacement {
+        return $this->dropLocation;
     }
 
-    public function setLocation(?Emplacement $location): self {
-            $this->location = $location;
-             return $this;
+    public function setDropLocation(?Emplacement $dropLocation): self {
+        if($this->dropLocation && $this->dropLocation !== $dropLocation) {
+            $this->dropLocation->removeTransferOrder($this);
+        }
+        $this->dropLocation = $dropLocation;
+        if($dropLocation) {
+            $dropLocation->addTransferOrder($this);
+        }
+        return $this;
     }
 
     public function serialize(): array {

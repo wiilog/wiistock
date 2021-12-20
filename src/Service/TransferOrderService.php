@@ -100,7 +100,7 @@ class TransferOrderService {
             $request->setStatus($treatedRequest);
 
             if($destination) {
-                $order->setLocation($destination);
+                $order->setDropLocation($destination);
             }
             $order
                 ->setStatus($treatedOrder)
@@ -229,7 +229,7 @@ class TransferOrderService {
             ['label' => 'Opérateur', 'value' => FormatHelper::user($order->getOperator())],
             ['label' => 'Origine', 'value' => FormatHelper::location($request->getOrigin())],
             ['label' => 'Destination', 'value' => FormatHelper::location($request->getDestination())],
-            ['label' => 'Dépose réelle', 'value' => FormatHelper::location($order->getLocation())],
+            ['label' => 'Dépose réelle', 'value' => FormatHelper::location($order->getDropLocation())],
             ['label' => 'Date de création', 'value' => FormatHelper::datetime($order->getCreationDate())],
             ['label' => 'Date de transfert', 'value' => FormatHelper::datetime($order->getTransferDate())],
             [
