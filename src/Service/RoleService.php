@@ -38,7 +38,7 @@ class RoleService
         // on traite les actions
         $dashboardsVisible = [];
         foreach ($data as $menuAction => $isChecked) {
-            $menuActionArray = explode('/', $menuAction);
+            $menuActionArray = explode('/', $menuAction, 2);
             if (count($menuActionArray) > 1) {
                 $menuLabel = $menuActionArray[0];
                 $actionLabel = $menuActionArray[1];
