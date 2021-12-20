@@ -51,7 +51,7 @@ class TrackingMovementService
     /** @Required */
     public MouvementStockService $stockMovementService;
 
-    private array $stockStatuses = [];
+    public array $stockStatuses = [];
 
     private ?array $freeFieldsConfig = null;
 

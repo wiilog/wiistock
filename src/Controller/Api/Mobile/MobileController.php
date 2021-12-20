@@ -526,6 +526,7 @@ class MobileController extends AbstractFOSRestController
                     $nomadUser = $utilisateurRepository->find($nomadUser->getId());
                     $trackingTypes = [];
                     $mustReloadLocation = true;
+                    $trackingMovementService->stockStatuses = [];
                 }
 
                 if ($throwable->getMessage() === TrackingMovementService::INVALID_LOCATION_TO) {
