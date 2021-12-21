@@ -183,6 +183,11 @@ class Emplacement implements PairedEntity
      */
     private Collection $preparationOrderReferenceLines;
 
+    /**
+     * @ORM\OneToMany(targetEntity=TransferOrder::class, mappedBy="location")
+     */
+    private Collection $transferOrders;
+
     public function __construct() {
         $this->clusters = new ArrayCollection();
         $this->articles = new ArrayCollection();
@@ -208,6 +213,7 @@ class Emplacement implements PairedEntity
         $this->deliveryRequestArticleLines = new ArrayCollection();
         $this->deliveryRequestReferenceLines = new ArrayCollection();
         $this->preparationOrderArticleLines = new ArrayCollection();
+        $this->transferOrders = new ArrayCollection();
     }
 
     public function getId(): ? int
@@ -1003,4 +1009,43 @@ class Emplacement implements PairedEntity
 
         return $this;
     }
+    /**
+     * @return Collection|TransferOrder []
+     */
+    public function getTransferOrders(): Collection {
+        return $this->transferOrders;
+    }
+
+    public function addTransferOrder(TransferOrder $transferOrder): self {
+        if (!$this->transferOrders->contains($transferOrder)) {
+            $this->transferOrders[] = $transferOrder;
+            $transferOrder->setDropLocation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransferOrder (TransferOrder $transferOrder): self {
+        if ($this->transferOrders->removeElement($transferOrder)) {
+            if ($transferOrder->getDropLocation() === $this) {
+                $transferOrder->setDropLocation(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setTransferOrder (?array $transferOrders): self {
+        foreach($this->gettransferOrders()->toArray() as $transferOrder) {
+            $this->removeTransferOrder($transferOrder);
+        }
+
+        $this->transferOrders = new ArrayCollection();
+        foreach($transferOrders as $transferOrder) {
+            $this->addTransferOrder($transferOrder);
+        }
+
+        return $this;
+    }
+
 }
