@@ -474,17 +474,26 @@ class UserController extends AbstractController
      * @HasPermission({Menu::PARAM, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
 	public function checkUserCanBeDeleted(Request $request,
-                                          UserService $userService): Response
+                                          UserService $userService,
+                                          EntityManagerInterface $entityManager): Response
 	{
 		if ($userId = json_decode($request->getContent(), true)) {
-			$userIsUsed = $userService->isUsedByDemandsOrOrders($userId);
+            $user = $entityManager->find(Utilisateur::class, $userId);
+            $userOwnership = $user
+                ? Stream::from($userService->getUserOwnership($entityManager, $user))
+                    ->filter()
+                    ->toArray()
+                : [];
 
-			if (!$userIsUsed) {
+			if ($user && empty($userOwnership)) {
 				$delete = true;
 				$html = $this->renderView('utilisateur/modalDeleteUtilisateurRight.html.twig');
 			} else {
 				$delete = false;
-				$html = $this->renderView('utilisateur/modalDeleteUtilisateurWrong.html.twig');
+                $entities = Stream::from($userOwnership)
+                    ->takeKeys()
+                    ->join(", ");
+				$html = $this->renderView('utilisateur/modalDeleteUtilisateurWrong.html.twig', ['entities' => $entities]);
 			}
 
 			return new JsonResponse(['delete' => $delete, 'html' => $html]);
@@ -504,22 +513,26 @@ class UserController extends AbstractController
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
             $user = $utilisateurRepository->find($data['user']);
-            $username = $user->getUsername();
 
-			// on vérifie que l'utilisateur n'est plus utilisé
-			$isUserUsed = $userService->isUsedByDemandsOrOrders($user);
+            if ($user) {
+                $userOwnership = Stream::from($userService->getUserOwnership($entityManager, $user))
+                    ->filter()
+                    ->toArray();
 
-			if ($isUserUsed) {
-				return new JsonResponse(false);
-			}
+                if (!empty($userOwnership)) {
+                    return new JsonResponse(false);
+                }
 
-			$entityManager = $this->getDoctrine()->getManager();
-			$entityManager->remove($user);
-			$entityManager->flush();
-			return new JsonResponse([
-			    'success' => true,
-                'msg' => 'L\'utilisateur <strong>' . $username . '</strong> a bien été supprimé.'
-            ]);
+                $username = $user->getUsername();
+
+                $entityManager->remove($user);
+                $entityManager->flush();
+
+                return new JsonResponse([
+                    'success' => true,
+                    'msg' => 'L\'utilisateur <strong>' . $username . '</strong> a bien été supprimé.'
+                ]);
+            }
 		}
         throw new BadRequestHttpException();
     }
