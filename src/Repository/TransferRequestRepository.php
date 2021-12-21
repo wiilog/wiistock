@@ -255,4 +255,13 @@ class TransferRequestRepository extends EntityRepository {
         }
     }
 
+    public function countByLocation($location): int {
+        return $this->createQueryBuilder("transfer_request")
+            ->select("COUNT(transfer_request)")
+            ->andWhere("transfer_request.origin = :location OR transfer_request.destination = :location")
+            ->setParameter("location", $location)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
 }
