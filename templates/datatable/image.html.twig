@@ -1,0 +1,5 @@
+{% set url = app.request is not null ? app.request.getSchemeAndHttpHost() : app_url %}
+{% set image = image is defined and image ? image %}
+{% if image %}
+    <img class="dt-image" src="{{ url ~ asset('uploads/attachements/' ~ image.fileName)  }}" alt="{{ image.originalName }}">
+{% endif %}

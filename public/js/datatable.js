@@ -507,5 +507,7 @@ function setOrder(config, order) {
         order
     };
 
-    $.post(Routing.generate('set_columns_order'), params);
+    $.post(Routing.generate('set_columns_order'), params).then(() => {
+        showBSAlert(`Vos préférences d'ordre de colonnes ont bien été enregistrées`, `success`);
+    });
 }
