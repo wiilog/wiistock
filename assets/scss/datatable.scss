@@ -193,3 +193,10 @@ thead th, thead td {
 th.hideOrder {
     background-image: none !important;
 }
+
+.dt-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 5px;
+}
