@@ -9,30 +9,30 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\MenuRepository")
  */
-class Menu
-{
-	const DASHBOARDS = 'dashboard';
-	const TRACA = 'tracabilité';
-	const QUALI = 'qualité';
-	const DEM = 'demande';
-	const ORDRE = 'ordre';
-	const STOCK = 'stock';
-	const REFERENTIEL = 'référentiel';
-	const IOT = 'iot';
-	const PARAM = 'paramétrage';
-	const NOMADE = 'nomade';
+class Menu {
+
+    const DASHBOARDS = 'dashboard';
+    const TRACA = 'tracabilité';
+    const QUALI = 'qualité';
+    const DEM = 'demande';
+    const ORDRE = 'ordre';
+    const STOCK = 'stock';
+    const REFERENTIEL = 'référentiel';
+    const IOT = 'iot';
+    const PARAM = 'paramétrage';
+    const NOMADE = 'nomade';
 
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="string", length=32)
      */
-    private $label;
+    private ?string $label = null;
 
     /**
      * @ORM\Column(type="string", nullable=true)
@@ -40,28 +40,29 @@ class Menu
     private ?string $translation = null;
 
     /**
+     * @ORM\OneToMany(targetEntity=SubMenu::class, mappedBy="menu")
+     */
+    private Collection $subMenus;
+
+    /**
      * @ORM\OneToMany(targetEntity="Action", mappedBy="menu")
      */
-    private $actions;
+    private Collection $actions;
 
-    public function __construct()
-    {
+    public function __construct() {
+        $this->subMenus = new ArrayCollection();
         $this->actions = new ArrayCollection();
     }
 
-
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getLabel(): ?string
-    {
+    public function getLabel(): ?string {
         return $this->label;
     }
 
-    public function setLabel(string $label): self
-    {
+    public function setLabel(string $label): self {
         $this->label = $label;
 
         return $this;
@@ -77,16 +78,53 @@ class Menu
     }
 
     /**
-     * @return Collection|action[]
+     * @return Collection|SubMenu[]
      */
-    public function getActions(): Collection
-    {
+    public function getSubMenus(): Collection {
+        return $this->subMenus;
+    }
+
+    public function addSubMenu(SubMenu $subMenu): self {
+        if(!$this->subMenus->contains($subMenu)) {
+            $this->subMenus[] = $subMenu;
+            $subMenu->setMenu($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSubMenu(SubMenu $subMenu): self {
+        if($this->subMenus->removeElement($subMenu)) {
+            if($subMenu->getMenu() === $this) {
+                $subMenu->setMenu(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setSubMenus(?array $subMenus): self {
+        foreach($this->getSubMenus()->toArray() as $subMenu) {
+            $this->removeSubMenu($subMenu);
+        }
+
+        $this->subMenus = new ArrayCollection();
+        foreach($subMenus as $subMenu) {
+            $this->addSubMenu($subMenu);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Action[]
+     */
+    public function getActions(): Collection {
         return $this->actions;
     }
 
-    public function addAction(action $action): self
-    {
-        if (!$this->actions->contains($action)) {
+    public function addAction(Action $action): self {
+        if(!$this->actions->contains($action)) {
             $this->actions[] = $action;
             $action->setMenu($this);
         }
@@ -94,14 +132,24 @@ class Menu
         return $this;
     }
 
-    public function removeAction(action $action): self
-    {
-        if ($this->actions->contains($action)) {
-            $this->actions->removeElement($action);
-            // set the owning side to null (unless already changed)
-            if ($action->getMenu() === $this) {
+    public function removeAction(Action $action): self {
+        if($this->actions->removeElement($action)) {
+            if($action->getMenu() === $this) {
                 $action->setMenu(null);
             }
+        }
+
+        return $this;
+    }
+
+    public function setActions(?array $actions): self {
+        foreach($this->getActions()->toArray() as $action) {
+            $this->removeAction($action);
+        }
+
+        $this->actions = new ArrayCollection();
+        foreach($actions as $action) {
+            $this->addAction($action);
         }
 
         return $this;
