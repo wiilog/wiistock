@@ -503,15 +503,21 @@ class ReferenceArticleRepository extends EntityRepository {
                         default:
                             $field = self::DtToDbLabels[$searchField] ?? $searchField;
                             $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
-                            if(is_numeric($freeFieldId)) {
-                                if ($freeFieldRepository->find($freeFieldId)->getTypage() === FreeField::TYPE_BOOL) {
-                                    $booleanValue = strtolower(str_replace("%", "", $search) === "oui" ? 1 : 0);
-                                    $query[] = "JSON_SEARCH(LOWER(ra.freeFields), 'one', '${booleanValue}', NULL, '$.\"${freeFieldId}\"') IS NOT NULL";
-                                    $queryBuilder->setParameter("search", $booleanValue );
-                                }
+                            if (is_numeric($freeFieldId)) {
+                                $freeField = $freeFieldRepository->find($freeFieldId);
+                                if ($freeField->getTypage() === FreeField::TYPE_BOOL) {
+                                    $lowerSearchValue = strtolower($searchValue);
 
-                                $query[] = "JSON_SEARCH(LOWER(ra.freeFields), 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
-                                $queryBuilder->setParameter("search", $date ?: strtolower($search));
+                                    if (($lowerSearchValue === "oui") || ($lowerSearchValue === "non")) {
+                                        $booleanValue = $lowerSearchValue === "oui" ? 1 : 0;
+                                        $query[] = "JSON_SEARCH(ra.freeFields, 'one', :search, NULL, '$.\"${freeFieldId}\"') IS NOT NULL";
+                                        $queryBuilder->setParameter("search", $booleanValue);
+                                    }
+                                }
+                                else {
+                                    $query[] = "JSON_SEARCH(LOWER(ra.freeFields), 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
+                                    $queryBuilder->setParameter("search", $date ?: strtolower($search));
+                                }
                             } else if (property_exists(ReferenceArticle::class, $field)) {
                                 if ($date && in_array($field, self::FIELDS_TYPE_DATE)) {
                                     $query[] = "ra.$field BETWEEN :dateMin AND :dateMax";

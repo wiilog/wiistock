@@ -77,8 +77,10 @@ class TrackingMovementService
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
 
-        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MVT_TRACA, $this->security->getUser());
-        $queryResult = $trackingMovementRepository->findByParamsAndFilters($params, $filters, $this->security->getUser());
+        /** @var Utilisateur $user */
+        $user = $this->security->getUser();
+        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MVT_TRACA, $user);
+        $queryResult = $trackingMovementRepository->findByParamsAndFilters($params, $filters, $user, $this->visibleColumnService);
 
         $mouvements = $queryResult['data'];
 

@@ -9,7 +9,9 @@ use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use App\Service\VisibleColumnService;
 use DateTime;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Mapping;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\HttpFoundation\InputBag;
 
@@ -202,7 +204,7 @@ class ArrivageRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function findByParamsAndFilters(InputBag $params, $filters, ?int $userIdArrivalFilter, Utilisateur $user): array
+    public function findByParamsAndFilters(InputBag $params, $filters, ?int $userIdArrivalFilter, Utilisateur $user, VisibleColumnService $visibleColumnService): array
     {
         $qb = $this->createQueryBuilder("arrival");
 
@@ -291,7 +293,6 @@ class ArrivageRepository extends EntityRepository
             }
         }
 
-		$orderStatut = null;
 		//Filter search
         if (!empty($params)) {
             if (!empty($params->get('search'))) {
@@ -319,7 +320,7 @@ class ArrivageRepository extends EntityRepository
                         "dropLocation" => "search_dropLocation.label LIKE :search_value",
                     ];
 
-                    $condition = VisibleColumnService::getSearchableColumns($conditions, 'arrival', $qb, $user);
+                    $condition = $visibleColumnService->getSearchableColumns($conditions, 'arrival', $qb, $user, $search);
 
                     $qb
                         ->andWhere($condition)

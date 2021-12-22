@@ -125,7 +125,7 @@ class ReceptionRepository extends EntityRepository
             ->getResult();
     }
 
-    public function findByParamAndFilters(InputBag $params, $filters, Utilisateur $user)
+    public function findByParamAndFilters(InputBag $params, $filters, Utilisateur $user, VisibleColumnService $visibleColumnService)
     {
         $qb = $this->createQueryBuilder("reception");
 
@@ -222,7 +222,7 @@ class ReceptionRepository extends EntityRepository
                         "deliveries" => null,
                     ];
 
-                    $condition = VisibleColumnService::getSearchableColumns($conditions, 'reception', $qb, $user);
+                    $condition = $visibleColumnService->getSearchableColumns($conditions, 'reception', $qb, $user, $search);
 
                     $qb
                         ->andWhere($condition)

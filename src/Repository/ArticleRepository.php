@@ -50,9 +50,9 @@ class ArticleRepository extends EntityRepository {
         $since = new DateTime("now");
         $since->modify("+{$delay}day");
 
-        return $this->createQueryBuilder("a")
-            ->join('a.statut','status')
-            ->where("a.expiryDate <= :since")
+        return $this->createQueryBuilder("article")
+            ->join('article.statut','status')
+            ->where("article.expiryDate <= :since")
             ->andWhere("status.code != :consumed")
             ->setParameter("since", $since)
             ->setParameter('consumed', Article::STATUT_INACTIF)
@@ -64,9 +64,9 @@ class ArticleRepository extends EntityRepository {
 	{
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
-			'SELECT a.reference
-            FROM App\Entity\Article a
-            WHERE a.reference LIKE :refPrefix'
+			'SELECT article.reference
+            FROM App\Entity\Article article
+            WHERE article.reference LIKE :refPrefix'
 		)->setParameter('refPrefix', $refPrefix . $date . '%');
 
 		return array_column($query->execute(), 'reference');
@@ -77,9 +77,9 @@ class ArticleRepository extends EntityRepository {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             '
-            UPDATE App\Entity\Article a
-            SET a.receptionReferenceArticle = null
-            WHERE a.receptionReferenceArticle = :id'
+            UPDATE App\Entity\Article article
+            SET article.receptionReferenceArticle = null
+            WHERE article.receptionReferenceArticle = :id'
         )->setParameter('id', $id);
         return $query->execute();
     }
@@ -88,9 +88,9 @@ class ArticleRepository extends EntityRepository {
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT a
-             FROM App\Entity\Article a
-             JOIN a.collectes c
+            "SELECT article
+             FROM App\Entity\Article article
+             JOIN article.collectes c
              WHERE c.id = :id
             "
         )->setParameter('id', $id);
@@ -240,12 +240,14 @@ class ArticleRepository extends EntityRepository {
 
     public function findByParamsAndFilters(InputBag $params, $filters, Utilisateur $user)
     {
-        $queryBuilder = $this->createQueryBuilder("a");
+        $entityManager = $this->getEntityManager();
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $queryBuilder = $this->createQueryBuilder("article");
 
         $visibilityGroup = $user->getVisibilityGroups();
         if (!$visibilityGroup->isEmpty()) {
             $queryBuilder
-                ->join('a.articleFournisseur', 'join_supplierArticle')
+                ->join('article.articleFournisseur', 'join_supplierArticle')
                 ->join('join_supplierArticle.referenceArticle', 'join_referenceArticle')
                 ->join('join_referenceArticle.visibilityGroup', 'visibility_group')
                 ->andWhere('visibility_group.id IN (:userVisibilityGroups)')
@@ -254,7 +256,7 @@ class ArticleRepository extends EntityRepository {
                 )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
         }
 
-        $countQuery = $countTotal = QueryCounter::count($queryBuilder, 'a');
+        $countQuery = $countTotal = QueryCounter::count($queryBuilder, 'article');
 
 		// filtres sup
 		foreach ($filters as $filter) {
@@ -262,7 +264,7 @@ class ArticleRepository extends EntityRepository {
 				case 'statut':
 					$value = explode(',', $filter['value']);
 					$queryBuilder
-						->join('a.statut', 's_filter')
+						->join('article.statut', 's_filter')
 						->andWhere('s_filter.nom IN (:statut)')
 						->setParameter('statut', $value);
 					break;
@@ -292,9 +294,9 @@ class ArticleRepository extends EntityRepository {
                         $date = $date ? $date->format('Y-m-d') : null;
                         switch ($searchField) {
                             case "type":
-                                $subqb = $this->createQueryBuilder("a")
-                                    ->select('a.id')
-                                    ->leftJoin('a.type', 't_search')
+                                $subqb = $this->createQueryBuilder("article")
+                                    ->select('article.id')
+                                    ->leftJoin('article.type', 't_search')
                                     ->andWhere('t_search.label LIKE :search')
                                     ->setParameter('search', $search);
 
@@ -304,9 +306,9 @@ class ArticleRepository extends EntityRepository {
                                 break;
 
                             case "status":
-                                $subqb = $this->createQueryBuilder("a")
-                                    ->select('a.id')
-                                    ->leftJoin('a.statut', 's_search')
+                                $subqb = $this->createQueryBuilder("article")
+                                    ->select('article.id')
+                                    ->leftJoin('article.statut', 's_search')
                                     ->andWhere('s_search.nom LIKE :search')
                                     ->setParameter('search', $search);
 
@@ -315,9 +317,9 @@ class ArticleRepository extends EntityRepository {
                                 }
                                 break;
                             case "location":
-                                $subqb = $this->createQueryBuilder("a")
-                                    ->select('a.id')
-                                    ->leftJoin('a.emplacement', 'e_search')
+                                $subqb = $this->createQueryBuilder("article")
+                                    ->select('article.id')
+                                    ->leftJoin('article.emplacement', 'e_search')
                                     ->andWhere('e_search.label LIKE :search')
                                     ->setParameter('search', $search);
 
@@ -327,9 +329,9 @@ class ArticleRepository extends EntityRepository {
                                 break;
                             case "articleReference":
                             case "reference":
-                                $subqb = $this->createQueryBuilder("a")
-                                    ->select('a.id')
-                                    ->leftJoin('a.articleFournisseur', 'afa')
+                                $subqb = $this->createQueryBuilder("article")
+                                    ->select('article.id')
+                                    ->leftJoin('article.articleFournisseur', 'afa')
                                     ->leftJoin('afa.referenceArticle', 'ra')
                                     ->andWhere('ra.reference LIKE :search')
                                     ->setParameter('search', $search);
@@ -339,9 +341,9 @@ class ArticleRepository extends EntityRepository {
                                 }
                                 break;
                             case "supplierReference":
-                                $subqb = $this->createQueryBuilder("a")
-                                    ->select('a.id')
-                                    ->leftJoin('a.articleFournisseur', 'afa')
+                                $subqb = $this->createQueryBuilder("article")
+                                    ->select('article.id')
+                                    ->leftJoin('article.articleFournisseur', 'afa')
                                     ->andWhere('afa.reference LIKE :search')
                                     ->setParameter('search', $search);
 
@@ -353,16 +355,28 @@ class ArticleRepository extends EntityRepository {
                                 $field = self::FIELD_ENTITY_NAME[$searchField] ?? $searchField;
                                 $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
                                 if(is_numeric($freeFieldId)) {
-                                    $query[] = "JSON_SEARCH(LOWER(a.freeFields), 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
-                                    $queryBuilder->setParameter("search", $date ?: strtolower($search));
+                                    $freeField = $freeFieldRepository->find($freeFieldId);
+                                    if ($freeField->getTypage() === FreeField::TYPE_BOOL) {
+
+                                        $lowerSearchValue = strtolower($searchValue);
+                                        if (($lowerSearchValue === "oui") || ($lowerSearchValue === "non")) {
+                                            $booleanValue = $lowerSearchValue === "oui" ? 1 : 0;
+                                            $query[] = "JSON_SEARCH(article.freeFields, 'one', :search, NULL, '$.\"${freeFieldId}\"') IS NOT NULL";
+                                            $queryBuilder->setParameter("search", $booleanValue);
+                                        }
+                                    }
+                                    else {
+                                        $query[] = "JSON_SEARCH(LOWER(article.freeFields), 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
+                                        $queryBuilder->setParameter("search", $date ?: strtolower($search));
+                                    }
                                 } else if (property_exists(Article::class, $field)) {
                                     if ($date && in_array($field, self::FIELDS_TYPE_DATE)) {
-                                        $query[] = "a.$field BETWEEN :dateMin AND :dateMax";
+                                        $query[] = "article.$field BETWEEN :dateMin AND :dateMax";
                                         $queryBuilder
                                             ->setParameter('dateMin' , $date . ' 00:00:00')
                                             ->setParameter('dateMax' , $date . ' 23:59:59');
                                     } else {
-                                        $query[] = "a.$field LIKE :search";
+                                        $query[] = "article.$field LIKE :search";
                                         $queryBuilder->setParameter('search', $search);
                                     }
                                 }
@@ -376,7 +390,7 @@ class ArticleRepository extends EntityRepository {
                     }
 
                     foreach ($ids as $id) {
-                        $query[] = 'a.id  = ' . $id;
+                        $query[] = 'article.id  = ' . $id;
                     }
 
                     if (!empty($query)) {
@@ -384,7 +398,7 @@ class ArticleRepository extends EntityRepository {
                     }
                 }
 
-				$countQuery =  QueryCounter::count($queryBuilder, 'a');
+				$countQuery =  QueryCounter::count($queryBuilder, 'article');
 			}
 
             if (!empty($params->get('order'))) {
@@ -394,28 +408,28 @@ class ArticleRepository extends EntityRepository {
 
                     switch ($column) {
                         case "type":
-                            $queryBuilder->leftJoin('a.type', 't')
+                            $queryBuilder->leftJoin('article.type', 't')
                                 ->orderBy('t.label', $order);
                             break;
                         case "supplierReference":
-                            $queryBuilder->leftJoin('a.articleFournisseur', 'af1')
+                            $queryBuilder->leftJoin('article.articleFournisseur', 'af1')
                                 ->orderBy('af1.reference', $order);
                             break;
                         case "location":
-                            $queryBuilder->leftJoin('a.emplacement', 'e')
+                            $queryBuilder->leftJoin('article.emplacement', 'e')
                                 ->orderBy('e.label', $order);
                             break;
                         case "reference":
-                            $queryBuilder->leftJoin('a.articleFournisseur', 'af2')
+                            $queryBuilder->leftJoin('article.articleFournisseur', 'af2')
                                 ->leftJoin('af2.referenceArticle', 'ra2')
                                 ->orderBy('ra2.reference', $order);
                             break;
                         case "status":
-                            $queryBuilder->leftJoin('a.statut', 's_sort')
+                            $queryBuilder->leftJoin('article.statut', 's_sort')
                                 ->orderBy('s_sort.nom', $order);
                             break;
                         case "pairing":
-                            $queryBuilder->leftJoin('a.pairings', 'order_pairings')
+                            $queryBuilder->leftJoin('article.pairings', 'order_pairings')
                                 ->orderBy('order_pairings.active', $order);
                             break;
                         default:
@@ -426,12 +440,12 @@ class ArticleRepository extends EntityRepository {
                                 /** @var FreeField $freeField */
                                 $freeField = $this->getEntityManager()->getRepository(FreeField::class)->find($freeFieldId);
                                 if($freeField->getTypage() === FreeField::TYPE_NUMBER) {
-                                    $queryBuilder->orderBy("CAST(JSON_EXTRACT(a.freeFields, '$.\"$freeFieldId\"') AS SIGNED)", $order);
+                                    $queryBuilder->orderBy("CAST(JSON_EXTRACT(article.freeFields, '$.\"$freeFieldId\"') AS SIGNED)", $order);
                                 } else {
-                                    $queryBuilder->orderBy("JSON_EXTRACT(a.freeFields, '$.\"$freeFieldId\"')", $order);
+                                    $queryBuilder->orderBy("JSON_EXTRACT(article.freeFields, '$.\"$freeFieldId\"')", $order);
                                 }
                             } else if (property_exists(Article::class, $field)) {
-                                $queryBuilder->orderBy("a.$field", $order);
+                                $queryBuilder->orderBy("article.$field", $order);
                             }
                             break;
                     }
@@ -455,9 +469,9 @@ class ArticleRepository extends EntityRepository {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
         	/** @lang DQL */
-            "SELECT COUNT(a)
-            FROM App\Entity\Article a
-            JOIN a.statut s
+            "SELECT COUNT(article)
+            FROM App\Entity\Article article
+            JOIN article.statut s
             WHERE s.nom = :active"
 		)->setParameter('active', Article::STATUT_ACTIF);
 
@@ -468,8 +482,8 @@ class ArticleRepository extends EntityRepository {
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT COUNT(a)
-            FROM App\Entity\Article a"
+            "SELECT COUNT(article)
+            FROM App\Entity\Article article"
 		);
 
         return $query->getSingleScalarResult();
@@ -630,16 +644,16 @@ class ArticleRepository extends EntityRepository {
 		return (/** @lang DQL */
 		"SELECT ra.reference,
 			 e.label as location,
-			 a.label,
-			 a.quantite as quantity,
+			 article.label,
+			 article.quantite as quantity,
 			 0 as is_ref, oc.id as id_collecte,
-			 a.barCode,
+			 article.barCode,
 			 ra.libelle as reference_label
-			FROM App\Entity\Article a
-			JOIN a.articleFournisseur artf
+			FROM App\Entity\Article article
+			JOIN article.articleFournisseur artf
 			JOIN artf.referenceArticle ra
-			LEFT JOIN a.emplacement e
-			JOIN a.ordreCollecte oc
+			LEFT JOIN article.emplacement e
+			JOIN article.ordreCollecte oc
 			LEFT JOIN oc.statut s"
 		);
 	}
@@ -649,9 +663,9 @@ class ArticleRepository extends EntityRepository {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */
-            "SELECT a
-			FROM App\Entity\Article a
-			WHERE a.reference = :reference"
+            "SELECT article
+			FROM App\Entity\Article article
+			WHERE article.reference = :reference"
 		)->setParameter('reference', $reference);
 
 		return $query->getOneOrNullResult();
@@ -662,9 +676,9 @@ class ArticleRepository extends EntityRepository {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */
-            "SELECT COUNT(a)
-			FROM App\Entity\Article a
-			JOIN a.emplacement e
+            "SELECT COUNT(article)
+			FROM App\Entity\Article article
+			JOIN article.emplacement e
 			WHERE e.id = :emplacementId"
         )->setParameter('emplacementId', $emplacementId);
 
@@ -691,10 +705,10 @@ class ArticleRepository extends EntityRepository {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */
-            "SELECT COUNT(a)
-            FROM App\Entity\InventoryMission im
-            LEFT JOIN im.articles a
-            WHERE im = :mission"
+            "SELECT COUNT(article)
+            FROM App\Entity\InventoryMission inventoryMission
+            LEFT JOIN inventoryMission.articles article
+            WHERE inventoryMission = :mission"
         )->setParameter('mission', $mission);
 
         return $query->getSingleScalarResult();
@@ -741,10 +755,10 @@ class ArticleRepository extends EntityRepository {
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
 		/** @lang DQL */
-		"SELECT a.barCode
-		FROM App\Entity\Article a
-		WHERE a.barCode LIKE :barCode
-		ORDER BY a.barCode DESC
+		"SELECT article.barCode
+		FROM App\Entity\Article article
+		WHERE article.barCode LIKE :barCode
+		ORDER BY article.barCode DESC
 		")
             ->setParameter('barCode', Article::BARCODE_PREFIX . $dateCode . '%')
             ->setMaxResults(1);
@@ -759,10 +773,10 @@ class ArticleRepository extends EntityRepository {
 
         $query = $em->createQuery(
         /** @lang DQL */
-            "SELECT COUNT(ie)
-			FROM App\Entity\InventoryEntry ie
-			JOIN ie.article a
-			WHERE ie.anomaly = 1 AND a.id = :artId
+            "SELECT COUNT(inventoryEntry)
+			FROM App\Entity\InventoryEntry inventoryEntry
+			JOIN inventoryEntry.article article
+			WHERE inventoryEntry.anomaly = 1 AND article.id = :artId
 			")->setParameter('artId', $article->getId());
 
         return $query->getSingleScalarResult();
@@ -815,12 +829,12 @@ class ArticleRepository extends EntityRepository {
     }
 
     public function findActiveOrDisputeForReference($reference, Emplacement $emplacement) {
-        return $this->createQueryBuilder("a")
-            ->join("a.articleFournisseur", "af")
-            ->leftJoin("a.statut", "articleStatut")
+        return $this->createQueryBuilder("article")
+            ->join("article.articleFournisseur", "af")
+            ->leftJoin("article.statut", "articleStatut")
             ->where("articleStatut.nom IN (:statuses)")
             ->andWhere("af.referenceArticle = :reference")
-            ->andWhere('a.emplacement = :location')
+            ->andWhere('article.emplacement = :location')
             ->setParameter("reference", $reference)
             ->setParameter("location", $emplacement)
             ->setParameter("statuses", [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE])
