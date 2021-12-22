@@ -207,11 +207,6 @@ class MobileController extends AbstractFOSRestController
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
         $packRepository = $entityManager->getRepository(Pack::class);
 
-        $trackingTypes = [
-            TrackingMovement::TYPE_PRISE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE),
-            TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE)
-        ];
-
         $mustReloadLocation = false;
 
 
@@ -223,6 +218,11 @@ class MobileController extends AbstractFOSRestController
                 ->keymap(fn(TrackingMovement $trackingMovement) => [$trackingMovement->getUniqueIdForMobile(), $trackingMovement])
                 ->toArray()
             : [];
+
+        $trackingTypes = [
+            TrackingMovement::TYPE_PRISE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE),
+            TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE)
+        ];
 
         foreach ($mouvementsNomade as $index => $mvt) {
             $invalidLocationTo = '';
@@ -248,12 +248,19 @@ class MobileController extends AbstractFOSRestController
                     $statutRepository,
                     $trackingMovementRepository,
                     $packRepository,
-                    $trackingTypes,
                     $locationDataService,
                     $arrivageDataService,
                     &$mustReloadLocation,
-                    $alreadySavedMovements
+                    $alreadySavedMovements,
+                    $trackingTypes
                 ) {
+
+                    if (empty($trackingTypes)) {
+                        $trackingTypes = [
+                            TrackingMovement::TYPE_PRISE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE),
+                            TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE)
+                        ];
+                    }
 
                     $mouvementTraca1 = $alreadySavedMovements[$mvt['date']] ?? null;
                     if (!isset($mouvementTraca1)) {
@@ -330,7 +337,9 @@ class MobileController extends AbstractFOSRestController
                     $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
                     $entityManager->clear();
                     $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+                    $statutRepository = $entityManager->getRepository(Statut::class);
                     $nomadUser = $utilisateurRepository->find($nomadUser->getId());
+                    $trackingTypes = [];
                     $mustReloadLocation = true;
                 }
 
@@ -399,10 +408,6 @@ class MobileController extends AbstractFOSRestController
         $statutRepository = $entityManager->getRepository(Statut::class);
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
 
-        $trackingTypes = [
-            TrackingMovement::TYPE_PRISE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE),
-            TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE)
-        ];
 
         $mustReloadLocation = false;
 
@@ -414,6 +419,12 @@ class MobileController extends AbstractFOSRestController
                 ->keymap(fn(TrackingMovement $trackingMovement) => [$trackingMovement->getUniqueIdForMobile(), $trackingMovement])
                 ->toArray()
             : [];
+
+
+        $trackingTypes = [
+            TrackingMovement::TYPE_PRISE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE),
+            TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE)
+        ];
 
         foreach ($mouvementsNomade as $index => $mvt) {
             $invalidLocationTo = '';
@@ -437,10 +448,10 @@ class MobileController extends AbstractFOSRestController
                     $articleRepository,
                     $statutRepository,
                     $trackingMovementRepository,
-                    $trackingTypes,
                     $locationDataService,
                     &$mustReloadLocation,
-                    $alreadySavedMovements
+                    $alreadySavedMovements,
+                    $trackingTypes
                 ) {
 
                     $mouvementTraca1 = $alreadySavedMovements[$mvt['date']] ?? null;
@@ -449,6 +460,14 @@ class MobileController extends AbstractFOSRestController
                             'uniqueIdForMobile' => $mvt['date'],
                             'entityManager' => $entityManager,
                         ];
+
+                        if (empty($trackingTypes)) {
+                            $trackingTypes = [
+                                TrackingMovement::TYPE_PRISE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE),
+                                TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE)
+                            ];
+                        }
+
                         /** @var Statut $type */
                         $type = $trackingTypes[$mvt['type']];
                         $location = $locationDataService->findOrPersistWithCache($entityManager, $mvt['ref_emplacement'], $mustReloadLocation);
@@ -503,8 +522,11 @@ class MobileController extends AbstractFOSRestController
                     $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
                     $entityManager->clear();
                     $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+                    $statutRepository = $entityManager->getRepository(Statut::class);
                     $nomadUser = $utilisateurRepository->find($nomadUser->getId());
+                    $trackingTypes = [];
                     $mustReloadLocation = true;
+                    $trackingMovementService->stockStatuses = [];
                 }
 
                 if ($throwable->getMessage() === TrackingMovementService::INVALID_LOCATION_TO) {
