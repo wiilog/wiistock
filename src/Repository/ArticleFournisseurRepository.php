@@ -183,7 +183,8 @@ class ArticleFournisseurRepository extends EntityRepository
             $countQuery = $countTotal;
         }
         $queryBuilder
-            ->select('supplier_article');
+            ->select('supplier_article')
+            ->andWhere('supplier_article.visible = 1');
 
         if ($params->getInt('start')) $queryBuilder->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $queryBuilder->setMaxResults($params->getInt('length'));

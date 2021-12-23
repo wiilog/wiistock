@@ -16,40 +16,44 @@ class ArticleFournisseur
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
-     * @var ReferenceArticle|null
      * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="articlesFournisseur")
      * @ORM\JoinColumn(name="reference_article_id", referencedColumnName="id", onDelete="CASCADE")
      */
-    private $referenceArticle;
+    private ?ReferenceArticle $referenceArticle = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Fournisseur", inversedBy="articlesFournisseur", cascade={"PERSIST"})
      * @ORM\JoinColumn(nullable=false)
      */
-    private $fournisseur;
+    private ?Fournisseur $fournisseur = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $reference;
+    private ?string $reference = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $label;
+    private ?string $label = null;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private ?bool $visible = null;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="articleFournisseur")
      */
-    private $articles;
+    private Collection $articles;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\ReceptionReferenceArticle", mappedBy="articleFournisseur")
      */
-    private $receptionReferenceArticles;
+    private Collection $receptionReferenceArticles;
 
     public function __construct()
     {
@@ -175,6 +179,18 @@ class ArticleFournisseur
                 $receptionReferenceArticle->setArticleFournisseur(null);
             }
         }
+
+        return $this;
+    }
+
+    public function isVisible(): ?bool
+    {
+        return $this->visible;
+    }
+
+    public function setVisible(?bool $visible): self
+    {
+        $this->visible = $visible;
 
         return $this;
     }

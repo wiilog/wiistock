@@ -75,7 +75,8 @@ class ArticleFournisseurService
                 ->setFournisseur($fournisseur)
                 ->setReference($generatedReference)
                 ->setReferenceArticle($referenceArticle)
-                ->setLabel($label);
+                ->setLabel($label)
+                ->setVisible($data['visible']);
         }
         else {
             throw new Exception(self::ERROR_REFERENCE_ALREADY_EXISTS);

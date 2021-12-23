@@ -131,6 +131,8 @@ class ReferenceArticleController extends AbstractController
             $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
             $sendMail = $userRepository->getUserMailByReferenceValidatorAction();
 
+            $today = date('d/m/Y H:i');
+
             // on vérifie que la référence n'existe pas déjà
             $refAlreadyExist = $referenceArticleRepository->countByReference($data['reference']);
 
@@ -145,7 +147,7 @@ class ReferenceArticleController extends AbstractController
             $type = $typeRepository->find($data['type']);
 
             if ($data['emplacement'] !== null) {
-                $emplacement = $emplacementRepository->find($data['emplacement']);
+                $emplacement = $emplacementRepository->findOneBy(['label' => $data['emplacement']]);
             } else {
                 $emplacement = null; //TODO gérer message erreur (faire un return avec msg erreur adapté -> à ce jour un return false correspond forcément à une réf déjà utilisée)
             }
@@ -175,7 +177,9 @@ class ReferenceArticleController extends AbstractController
                 ->setIsUrgent(filter_var($data['urgence'] ?? false, FILTER_VALIDATE_BOOLEAN))
                 ->setEmplacement($emplacement)
 				->setBarCode($this->refArticleDataService->generateBarCode())
-                ->setBuyer(isset($data['buyer']) ? $userRepository->find($data['buyer']) : null);
+                ->setBuyer(isset($data['buyer']) ? $userRepository->find($data['buyer']) : null)
+                ->setCreatedBy($loggedUser)
+                ->setCreatedAt(new DateTime('now'));
 
             if ($refArticle->getIsUrgent()) {
                 $refArticle->setUserThatTriggeredEmergency($loggedUser);
@@ -218,15 +222,15 @@ class ReferenceArticleController extends AbstractController
                 foreach ($supplierReferenceLines as $supplierReferenceLine) {
                     $referenceArticleFournisseur = $supplierReferenceLine['referenceFournisseur'];
                     try {
-                        if ($refArticle->getStatut() !== ReferenceArticle::STATUT_BROUILLON){
                             $supplierArticle = $articleFournisseurService->createArticleFournisseur([
                                 'fournisseur' => $supplierReferenceLine['fournisseur'],
                                 'article-reference' => $refArticle,
                                 'label' => $supplierReferenceLine['labelFournisseur'],
-                                'reference' => $referenceArticleFournisseur
+                                'reference' => $referenceArticleFournisseur,
+                                'visible' => $refArticle->getStatut()->getCode() !== ReferenceArticle::STATUT_BROUILLON
                             ]);
                             $entityManager->persist($supplierArticle);
-                        }
+                        //}
                     } catch (Exception $exception) {
                         if ($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
                             return new JsonResponse([
@@ -240,7 +244,7 @@ class ReferenceArticleController extends AbstractController
 
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE &&
                 $refArticle->getQuantiteStock() > 0 &&
-                $refArticle->getStatut() !== ReferenceArticle::STATUT_BROUILLON) {
+                $refArticle->getStatut()->getCode() !== ReferenceArticle::STATUT_BROUILLON) {
                 $mvtStock = $mouvementStockService->createMouvementStock(
                     $loggedUser,
                     null,
@@ -384,7 +388,7 @@ class ReferenceArticleController extends AbstractController
      * @Route("/modifier", name="reference_article_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function edit(Request $request, EntityManagerInterface $entityManager, FreeFieldService $champLibreService): Response
+    public function edit(Request $request, EntityManagerInterface $entityManager, FreeFieldService $champLibreService,MouvementStockService $mouvementStockService): Response
     {
         if ($data = $request->request->all()) {
             $refId = intval($data['idRefArticle']);
@@ -393,7 +397,6 @@ class ReferenceArticleController extends AbstractController
 
             // on vérifie que la référence n'existe pas déjà
             $refAlreadyExist = $referenceArticleRepository->countByReference($data['reference'], $refId);
-
             if ($refAlreadyExist) {
                 return new JsonResponse([
                     'success' => false,
@@ -406,7 +409,7 @@ class ReferenceArticleController extends AbstractController
                     /** @var Utilisateur $currentUser */
                     $currentUser = $this->getUser();
                     $refArticle->removeIfNotIn($data['files'] ?? []);
-                    $response = $this->refArticleDataService->editRefArticle($refArticle, $data, $currentUser, $champLibreService, $request);
+                    $response = $this->refArticleDataService->editRefArticle($refArticle, $data, $currentUser, $champLibreService,$mouvementStockService, $request);
                 }
                 catch (ArticleNotAvailableException $exception) {
                     $response = [
