@@ -217,7 +217,10 @@ class TypeController extends AbstractController
                 ? $this->renderView('types/modalDeleteTypeRight.html.twig')
                 : $this->renderView('types/modalDeleteTypeWrong.html.twig');
 
-            return new JsonResponse(['delete' => $canDelete, 'html' => $html]);
+            return new JsonResponse([
+                'delete' => $canDelete && empty($usedStatuses),
+                'html' => $html
+            ]);
         }
         throw new BadRequestHttpException();
     }
