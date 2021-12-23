@@ -113,7 +113,7 @@ let urlDeleteFrequency = Routing.generate('frequency_delete', true)
 InitModal(ModalDeleteFrequency, SubmitDeleteFrequency, urlDeleteFrequency, {tables: [tableFrequencies]});
 
 function downloadModele() {
-    const pathFile = '../uploads/modele/';
+    const pathFile = '../modele/';
     const pathWithFileName = pathFile.concat('modeleImportCategorie.csv');
     const $link = $('<a/>', {
         href: pathWithFileName,

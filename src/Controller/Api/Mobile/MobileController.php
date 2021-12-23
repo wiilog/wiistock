@@ -254,6 +254,10 @@ class MobileController extends AbstractFOSRestController
                     $alreadySavedMovements,
                     $trackingTypes
                 ) {
+                    $trackingTypes = [
+                        TrackingMovement::TYPE_PRISE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE),
+                        TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE)
+                    ];
 
                     if (empty($trackingTypes)) {
                         $trackingTypes = [
@@ -453,6 +457,11 @@ class MobileController extends AbstractFOSRestController
                     $alreadySavedMovements,
                     $trackingTypes
                 ) {
+
+                    $trackingTypes = [
+                        TrackingMovement::TYPE_PRISE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE),
+                        TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE)
+                    ];
 
                     $mouvementTraca1 = $alreadySavedMovements[$mvt['date']] ?? null;
                     if (!isset($mouvementTraca1)) {
