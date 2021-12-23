@@ -56,6 +56,7 @@ $(function () {
     Select2Old.location($('.ajax-autocomplete-location'));
     Select2Old.carrier($('.ajax-autocomplete-transporteur'));
     Select2Old.initValues($('#receptionLocation'), $('#receptionLocationValue'));
+    Select2Old.initValues($('#defaultLocation'), $('#defaultLocationValue'));
 
     initDeliveryRequestDefaultLocations();
 
@@ -76,6 +77,10 @@ $(function () {
 
     $('#receptionLocation').on('change', function () {
         editParamLocations($(this), $('#receptionLocationValue'));
+    });
+
+    $('#defaultLocation').on('change', function () {
+        editParamLocations($(this), $('#defaultLocationValue'));
     });
 
     $('#locationArrivageDest').on('change', function () {

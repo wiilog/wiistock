@@ -15,6 +15,7 @@ use App\Entity\Utilisateur;
 
 use App\Entity\VisibilityGroup;
 use App\Helper\QueryCounter;
+use Doctrine\Common\Collections\Criteria;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 use App\Service\VisibleColumnService;
@@ -205,9 +206,12 @@ class ArticleRepository extends EntityRepository {
             ->execute();
 	}
 
-	public function findActiveArticles(ReferenceArticle $referenceArticle): array
+	public function findActiveArticles(ReferenceArticle $referenceArticle,
+                                       ?Emplacement     $targetLocationPicking = null,
+                                       ?string          $fieldToOrder = null,
+                                       ?string          $order = null): array
 	{
-	    return $this->createQueryBuilder('article')
+	    $queryBuilder = $this->createQueryBuilder('article')
             ->join('article.articleFournisseur', 'articleFournisseur')
             ->join('articleFournisseur.referenceArticle', 'referenceArticle')
             ->join('article.statut', 'articleStatus')
@@ -216,7 +220,20 @@ class ArticleRepository extends EntityRepository {
             ->andWhere('article.quantite > 0')
             ->andWhere('referenceArticle = :refArticle')
             ->setParameter('refArticle', $referenceArticle)
-            ->setParameter('activeStatus', Article::STATUT_ACTIF)
+            ->setParameter('activeStatus', Article::STATUT_ACTIF);
+
+	    if ($targetLocationPicking) {
+	        $queryBuilder
+                ->addOrderBy('IF(article.emplacement = :targetLocationPicking, 1, 0)', Criteria::DESC)
+                ->setParameter('targetLocationPicking', $targetLocationPicking);
+        }
+
+	    if ($order && $fieldToOrder) {
+	        $queryBuilder
+                ->addOrderBy("article.$fieldToOrder", $order);
+        }
+
+	    return $queryBuilder
             ->getQuery()
             ->getResult();
 	}
@@ -469,11 +486,13 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('join_preparation.id AS id_prepa')
             ->addSelect('article.barCode AS barCode')
             ->addSelect('join_referenceArticle.reference AS reference_article_reference')
+            ->addSelect('join_targetLocationPicking.label AS targetLocationPicking')
             ->leftJoin('article.emplacement', 'join_location')
             ->join('article.preparationOrderLines', 'join_preparationLine')
             ->join('join_preparationLine.preparation', 'join_preparation')
             ->join('article.articleFournisseur', 'join_supplierArticle')
             ->join('join_supplierArticle.referenceArticle', 'join_referenceArticle')
+            ->leftJoin('join_preparationLine.targetLocationPicking', 'join_targetLocationPicking')
             ->andWhere('join_preparation.id IN (:preparationsIds)')
             ->andWhere('article.quantite > 0')
             ->setParameter('preparationsIds', $preparationsIds, Connection::PARAM_STR_ARRAY)
@@ -481,11 +500,11 @@ class ArticleRepository extends EntityRepository {
             ->getResult();
 	}
 
-    public function getArticlePrepaForPickingByUser($user, array $preparationIdsFilter = []) {
+    public function getArticlePrepaForPickingByUser($user, array $preparationIdsFilter = [], ?bool $displayPickingLocation = false) {
         $queryBuilder = $this->createQueryBuilder('article')
             ->select('DISTINCT article.reference AS reference')
             ->addSelect('article.label AS label')
-            ->addSelect('emplacement.label AS location')
+            ->addSelect('join_article_location.label AS location')
             ->addSelect('article.quantite AS quantity')
             ->addSelect('referenceArticle.reference AS reference_article')
             ->addSelect('article.barCode AS barCode')
@@ -504,11 +523,13 @@ class ArticleRepository extends EntityRepository {
                     ELSE :null
                 END) AS management_order
             ')
+            ->addSelect('IF(:displayPickingLocation = true AND join_targetLocationPicking.id = join_article_location.id, 1, 0) AS pickingPriority')
             ->join('article.articleFournisseur', 'articleFournisseur')
             ->join('articleFournisseur.referenceArticle', 'referenceArticle')
             ->join('article.statut', 'articleStatut')
-            ->leftJoin('article.emplacement', 'emplacement')
+            ->leftJoin('article.emplacement', 'join_article_location')
             ->join('referenceArticle.preparationOrderReferenceLines', 'preparationOrderReferenceLines')
+            ->leftJoin('preparationOrderReferenceLines.targetLocationPicking', 'join_targetLocationPicking')
             ->join('preparationOrderReferenceLines.preparation', 'preparation')
             ->join('preparation.statut', 'statutPreparation')
             ->andWhere('(statutPreparation.nom = :preparationToTreat OR (statutPreparation.nom = :preparationInProgress AND preparation.utilisateur = :preparationOperator))')
@@ -521,7 +542,8 @@ class ArticleRepository extends EntityRepository {
             ->setParameter('preparationOperator', $user)
             ->setParameter('fifoStockManagement', ReferenceArticle::STOCK_MANAGEMENT_FIFO)
             ->setParameter('fefoStockManagement', ReferenceArticle::STOCK_MANAGEMENT_FEFO)
-            ->setParameter('null', null);
+            ->setParameter('null', null)
+            ->setParameter('displayPickingLocation', $displayPickingLocation);
 
         if (!empty($preparationIdsFilter)) {
             $queryBuilder
@@ -544,10 +566,12 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('0 as is_ref')
             ->addSelect('join_delivery.id AS id_livraison')
             ->addSelect('article.barCode AS barCode')
+            ->addSelect('join_targetLocationPicking.label AS targetLocationPicking')
             ->leftJoin('article.emplacement', 'join_location')
             ->join('article.preparationOrderLines', 'join_preparationOrderLines')
             ->join('join_preparationOrderLines.preparation', 'join_preparation')
             ->join('join_preparation.livraison', 'join_delivery')
+            ->leftJoin('join_preparationOrderLines.targetLocationPicking', 'join_targetLocationPicking')
             ->andWhere('join_delivery.id IN (:deliveryIds)')
             ->andWhere('article.quantite > 0')
             ->setParameter('deliveryIds', $livraisonsIds, Connection::PARAM_STR_ARRAY)
@@ -572,14 +596,14 @@ class ArticleRepository extends EntityRepository {
                 ->select('article.barCode AS barcode')
                 ->addSelect('referenceArticle.libelle AS label')
                 ->addSelect('referenceArticle.reference AS reference')
-                ->addSelect('referenceArticle_location.label AS location')
+                ->addSelect('article_location.label AS location')
                 ->addSelect('article.quantite AS quantity')
                 ->addSelect('transferOrder.id AS transfer_order_id')
                 ->join('article.transferRequests', 'transferRequest')
                 ->join('transferRequest.order', 'transferOrder')
                 ->join('article.articleFournisseur', 'articleFournisseur')
                 ->join('articleFournisseur.referenceArticle', 'referenceArticle')
-                ->leftJoin('referenceArticle.emplacement', 'referenceArticle_location')
+                ->leftJoin('article.emplacement', 'article_location')
                 ->where('transferOrder IN (:transferOrders)')
                 ->setParameter('transferOrders', $transfersOrders)
                 ->getQuery()

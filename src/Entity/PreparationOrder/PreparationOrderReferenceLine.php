@@ -2,6 +2,7 @@
 
 namespace App\Entity\PreparationOrder;
 
+use App\Entity\Emplacement;
 use App\Entity\ReferenceArticle;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -38,6 +39,11 @@ class PreparationOrderReferenceLine
      * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      */
     private ?Preparation $preparation = null;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Emplacement::class, inversedBy="preparationOrderReferenceLines")
+     */
+    private ?Emplacement $targetLocationPicking = null;
 
     public function getId(): ?int {
         return $this->id;
@@ -96,6 +102,25 @@ class PreparationOrderReferenceLine
         $this->preparation = $preparation;
         if($preparation) {
             $preparation->addReferenceLine($this);
+        }
+
+        return $this;
+    }
+
+    public function getTargetLocationPicking(): ?Emplacement {
+        return $this->targetLocationPicking;
+    }
+
+    public function setTargetLocationPicking(?Emplacement $targetLocationPicking): self
+    {
+        if($this->targetLocationPicking && $this->targetLocationPicking !== $targetLocationPicking) {
+            $this->targetLocationPicking->removePreparationOrderReferenceLine($this);
+        }
+
+        $this->targetLocationPicking = $targetLocationPicking;
+
+        if($targetLocationPicking) {
+            $targetLocationPicking->addPreparationOrderReferenceLine($this);
         }
 
         return $this;

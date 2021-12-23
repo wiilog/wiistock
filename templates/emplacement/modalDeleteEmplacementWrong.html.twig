@@ -1,7 +1,9 @@
 <p class='error-msg'>
     Cet emplacement est utilisé par un(e) ou plusieurs
     {% for entity in isUsedBy %}
-    <span class="bold">{{ entity }}</span>{% if not loop.last %},{% endif %}{% endfor %}.
+    {%- if loop.last and isUsedBy | length > 1 -%}&nbsp;et{%- elseif not loop.first -%},{% endif %}
+    <span class="bold">{{ entity }}</span>
+    {%- endfor -%}.
     Vous ne pouvez pas le supprimer.
     <br><br>
     Voulez-vous le désactiver ?

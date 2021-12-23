@@ -46,4 +46,20 @@
                name="expirationDelay"
                value="{{ expirationDelay }}">
     </div>
+    <p class="bold">Références</p>
+    <hr class="thick-line p-0">
+    <div class="form-group col-4">
+        <div class="row mt-2">
+            <div class="w-100">
+                <label for="defaultLocation" class="d-block">Emplacement par défaut Référence gestion quantité par référence à la création en
+                    Brouillon</label>
+                <select class="form-control ajax-autocomplete-location d-block" id="defaultLocation">
+                </select>
+            </div>
+            <input hidden id="defaultLocationValue"
+                   data-id="{{ defaultLocation ? defaultLocation.id }}"
+                   data-text="{{ defaultLocation ? defaultLocation.text }}"
+                   data-label="{{ constant('App\\Entity\\ParametrageGlobal::DEFAULT_LOCATION_REFERENCE') }}">
+        </div>
+    </div>
 </div>

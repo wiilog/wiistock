@@ -8,7 +8,7 @@
     {{ parent() }}
     {{ encore_entry_link_tags('cart') }}
 {% endblock %}
-{% macro reference_card(reference, index, quantityLabel, disabled = false, maxIsAvailableQuantity = false) %}
+{% macro reference_card(reference, index, quantityLabel, disabled = false, maxIsAvailableQuantity = false, showTargetLocationPicking = false) %}
     <div class="cart-reference-container"
          data-multiple-key="cart"
          data-multiple-object-index="{{ index }}"
@@ -35,15 +35,23 @@
                     {% endfor %}
                 </span>
             </div>
-            <div class="cart-reference-quantity nowrap">
-                {{ form.number('quantity', {url: '/svg/reference_article/stock.svg', text: quantityLabel}, true, null, {
-                    min: 1,
-                    max: maxIsAvailableQuantity ? reference.quantiteDisponible : null,
-                    labelClass: 'd-flex flex-column align-items-center',
-                    error: 'global',
-                    disabled: disabled,
-                    required: true
-                }) }}
+            <div class="d-flex flex-column" style="width: 300px">
+                <div class="cart-reference-quantity nowrap">
+                    {{ form.number('quantity', {url: '/svg/reference_article/stock.svg', text: quantityLabel}, true, null, {
+                        min: 1,
+                        max: maxIsAvailableQuantity ? reference.quantiteDisponible : null,
+                        labelClass: 'd-flex flex-column align-items-center',
+                        error: 'global',
+                        disabled: disabled,
+                        required: true
+                    }) }}
+                </div>
+                {% if showTargetLocationPicking %}
+                    <div class="target-location-picking-container px-4 pb-3">
+                        <label>Emplacement cible picking</label>
+                        <select class="data w-100" data-s2="location" name="targetLocationPicking"></select>
+                    </div>
+                {% endif %}
             </div>
         </div>
         <button class="remove-reference"
@@ -275,7 +283,7 @@
                     <div class="header wii-title">Références</div>
                     <div class="content cart-reference-list">
                         {% for reference in app.user.cart.references %}
-                            {{ _self.reference_card(reference, loop.index0, 'Quantité à livrer', reference.quantiteDisponible == 0, true) }}
+                            {{ _self.reference_card(reference, loop.index0, 'Quantité à livrer', reference.quantiteDisponible == 0, true, showTargetLocationPicking) }}
                             {%  set buyerId = reference.buyer.id is defined ? reference.buyer.id : "null" %}
                             <input type="hidden" value="{{reference.id ~'/'~ buyerId }}" class="data" name="referenceBuyer"/>
                         {% endfor %}

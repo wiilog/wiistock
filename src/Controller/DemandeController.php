@@ -305,7 +305,8 @@ class DemandeController extends AbstractController
      */
     public function show(EntityManagerInterface $entityManager,
                          DemandeLivraisonService $demandeLivraisonService,
-                         Demande $demande): Response {
+                         Demande $demande,
+                         EntityManagerInterface $manager): Response {
 
         $statutRepository = $entityManager->getRepository(Statut::class);
 
@@ -315,6 +316,7 @@ class DemandeController extends AbstractController
             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
             'finished' => ($demande->getStatut()->getNom() === Demande::STATUT_A_TRAITER),
             'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande),
+            'showTargetLocationPicking' => $manager->getRepository(ParametrageGlobal::class)->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION)
         ]);
     }
 
@@ -328,9 +330,10 @@ class DemandeController extends AbstractController
         $rowsRC = [];
         foreach ($referenceLines as $line) {
             $rowsRC[] = [
-                "Référence" => ($line->getReference()->getReference() ? $line->getReference()->getReference() : ''),
-                "Libellé" => ($line->getReference()->getLibelle() ? $line->getReference()->getLibelle() : ''),
-                "Emplacement" => ($line->getReference()->getEmplacement() ? $line->getReference()->getEmplacement()->getLabel() : ' '),
+                "reference" => $line->getReference()->getReference() ?: '',
+                "label" => $line->getReference()->getLibelle() ?: '',
+                "location" => FormatHelper::location($line->getReference()->getEmplacement()),
+                "targetLocationPicking" => FormatHelper::location($line->getTargetLocationPicking()),
                 "quantityToPick" => $line->getQuantityToPick() ?? '',
                 "barcode" => $line->getReference() ? $line->getReference()->getBarCode() : '',
                 "error" => $line->getReference()->getQuantiteDisponible() < $line->getQuantityToPick()
@@ -352,9 +355,12 @@ class DemandeController extends AbstractController
         foreach ($articleLines as $line) {
             $article = $line->getArticle();
             $rowsCA[] = [
-                "Référence" => ($article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
-                "Libellé" => ($article->getLabel() ?: ''),
-                "Emplacement" => ($article->getEmplacement() ? $article->getEmplacement()->getLabel() : ' '),
+                "reference" => $article->getArticleFournisseur()->getReferenceArticle()
+                    ? $article->getArticleFournisseur()->getReferenceArticle()->getReference()
+                    : '',
+                "label" => $article->getLabel() ?: '',
+                "location" => FormatHelper::location($article->getEmplacement()),
+                "targetLocationPicking" => FormatHelper::location($line->getTargetLocationPicking()),
                 "quantityToPick" => $line->getQuantityToPick() ?: '',
                 "barcode" => $article->getBarCode() ?? '',
                 "error" => $article->getQuantite() < $line->getQuantityToPick() && $demande->getStatut()->getCode() === Demande::STATUT_BROUILLON,
@@ -394,7 +400,7 @@ class DemandeController extends AbstractController
 
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
-            $resp = $refArticleDataService->addRefToDemand(
+            $resp = $refArticleDataService->addReferenceToRequest(
                 $data,
                 $referenceArticle,
                 $currentUser,
@@ -449,7 +455,14 @@ class DemandeController extends AbstractController
         if ($data = json_decode($request->getContent(), true)) {
             $referenceLineRepository = $entityManager->getRepository(DeliveryRequestReferenceLine::class);
             $line = $referenceLineRepository->find($data['ligneArticle']);
-            $line->setQuantityToPick(max($data["quantite"], 0)); // protection contre quantités négatives
+            $targetLocationPicking = isset($data['target-location-picking'])
+                ? $entityManager->find(Emplacement::class, $data['target-location-picking'])
+                : null;
+
+            $line
+                ->setQuantityToPick(max($data["quantite"], 0)) // protection contre quantités négatives
+                ->setTargetLocationPicking($targetLocationPicking);
+
             $entityManager->flush();
 
             return new JsonResponse();
@@ -473,7 +486,8 @@ class DemandeController extends AbstractController
             $maximumQuantity = $articleRef->getQuantiteStock();
             $json = $this->renderView('demande/modalEditArticleContent.html.twig', [
                 'line' => $referenceLine,
-                'maximum' => $maximumQuantity
+                'maximum' => $maximumQuantity,
+                "showTargetLocationPicking" => $entityManager->getRepository(ParametrageGlobal::class)->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION)
             ]);
 
             return new JsonResponse($json);
@@ -526,7 +540,6 @@ class DemandeController extends AbstractController
             $articleLineRepository = $entityManager->getRepository(DeliveryRequestArticleLine::class);
 
             $demandes = $demandeRepository->findByDates($dateTimeMin, $dateTimeMax);
-
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_LIVRAISON]);
 
             // en-têtes champs fixes
@@ -569,8 +582,7 @@ class DemandeController extends AbstractController
                     $livraisonOrders,
                     $articleLines,
                     $referenceLines,
-                    $freeFieldsConfig,
-                    $freeFieldService
+                    $freeFieldsConfig
                 ) {
                     $rows = [];
                     $demandeId = $demande->getId();
@@ -594,12 +606,9 @@ class DemandeController extends AbstractController
                         $demandeData[] = $availableQuantity;
                         $demandeData[] = $line->getQuantityToPick();
 
-                        $freeFields = $demande->getFreeFields();
-                        foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
-                            $demandeData[] = $freeFieldService->serializeValue([
-                                'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
-                                'valeur' => $freeFields[$freeFieldId] ?? ''
-                            ]);
+                        $freeFieldValues = $demande->getFreeFields();
+                        foreach($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
+                            $demandeData[] = FormatHelper::freeField($freeFieldValues[$freeFieldId] ?? '', $freeField);
                         }
                         $rows[] = $demandeData;
                     }
@@ -617,12 +626,9 @@ class DemandeController extends AbstractController
                         $demandeData[] = '';
                         $demandeData[] = $article->getQuantite();
                         $demandeData[] = $line->getQuantityToPick();
-                        $freeFields = $demande->getFreeFields();
-                        foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
-                            $demandeData[] = $freeFieldService->serializeValue([
-                                'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
-                                'valeur' => $freeFields[$freeFieldId] ?? ''
-                            ]);
+
+                        foreach ($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
+                            $demandeData[] = FormatHelper::freeField($demandeData['freeFields'][$freeFieldId] ?? '', $freeField);
                         }
                         $rows[] = $demandeData;
                     }

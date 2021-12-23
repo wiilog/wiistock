@@ -154,6 +154,7 @@ class Import
         'articleReference' => 'Référence',
         'requester' => 'Demandeur',
 
+        'targetLocationPicking' => 'Emplacement cible picking',
         'name' => 'Nom',
         'description' => 'Description',
         'dateMaxTime' => 'Délais traça HH:MM',
@@ -163,7 +164,6 @@ class Import
         'isDeliveryPoint' => 'Point de livraison',
         'isOngoingVisibleOnMobile' => 'Encours visible nomade',
         'isActive' => 'Actif'
-
 	];
 
 	public CONST IMPORT_FIELDS_TO_FIELDS_PARAM = [

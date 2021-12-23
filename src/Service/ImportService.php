@@ -760,6 +760,10 @@ class ImportService
                         'needed' => $this->fieldIsNeeded('commentaire', Import::ENTITY_DELIVERY),
                         'value' => $corresp['commentaire'] ?? null
                     ],
+                    'targetLocationPicking' => [
+                        'needed' => $this->fieldIsNeeded('targetLocationPicking', Import::ENTITY_DELIVERY),
+                        'value' => $corresp['targetLocationPicking'] ?? null,
+                    ],
                 ];
                 break;
             case Import::ENTITY_LOCATION:
@@ -1113,16 +1117,26 @@ class ImportService
         $userRepository = $this->em->getRepository(Utilisateur::class);
         $visibilityGroupRepository = $this->em->getRepository(VisibilityGroup::class);
         $refArt = $refArtRepository->findOneBy(['reference' => $data['reference']]);
+        $currentUser = $this->currentImport->getUser();
+        $now = new DateTime();
 
         if (!$refArt) {
             $refArt = new ReferenceArticle();
+            $refArt
+                ->setCreatedAt($now)
+                ->setCreatedBy($currentUser);
             $isNewEntity = true;
+        } else {
+            $refArt
+                ->setEditedAt($now)
+                ->setEditedBy($currentUser);
         }
+
         if (isset($data['libelle'])) {
             if ((strlen($data['libelle'])) > 255) {
                 $this->throwError('La valeur saisie pour le champ libellé ne doit pas dépasser 255 caractères');
             } else {
-            $refArt->setLibelle($data['libelle']);
+                $refArt->setLibelle($data['libelle']);
             }
         }
         if (isset($data['needsMobileSync'])) {
@@ -1482,7 +1496,7 @@ class ImportService
             ]);
 
             $deliveryTypesLabel = Stream::from($deliveryTypes)->map(fn(Type $type) => $type->getLabel())->toArray();
-            $invalidTypes = Stream::diff($deliveryTypesLabel, $deliveryTypesRaw)->toArray();
+            $invalidTypes = Stream::diff($deliveryTypesLabel, $deliveryTypesRaw, false, true)->toArray();
             if(!empty($invalidTypes)) {
                 $invalidTypesStr = implode(", ", $invalidTypes);
                 $this->throwError("Les types de demandes de livraison suivants sont invalides : $invalidTypesStr");
@@ -1506,7 +1520,7 @@ class ImportService
             ]);
 
             $dispatchTypesLabel = Stream::from($dispatchTypes)->map(fn(Type $type) => $type->getLabel())->toArray();
-            $invalidTypes = Stream::diff($dispatchTypesLabel, $dispatchTypesRaw)->toArray();
+            $invalidTypes = Stream::diff($dispatchTypesLabel, $dispatchTypesRaw, false, true)->toArray();
             if(!empty($invalidTypes)) {
                 $invalidTypesStr = implode(", ", $invalidTypes);
                 $this->throwError("Les types d'acheminements suivants sont invalides : $invalidTypesStr");
@@ -1530,7 +1544,7 @@ class ImportService
             ]);
 
             $handlingTypesLabel = Stream::from($handlingTypes)->map(fn(Type $type) => $type->getLabel())->toArray();
-            $invalidTypes = Stream::diff($handlingTypesLabel, $handlingTypesRaw)->toArray();
+            $invalidTypes = Stream::diff($handlingTypesLabel, $handlingTypesRaw, false, true)->toArray();
             if(!empty($invalidTypes)) {
                 $invalidTypesStr = implode(", ", $invalidTypes);
                 $this->throwError("Les types de services suivants sont invalides : $invalidTypesStr");
@@ -1597,8 +1611,9 @@ class ImportService
         $requester = isset($data['requester']) && $data['requester'] ? $users->findOneBy(['username' => $data['requester']]) : $utilisateur;
         $destination = $data['destination'] ? $locations->findOneBy(['label' => $data['destination']]) : null;
         $categorieStatus = $categorieStatusRepository->findOneBy(["nom" => CategorieStatut::DEM_LIVRAISON]);
-        $availableStatues = Stream::from($statusRepository->findAvailableStatuesForDeliveryImport($categorieStatus))
+        $availableStatuses = Stream::from($statusRepository->findAvailableStatuesForDeliveryImport($categorieStatus))
             ->flatten()
+            ->map(fn($status) => strtolower($status))
             ->values();
 
         $type = $data['type'] ? $types->findOneByCategoryLabelAndLabel(CategoryType::DEMANDE_LIVRAISON, $data['type']) : null;
@@ -1607,6 +1622,19 @@ class ImportService
         $articleReference = $data['articleReference'] ? $references->findOneBy(['reference' => $data['articleReference']]) : null;
         $article = $data['articleCode'] ?? null;
         $quantityDelivery = $data['quantityDelivery'] ?? null;
+
+        $showTargetLocationPicking = $this->em->getRepository(ParametrageGlobal::class)->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION);
+        $targetLocationPicking = null;
+        if($showTargetLocationPicking) {
+            if(isset($data['targetLocationPicking'])) {
+                $targetLocationPickingStr = $data['targetLocationPicking'];
+                $targetLocationPicking = $locations->findOneBy(['label' => $targetLocationPickingStr]);
+                if(!$targetLocationPicking) {
+                    $this->throwError("L'emplacement cible picking $targetLocationPickingStr n'existe pas.");
+                }
+            }
+        }
+
         if (!$requester) {
             $this->throwError('Demandeur inconnu.');
         }
@@ -1631,7 +1659,7 @@ class ImportService
             $request->setType($type);
         }
 
-        if (!in_array($data['status'], $availableStatues)) {
+        if (!in_array(strtolower($data['status']), $availableStatuses)) {
             $this->throwError('Statut inconnu (valeurs possibles : brouillon, à traiter).');
         } else if (!$request->getStatut()) {
             $request->setStatut($status);
@@ -1654,7 +1682,8 @@ class ImportService
                             $line = new DeliveryRequestArticleLine();
                             $line
                                 ->setArticle($article)
-                                ->setQuantityToPick(intval($quantityDelivery));
+                                ->setQuantityToPick(intval($quantityDelivery))
+                                ->setTargetLocationPicking($targetLocationPicking);
                             $this->em->persist($line);
                             $request->addArticleLine($line);
                             if (!$request->getPreparations()->isEmpty()) {
@@ -1664,7 +1693,8 @@ class ImportService
                                 $ligneArticlePreparation
                                     ->setPickedQuantity($line->getPickedQuantity())
                                     ->setQuantityToPick($line->getQuantityToPick())
-                                    ->setArticle($article);
+                                    ->setArticle($article)
+                                    ->setTargetLocationPicking($targetLocationPicking);
                                 $this->em->persist($ligneArticlePreparation);
                                 $preparation->addArticleLine($ligneArticlePreparation);
                             }
@@ -1686,7 +1716,8 @@ class ImportService
                     $line = new DeliveryRequestReferenceLine();
                     $line
                         ->setReference($articleReference)
-                        ->setQuantityToPick($quantityDelivery);
+                        ->setQuantityToPick($quantityDelivery)
+                        ->setTargetLocationPicking($targetLocationPicking);
                     $this->em->persist($line);
                     $request->addReferenceLine($line);
                     if (!$request->getPreparations()->isEmpty()) {
@@ -1695,7 +1726,8 @@ class ImportService
                         $lignesArticlePreparation
                             ->setPickedQuantity($line->getPickedQuantity())
                             ->setQuantityToPick($line->getQuantityToPick())
-                            ->setReference($articleReference);
+                            ->setReference($articleReference)
+                            ->setTargetLocationPicking($targetLocationPicking);
                         $this->em->persist($lignesArticlePreparation);
                         if ($articleReference->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                             $articleReference->setQuantiteReservee(($articleReference->getQuantiteReservee() ?? 0) + $line->getQuantityToPick());

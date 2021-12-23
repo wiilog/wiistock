@@ -10,6 +10,7 @@ use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
@@ -44,6 +45,7 @@ class RefArticleDataService {
 
     private const REF_ARTICLE_FIELDS = [
         ["name" => "actions", "class" => "noVis", "alwaysVisible" => true, "orderable" => false],
+        ["title" => "Image", "name" => "image", "type" => "image", "orderable" => false],
         ["title" => "Libellé", "name" => "label", "type" => "text", "searchable" => true],
         ["title" => "Référence", "name" => "reference", "type" => "text", "searchable" => true],
         ["title" => "Code barre", "name" => "barCode", "type" => "text", "searchable" => true],
@@ -66,13 +68,12 @@ class RefArticleDataService {
         ["title" => "Gestionnaire(s)", "name" => "managers", "orderable" => false, "type" => "text"],
         ["title" => "Commentaire", "name" => "comment", "type" => "text", "orderable" => false],
         ["title" => "Commentaire d'urgence", "name" => "emergencyComment", "type" => "text", "orderable" => false],
-        ["title" => "Créée le", "name" => "createdAt", "type" => "text"],
+        ["title" => "Créée le", "name" => "createdAt", "type" => "date"],
         ["title" => "Créée par", "name" => "createdBy", "type" => "text"],
-        ["title" => "Dernière entrée le", "name" => "lastStockEntry", "type" => "date"],
         ["title" => "Dernière modification le", "name" => "editedAt", "type" => "date"],
         ["title" => "Dernière modification par", "name" => "editedBy", "type" => "text"],
+        ["title" => "Dernière entrée le", "name" => "lastStockEntry", "type" => "date"],
         ["title" => "Dernière sortie le", "name" => "lastStockExit", "type" => "date"],
-        ["title" => "Image", "name" => "image", "type" => "image", "orderable" => false],
         ["title" => FiltreRef::FIXED_FIELD_VISIBILITY_GROUP, "name" => "visibilityGroups", "type" => "list multiple", "orderable" => true],
     ];
 
@@ -109,6 +110,8 @@ class RefArticleDataService {
 
     /** @Required */
     public AttachmentService $attachmentService;
+
+    private ?array $freeFieldsConfig = null;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 EntityManagerInterface $entityManager) {
@@ -390,12 +393,10 @@ class RefArticleDataService {
         return $response;
     }
 
-    public function dataRowRefArticle(ReferenceArticle $refArticle) {
-        $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
-        $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
-
-        $ffCategory = $categorieCLRepository->findOneBy(['label' => CategorieCL::REFERENCE_ARTICLE]);
-        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, $ffCategory);
+    public function dataRowRefArticle(ReferenceArticle $refArticle): array {
+        if (!isset($this->freeFieldsConfig)) {
+            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::REFERENCE_ARTICLE, CategoryType::ARTICLE);
+        }
 
         $providerCodes = Stream::from($refArticle->getArticlesFournisseur())
             ->map(function(ArticleFournisseur $articleFournisseur) {
@@ -411,6 +412,9 @@ class RefArticleDataService {
 
         $row = [
             "id" => $refArticle->getId(),
+            "image" => $this->templating->render('datatable/image.html.twig', [
+                "image" => $refArticle->getImage()
+            ]),
             "label" => $refArticle->getLibelle() ?? "Non défini",
             "reference" => $refArticle->getReference() ?? "Non défini",
             "quantityType" => $refArticle->getTypeQuantite() ?? "Non défini",
@@ -433,7 +437,7 @@ class RefArticleDataService {
             'supplierCode' => implode(",", $providerCodes),
             "lastInventory" => FormatHelper::date($refArticle->getDateLastInventory()),
             "stockManagement" => $refArticle->getStockManagement(),
-            'referenceSupplierArticle' => Stream::from($refArticle->getArticlesFournisseur()) // TODO
+            'referenceSupplierArticle' => Stream::from($refArticle->getArticlesFournisseur())
                 ->map(fn(ArticleFournisseur $articleFournisseur) => $articleFournisseur->getReference())
                 ->join(', '),
             "managers" => Stream::from($refArticle->getManagers())
@@ -446,14 +450,11 @@ class RefArticleDataService {
                 ->unique()
                 ->join(", "),
             "createdAt" => FormatHelper::datetime($refArticle->getCreatedAt()),
-            "createdBy" => FormatHelper::user($refArticle->getCreatedBy()),
+            "createdBy" => $refArticle->getCreatedBy() ? FormatHelper::user($refArticle->getCreatedBy()) : "-",
             "lastStockEntry" => FormatHelper::datetime($refArticle->getLastStockEntry()),
             "editedAt" => FormatHelper::datetime($refArticle->getEditedAt()),
             "editedBy" => FormatHelper::user($refArticle->getEditedBy()),
             "lastStockExit" => FormatHelper::datetime($refArticle->getLastStockExit()),
-            "image" => $this->templating->render('datatable/image.html.twig', [
-                "image" => $refArticle->getImage()
-            ]),
             "actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
                 "attachmentsLength" => $refArticle->getAttachments()->count(),
                 "reference_id" => $refArticle->getId(),
@@ -465,28 +466,30 @@ class RefArticleDataService {
             ),
         ];
 
-        foreach($freeFields as $freeField) {
-            $freeFieldId = $freeField["id"];
+        foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
             $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
-            $row[$freeFieldName] = $this->freeFieldService->serializeValue([
-                "valeur" => $refArticle->getFreeFieldValue($freeFieldId),
-                "typage" => $freeField["typage"],
-            ]);
+            $freeFieldValue = $refArticle->getFreeFieldValue($freeFieldId);
+            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField);
         }
 
         return $row;
     }
 
-    public function addRefToDemand($data,
-                                   $referenceArticle,
-                                   Utilisateur $user,
-                                   bool $fromNomade,
-                                   EntityManagerInterface $entityManager,
-                                   Demande $demande,
-                                   ?FreeFieldService $champLibreService, $editRef = true, $fromCart = false) {
+    public function addReferenceToRequest(array                  $data,
+                                          ReferenceArticle       $referenceArticle,
+                                          Utilisateur            $user,
+                                          bool                   $fromNomade,
+                                          EntityManagerInterface $entityManager,
+                                          Demande                $demande,
+                                          ?FreeFieldService      $champLibreService, $editRef = true, $fromCart = false) {
         $resp = true;
         $articleRepository = $entityManager->getRepository(Article::class);
         $referenceLineRepository = $entityManager->getRepository(DeliveryRequestReferenceLine::class);
+
+        $targetLocationPicking = isset($data['target-location-picking'])
+            ? $entityManager->find(Emplacement::class, $data['target-location-picking'])
+            : null;
+
         // cas gestion quantité par référence
         if($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
             if($fromNomade || $referenceLineRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
@@ -494,6 +497,7 @@ class RefArticleDataService {
                 $line
                     ->setReference($referenceArticle)
                     ->setRequest($demande)
+                    ->setTargetLocationPicking($targetLocationPicking)
                     ->setQuantityToPick(max($data["quantity-to-pick"], 0)); // protection contre quantités négatives
                 $entityManager->persist($line);
                 $demande->addReferenceLine($line);
@@ -512,7 +516,8 @@ class RefArticleDataService {
                     $line
                         ->setQuantityToPick(max($data["quantity-to-pick"], 0))// protection contre quantités négatives
                         ->setReference($referenceArticle)
-                        ->setRequest($demande);
+                        ->setRequest($demande)
+                        ->setTargetLocationPicking($targetLocationPicking);
                     $entityManager->persist($line);
                 } else {
                     $line = $referenceLineRepository->findOneByRefArticleAndDemande($referenceArticle, $demande, true);
@@ -524,7 +529,8 @@ class RefArticleDataService {
                 $line
                     ->setQuantityToPick(max($data["quantity-to-pick"], 0))// protection contre quantités négatives
                     ->setArticle($article)
-                    ->setRequest($demande);
+                    ->setRequest($demande)
+                    ->setTargetLocationPicking($targetLocationPicking);
                 $entityManager->persist($line);
                 $resp = 'article';
             }
