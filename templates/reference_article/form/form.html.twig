@@ -41,18 +41,6 @@
     </div>
 {% endmacro %}
 
-{% macro visibility_group_input(reference) %}
-    <div class="col-12 col-md-6 mt-3">
-        <label for="visibility-group" class="wii-field-name w-100">Groupe de visibilité
-            <select name="visibility-group" class="form-control data" data-s2="visibilityGroup">
-                {% if reference.visibilityGroup %}
-                    <option value="{{ reference.visibilityGroup.id }}" selected>{{ reference.visibilityGroup.label }}</option>
-                {% endif %}
-            </select>
-        </label>
-    </div>
-{% endmacro %}
-
 {% import _self as macros %}
 
 {% set editable = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
@@ -87,7 +75,7 @@
                                     </button>
                                 </div>
                                 <input type="file" name="image" class="data-file" id="upload-article-reference-image"
-                                       accept="image/png, image/jpeg, image/jpg"
+                                       accept="image/png, image/jpeg, image/jpg, image/svg, image/gif"
                                        hidden>
                             </div>
                         </div>
@@ -149,74 +137,63 @@
                 <div class="header wii-title">Informations</div>
                 <div class="content">
                     <div class="row">
-                        <div class="col-12 col-md-6">
-                            <label class="w-100">
-                                <span class="icon wii-field-name">
-                                    <img src="{{ asset('svg/reference_article/manager.svg') }}" class="icon" alt="Image gestionnaire">
-                                    Gestionnaires
-                                </span>
-                                <select name="managers" class="form-control w-100 data" data-s2="user"
-                                        data-placeholder="Sélectionnez des gestionnaires" multiple>
-                                    {% for manager in reference.managers %}
-                                    <option value="{{ manager.id }}" selected>{{ manager.username }}</option>
-                                    {% endfor %}>
-                                </select>
-                            </label>
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <label>
-                                    <span class="icon wii-field-name">
-                                        <img src="{{ asset('svg/reference_article/manager.svg') }}" class="icon" alt="Image acheteur">
-                                        Acheteur
-                                    </span>
-                                <select name="buyer" class="form-control data w-100" data-s2="user"
-                                        data-placeholder="Sélectionnez un utilisateur">
-                                    {% if reference.buyer %}
-                                    <option value="{{ reference.buyer.id }}" selected>{{ reference.buyer.username }}</option>
-                                    {% endif %}>
-                                </select>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-12 col-md-6 mt-3">
-                            <label class="w-100">
-                                    <span class="icon wii-field-name">
-                                        <img src="{{ asset('svg/reference_article/warehouse.svg') }}" class="icon" alt="Image entrepôt">
-                                        Catégorie d'inventaire
-                                    </span>
-                                {% if editable %}
-                                    <select name="categorie" data-s2 class="form-control data {{ disabled }}">
-                                        {% for category in categories %}
-                                            <option value="{{ category.id }}"
-                                                {{ reference.category and reference.category.id == category.id ? 'selected' }}>
-                                                {{ category.label }}
-                                            </option>
-                                        {% endfor %}
-                                    </select>
-                                {% else %}
-                                    <input class="form-control" type="text"
-                                           value="{{ reference.category ? reference.category.label }}" {{ disabled }}>
-                                {% endif %}
-                            </label>
-                        </div>
                         {% if reference.id %}
-                            <div class="col-12 col-md-6 mt-3 d-flex flex-column justify-content-around">
-                                <span class="icon wii-field-name"><img src="{{ asset('svg/reference_article/calendar.svg') }}" class="icon" alt="Image calendrier">
-                                    Date de dernier inventaire</span>
-                                <span class="wii-field-text">
-                                    {{ lastInventoryDate is defined and lastInventoryDate is not null and lastInventoryDate != '' ? lastInventoryDate : '-' }}
-                                </span>
+                            <div class="col-12 col-md-6 d-flex">
+                                <img src="{{ asset('svg/user-creation.svg') }}" alt="Icône créé par" width="20px">
+                                <label class="box-item ml-3">
+                                    <span class="wii-field-name">Créé par</span>
+                                    <span class="wii-body-text">
+                                    {% if not reference.createdBy and not isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
+                                        -
+                                    {% else %}
+                                        {{ reference.createdBy ? reference.createdBy.username : 'Société GT' }}</span>
+                                    {% endif %}
+                                    {% if reference.createdAt %}
+                                        <span class="wii-body-text">le {{ reference.createdAt | format_helper('longDate', true) }}</span>
+                                    {% endif %}
+                                </label>
                             </div>
-                        {% else %}
-                            {{ macros.visibility_group_input(reference) }}
+                            <div class="col-12 col-md-6 d-flex">
+                                <img src="{{ asset('svg/user-modification.svg') }}" alt="Icône modifié par" width="20px">
+                                <label class="box-item ml-3">
+                                    <span class="wii-field-name">Dernière modification par</span>
+                                    <span class="wii-body-text">
+                                    {% if not reference.createdBy and not isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
+                                        -
+                                    {% else %}
+                                        {{ reference.createdBy ? reference.createdBy.username : 'Société GT' }}</span>
+                                    {% endif %}
+                                    {% if reference.createdAt %}
+                                        <span class="wii-body-text">le {{ reference.createdAt | format_helper('longDate', true) }}</span>
+                                    {% endif %}
+                                </label>
+                            </div>
+                            <div class="col-12 col-md-6 mt-3 d-flex">
+                                <img src="{{ asset('svg/calendrier-entree.svg') }}" alt="Icône entrée" width="20px">
+                                <label class="box-item ml-3">
+                                    <span class="wii-field-name">Dernière entrée le</span>
+                                    <span class="wii-body-text">{{ reference.lastStockEntry | format_helper('longDate', true) }}</span>
+                                </label>
+                            </div>
+                            <div class="col-12 col-md-6 mt-3 d-flex">
+                                <img src="{{ asset('svg/calendrier-sortie.svg') }}" alt="Icône sortie" width="20px">
+                                <label class="box-item ml-3">
+                                    <span class="wii-field-name">Dernière sortie le</span>
+                                    <span class="wii-body-text">{{ reference.lastStockExit | format_helper('longDate', true) }}</span>
+                                </label>
+                            </div>
                         {% endif %}
-                    </div>
-                    {% if reference.id %}
-                        <div class="row">
-                            {{ macros.visibility_group_input(reference) }}
+                        <div class="col-12 col-md-6 {% if reference.id %}mt-3{% endif %}">
+                            <label for="visibility-group" class="wii-field-name w-100">
+                                <i class="wii-icon wii-icon-visibility-group wii-icon-20px mr-2"></i> Groupe de visibilité
+                                <select name="visibility-group" class="form-control data" data-s2="visibilityGroup">
+                                    {% if reference.visibilityGroup %}
+                                        <option value="{{ reference.visibilityGroup.id }}" selected>{{ reference.visibilityGroup.label }}</option>
+                                    {% endif %}
+                                </select>
+                            </label>
                         </div>
-                    {% endif %}
+                    </div>
                     <div class="row mt-3">
                         <div class="col-12">
                             {% include 'attachment/attachment.html.twig' with {
@@ -284,9 +261,10 @@
                             <div class="col-12">
                                 <div class="row">
                                     {% if reference.id %}
-                                        <div class="col-12 col-md-4 reference mt-3">
+                                        <div class="col-12 col-md-6 reference mt-3">
                                             <div class="d-flex">
-                                                <img src="{{ asset('svg/reference_article/location.svg') }}" class="icon" alt="Image emplacement" width="20px">
+                                                <img src="{{ asset('svg/reference_article/location.svg') }}" class="icon" alt="Image emplacement"
+                                                     width="20px">
                                                 <label class="box-item ml-3">
                                                     <span class="wii-field-name">Emplacement</span>
                                                     <span class="wii-body-text">
@@ -297,7 +275,7 @@
                                                 </label>
                                             </div>
                                         </div>
-                                        <div class="col-12 col-md-4 mt-3 d-flex">
+                                        <div class="col-12 col-md-6 mt-3 d-flex">
                                             <img src="{{ asset('svg/reference_article/stock.svg') }}" alt="Icône stock" width="20px">
                                             <label class="box-item ml-3">
                                                 <span class="wii-field-name">Quantité en stock</span>
@@ -305,7 +283,7 @@
                                             </label>
                                         </div>
                                     {% else %}
-                                        <div class="col-12 col-md-4 reference mt-3">
+                                        <div class="col-12 col-md-6 reference mt-3">
                                             <label class="w-100">
                                                 <span class="icon wii-field-name">
                                                     <img src="{{ asset('svg/reference_article/location.svg') }}" class="icon" alt="Image emplacement">
@@ -316,7 +294,7 @@
                                                 </select>
                                             </label>
                                         </div>
-                                        <div class="col-12 col-md-4 reference mt-3">
+                                        <div class="col-12 col-md-6 reference mt-3">
                                             <label>
                                                 <span class="icon wii-field-name">
                                                     <img src="{{ asset('svg/reference_article/stock.svg') }}" class="icon" alt="Image quantité">
@@ -336,6 +314,35 @@
                                     {% endif %}
                                     <div class="col"></div>
                                 </div>
+                            </div>
+
+                            <div class="col-12 col-md-6 mt-3">
+                                <label class="w-100">
+                                    <span class="icon wii-field-name">
+                                        <img src="{{ asset('svg/reference_article/manager.svg') }}" class="icon" alt="Image gestionnaire">
+                                        Gestionnaires
+                                    </span>
+                                    <select name="managers" class="form-control w-100 data" data-s2="user"
+                                            data-placeholder="Sélectionnez des gestionnaires" multiple>
+                                        {% for manager in reference.managers %}
+                                        <option value="{{ manager.id }}" selected>{{ manager.username }}</option>
+                                        {% endfor %}>
+                                    </select>
+                                </label>
+                            </div>
+                            <div class="col-12 col-md-6 mt-3">
+                                <label>
+                                <span class="icon wii-field-name">
+                                    <img src="{{ asset('svg/reference_article/manager.svg') }}" class="icon" alt="Image acheteur">
+                                    Acheteur
+                                </span>
+                                    <select name="buyer" class="form-control data w-100" data-s2="user"
+                                            data-placeholder="Sélectionnez un utilisateur">
+                                        {% if reference.buyer %}
+                                        <option value="{{ reference.buyer.id }}" selected>{{ reference.buyer.username }}</option>
+                                        {% endif %}>
+                                    </select>
+                                </label>
                             </div>
 
                             <div class="col-12 col-md-4 reference mt-3">
@@ -464,6 +471,46 @@
                     </div>
                 </div>
             </div>
+
+            <div class="wii-box">
+                <div class="header wii-title">Inventaires</div>
+                <div class="content">
+                    <div class="row">
+                        <div class="col-12 col-md-6">
+                            <label class="w-100">
+                                    <span class="icon wii-field-name">
+                                        <img src="{{ asset('svg/reference_article/warehouse.svg') }}" class="icon" alt="Image entrepôt">
+                                        Catégorie d'inventaire
+                                    </span>
+                                {% if editable %}
+                                    <select name="categorie" data-s2 class="form-control data {{ disabled }}">
+                                        {% for category in categories %}
+                                            <option value="{{ category.id }}"
+                                                {{ reference.category and reference.category.id == category.id ? 'selected' }}>
+                                                {{ category.label }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                {% else %}
+                                    <input class="form-control" type="text"
+                                           value="{{ reference.category ? reference.category.label }}" {{ disabled }}>
+                                {% endif %}
+                            </label>
+                        </div>
+                        {% if reference.id %}
+                            <div class="col-12 col-md-6 mt-3 d-flex flex-column justify-content-around">
+                                <span class="icon wii-field-name"><img src="{{ asset('svg/reference_article/calendar.svg') }}" class="icon"
+                                                                       alt="Image calendrier">
+                                    Date de dernier inventaire</span>
+                                <span class="wii-field-text">
+                                    {{ lastInventoryDate is defined and lastInventoryDate is not null and lastInventoryDate != '' ? lastInventoryDate : '-' }}
+                                </span>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
             <div class="wii-box">
                 <div class="header wii-title">Champs libres</div>
                 <div class="content free-fields-container">

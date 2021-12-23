@@ -4,8 +4,6 @@ $(function() {
     Select2Old.carrier($('.ajax-autocomplete-transporteur'));
     initPage();
     initDateTimePicker('#dateMin, #dateMax');
-    initDateTimePicker('#dateStart', 'DD/MM/YYYY HH:mm', true, 0, 0);
-    initDateTimePicker('#dateEnd', 'DD/MM/YYYY HH:mm', false,23, 59);
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
@@ -77,17 +75,6 @@ function initPage() {
 }
 
 function callbackEditFormLoading($modal, buyerId, buyerName) {
-    initDateTimePicker('#modalEditUrgence .datepicker.dateStart', 'DD/MM/YYYY HH:mm', false, 0, 0);
-    initDateTimePicker('#modalEditUrgence .datepicker.dateEnd', 'DD/MM/YYYY HH:mm', false, 23, 59);
-    let $dateStartInput = $('#modalEditUrgence').find('.dateStart');
-    let dateStart = $dateStartInput.attr('data-date');
-
-    let $dateEndInput = $('#modalEditUrgence').find('.dateEnd');
-    let dateEnd = $dateEndInput.attr('data-date');
-
-    $dateStartInput.val(moment(dateStart, 'YYYY-MM-DD HH:mm').format('DD/MM/YYYY HH:mm'));
-    $dateEndInput.val(moment(dateEnd, 'YYYY-MM-DD HH:mm').format('DD/MM/YYYY HH:mm'));
-
     Select2Old.user($modal.find('.ajax-autocomplete-user'));
     Select2Old.provider($modal.find('.ajax-autocomplete-fournisseur'));
     Select2Old.carrier($modal.find('.ajax-autocomplete-transporteur'));
@@ -105,8 +92,8 @@ function callbackUrgenceAction({success, message}, $modal = undefined, resetDate
         if ($modal) {
             clearModal($modal);
             if (resetDate) {
-                $('#dateStart').val(moment().hours(0).minutes(0).format('DD/MM/YYYY HH:mm'));
-                $('#dateEnd').val(moment().hours(23).minutes(59).format('DD/MM/YYYY HH:mm'));
+                $('#dateStart').val(moment().hours(0).minutes(0).format('YYYY-MM-DD\\THH:mm'));
+                $('#dateEnd').val(moment().hours(23).minutes(59).format('YYYY-MM-DD\\THH:mm'));
             }
             $modal.modal('hide');
         }

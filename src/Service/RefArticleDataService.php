@@ -44,6 +44,7 @@ class RefArticleDataService {
 
     private const REF_ARTICLE_FIELDS = [
         ["name" => "actions", "class" => "noVis", "alwaysVisible" => true, "orderable" => false],
+        ["title" => "Image", "name" => "image", "type" => "image", "orderable" => false],
         ["title" => "Libellé", "name" => "label", "type" => "text", "searchable" => true],
         ["title" => "Référence", "name" => "reference", "type" => "text", "searchable" => true],
         ["title" => "Code barre", "name" => "barCode", "type" => "text", "searchable" => true],
@@ -72,7 +73,6 @@ class RefArticleDataService {
         ["title" => "Dernière modification le", "name" => "editedAt", "type" => "date"],
         ["title" => "Dernière modification par", "name" => "editedBy", "type" => "text"],
         ["title" => "Dernière sortie le", "name" => "lastStockExit", "type" => "date"],
-        ["title" => "Image", "name" => "image", "type" => "image", "orderable" => false],
         ["title" => FiltreRef::FIXED_FIELD_VISIBILITY_GROUP, "name" => "visibilityGroups", "type" => "list multiple", "orderable" => true],
     ];
 
@@ -411,6 +411,9 @@ class RefArticleDataService {
 
         $row = [
             "id" => $refArticle->getId(),
+            "image" => $this->templating->render('datatable/image.html.twig', [
+                "image" => $refArticle->getImage()
+            ]),
             "label" => $refArticle->getLibelle() ?? "Non défini",
             "reference" => $refArticle->getReference() ?? "Non défini",
             "quantityType" => $refArticle->getTypeQuantite() ?? "Non défini",
@@ -451,9 +454,6 @@ class RefArticleDataService {
             "editedAt" => FormatHelper::datetime($refArticle->getEditedAt()),
             "editedBy" => FormatHelper::user($refArticle->getEditedBy()),
             "lastStockExit" => FormatHelper::datetime($refArticle->getLastStockExit()),
-            "image" => $this->templating->render('datatable/image.html.twig', [
-                "image" => $refArticle->getImage()
-            ]),
             "actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
                 "attachmentsLength" => $refArticle->getAttachments()->count(),
                 "reference_id" => $refArticle->getId(),
