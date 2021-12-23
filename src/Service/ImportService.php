@@ -52,6 +52,83 @@ class ImportService
     public const IMPORT_MODE_PLAN = 3; // réaliser l'import dans la nuit (dans le cron à 23h59)
     public const IMPORT_MODE_NONE = 4; // rien n'a été réalisé sur l'import
 
+    public const FIELDS_TO_ASSOCIATE = [
+        Import::ENTITY_ART => [
+            "commentaire",
+            "stockEntryDate",
+            "expiryDate",
+            "dateLastInventory",
+            "emplacement",
+            "label",
+            "batch",
+            "prixUnitaire",
+            "quantite",
+            "référence article de référence",
+            "référence article fournisseur",
+            "référence fournisseur"
+        ],
+        Import::ENTITY_REF => [
+            "buyer",
+            "catégorie d'inventaire",
+            "commentaire",
+            "emergencyComment",
+            "dateLastInventory",
+            "emplacement",
+            "stockManagement",
+            "managers",
+            "visibilityGroups",
+            "libelle",
+            "prixUnitaire",
+            "quantiteStock",
+            "reference",
+            "limitWarning",
+            "limitSecurity",
+            "statut",
+            "needsMobileSync",
+            "type",
+            "typeQuantite"
+        ],
+        Import::ENTITY_FOU => [
+            'nom',
+            'codeReference'
+        ],
+        Import::ENTITY_RECEPTION => [
+            "anomalie",
+            "commentaire",
+            "expectedDate",
+            "orderDate",
+            "location",
+            "storageLocation",
+            "fournisseur",
+            "orderNumber",
+            "quantité à recevoir",
+            "référence",
+            "transporteur",
+            "manualUrgent"
+        ],
+        Import::ENTITY_ART_FOU => [
+            "label",
+            "référence article de référence",
+            "référence fournisseur"
+        ],
+        Import::ENTITY_USER => [
+            "address",
+            "mobileLoginKey",
+            "dropzone",
+            "email",
+            "secondaryEmail",
+            "lastEmail",
+            "visibilityGroup",
+            "username",
+            "phone",
+            "role",
+            "status",
+            "dispatchTypes",
+            "deliveryTypes",
+            "handlingTypes"
+        ]
+    ];
+
     /** @Required */
     public Twig_Environment $templating;
 
@@ -1748,5 +1825,28 @@ class ImportService
             }
         }
         return $preselection;
+    }
+
+    public function getFieldsToAssociate(EntityManagerInterface $entityManager,
+                                         string $entityCode): array {
+        $fieldsToAssociate = self::FIELDS_TO_ASSOCIATE[$entityCode] ?? [];
+
+        $categoryCLByEntity = [
+            Import::ENTITY_ART => CategorieCL::ARTICLE,
+            Import::ENTITY_REF => CategorieCL::REFERENCE_ARTICLE,
+        ];
+
+        $categoryCL = $categoryCLByEntity[$entityCode] ?? null;
+
+        if (isset($categoryCL)) {
+            $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+            $freeFields = $freeFieldRepository->getLabelAndIdByCategory($categoryCL);
+
+            foreach ($freeFields as $freeField) {
+                $fieldsToAssociate[$freeField['id']] = $freeField['value'];
+            }
+        }
+
+        return $fieldsToAssociate;
     }
 }
