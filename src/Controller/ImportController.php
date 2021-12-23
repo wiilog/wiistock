@@ -131,127 +131,14 @@ class ImportController extends AbstractController
                 }
                 else {
                     $entity = $import->getEntity();
-                    $entityCodeToClass = [
-                        Import::ENTITY_ART => Article::class,
-                        Import::ENTITY_REF => ReferenceArticle::class,
-                        Import::ENTITY_FOU => Fournisseur::class,
-                        Import::ENTITY_ART_FOU => ArticleFournisseur::class,
-                        Import::ENTITY_RECEPTION => Reception::class,
-                        Import::ENTITY_USER => Utilisateur::class,
-                        Import::ENTITY_DELIVERY => Demande::class,
-                        Import::ENTITY_LOCATION => Emplacement::class
-                    ];
-                    $attributes = $entityManager->getClassMetadata($entityCodeToClass[$entity]);
-
-                    $fieldsToHide = [
-                        'id',
-                        'barCode',
-                        'reference',
-                        'conform',
-                        'dateEmergencyTriggered',
-                        'isUrgent',
-                        'quantiteDisponible',
-                        'freeFields',
-                        'urgentArticles',
-                        'quantiteReservee',
-                        'dateAttendue',
-                        'dateFinReception',
-                        'dateCommande',
-                        'number',
-                        'date',
-                        'emergencyTriggered',
-                        'cleanedComment',
-                        'apiKey',
-                        'columnsVisibleForArrivage',
-                        'columnsVisibleForArticle',
-                        'columnsVisibleForDispatch',
-                        'columnsVisibleForLitige',
-                        'columnsVisibleForReception',
-                        'columnsVisibleForTrackingMovement',
-                        'columnVisible',
-                        'lastLogin',
-                        'pageLengthForArrivage',
-                        'password',
-                        'savedDispatchDeliveryNoteData',
-                        'savedDispatchWaybillData',
-                        'secondaryEmails',
-                        'token',
-                        'searches',
-                        'pageIndexes',
-                        'columnsOrder',
-                        'rechercheForArticle',
-                        'recherche',
-                        'roles',
-                        'createdAt',
-                        'validatedAt',
-                    ];
-
-                    $fieldNames = $attributes->getFieldNames();
-                    switch ($entity) {
-                        case Import::ENTITY_ART:
-                            $categoryCL = CategorieCL::ARTICLE;
-                            $fieldsToAdd = ['référence article fournisseur', 'référence article de référence', 'référence fournisseur', 'emplacement', 'barCode'];
-                            $fieldNames = array_merge($fieldNames, $fieldsToAdd);
-                            break;
-                        case Import::ENTITY_REF:
-                            $categoryCL = CategorieCL::REFERENCE_ARTICLE;
-                            $fieldsToHide = Stream::from($fieldsToHide)->filter(fn(string $field) => $field !== 'reference')->toArray();
-                            $fieldsToAdd = ['type', 'emplacement', 'catégorie d\'inventaire', 'statut', 'reference', 'managers', 'buyer', 'visibilityGroups'];
-                            $fieldNames = array_merge($fieldNames, $fieldsToAdd);
-                            break;
-                        case Import::ENTITY_ART_FOU:
-                            $fieldsToAdd = ['référence article de référence', 'référence fournisseur', 'reference'];
-                            $fieldNames = array_merge($fieldNames, $fieldsToAdd);
-                            break;
-                        case Import::ENTITY_RECEPTION:
-                            $fieldsToAdd = ['anomalie', 'fournisseur', 'transporteur', 'référence', 'location','storageLocation', 'quantité à recevoir', 'orderDate', 'expectedDate'];
-                            $fieldNames = array_merge($fieldNames, $fieldsToAdd);
-                            break;
-                        case Import::ENTITY_USER:
-                            $fieldsToAdd = ['role', 'secondaryEmail', 'lastEmail', 'phone', 'mobileLoginKey', 'address', 'deliveryTypes', 'dispatchTypes', 'handlingTypes', 'dropzone', 'visibilityGroup'];
-                            $fieldNames = array_merge($fieldNames, $fieldsToAdd);
-                            break;
-                        case Import::ENTITY_DELIVERY:
-                            $categoryCL = CategorieCL::DEMANDE_LIVRAISON;
-                            $fieldsToHide = array_merge($fieldsToHide, ['numero', 'filled']);
-                            $fieldsToAdd = ['articleReference', 'quantityDelivery', 'articleCode', 'status', 'type', 'requester', 'destination'];
-
-                            $showTargetLocationPicking = $entityManager->getRepository(ParametrageGlobal::class)->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION);
-                            if($showTargetLocationPicking) {
-                                $fieldsToAdd[] = 'targetLocationPicking';
-                            }
-                            $fieldNames = array_merge($fieldNames, $fieldsToAdd);
-                            break;
-                        case Import::ENTITY_LOCATION:
-                            $fieldsToAdd = ['name', 'allowedDeliveryTypes','allowedCollectTypes' , 'allowedPackNatures'];
-                            $fieldsToHide = array_merge($fieldsToHide, ['label']);
-                            $fieldNames = array_merge($fieldNames, $fieldsToAdd);
-                            break;
-                    }
-                    $fieldNames = array_diff($fieldNames, $fieldsToHide);
-                    $fieldNames = array_diff($fieldNames, $fieldsRaw ?? []);
-                    $fields = [];
-                    foreach ($fieldNames as $fieldName) {
-                        $fields[$fieldName] = Import::FIELDS_ENTITY[$fieldName] ?? $fieldName;
-                    }
-                    foreach ($fieldsRaw ?? [] as $fieldRaw) {
-                        $fields[$fieldRaw] = $fieldRaw;
-                    }
-                    if (isset($categoryCL)) {
-                        $champsLibres = $entityManager->getRepository(FreeField::class)->getLabelAndIdByCategory($categoryCL);
-
-                        foreach ($champsLibres as $champLibre) {
-                            $fields[$champLibre['id']] = $champLibre['value'];
-                        }
-                    }
-
-                    natcasesort($fields);
+                    $fieldsToAssociate = $importService->getFieldsToAssociate($entityManager, $entity);
+                    natcasesort($fieldsToAssociate);
 
                     $preselection = [];
                     if(isset($data['headers'])) {
                         $headers = $data['headers'];
 
-                        $fieldsToCheck = array_merge($fields);
+                        $fieldsToCheck = array_merge($fieldsToAssociate);
                         $sourceImportId = $post->get('sourceImport');
                         if (isset($sourceImportId)) {
                             $sourceImport = $importRepository->find($sourceImportId);
@@ -264,14 +151,15 @@ class ImportController extends AbstractController
                     }
 
                     if ($post->get('importId')) {
-                        $copiedImport = $this->getDoctrine()->getRepository(Import::class)->find($post->get('importId'));
+                        $importRepository = $entityManager->getRepository(Import::class);
+                        $copiedImport = $importRepository->find($post->get('importId'));
                         $columnsToFields = $copiedImport->getColumnToField();
                     }
 
                     $fieldsNeeded = Import::FIELDS_NEEDED[$entity];
 
                     if ($entity === Import::ENTITY_RECEPTION) {
-                        foreach ($fields as $field) {
+                        foreach ($fieldsToAssociate as $field) {
                             $fieldParamCode = isset(Import::IMPORT_FIELDS_TO_FIELDS_PARAM[$field]) ? Import::IMPORT_FIELDS_TO_FIELDS_PARAM[$field] : null;
                             if ($fieldParamCode) {
                                 $fieldParam = $fieldsParamRepository->findOneBy([

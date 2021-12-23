@@ -134,6 +134,29 @@ class ImportService
             "dispatchTypes",
             "deliveryTypes",
             "handlingTypes"
+        ],
+        Import::ENTITY_DELIVERY => [
+            "articleCode",
+            "commentaire",
+            "requester",
+            "destination",
+            "targetLocationPicking",
+            "quantityDelivery",
+            "articleReference",
+            "status",
+            "type",
+            "targetLocationPicking"
+        ],
+        Import::ENTITY_LOCATION => [
+            "isActive",
+            "description",
+            "dateMaxTime",
+            "isOngoingVisibleOnMobile",
+            "allowedPackNatures",
+            "name",
+            "isDeliveryPoint",
+            "allowedCollectTypes",
+            "allowedDeliveryTypes"
         ]
     ];
 
@@ -2254,7 +2277,22 @@ class ImportService
 
     public function getFieldsToAssociate(EntityManagerInterface $entityManager,
                                          string $entityCode): array {
+
+
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+
         $fieldsToAssociate = self::FIELDS_TO_ASSOCIATE[$entityCode] ?? [];
+
+        if ($entityCode === Import::ENTITY_DELIVERY) {
+            $showTargetLocationPicking = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION);
+            if (!$showTargetLocationPicking) {
+                $fieldsToAssociate = Stream::from($fieldsToAssociate)
+                    ->filter(fn(string $key) => ($key !== "targetLocationPicking"))
+                    ->toArray();
+            }
+        }
+
 
         $categoryCLByEntity = [
             Import::ENTITY_ART => CategorieCL::ARTICLE,
@@ -2264,7 +2302,6 @@ class ImportService
         $categoryCL = $categoryCLByEntity[$entityCode] ?? null;
 
         if (isset($categoryCL)) {
-            $freeFieldRepository = $entityManager->getRepository(FreeField::class);
             $freeFields = $freeFieldRepository->getLabelAndIdByCategory($categoryCL);
 
             foreach ($freeFields as $freeField) {
