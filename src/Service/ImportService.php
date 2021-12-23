@@ -2290,7 +2290,7 @@ class ImportService
         }
 
         $fieldsToAssociate = $fieldsToAssociate
-            ->keymap(fn(string $key) => (Import::FIELDS_ENTITY[$key] ?? $key))
+            ->keymap(fn(string $key) => [$key, Import::FIELDS_ENTITY[$key] ?? $key])
             ->toArray();
 
         $categoryCLByEntity = [
