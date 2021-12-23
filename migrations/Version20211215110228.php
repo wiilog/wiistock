@@ -25,11 +25,13 @@ final class Version20211215110228 extends AbstractMigration
         if($_SERVER["APP_CLIENT"] === SpecificService::CLIENT_CEA_LETI) {
         // je recupere l'id de l'utilisateur Société GT
             $user = $this->connection->executeQuery("SELECT id FROM utilisateur WHERE username = 'Société GT'")->fetchOne();
+            if($user) {
+                $this->addSql(
+                    "UPDATE reference_article
+                         SET reference_article.created_by_id = $user
+                         WHERE 1");
+            }
             // j'attribue l'id de société GT à la colonne createdBy de toute les references
-            $this->addSql(
-            "UPDATE reference_article
-            SET reference_article.created_by_id = $user
-            WHERE 1");
         }
     }
 
