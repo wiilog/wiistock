@@ -162,11 +162,9 @@ class StatusController extends AbstractController {
                          Request $request,
                          StatusService $statusService): Response {
         if ($data = json_decode($request->getContent(), true)) {
-
             $statusRepository = $entityManager->getRepository(Statut::class);
-
-            /** @var Statut $status */
             $status = $statusRepository->find($data['status']);
+
             $validation = $statusService->validateStatusData($entityManager, $data, $status);
 
             if ($validation['success']) {
@@ -176,7 +174,7 @@ class StatusController extends AbstractController {
                 $entityManager->flush();
 
                 $validation['success'] = true;
-                $validation['message'] = 'Le statut <strong>' . $data['label'] . '</strong> a bien été créé.';
+                $validation['message'] = 'Le statut <strong>' . $data['label'] . '</strong> a bien été modifié.';
             }
 
             return new JsonResponse($validation);

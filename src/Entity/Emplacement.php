@@ -2,11 +2,15 @@
 
 namespace App\Entity;
 
+use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
+use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\IOT\CollectRequestTemplate;
 use App\Entity\IOT\DeliveryRequestTemplate;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\SensorMessageTrait;
+use App\Entity\PreparationOrder\PreparationOrderArticleLine;
+use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
@@ -159,6 +163,31 @@ class Emplacement implements PairedEntity
      */
     private ?LocationGroup $locationGroup = null;
 
+    /**
+     * @ORM\OneToMany(targetEntity=DeliveryRequest\DeliveryRequestArticleLine::class, mappedBy="targetLocationPicking")
+     */
+    private Collection $deliveryRequestArticleLines;
+
+    /**
+     * @ORM\OneToMany(targetEntity=DeliveryRequest\DeliveryRequestReferenceLine::class, mappedBy="targetLocationPicking")
+     */
+    private Collection $deliveryRequestReferenceLines;
+
+    /**
+     * @ORM\OneToMany(targetEntity=PreparationOrder\PreparationOrderArticleLine::class, mappedBy="targetLocationPicking")
+     */
+    private Collection $preparationOrderArticleLines;
+
+    /**
+     * @ORM\OneToMany(targetEntity=PreparationOrder\PreparationOrderReferenceLine::class, mappedBy="targetLocationPicking")
+     */
+    private Collection $preparationOrderReferenceLines;
+
+    /**
+     * @ORM\OneToMany(targetEntity=TransferOrder::class, mappedBy="location")
+     */
+    private Collection $transferOrders;
+
     public function __construct() {
         $this->clusters = new ArrayCollection();
         $this->articles = new ArrayCollection();
@@ -181,6 +210,10 @@ class Emplacement implements PairedEntity
         $this->deliveryRequestTemplates = new ArrayCollection();
         $this->collectRequestTemplates = new ArrayCollection();
         $this->sensorMessages = new ArrayCollection();
+        $this->deliveryRequestArticleLines = new ArrayCollection();
+        $this->deliveryRequestReferenceLines = new ArrayCollection();
+        $this->preparationOrderArticleLines = new ArrayCollection();
+        $this->transferOrders = new ArrayCollection();
     }
 
     public function getId(): ? int
@@ -868,4 +901,151 @@ class Emplacement implements PairedEntity
 
         return $this;
     }
+
+    public function getDeliveryRequestArticleLines(): Collection
+    {
+        return $this->deliveryRequestArticleLines;
+    }
+
+    public function addDeliveryRequestArticleLine(DeliveryRequestArticleLine $deliveryRequestArticleLine): self
+    {
+        if (!$this->deliveryRequestArticleLines->contains($deliveryRequestArticleLine)) {
+            $this->deliveryRequestArticleLines[] = $deliveryRequestArticleLine;
+            $deliveryRequestArticleLine->setTargetLocationPicking($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDeliveryRequestArticleLine(DeliveryRequestArticleLine $deliveryRequestArticleLine): self
+    {
+        if ($this->deliveryRequestArticleLines->removeElement($deliveryRequestArticleLine)) {
+            // set the owning side to null (unless already changed)
+            if ($deliveryRequestArticleLine->getTargetLocationPicking() === $this) {
+                $deliveryRequestArticleLine->setTargetLocationPicking(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getDeliveryRequestReferenceLines(): Collection
+    {
+        return $this->deliveryRequestArticleLines;
+    }
+
+    public function addDeliveryRequestReferenceLine(DeliveryRequestReferenceLine $deliveryRequestReferenceLine): self
+    {
+        if (!$this->deliveryRequestReferenceLines->contains($deliveryRequestReferenceLine)) {
+            $this->deliveryRequestReferenceLines[] = $deliveryRequestReferenceLine;
+            $deliveryRequestReferenceLine->setTargetLocationPicking($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDeliveryRequestReferenceLine(DeliveryRequestReferenceLine $deliveryRequestReferenceLine): self
+    {
+        if ($this->deliveryRequestReferenceLines->removeElement($deliveryRequestReferenceLine)) {
+            // set the owning side to null (unless already changed)
+            if ($deliveryRequestReferenceLine->getTargetLocationPicking() === $this) {
+                $deliveryRequestReferenceLine->setTargetLocationPicking(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getPreparationOrderArticleLines(): Collection
+    {
+        return $this->preparationOrderArticleLines;
+    }
+
+    public function addPreparationOrderArticleLine(PreparationOrderArticleLine $preparationOrderArticleLine): self
+    {
+        if (!$this->preparationOrderArticleLines->contains($preparationOrderArticleLine)) {
+            $this->preparationOrderArticleLines[] = $preparationOrderArticleLine;
+            $preparationOrderArticleLine->setTargetLocationPicking($this);
+        }
+
+        return $this;
+    }
+
+    public function removePreparationOrderArticleLine(PreparationOrderArticleLine $preparationOrderArticleLine): self
+    {
+        if ($this->preparationOrderArticleLines->removeElement($preparationOrderArticleLine)) {
+            // set the owning side to null (unless already changed)
+            if ($preparationOrderArticleLine->getTargetLocationPicking() === $this) {
+                $preparationOrderArticleLine->setTargetLocationPicking(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getPreparationOrderReferenceLines(): Collection
+    {
+        return $this->preparationOrderReferenceLines;
+    }
+
+    public function addPreparationOrderReferenceLine(PreparationOrderReferenceLine $preparationOrderReferenceLine): self
+    {
+        if (!$this->preparationOrderReferenceLines->contains($preparationOrderReferenceLine)) {
+            $this->preparationOrderReferenceLines[] = $preparationOrderReferenceLine;
+            $preparationOrderReferenceLine->setTargetLocationPicking($this);
+        }
+
+        return $this;
+    }
+
+    public function removePreparationOrderReferenceLine(PreparationOrderReferenceLine $preparationOrderReferenceLine): self
+    {
+        if ($this->preparationOrderReferenceLines->removeElement($preparationOrderReferenceLine)) {
+            // set the owning side to null (unless already changed)
+            if ($preparationOrderReferenceLine->getTargetLocationPicking() === $this) {
+                $preparationOrderReferenceLine->setTargetLocationPicking(null);
+            }
+        }
+
+        return $this;
+    }
+    /**
+     * @return Collection|TransferOrder []
+     */
+    public function getTransferOrders(): Collection {
+        return $this->transferOrders;
+    }
+
+    public function addTransferOrder(TransferOrder $transferOrder): self {
+        if (!$this->transferOrders->contains($transferOrder)) {
+            $this->transferOrders[] = $transferOrder;
+            $transferOrder->setDropLocation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransferOrder (TransferOrder $transferOrder): self {
+        if ($this->transferOrders->removeElement($transferOrder)) {
+            if ($transferOrder->getDropLocation() === $this) {
+                $transferOrder->setDropLocation(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setTransferOrder (?array $transferOrders): self {
+        foreach($this->gettransferOrders()->toArray() as $transferOrder) {
+            $this->removeTransferOrder($transferOrder);
+        }
+
+        $this->transferOrders = new ArrayCollection();
+        foreach($transferOrders as $transferOrder) {
+            $this->addTransferOrder($transferOrder);
+        }
+
+        return $this;
+    }
+
 }

@@ -12,16 +12,17 @@ $(function () {
             "type": "POST"
         },
         columns: [
-            {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
-            {"data": 'Référence', 'title': 'Référence'},
-            {"data": 'Libellé', 'title': 'Libellé'},
-            {"data": 'Emplacement', 'title': 'Emplacement'},
-            {"data": 'Quantité', 'title': 'Quantité'},
+            {data: 'Actions', title: '', className: 'noVis', orderable: false},
+            {data: 'reference', title: 'Référence'},
+            {data: 'label', title: 'Libellé'},
+            {data: 'location', title: 'Emplacement'},
+            {data: 'targetLocationPicking', title: 'Emplacement cible picking', visible: Number($(`input[name=showTargetLocationPicking]`).val())},
+            {data: 'quantity', title: 'Quantité'},
         ],
         rowConfig: {
             needsRowClickAction: true,
         },
-        order: [['Référence', "asc"]]
+        order: [['reference', "asc"]]
     };
     initDataTable('tableArticle_id', tableArticleConfig);
 });

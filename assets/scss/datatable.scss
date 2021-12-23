@@ -168,15 +168,9 @@ div.DTCR_pointer {
     z-index: 201
 }
 
-thead th, thead td {
-    border-bottom: none !important;
-}
-
-.dataTables_scrollHead thead th, .dataTables_scrollHead thead td {
-    border-bottom: 1px solid $grey !important;
-}
-
-.dataTables_scrollBody tbody th, .dataTables_scrollBody tbody td {
+.dataTables_scrollHead thead th,
+.dataTables_scrollBody tbody td {
+    border: none;
     border-bottom: 1px solid $grey !important;
 }
 

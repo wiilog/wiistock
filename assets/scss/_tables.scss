@@ -2,7 +2,7 @@
     background-color: #e9e9e9;
 }
 
-.table  thead {
+.table thead {
     background-color: $white;
     font-weight: bold;
 }
@@ -11,10 +11,6 @@
     thead > tr > th:hover {
         background-color: #130078;
     }
-}
-
-.table > thead > tr > th, .table tbody > tr > td {
-    border: none;
 }
 
 .table > tbody > tr > td, .table > tbody > tr > th, .table > tfoot > tr > td, .table > tfoot > tr > th, .table > thead > tr > td, .table > thead > tr > th {

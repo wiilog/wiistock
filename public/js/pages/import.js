@@ -243,7 +243,7 @@ function importTemplateChanged($dataTypeImport = null) {
 
     $linkToTemplate.empty();
 
-    const templateDirectory = '/uploads/modele';
+    const templateDirectory = '/modele';
     const configDownloadLink = {
         ART: {label: 'articles', url: `${templateDirectory}/modele-import-articles.csv`},
         REF: {label: 'références', url: `${templateDirectory}/modele-import-references.csv`},

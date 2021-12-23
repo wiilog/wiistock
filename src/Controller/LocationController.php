@@ -20,6 +20,7 @@ use App\Entity\TrackingMovement;
 use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
 
+use App\Entity\TransferRequest;
 use App\Entity\Type;
 use App\Service\GlobalParamService;
 use App\Service\PDFGeneratorService;
@@ -39,7 +40,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 /**
  * @Route("/emplacement")
  */
-class EmplacementController extends AbstractController {
+class LocationController extends AbstractController {
 
     /** @Required */
     public UserService $userService;
@@ -232,6 +233,7 @@ class EmplacementController extends AbstractController {
         $livraisonRepository = $entityManager->getRepository(Livraison::class);
         $demandeRepository = $entityManager->getRepository(Demande::class);
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+        $transferRequestRepository = $entityManager->getRepository(TransferRequest::class);
 
         $usedBy = [];
 
@@ -258,6 +260,10 @@ class EmplacementController extends AbstractController {
 
         $articles = $articleRepository->countByEmplacement($emplacementId);
         if ($articles > 0) $usedBy[] = 'articles';
+
+        //can't delete request if there's order so there is no need to count orders
+        $transferRequests = $transferRequestRepository->countByLocation($emplacementId);
+        if ($transferRequests > 0) $usedBy[] = 'demandes de transfert';
 
         return $usedBy;
     }

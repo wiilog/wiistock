@@ -3,6 +3,7 @@
 namespace App\Entity\PreparationOrder;
 
 use App\Entity\Article;
+use App\Entity\Emplacement;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -38,6 +39,11 @@ class PreparationOrderArticleLine
      * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      */
     private ?Preparation $preparation = null;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Emplacement::class, inversedBy="preparationOrderArticleLines")
+     */
+    private ?Emplacement $targetLocationPicking = null;
 
     public function getId(): ?int {
         return $this->id;
@@ -95,6 +101,25 @@ class PreparationOrderArticleLine
         $this->preparation = $preparation;
         if($preparation) {
             $preparation->addArticleLine($this);
+        }
+
+        return $this;
+    }
+
+    public function getTargetLocationPicking(): ?Emplacement {
+        return $this->targetLocationPicking;
+    }
+
+    public function setTargetLocationPicking(?Emplacement $targetLocationPicking): self
+    {
+        if($this->targetLocationPicking && $this->targetLocationPicking !== $targetLocationPicking) {
+            $this->targetLocationPicking->removePreparationOrderArticleLine($this);
+        }
+
+        $this->targetLocationPicking = $targetLocationPicking;
+
+        if($targetLocationPicking) {
+            $targetLocationPicking->addPreparationOrderArticleLine($this);
         }
 
         return $this;

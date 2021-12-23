@@ -44,3 +44,4 @@ doctrine:
                 IFNULL: DoctrineExtensions\Query\Mysql\IfNull
                 NOW: DoctrineExtensions\Query\Mysql\Now
                 STR_TO_DATE: DoctrineExtensions\Query\Mysql\StrToDate
+                IF: DoctrineExtensions\Query\Mysql\IfElse

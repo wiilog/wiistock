@@ -79,10 +79,7 @@ function initActionOnRow(row) {
     }
 }
 
-function showOrHideColumn(check, concernedTable) {
-    let columnName = check.data('name');
-    let column = concernedTable.column(columnName + ':name');
-    column.visible(!column.visible());
+function showOrHideColumn(check) {
     check.toggleClass('data');
 }
 
