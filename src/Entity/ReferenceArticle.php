@@ -314,6 +314,7 @@ class ReferenceArticle {
         $this->quantiteStock = 0;
         $this->quantiteReservee = 0;
         $this->quantiteDisponible = 0;
+        $this->setCreatedAt(new DateTime());
     }
 
     public function getId()
