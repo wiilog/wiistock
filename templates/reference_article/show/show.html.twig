@@ -295,7 +295,9 @@
                                 <img src="{{ asset('svg/reference_article/calendar.svg') }}" alt="Icône calendrier" width="20px">
                                 <div class="box-item ml-3">
                                     <span class="wii-field-name">Date de dernier inventaire</span>
-                                    <span class="wii-body-text">{{ lastInventoryDate }}</span>
+                                    <span class="wii-body-text">
+                                        {{ referenceArticle.dateLastInventory ? (referenceArticle.dateLastInventory | format_helper('datetime', '', true)) : '-' }}
+                                    </span>
                                 </div>
                             </div>
                         </div>

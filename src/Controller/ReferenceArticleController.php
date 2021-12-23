@@ -638,7 +638,6 @@ class ReferenceArticleController extends AbstractController
             'referenceArticle' => $referenceArticle,
             'providerArticles' => $providerArticles,
             'freeFields' => $freeFields,
-            'lastInventoryDate' => FormatHelper::longDate($referenceArticle->getDateLastInventory(), true),
         ]);
     }
 
@@ -1004,7 +1003,6 @@ class ReferenceArticleController extends AbstractController
 
         return $this->render("reference_article/form/edit.html.twig", [
             "reference" => $reference,
-            "lastInventoryDate" => FormatHelper::longDate($reference->getDateLastInventory(), true),
             "submit_url" => $this->generateUrl("reference_article_edit"),
             "types" => $types,
             "stockManagement" => [

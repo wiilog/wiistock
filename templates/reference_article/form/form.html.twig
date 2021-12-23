@@ -501,11 +501,14 @@
                         </div>
                         {% if reference.id %}
                             <div class="col-12 col-md-6 mt-3 d-flex flex-column justify-content-around">
-                                <span class="icon wii-field-name"><img src="{{ asset('svg/reference_article/calendar.svg') }}" class="icon"
-                                                                       alt="Image calendrier">
-                                    Date de dernier inventaire</span>
+                                <span class="icon wii-field-name">
+                                    <img src="{{ asset('svg/reference_article/calendar.svg') }}"
+                                         class="icon"
+                                         alt="Image calendrier">
+                                    Date de dernier inventaire
+                                </span>
                                 <span class="wii-field-text">
-                                    {{ lastInventoryDate is defined and lastInventoryDate is not null and lastInventoryDate != '' ? lastInventoryDate : '-' }}
+                                    {{ reference.dateLastInventory ? (reference.dateLastInventory | format_helper('datetime', '', true)) : '-' }}
                                 </span>
                             </div>
                         {% endif %}
