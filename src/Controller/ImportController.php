@@ -178,7 +178,7 @@ class ImportController extends AbstractController
                         'importId' => $import->getId(),
                         'html' => $this->renderView('import/modalNewImportSecond.html.twig', [
                             'data' => $data ?? [],
-                            'fields' => $fields ?? [],
+                            'fields' => $fieldsToAssociate ?? [],
                             'preselection' => $preselection ?? [],
                             'fieldsNeeded' => $fieldsNeeded,
                             'fieldPK' => Import::FIELD_PK[$entity],
