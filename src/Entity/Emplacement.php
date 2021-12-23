@@ -184,7 +184,7 @@ class Emplacement implements PairedEntity
     private Collection $preparationOrderReferenceLines;
 
     /**
-     * @ORM\OneToMany(targetEntity=TransferOrder::class, mappedBy="location")
+     * @ORM\OneToMany(targetEntity=TransferOrder::class, mappedBy="dropLocation")
      */
     private Collection $transferOrders;
 
