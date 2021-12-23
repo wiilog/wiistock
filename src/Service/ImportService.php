@@ -1829,7 +1829,9 @@ class ImportService
 
     public function getFieldsToAssociate(EntityManagerInterface $entityManager,
                                          string $entityCode): array {
-        $fieldsToAssociate = self::FIELDS_TO_ASSOCIATE[$entityCode] ?? [];
+        $fieldsToAssociate = Stream::from(self::FIELDS_TO_ASSOCIATE[$entityCode] ?? [])
+            ->keymap(fn(string $key) => (Import::FIELDS_ENTITY[$key] ?? $key))
+            ->toArray();
 
         $categoryCLByEntity = [
             Import::ENTITY_ART => CategorieCL::ARTICLE,
