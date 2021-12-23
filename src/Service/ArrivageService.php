@@ -73,7 +73,7 @@ class ArrivageService {
         $currentUser = $this->security->getUser();
 
         $filters = $supFilterRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ARRIVAGE, $currentUser);
-        $queryResult = $arrivalRepository->findByParamsAndFilters($params, $filters, $userIdArrivalFilter, $this->security->getUser());
+        $queryResult = $arrivalRepository->findByParamsAndFilters($params, $filters, $userIdArrivalFilter, $this->security->getUser(), $this->visibleColumnService);
 
         $arrivals = $queryResult['data'];
 

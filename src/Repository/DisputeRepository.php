@@ -143,7 +143,7 @@ class DisputeRepository extends EntityRepository
         return $query->execute();
     }
 
-	public function findByParamsAndFilters(InputBag $params, array $filters, Utilisateur $user): array
+	public function findByParamsAndFilters(InputBag $params, array $filters, Utilisateur $user, VisibleColumnService $visibleColumnService): array
 	{
         $qb = $this->createQueryBuilder('dispute');
 
@@ -282,7 +282,7 @@ class DisputeRepository extends EntityRepository
                         'status' => "s.nom LIKE :search_value"
                     ];
 
-                    $condition = VisibleColumnService::getSearchableColumns($conditions, 'dispute', $qb, $user);
+                    $condition = $visibleColumnService->getSearchableColumns($conditions, 'dispute', $qb, $user, $search);
 
 					$qb
 						->andWhere($condition)

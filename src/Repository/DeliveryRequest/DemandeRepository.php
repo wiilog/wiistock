@@ -138,7 +138,7 @@ class DemandeRepository extends EntityRepository
             ->getSingleScalarResult();
 	}
 
-	public function findByParamsAndFilters(InputBag $params, $filters, $receptionFilter, Utilisateur $user): array
+	public function findByParamsAndFilters(InputBag $params, $filters, $receptionFilter, Utilisateur $user, VisibleColumnService $visibleColumnService): array
     {
         $qb = $this->createQueryBuilder("delivery_request");
 
@@ -201,7 +201,7 @@ class DemandeRepository extends EntityRepository
                         "type" => "search_type.label LIKE :search_value",
                     ];
 
-                    $condition = VisibleColumnService::getSearchableColumns($conditions, 'deliveryRequest', $qb, $user);
+                    $condition = $visibleColumnService->getSearchableColumns($conditions, 'deliveryRequest', $qb, $user, $search);
 
                     $qb
                         ->andWhere($condition)

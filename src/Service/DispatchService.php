@@ -90,7 +90,7 @@ class DispatchService {
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DISPATCH, $this->user);
 
-        $queryResult = $dispatchRepository->findByParamAndFilters($params, $filters, $this->user);
+        $queryResult = $dispatchRepository->findByParamAndFilters($params, $filters, $this->user, $this->visibleColumnService);
 
         $dispatchesArray = $queryResult['data'];
 

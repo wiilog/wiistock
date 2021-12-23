@@ -26,7 +26,7 @@ use Doctrine\ORM\Query\Expr\Join;
  */
 class DispatchRepository extends EntityRepository
 {
-    public function findByParamAndFilters(InputBag $params, $filters, Utilisateur $user) {
+    public function findByParamAndFilters(InputBag $params, $filters, Utilisateur $user, VisibleColumnService $visibleColumnService) {
         $qb = $this->createQueryBuilder('dispatch');
 
         $countTotal = $qb
@@ -125,7 +125,7 @@ class DispatchRepository extends EntityRepository
                         "destination" => "dispatch.destination LIKE :search_value",
                     ];
 
-                    $condition = VisibleColumnService::getSearchableColumns($conditions, 'dispatch', $qb, $user);
+                    $condition = $visibleColumnService->getSearchableColumns($conditions, 'dispatch', $qb, $user, $search);
 
                     $qb
                         ->andWhere($condition)
