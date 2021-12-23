@@ -2277,22 +2277,21 @@ class ImportService
 
     public function getFieldsToAssociate(EntityManagerInterface $entityManager,
                                          string $entityCode): array {
-
-
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
-        $fieldsToAssociate = self::FIELDS_TO_ASSOCIATE[$entityCode] ?? [];
+        $fieldsToAssociate = Stream::from(self::FIELDS_TO_ASSOCIATE[$entityCode] ?? []);
 
         if ($entityCode === Import::ENTITY_DELIVERY) {
             $showTargetLocationPicking = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION);
             if (!$showTargetLocationPicking) {
-                $fieldsToAssociate = Stream::from($fieldsToAssociate)
-                    ->filter(fn(string $key) => ($key !== "targetLocationPicking"))
-                    ->toArray();
+                $fieldsToAssociate = $fieldsToAssociate->filter(fn(string $key) => ($key !== "targetLocationPicking"));
             }
         }
 
+        $fieldsToAssociate = $fieldsToAssociate
+            ->keymap(fn(string $key) => (Import::FIELDS_ENTITY[$key] ?? $key))
+            ->toArray();
 
         $categoryCLByEntity = [
             Import::ENTITY_ART => CategorieCL::ARTICLE,
