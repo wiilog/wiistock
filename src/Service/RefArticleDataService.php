@@ -68,11 +68,11 @@ class RefArticleDataService {
         ["title" => "Gestionnaire(s)", "name" => "managers", "orderable" => false, "type" => "text"],
         ["title" => "Commentaire", "name" => "comment", "type" => "text", "orderable" => false],
         ["title" => "Commentaire d'urgence", "name" => "emergencyComment", "type" => "text", "orderable" => false],
-        ["title" => "Créée le", "name" => "createdAt", "type" => "text"],
+        ["title" => "Créée le", "name" => "createdAt", "type" => "date"],
         ["title" => "Créée par", "name" => "createdBy", "type" => "text"],
-        ["title" => "Dernière entrée le", "name" => "lastStockEntry", "type" => "date"],
         ["title" => "Dernière modification le", "name" => "editedAt", "type" => "date"],
         ["title" => "Dernière modification par", "name" => "editedBy", "type" => "text"],
+        ["title" => "Dernière entrée le", "name" => "lastStockEntry", "type" => "date"],
         ["title" => "Dernière sortie le", "name" => "lastStockExit", "type" => "date"],
         ["title" => FiltreRef::FIXED_FIELD_VISIBILITY_GROUP, "name" => "visibilityGroups", "type" => "list multiple", "orderable" => true],
     ];
@@ -437,7 +437,7 @@ class RefArticleDataService {
             'supplierCode' => implode(",", $providerCodes),
             "lastInventory" => FormatHelper::date($refArticle->getDateLastInventory()),
             "stockManagement" => $refArticle->getStockManagement(),
-            'referenceSupplierArticle' => Stream::from($refArticle->getArticlesFournisseur()) // TODO
+            'referenceSupplierArticle' => Stream::from($refArticle->getArticlesFournisseur())
                 ->map(fn(ArticleFournisseur $articleFournisseur) => $articleFournisseur->getReference())
                 ->join(', '),
             "managers" => Stream::from($refArticle->getManagers())

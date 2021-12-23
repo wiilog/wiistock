@@ -1117,16 +1117,26 @@ class ImportService
         $userRepository = $this->em->getRepository(Utilisateur::class);
         $visibilityGroupRepository = $this->em->getRepository(VisibilityGroup::class);
         $refArt = $refArtRepository->findOneBy(['reference' => $data['reference']]);
+        $currentUser = $this->currentImport->getUser();
+        $now = new DateTime();
 
         if (!$refArt) {
             $refArt = new ReferenceArticle();
+            $refArt
+                ->setCreatedAt($now)
+                ->setCreatedBy($currentUser);
             $isNewEntity = true;
+        } else {
+            $refArt
+                ->setEditedAt($now)
+                ->setEditedBy($currentUser);
         }
+
         if (isset($data['libelle'])) {
             if ((strlen($data['libelle'])) > 255) {
                 $this->throwError('La valeur saisie pour le champ libellé ne doit pas dépasser 255 caractères');
             } else {
-            $refArt->setLibelle($data['libelle']);
+                $refArt->setLibelle($data['libelle']);
             }
         }
         if (isset($data['needsMobileSync'])) {

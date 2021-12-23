@@ -15,6 +15,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
+use App\Helper\FormatHelper;
 use App\Helper\QueryCounter;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
@@ -267,15 +268,16 @@ class ReferenceArticleRepository extends EntityRepository {
             'Code barre' => ['field' => 'barCode', 'typage' => 'text'],
             'Quantité disponible' => ['field' => 'quantiteDisponible', 'typage' => 'text'],
             'Commentaire d\'urgence' => ['field' => 'emergencyComment', 'typage' => 'text'],
-            'Dernier inventaire' => ['field' => 'dateLastInventory', 'typage' => 'text'],
+            'Dernier inventaire' => ['field' => 'dateLastInventory', 'typage' => 'date'],
             'Seuil d\'alerte' => ['field' => 'limitWarning', 'typage' => 'number'],
             'Seuil de sécurité' => ['field' => 'limitSecurity', 'typage' => 'number'],
             'Urgence' => ['field' => 'isUrgent', 'typage' => 'boolean'],
             'Synchronisation nomade' => ['field' => 'needsMobileSync', 'typage' => 'sync'],
             'Gestion de stock' => ['field' => 'stockManagement', 'typage' => 'text'],
-            'Dernière modification le' => ['field' => 'editedAt', 'typage' => 'text'],
-            'Dernière sortie le' => ['field' => 'lastStockExit', 'typage' => 'text'],
-            'Dernière entrée le' => ['field' => 'lastStockEntry', 'typage' => 'text']
+            'Créée le' => ['field' => 'createdAt', 'typage' => 'date'],
+            'Dernière modification le' => ['field' => 'editedAt', 'typage' => 'date'],
+            'Dernière sortie le' => ['field' => 'lastStockExit', 'typage' => 'date'],
+            'Dernière entrée le' => ['field' => 'lastStockEntry', 'typage' => 'date']
         ];
 
         $queryBuilder = $this->createQueryBuilder("ra");
@@ -290,6 +292,7 @@ class ReferenceArticleRepository extends EntityRepository {
         }
 
         foreach ($filters as $filter) {
+            dump($filter['champFixe']);
             $index++;
             if ($filter['champFixe'] === FiltreRef::FIXED_FIELD_ACTIVE_ONLY) {
                 if ($filter['value'] === ReferenceArticle::STATUT_ACTIF) {
@@ -367,6 +370,14 @@ class ReferenceArticleRepository extends EntityRepository {
                                         ->andWhere("ra.needsMobileSync = :value$index")
                                         ->setParameter("value$index", $filter['value']);
                                 }
+                                break;
+                            case 'date':
+                                $dateTimeFilter = DateTime::createFromFormat('d/m/Y', $filter['value']);
+                                $dateStrFilter = $dateTimeFilter ? $dateTimeFilter->format('Y-m-d') : null;
+                                dump($dateStrFilter);
+                                $queryBuilder
+                                    ->andWhere("ra." . $field . " LIKE :value" . $index)
+                                    ->setParameter('value' . $index, '%' . $dateStrFilter . '%');
                                 break;
                             case 'text':
                                 $queryBuilder

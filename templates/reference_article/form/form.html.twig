@@ -141,15 +141,16 @@
                             <div class="col-12 col-md-6 d-flex">
                                 <img src="{{ asset('svg/user-creation.svg') }}" alt="Icône créé par" width="20px">
                                 <label class="box-item ml-3">
-                                    <span class="wii-field-name">Créé par</span>
-                                    <span class="wii-body-text">
-                                    {% if not reference.createdBy and not isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
-                                        -
+                                    <span class="wii-field-name">Créée par</span>
+                                    {% if not reference.createdBy and not reference.createdAt %}
+                                        <span class="wii-body-text">-</span>
                                     {% else %}
-                                        {{ reference.createdBy ? reference.createdBy.username : 'Société GT' }}</span>
-                                    {% endif %}
-                                    {% if reference.createdAt %}
-                                        <span class="wii-body-text">le {{ reference.createdAt | format_helper('longDate', true) }}</span>
+                                        {% if reference.createdBy %}
+                                            <span class="wii-body-text">{{ reference.createdBy.username }}</span>
+                                        {% endif %}
+                                        {% if reference.createdAt %}
+                                            <span class="wii-body-text">le {{ reference.createdAt | format_helper('datetime', '', true) }}</span>
+                                        {% endif %}
                                     {% endif %}
                                 </label>
                             </div>
@@ -157,14 +158,15 @@
                                 <img src="{{ asset('svg/user-modification.svg') }}" alt="Icône modifié par" width="20px">
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">Dernière modification par</span>
-                                    <span class="wii-body-text">
-                                    {% if not reference.createdBy and not isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
-                                        -
+                                    {% if not reference.editedBy and not reference.editedAt %}
+                                        <span class="wii-body-text">-</span>
                                     {% else %}
-                                        {{ reference.createdBy ? reference.createdBy.username : 'Société GT' }}</span>
-                                    {% endif %}
-                                    {% if reference.createdAt %}
-                                        <span class="wii-body-text">le {{ reference.createdAt | format_helper('longDate', true) }}</span>
+                                        {% if reference.editedBy %}
+                                            <span class="wii-body-text">{{ reference.editedBy.username }}</span>
+                                        {% endif %}
+                                        {% if reference.editedAt %}
+                                            <span class="wii-body-text">le {{ reference.editedAt | format_helper('datetime', '', true) }}</span>
+                                        {% endif %}
                                     {% endif %}
                                 </label>
                             </div>
@@ -172,14 +174,14 @@
                                 <img src="{{ asset('svg/calendrier-entree.svg') }}" alt="Icône entrée" width="20px">
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">Dernière entrée le</span>
-                                    <span class="wii-body-text">{{ reference.lastStockEntry | format_helper('longDate', true) }}</span>
+                                    <span class="wii-body-text">{{ reference.lastStockEntry ? (reference.lastStockEntry | format_helper('datetime', '', true)) : '-' }}</span>
                                 </label>
                             </div>
                             <div class="col-12 col-md-6 mt-3 d-flex">
                                 <img src="{{ asset('svg/calendrier-sortie.svg') }}" alt="Icône sortie" width="20px">
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">Dernière sortie le</span>
-                                    <span class="wii-body-text">{{ reference.lastStockExit | format_helper('longDate', true) }}</span>
+                                    <span class="wii-body-text">{{ reference.lastStockExit ? (reference.lastStockExit | format_helper('datetime', '', true)) : '-' }}</span>
                                 </label>
                             </div>
                         {% endif %}

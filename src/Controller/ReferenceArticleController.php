@@ -172,6 +172,7 @@ class ReferenceArticleController extends AbstractController
                 ->setEmplacement($emplacement)
 				->setBarCode($this->refArticleDataService->generateBarCode())
                 ->setBuyer(isset($data['buyer']) ? $userRepository->find($data['buyer']) : null)
+                ->setCreatedAt(new DateTime('now'))
                 ->setCreatedBy($loggedUser);
 
             if ($refArticle->getIsUrgent()) {
