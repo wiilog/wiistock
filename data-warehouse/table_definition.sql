@@ -159,7 +159,13 @@ CREATE TABLE dw_reference_article
     date_dernier_inventaire timestamp(0),
     synchronisation_nomade  varchar(3),
     groupe_visibilite       varchar(255),
-    acheteur                varchar(255)
+    acheteur                varchar(255),
+    creee_par               varchar(255),
+    date_creation           timestamp(0),
+    editee_par              varchar(255),
+    date_modification       timestamp(0),
+    date_derniere_entree    timestamp(0),
+    date_derniere_sortie    timestamp(0)
 );
 
 CREATE TABLE dw_service
@@ -451,4 +457,9 @@ CREATE TABLE dw_litige_statut
     statut      varchar(255),
     date_statut timestamp(0),
     utilisateur varchar(255)
+);
+
+CREATE TABLE dw_informations
+(
+    version varchar(255)
 );
