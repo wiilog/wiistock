@@ -203,6 +203,10 @@ parameters:
 
         -   label: 'Paramétrage'
             icon: 'parametre'
+            path: 'settings_index'
+
+        -   label: 'ancien paramétrage lo'
+            icon: 'parametre'
             sub:
                 -   label: 'Paramétrage global'
                     path: 'global_param_index'

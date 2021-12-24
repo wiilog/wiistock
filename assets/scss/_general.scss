@@ -789,6 +789,7 @@ label.required:after {
 
 .add-pack-row {
     cursor: pointer;
+
     .wii-icon-plus {
         display: inline-block;
         background-color: $grey;
@@ -808,4 +809,8 @@ label.required:after {
     position: sticky !important;
     top: 0;
     left: 0;
+}
+
+.text-regular {
+    font-weight: normal !important;
 }
