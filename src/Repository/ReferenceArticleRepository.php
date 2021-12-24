@@ -76,7 +76,10 @@ class ReferenceArticleRepository extends EntityRepository {
         return $queryBuilder
             ->select("reference.id AS id, reference.reference AS text, reference.libelle AS label")
             ->andWhere("reference.reference LIKE :term")
+            ->andWhere("status.code = :active")
+            ->leftJoin("reference.statut", "status")
             ->setParameter("term", "%$term%")
+            ->setParameter("active", ReferenceArticle::STATUT_ACTIF)
             ->getQuery()
             ->getArrayResult();
     }
@@ -201,8 +204,11 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('join_location.label AS location')
             ->addSelect('reference.quantiteDisponible')
             ->leftJoin('reference.emplacement', 'join_location')
+            ->leftJoin('reference.statut', 'join_draft_status')
             ->where("reference.${field} LIKE :search")
-            ->setParameter('search', '%' . $search . '%');
+            ->andWhere("join_draft_status.code <> :draft")
+            ->setParameter('search', '%' . $search . '%')
+            ->setParameter('draft', ReferenceArticle::DRAFT_STATUS);
 
         $visibilityGroup = $user->getVisibilityGroups();
         if (!$visibilityGroup->isEmpty()) {
