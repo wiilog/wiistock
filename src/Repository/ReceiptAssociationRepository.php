@@ -48,11 +48,10 @@ class ReceiptAssociationRepository extends EntityRepository
                         ->setParameter('value', $value);
                     break;
                 case 'colis':
-                    $value = explode(',', $filter['value']);
+                    $value = $filter['value'];
                     $qb
-                        ->join('receipt_association.pack', 'filter_pack')
-                        ->andWhere("filter_pack.code in (:value)")
-                        ->setParameter('value', $value);
+                        ->andWhere("receipt_association.packCode LIKE :value")
+                        ->setParameter('value', "%$value%");
                     break;
                 case 'reception_string':
                     $qb
