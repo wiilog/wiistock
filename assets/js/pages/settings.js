@@ -46,12 +46,15 @@ function getSubmenuLabel() {
 }
 
 function updateTitle(selectedMenu) {
+    let title;
     if(!submenu) {
         menu = selectedMenu;
-        $(`#page-title`).html(`${getCategoryLabel()} | <span class="bold">${getMenuLabel()}</span>`);
+        title = `${getCategoryLabel()} | <span class="bold">${getMenuLabel()}</span>`;
     } else {
         submenu = selectedMenu;
-        $(`#page-title`).html(`${getCategoryLabel()} | ${getMenuLabel()} | <span class="bold">${getSubmenuLabel()}</span>`);
+        title = `${getCategoryLabel()} | ${getMenuLabel()} | <span class="bold">${getSubmenuLabel()}</span>`;
     }
-    console.log(submenu);
+
+    $(`#page-title`).html(title);
+    document.title = `Paramétrage | ${title}`;
 }
