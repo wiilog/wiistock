@@ -76,10 +76,10 @@ class ReferenceArticleRepository extends EntityRepository {
         return $queryBuilder
             ->select("reference.id AS id, reference.reference AS text, reference.libelle AS label")
             ->andWhere("reference.reference LIKE :term")
-            ->andWhere("status.code = :active")
+            ->andWhere("status.code != :draft")
             ->leftJoin("reference.statut", "status")
             ->setParameter("term", "%$term%")
-            ->setParameter("active", ReferenceArticle::STATUT_ACTIF)
+            ->setParameter("draft", ReferenceArticle::DRAFT_STATUS)
             ->getQuery()
             ->getArrayResult();
     }
