@@ -951,7 +951,7 @@ class ReferenceArticleController extends AbstractController
         $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $inventoryCategories = $inventoryCategoryRepository->findAll();
 
-        $typeChampLibre =  [];
+        $typeChampLibre = [];
         $freeFieldsGroupedByTypes = [];
 
         foreach ($types as $type) {

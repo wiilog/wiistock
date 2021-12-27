@@ -613,14 +613,23 @@ label.required:after {
             width: 20px;
             height: 20px;
             border-radius: 5px;
+
+            &:disabled {
+                cursor: not-allowed;
+                border-color: $grey;
+            }
         }
 
         input, .select2.select2-container {
             margin-top: 5px;
+
+            &:disabled {
+                cursor: not-allowed;
+            }
         }
 
         input[type="radio"] {
-            margin-top: 0px;
+            margin-top: 0;
         }
     }
 

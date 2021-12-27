@@ -44,8 +44,23 @@
 {% import _self as macros %}
 
 {% set editable = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
+{% set partialEdit = reference.id and hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT_PARTIALLY')) %}
 {% set disabled = editable ? '' : 'disabled' %}
 {% set isReferenceManagementQuantity = reference.id and reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_REFERENCE') %}
+{% set statuses = {
+    'actif': {
+        'status': 'active',
+        'color': '#CCF0EB'
+    },
+    'inactif': {
+        'status': 'inactive',
+        'color': '#E8E8E8'
+    },
+    'brouillon': {
+        'status': 'brouillon',
+        'color': '#EAEDFA'
+    }
+} %}
 <div class="d-flex justify-content-center align-items-center" style="margin-bottom: 50px;">
     <div class="row wii-form wii-column">
         <div class="col-12 col-md-6">
@@ -57,7 +72,7 @@
                     </div>
                 {% endif %}
                 <div class="content row mx-0" style="border: {{ reference.id ? '1px solid ' ~ reference.type.color }}">
-                    <div class="col-md-5 col-12">
+                    <div class="col-md-4 col-12 p-0">
                         <div class="image-container"
                              style="background-image: url({{ reference.image
                              ? (app.request.scheme ~ '://' ~ app.request.httpHost ~ '/uploads/attachements/' ~ reference.image.fileName)
@@ -65,30 +80,39 @@
                                  background-color: {{ reference.image ? "#FFFFFF" : "#F5F5F7" }};
                                  background-size: {{ reference.image ? 'cover' : '50%' }}">
                             <span class="edit-button"></span>
-                            <div class="col-12 d-flex align-items-center justify-content-end mt-3">
-                                <div class="buttons mt-2">
-                                    <button class="btn btn-primary edit-image">
-                                        <i class='fas fa-pencil-alt'></i>
-                                    </button>
-                                    <button class="btn btn-danger delete-image">
-                                        <i class='fas fa-trash'></i>
-                                    </button>
+                            {% if not partialEdit %}
+                                <div class="col-12 d-flex align-items-center justify-content-end mt-3">
+                                    <div class="buttons mt-2">
+                                        <button class="btn btn-primary edit-image">
+                                            <i class='fas fa-pencil-alt'></i>
+                                        </button>
+                                        <button class="btn btn-danger delete-image">
+                                            <i class='fas fa-trash'></i>
+                                        </button>
+                                    </div>
+                                    <input type="file" name="image" class="data-file" id="upload-article-reference-image"
+                                           accept="image/png, image/jpeg, image/jpg, image/svg, image/gif"
+                                           hidden>
                                 </div>
-                                <input type="file" name="image" class="data-file" id="upload-article-reference-image"
-                                       accept="image/png, image/jpeg, image/jpg, image/svg, image/gif"
-                                       hidden>
+                            {% endif %}
+                        </div>
+                        {% if not partialEdit %}
+                            <div class="wii-small-text">
+                                Importer une photo <br>de ce produit (max 10mo)
                             </div>
-                        </div>
-                        <div class="wii-small-text">
-                            Importer une photo <br>de ce produit (max 10mo)
-                        </div>
+                        {% endif %}
                     </div>
-                    <div class="col-md-7 col-12">
+                    <div class="col-md-8 col-12">
+                        {% if not partialEdit %}
                         <label class="wii-field-name" title="Référence">
                             Référence*
                             <input type="text" name="reference" class="form-control data needed" placeholder="Référence"
                                    value="{{ reference.reference }}">
                         </label>
+                        {% else %}
+                            <span class="wii-field-name" style="font-size: 20px;">Ref : {{ reference.reference }}</span>
+                            <input type="hidden" name="reference" class="data" value="{{ reference.reference }}">
+                        {% endif %}
                         <label class="mt-3 wii-field-name" title="Libellé">
                             Libellé*
                             <input type="text" name="libelle" class="form-control data needed" placeholder="Libellé" value="{{ reference.libelle }}">
@@ -108,28 +132,54 @@
                                 </select>
                             </label>
                         {% endif %}
-                        <label class="mt-3 wii-field-name">
-                            Statut*
-                        </label>
-                        <div class="wii-switch needed" data-title="Statut">
-                            <input type="radio" name="statut" value="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}" content="Actif"
-                                {{ reference.statut and reference.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') ? 'checked' }}>
-                            <input type="radio" name="statut" value="{{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') }}"
-                                   content="Inactif"
-                                {{ reference.statut and reference.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') ? 'checked' }}>
-                        </div>
+                        {% if not partialEdit %}
+                            <label class="mt-3 wii-field-name">
+                                Statut*
+                            </label>
+                            <div class="wii-switch needed" data-title="Statut">
+                                <input type="radio" name="statut" value="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}"
+                                       content="Actif"
+                                    {{ reference.statut and reference.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') ? 'checked' }}>
+                                <input type="radio" name="statut" value="{{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') }}"
+                                       content="Inactif"
+                                    {{ reference.statut and reference.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') ? 'checked' }}>
+                            </div>
 
-                        <label class="with-checkbox">
-                            <input type="checkbox" name="mobileSync" class="checkbox data" {{ reference.needsMobileSync ? 'checked' }}>
-                            Synchronisation nomade
-                            <sup>
-                                <img src="{{ asset('svg/reference_article/information.svg') }}"
-                                     alt="Icône information"
-                                     width="10px"
-                                     class="has-tooltip"
-                                     title="Permet de sélectionner la {{ 'reference.référence' | trans }} lors de la création d'une demande de livraison sur l'application mobile">
-                            </sup>
-                        </label>
+                            <label class="with-checkbox">
+                                <input type="checkbox" name="mobileSync"
+                                       class="checkbox data" {{ reference.needsMobileSync ? 'checked' }} {{ disabled }}>
+                                Synchronisation nomade
+                                <sup>
+                                    <img src="{{ asset('svg/reference_article/information.svg') }}"
+                                         alt="Icône information"
+                                         width="10px"
+                                         class="has-tooltip"
+                                         title="Permet de sélectionner la {{ 'reference.référence' | trans }} lors de la création d'une demande de livraison sur l'application mobile">
+                                </sup>
+                            </label>
+                        {% else %}
+                            <div class="d-flex align-content-center mt-4">
+                                <span class="reference-status wii-body-text mr-3"
+                                      style="background-color: {{ statuses[constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF')]['color'] }};">
+                                    Référence {{ statuses[constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF')]['status'] }}
+                                </span>
+                                <div class="d-flex align-content-center">
+                                    <img src="{{ asset('svg/reference_article/' ~ (reference.needsMobileSync
+                                        ? 'mobile-sync-on.svg'
+                                        : 'mobile-sync-off.svg')) }}"
+                                         alt="Icône synchronisation nomade"
+                                         width="10px">
+                                    <span class="wii-small-text ml-2" style="margin: auto 0;">Synchronisation nomade
+                                        <sup><img src="{{ asset('svg/reference_article/information.svg') }}"
+                                                  alt="Icône information"
+                                                  width="10px"
+                                                  class="has-tooltip"
+                                                  title="Permet de sélectionner la {{ 'reference.référence' | trans }} lors de la création d'une demande de livraison sur l'application mobile">
+                                        </sup>
+                                    </span>
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -186,14 +236,25 @@
                             </div>
                         {% endif %}
                         <div class="col-12 col-md-6 {% if reference.id %}mt-3{% endif %}">
-                            <label for="visibility-group" class="wii-field-name w-100">
-                                <i class="wii-icon wii-icon-visibility-group wii-icon-20px mr-2"></i> Groupe de visibilité
-                                <select name="visibility-group" class="form-control data" data-s2="visibilityGroup">
-                                    {% if reference.visibilityGroup %}
-                                        <option value="{{ reference.visibilityGroup.id }}" selected>{{ reference.visibilityGroup.label }}</option>
-                                    {% endif %}
-                                </select>
-                            </label>
+                            {% if not partialEdit %}
+                                <label for="visibility-group" class="wii-field-name w-100">
+                                    <i class="wii-icon wii-icon-visibility-group wii-icon-20px mr-2"></i> Groupe de visibilité
+                                    <select name="visibility-group" class="form-control data" data-s2="visibilityGroup">
+                                        {% if reference.visibilityGroup %}
+                                            <option value="{{ reference.visibilityGroup.id }}" selected>{{ reference.visibilityGroup.label }}</option>
+                                        {% endif %}
+                                    </select>
+                                </label>
+                            {% else %}
+                                <div class="d-flex">
+                                    <img src="{{ asset('svg/visibility-group.svg') }}" class="icon" alt="Image groupe de visibilité"
+                                         width="20px">
+                                    <label class="box-item ml-3">
+                                        <span class="wii-field-name">Groupe de visibilité</span>
+                                        <span class="wii-body-text">{{ reference.visibilityGroup ? reference.visibilityGroup.label : '-' }}</span>
+                                    </label>
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                     <div class="row mt-3">
@@ -319,32 +380,54 @@
                             </div>
 
                             <div class="col-12 col-md-6 mt-3">
-                                <label class="w-100">
-                                    <span class="icon wii-field-name">
-                                        <img src="{{ asset('svg/reference_article/manager.svg') }}" class="icon" alt="Image gestionnaire">
-                                        Gestionnaires
-                                    </span>
-                                    <select name="managers" class="form-control w-100 data" data-s2="user"
-                                            data-placeholder="Sélectionnez des gestionnaires" multiple>
-                                        {% for manager in reference.managers %}
-                                        <option value="{{ manager.id }}" selected>{{ manager.username }}</option>
-                                        {% endfor %}>
-                                    </select>
-                                </label>
+                                {% if not partialEdit %}
+                                    <label class="w-100">
+                                        <span class="icon wii-field-name">
+                                            <img src="{{ asset('svg/reference_article/manager.svg') }}" class="icon" alt="Image gestionnaire">
+                                            Gestionnaires
+                                        </span>
+                                        <select name="managers" class="form-control w-100 data" data-s2="user"
+                                                data-placeholder="Sélectionnez des gestionnaires" multiple>
+                                            {% for manager in reference.managers %}
+                                            <option value="{{ manager.id }}" selected>{{ manager.username }}</option>
+                                            {% endfor %}>
+                                        </select>
+                                    </label>
+                                {% else %}
+                                    <div class="d-flex">
+                                        <img src="{{ asset('svg/reference_article/manager.svg') }}" class="icon" alt="Image gestionnaire"
+                                             width="20px">
+                                        <label class="box-item ml-3">
+                                            <span class="wii-field-name">Gestionnaires</span>
+                                            <span class="wii-body-text">{{ reference.managers is not empty ? reference.managers | join(', ') : '-' }}</span>
+                                        </label>
+                                    </div>
+                                {% endif %}
                             </div>
                             <div class="col-12 col-md-6 mt-3">
-                                <label>
-                                <span class="icon wii-field-name">
-                                    <img src="{{ asset('svg/reference_article/manager.svg') }}" class="icon" alt="Image acheteur">
-                                    Acheteur
-                                </span>
-                                    <select name="buyer" class="form-control data w-100" data-s2="user"
-                                            data-placeholder="Sélectionnez un utilisateur">
-                                        {% if reference.buyer %}
-                                        <option value="{{ reference.buyer.id }}" selected>{{ reference.buyer.username }}</option>
-                                        {% endif %}>
-                                    </select>
-                                </label>
+                                {% if not partialEdit %}
+                                    <label>
+                                        <span class="icon wii-field-name">
+                                            <img src="{{ asset('svg/reference_article/manager.svg') }}" class="icon" alt="Image acheteur">
+                                            Acheteur
+                                        </span>
+                                        <select name="buyer" class="form-control data w-100" data-s2="user"
+                                                data-placeholder="Sélectionnez un utilisateur">
+                                            {% if reference.buyer %}
+                                            <option value="{{ reference.buyer.id }}" selected>{{ reference.buyer.username }}</option>
+                                            {% endif %}>
+                                        </select>
+                                    </label>
+                                {% else %}
+                                    <div class="d-flex">
+                                        <img src="{{ asset('svg/reference_article/manager.svg') }}" class="icon" alt="Image acheteur"
+                                             width="20px">
+                                        <label class="box-item ml-3">
+                                            <span class="wii-field-name">Acheteur</span>
+                                            <span class="wii-body-text">{{ reference.buyer ? reference.buyer.username : '-' }}</span>
+                                        </label>
+                                    </div>
+                                {% endif %}
                             </div>
 
                             <div class="col-12 col-md-4 reference mt-3">
