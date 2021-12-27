@@ -100,7 +100,7 @@
                         <label class="wii-field-name" title="Référence">
                             Référence*
                             <input type="text" name="reference" class="form-control data needed" placeholder="Référence"
-                                   value="{{ reference.reference ? reference.reference : (hasRightCreateDraft ? refNumber : ' ') }}"
+                                   value="{{ reference.reference ? reference.reference : (hasRightCreateDraft ? referenceName : ' ') }}"
                                    {{ hasRightCreateDraft and not edit ? 'disabled' : ' '}}>
                         </label>
                         <label class="mt-3 wii-field-name" title="Libellé">

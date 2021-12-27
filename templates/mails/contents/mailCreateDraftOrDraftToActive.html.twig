@@ -27,19 +27,19 @@
         </tr>
         </thead>
         <tbody>
-        {% for articleFournisseur in articlesFournisseur %}
+        {% for supplierArticle in supplierArticles %}
             <tr>
                 <td class="td" style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ articleFournisseur.fournisseur.nom }}
+                    {{ supplierArticle.fournisseur.nom }}
                 </td>
                 <td class="td" style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ articleFournisseur.fournisseur.codeReference }}
+                    {{ supplierArticle.fournisseur.codeReference }}
                 </td>
                 <td class="td" style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ articleFournisseur.reference }}
+                    {{ supplierArticle.reference }}
                 </td>
                 <td class="td" style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ articleFournisseur.label }}
+                    {{ supplierArticle.label }}
                 </td>
             </tr>
         {% endfor %}

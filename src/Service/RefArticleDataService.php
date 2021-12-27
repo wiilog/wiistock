@@ -10,7 +10,6 @@ use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\Demande;
-use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
@@ -34,7 +33,6 @@ use App\Repository\ReceptionReferenceArticleRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use Google\Collection;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -258,13 +256,14 @@ class RefArticleDataService {
         $inventoryCategoryRepository = $this->entityManager->getRepository(InventoryCategory::class);
         $userRepository = $this->entityManager->getRepository(Utilisateur::class);
         $visibilityGroupRepository = $this->entityManager->getRepository(VisibilityGroup::class);
-        $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
 
         //modification champsFixes
         $entityManager = $this->entityManager;
         $category = $inventoryCategoryRepository->find($data['categorie']);
         $price = max(0, $data['prix']);
-        if (isset($data['reference'])) $refArticle->setReference($data['reference']);
+        if (isset($data['reference'])) {
+            $refArticle->setReference($data['reference']);
+        }
 
         if (isset($data['suppliers-to-remove']) && $data['suppliers-to-remove'] !== "") {
             $suppliers = $this->entityManager->getRepository(ArticleFournisseur::class)->findBy(['id' => explode(',', $data['suppliers-to-remove'])]);
@@ -318,8 +317,6 @@ class RefArticleDataService {
         }
 
         foreach($refArticle->getArticlesFournisseur() as $article){
-            dump($article);
-            dump($isVisible);
             $article->setVisible($isVisible);
         }
 
@@ -382,7 +379,6 @@ class RefArticleDataService {
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE &&
             $refArticle->getQuantiteStock() > 0 &&
             $refArticle->getStatut()->getCode() !== ReferenceArticle::STATUT_BROUILLON) {
-            dump('mouvementStock');
             $mvtStock = $mouvementStockService->createMouvementStock(
                 $user,
                 null,
@@ -847,12 +843,9 @@ class RefArticleDataService {
         }
     }
 
-    public function sendMailCreateDraftOrDraftToActive(ReferenceArticle $refArticle, $to ,bool $state = false)
+    public function sendMailCreateDraftOrDraftToActive(ReferenceArticle $refArticle, $to , bool $state = false)
     {
-        /**
-         * @var ArticleFournisseur[] $articlesFournisseur
-         */
-        $articlesFournisseur = $refArticle->getArticlesFournisseur();
+        $supplierArticles = $refArticle->getArticlesFournisseur();
         $title = $state ?
             "Une nouvelle référence vient d'être créée et attend d'être validée :" :
             "Votre référence vient d'être validée avec les informations suivantes :";
@@ -864,7 +857,7 @@ class RefArticleDataService {
                 [
                     'title' => $title,
                     'refArticle' => $refArticle,
-                    'articlesFournisseur' => $articlesFournisseur,
+                    'supplierArticles' => $supplierArticles,
                     'urlSuffix' => $this->router->generate("reference_article_show_page", ["id" => $refArticle->getId()])
                 ]
             ),

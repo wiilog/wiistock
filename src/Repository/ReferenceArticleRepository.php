@@ -651,18 +651,26 @@ class ReferenceArticleRepository extends EntityRepository {
         return $query->getSingleScalarResult();
     }
 
-    public function countByReference($reference, $refId = null): int {
-        $qb = $this->createQueryBuilder("ra")
-            ->select("COUNT(ra)")
-            ->where("ra.reference = :reference")
-            ->setParameter('reference', $reference);
+    public function countByReference($reference, $referenceId = null, string $operator = "="): int {
+        $qb = $this->createQueryBuilder("reference_article")
+            ->select("COUNT(reference_article)");
 
-        if ($refId) {
-            $qb->andWhere("ra.id != :id")
-                ->setParameter('id', $refId);
+        $parameter = $reference;
+        if($operator === "LIKE") {
+            $parameter = "$parameter%";
         }
 
-        return $qb->getQuery()->getSingleScalarResult();
+        $qb->where("reference_article.reference $operator :reference")
+            ->setParameter("reference", $parameter);
+
+        if ($referenceId) {
+            $qb->andWhere("reference_article.id != :id")
+                ->setParameter('id', $referenceId);
+        }
+
+        return $qb
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function getByPreparationsIds($preparationsIds): array
@@ -1199,5 +1207,4 @@ class ReferenceArticleRepository extends EntityRepository {
             ->keymap(fn(ReferenceArticle $reference) => [$reference->getId(), $reference])
             ->toArray();
     }
-
 }
