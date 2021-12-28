@@ -40,8 +40,6 @@ $(document).ready(() => {
                 data[$(this).data(`table-processing`)] = EditableDatatable.of(this).data();
             });
         }
-
-        console.log(data);
     });
 })
 
