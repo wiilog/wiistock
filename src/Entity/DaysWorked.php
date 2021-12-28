@@ -7,85 +7,89 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\DaysWorkedRepository")
  */
-class DaysWorked
-{
+class DaysWorked {
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $day;
+    private ?string $day = null;
 
     /**
      * @ORM\Column(type="boolean")
      */
-    private $worked;
+    private ?bool $worked = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $times;
+    private ?string $times = null;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
-    private $displayOrder;
+    private ?int $displayOrder = null;
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getWorked(): ?bool
-    {
+    public function getWorked(): ?bool {
         return $this->worked;
     }
 
-    public function setWorked(bool $worked): self
-    {
+    public function setWorked(bool $worked): self {
         $this->worked = $worked;
 
         return $this;
     }
 
-    public function getTimes(): ?string
-    {
+    public function getTimes(): ?string {
         return $this->times;
     }
 
-    public function setTimes(?string $times): self
-    {
+    public function setTimes(?string $times): self {
         $this->times = $times;
 
         return $this;
     }
 
-    public function getDay(): ?string
-    {
+    public function getDay(): ?string {
         return $this->day;
     }
 
-    public function setDay(?string $day): self
-    {
+    public function getDisplayDay(): ?string {
+        return [
+            "monday" => "Lundi",
+            "tuesday" => "Mardi",
+            "wednesday" => "Mercredi",
+            "thursday" => "Jeudi",
+            "friday" => "Vendredi",
+            "saturday" => "Samedi",
+            "sunday" => "Dimanche",
+        ][$this->getDay()];
+    }
+
+    public function setDay(?string $day): self {
         $this->day = $day;
 
         return $this;
     }
 
-    public function getDisplayOrder(): ?int
-    {
+    public function getDisplayOrder(): ?int {
         return $this->displayOrder;
     }
 
-    public function setDisplayOrder(?int $displayOrder): self
-    {
+    public function setDisplayOrder(?int $displayOrder): self {
         $this->displayOrder = $displayOrder;
 
         return $this;
     }
+
 }

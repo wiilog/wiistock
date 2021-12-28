@@ -12,7 +12,10 @@ export default class Form {
 
         WysiwygManager.initializeWYSIWYG(form.element);
         form.element.on(`click`, `[type="submit"]`, function() {
-            const result = Form.process(form, $(this));
+            const result = Form.process(form, {
+                button: $(this),
+            });
+
             if(result && form.submitCallback) {
                 form.submitCallback(result);
             }
@@ -31,8 +34,8 @@ export default class Form {
         return this;
     }
 
-    static process(form, $button = null, classes = null, ignoreErrors = false) {
-        classes = classes || {data: `data`, array: `data-array`};
+    static process(form, config = {}) {
+        const classes = config.classes || {data: `data`, array: `data-array`};
 
         let $form;
         if(form instanceof Form)  {
@@ -52,7 +55,8 @@ export default class Form {
         for(const input of $inputs) {
             let $input = $(input);
 
-            if($input.is(`:not(.force-data, [type="hidden"]):hidden`)) {
+            if($input.is(`:not(.force-data, [type="hidden"]):hidden`) ||
+                (config.ignored && ($input.is(config.ignored) || $input.closest(config.ignored).exists()))) {
                 continue;
             }
 
@@ -160,8 +164,8 @@ export default class Form {
 
         Form.addDataArray($form, data, classes);
 
-        if($button && $button.attr(`name`)) {
-            data.append($button.attr(`name`), $button.val());
+        if(config.button && config.button.attr(`name`)) {
+            data.append(config.button.attr(`name`), config.button.val());
         }
 
         if(form instanceof Form) {
@@ -175,7 +179,7 @@ export default class Form {
             }
         }
 
-        if(ignoreErrors) {
+        if(config.ignoreErrors) {
             return data;
         }
 
