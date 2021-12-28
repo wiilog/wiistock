@@ -10,33 +10,37 @@
 {% block page_content %}
     <div class="settings">
         <aside class="wii-box">
-            {% for key, menu in parent.menus %}
-                {% if menu is iterable %}
+            {% for key, label in parent.menus %}
+                {% if label is iterable %}
                     <a href="{{ path('settings_item', {category, menu: selected}) }}" class="settings-item">
-                        {{ menu }}
+                        {{ label.label }}
                     </a>
                 {% else %}
                     <div class="settings-item {{ key == selected ? 'selected' }}" data-menu="{{ key }}">
-                        {{ menu }}
+                        {{ label }}
                     </div>
                 {% endif %}
             {% endfor %}
         </aside>
 
         <main>
-            {% for key, menu in parent.menus %}
-                <div class="wii-box {{ key != selected ? 'd-none' }}" data-menu="{{ key }}">
-                    <div class="header wii-title">{{ menu }}</div>
-                    <div class="content">
-                        {% include [path ~ key ~ '.html.twig', 'settings/todo.html.twig'] with {
-                            form: path ~ key ~ '.html.twig'
-                        } %}
+            {% for key, label in parent.menus %}
+                {% if label is not iterable %}
+                    <div class="wii-box {{ key != selected ? 'd-none' }}"
+                         data-path="{{ category }}_{{ submenu ? menu : key }}{{ submenu ? '_' ~ key : '' }}"
+                         data-menu="{{ key }}">
+                        <div class="header wii-title">{{ label }}</div>
+                        <div class="content focus-shadow">
+                            {% include [path ~ key ~ '.html.twig', 'settings/todo.html.twig'] with {
+                                form: path ~ key ~ '.html.twig'
+                            } %}
+                        </div>
                     </div>
-                </div>
+                {% endif %}
             {% endfor %}
 
             <div class="save">
-                <btn class="btn btn-success">Enregistrer</btn>
+                <button class="btn btn-success save-settings">Enregistrer</button>
             </div>
         </main>
     </div>

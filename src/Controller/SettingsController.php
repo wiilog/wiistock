@@ -2,7 +2,10 @@
 
 namespace App\Controller;
 
+use App\Entity\DaysWorked;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -10,6 +13,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use App\Annotation\HasPermission;
 use App\Entity\Menu;
 use App\Entity\Action;
+use WiiCommon\Helper\Stream;
 
 /**
  * @Route("/parametrage")
@@ -47,7 +51,7 @@ class SettingsController extends AbstractController {
                     "label" => "Articles",
                     "menus" => [
                         self::MENU_LABELS => "Étiquettes",
-                        self::MENU_TYPES_FREE_FIELDS => "Types et champs libres"
+                        self::MENU_TYPES_FREE_FIELDS => "Types et champs libres",
                     ],
                 ],
                 self::MENU_RECEPTIONS => [
@@ -79,7 +83,7 @@ class SettingsController extends AbstractController {
                     ],
                 ],
                 self::MENU_ARRIVALS => [
-                "label" => "Arrivages",
+                    "label" => "Arrivages",
                     "menus" => [
                         self::MENU_CONFIGURATIONS => "Configurations",
                         self::MENU_LABELS => "Étiquettes",
@@ -262,6 +266,41 @@ class SettingsController extends AbstractController {
             "parent" => $parent,
             "selected" => $submenu ?? $menu,
             "path" => $path,
+        ]);
+    }
+
+    /**
+     * @Route("/heures-travaillees-api", name="settings_working_hours_api", options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB})
+     */
+    public function workingHoursApi(Request $request, EntityManagerInterface $manager) {
+        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
+        $class = "form-control data";
+
+        $workingHoursRepository = $manager->getRepository(DaysWorked::class);
+
+        $data = [];
+        foreach($workingHoursRepository->findAll() as $day) {
+            if($edit) {
+                $worked = $day->getWorked() ? "checked" : "";
+                $data[] = [
+                    "day" => $day->getDisplayDay(),
+                    "hours" => "<input name='hours' class='$class' data-global-error='Quantité' value='{$day->getTimes()}'/>",
+                    "worked" => "<div class='checkbox-container'><input type='checkbox' name='worked' class='$class' $worked/></div>",
+                ];
+            } else {
+                $data[] = [
+                    "day" => $day->getDisplayDay(),
+                    "hours" => $day->getTimes(),
+                    "worked" => $day->getWorked() ? "Oui" : "Non",
+                ];
+            }
+        }
+
+        return $this->json([
+            "data" => $data,
+            "recordsTotal" => count($data),
+            "recordsFiltered" => count($data),
         ]);
     }
 
