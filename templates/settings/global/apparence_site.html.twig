@@ -1,3 +1,5 @@
+{% import 'form.html.twig' as form %}
+
 <div class="row">
     <div class="form-group w-fit-content col-6">
         <label class="wii-field-name">Logo sur web entête</label>
@@ -117,30 +119,26 @@
 
 <div class="row">
     <div class="form-group w-fit-content col-6">
-        <label class="wii-field-name w-100">Choix de la police
-            <select name="param-font-family" class="data form-control">
-                {% for font in fonts %}
-                    <option value="{{ font }}" {{ font == font_family ? 'selected' : '' }} class="{{ font|lower }}">{{ font }}</option>
-                {% endfor %}
-            </select>
-        </label>
+        {{ form.select('param-font-family', 'Choix de la police', true, {
+            labelClass: 'wii-field-name w-100',
+            items: fonts,
+            value: font_family
+        }) }}
     </div>
 </div>
 
 <div class="row">
     <div class="form-group w-fit-content col-6">
-        <label class="w-100">
-            <span class="wii-field-name">Temps de session en minutes</span>
-            <span class="wii-medium-text"> (maximum 24h)</span>
-            <sup>
-                <img src="{{ asset('svg/reference_article/information.svg') }}"
-                     alt="Icône information"
-                     width="10px"
-                     class="has-tooltip"
-                     title="Ce paramètre définit le temps d'inactivité maximum en minutes avant que l'utilisateur soit
-                     déconnecté. Le paramétrage ne prendra effet qu'à la prochaine connexion de l'utilisateur.">
-            </sup>
-            <input name="param-session-time" class="data form-control" max="1440" value="{{ max_session_time }}"/>
-        </label>
+        {{ form.input('param-session-time',
+            '<span class="wii-field-name">Temps de session en minutes&nbsp;</span><span class="wii-medium-text">(maximum 24h)</span>',
+            true,
+            max_session_time, {
+                labelClass: 'w-100',
+                tooltip: {
+                    text: "Ce paramètre définit le temps d'inactivité maximum en minutes avant que l'utilisateur soit
+                    déconnecté. Le paramétrage ne prendra effet qu'à la prochaine connexion de l'utilisateur.",
+                }
+            })
+        }}
     </div>
 </div>

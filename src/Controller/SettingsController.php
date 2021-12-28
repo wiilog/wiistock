@@ -36,7 +36,7 @@ class SettingsController extends AbstractController {
                 self::MENU_CLIENT => "Client application",
                 self::MENU_LABELS => "Étiquettes",
                 self::MENU_WORKING_HOURS => "Heures travaillées",
-                self::MENU_OFF_DAYS => "Jours non travailés",
+                self::MENU_OFF_DAYS => "Jours non travaillés",
                 self::MENU_MAIL_SERVER => "Serveur mail",
             ],
         ],

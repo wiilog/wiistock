@@ -1,11 +1,11 @@
+{% import 'form.html.twig' as form %}
+
 <div class="row">
     <div class="form-group w-fit-content col-12">
-        <label>Client courant
-            <select name="appClient" class="data form-control">
-                {% for index, client in constant('App\\Service\\SpecificService::CLIENTS') %}
-                    <option value="{{ index }}" {{ current_client == index ? 'selected' }}>{{ client }}</option>
-                {% endfor %}
-            </select>
-        </label>
+        {{ form.select('appClient', 'Client courant', true, {
+            labelClass: 'wii-field-name w-50',
+            items: constant('App\\Service\\SpecificService::CLIENTS'),
+            value: current_client
+        }) }}
     </div>
 </div>
