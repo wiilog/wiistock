@@ -102,7 +102,7 @@ class ParametrageGlobalController extends AbstractController
                 'customIcon' => ($customIcon && file_exists(getcwd() . "/uploads/attachements/" . $customIcon) ? $customIcon : null),
                 'titleEmergencyLabel' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::EMERGENCY_TEXT_LABEL),
                 'titleCustomLabel' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CUSTOM_TEXT_LABEL),
-                'dimensions_etiquettes' => $dimensionsEtiquettesRepository->findOneDimension(),
+                'dimensions_etiquettes' => $dimensionsEtiquettesRepository->findOneBy([]),
                 'documentSettings' => [
                     'deliveryNoteLogo' => ($deliveryNoteLogo && file_exists(getcwd() . "/uploads/attachements/" . $deliveryNoteLogo) ? $deliveryNoteLogo : null),
                     'waybillLogo' => ($waybillLogo && file_exists(getcwd() . "/uploads/attachements/" . $waybillLogo) ? $waybillLogo : null),
@@ -178,7 +178,7 @@ class ParametrageGlobalController extends AbstractController
                         'before' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EXPECTED_DATE_COLOR_BEFORE)
                     ]
                 ],
-                'mailerServer' => $mailerServerRepository->findOneMailerServer(),
+                'mailerServer' => $mailerServerRepository->findOneBy([]),
                 'wantsBL' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL),
                 'wantsQTT' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_QTT_IN_LABEL),
                 'blChosen' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CL_USED_IN_LABELS),
@@ -229,7 +229,7 @@ class ParametrageGlobalController extends AbstractController
         $dimensionsEtiquettesRepository = $entityManager->getRepository(DimensionsEtiquettes::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
-        $dimensions = $dimensionsEtiquettesRepository->findOneDimension();
+        $dimensions = $dimensionsEtiquettesRepository->findOneBy([]);
         if(!$dimensions) {
             $dimensions = new DimensionsEtiquettes();
             $entityManager->persist($dimensions);
@@ -687,7 +687,7 @@ class ParametrageGlobalController extends AbstractController
         if($data = json_decode($request->getContent(), true)) {
 
             $mailerServerRepository = $entityManager->getRepository(MailerServer::class);
-            $mailerServer = $mailerServerRepository->findOneMailerServer();
+            $mailerServer = $mailerServerRepository->findOneBy([]);
             if(!$mailerServer) {
                 $mailerServer = new MailerServer();
                 $entityManager->persist($mailerServer);

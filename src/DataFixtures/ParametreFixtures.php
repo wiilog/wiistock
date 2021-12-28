@@ -57,7 +57,7 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface {
             }
         }
 
-        $dimensionEtiquette = $dimensionEtiquetteRepository->findOneDimension();
+        $dimensionEtiquette = $dimensionEtiquetteRepository->findOneBy([]);
         $globalParameterLabels = [
             ParametrageGlobal::MAX_SESSION_TIME => [
                 'default' => 30,

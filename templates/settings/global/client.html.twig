@@ -1,0 +1,11 @@
+<div class="row">
+    <div class="form-group w-fit-content col-12">
+        <label>Client courant
+            <select name="appClient" class="data form-control">
+                {% for index, client in constant('App\\Service\\SpecificService::CLIENTS') %}
+                    <option value="{{ index }}" {{ current_client == index ? 'selected' }}>{{ client }}</option>
+                {% endfor %}
+            </select>
+        </label>
+    </div>
+</div>

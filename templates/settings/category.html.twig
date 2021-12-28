@@ -29,14 +29,14 @@
                     <div class="header wii-title">{{ menu }}</div>
                     <div class="content">
                         {% include [path ~ key ~ '.html.twig', 'settings/todo.html.twig'] with {
-                            form: path ~ key ~ '.html.twig'
-                        } %}
+                            page: path ~ key ~ '.html.twig'
+                        } | merge(values[category][key] ?? []) %}
                     </div>
                 </div>
             {% endfor %}
 
             <div class="save">
-                <btn class="btn btn-success">Enregistrer</btn>
+                <button class="btn btn-success">Enregistrer</button>
             </div>
         </main>
     </div>

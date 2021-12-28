@@ -2,10 +2,15 @@
 
 namespace App\Controller;
 
+use App\Entity\DimensionsEtiquettes;
+use App\Entity\MailerServer;
+use App\Entity\ParametrageGlobal;
+use App\Repository\MailerServerRepository;
+use App\Service\SpecificService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Annotation\HasPermission;
 use App\Entity\Menu;
@@ -16,16 +21,22 @@ use App\Entity\Action;
  */
 class SettingsController extends AbstractController {
 
+    /** @Required */
+    public EntityManagerInterface $manager;
+
+    /** @Required */
+    public SpecificService $specificService;
+
     public const SETTINGS = [
         self::CATEGORY_GLOBAL => [
             "label" => "Global",
             "icon" => "accueil",
             "menus" => [
                 self::MENU_SITE_APPEARANCE => "Apparence du site",
-                self::MENU_WORKING_HOURS => "Heures travaillées",
-                self::MENU_CLIENT => "Client",
-                self::MENU_OFF_DAYS => "Jours non travailés",
+                self::MENU_CLIENT => "Client application",
                 self::MENU_LABELS => "Étiquettes",
+                self::MENU_WORKING_HOURS => "Heures travaillées",
+                self::MENU_OFF_DAYS => "Jours non travailés",
                 self::MENU_MAIL_SERVER => "Serveur mail",
             ],
         ],
@@ -262,7 +273,47 @@ class SettingsController extends AbstractController {
             "parent" => $parent,
             "selected" => $submenu ?? $menu,
             "path" => $path,
+            "values" => $this->values()
         ]);
+    }
+
+    public function values(): array {
+        $globalSettingsRepository = $this->manager->getRepository(ParametrageGlobal::class);
+        $mailerServerRepository = $this->manager->getRepository(MailerServer::class);
+        $labelDimensionRepository = $this->manager->getRepository(DimensionsEtiquettes::class);
+
+        $websiteLogo = $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::WEBSITE_LOGO);
+        $emailLogo = $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::EMAIL_LOGO);
+        $mobileLogoLogin = $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::MOBILE_LOGO_LOGIN);
+        $mobileLogoHeader = $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::MOBILE_LOGO_HEADER);
+
+        $labelLogo = $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::LABEL_LOGO);
+
+        return [
+            self::CATEGORY_GLOBAL => [
+                self::MENU_SITE_APPEARANCE => [
+                    "website_logo" => ($websiteLogo && file_exists(getcwd() . "/" . $websiteLogo) ? $websiteLogo : ParametrageGlobal::DEFAULT_WEBSITE_LOGO_VALUE),
+                    "email_logo" => ($emailLogo && file_exists(getcwd() . "/" . $emailLogo) ? $emailLogo : ParametrageGlobal::DEFAULT_EMAIL_LOGO_VALUE),
+                    "mobile_logo_login" => ($mobileLogoLogin && file_exists(getcwd() . "/" . $mobileLogoLogin) ? $mobileLogoLogin : ParametrageGlobal::DEFAULT_MOBILE_LOGO_LOGIN_VALUE),
+                    "mobile_logo_header" => ($mobileLogoHeader && file_exists(getcwd() . "/" . $mobileLogoHeader) ? $mobileLogoHeader : ParametrageGlobal::MOBILE_LOGO_HEADER),
+                    "fonts" => [ParametrageGlobal::FONT_MONTSERRAT, ParametrageGlobal::FONT_TAHOMA, ParametrageGlobal::FONT_MYRIAD],
+                    "font_family" => $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::FONT_FAMILY) ?? ParametrageGlobal::DEFAULT_FONT_FAMILY,
+                    "max_session_time" => $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::MAX_SESSION_TIME),
+                ],
+                self::MENU_CLIENT => [
+                    "current_client" => $this->specificService->getAppClient(),
+                ],
+                self::MENU_MAIL_SERVER => [
+                    "mailer_server" => $mailerServerRepository->findOneBy([]),
+                ],
+                self::MENU_LABELS => [
+                    "logo" => ($labelLogo && file_exists(getcwd() . "/uploads/attachements/" . $labelLogo) ? $labelLogo : null),
+                    "label_types" => [ParametrageGlobal::CODE_128, ParametrageGlobal::QR_CODE],
+                    "label_dimension" => $labelDimensionRepository->findOneBy([]),
+                    "current_label_type" => $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128) ?? true,
+                ]
+            ]
+        ];
     }
 
 }

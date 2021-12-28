@@ -1,0 +1,53 @@
+<div class="row">
+    <div class="form-group col-6">
+        <label class="w-75 wii-field-name">Serveur SMTP
+            <input type="text" class="form-control data" name="smtp"
+                   value="{{ mailer_server.smtp is defined ? mailer_server.smtp }}">
+        </label>
+    </div>
+    <div class="form-group col-6">
+        <label class="w-75 wii-field-name">Nom d'utilisateur
+            <input type="text" class="form-control data" name="user"
+                   value="{{ mailer_server.user is defined ? mailer_server.user }}">
+        </label>
+    </div>
+</div>
+
+<div class="row">
+    <div class="form-group col-6">
+        <label class="w-75 wii-field-name">Mot de passe
+            <input type="password" class="form-control data" name="password"
+                   value="{{ mailer_server.password is defined ? mailer_server.password }}">
+        </label>
+    </div>
+    <div class="form-group col-6">
+        <label class="w-75 wii-field-name">Port
+            <input type="number" class="form-control data" name="port"
+                   value="{{ mailer_server.port is defined ? mailer_server.port }}">
+        </label>
+    </div>
+</div>
+
+<div class="row">
+    <div class="form-group col-6">
+        <label class="w-75 wii-field-name">Protocole
+            <input type="text" class="form-control data" name="protocol"
+                   value="{{ mailer_server.protocol is defined ? mailer_server.protocol }}">
+        </label>
+    </div>
+    <div class="form-group col-6">
+        <label class="w-75 wii-field-name">Nom expéditeur
+            <input type="text" class="form-control data" name="senderName"
+                   value="{{ mailer_server.senderName is defined ? mailer_server.senderName }}">
+        </label>
+    </div>
+</div>
+
+<div class="row">
+    <div class="form-group col-6">
+        <label class="w-75 wii-field-name">Adresse mail expéditeur
+            <input type="text" class="form-control data" name="senderMail"
+                   value="{{ mailer_server.senderMail is defined ? mailer_server.senderMail }}">
+        </label>
+    </div>
+</div>

@@ -27,7 +27,7 @@ Class GlobalParamService
         $dimensionsEtiquettesRepository = $this->entityManager->getRepository(DimensionsEtiquettes::class);
         $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
 
-		$dimension = $dimensionsEtiquettesRepository->findOneDimension();
+		$dimension = $dimensionsEtiquettesRepository->findOneBy([]);
 		$response = [];
 		$response['logo'] = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::LABEL_LOGO);
 		if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth()))

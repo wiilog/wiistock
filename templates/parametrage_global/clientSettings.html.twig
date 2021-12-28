@@ -9,16 +9,5 @@
     <div class="float-right btn btn-success" onclick="updateAppClient()">
         <i class='fas fa-check'></i>
     </div>
-    <div class="row mt-2">
-        <div class="form-group col-12 p-0">
-            <div class="form-group w-fit-content">
-                <label>Client courant</label>
-                <select name="appClient" class="data form-control">
-                    {% for index, client in constant('App\\Service\\SpecificService::CLIENTS') %}
-                        <option value="{{ index }}" {{ currentClient == index ? 'selected' }}>{{ client }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
-    </div>
+
 </div>

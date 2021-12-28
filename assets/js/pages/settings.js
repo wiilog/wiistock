@@ -57,4 +57,10 @@ function updateTitle(selectedMenu) {
 
     $(`#page-title`).html(title);
     document.title = `Paramétrage | ${title}`;
+
+    let urlParts = (window.location.href).split(`/`);
+    urlParts[urlParts.length - 1] = selectedMenu;
+
+    const url = urlParts.join(`/`);
+    history.pushState({}, title, url);
 }

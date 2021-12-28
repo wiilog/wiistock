@@ -1,0 +1,37 @@
+{% import 'form.html.twig' as form %}
+
+<div class="row">
+    <div class="d-flex flex-column col-6">
+        {% set qr = constant('App\\Entity\\ParametrageGlobal::QR_CODE') %}
+        {% set ean = constant('App\\Entity\\ParametrageGlobal::CODE_128') %}
+        {{ form.switch('labelType', "Type d'étiquette", true, [
+            {label: {text: qr['label']}, value: qr['value'], checked: current_label_type == qr['value'] },
+            {label: {text: ean['label']}, value: ean['value'], checked: current_label_type == ean['value'] },
+        ], {labelClass: "wii-field-name"}) }}
+    </div>
+</div>
+
+<div class="row">
+    <div class="form-group w-fit-content">
+        <label for="">Hauteur (mm)</label>
+        <input type="text" class="form-control data" name="height"
+               value="{{ label_dimension.height is defined ? label_dimension.height :'' }}">
+    </div>
+    <div class="form-group w-fit-content">
+        <label for="">Largeur (mm)</label>
+        <input type="text" class="form-control data" name="width"
+               value="{{ label_dimension.width is defined ? label_dimension.width : '' }}">
+    </div>
+</div>
+
+<div class="row">
+    <div class="form-group d-flex col-12">
+        <img src="{{ logo ? app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ logo : '' }}"
+             id="preview-label-logo" alt="Logo choisi" height="50px" class="{{ logo ? '' : 'd-none' }}"/>
+
+        <button class="btn btn-primary"
+                onclick="$('#upload-label-logo').click();">{{ logo ? "<i class='fas fa-pencil-alt'></i> ": 'Choisir un logo' }}</button>
+
+        <input type="file" id="upload-label-logo" name="logo" accept="image/png, image/jpeg, image/jpg" hidden>
+    </div>
+</div>
