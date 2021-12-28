@@ -789,22 +789,21 @@ label.required:after {
 
 .add-pack-row {
     cursor: pointer;
-
-    .wii-icon-plus {
-        display: inline-block;
-        background-color: $grey;
-        width: 18px;
-        height: 18px;
-    }
 }
 
-.delete-pack-row .wii-icon-trash {
-    display: block;
-    background-color: $primary;
+.wii-icon-plus {
+    display: inline-block;
+    background-color: $grey;
     width: 18px;
     height: 18px;
 }
 
+.wii-icon-trash {
+    display: block;
+    background-color: $primary;
+    width: 19px;
+    height: 19px;
+}
 .p-sticky {
     position: sticky !important;
     top: 0;

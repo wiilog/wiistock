@@ -3,6 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\DaysWorked;
+use App\Entity\WorkFreeDay;
+use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -277,10 +279,10 @@ class SettingsController extends AbstractController {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
         $class = "form-control data";
 
-        $workingHoursRepository = $manager->getRepository(DaysWorked::class);
+        $daysWorkedRepository = $manager->getRepository(DaysWorked::class);
 
         $data = [];
-        foreach($workingHoursRepository->findAll() as $day) {
+        foreach($daysWorkedRepository->findAll() as $day) {
             if($edit) {
                 $worked = $day->getWorked() ? "checked" : "";
                 $data[] = [
@@ -293,6 +295,42 @@ class SettingsController extends AbstractController {
                     "day" => $day->getDisplayDay(),
                     "hours" => $day->getTimes(),
                     "worked" => $day->getWorked() ? "Oui" : "Non",
+                ];
+            }
+        }
+
+        return $this->json([
+            "data" => $data,
+            "recordsTotal" => count($data),
+            "recordsFiltered" => count($data),
+        ]);
+    }
+
+    /**
+     * @Route("/jours-non-travailles-api", name="settings_off_days_api", options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB})
+     */
+    public function offDaysApi(Request $request, EntityManagerInterface $manager) {
+        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
+        $class = "form-control data";
+
+        $workFreeDayRepository = $manager->getRepository(WorkFreeDay::class);
+
+        $data = [];
+        foreach($workFreeDayRepository->findAll() as $day) {
+            if($edit) {
+                $data[] = [
+                    "actions" => "
+                    <button class='btn btn-silent delete-row' data-id='{{ dispatchPack ? dispatchPack.id }}'>
+                        <i class='wii-icon wii-icon-trash text-primary'></i>
+                    </button>
+                    ",
+                    "day" => "<input type='date' name='day' class='$class' data-global-error='Jour' value='{$day->getDay()->format('Y-m-d')}' required/>",
+                ];
+            } else {
+                $data[] = [
+                    "actions" => "",
+                    "day" => FormatHelper::longDate($day->getDay()),
                 ];
             }
         }
