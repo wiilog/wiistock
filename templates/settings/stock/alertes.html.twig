@@ -1,0 +1,21 @@
+{% import 'form.html.twig' as form %}
+
+<div class="row">
+    <div class="col-12">
+        {{ form.checkbox('securityThreshold', 'Envoi de mail au gestionnaire de la référence si seuil de sécurité atteint', false, securityThreshold) }}
+    </div>
+
+    <div class="col-12">
+        {{ form.checkbox('alertThreshold', "Envoi de mail au gestionnaire de la référence si seuil d'alerte atteint", false, alertThreshold) }}
+    </div>
+
+    <div class="col-12">
+        {{ form.input('expirationDelay',
+            '<span class="wii-field-name">Délais alerte de péremption&nbsp;</span><span class="wii-medium-text">(jours)</span>',
+            false,
+            expirationDelay,
+            {
+                type: 'number',
+            }) }}
+    </div>
+</div>

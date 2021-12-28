@@ -5,7 +5,6 @@ namespace App\Controller;
 use App\Entity\DimensionsEtiquettes;
 use App\Entity\MailerServer;
 use App\Entity\ParametrageGlobal;
-use App\Repository\MailerServerRepository;
 use App\Service\SpecificService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -45,20 +44,21 @@ class SettingsController extends AbstractController {
             "icon" => "stock",
             "menus" => [
                 self::MENU_CONFIGURATIONS => "Configurations",
-                self::MENU_VISIBILITY_GROUPS => "Groupes de visibilité",
                 self::MENU_ALERTS => "Alertes",
-                self::MENU_INVENTORIES => [
-                    "label" => "Inventaires",
-                    "menus" => [
-                        self::MENU_FREQUENCIES => "Fréquences",
-                        self::MENU_CATEGORIES => "Catégories",
-                    ],
-                ],
                 self::MENU_ARTICLES => [
                     "label" => "Articles",
                     "menus" => [
                         self::MENU_LABELS => "Étiquettes",
                         self::MENU_TYPES_FREE_FIELDS => "Types et champs libres"
+                    ],
+                ],
+                self::MENU_REQUESTS => "Demandes",
+                self::MENU_VISIBILITY_GROUPS => "Groupes de visibilité",
+                self::MENU_INVENTORIES => [
+                    "label" => "Inventaires",
+                    "menus" => [
+                        self::MENU_FREQUENCIES => "Fréquences",
+                        self::MENU_CATEGORIES => "Catégories",
                     ],
                 ],
                 self::MENU_RECEPTIONS => [
@@ -71,7 +71,6 @@ class SettingsController extends AbstractController {
                         self::MENU_DISPUTE_TYPES => "Litiges - Types",
                     ],
                 ],
-                self::MENU_REQUESTS => "Demandes",
             ],
         ],
         self::CATEGORY_TRACKING => [
@@ -311,6 +310,13 @@ class SettingsController extends AbstractController {
                     "label_types" => [ParametrageGlobal::CODE_128, ParametrageGlobal::QR_CODE],
                     "label_dimension" => $labelDimensionRepository->findOneBy([]),
                     "current_label_type" => $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128) ?? true,
+                ],
+            ],
+            self::CATEGORY_STOCK => [
+                self::MENU_ALERTS => [
+                    "alertThreshold" => $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_MANAGER_WARNING_THRESHOLD),
+                    "securityThreshold" => $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_MANAGER_SECURITY_THRESHOLD),
+                    "expirationDelay" => $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY)
                 ]
             ]
         ];

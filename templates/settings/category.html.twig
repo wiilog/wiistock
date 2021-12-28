@@ -13,7 +13,7 @@
             {% for key, menu in parent.menus %}
                 {% if menu is iterable %}
                     <a href="{{ path('settings_item', {category, menu: selected}) }}" class="settings-item">
-                        {{ menu }}
+                        {{ menu.label }}
                     </a>
                 {% else %}
                     <div class="settings-item {{ key == selected ? 'selected' }}" data-menu="{{ key }}">
@@ -26,7 +26,7 @@
         <main>
             {% for key, menu in parent.menus %}
                 <div class="wii-box {{ key != selected ? 'd-none' }}" data-menu="{{ key }}">
-                    <div class="header wii-title">{{ menu }}</div>
+                    <div class="header wii-title">{{ menu is iterable ? menu.label : menu }}</div>
                     <div class="content">
                         {% include [path ~ key ~ '.html.twig', 'settings/todo.html.twig'] with {
                             page: path ~ key ~ '.html.twig'

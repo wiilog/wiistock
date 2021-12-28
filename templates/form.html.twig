@@ -141,6 +141,7 @@
         {% endif %}
         <input type="{{ options.type ?? 'text' }}" class="form-control w-100 data" value="{{ value }}"
                placeholder="{{ options.placeholder ?? '' }}"
+               {% if options.type == 'number' %}min="0"{% endif %}
             {{ required ? 'required' }}
             {{ _self.common_attributes(name, options) }}
             {{ _self.multiple_key(options) }}>
