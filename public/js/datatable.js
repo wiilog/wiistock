@@ -124,7 +124,7 @@ function toggleInputRadioOnRow(tr) {
 function createDatatableDomFooter({information, length, pagination}) {
     return (information || length || pagination)
         ? (
-            `<"row mt-2 align-items-center"
+            `<"row mt-2 align-items-center datatable-paging"
                 ${length ? '<"col-auto"l>' : ''}
                 ${information ? '<"col-auto"i>' : ''}
                 ${pagination ? '<"col"p>' : ''}
@@ -221,7 +221,7 @@ function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, 
 }
 
 function moveSearchInputToHeader($searchInputContainer) {
-    const $datatableCard = $searchInputContainer.parents('.wii-page-card');
+    const $datatableCard = $searchInputContainer.parents('.wii-page-card, .wii-box');
     const $searchInput = $searchInputContainer.find('input');
     const $searchInputContainerCol = $searchInputContainer.parent();
 

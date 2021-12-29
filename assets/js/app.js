@@ -127,9 +127,13 @@ export const NO_GROUPING = 1;
 export const GROUP_EVERYTHING = 2;
 export const GROUP_WHEN_NEEDED = 3;
 
+Array.prototype.keymap = function(callable, grouping = NO_GROUPING) {
+    return keymap(this, callable, grouping);
+};
+
 jQuery.fn.keymap = function(callable, grouping = NO_GROUPING) {
     return keymap(this, callable, grouping);
-}
+};
 
 export function keymap(array, callable, grouping = NO_GROUPING) {
     const values = {};

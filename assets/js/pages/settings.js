@@ -1,5 +1,5 @@
 import '../../scss/pages/settings.scss';
-import EditableDatatable, {EDIT_DOUBLE_CLICK, SAVE_FOCUS_OUT, SAVE_MANUALLY} from "../editatable";
+import EditableDatatable, {MODE_ADD_ONLY, MODE_DOUBLE_CLICK, MODE_NO_EDIT, SAVE_FOCUS_OUT, SAVE_MANUALLY} from "../editatable";
 
 const settings = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();
@@ -10,6 +10,7 @@ let currentForm = null;
 const forms = {};
 const initializers = {
     global_heures_travaillees: initializeWorkingHours,
+    global_jours_non_travailles: initializeOffDays,
 };
 
 const $saveButton = $(`.save-settings`);
@@ -76,11 +77,12 @@ function updateTitle(selectedMenu) {
     }
 
     const path = `${category}_${menu}` + (submenu ? `_` + submenu : ``);
+    const $element = $(`[data-path="${path}"]`);
     if(initializers[path]) {
         currentForm = path;
         forms[path] = {
-            element: $(`[data-path="${path}"]`),
-            ...initializers[path](),
+            element: $element,
+            ...initializers[path]($element),
         };
     }
 
@@ -94,12 +96,12 @@ function updateTitle(selectedMenu) {
     history.pushState({}, title, url);
 }
 
-function initializeWorkingHours() {
+function initializeWorkingHours($container) {
     $saveButton.hide();
 
     const table = EditableDatatable.create(`#table-working-hours`, {
         route: Routing.generate('settings_working_hours_api', true),
-        edit: EDIT_DOUBLE_CLICK,
+        edit: MODE_DOUBLE_CLICK,
         save: SAVE_MANUALLY,
         onEditStart: () => $saveButton.show(),
         onEditStop: () => $saveButton.hide(),
@@ -109,10 +111,42 @@ function initializeWorkingHours() {
             {data: `worked`, title: `Travaillé`},
         ],
     });
+}
 
-    return {
-        processor: () => ({
-            workingHours: table.data(),
-        }),
-    };
+function initializeOffDays($container) {
+    const $addButton = $container.find(`.add-row-button`);
+
+    $saveButton.hide();
+
+    const table = EditableDatatable.create(`#table-off-days`, {
+        route: Routing.generate('settings_off_days_api', true),
+        edit: MODE_ADD_ONLY,
+        save: SAVE_MANUALLY,
+        search: true,
+        paginate: true,
+        onEditStart: () => {
+            $saveButton.show();
+            $addButton.show()
+            $(`.wii-page-card-header`).hide();
+        },
+        onEditStop: () => {
+            $saveButton.hide();
+            $(`.wii-page-card-header`).show();
+        },
+        columns: [
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+            {data: `day`, title: `Jour`},
+        ],
+        form: {
+            actions: ``,
+            day: `<input type="date" name="day" class="form-control data" data-global-error="Jour" required/>`,
+        },
+        columnDefs: [
+            {targets: 1, width: '100%'},
+        ],
+    });
+
+    $addButton.on(`click`, function() {
+        table.addRow();
+    });
 }
