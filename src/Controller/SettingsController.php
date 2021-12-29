@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\DaysWorked;
-use App\Entity\DimensionsEtiquettes;
 use App\Entity\MailerServer;
 use App\Entity\ParametrageGlobal;
 use App\Entity\WorkFreeDay;
@@ -12,6 +11,7 @@ use App\Service\AttachmentService;
 use App\Service\SettingsService;
 use App\Service\SpecificService;
 use Doctrine\ORM\EntityManagerInterface;
+use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -290,38 +290,17 @@ class SettingsController extends AbstractController {
     public function values(): array {
         $globalSettingsRepository = $this->manager->getRepository(ParametrageGlobal::class);
         $mailerServerRepository = $this->manager->getRepository(MailerServer::class);
-        $labelDimensionRepository = $this->manager->getRepository(DimensionsEtiquettes::class);
-
-        $websiteLogo = $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::WEBSITE_LOGO);
-        $emailLogo = $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::EMAIL_LOGO);
-        $mobileLogoLogin = $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::MOBILE_LOGO_LOGIN);
-        $mobileLogoHeader = $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::MOBILE_LOGO_HEADER);
-
-        $labelLogo = $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::LABEL_LOGO);
 
         return [
             self::CATEGORY_GLOBAL => [
-                self::MENU_SITE_APPEARANCE => [
-                    "website_logo" => ($websiteLogo && file_exists(getcwd() . "/" . $websiteLogo) ? $websiteLogo : ParametrageGlobal::DEFAULT_WEBSITE_LOGO_VALUE),
-                    "email_logo" => ($emailLogo && file_exists(getcwd() . "/" . $emailLogo) ? $emailLogo : ParametrageGlobal::DEFAULT_EMAIL_LOGO_VALUE),
-                    "mobile_logo_login" => ($mobileLogoLogin && file_exists(getcwd() . "/" . $mobileLogoLogin) ? $mobileLogoLogin : ParametrageGlobal::DEFAULT_MOBILE_LOGO_LOGIN_VALUE),
-                    "mobile_logo_header" => ($mobileLogoHeader && file_exists(getcwd() . "/" . $mobileLogoHeader) ? $mobileLogoHeader : ParametrageGlobal::MOBILE_LOGO_HEADER),
-                    "fonts" => [ParametrageGlobal::FONT_MONTSERRAT, ParametrageGlobal::FONT_TAHOMA, ParametrageGlobal::FONT_MYRIAD],
-                    "font_family" => $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::FONT_FAMILY) ?? ParametrageGlobal::DEFAULT_FONT_FAMILY,
-                    "max_session_time" => $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::MAX_SESSION_TIME),
-                ],
+                self::MENU_SITE_APPEARANCE => [],
                 self::MENU_CLIENT => [
                     "current_client" => $this->specificService->getAppClient(),
                 ],
                 self::MENU_MAIL_SERVER => [
                     "mailer_server" => $mailerServerRepository->findOneBy([]),
                 ],
-                self::MENU_LABELS => [
-                    "logo" => ($labelLogo && file_exists(getcwd() . "/uploads/attachements/" . $labelLogo) ? $labelLogo : null),
-                    "label_types" => [ParametrageGlobal::CODE_128, ParametrageGlobal::QR_CODE],
-                    "label_dimension" => $labelDimensionRepository->findOneBy([]),
-                    "current_label_type" => $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128) ?? true,
-                ],
+                self::MENU_LABELS => [],
             ],
             self::CATEGORY_STOCK => [
                 self::MENU_ALERTS => [
@@ -337,54 +316,15 @@ class SettingsController extends AbstractController {
      * @Route("/enregistrer", name="settings_save", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB})
      */
-    public function save(Request $request, EntityManagerInterface $manager, AttachmentService $attachmentService): Response {
-        $settingRepository = $manager->getRepository(ParametrageGlobal::class);
-        $settings = $settingRepository->findByLabel(array_merge(
-            array_keys($request->request->all()),
-            array_keys($request->files->all()),
-        ));
-
-        $alreadySaved = $this->service->customSave($request, $settings);
-
-        $updated = [];
-        foreach($request->request->all() as $key => $value) {
-            if(in_array($key, $alreadySaved)) {
-                continue;
-            }
-
-            $setting = $settings[$key] ?? null;
-            if(!isset($setting)) {
-                $settings[$key] = $setting = $this->service->createSetting($key);
-            }
-
-            if(is_array($value)) {
-                $value = json_encode($value);
-            }
-
-            if($value !== $setting->getValue()) {
-                $setting->setValue($value);
-                $updated[] = $key;
-            }
+    public function save(Request $request): Response {
+        try {
+            $this->service->save($request);
+        } catch(RuntimeException $exception) {
+            return $this->json([
+                "success" => false,
+                "msg" => $exception->getMessage(),
+            ]);
         }
-
-        foreach($request->files->all() as $key => $value) {
-            if(in_array($key, $alreadySaved)) {
-                continue;
-            }
-
-            $setting = $settings[$key] ?? null;
-            if(!isset($setting)) {
-                $settings[$key] = $setting = $this->service->createSetting($key);
-            }
-
-            $fileName = $attachmentService->saveFile($value, $key);
-            $setting->setValue("uploads/attachements/" . $fileName[array_key_first($fileName)]);
-            $updated[] = $key;
-        }
-
-        $this->service->postSaveTreatment($updated);
-
-        $manager->flush();
 
         return $this->json([
             "success" => true,

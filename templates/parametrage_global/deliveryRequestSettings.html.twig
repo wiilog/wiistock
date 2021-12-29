@@ -37,7 +37,7 @@
             {% set checked = (paramDemandeurLivraison == 1) ? 'checked' : '' %}
             <label class="switch">
                 <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-demandeur-livraison"
-                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::DEMANDEUR_DANS_DL') }}"
+                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::REQUESTER_IN_DELIVERY') }}"
                        onchange="updateToggledParam($(this))">
                 <span class="slider round"></span>
             </label>

@@ -3,7 +3,6 @@
 namespace App\DataFixtures;
 
 use App\Entity\FreeField;
-use App\Entity\DimensionsEtiquettes;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Parametre;
 
@@ -40,7 +39,6 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface {
 
         $parametreRepository = $manager->getRepository(Parametre::class);
         $parametreGlobalRepository = $manager->getRepository(ParametrageGlobal::class);
-        $dimensionEtiquetteRepository = $manager->getRepository(DimensionsEtiquettes::class);
 
         foreach ($parameters as $parameter) {
             $param = $parametreRepository->findBy(['label' => $parameter['label']]);
@@ -57,7 +55,6 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface {
             }
         }
 
-        $dimensionEtiquette = $dimensionEtiquetteRepository->findOneBy([]);
         $globalParameterLabels = [
             ParametrageGlobal::MAX_SESSION_TIME => [
                 'default' => 30,
@@ -163,6 +160,12 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface {
             ParametrageGlobal::BARCODE_TYPE_IS_128 => [
                 'default' => true,
             ],
+            ParametrageGlobal::LABEL_HEIGHT => [
+                'default' => ParametrageGlobal::LABEL_HEIGHT_DEFAULT,
+            ],
+            ParametrageGlobal::LABEL_WIDTH => [
+                'default' => ParametrageGlobal::LABEL_WIDTH_DEFAULT,
+            ],
             ParametrageGlobal::FONT_FAMILY => [
                 'default' => ParametrageGlobal::DEFAULT_FONT_FAMILY
             ],
@@ -239,15 +242,6 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface {
                 $manager->persist($globalParam);
                 $output->writeln("Création du paramètre " . $globalParameterLabel);
             }
-        }
-
-        if (!$dimensionEtiquette) {
-            $dimensionEtiquette = new DimensionsEtiquettes();
-            $dimensionEtiquette
-                ->setHeight(ParametrageGlobal::LABEL_HEIGHT_DEFAULT)
-                ->setWidth(parametrageGlobal::LABEL_WIDTH_DEFAULT);
-            $manager->persist($dimensionEtiquette);
-            $output->writeln('Création des dimensions étiquettes');
         }
 
         $manager->flush();

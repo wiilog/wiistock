@@ -47,9 +47,7 @@ class SpecificService
 	}
 
 	public function getAppClient(): string {
-		return isset($_SERVER['APP_CLIENT'])
-			? $_SERVER['APP_CLIENT']
-			: '';
+		return $_SERVER['APP_CLIENT'] ?? '';
 	}
 
 }

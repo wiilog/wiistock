@@ -1,44 +1,39 @@
 {% import 'form.html.twig' as form %}
 
 <div class="row">
-    <div class="form-group col-6">
+    <div class="form-group col-md-6 col-12">
         {% set value = mailer_server.smtp is defined ? mailer_server.smtp %}
-        {{ form.input('smtp', 'Serveur SMTP', true, value, {labelClass: 'wii-field-name w-75'}) }}
+        {{ form.input('MAILER_URL', 'Serveur SMTP', true, value, {labelClass: 'wii-field-name w-75'}) }}
     </div>
-    <div class="form-group col-6">
-        {% set value = mailer_server.user is defined ? mailer_server.user %}
-        {{ form.input('smtp', "Nom d'utilisateur", true, value, {labelClass: 'wii-field-name w-75'}) }}
+    <div class="form-group col-md-6 col-12">
+        {{ form.input('MAILER_PORT', "Port", true, mailer_server.port, {labelClass: 'wii-field-name w-75'}) }}
     </div>
 </div>
 
 <div class="row">
-    <div class="form-group col-6">
-        {% set value = mailer_server.password is defined ? mailer_server.password %}
-        {{ form.input('password', "Mot de passe", true, value, {
+    <div class="form-group col-md-6 col-12">
+        {% set value = mailer_server.user is defined ? mailer_server.user %}
+        {{ form.input('MAILER_USER', "Nom d'utilisateur", true, value, {labelClass: 'wii-field-name w-75'}) }}
+    </div>
+    <div class="form-group col-md-6 col-12">
+        {{ form.input('MAILER_PASSWORD', "Mot de passe", true, mailer_server.password, {
             labelClass: 'wii-field-name w-75',
             type: 'password'
         }) }}
     </div>
-    <div class="form-group col-6">
-        {% set value = mailer_server.port is defined ? mailer_server.port %}
-        {{ form.input('port', "Port", true, value, {labelClass: 'wii-field-name w-75'}) }}
+</div>
+
+<div class="row">
+    <div class="form-group col-md-6 col-12">
+        {{ form.input('MAILER_PROTOCOL', "Protocole", true, mailer_server.protocol, {labelClass: 'wii-field-name w-75'}) }}
     </div>
 </div>
 
 <div class="row">
-    <div class="form-group col-6">
-        {% set value = mailer_server.protocol is defined ? mailer_server.protocol %}
-        {{ form.input('protocol', "Protocole", true, value, {labelClass: 'wii-field-name w-75'}) }}
+    <div class="form-group col-md-6 col-12">
+        {{ form.input('MAILER_SENDER_NAME', "Nom expéditeur", true, mailer_server.senderName, {labelClass: 'wii-field-name w-75'}) }}
     </div>
-    <div class="form-group col-6">
-        {% set value = mailer_server.senderName is defined ? mailer_server.senderName %}
-        {{ form.input('senderName', "Nom expéditeur", true, value, {labelClass: 'wii-field-name w-75'}) }}
-    </div>
-</div>
-
-<div class="row">
-    <div class="form-group col-6">
-        {% set value = mailer_server.senderMail is defined ? mailer_server.senderMail %}
-        {{ form.input('senderMail', "Adresse mail expéditeur", true, value, {labelClass: 'wii-field-name w-75'}) }}
+    <div class="form-group col-md-6 col-12">
+        {{ form.input('MAILER_SENDER_MAIL', "Adresse mail expéditeur", true, mailer_server.senderMail, {labelClass: 'wii-field-name w-75'}) }}
     </div>
 </div>

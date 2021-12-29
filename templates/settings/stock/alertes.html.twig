@@ -2,18 +2,18 @@
 
 <div class="row">
     <div class="col-12">
-        {{ form.checkbox('securityThreshold', 'Envoi de mail au gestionnaire de la référence si seuil de sécurité atteint', false, securityThreshold) }}
+        {{ form.checkbox(setting('SEND_MAIL_MANAGER_SECURITY_THRESHOLD'), 'Envoi de mail au gestionnaire de la référence si seuil de sécurité atteint', false, setting_value('SEND_MAIL_MANAGER_SECURITY_THRESHOLD')) }}
     </div>
 
     <div class="col-12">
-        {{ form.checkbox('alertThreshold', "Envoi de mail au gestionnaire de la référence si seuil d'alerte atteint", false, alertThreshold) }}
+        {{ form.checkbox(setting('SEND_MAIL_MANAGER_WARNING_THRESHOLD'), "Envoi de mail au gestionnaire de la référence si seuil d'alerte atteint", false, setting_value('SEND_MAIL_MANAGER_WARNING_THRESHOLD')) }}
     </div>
 
     <div class="col-12">
-        {{ form.input('expirationDelay',
+        {{ form.input(setting('STOCK_EXPIRATION_DELAY'),
             '<span class="wii-field-name">Délais alerte de péremption&nbsp;</span><span class="wii-medium-text">(jours)</span>',
             false,
-            expirationDelay
+            setting_value('STOCK_EXPIRATION_DELAY')
         ) }}
     </div>
 </div>

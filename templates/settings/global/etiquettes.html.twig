@@ -1,33 +1,40 @@
 {% import 'form.html.twig' as form %}
 
+{% set label_logo = setting_value('LABEL_LOGO') %}
+
 <div class="row">
     <div class="col-12">
         {% set qr = constant('App\\Entity\\ParametrageGlobal::QR_CODE') %}
         {% set ean = constant('App\\Entity\\ParametrageGlobal::CODE_128') %}
-        {{ form.switch('labelType', "Type d'étiquette", true, [
-            {label: {text: ean['label']}, value: ean['value'], checked: current_label_type == ean['value'] },
-            {label: {text: qr['label']}, value: qr['value'], checked: current_label_type == qr['value'] },
+        {{ form.switch(setting('BARCODE_TYPE_IS_128'), "Type d'étiquette", true, [
+            {label: {text: ean['label']}, value: ean['value'] ? 1 : 0, checked: setting_value('BARCODE_TYPE_IS_128') == ean['value'] },
+            {label: {text: qr['label']}, value: qr['value'] ? 1 : 0, checked: setting_value('BARCODE_TYPE_IS_128') == qr['value'] },
         ], {labelClass: "wii-field-name"}) }}
     </div>
 
     <div class="col-12 d-flex mt-3">
-        {% set height = label_dimension.height is defined ? label_dimension.height : '' %}
-        {{ form.input('height', 'Hauteur (mm)', true, height, {labelClass: "wii-field-name mr-2"}) }}
+        {{ form.input(setting('LABEL_HEIGHT'), 'Hauteur (mm)', true, setting_value('LABEL_HEIGHT'), {
+            labelClass: 'wii-field-name mr-2'
+        }) }}
 
-        {% set width = label_dimension.width is defined ? label_dimension.width : '' %}
-        {{ form.input('width', 'Largeur (mm)', true, height, {labelClass: "wii-field-name"}) }}
+        {{ form.input(setting('LABEL_WIDTH'), 'Largeur (mm)', true, setting_value('LABEL_WIDTH'), {
+            labelClass: 'wii-field-name'
+        }) }}
     </div>
 
     <div class="form-group d-flex flex-column col-12 mt-3">
         <label class="wii-field-name">Logo sur étiquette</label>
         <div class="d-flex">
-            <img src="{{ logo ? app.request.scheme ~ '://' ~ app.request.httpHost ~ "/uploads/attachements/" ~ logo : '' }}"
-                 id="preview-label-logo" alt="Logo choisi" height="50px" class="{{ logo ? '' : 'd-none' }}"/>
+            <img src="{{ label_logo ? app.request.scheme ~ '://' ~ app.request.httpHost ~ '/' ~ label_logo : '' }}"
+                 id="preview-label-logo" alt="Logo choisi" height="50px" class="{{ label_logo ? '' : 'd-none' }}"/>
 
             <button class="btn btn-primary"
-                    onclick="$('#upload-label-logo').click();">{{ logo ? "<i class='fas fa-pencil-alt'></i> ": 'Choisir un logo' }}</button>
+                    onclick="$('#upload-label-logo').click();">{{ label_logo ? "<i class='fas fa-pencil-alt'></i> ": 'Choisir un logo' }}</button>
 
-            <input type="file" id="upload-label-logo" name="logo" accept="image/png, image/jpeg, image/jpg" hidden>
+            <input type="file" id="upload-label-logo"
+                   name="{{ setting('LABEL_LOGO') }}"
+                   accept="image/png, image/jpeg, image/jpg"
+                   class="data force-data" hidden>
         </div>
     </div>
 </div>

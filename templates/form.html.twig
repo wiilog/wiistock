@@ -67,7 +67,7 @@
             {{ required ? 'required' }}
             {{ _self.common_attributes(name, options) }}
             {{ _self.multiple_key(options) }}
-               value="{{ value }}" {{ options.checked ?? false ? 'checked' }}>
+            {{ {on: 1, off: 0}[value] ?? value ? 'checked' }}>
         <label class="{{ options.labelClass ?? '' }}" for="checkbox-{{ id }}"><span>{{ _self.label(label, required) }}</span></label>
     </div>
 {% endmacro %}

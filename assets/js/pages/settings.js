@@ -1,5 +1,5 @@
 import '../../scss/pages/settings.scss';
-import EditableDatatable, {MODE_ADD_ONLY, MODE_DOUBLE_CLICK, MODE_NO_EDIT, SAVE_FOCUS_OUT, SAVE_MANUALLY} from "../editatable";
+import EditableDatatable, {MODE_ADD_ONLY, MODE_DOUBLE_CLICK, SAVE_MANUALLY} from "../editatable";
 import Flash from '../flash';
 
 const settings = JSON.parse($(`input#settings`).val());
@@ -13,6 +13,7 @@ const initializers = {
     global_heures_travaillees: initializeWorkingHours,
     global_jours_non_travailles: initializeOffDays,
     global_apparence_site: initializeSiteAppearance,
+    global_etiquettes: initializeGlobalLabels,
 };
 
 const slowOperations = [
@@ -53,8 +54,8 @@ $(document).ready(() => {
             return slowOperations.indexOf(n) !== -1;
         });
 
-        if(slow) {
-            Flash.add(`info`, `Mise à jour des paramétrage en cours`, false);
+        if(slow.length) {
+            Flash.add(`info`, `Mise à jour des paramétrage en cours, cette opération peut prendre quelques minutes`, false);
         }
 
         await AJAX.route(`POST`, `settings_save`).json(data);
@@ -95,13 +96,12 @@ function updateTitle(selectedMenu) {
 
     const path = `${category}_${menu}` + (submenu ? `_` + submenu : ``);
     const $element = $(`[data-path="${path}"]`);
-    if(initializers[path]) {
-        currentForm = path;
-        forms[path] = {
-            element: $element,
-            ...initializers[path]($element),
-        };
-    }
+
+    currentForm = path;
+    forms[path] = {
+        element: $element,
+        ...(initializers[path] ? initializers[path]($element) : []),
+    };
 
     $(`#page-title`).html(title);
     document.title = `Paramétrage | ${title}`;
@@ -173,4 +173,8 @@ function initializeSiteAppearance() {
     updateImagePreview('#preview-email-logo', '#upload-email-logo');
     updateImagePreview('#preview-mobile-logo-login', '#upload-mobile-logo-login');
     updateImagePreview('#preview-mobile-logo-header', '#upload-mobile-logo-header');
+}
+
+function initializeGlobalLabels() {
+    updateImagePreview('#preview-label-logo', '#upload-label-logo');
 }

@@ -9,7 +9,6 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
 use App\Entity\DaysWorked;
-use App\Entity\DimensionsEtiquettes;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
 use App\Entity\PrefixeNomDemande;
@@ -66,7 +65,6 @@ class ParametrageGlobalController extends AbstractController
         $statusRepository = $entityManager->getRepository(Statut::class);
         $mailerServerRepository = $entityManager->getRepository(MailerServer::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-        $dimensionsEtiquettesRepository = $entityManager->getRepository(DimensionsEtiquettes::class);
         $champsLibreRepository = $entityManager->getRepository(FreeField::class);
         $categoryCLRepository = $entityManager->getRepository(CategorieCL::class);
         $translationRepository = $entityManager->getRepository(Translation::class);
@@ -103,7 +101,6 @@ class ParametrageGlobalController extends AbstractController
                 'customIcon' => ($customIcon && file_exists(getcwd() . "/uploads/attachements/" . $customIcon) ? $customIcon : null),
                 'titleEmergencyLabel' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::EMERGENCY_TEXT_LABEL),
                 'titleCustomLabel' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CUSTOM_TEXT_LABEL),
-                'dimensions_etiquettes' => $dimensionsEtiquettesRepository->findOneBy([]),
                 'documentSettings' => [
                     'deliveryNoteLogo' => ($deliveryNoteLogo && file_exists(getcwd() . "/uploads/attachements/" . $deliveryNoteLogo) ? $deliveryNoteLogo : null),
                     'waybillLogo' => ($waybillLogo && file_exists(getcwd() . "/uploads/attachements/" . $waybillLogo) ? $waybillLogo : null),
@@ -115,7 +112,7 @@ class ParametrageGlobalController extends AbstractController
                 'deliverySettings' => [
                     'prepaAfterDl' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL),
                     'DLAfterRecep' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION),
-                    'paramDemandeurLivraison' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEMANDEUR_DANS_DL),
+                    'paramDemandeurLivraison' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REQUESTER_IN_DELIVERY),
                     'displayPickingLocation' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION),
                     'deliveryRequestTypes' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]),
                     'deliveryTypeSettings' => json_encode($deliveryTypeSettings),
@@ -227,17 +224,7 @@ class ParametrageGlobalController extends AbstractController
                                                  EntityManagerInterface $entityManager): Response {
 
         $data = $request->request->all();
-        $dimensionsEtiquettesRepository = $entityManager->getRepository(DimensionsEtiquettes::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-
-        $dimensions = $dimensionsEtiquettesRepository->findOneBy([]);
-        if(!$dimensions) {
-            $dimensions = new DimensionsEtiquettes();
-            $entityManager->persist($dimensions);
-        }
-        $dimensions
-            ->setHeight(intval($data['height']))
-            ->setWidth(intval($data['width']));
 
         $parametrageGlobalQtt = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::INCLUDE_QTT_IN_LABEL]);
 

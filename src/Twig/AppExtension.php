@@ -17,23 +17,32 @@ use Twig\Extension\AbstractExtension;
 
 class AppExtension extends AbstractExtension {
 
-    private $manager;
-    private $userService;
-    private $specificService;
-    private $fieldsParamService;
-    private $kernel;
+    /**
+     * @Required
+     */
+    public EntityManagerInterface $manager;
 
-    public function __construct(EntityManagerInterface $manager,
-                                SpecificService $specificService,
-                                FieldsParamService $fieldsParamService,
-                                UserService $userService,
-                                KernelInterface $kernel) {
-        $this->manager = $manager;
-        $this->userService = $userService;
-        $this->specificService = $specificService;
-        $this->fieldsParamService = $fieldsParamService;
-        $this->kernel = $kernel;
-    }
+    /**
+     * @Required
+     */
+    public UserService $userService;
+
+    /**
+     * @Required
+     */
+    public SpecificService $specificService;
+
+    /**
+     * @Required
+     */
+    public FieldsParamService $fieldsParamService;
+
+    /**
+     * @Required
+     */
+    public KernelInterface $kernel;
+
+    private array $settingsCache = [];
 
     public function getFunctions() {
         return [
@@ -42,6 +51,8 @@ class AppExtension extends AbstractExtension {
             new TwigFunction('displayMenu', [$this, 'displayMenuFunction']),
             new TwigFunction('logo', [$this, 'logo']),
             new TwigFunction('class', [$this, 'class']),
+            new TwigFunction('setting', [$this, 'setting']),
+            new TwigFunction('setting_value', [$this, 'settingValue']),
         ];
     }
 
@@ -140,6 +151,20 @@ class AppExtension extends AbstractExtension {
 
     public function class($object): string {
         return (new ReflectionClass($object))->getName();
+    }
+
+    public function setting($setting) {
+        return constant(ParametrageGlobal::class . "::" . $setting);
+    }
+
+    public function settingValue($setting): string {
+
+        if(!isset($this->settingsCache[$setting])) {
+            $repository = $this->manager->getRepository(ParametrageGlobal::class);
+            $this->settingsCache[$setting] = $repository->getOneParamByLabel($this->setting($setting));
+        }
+
+        return $this->settingsCache[$setting];
     }
 
 }

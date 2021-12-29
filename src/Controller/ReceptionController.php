@@ -838,7 +838,7 @@ class ReceptionController extends AbstractController {
         }
 
         $createDL = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::CREATE_DL_AFTER_RECEPTION]);
-        $needsCurrentUser = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEMANDEUR_DANS_DL);
+        $needsCurrentUser = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REQUESTER_IN_DELIVERY);
 
         $defaultDisputeStatus = $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::LITIGE_RECEPT);
         return $this->render("reception/show.html.twig", [
