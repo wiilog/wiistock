@@ -1,5 +1,6 @@
 import '../../scss/pages/settings.scss';
 import EditableDatatable, {MODE_ADD_ONLY, MODE_DOUBLE_CLICK, MODE_NO_EDIT, SAVE_FOCUS_OUT, SAVE_MANUALLY} from "../editatable";
+import Flash from '../flash';
 
 const settings = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();
@@ -11,7 +12,13 @@ const forms = {};
 const initializers = {
     global_heures_travaillees: initializeWorkingHours,
     global_jours_non_travailles: initializeOffDays,
+    global_apparence_site: initializeSiteAppearance,
 };
+
+const slowOperations = [
+    `FONT_FAMILY`,
+    `MAX_SESSION_TIME`,
+]
 
 const $saveButton = $(`.save-settings`);
 
@@ -30,17 +37,27 @@ $(document).ready(() => {
         updateTitle(selectedMenu);
     });
 
-    $saveButton.on(`click`, function() {
+    $saveButton.on(`click`, async function() {
         const form = forms[currentForm];
         let data = Form.process(form.element, {
             ignored: `[data-table-processing]`,
-        }).asObject();
+        });
 
         if(data) {
             form.element.find(`[id][data-table-processing]`).each(function() {
-                data[$(this).data(`table-processing`)] = EditableDatatable.of(this).data();
+                data.append($(this).data(`table-processing`), EditableDatatable.of(this).data());
             });
         }
+
+        const slow = Object.keys(data.asObject()).filter(function(n) {
+            return slowOperations.indexOf(n) !== -1;
+        });
+
+        if(slow) {
+            Flash.add(`info`, `Mise à jour des paramétrage en cours`, false);
+        }
+
+        await AJAX.route(`POST`, `settings_save`).json(data);
     });
 })
 
@@ -149,4 +166,11 @@ function initializeOffDays($container) {
     $addButton.on(`click`, function() {
         table.addRow();
     });
+}
+
+function initializeSiteAppearance() {
+    updateImagePreview('#preview-website-logo', '#upload-website-logo');
+    updateImagePreview('#preview-email-logo', '#upload-email-logo');
+    updateImagePreview('#preview-mobile-logo-login', '#upload-mobile-logo-login');
+    updateImagePreview('#preview-mobile-logo-header', '#upload-mobile-logo-header');
 }

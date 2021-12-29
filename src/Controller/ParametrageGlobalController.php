@@ -40,6 +40,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 /**
  * @Route("/parametrage-global")
+ * @deprecated Use SettingsController instead
  */
 class ParametrageGlobalController extends AbstractController
 {

@@ -62,10 +62,6 @@ $(function () {
     updateImagePreview('#preview-label-logo', '#upload-label-logo');
     updateImagePreview('#preview-emergency-icon', '#upload-emergency-icon');
     updateImagePreview('#preview-custom-icon', '#upload-custom-icon');
-    updateImagePreview('#preview-website-logo', '#upload-website-logo');
-    updateImagePreview('#preview-email-logo', '#upload-email-logo');
-    updateImagePreview('#preview-mobile-logo-header', '#upload-mobile-logo-header');
-    updateImagePreview('#preview-mobile-logo-login', '#upload-mobile-logo-login');
 
     updateImagePreview('#preview-delivery-note-logo', '#upload-delivery-note-logo');
     updateImagePreview('#preview-waybill-logo', '#upload-waybill-logo');

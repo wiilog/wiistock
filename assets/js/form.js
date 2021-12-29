@@ -67,7 +67,8 @@ export default class Form {
                 } else {
                     $input = $form.find(`input[type="radio"][name="${input.name}"]`);
                 }
-            } else if($input.attr(`type`) === `number`) {
+            }
+            else if($input.attr(`type`) === `number`) {
                 let val = parseInt($input.val());
                 let min = parseInt($input.attr('min'));
                 let max = parseInt($input.attr('max'));
@@ -91,7 +92,8 @@ export default class Form {
                         message,
                     });
                 }
-            } else if($input.attr(`type`) === `tel`) {
+            }
+            else if($input.attr(`type`) === `tel`) {
                 const regex = /^(?:(?:\+|00)33[\s.-]{0,3}(?:\(0\)[\s.-]{0,3})?|0)[1-9](?:(?:[\s.-]?\d{2}){4}|\d{2}(?:[\s.-]?\d{3}){2})$/;
                 if($input.val() && !$input.val().match(regex)) {
                     errors.push({
@@ -136,6 +138,8 @@ export default class Form {
                     value = $wrapper.html();
                 } else if($input.attr(`type`) === `checkbox`) {
                     value = $input.is(`:checked`) ? `1` : `0`;
+                } else if($input.attr(`type`) === `file`) {
+                    value = $input[0].files[0] ?? null;
                 } else {
                     value = $input.val() || null;
                 }
@@ -169,11 +173,6 @@ export default class Form {
         }
 
         if(form instanceof Form) {
-            // add uploads
-            for(const [name, file] of Object.entries(this.uploads ?? {})) {
-                data.append(name, file)
-            }
-
             for(const processor of form.processors) {
                 processor(data, errors, $form);
             }

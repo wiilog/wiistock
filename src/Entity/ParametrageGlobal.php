@@ -7,16 +7,14 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ParametrageGlobalRepository")
  */
-class ParametrageGlobal
-{
+class ParametrageGlobal {
 
     const DEFAULT_WEBSITE_LOGO_VALUE = '/img/followGTwhite.svg';
     const DEFAULT_EMAIL_LOGO_VALUE = '/img/gtlogistics.jpg';
     const DEFAULT_MOBILE_LOGO_LOGIN_VALUE = '/img/mobile_logo_login.svg';
     const DEFAULT_MOBILE_LOGO_HEADER_VALUE = '/img/mobile_logo_header.svg';
-    const MAX_SESSION_TIME = 'MAX_SESSION_TIME';
 
-	// arrivages
+    // arrivages
     const REDIRECT_AFTER_NEW_ARRIVAL = 'REDIRECT AFTER NEW ARRIVAL';
     const SEND_MAIL_AFTER_NEW_ARRIVAL = 'SEND MAIL AFTER NEW ARRIVAL';
     const AUTO_PRINT_COLIS = 'AUTO PRINT COLIS';
@@ -61,15 +59,17 @@ class ParametrageGlobal
     const PACK_MUST_BE_NEW = 'PACK_MUST_BE_NEW';
 
     // apparence
-    const FONT_FAMILY = 'FONT FAMILY';
+    const FONT_FAMILY = 'FONT_FAMILY';
     const WEBSITE_LOGO = 'WEBSITE_LOGO';
     const EMAIL_LOGO = 'EMAIL_LOGO';
     const MOBILE_LOGO_HEADER = 'MOBILE_LOGO_HEADER';
     const MOBILE_LOGO_LOGIN = 'MOBILE_LOGO_LOGIN';
-	const FONT_MONTSERRAT = 'Montserrat';
-	const FONT_TAHOMA = 'Tahoma';
-	const FONT_MYRIAD = 'Myriad';
-	const DEFAULT_FONT_FAMILY = self::FONT_MONTSERRAT;
+    const MAX_SESSION_TIME = 'MAX_SESSION_TIME';
+
+    const DEFAULT_FONT_FAMILY = self::FONT_MONTSERRAT;
+    const FONT_MONTSERRAT = 'Montserrat';
+    const FONT_TAHOMA = 'Tahoma';
+    const FONT_MYRIAD = 'Myriad';
 
     // dispatches
     const DISPATCH_WAYBILL_CARRIER = 'DISPATCH_WAYBILL_CARRIER';
@@ -126,68 +126,62 @@ class ParametrageGlobal
     const LABEL_WIDTH_DEFAULT = 50;
     const QR_CODE = [
         "value" => false,
-        "label" => 'QR Code'
+        "label" => 'QR Code',
     ];
     const CODE_128 = [
         "value" => true,
-        "label" => 'Code 128'
+        "label" => 'Code 128',
     ];
     const CL_USED_IN_LABELS = 'CL USED IN LABELS';
 
     // export csv
-	const USES_UTF8 = 'utilise utf8';
+    const USES_UTF8 = 'utilise utf8';
     const ENCODAGE_UTF8 = [
-        'value'=> true,
-        'label'=> 'UTF-8'
+        'value' => true,
+        'label' => 'UTF-8',
     ];
     const ENCODAGE_EUW = [
-        'value'=> false,
-        'label'=> '1252 Europe de l\'ouest Windows'
+        'value' => false,
+        'label' => '1252 Europe de l\'ouest Windows',
     ];
 
 
-	/**
+    /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $label;
+    private ?string $label = null;
 
     /**
      * @ORM\Column(type="text", nullable=true)
      */
-    private $value;
+    private ?string $value = null;
 
-
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getLabel(): ?string
-    {
+    public function getLabel(): ?string {
         return $this->label;
     }
 
-    public function setLabel(?string $label): self
-    {
+    public function setLabel(?string $label): self {
         $this->label = $label;
 
         return $this;
     }
 
-    public function getValue(): ?string
-    {
+    public function getValue(): ?string {
         return $this->value;
     }
 
-    public function setValue(?string $value): self
-    {
+    public function setValue(?string $value): self {
         $this->value = $value;
 
         return $this;

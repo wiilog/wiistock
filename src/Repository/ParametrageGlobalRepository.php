@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\ParametrageGlobal;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
+use WiiCommon\Helper\Stream;
 
 /**
  * @method ParametrageGlobal|null find($id, $lockMode = null, $lockVersion = null)
@@ -26,6 +27,22 @@ class ParametrageGlobalRepository extends EntityRepository
         $result = $query->getOneOrNullResult();
 
         return $result ? $result['value'] : null;
+    }
+
+    public function findByLabel($labels) {
+        if(!is_array($labels)) {
+            $labels = [$labels];
+        }
+
+        $results = $this->createQueryBuilder("setting")
+            ->andWhere("setting.label IN (:labels)")
+            ->setParameter("labels", $labels)
+            ->getQuery()
+            ->getResult();
+
+        return Stream::from($results)
+            ->keymap(fn(ParametrageGlobal $setting) => [$setting->getLabel(), $setting])
+            ->toArray();
     }
 
     public function getUnusedLogo(ParametrageGlobal $logo, EntityManagerInterface $entityManager){

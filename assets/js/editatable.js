@@ -124,7 +124,6 @@ export default class EditableDatatable {
         }
 
         if(config.edit === MODE_ADD_ONLY) {
-            console.log('XD', $element);
             $element.on(`click`, `tr`, function() {
                 const $row = $(this);
                 if(!$row.find(`.add-row`).exists()) {

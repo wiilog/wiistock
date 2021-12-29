@@ -3,8 +3,14 @@
 namespace App\Controller;
 
 use App\Entity\DaysWorked;
+use App\Entity\DimensionsEtiquettes;
+use App\Entity\MailerServer;
+use App\Entity\ParametrageGlobal;
 use App\Entity\WorkFreeDay;
 use App\Helper\FormatHelper;
+use App\Service\AttachmentService;
+use App\Service\SettingsService;
+use App\Service\SpecificService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,10 +20,6 @@ use Symfony\Component\Routing\Annotation\Route;
 use App\Annotation\HasPermission;
 use App\Entity\Menu;
 use App\Entity\Action;
-use App\Entity\DimensionsEtiquettes;
-use App\Entity\MailerServer;
-use App\Entity\ParametrageGlobal;
-use App\Service\SpecificService;
 
 /**
  * @Route("/parametrage")
@@ -235,6 +237,11 @@ class SettingsController extends AbstractController {
     private const MENU_INVENTORY_IMPORTS = "imports_inventaires";
 
     /**
+     * @Required
+     */
+    public SettingsService $service;
+
+    /**
      * @Route("/", name="settings_index")
      * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB})
      */
@@ -276,7 +283,7 @@ class SettingsController extends AbstractController {
             "parent" => $parent,
             "selected" => $submenu ?? $menu,
             "path" => $path,
-            "values" => $this->values()
+            "values" => $this->values(),
         ]);
     }
 
@@ -320,10 +327,69 @@ class SettingsController extends AbstractController {
                 self::MENU_ALERTS => [
                     "alertThreshold" => $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_MANAGER_WARNING_THRESHOLD),
                     "securityThreshold" => $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_MANAGER_SECURITY_THRESHOLD),
-                    "expirationDelay" => $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY)
-                ]
-            ]
+                    "expirationDelay" => $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY),
+                ],
+            ],
         ];
+    }
+
+    /**
+     * @Route("/enregistrer", name="settings_save", options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB})
+     */
+    public function save(Request $request, EntityManagerInterface $manager, AttachmentService $attachmentService): Response {
+        $settingRepository = $manager->getRepository(ParametrageGlobal::class);
+        $settings = $settingRepository->findByLabel(array_merge(
+            array_keys($request->request->all()),
+            array_keys($request->files->all()),
+        ));
+
+        $alreadySaved = $this->service->customSave($request, $settings);
+
+        $updated = [];
+        foreach($request->request->all() as $key => $value) {
+            if(in_array($key, $alreadySaved)) {
+                continue;
+            }
+
+            $setting = $settings[$key] ?? null;
+            if(!isset($setting)) {
+                $settings[$key] = $setting = $this->service->createSetting($key);
+            }
+
+            if(is_array($value)) {
+                $value = json_encode($value);
+            }
+
+            if($value !== $setting->getValue()) {
+                $setting->setValue($value);
+                $updated[] = $key;
+            }
+        }
+
+        foreach($request->files->all() as $key => $value) {
+            if(in_array($key, $alreadySaved)) {
+                continue;
+            }
+
+            $setting = $settings[$key] ?? null;
+            if(!isset($setting)) {
+                $settings[$key] = $setting = $this->service->createSetting($key);
+            }
+
+            $fileName = $attachmentService->saveFile($value, $key);
+            $setting->setValue("uploads/attachements/" . $fileName[array_key_first($fileName)]);
+            $updated[] = $key;
+        }
+
+        $this->service->postSaveTreatment($updated);
+
+        $manager->flush();
+
+        return $this->json([
+            "success" => true,
+            "msg" => "Les nouveaux paramétrages ont été enregistrés",
+        ]);
     }
 
     /**
