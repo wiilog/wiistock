@@ -97,11 +97,15 @@ function updateTitle(selectedMenu) {
     const path = `${category}_${menu}` + (submenu ? `_` + submenu : ``);
     const $element = $(`[data-path="${path}"]`);
 
-    currentForm = path;
-    forms[path] = {
-        element: $element,
-        ...(initializers[path] ? initializers[path]($element) : []),
-    };
+    $saveButton.show();
+
+    if (!forms[path]) {
+        currentForm = path;
+        forms[path] = {
+            element: $element,
+            ...(initializers[path] ? initializers[path]($element) : []),
+        };
+    }
 
     $(`#page-title`).html(title);
     document.title = `Paramétrage | ${title}`;

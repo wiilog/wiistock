@@ -157,7 +157,7 @@ class AppExtension extends AbstractExtension {
         return constant(ParametrageGlobal::class . "::" . $setting);
     }
 
-    public function settingValue($setting): string {
+    public function settingValue($setting): ?string {
 
         if(!isset($this->settingsCache[$setting])) {
             $repository = $this->manager->getRepository(ParametrageGlobal::class);
