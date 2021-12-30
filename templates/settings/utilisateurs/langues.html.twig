@@ -95,31 +95,15 @@
                         <span class="wii-small-text text-regular">Les libellés génériques présents dans tous les encarts ltre de l’application</span>
                     </section>
 
-                    <div class="labelled-field">
-                        <label>
-                            Du
-                            <input type="text">
-                        </label>
-                    </div>
-
-                    {{ form.input('test', 'Filtrer', false, null, {
+                    {{ form.input('test', 'Du', false, null, {
                         inline: true,
-                        tooltip: 'hello xd'
+                        tooltip: 'hello'
                     }) }}
 
-                    <div class="labelled-field">
-                        <label>
-                            Filtrer
-                            <input type="text">
-                        </label>
-                    </div>
-
-                    <div class="labelled-field">
-                        <label>
-                            Du
-                            <input type="text">
-                        </label>
-                    </div>
+                    {{ form.input('aaaa', 'Filtrer', false, null, {
+                        inline: true,
+                        tooltip: 'tooltip'
+                    }) }}
                 </div>
             </div>
 
