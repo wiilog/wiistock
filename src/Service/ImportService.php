@@ -60,6 +60,106 @@ class ImportService
 
     public const POSITIVE_ARRAY = ['oui', 'Oui', 'OUI'];
 
+    public const FIELDS_TO_ASSOCIATE = [
+        Import::ENTITY_ART => [
+            "commentaire",
+            "stockEntryDate",
+            "expiryDate",
+            "dateLastInventory",
+            "emplacement",
+            "label",
+            "batch",
+            "prixUnitaire",
+            "quantite",
+            "référence article de référence",
+            "référence article fournisseur",
+            "référence fournisseur"
+        ],
+        Import::ENTITY_REF => [
+            "buyer",
+            "catégorie d'inventaire",
+            "commentaire",
+            "emergencyComment",
+            "dateLastInventory",
+            "emplacement",
+            "stockManagement",
+            "managers",
+            "visibilityGroups",
+            "libelle",
+            "prixUnitaire",
+            "quantiteStock",
+            "reference",
+            "limitWarning",
+            "limitSecurity",
+            "statut",
+            "needsMobileSync",
+            "type",
+            "typeQuantite"
+        ],
+        Import::ENTITY_FOU => [
+            'nom',
+            'codeReference'
+        ],
+        Import::ENTITY_RECEPTION => [
+            "anomalie",
+            "commentaire",
+            "expectedDate",
+            "orderDate",
+            "location",
+            "storageLocation",
+            "fournisseur",
+            "orderNumber",
+            "quantité à recevoir",
+            "référence",
+            "transporteur",
+            "manualUrgent"
+        ],
+        Import::ENTITY_ART_FOU => [
+            "label",
+            "référence article de référence",
+            "référence fournisseur"
+        ],
+        Import::ENTITY_USER => [
+            "address",
+            "mobileLoginKey",
+            "dropzone",
+            "email",
+            "secondaryEmail",
+            "lastEmail",
+            "visibilityGroup",
+            "username",
+            "phone",
+            "role",
+            "status",
+            "dispatchTypes",
+            "deliveryTypes",
+            "handlingTypes"
+        ],
+        Import::ENTITY_DELIVERY => [
+            "articleCode",
+            "commentaire",
+            "requester",
+            "destination",
+            "targetLocationPicking",
+            "quantityDelivery",
+            "articleReference",
+            "status",
+            "type",
+            "targetLocationPicking"
+        ],
+        Import::ENTITY_LOCATION => [
+            "isActive",
+            "description",
+            "dateMaxTime",
+            "isOngoingVisibleOnMobile",
+            "allowedPackNatures",
+            "name",
+            "isDeliveryPoint",
+            "allowedCollectTypes",
+            "allowedDeliveryTypes"
+        ]
+    ];
+
     /** @Required */
     public Twig_Environment $templating;
 
@@ -2173,5 +2273,41 @@ class ImportService
             }
         }
         return $preselection;
+    }
+
+    public function getFieldsToAssociate(EntityManagerInterface $entityManager,
+                                         string $entityCode): array {
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+
+        $fieldsToAssociate = Stream::from(self::FIELDS_TO_ASSOCIATE[$entityCode] ?? []);
+
+        if ($entityCode === Import::ENTITY_DELIVERY) {
+            $showTargetLocationPicking = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION);
+            if (!$showTargetLocationPicking) {
+                $fieldsToAssociate = $fieldsToAssociate->filter(fn(string $key) => ($key !== "targetLocationPicking"));
+            }
+        }
+
+        $fieldsToAssociate = $fieldsToAssociate
+            ->keymap(fn(string $key) => [$key, Import::FIELDS_ENTITY[$key] ?? $key])
+            ->toArray();
+
+        $categoryCLByEntity = [
+            Import::ENTITY_ART => CategorieCL::ARTICLE,
+            Import::ENTITY_REF => CategorieCL::REFERENCE_ARTICLE,
+        ];
+
+        $categoryCL = $categoryCLByEntity[$entityCode] ?? null;
+
+        if (isset($categoryCL)) {
+            $freeFields = $freeFieldRepository->getLabelAndIdByCategory($categoryCL);
+
+            foreach ($freeFields as $freeField) {
+                $fieldsToAssociate[$freeField['id']] = $freeField['value'];
+            }
+        }
+
+        return $fieldsToAssociate;
     }
 }
