@@ -121,3 +121,18 @@
     }
 
 }
+
+.language-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #CDCDCD;
+    background: #f2f3f7;
+    border-radius: 5px;
+    padding: 9px;
+    margin: 0 5px;
+
+    img {
+        margin-right: 10px;
+    }
+}

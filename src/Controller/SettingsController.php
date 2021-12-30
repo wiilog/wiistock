@@ -137,7 +137,10 @@ class SettingsController extends AbstractController {
             "label" => "Dashboards",
             "icon" => "accueil",
             "menus" => [
-                self::MENU_FULL_SETTINGS => "Paramétrage complet",
+                self::MENU_FULL_SETTINGS => [
+                    "label" => "Paramétrage complet",
+                    "route" => "dashboard_settings",
+                ],
             ],
         ],
         self::CATEGORY_IOT => [
@@ -159,7 +162,10 @@ class SettingsController extends AbstractController {
             "label" => "Utilisateurs",
             "icon" => "accueil",
             "menus" => [
-                self::MENU_LANGUAGES => "Langues",
+                self::MENU_LANGUAGES => [
+                    "label" => "Langues",
+                    "route" => "settings_language",
+                ],
                 self::MENU_USERS => "Utilisateurs",
                 self::MENU_ROLES => "Rôles",
             ],
@@ -247,6 +253,16 @@ class SettingsController extends AbstractController {
      */
     public function index(): Response {
         return $this->render("settings/list.html.twig", [
+            "settings" => self::SETTINGS,
+        ]);
+    }
+
+    /**
+     * @Route("/utilisateurs/langues", name="settings_language")
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB})
+     */
+    public function language(): Response {
+        return $this->render("settings/utilisateurs/langues.html.twig", [
             "settings" => self::SETTINGS,
         ]);
     }

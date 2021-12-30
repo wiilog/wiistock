@@ -19,7 +19,7 @@ const initializers = {
 const slowOperations = [
     `FONT_FAMILY`,
     `MAX_SESSION_TIME`,
-]
+];
 
 const $saveButton = $(`.save-settings`);
 
@@ -50,11 +50,11 @@ $(document).ready(() => {
             });
         }
 
-        const slow = Object.keys(data.asObject()).filter(function(n) {
+        const slow = Object.keys(data.asObject()).find(function(n) {
             return slowOperations.indexOf(n) !== -1;
         });
 
-        if(slow.length) {
+        if(slow) {
             Flash.add(`info`, `Mise à jour des paramétrage en cours, cette opération peut prendre quelques minutes`, false);
         }
 

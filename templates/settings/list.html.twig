@@ -17,7 +17,7 @@
                         <div class="title">{{ category.label }}</div>
 
                         {% for menu, label in category.menus %}
-                            <a href="{{ path('settings_item', {category: category_key, menu}) }}"
+                            <a href="{{ path(label.route is defined ? label.route : 'settings_item', label.route is not defined ? {category: category_key, menu} : []) }}"
                                class="settings-item {{ category.menus | length <= 4 ? 'full-size' }}">
                                 {{ label is iterable ? label.label : label }}
                             </a>
