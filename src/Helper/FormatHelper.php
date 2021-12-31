@@ -176,7 +176,7 @@ class FormatHelper {
                     . " "
                     . $date->format("d")
                     . " "
-                    . strtolower(self::MONTHS[$date->format("n")])
+                    . mb_strtolower(self::MONTHS[$date->format("n")])
                     . " "
                     . $date->format("Y"))
             : $else;

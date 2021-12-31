@@ -19,7 +19,7 @@ const initializers = {
 const slowOperations = [
     `FONT_FAMILY`,
     `MAX_SESSION_TIME`,
-]
+];
 
 const $saveButton = $(`.save-settings`);
 
@@ -40,14 +40,22 @@ $(document).ready(() => {
 
     $saveButton.on(`click`, async function() {
         const form = forms[currentForm];
+        const tablesToReload = [];
         let data = Form.process(form.element, {
             ignored: `[data-table-processing]`,
         });
 
         if(data) {
+            const tables = {};
             form.element.find(`[id][data-table-processing]`).each(function() {
-                data.append($(this).data(`table-processing`), EditableDatatable.of(this).data());
+                const datatable = EditableDatatable.of(this);
+                tables[$(this).data(`table-processing`)] = datatable.data();
+                tablesToReload.push(datatable);
             });
+
+            if(Object.entries(tables).length) {
+                data.append(`datatables`, JSON.stringify(tables));
+            }
         }
 
         const slow = Object.keys(data.asObject()).filter(function(n) {
@@ -58,9 +66,15 @@ $(document).ready(() => {
             Flash.add(`info`, `Mise à jour des paramétrage en cours, cette opération peut prendre quelques minutes`, false);
         }
 
-        await AJAX.route(`POST`, `settings_save`).json(data);
+        await AJAX.route(`POST`, `settings_save`)
+            .json(data)
+            .then(() => {
+                for(const table of tablesToReload) {
+                    table.toggleEdit(false, true);
+                }
+            });
     });
-})
+});
 
 function getCategoryLabel() {
     return settings[category].label;
@@ -99,7 +113,7 @@ function updateTitle(selectedMenu) {
 
     $saveButton.show();
 
-    if (!forms[path]) {
+    if(!forms[path]) {
         currentForm = path;
         forms[path] = {
             element: $element,
@@ -136,30 +150,34 @@ function initializeWorkingHours($container) {
 
 function initializeOffDays($container) {
     const $addButton = $container.find(`.add-row-button`);
+    const $tableHeader = $(`.wii-page-card-header`);
 
     $saveButton.hide();
 
     const table = EditableDatatable.create(`#table-off-days`, {
-        route: Routing.generate('settings_off_days_api', true),
+        route: Routing.generate(`settings_off_days_api`, true),
+        deleteRoute: `settings_off_days_delete`,
         edit: MODE_ADD_ONLY,
         save: SAVE_MANUALLY,
         search: true,
         paginate: true,
+        onInit: () => {
+            $addButton.removeClass(`d-none`);
+        },
         onEditStart: () => {
             $saveButton.show();
-            $addButton.show()
-            $(`.wii-page-card-header`).hide();
+            $tableHeader.hide();
         },
         onEditStop: () => {
             $saveButton.hide();
-            $(`.wii-page-card-header`).show();
+            $tableHeader.show();
         },
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
             {data: `day`, title: `Jour`},
         ],
         form: {
-            actions: ``,
+            actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
             day: `<input type="date" name="day" class="form-control data" data-global-error="Jour" required/>`,
         },
         columnDefs: [

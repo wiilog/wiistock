@@ -67,9 +67,7 @@ export default class EditableDatatable {
                     $rows.off(`dblclick.${id}.startEdit`).on(`dblclick.${id}.startEdit`, function() {
                         if(!datatable.editable) {
                             datatable.editable = true;
-                            datatable.switchEdit(true);
-
-                            datatable.table.ajax.reload();
+                            datatable.toggleEdit(true, true);
                         }
                     });
                 }
@@ -120,7 +118,7 @@ export default class EditableDatatable {
         });
 
         if(datatable.editable) {
-            datatable.switchEdit(true);
+            datatable.toggleEdit(true);
         }
 
         if(config.edit === MODE_ADD_ONLY) {
@@ -139,6 +137,24 @@ export default class EditableDatatable {
                 datatable.table.draw();
             });
         }
+
+        $element.on(`click`, `.delete-row`, function() {
+            const $button = $(this);
+            const $row = $button.closest(`tr`);
+
+            function deleteRow() {
+                datatable.table.row($row).remove();
+                datatable.table.draw();
+            }
+
+            if($button.is(`[data-id]`) && config.deleteRoute) {
+                AJAX.route(`POST`, config.deleteRoute, {entity: $button.data(`id`)})
+                    .json()
+                    .then(deleteRow);
+            } else {
+                deleteRow();
+            }
+        })
 
         $(window).on(`beforeunload.${id}`, () => {
             const $focus = $(`tr :focus`);
@@ -176,7 +192,7 @@ export default class EditableDatatable {
         if(this.state !== STATE_ADD) {
             this.state = STATE_ADD;
 
-            this.switchEdit(true);
+            this.toggleEdit(true);
             this.table.clear();
         } else {
             this.table.row(':last').remove();
@@ -187,7 +203,13 @@ export default class EditableDatatable {
         this.table.draw();
     }
 
-    switchEdit(edit) {
+    toggleEdit(edit, reload = false) {
+        if(reload) {
+            this.table.clear();
+            this.table.draw();
+            this.table.ajax.reload();
+        }
+
         if(edit) {
             if(this.config.onEditStart) {
                 this.config.onEditStart();

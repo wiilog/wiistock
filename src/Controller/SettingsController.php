@@ -4,10 +4,8 @@ namespace App\Controller;
 
 use App\Entity\DaysWorked;
 use App\Entity\MailerServer;
-use App\Entity\ParametrageGlobal;
 use App\Entity\WorkFreeDay;
 use App\Helper\FormatHelper;
-use App\Service\AttachmentService;
 use App\Service\SettingsService;
 use App\Service\SpecificService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -252,7 +250,7 @@ class SettingsController extends AbstractController {
     }
 
     /**
-     * @Route("/{category}/{menu}/{submenu}", name="settings_item")
+     * @Route("/afficher/{category}/{menu}/{submenu}", name="settings_item")
      * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB})
      */
     public function item(string $category, string $menu, ?string $submenu = null): Response {
@@ -283,12 +281,11 @@ class SettingsController extends AbstractController {
             "parent" => $parent,
             "selected" => $submenu ?? $menu,
             "path" => $path,
-            "values" => $this->values(),
+            "values" => $this->customValues(),
         ]);
     }
 
-    public function values(): array {
-        $globalSettingsRepository = $this->manager->getRepository(ParametrageGlobal::class);
+    public function customValues(): array {
         $mailerServerRepository = $this->manager->getRepository(MailerServer::class);
 
         return [
@@ -303,11 +300,7 @@ class SettingsController extends AbstractController {
                 self::MENU_LABELS => [],
             ],
             self::CATEGORY_STOCK => [
-                self::MENU_ALERTS => [
-                    "alertThreshold" => $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_MANAGER_WARNING_THRESHOLD),
-                    "securityThreshold" => $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_MANAGER_SECURITY_THRESHOLD),
-                    "expirationDelay" => $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY),
-                ],
+                self::MENU_ALERTS => [],
             ],
         ];
     }
@@ -345,9 +338,9 @@ class SettingsController extends AbstractController {
         $data = [];
         foreach($daysWorkedRepository->findAll() as $day) {
             if($edit) {
-                $worked = $day->getWorked() ? "checked" : "";
+                $worked = $day->isWorked() ? "checked" : "";
                 $data[] = [
-                    "day" => $day->getDisplayDay(),
+                    "day" => "{$day->getDisplayDay()} <input type='hidden' name='id' class='$class' value='{$day->getId()}'/>",
                     "hours" => "<input name='hours' class='$class' data-global-error='Quantité' value='{$day->getTimes()}'/>",
                     "worked" => "<div class='checkbox-container'><input type='checkbox' name='worked' class='$class' $worked/></div>",
                 ];
@@ -355,7 +348,7 @@ class SettingsController extends AbstractController {
                 $data[] = [
                     "day" => $day->getDisplayDay(),
                     "hours" => $day->getTimes(),
-                    "worked" => $day->getWorked() ? "Oui" : "Non",
+                    "worked" => $day->isWorked() ? "Oui" : "Non",
                 ];
             }
         }
@@ -373,24 +366,18 @@ class SettingsController extends AbstractController {
      */
     public function offDaysApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
-        $class = "form-control data";
-
-        $workFreeDayRepository = $manager->getRepository(WorkFreeDay::class);
 
         $data = [];
-        foreach($workFreeDayRepository->findAll() as $day) {
-            if($edit) {
+        if(!$edit) {
+            $workFreeDayRepository = $manager->getRepository(WorkFreeDay::class);
+
+            foreach($workFreeDayRepository->findAll() as $day) {
                 $data[] = [
                     "actions" => "
-                    <button class='btn btn-silent delete-row' data-id='{{ dispatchPack ? dispatchPack.id }}'>
-                        <i class='wii-icon wii-icon-trash text-primary'></i>
-                    </button>
+                        <button class='btn btn-silent delete-row' data-id='{$day->getId()}'>
+                            <i class='wii-icon wii-icon-trash text-primary'></i>
+                        </button>
                     ",
-                    "day" => "<input type='date' name='day' class='$class' data-global-error='Jour' value='{$day->getDay()->format('Y-m-d')}' required/>",
-                ];
-            } else {
-                $data[] = [
-                    "actions" => "",
                     "day" => FormatHelper::longDate($day->getDay()),
                 ];
             }
@@ -400,6 +387,20 @@ class SettingsController extends AbstractController {
             "data" => $data,
             "recordsTotal" => count($data),
             "recordsFiltered" => count($data),
+        ]);
+    }
+
+    /**
+     * @Route("/jours-non-travailles/supprimer/{entity}", name="settings_off_days_delete", options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB})
+     */
+    public function deleteOffDay(EntityManagerInterface $manager, WorkFreeDay $entity) {
+        $manager->remove($entity);
+        $manager->flush();
+
+        return $this->json([
+            "success" => true,
+            "msg" => "Le jour non travaillé a été supprimé",
         ]);
     }
 

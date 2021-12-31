@@ -581,7 +581,7 @@ class ParametrageGlobalController extends AbstractController
             $rows[] =
                 [
                     'Day' => $this->engDayToFr[$day->getDay()],
-                    'Worked' => $day->getWorked() ? 'oui' : 'non',
+                    'Worked' => $day->isWorked() ? 'oui' : 'non',
                     'Times' => $day->getTimes() ?? '',
                     'Order' => $day->getDisplayOrder(),
                     'Actions' => $this->renderView('parametrage_global/datatableDaysRow.html.twig', [
@@ -631,7 +631,7 @@ class ParametrageGlobalController extends AbstractController
             $day->setWorked($data['worked']);
 
             if(isset($data['times'])) {
-                if($day->getWorked()) {
+                if($day->isWorked()) {
                     $matchHours = '((0[0-9])|(1[0-9])|(2[0-3]))';
                     $matchMinutes = '([0-5][0-9])';
                     $matchHoursMinutes = "$matchHours:$matchMinutes";

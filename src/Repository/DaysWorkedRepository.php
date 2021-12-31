@@ -86,7 +86,7 @@ class DaysWorkedRepository extends EntityRepository
             $this->findAllOrdered(),
             function (array $carry, DaysWorked $daysWorked) {
                 $times = $daysWorked->getTimes();
-                $worked = $daysWorked->getWorked();
+                $worked = $daysWorked->isWorked();
                 if ($worked && !empty($times)) {
                     $carry[strtolower($daysWorked->getDay())] = $daysWorked->getTimes();
                 }

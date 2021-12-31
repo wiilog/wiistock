@@ -40,7 +40,7 @@ class DaysWorked {
         return $this->id;
     }
 
-    public function getWorked(): ?bool {
+    public function isWorked(): ?bool {
         return $this->worked;
     }
 

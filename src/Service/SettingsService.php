@@ -2,8 +2,11 @@
 
 namespace App\Service;
 
+use App\Entity\DaysWorked;
 use App\Entity\MailerServer;
 use App\Entity\ParametrageGlobal;
+use App\Entity\WorkFreeDay;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use RuntimeException;
@@ -14,6 +17,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Yaml\Yaml;
+use WiiCommon\Helper\Stream;
 
 class SettingsService {
 
@@ -47,6 +51,11 @@ class SettingsService {
             array_keys($request->request->all()),
             array_keys($request->files->all()),
         ));
+
+        if($request->request->has("datatables")) {
+            $this->saveDatatables(json_decode($request->request->get("datatables"), true));
+            $request->request->remove("datatables");
+        }
 
         $alreadySaved = $this->customSave($request, $settings);
 
@@ -98,7 +107,7 @@ class SettingsService {
      * @param ParametrageGlobal[] $settings Existing settings
      * @return array Settings that were processed
      */
-    public function customSave(Request $request, array $settings): array {
+    private function customSave(Request $request, array $settings): array {
         $saved = [];
 
         if($client = $request->request->get(ParametrageGlobal::APP_CLIENT)) {
@@ -130,11 +139,48 @@ class SettingsService {
         return $saved;
     }
 
+    private function saveDatatables(array $tables) {
+        if(isset($tables["workingHours"])) {
+            $ids = array_map(fn($day) => $day["id"], $tables["workingHours"]);
+
+            $daysWorkedRepository = $this->manager->getRepository(DaysWorked::class);
+            $daysWorked = Stream::from($daysWorkedRepository->findBy(["id" => $ids]))
+                ->keymap(fn($day) => [$day->getId(), $day])
+                ->toArray();
+
+            foreach($tables["workingHours"] as $workingHour) {
+                $hours = $workingHour["hours"] ?? null;
+                if($hours && !preg_match("/^\d{2,2}:\d{2,2}-\d{2,2}:\d{2,2}(;\d{2,2}:\d{2,2}-\d{2,2}:\d{2,2})?$/", $hours)) {
+                    throw new RuntimeException("Le champ horaires doit être au format HH:MM-HH:MM;HH:MM-HH:MM");
+                }
+
+                $day = $daysWorked[$workingHour["id"]]
+                    ->setTimes($hours)
+                    ->setWorked($workingHour["worked"]);
+
+                if($day->isWorked() && !$day->getTimes()) {
+                    throw new RuntimeException("Le champ horaires de travail est requis pour les jours travaillés");
+                } else if(!$day->isWorked()) {
+                    $day->setTimes(null);
+                }
+            }
+        }
+
+        if(isset($tables["offDays"])) {
+            foreach(array_filter($tables["offDays"]) as $offDay) {
+                $day = new WorkFreeDay();
+                $day->setDay(DateTime::createFromFormat("Y-m-d", $offDay["day"]));
+
+                $this->manager->persist($day);
+            }
+        }
+    }
+
     /**
      * Runs utilities when needed after settings have been saved
      * such as cache clearing translation updates or webpack build
      */
-    public function postSaveTreatment(array $updatedSettings) {
+    private function postSaveTreatment(array $updatedSettings) {
         if(array_intersect($updatedSettings, [ParametrageGlobal::FONT_FAMILY])) {
             $this->generateFontSCSS();
             $this->yarnBuild();
@@ -165,16 +211,16 @@ class SettingsService {
             //pgrep recherche l'id du processus de php fpm
             //kill envoie un message USR2 (qui veut dire "recharge la configuration") à phpfpm
             exec("kill -USR2 $(pgrep -o php-fpm7)");
-        } catch (Exception $exception) {
+        } catch(Exception $exception) {
             throw new RuntimeException("Une erreur est survenue lors du changement de client");
         }
     }
 
     public function generateFontSCSS() {
-        $path =  "{$this->kernel->getProjectDir()}/assets/scss/_customFont.scss";
+        $path = "{$this->kernel->getProjectDir()}/assets/scss/_customFont.scss";
 
         $font = $this->manager->getRepository(ParametrageGlobal::class)
-            ->getOneParamByLabel(ParametrageGlobal::FONT_FAMILY) ?? ParametrageGlobal::DEFAULT_FONT_FAMILY;
+                ->getOneParamByLabel(ParametrageGlobal::FONT_FAMILY) ?? ParametrageGlobal::DEFAULT_FONT_FAMILY;
 
         file_put_contents($path, "\$mainFont: \"$font\";");
     }
