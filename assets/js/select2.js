@@ -40,45 +40,58 @@ const INSTANT_SELECT_TYPES = {
 export default class Select2 {
     static init($element) {
         const type = $element.data(`s2`);
-        if(!$element.find(`option[selected]`).exists()
-            && !type
-            && !$element.is(`[data-no-empty-option]`)
-            && !$element.is(`[data-editable]`)) {
-            $element.prepend(`<option selected>`);
+        let $select2;
+        if ($element.is(`[data-simple]`)) {
+            $select2 = $element.select2({
+                dropdownParent: $element.parent(),
+            });
         }
-
-        $element.removeAttr(`data-s2`);
-        $element.attr(`data-s2-initialized`, ``);
-
-        const config = {};
-        if(type) {
-            if(!ROUTES[type]) {
-                console.error(`No select route found for ${type}`);
+        else {
+            if (!$element.find(`option[selected]`).exists()
+                && !type
+                && !$element.is(`[data-no-empty-option]`)
+                && !$element.is(`[data-editable]`)) {
+                $element.prepend(`<option selected>`);
             }
 
-            config.ajax = {
-                url: Routing.generate(ROUTES[type]),
-                data: params => Select2.includeParams($element, params),
-                dataType: `json`
-            };
-        }
+            $element.removeAttr(`data-s2`);
+            $element.attr(`data-s2-initialized`, ``);
 
-        if (type && !INSTANT_SELECT_TYPES[type]) {
-            config.minimumInputLength = 1;
-        }
+            const config = {};
+            if (type) {
+                if (!ROUTES[type]) {
+                    console.error(`No select route found for ${type}`);
+                }
 
-        $element.select2({
-            placeholder: $element.data(`placeholder`),
-            tags: $element.is('[data-editable]'),
-            allowClear: !$element.is(`[multiple]`),
-            dropdownParent: $element.parent(),
-            language: {
-                inputTooShort: () => 'Veuillez entrer au moins 1 caractère.',
-                noResults: () => `Aucun résultat`,
-                searching: () => null,
-            },
-            ...config,
-        });
+                config.ajax = {
+                    url: Routing.generate(ROUTES[type]),
+                    data: params => Select2.includeParams($element, params),
+                    dataType: `json`
+                };
+            }
+
+            if (type && !INSTANT_SELECT_TYPES[type]) {
+                config.minimumInputLength = 1;
+            }
+
+            const allowClear = !($element.is(`[multiple]`) || $element.is(`[data-no-empty-option]`));
+            if (!config.placeholder) {
+                config.placeholder = '';
+            }
+
+            $select2 = $element.select2({
+                placeholder: $element.data(`placeholder`),
+                tags: $element.is('[data-editable]'),
+                allowClear,
+                dropdownParent: $element.parent(),
+                language: {
+                    inputTooShort: () => 'Veuillez entrer au moins 1 caractère.',
+                    noResults: () => `Aucun résultat`,
+                    searching: () => null,
+                },
+                ...config,
+            });
+        }
 
         $element.on('select2:open', function (e) {
             const evt = "scroll.select2";
@@ -98,6 +111,8 @@ export default class Select2 {
                 setTimeout(() => $searchField[0].focus(), 300);
             }
         });
+
+        return $select2;
     }
 
     static includeParams($element, params) {
