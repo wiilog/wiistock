@@ -83,7 +83,7 @@ class ReceptionService
             $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_RECEPTION, $user);
         }
 
-        $queryResult = $receptionRepository->findByParamAndFilters($params, $filters, $user);
+        $queryResult = $receptionRepository->findByParamAndFilters($params, $filters, $user, $this->visibleColumnService);
 
         $receptions = $queryResult['data'];
 

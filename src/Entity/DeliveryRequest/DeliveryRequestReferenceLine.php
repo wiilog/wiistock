@@ -2,6 +2,7 @@
 
 namespace App\Entity\DeliveryRequest;
 
+use App\Entity\Emplacement;
 use App\Entity\ReferenceArticle;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\DeliveryRequest\DeliveryRequestReferenceLineRepository;
@@ -38,6 +39,11 @@ class DeliveryRequestReferenceLine
      * @ORM\JoinColumn(onDelete="CASCADE")
      */
     private ?Demande $request = null;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Emplacement::class, inversedBy="deliveryRequestReferenceLines")
+     */
+    private ?Emplacement $targetLocationPicking = null;
 
     public function getId(): ?int {
         return $this->id;
@@ -100,6 +106,25 @@ class DeliveryRequestReferenceLine
     public function setPickedQuantity(?int $pickedQuantity): self
     {
         $this->pickedQuantity = $pickedQuantity;
+
+        return $this;
+    }
+
+    public function getTargetLocationPicking(): ?Emplacement {
+        return $this->targetLocationPicking;
+    }
+
+    public function setTargetLocationPicking(?Emplacement $targetLocationPicking): self
+    {
+        if($this->targetLocationPicking && $this->targetLocationPicking !== $targetLocationPicking) {
+            $this->targetLocationPicking->removeDeliveryRequestReferenceLine($this);
+        }
+
+        $this->targetLocationPicking = $targetLocationPicking;
+
+        if($targetLocationPicking) {
+            $targetLocationPicking->addDeliveryRequestReferenceLine($this);
+        }
 
         return $this;
     }

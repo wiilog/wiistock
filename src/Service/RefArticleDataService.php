@@ -10,12 +10,12 @@ use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\InventoryCategory;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
-use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Livraison;
 use App\Entity\Menu;
@@ -45,6 +45,7 @@ class RefArticleDataService {
 
     private const REF_ARTICLE_FIELDS = [
         ["name" => "actions", "class" => "noVis", "alwaysVisible" => true, "orderable" => false],
+        ["title" => "Image", "name" => "image", "type" => "image", "orderable" => false],
         ["title" => "Libellé", "name" => "label", "type" => "text", "searchable" => true],
         ["title" => "Référence", "name" => "reference", "type" => "text", "searchable" => true],
         ["title" => "Code barre", "name" => "barCode", "type" => "text", "searchable" => true],
@@ -67,6 +68,12 @@ class RefArticleDataService {
         ["title" => "Gestionnaire(s)", "name" => "managers", "orderable" => false, "type" => "text"],
         ["title" => "Commentaire", "name" => "comment", "type" => "text", "orderable" => false],
         ["title" => "Commentaire d'urgence", "name" => "emergencyComment", "type" => "text", "orderable" => false],
+        ["title" => "Créée le", "name" => "createdAt", "type" => "date"],
+        ["title" => "Créée par", "name" => "createdBy", "type" => "text"],
+        ["title" => "Dernière modification le", "name" => "editedAt", "type" => "date"],
+        ["title" => "Dernière modification par", "name" => "editedBy", "type" => "text"],
+        ["title" => "Dernière entrée le", "name" => "lastStockEntry", "type" => "date"],
+        ["title" => "Dernière sortie le", "name" => "lastStockExit", "type" => "date"],
         ["title" => FiltreRef::FIXED_FIELD_VISIBILITY_GROUP, "name" => "visibilityGroups", "type" => "list multiple", "orderable" => true],
     ];
 
@@ -104,8 +111,7 @@ class RefArticleDataService {
     /** @Required */
     public AttachmentService $attachmentService;
 
-    /** @Required */
-    public MailerService $mailerService;
+    private ?array $freeFieldsConfig = null;
 
     public function __construct(TokenStorageInterface $tokenStorage,
                                 EntityManagerInterface $entityManager) {
@@ -245,10 +251,8 @@ class RefArticleDataService {
                                    $data,
                                    Utilisateur $user,
                                    FreeFieldService $champLibreService,
-                                   MouvementStockService $mouvementStockService,
-                                   $request = null)
-    {
-        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
+                                   $request = null) {
+        if(!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
             return new RedirectResponse($this->router->generate('access_denied'));
         }
         $typeRepository = $this->entityManager->getRepository(Type::class);
@@ -261,9 +265,7 @@ class RefArticleDataService {
         $entityManager = $this->entityManager;
         $category = $inventoryCategoryRepository->find($data['categorie']);
         $price = max(0, $data['prix']);
-        if (isset($data['reference'])) {
-            $refArticle->setReference($data['reference']);
-        }
+        if(isset($data['reference'])) $refArticle->setReference($data['reference']);
 
         if (isset($data['suppliers-to-remove']) && $data['suppliers-to-remove'] !== "") {
             $suppliers = $this->entityManager->getRepository(ArticleFournisseur::class)->findBy(['id' => explode(',', $data['suppliers-to-remove'])]);
@@ -271,35 +273,20 @@ class RefArticleDataService {
                 $refArticle->removeArticleFournisseur($supplier);
             }
         }
-        $sendMail = false;
-        if (isset($data['statut'])) {
-            $statut = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
-            if ($statut) {
-                if ($statut->getCode() == ReferenceArticle::STATUT_BROUILLON) {
-                    $statutActif = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, 'actif');
-                    $refArticle->setStatut($statutActif);
-                    $sendMail = true;
-                } else {
-                    $refArticle->setStatut($statut);
-                }
-            }
-        }
 
-        $isVisible = $refArticle->getStatut()->getCode() !== ReferenceArticle::STATUT_BROUILLON;
-        if (isset($data['frl'])) {
+        if(isset($data['frl'])) {
             $supplierReferenceLines = json_decode($data['frl'], true);
-            foreach ($supplierReferenceLines as $supplierReferenceLine) {
+            foreach($supplierReferenceLines as $supplierReferenceLine) {
                 $referenceArticleFournisseur = $supplierReferenceLine['referenceFournisseur'];
                 $existingSupplierArticle = $entityManager->getRepository(ArticleFournisseur::class)->findOneBy(['reference' => $referenceArticleFournisseur]);
 
-                if (!isset($existingSupplierArticle)) {
+                if(!isset($existingSupplierArticle)) {
                     try {
                         $supplierArticle = $this->articleFournisseurService->createArticleFournisseur([
                             'fournisseur' => $supplierReferenceLine['fournisseur'],
                             'article-reference' => $refArticle,
                             'label' => $supplierReferenceLine['labelFournisseur'],
-                            'reference' => $referenceArticleFournisseur,
-                            'visible' => $isVisible
+                            'reference' => $referenceArticleFournisseur
                         ]);
 
                         $entityManager->persist($supplierArticle);
@@ -310,43 +297,37 @@ class RefArticleDataService {
                             return $response;
                         }
                     }
-                } else {
-                    $existingSupplierArticle->setVisible($isVisible);
                 }
             }
         }
 
-        foreach($refArticle->getArticlesFournisseur() as $article){
-            $article->setVisible($isVisible);
-        }
-
-        if (isset($data['categorie'])) {
+        if(isset($data['categorie'])) {
             $refArticle->setCategory($category);
         }
 
-        if (isset($data['urgence'])) {
-            if ($data['urgence'] && $data['urgence'] !== $refArticle->getIsUrgent()) {
+        if(isset($data['urgence'])) {
+            if($data['urgence'] && $data['urgence'] !== $refArticle->getIsUrgent()) {
                 $refArticle->setUserThatTriggeredEmergency($user);
-            } else if (!$data['urgence']) {
+            } else if(!$data['urgence']) {
                 $refArticle->setUserThatTriggeredEmergency(null);
                 $refArticle->setEmergencyComment('');
             }
             $refArticle->setIsUrgent(filter_var($data['urgence'] ?? false, FILTER_VALIDATE_BOOLEAN));
         }
 
-        if (isset($data['prix'])) {
+        if(isset($data['prix'])) {
             $refArticle->setPrixUnitaire($price);
         }
 
-        if (isset($data['libelle'])) {
+        if(isset($data['libelle'])) {
             $refArticle->setLibelle($data['libelle']);
         }
 
-        if (isset($data['commentaire'])) {
+        if(isset($data['commentaire'])) {
             $refArticle->setCommentaire($data['commentaire']);
         }
 
-        if (isset($data['mobileSync'])) {
+        if(isset($data['mobileSync'])) {
             $refArticle->setNeedsMobileSync(filter_var($data['mobileSync'] ?? false, FILTER_VALIDATE_BOOLEAN));
         }
 
@@ -354,16 +335,25 @@ class RefArticleDataService {
         $refArticle->setLimitWarning((empty($data['limitWarning']) && $data['limitWarning'] !== 0 && $data['limitWarning'] !== '0') ? null : intval($data['limitWarning']));
         $refArticle->setLimitSecurity((empty($data['limitSecurity']) && $data['limitSecurity'] !== 0 && $data['limitSecurity'] !== '0') ? null : intval($data['limitSecurity']));
 
-        if ($data['emergency-comment-input']) {
+        if($data['emergency-comment-input']) {
             $refArticle->setEmergencyComment($data['emergency-comment-input']);
         }
 
-        if (isset($data['type'])) {
-            $type = $typeRepository->find(intval($data['type']));
-            if ($type) $refArticle->setType($type);
+        if(isset($data['statut'])) {
+            $statut = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
+            if($statut) {
+                $refArticle->setStatut($statut);
+            }
         }
 
-        $refArticle->setStockManagement($data['stockManagement'] ?? null)->setEditedBy($user)->setEditedAt(new DateTime('now'));
+        if(isset($data['type'])) {
+            $type = $typeRepository->find(intval($data['type']));
+            if($type) $refArticle->setType($type);
+        }
+
+        $refArticle->setStockManagement($data['stockManagement'] ?? null);
+
+
         $refArticle->getManagers()->clear();
         if (!empty($data["managers"])) {
             $managers = is_string($data["managers"]) ? explode(',', $data['managers']) : $data["managers"];
@@ -376,31 +366,12 @@ class RefArticleDataService {
             $refArticle->setVisibilityGroup($data['visibility-group'] ? $visibilityGroupRepository->find(intval($data['visibility-group'])) : null);
         }
 
-        if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE &&
-            $refArticle->getQuantiteStock() > 0 &&
-            $refArticle->getStatut()->getCode() !== ReferenceArticle::STATUT_BROUILLON) {
-            $mvtStock = $mouvementStockService->createMouvementStock(
-                $user,
-                null,
-                $refArticle->getQuantiteStock(),
-                $refArticle,
-                MouvementStock::TYPE_ENTREE
-            );
-            $mouvementStockService->finishMouvementStock(
-                $mvtStock,
-                new DateTime('now'),
-                $refArticle->getEmplacement()
-            );
-            $entityManager->persist($mvtStock);
-        }
-
-        $entityManager->persist($refArticle);
         $entityManager->flush();
         //modification ou création des champsLibres
 
         $champLibreService->manageFreeFields($refArticle, $data, $entityManager);
-        if (isset($request)) {
-            if ($request->files->has('image')) {
+        if(isset($request)) {
+            if($request->files->has('image')) {
                 $file = $request->files->get('image');
                 $attachments = $this->attachmentService->createAttachements([$file]);
                 $entityManager->persist($attachments[0]);
@@ -419,18 +390,13 @@ class RefArticleDataService {
             "id" => $refArticle->getId(),
         ];
         $response['edit'] = $rows;
-        if ($sendMail){
-            $this->sendMailCreateDraftOrDraftToActive($refArticle, $refArticle->getCreatedBy());
-        }
         return $response;
     }
 
-    public function dataRowRefArticle(ReferenceArticle $refArticle) {
-        $categorieCLRepository = $this->entityManager->getRepository(CategorieCL::class);
-        $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
-
-        $ffCategory = $categorieCLRepository->findOneBy(['label' => CategorieCL::REFERENCE_ARTICLE]);
-        $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, $ffCategory);
+    public function dataRowRefArticle(ReferenceArticle $refArticle): array {
+        if (!isset($this->freeFieldsConfig)) {
+            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::REFERENCE_ARTICLE, CategoryType::ARTICLE);
+        }
 
         $providerCodes = Stream::from($refArticle->getArticlesFournisseur())
             ->map(function(ArticleFournisseur $articleFournisseur) {
@@ -440,14 +406,15 @@ class RefArticleDataService {
             ->toArray();
 
         $providerLabels = Stream::from($refArticle->getArticlesFournisseur())
-            ->map(function(ArticleFournisseur $articleFournisseur) {
-                return $articleFournisseur->getFournisseur() ? $articleFournisseur->getFournisseur()->getNom() : '';
-            })
+            ->map(fn(ArticleFournisseur $articleFournisseur) => FormatHelper::provider($articleFournisseur->getFournisseur()))
             ->unique()
             ->toArray();
 
         $row = [
             "id" => $refArticle->getId(),
+            "image" => $this->templating->render('datatable/image.html.twig', [
+                "image" => $refArticle->getImage()
+            ]),
             "label" => $refArticle->getLibelle() ?? "Non défini",
             "reference" => $refArticle->getReference() ?? "Non défini",
             "quantityType" => $refArticle->getTypeQuantite() ?? "Non défini",
@@ -482,6 +449,12 @@ class RefArticleDataService {
                 })
                 ->unique()
                 ->join(", "),
+            "createdAt" => FormatHelper::datetime($refArticle->getCreatedAt()),
+            "createdBy" => $refArticle->getCreatedBy() ? FormatHelper::user($refArticle->getCreatedBy()) : "-",
+            "lastStockEntry" => FormatHelper::datetime($refArticle->getLastStockEntry()),
+            "editedAt" => FormatHelper::datetime($refArticle->getEditedAt()),
+            "editedBy" => FormatHelper::user($refArticle->getEditedBy()),
+            "lastStockExit" => FormatHelper::datetime($refArticle->getLastStockExit()),
             "actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
                 "attachmentsLength" => $refArticle->getAttachments()->count(),
                 "reference_id" => $refArticle->getId(),
@@ -493,27 +466,30 @@ class RefArticleDataService {
             ),
         ];
 
-        foreach($freeFields as $freeField) {
-            $freeFieldId = $freeField["id"];
+        foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
             $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
-            $row[$freeFieldName] = $this->freeFieldService->serializeValue([
-                "valeur" => $refArticle->getFreeFieldValue($freeFieldId),
-                "typage" => $freeField["typage"],
-            ]);
+            $freeFieldValue = $refArticle->getFreeFieldValue($freeFieldId);
+            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField);
         }
+
         return $row;
     }
 
-    public function addRefToDemand($data,
-                                   $referenceArticle,
-                                   Utilisateur $user,
-                                   bool $fromNomade,
-                                   EntityManagerInterface $entityManager,
-                                   Demande $demande,
-                                   ?FreeFieldService $champLibreService, $editRef = true, $fromCart = false) {
+    public function addReferenceToRequest(array                  $data,
+                                          ReferenceArticle       $referenceArticle,
+                                          Utilisateur            $user,
+                                          bool                   $fromNomade,
+                                          EntityManagerInterface $entityManager,
+                                          Demande                $demande,
+                                          ?FreeFieldService      $champLibreService, $editRef = true, $fromCart = false) {
         $resp = true;
         $articleRepository = $entityManager->getRepository(Article::class);
         $referenceLineRepository = $entityManager->getRepository(DeliveryRequestReferenceLine::class);
+
+        $targetLocationPicking = isset($data['target-location-picking'])
+            ? $entityManager->find(Emplacement::class, $data['target-location-picking'])
+            : null;
+
         // cas gestion quantité par référence
         if($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
             if($fromNomade || $referenceLineRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
@@ -521,6 +497,7 @@ class RefArticleDataService {
                 $line
                     ->setReference($referenceArticle)
                     ->setRequest($demande)
+                    ->setTargetLocationPicking($targetLocationPicking)
                     ->setQuantityToPick(max($data["quantity-to-pick"], 0)); // protection contre quantités négatives
                 $entityManager->persist($line);
                 $demande->addReferenceLine($line);
@@ -539,7 +516,8 @@ class RefArticleDataService {
                     $line
                         ->setQuantityToPick(max($data["quantity-to-pick"], 0))// protection contre quantités négatives
                         ->setReference($referenceArticle)
-                        ->setRequest($demande);
+                        ->setRequest($demande)
+                        ->setTargetLocationPicking($targetLocationPicking);
                     $entityManager->persist($line);
                 } else {
                     $line = $referenceLineRepository->findOneByRefArticleAndDemande($referenceArticle, $demande, true);
@@ -551,7 +529,8 @@ class RefArticleDataService {
                 $line
                     ->setQuantityToPick(max($data["quantity-to-pick"], 0))// protection contre quantités négatives
                     ->setArticle($article)
-                    ->setRequest($demande);
+                    ->setRequest($demande)
+                    ->setTargetLocationPicking($targetLocationPicking);
                 $entityManager->persist($line);
                 $resp = 'article';
             }
@@ -841,28 +820,6 @@ class RefArticleDataService {
                 $reference->setOrderState(null);
             }
         }
-    }
-
-    public function sendMailCreateDraftOrDraftToActive(ReferenceArticle $refArticle, $to , bool $state = false)
-    {
-        $supplierArticles = $refArticle->getArticlesFournisseur();
-        $title = $state ?
-            "Une nouvelle référence vient d'être créée et attend d'être validée :" :
-            "Votre référence vient d'être validée avec les informations suivantes :";
-
-        $this->mailerService->sendMail(
-            'FOLLOW GT // ' . ($state ? "Création d'une nouvelle référence" : "Validation de votre référence"),
-            $this->templating->render(
-                'mails/contents/mailCreateDraftOrDraftToActive.html.twig',
-                [
-                    'title' => $title,
-                    'refArticle' => $refArticle,
-                    'supplierArticles' => $supplierArticles,
-                    'urlSuffix' => $this->router->generate("reference_article_show_page", ["id" => $refArticle->getId()])
-                ]
-            ),
-            $to
-        );
     }
 
 }

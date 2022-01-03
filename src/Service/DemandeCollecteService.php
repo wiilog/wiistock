@@ -11,6 +11,7 @@ use App\Entity\Collecte;
 use App\Entity\CollecteReference;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
+use App\Entity\FreeField;
 use App\Entity\IOT\Pairing;
 use App\Entity\OrdreCollecte;
 use App\Entity\ReferenceArticle;
@@ -268,17 +269,13 @@ class DemandeCollecteService
 
     public function serialiseExportRow(Collecte $collect,
                                        array $freeFieldsConfig,
-                                       FreeFieldService $freeFieldService,
                                        callable $getSpecificColumn) {
-
         $collecteData = $collect->serialize();
 
         $freeFieldsData = [];
-        foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
-            $freeFieldsData[] = $freeFieldService->serializeValue([
-                'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
-                'valeur' => $collecteData['freeFields'][$freeFieldId] ?? ""
-            ]);
+
+        foreach($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
+            $freeFieldsData[] = FormatHelper::freeField($collecteData['freeFields'][$freeFieldId] ?? '', $freeField);
         }
 
         unset($collecteData['freeFields']);

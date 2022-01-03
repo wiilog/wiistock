@@ -2,15 +2,18 @@
 
 namespace App\Service;
 
+use App\Entity\Action;
 use App\Entity\CategoryType;
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
 use App\Entity\FieldsParam;
 use App\Entity\FreeField;
+use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Translation;
 use App\Entity\Utilisateur;
+use App\Repository\ParametrageGlobalRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use WiiCommon\Helper\Stream;
@@ -86,5 +89,22 @@ class MobileApiService {
             }
         }
         return $color;
+    }
+
+    public function getMobileParameters(ParametrageGlobalRepository $globalsParameters): array {
+        return Stream::from([
+            "skipValidationsManualTransfer" => $globalsParameters->getOneParamByLabel(ParametrageGlobal::MANUAL_TRANSFER_TO_TREAT_SKIP_VALIDATIONS),
+            "skipValidationsLivraisons" => $globalsParameters->getOneParamByLabel(ParametrageGlobal::LIVRAISON_SKIP_VALIDATIONS),
+            "skipQuantitiesLivraisons" => $globalsParameters->getOneParamByLabel(ParametrageGlobal::LIVRAISON_SKIP_QUANTITIES),
+            "skipValidationsToTreatTransfer" => $globalsParameters->getOneParamByLabel(ParametrageGlobal::TRANSFER_TO_TREAT_SKIP_VALIDATIONS),
+            "displayReferencesOnTransferCards" => $globalsParameters->getOneParamByLabel(ParametrageGlobal::TRANSFER_DISPLAY_REFERENCES_ON_CARDS),
+            "dropOnFreeLocation" => $globalsParameters->getOneParamByLabel(ParametrageGlobal::TRANSFER_FREE_DROP),
+            "displayTargetLocationPicking" => $globalsParameters->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION),
+            "skipValidationsPreparations" => $globalsParameters->getOneParamByLabel(ParametrageGlobal::PREPARATION_SKIP_VALIDATIONS),
+            "skipQuantitiesPreparations" => $globalsParameters->getOneParamByLabel(ParametrageGlobal::PREPARATION_SKIP_QUANTITIES),
+            "preparationDisplayArticleWithoutManual" => $globalsParameters->getOneParamByLabel(ParametrageGlobal::PREPARATION_DISPLAY_ARTICLES_WITHOUT_MANUAL),
+        ])
+            ->keymap(fn($value, string $key) => [$key, $value == 1])
+            ->toArray();
     }
 }

@@ -15,6 +15,7 @@ use App\Entity\Parametre;
 use App\Entity\ParametreRole;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Reception;
+use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
 
 use App\Helper\FormatHelper;
@@ -128,43 +129,42 @@ class UserService
 		return $response;
 	}
 
-    /**
-     * @param Utilisateur|int $user
-     * @return bool
-     */
-	public function isUsedByDemandsOrOrders($user)
-	{
-	    $collecteRepository = $this->entityManager->getRepository(Collecte::class);
-	    $demandeRepository = $this->entityManager->getRepository(Demande::class);
-	    $livraisonRepository = $this->entityManager->getRepository(Livraison::class);
-	    $ordreCollecteRepository = $this->entityManager->getRepository(OrdreCollecte::class);
-	    $handlingRepository = $this->entityManager->getRepository(Handling::class);
-	    $preparationRepository = $this->entityManager->getRepository(Preparation::class);
-        $receptionRepository = $this->entityManager->getRepository(Reception::class);
-        $dispatchRepository = $this->entityManager->getRepository(Dispatch::class);
-        $arrivageRepository = $this->entityManager->getRepository(Arrivage::class);
+	public function getUserOwnership(EntityManagerInterface $entityManager,
+                                     Utilisateur $user): array {
+	    $collecteRepository = $entityManager->getRepository(Collecte::class);
+	    $demandeRepository = $entityManager->getRepository(Demande::class);
+	    $livraisonRepository = $entityManager->getRepository(Livraison::class);
+	    $ordreCollecteRepository = $entityManager->getRepository(OrdreCollecte::class);
+	    $handlingRepository = $entityManager->getRepository(Handling::class);
+	    $preparationRepository = $entityManager->getRepository(Preparation::class);
+        $receptionRepository = $entityManager->getRepository(Reception::class);
+        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+        $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+        $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
 
-        $isUsedInRequests = $demandeRepository->countByUser($user) > 0;
-        $isUsedInCollects = $collecteRepository->countByUser($user) > 0;
-        $isUsedInDeliveryOrders = $livraisonRepository->countByUser($user) > 0;
-        $isUsedInCollectOrders = $ordreCollecteRepository->countByUser($user) > 0;
-        $isUsedInHandlings = $handlingRepository->countByUser($user) > 0;
-        $isUsedInPreparationOrders = $preparationRepository->count(['utilisateur' => $user]) > 0;
-        $isUsedInReceptions = $receptionRepository->countByUser($user) > 0;
-        $isUsedInDispatches = $dispatchRepository->countByUser($user) > 0;
-        $isUsedInArrivals = $arrivageRepository->countByUser($user) > 0;
+        $isUsedInRequests = $demandeRepository->countByUser($user);
+        $isUsedInCollects = $collecteRepository->countByUser($user);
+        $isUsedInDeliveryOrders = $livraisonRepository->countByUser($user);
+        $isUsedInCollectOrders = $ordreCollecteRepository->countByUser($user);
+        $isUsedInHandlings = $handlingRepository->countByUser($user);
+        $isUsedInPreparationOrders = $preparationRepository->count(['utilisateur' => $user]);
+        $isUsedInReceptions = $receptionRepository->countByUser($user);
+        $isUsedInDispatches = $dispatchRepository->countByUser($user);
+        $isUsedInArrivals = $arrivageRepository->countByUser($user);
+        $hasTrackingMovement = $trackingMovementRepository->count(['operateur' => $user]);
 
-		return (
-            $isUsedInRequests
-            || $isUsedInCollects
-            || $isUsedInDeliveryOrders
-            || $isUsedInCollectOrders
-            || $isUsedInHandlings
-            || $isUsedInPreparationOrders
-            || $isUsedInReceptions
-            || $isUsedInDispatches
-            || $isUsedInArrivals
-        );
+        return [
+            'demande(s) de livraison' => $isUsedInRequests,
+            'demande(s) de collecte' => $isUsedInCollects,
+            'ordre(s) de livraison' => $isUsedInDeliveryOrders,
+            'ordre(s) de collecte' => $isUsedInCollectOrders,
+            'demande(s) de service' => $isUsedInHandlings,
+            'ordre(s) de préparation' => $isUsedInPreparationOrders,
+            'reception(s)' => $isUsedInReceptions,
+            'acheminement(s)' => $isUsedInDispatches,
+            'arrivage(s)' => $isUsedInArrivals,
+            'mouvement(s) de traçabilité' => $hasTrackingMovement,
+        ];
 	}
 
 	public function createUniqueMobileLoginKey(EntityManagerInterface $entityManager): string {

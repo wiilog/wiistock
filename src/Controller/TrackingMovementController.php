@@ -505,14 +505,12 @@ class TrackingMovementController extends AbstractController
                         $attachmentsNameByTracking,
                         $CSVExportService,
                         $trackingMovementService,
-                        $freeFieldsConfig,
-                        $freeFieldService
+                        $freeFieldsConfig
                     ) {
                         foreach ($trackingMovements as $movement) {
                             $trackingMovementService->putMovementLine(
                                 $output,
                                 $CSVExportService,
-                                $freeFieldService,
                                 $movement,
                                 $attachmentsNameByTracking,
                                 $freeFieldsConfig

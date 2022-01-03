@@ -65,6 +65,12 @@ class TransferOrder implements Serializable {
      */
     private $stockMovements;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=Emplacement::class, inversedBy="transferOrders")
+     * @ORM\JoinColumn(nullable=true)
+     */
+    private ?Emplacement $dropLocation = null;
+
     public function __construct()
     {
         $this->stockMovements = new ArrayCollection();
@@ -175,6 +181,21 @@ class TransferOrder implements Serializable {
         return $this;
     }
 
+    public function getDropLocation(): ?Emplacement {
+        return $this->dropLocation;
+    }
+
+    public function setDropLocation(?Emplacement $dropLocation): self {
+        if($this->dropLocation && $this->dropLocation !== $dropLocation) {
+            $this->dropLocation->removeTransferOrder($this);
+        }
+        $this->dropLocation = $dropLocation;
+        if($dropLocation) {
+            $dropLocation->addTransferOrder($this);
+        }
+        return $this;
+    }
+
     public function serialize(): array {
         return [
             'number' => $this->getNumber(),
@@ -186,8 +207,7 @@ class TransferOrder implements Serializable {
             'destination' => FormatHelper::location($this->getRequest()->getDestination()),
             'creationDate' => FormatHelper::datetime($this->getCreationDate()),
             'transferDate' => FormatHelper::datetime($this->getTransferDate()),
-            'comment' => FormatHelper::html($this->getRequest()->getComment())
+            'comment' => FormatHelper::html($this->getRequest()->getComment()),
         ];
     }
-
 }

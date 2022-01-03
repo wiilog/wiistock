@@ -172,19 +172,20 @@ function initPageDatatable() {
     let pathArticle = Routing.generate('demande_article_api', {id: $('#demande-id').val()}, true);
     let tableArticleConfig = {
         processing: true,
-        order: [['Référence', "desc"]],
+        order: [['reference', "desc"]],
         ajax: {
             "url": pathArticle,
             "type": "POST"
         },
         columns: [
-            {"data": 'Actions', 'title': '', className: 'noVis', orderable: false},
-            {"data": 'Référence', 'title': 'Référence'},
-            {"data": 'barcode', 'title': 'Code barre'},
-            {"data": 'Libellé', 'title': 'Libellé'},
-            {"data": 'Emplacement', 'title': 'Emplacement'},
-            {"data": 'quantityToPick', 'title': 'Quantité à prélever'},
-            {"data": 'error', 'title': 'Erreur', visible: false},
+            {data: 'Actions', title: '', className: 'noVis', orderable: false},
+            {data: 'reference', title: 'Référence'},
+            {data: 'barcode', title: 'Code barre'},
+            {data: 'label', title: 'Libellé'},
+            {data: 'location', title: 'Emplacement'},
+            {data: 'targetLocationPicking', title: 'Emplacement cible picking', visible: Number($(`input[name=showTargetLocationPicking]`).val())},
+            {data: 'quantityToPick', title: 'Quantité à prélever'},
+            {data: 'error', title: 'Erreur', visible: false},
         ],
         rowConfig: {
             needsRowClickAction: true,

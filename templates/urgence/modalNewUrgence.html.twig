@@ -15,14 +15,21 @@
                     <div class="col-6">
                         <div class="form-group">
                             <label for="dateStart" title="date de début">{{ 'urgences.date de début'|trans }}*</label>
-                            <input type="text" class="form-control cursor-default data needed date first-date" id="dateStart" name="dateStart" placeholder="jj/mm/aaaa">
+                            <input type="datetime-local" class="form-control cursor-default data needed date first-date"
+                                   min="{{ date('today midnight') | date('Y-m-d\\TH:i') }}"
+                                   value="{{ date('today midnight') | date('Y-m-d\\TH:i') }}"
+                                   placeholder="jj/mm/aaaa"
+                                   id="dateStart" name="dateStart">
                         </div>
                     </div>
 
                     <div class="col-6">
                         <div class="form-group">
                             <label for="dateEnd" title="date de fin">{{ 'urgences.date de fin'|trans }}*</label>
-                            <input type="text" class="form-control cursor-default data needed date last-date" id="dateEnd" name="dateEnd" placeholder="jj/mm/aaaa">
+                            <input type="datetime-local" class="form-control cursor-default data needed date last-date" id="dateEnd" name="dateEnd"
+                                   min="{{ date('today midnight') | date('Y-m-d\\TH:i') }}"
+                                   value="{{ date('today 23:59') | date('Y-m-d\\TH:i') }}"
+                                   placeholder="jj/mm/aaaa">
                         </div>
                     </div>
                 </div>

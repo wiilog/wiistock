@@ -40,7 +40,10 @@ class TrackingMovementService
     private $security;
     private $entityManager;
     private $attachmentService;
-    private $freeFieldService;
+
+    /** @Required */
+    public FreeFieldService $freeFieldService;
+
     private $locationClusterService;
     private $visibleColumnService;
     private $groupService;
@@ -48,12 +51,13 @@ class TrackingMovementService
     /** @Required */
     public MouvementStockService $stockMovementService;
 
-    private array $stockStatuses = [];
+    public array $stockStatuses = [];
+
+    private ?array $freeFieldsConfig = null;
 
     public function __construct(EntityManagerInterface $entityManager,
                                 LocationClusterService $locationClusterService,
                                 Twig_Environment $templating,
-                                FreeFieldService $freeFieldService,
                                 Security $security,
                                 GroupService $groupService,
                                 VisibleColumnService $visibleColumnService,
@@ -64,7 +68,6 @@ class TrackingMovementService
         $this->security = $security;
         $this->attachmentService = $attachmentService;
         $this->locationClusterService = $locationClusterService;
-        $this->freeFieldService = $freeFieldService;
         $this->visibleColumnService = $visibleColumnService;
         $this->groupService = $groupService;
     }
@@ -74,8 +77,10 @@ class TrackingMovementService
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $trackingMovementRepository = $this->entityManager->getRepository(TrackingMovement::class);
 
-        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MVT_TRACA, $this->security->getUser());
-        $queryResult = $trackingMovementRepository->findByParamsAndFilters($params, $filters, $this->security->getUser());
+        /** @var Utilisateur $user */
+        $user = $this->security->getUser();
+        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_MVT_TRACA, $user);
+        $queryResult = $trackingMovementRepository->findByParamsAndFilters($params, $filters, $user, $this->visibleColumnService);
 
         $mouvements = $queryResult['data'];
 
@@ -126,19 +131,16 @@ class TrackingMovementService
         return $data;
     }
 
-    public function dataRowMouvement(TrackingMovement $movement)
-    {
+    public function dataRowMouvement(TrackingMovement $movement): array {
         $fromColumnData = $this->getFromColumnData($movement);
 
-        $categoryFFRepository = $this->entityManager->getRepository(CategorieCL::class);
-        $freeFieldsRepository = $this->entityManager->getRepository(FreeField::class);
-
-        $categoryFF = $categoryFFRepository->findOneBy(['label' => CategorieCL::MVT_TRACA]);
-        $category = CategoryType::MOUVEMENT_TRACA;
-        $freeFields = $freeFieldsRepository->getByCategoryTypeAndCategoryCL($category, $categoryFF);
         $trackingPack = $movement->getPack();
 
-        $rows = [
+        if (!isset($this->freeFieldsConfig)) {
+            $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::MVT_TRACA, CategoryType::MOUVEMENT_TRACA);
+        }
+
+        $row = [
             'id' => $movement->getId(),
             'date' => FormatHelper::datetime($movement->getDatetime()),
             'code' => FormatHelper::pack($trackingPack),
@@ -170,15 +172,13 @@ class TrackingMovementService
             ])
         ];
 
-        foreach ($freeFields as $freeField) {
-            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeField['id']);
-            $rows[$freeFieldName] = $this->freeFieldService->serializeValue([
-                "valeur" => $movement->getFreeFieldValue($freeField["id"]),
-                "typage" => $freeField["typage"],
-            ]);
+        foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
+            $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
+            $freeFieldValue = $movement->getFreeFieldValue($freeFieldId);
+            $row[$freeFieldName] = FormatHelper::freeField($freeFieldValue, $freeField);
         }
 
-        return $rows;
+        return $row;
     }
 
     public function handleGroups(array $data, EntityManagerInterface $entityManager, Utilisateur $operator, DateTime $date): array {
@@ -195,13 +195,13 @@ class TrackingMovementService
             ];
         } else {
             $errors = [];
-            $colisArray = explode(',', $data['colis']);
-            foreach ($colisArray as $colis) {
-                $pack = $packRepository->findOneBy(['code' => $colis]);
+            $packCodes = explode(',', $data['colis']);
+            foreach ($packCodes as $packCode) {
+                $pack = $packRepository->findOneBy(['code' => $packCode]);
                 $isParentPack = $pack && $pack->isGroup();
                 $isChildPack = $pack && $pack->getParent();
                 if ($isParentPack || $isChildPack) {
-                    $errors[] = $colis;
+                    $errors[] = $packCode;
                 }
             }
 
@@ -241,9 +241,12 @@ class TrackingMovementService
                     $createdMovements[] = $groupingTrackingMovement;
                 }
 
-                foreach ($colisArray as $colis) {
+                foreach ($packCodes as $packCode) {
+                    $pack = $this->persistPack($entityManager, $packCode, 1, null);
+                    $location = $location ?? ($pack->getLastTracking() ? $pack->getLastTracking()->getEmplacement() : null);
+
                     $groupingTrackingMovement = $this->createTrackingMovement(
-                        $colis,
+                        $pack,
                         null,
                         $operator,
                         $date,
@@ -256,10 +259,7 @@ class TrackingMovementService
                         ]
                     );
 
-                    $pack = $groupingTrackingMovement->getPack();
-                    if ($pack) {
-                        $pack->setParent($parentPack);
-                    }
+                    $pack->setParent($parentPack);
 
                     $entityManager->persist($groupingTrackingMovement);
                     $createdMovements[] = $groupingTrackingMovement;
@@ -625,7 +625,6 @@ class TrackingMovementService
 
     public function putMovementLine($handle,
                                     CSVExportService $CSVExportService,
-                                    FreeFieldService $freeFieldService,
                                     array $movement,
                                     array $attachement,
                                     array $freeFieldsConfig)
@@ -663,11 +662,8 @@ class TrackingMovementService
             $movement['packParent'],
         ];
 
-        foreach ($freeFieldsConfig['freeFieldIds'] as $freeFieldId) {
-            $data[] = $freeFieldService->serializeValue([
-                'typage' => $freeFieldsConfig['freeFieldsIdToTyping'][$freeFieldId],
-                'valeur' => $movement['freeFields'][$freeFieldId] ?? ''
-            ]);
+        foreach ($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
+            $data[] = FormatHelper::freeField($movement['freeFields'][$freeFieldId] ?? '', $freeField);
         }
         $CSVExportService->putLine($handle, $data);
     }

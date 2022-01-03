@@ -868,7 +868,9 @@ class ReceptionController extends AbstractController {
                     $articles[] = [
                         'id' => $article->getId(),
                         'text' => $article->getBarCode(),
-                        'numReception' => $article->getReceptionReferenceArticle()];
+                        'numReception' => $article->getReceptionReferenceArticle(),
+                        'isUrgent' => $article->getReceptionReferenceArticle()->getEmergencyTriggered() ?? false,
+                        ];
                 }
             }
         }

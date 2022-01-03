@@ -4,7 +4,9 @@
 namespace App\Service;
 
 
+use App\Entity\FreeField;
 use App\Entity\Utilisateur;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query\Expr\Orx;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -14,6 +16,9 @@ class VisibleColumnService {
 
     /** @Required */
     public TranslatorInterface $translator;
+
+    /** @Required  */
+    public EntityManagerInterface $entityManager;
 
     public function getArrayConfig(array $fields,
                                    array $freeFields = [],
@@ -86,13 +91,24 @@ class VisibleColumnService {
         $user->setVisibleColumns($visibleColumns);
     }
 
-    public static function getSearchableColumns(array $conditions, string $entity, QueryBuilder $qb, Utilisateur $user): Orx {
+    public function getSearchableColumns(array $conditions, string $entity, QueryBuilder $qb, Utilisateur $user, ?string $search): Orx
+    {
         $condition = $qb->expr()->orX();
         $queryBuilderAlias = $qb->getRootAliases()[0];
+        $freeFieldRepository = $this->entityManager->getRepository(FreeField::class);
 
         foreach($user->getVisibleColumns()[$entity] as $column) {
             if(str_starts_with($column, "free_field_")) {
                 $id = str_replace("free_field_", "", $column);
+                $freeField = $freeFieldRepository->find($id);
+                if ($freeField->getTypage() === FreeField::TYPE_BOOL) {
+                    $lowerSearchValue = strtolower($search);
+                    if (($lowerSearchValue === "oui") || ($lowerSearchValue === "non")) {
+                        $booleanValue = $lowerSearchValue === "oui" ? '1' : '0';
+                        $condition->add("JSON_SEARCH(${queryBuilderAlias}.freeFields, 'one', :boolean_value, NULL, '$.\"${id}\"') IS NOT NULL");
+                        $qb->setParameter("boolean_value", $booleanValue);
+                    }
+                }
                 $condition->add("JSON_EXTRACT(${queryBuilderAlias}.freeFields, '$.\"$id\"') LIKE :search_value");
                 $condition->add("DATE_FORMAT(STR_TO_DATE(TRIM('\"' FROM JSON_EXTRACT(${queryBuilderAlias}.freeFields, '$.\"$id\"')), '%Y-%m-%dT%H:%i'), '%d/%m/%Y %H:%i') LIKE :search_value");
             } else if(isset($conditions[$column])) {

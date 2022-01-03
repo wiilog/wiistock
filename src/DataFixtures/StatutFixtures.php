@@ -51,7 +51,7 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
     		CategorieStatut::REFERENCE_ARTICLE => [
     			ReferenceArticle::STATUT_ACTIF,
 				ReferenceArticle::STATUT_INACTIF,
-				ReferenceArticle::STATUT_BROUILLON
+                ReferenceArticle::DRAFT_STATUS
 			],
 			CategorieStatut::ARTICLE => [
 				Article::STATUT_ACTIF,

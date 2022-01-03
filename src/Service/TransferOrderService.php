@@ -83,7 +83,8 @@ class TransferOrderService {
      */
     public function finish(TransferOrder $order,
                            Utilisateur $operator,
-                           EntityManagerInterface $entityManager) {
+                           EntityManagerInterface $entityManager,
+                           ?Emplacement $destination = null) {
         $oldOrderStatus = $order->getStatus();
         if (!$oldOrderStatus || $oldOrderStatus->getCode() === TransferRequest::TO_TREAT) {
             $request = $order->getRequest();
@@ -97,6 +98,10 @@ class TransferOrderService {
                 ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSFER_ORDER, TransferRequest::TREATED);
 
             $request->setStatus($treatedRequest);
+
+            if($destination) {
+                $order->setDropLocation($destination);
+            }
             $order
                 ->setStatus($treatedOrder)
                 ->setOperator($operator)
@@ -224,6 +229,7 @@ class TransferOrderService {
             ['label' => 'Opérateur', 'value' => FormatHelper::user($order->getOperator())],
             ['label' => 'Origine', 'value' => FormatHelper::location($request->getOrigin())],
             ['label' => 'Destination', 'value' => FormatHelper::location($request->getDestination())],
+            ['label' => 'Dépose réelle', 'value' => FormatHelper::location($order->getDropLocation())],
             ['label' => 'Date de création', 'value' => FormatHelper::datetime($order->getCreationDate())],
             ['label' => 'Date de transfert', 'value' => FormatHelper::datetime($order->getTransferDate())],
             [

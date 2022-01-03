@@ -181,7 +181,9 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface {
             ],
             ParametrageGlobal::DEFAULT_LOCATION_RECEPTION => [],
             ParametrageGlobal::DEFAULT_LOCATION_REFERENCE => [],
-            ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON => [],
+            ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON => [
+                'default' => [],
+            ],
             ParametrageGlobal::MVT_DEPOSE_DESTINATION => [],
             ParametrageGlobal::DROP_OFF_LOCATION_IF_CUSTOMS => [],
             ParametrageGlobal::DROP_OFF_LOCATION_IF_EMERGENCY => [],

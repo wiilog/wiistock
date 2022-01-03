@@ -1,6 +1,6 @@
 const MAX_UPLOAD_FILE_SIZE = 10000000;
 const MAX_IMAGE_PIXELS = 1000000;
-const ALLOWED_IMAGE_EXTENSIONS = ['PNG', 'png', 'JPEG', 'jpeg', 'JPG','jpg','svg'];
+const ALLOWED_IMAGE_EXTENSIONS = ['gif', 'png', 'jpeg', 'jpg', 'svg'];
 
 const PAGE_PURCHASE_REQUEST = 'rpurchase';
 const PAGE_TRANSFER_REQUEST = 'rtransfer';
@@ -674,7 +674,7 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax, #expectedDate', for
         options.disabledDates = disableDates;
     }
     if (minDate) {
-        options.minDate = moment().hours(0).minutes(0).seconds(0);
+        options.minDate = moment().subtract(1, "days").hours(23).minutes(59).seconds(59);
     }
     if (defaultHours !== null && defaultMinutes !== null) {
         options.defaultDate = moment().hours(defaultHours).minutes(defaultMinutes);
@@ -1067,7 +1067,7 @@ function updateImagePreview(preview, upload, $title = null, $delete = null, $cal
             let extension = fileNameWithExtension[fileNameWithExtension.length - 1];
 
             if ($upload.files[0].size < MAX_UPLOAD_FILE_SIZE) {
-                if (ALLOWED_IMAGE_EXTENSIONS.indexOf(extension) !== -1) {
+                if (ALLOWED_IMAGE_EXTENSIONS.indexOf(extension.toLowerCase()) !== -1) {
                     if ($title) {
                         $title.text(fileNameWithExtension.join('.').substr(0, 5) + '...');
                         $title.attr('title', fileNameWithExtension.join('.'));

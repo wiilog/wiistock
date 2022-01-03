@@ -104,6 +104,7 @@ function initTableRefArticle() {
                     columns,
                     tableFilter: 'tableRefArticle_id_filter'
                 },
+                page: 'reference'
             };
 
             pageTables = initDataTable('tableRefArticle_id', tableRefArticleConfig);

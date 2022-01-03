@@ -9,8 +9,7 @@
     {% endif %}
 
     {% include 'filters/filter_item/filterUser.html.twig' %}
-    {% include 'filters/filter_item/filterType.html.twig' with {
-        arrivalType: false } %}
+    {% include 'filters/filter_item/filterType.html.twig' %}
 
     {% if page == 'PAGE_HAND' %}
         {% include 'filters/filter_item/filterSubject.html.twig' %}

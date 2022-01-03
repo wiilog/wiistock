@@ -101,7 +101,7 @@ class TrackingMovementRepository extends EntityRepository
             ->toIterable();
     }
 
-    public function findByParamsAndFilters(InputBag $params, ?array $filters, Utilisateur $user): array
+    public function findByParamsAndFilters(InputBag $params, ?array $filters, Utilisateur $user, VisibleColumnService $visibleColumnService): array
     {
         $qb = $this->createQueryBuilder('tracking_movement');
 
@@ -167,7 +167,7 @@ class TrackingMovementRepository extends EntityRepository
                         "operator" => "search_operator.username LIKE :search_value",
                     ];
 
-                    $condition = VisibleColumnService::getSearchableColumns($conditions, 'trackingMovement', $qb, $user);
+                    $condition = $visibleColumnService->getSearchableColumns($conditions, 'trackingMovement', $qb, $user, $search);
 
                     $qb
                         ->andWhere($condition)

@@ -168,15 +168,9 @@ div.DTCR_pointer {
     z-index: 201
 }
 
-thead th, thead td {
-    border-bottom: none !important;
-}
-
-.dataTables_scrollHead thead th, .dataTables_scrollHead thead td {
-    border-bottom: 1px solid $grey !important;
-}
-
-.dataTables_scrollBody tbody th, .dataTables_scrollBody tbody td {
+.dataTables_scrollHead thead th,
+.dataTables_scrollBody tbody td {
+    border: none;
     border-bottom: 1px solid $grey !important;
 }
 
@@ -192,4 +186,13 @@ thead th, thead td {
 
 th.hideOrder {
     background-image: none !important;
+}
+
+.dt-image {
+    width: 80px;
+    height: 80px;
+    max-width: 80px !important;
+    max-height: 80px !important;
+    object-fit: cover;
+    border-radius: 5px;
 }
