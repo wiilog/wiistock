@@ -75,9 +75,9 @@ class ParametrageGlobal {
     const FONT_MYRIAD = 'Myriad';
 
     const FONTS = [
-        ParametrageGlobal::FONT_MONTSERRAT,
-        ParametrageGlobal::FONT_TAHOMA,
-        ParametrageGlobal::FONT_MYRIAD
+        ParametrageGlobal::FONT_MONTSERRAT => ParametrageGlobal::FONT_MONTSERRAT,
+        ParametrageGlobal::FONT_TAHOMA => ParametrageGlobal::FONT_TAHOMA,
+        ParametrageGlobal::FONT_MYRIAD => ParametrageGlobal::FONT_MYRIAD
     ];
 
     // dispatches
