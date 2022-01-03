@@ -1,5 +1,5 @@
 import '../../scss/pages/settings.scss';
-import EditableDatatable, {MODE_ADD_ONLY, MODE_DOUBLE_CLICK, SAVE_MANUALLY} from "../editatable";
+import EditableDatatable, {MODE_ADD_ONLY, MODE_DOUBLE_CLICK, MODE_NO_EDIT, SAVE_MANUALLY} from "../editatable";
 import Flash from '../flash';
 
 const settings = JSON.parse($(`input#settings`).val());
@@ -24,7 +24,9 @@ const slowOperations = [
 const $saveButton = $(`.save-settings`);
 
 $(document).ready(() => {
-    updateTitle(submenu || menu);
+    let canEdit = $(`input#edit`).val();
+
+    updateTitle(submenu || menu, edit);
 
     $(`.settings-item`).on(`click`, function() {
         const selectedMenu = $(this).data(`menu`);
@@ -35,7 +37,7 @@ $(document).ready(() => {
         $(`.settings main .wii-box`).addClass(`d-none`);
         $(`.settings main .wii-box[data-menu="${selectedMenu}"]`).removeClass(`d-none`);
 
-        updateTitle(selectedMenu);
+        updateTitle(selectedMenu, edit);
     });
 
     $saveButton.on(`click`, async function() {
@@ -98,7 +100,7 @@ function getSubmenuLabel() {
     }
 }
 
-function updateTitle(selectedMenu) {
+function updateTitle(selectedMenu, canEdit) {
     let title;
     if(!submenu) {
         menu = selectedMenu;
@@ -117,7 +119,7 @@ function updateTitle(selectedMenu) {
         currentForm = path;
         forms[path] = {
             element: $element,
-            ...(initializers[path] ? initializers[path]($element) : []),
+            ...(initializers[path] ? initializers[path]($element, canEdit) : []),
         };
     }
 
@@ -131,12 +133,12 @@ function updateTitle(selectedMenu) {
     history.pushState({}, title, url);
 }
 
-function initializeWorkingHours($container) {
+function initializeWorkingHours($container, canEdit) {
     $saveButton.hide();
 
     const table = EditableDatatable.create(`#table-working-hours`, {
         route: Routing.generate('settings_working_hours_api', true),
-        edit: MODE_DOUBLE_CLICK,
+        edit: canEdit ? MODE_DOUBLE_CLICK : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         onEditStart: () => $saveButton.show(),
         onEditStop: () => $saveButton.hide(),
@@ -148,7 +150,7 @@ function initializeWorkingHours($container) {
     });
 }
 
-function initializeOffDays($container) {
+function initializeOffDays($container, canEdit) {
     const $addButton = $container.find(`.add-row-button`);
     const $tableHeader = $(`.wii-page-card-header`);
 
@@ -157,7 +159,7 @@ function initializeOffDays($container) {
     const table = EditableDatatable.create(`#table-off-days`, {
         route: Routing.generate(`settings_off_days_api`, true),
         deleteRoute: `settings_off_days_delete`,
-        edit: MODE_ADD_ONLY,
+        edit: canEdit ? MODE_ADD_ONLY : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         search: true,
         paginate: true,

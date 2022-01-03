@@ -98,19 +98,15 @@ class Action {
     const DISPLAY_PAIRING = 'afficher associations';
 
     // menu paramétrage
-    const DISPLAY_GLOB = 'afficher paramétrage global';
-    const DISPLAY_ROLE = 'afficher rôles';
-    const DISPLAY_UTIL = 'afficher utilisateurs';
-    const DISPLAY_VISIBILITY_GROUPS = 'afficher groupes de visibilité';
-    const DISPLAY_DASHBOARDS = 'afficher dashboards';
-    const DISPLAY_EXPO = 'afficher exports';
-    const DISPLAY_TYPE = 'afficher types';
-    const DISPLAY_STATU_LITI = 'afficher statuts litiges';
-    const DISPLAY_NATU_COLI = 'afficher nature colis';
-    const DISPLAY_CF = 'afficher champs fixes';
-    const DISPLAY_REQUEST_TEMPLATE = 'afficher modèles de demandes';
-    const DISPLAY_NOTIFICATIONS = 'afficher modèles de notifications';
-    const DISPLAY_IMPORT = 'afficher import et mise à jour';
+    const SETTINGS_GLOBAL = 'afficher paramétrage global';
+    const SETTINGS_STOCK = 'afficher stock';
+    const SETTINGS_TRACKING = 'afficher trace';
+    const SETTINGS_MOBILE = 'afficher terminal mobile';
+    const SETTINGS_DASHBOARDS = 'afficher dashboards';
+    const SETTINGS_IOT = 'afficher iot';
+    const SETTINGS_NOTIFICATIONS = 'afficher notifications';
+    const SETTINGS_USERS = 'afficher utilisateurs';
+    const SETTINGS_DATA = 'afficher données';
 
     // menu nomade
     const MODULE_ACCESS_STOCK = 'Accès Stock';

@@ -29,7 +29,6 @@ class StatusController extends AbstractController {
 
     /**
      * @Route("/", name="status_param_index")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_STATU_LITI})
      */
     public function index(EntityManagerInterface $entityManager,
                           StatusService $statusService) {
@@ -80,7 +79,6 @@ class StatusController extends AbstractController {
 
     /**
      * @Route("/api", name="status_param_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_STATU_LITI}, mode=HasPermission::IN_JSON)
      */
     public function api(Request $request,
                         StatusService $statusService): Response {

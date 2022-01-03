@@ -7,12 +7,15 @@
     {{ encore_entry_link_tags('settings') }}
 {% endblock %}
 
+{% set can_edit = hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::EDIT')) %}
+
 {% block page_content %}
     <div class="settings">
         <aside class="wii-box">
             {% for key, label in parent.menus %}
                 {% if label is iterable %}
-                    <a href="{{ path(label.route is defined ? label.route : 'settings_item', label.route is not defined ? {category, menu: selected} : []) }}" class="settings-item">
+                    <a href="{{ path(label.route is defined ? label.route : 'settings_item', label.route is not defined ? {category, menu: selected} : []) }}"
+                       class="settings-item">
                         {{ label.label }}
                     </a>
                 {% else %}
@@ -39,9 +42,11 @@
                 {% endif %}
             {% endfor %}
 
-            <div class="save">
-                <button class="btn btn-success save-settings">Enregistrer</button>
-            </div>
+            {% if can_edit %}
+                <div class="save">
+                    <button class="btn btn-success save-settings">Enregistrer</button>
+                </div>
+            {% endif %}
         </main>
     </div>
 
@@ -49,6 +54,7 @@
     <input type="hidden" id="category" value="{{ category }}">
     <input type="hidden" id="menu" value="{{ menu }}">
     <input type="hidden" id="submenu" value="{{ submenu }}">
+    <input type="hidden" id="edit" value="{{ can_edit }}">
 {% endblock %}
 
 {% block javascripts %}

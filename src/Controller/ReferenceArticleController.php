@@ -727,7 +727,6 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/export-donnees", name="exports_params")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_EXPO})
      */
     public function renderParams(UserService $userService)
     {

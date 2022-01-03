@@ -4,10 +4,12 @@ namespace App\Controller;
 
 use App\Entity\DaysWorked;
 use App\Entity\MailerServer;
+use App\Entity\Role;
 use App\Entity\WorkFreeDay;
 use App\Helper\FormatHelper;
 use App\Service\SettingsService;
 use App\Service\SpecificService;
+use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -34,6 +36,7 @@ class SettingsController extends AbstractController {
         self::CATEGORY_GLOBAL => [
             "label" => "Global",
             "icon" => "accueil",
+            "right" => Action::SETTINGS_GLOBAL,
             "menus" => [
                 self::MENU_SITE_APPEARANCE => "Apparence du site",
                 self::MENU_CLIENT => "Client application",
@@ -46,6 +49,7 @@ class SettingsController extends AbstractController {
         self::CATEGORY_STOCK => [
             "label" => "Stock",
             "icon" => "stock",
+            "right" => Action::SETTINGS_STOCK,
             "menus" => [
                 self::MENU_CONFIGURATIONS => "Configurations",
                 self::MENU_ALERTS => "Alertes",
@@ -80,6 +84,7 @@ class SettingsController extends AbstractController {
         self::CATEGORY_TRACKING => [
             "label" => "Trace",
             "icon" => "traca",
+            "right" => Action::SETTINGS_TRACKING,
             "menus" => [
                 self::MENU_DISPATCHES => [
                     "label" => "Acheminements",
@@ -123,17 +128,19 @@ class SettingsController extends AbstractController {
         self::CATEGORY_MOBILE => [
             "label" => "Terminal mobile",
             "icon" => "accueil",
+            "right" => Action::SETTINGS_MOBILE,
             "menus" => [
                 self::MENU_DISPATCHES => "Acheminements",
                 self::MENU_PREPARATIONS => "Préparations",
                 self::MENU_HANDLINGS => "Services",
+                self::MENU_TRANSFERS => "Transferts à traiter",
                 self::MENU_VALIDATION => "Gestion des validations",
-                self::MENU_TRANSFERS => "Transfert à traiter",
             ],
         ],
         self::CATEGORY_DASHBOARDS => [
             "label" => "Dashboards",
             "icon" => "accueil",
+            "right" => Action::SETTINGS_DASHBOARDS,
             "menus" => [
                 self::MENU_FULL_SETTINGS => [
                     "label" => "Paramétrage complet",
@@ -144,6 +151,7 @@ class SettingsController extends AbstractController {
         self::CATEGORY_IOT => [
             "label" => "IoT",
             "icon" => "accueil",
+            "right" => Action::SETTINGS_IOT,
             "menus" => [
                 self::MENU_TYPES_FREE_FIELDS => "Types et champs libres",
             ],
@@ -151,6 +159,7 @@ class SettingsController extends AbstractController {
         self::CATEGORY_NOTIFICATIONS => [
             "label" => "Modèles de notifications",
             "icon" => "accueil",
+            "right" => Action::SETTINGS_NOTIFICATIONS,
             "menus" => [
                 self::MENU_ALERTS => "Alertes",
                 self::MENU_PUSH_NOTIFICATIONS => "Notifications push",
@@ -159,6 +168,7 @@ class SettingsController extends AbstractController {
         self::CATEGORY_USERS => [
             "label" => "Utilisateurs",
             "icon" => "accueil",
+            "right" => Action::SETTINGS_USERS,
             "menus" => [
                 self::MENU_LANGUAGES => [
                     "label" => "Langues",
@@ -171,6 +181,7 @@ class SettingsController extends AbstractController {
         self::CATEGORY_DATA => [
             "label" => "Données",
             "icon" => "accueil",
+            "right" => Action::SETTINGS_DATA,
             "menus" => [
                 self::MENU_CSV_EXPORTS => "Alertes",
                 self::MENU_IMPORTS => "Imports & mises à jour",
@@ -246,8 +257,12 @@ class SettingsController extends AbstractController {
     public SettingsService $service;
 
     /**
+     * @Required
+     */
+    public UserService $userService;
+
+    /**
      * @Route("/", name="settings_index")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB})
      */
     public function index(): Response {
         return $this->render("settings/list.html.twig", [
@@ -257,7 +272,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/utilisateurs/langues", name="settings_language")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_USERS})
      */
     public function language(): Response {
         return $this->render("settings/utilisateurs/langues.html.twig", [
@@ -267,7 +282,6 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/afficher/{category}/{menu}/{submenu}", name="settings_item")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB})
      */
     public function item(string $category, string $menu, ?string $submenu = null): Response {
         if($submenu) {
@@ -323,7 +337,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/enregistrer", name="settings_save", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB})
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function save(Request $request): Response {
         try {
@@ -343,7 +357,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/heures-travaillees-api", name="settings_working_hours_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_GLOBAL})
      */
     public function workingHoursApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
@@ -378,7 +392,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/jours-non-travailles-api", name="settings_off_days_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_GLOBAL})
      */
     public function offDaysApi(Request $request, EntityManagerInterface $manager) {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
@@ -389,11 +403,11 @@ class SettingsController extends AbstractController {
 
             foreach($workFreeDayRepository->findAll() as $day) {
                 $data[] = [
-                    "actions" => "
+                    "actions" => $this->canDelete() ? "
                         <button class='btn btn-silent delete-row' data-id='{$day->getId()}'>
                             <i class='wii-icon wii-icon-trash text-primary'></i>
                         </button>
-                    ",
+                    " : "",
                     "day" => FormatHelper::longDate($day->getDay()),
                 ];
             }
@@ -408,7 +422,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/jours-non-travailles/supprimer/{entity}", name="settings_off_days_delete", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB})
+     * @HasPermission({Menu::PARAM, Action::DELETE})
      */
     public function deleteOffDay(EntityManagerInterface $manager, WorkFreeDay $entity) {
         $manager->remove($entity);
@@ -418,6 +432,14 @@ class SettingsController extends AbstractController {
             "success" => true,
             "msg" => "Le jour non travaillé a été supprimé",
         ]);
+    }
+
+    private function canEdit(): bool {
+        return $this->userService->hasRightFunction(Menu::PARAM, Action::EDIT);
+    }
+
+    private function canDelete(): bool {
+        return $this->userService->hasRightFunction(Menu::PARAM, Action::DELETE);
     }
 
 }

@@ -38,7 +38,6 @@ class UserController extends AbstractController
 
     /**
      * @Route("/", name="user_index", methods="GET|POST")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_UTIL})
      */
     public function index(EntityManagerInterface $entityManager): Response
     {
@@ -459,7 +458,6 @@ class UserController extends AbstractController
 
     /**
      * @Route("/api", name="user_api",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_UTIL}, mode=HasPermission::IN_JSON)
      */
     public function api(Request $request,
                         UserService $userService): Response

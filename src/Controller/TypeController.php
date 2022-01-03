@@ -30,7 +30,6 @@ class TypeController extends AbstractController
 
     /**
      * @Route("/", name="types_index")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_TYPE})
      */
     public function index(EntityManagerInterface $entityManager) {
 
@@ -52,7 +51,6 @@ class TypeController extends AbstractController
 
     /**
      * @Route("/api", name="types_param_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_TYPE}, mode=HasPermission::IN_JSON)
      */
     public function api(EntityManagerInterface $entityManager): Response
     {
