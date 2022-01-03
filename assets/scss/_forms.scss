@@ -73,7 +73,7 @@ $wii-switch-height: $input-height;
         }
 
         .wii-icon {
-            display:inline-block;
+            display: inline-block;
             background-color: $black;
             width: 15px;
             height: 15px;
@@ -161,7 +161,7 @@ $wii-switch-height: $input-height;
     padding: 0 5px;
 }
 
-.wii-switch-no-style{
+.wii-switch-no-style {
     label {
         color: #495057;
     }
@@ -260,7 +260,7 @@ $wii-switch-height: $input-height;
         left: 0;
         margin-left: -20px;
 
-        &:checked ~ label{
+        &:checked ~ label {
             &:before {
                 border: 2px solid $primary;
                 background: $primary;
@@ -342,6 +342,7 @@ $wysiwyg-dropdown-button-size: 20px;
             border-color: $input-focus-border-color;
             outline: 0;
         }
+
         .dropdown-button i {
             background-color: $primary;
         }
@@ -372,4 +373,33 @@ input.no-overflow {
 
 .input-group-prepend {
     height: 35.59px;
+}
+
+.labelled-field label, label.labelled-field {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #CDCDCD;
+    background: #f2f3f7;
+    border-radius: 5px;
+    margin: 10px 5px 0;
+    height: 40px;
+    padding-left: 12px;
+    color: black;
+    font-size: 1rem;
+
+    input {
+        flex: 1 1 auto;
+        border: none;
+        margin: 0 0 0 12px;
+        height: 38px;
+        border-radius: 0 5px 5px 0;
+    }
+
+    .input-tooltip {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
 }

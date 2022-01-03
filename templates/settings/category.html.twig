@@ -12,7 +12,7 @@
         <aside class="wii-box">
             {% for key, label in parent.menus %}
                 {% if label is iterable %}
-                    <a href="{{ path('settings_item', {category, menu: selected}) }}" class="settings-item">
+                    <a href="{{ path(label.route is defined ? label.route : 'settings_item', label.route is not defined ? {category, menu: selected} : []) }}" class="settings-item">
                         {{ label.label }}
                     </a>
                 {% else %}
