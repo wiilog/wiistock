@@ -1,0 +1,120 @@
+{% extends 'layout.html.twig' %}
+
+{% import 'form.html.twig' as form %}
+
+{% block title %}<a href="{{ path('settings_index') }}">Paramétrage</a> | Utilisateurs | Langues{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('settings') }}
+{% endblock %}
+
+{% block page_content %}
+    <div class="settings">
+        <aside>
+            <div class="wii-box">
+                <div class="header wii-title">Langue par défaut de l'application</div>
+                <div class="content row">
+                    {# TODO: récupérer la langue par défaut depuis la base #}
+
+                    <label class="col-md-6 col-12 flag-radio">
+                        <input type="radio" name="defaultLanguage" checked>
+                        <img src="{{ asset('svg/flags/fr.svg') }}" class="flag" alt="French flag"> Français
+                    </label>
+                    <label class="col-md-6 col-12 flag-radio">
+                        <input type="radio" name="defaultLanguage">
+                        <img src="{{ asset('svg/flags/gb.svg') }}" class="flag" alt="English flag"> English
+                    </label>
+                </div>
+            </div>
+
+            <div class="wii-box">
+                <div class="header wii-title">Modification et ajout de langues</div>
+                <div class="content">
+                    {# TODO: récupérer les langues depuis la base #}
+
+                    <label class="flag-radio mt-2">
+                        <input type="radio" name="currentLanguage" checked>
+                        <img src="{{ asset('svg/flags/gb.svg') }}" class="flag" alt="English flag"> English
+                    </label>
+                    <label class="flag-radio mt-2">
+                        <input type="radio" name="currentLanguage" checked>
+                        <img src="{{ asset('svg/flags/fr.svg') }}" class="flag" alt="French flag"> Français
+                    </label>
+                    <label class="flag-radio mt-2">
+                        <input type="radio" name="currentLanguage" checked>
+                        <img src="{{ asset('svg/flags/es.svg') }}" class="flag" alt="Spanish flag"> Español
+                    </label>
+                    <label class="flag-radio mt-2">
+                        <input type="radio" name="currentLanguage" checked>
+                        <img src="{{ asset('svg/flags/se.svg') }}" class="flag" alt="Swedish flag"> Svenska
+                    </label>
+                    <label class="flag-radio mt-2">
+                        <input type="radio" name="currentLanguage" checked>
+                        <img src="{{ asset('svg/plus.svg') }}" class="flag" style="width:20px;height:15px" alt="Plus"> Ajouter une langue
+                    </label>
+                </div>
+            </div>
+
+            <div class="wii-box">
+                {# TODO: récupérer les sections depuis la base #}
+
+                <div class="settings-item selected">
+                    <div class="d-flex flex-column">
+                        Général
+                        <span class="wii-small-text text-regular mt-1">Zone filtre, zone liste, formulaires</span>
+                    </div>
+                </div>
+
+                <div class="settings-item">
+                    <div class="d-flex flex-column">
+                    Traçabilité
+                    <span class="wii-small-text text-regular mt-1">Général, Flux-arrivages, Mouvements, Colis, Association BR,  En cours, Urgences</span>
+                </div>
+                </div>
+            </div>
+        </aside>
+
+        <main>
+            <div class="wii-box">
+                <div class="content">
+                    {# TODO récupérer depuis la base #}
+                    <div class="d-flex align-items-center">
+                        <button class="language-button">
+                            <img src="{{ asset('svg/flags/fr.svg') }}" class="flag" alt="French flag"> Français
+                        </button>
+                        <img src="{{ asset('svg/lang-arrow.svg') }}" width="25px" class="mx-2">
+                        <button class="language-button">
+                            <img src="{{ asset('svg/flags/se.svg') }}" class="flag" alt="Swedish flag"> Svenska
+                        </button>
+                    </div>
+
+                    {# TODO récupérer depuis la base #}
+                    <section>
+                        Zone filtre
+                        <span class="wii-small-text text-regular">Les libellés génériques présents dans tous les encarts ltre de l’application</span>
+                    </section>
+
+                    {{ form.input('test', 'Du', false, null, {
+                        inline: true,
+                        tooltip: 'hello'
+                    }) }}
+
+                    {{ form.input('aaaa', 'Filtrer', false, null, {
+                        inline: true,
+                        tooltip: 'tooltip'
+                    }) }}
+                </div>
+            </div>
+
+            <div class="save">
+                <button class="btn btn-success save-settings">Enregistrer</button>
+            </div>
+        </main>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('settings') }}
+{% endblock %}

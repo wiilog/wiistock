@@ -128,15 +128,15 @@
 {% endmacro %}
 
 {% macro input(name, label, required, value = '', options = {}) %}
-    <label class="{{ options.labelClass ?? '' }}">
+    <label class="{{ options.labelClass ?? '' }} {{ (options.inline ?? false) ? 'labelled-field' }}">
         <span>{{ _self.label(label, required) }}</span>
         {% if options.tooltip is defined %}
-        <sup>
+        <sup class="input-tooltip">
             <img src="{{ asset('svg/reference_article/information.svg') }}"
                  alt="Icône information"
-                 width="10px"
+                 width="{{ (options.inline ?? false) ? '15px' : '10px' }}"
                  class="has-tooltip"
-                 title="{{ options.tooltip.text ?? '' }}">
+                 title="{{ options.tooltip.text ?? options.tooltip ?? '' }}">
         </sup>
         {% endif %}
         <input type="{{ options.type ?? 'text' }}" class="form-control w-100 data" value="{{ value }}"
