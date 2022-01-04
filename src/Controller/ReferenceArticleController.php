@@ -111,6 +111,7 @@ class ReferenceArticleController extends AbstractController
                         FreeFieldService $champLibreService,
                         EntityManagerInterface $entityManager,
                         MouvementStockService $mouvementStockService,
+                        RefArticleDataService $refArticleDataService,
                         ArticleFournisseurService $articleFournisseurService,
                         AttachmentService $attachmentService): Response
     {
@@ -126,6 +127,7 @@ class ReferenceArticleController extends AbstractController
             $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
             $userRepository = $entityManager->getRepository(Utilisateur::class);
             $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
+            $sendMail = $userRepository->getUserMailByReferenceValidatorAction();
 
             // on vérifie que la référence n'existe pas déjà
             $refAlreadyExist = $referenceArticleRepository->countByReference($data['reference']);
@@ -141,7 +143,8 @@ class ReferenceArticleController extends AbstractController
             $type = $typeRepository->find($data['type']);
 
             if ($data['emplacement'] !== null) {
-                $emplacement = $emplacementRepository->find($data['emplacement']);
+                $emplacement = $emplacementRepository->findOneBy(['label' => $data['emplacement']]);
+                //$emplacement = $emplacementRepository->find($data['emplacement']);
             } else {
                 $emplacement = null; //TODO gérer message erreur (faire un return avec msg erreur adapté -> à ce jour un return false correspond forcément à une réf déjà utilisée)
             }
@@ -157,7 +160,7 @@ class ReferenceArticleController extends AbstractController
                     $typeArticle = ReferenceArticle::TYPE_QUANTITE_REFERENCE;
                     break;
             }
-
+            dump($data);
             $refArticle = new ReferenceArticle();
             $refArticle
                 ->setNeedsMobileSync(filter_var($data['mobileSync'] ?? false, FILTER_VALIDATE_BOOLEAN))
@@ -172,8 +175,8 @@ class ReferenceArticleController extends AbstractController
                 ->setEmplacement($emplacement)
 				->setBarCode($this->refArticleDataService->generateBarCode())
                 ->setBuyer(isset($data['buyer']) ? $userRepository->find($data['buyer']) : null)
-                ->setCreatedAt(new DateTime('now'))
-                ->setCreatedBy($loggedUser);
+                ->setCreatedBy($loggedUser)
+                ->setCreatedAt(new DateTime('now'));
 
             if ($refArticle->getIsUrgent()) {
                 $refArticle->setUserThatTriggeredEmergency($loggedUser);
@@ -220,9 +223,9 @@ class ReferenceArticleController extends AbstractController
                             'fournisseur' => $supplierReferenceLine['fournisseur'],
                             'article-reference' => $refArticle,
                             'label' => $supplierReferenceLine['labelFournisseur'],
-                            'reference' => $referenceArticleFournisseur
+                            'reference' => $referenceArticleFournisseur,
+                            'visible' => $refArticle->getStatut()->getCode() !== ReferenceArticle::DRAFT_STATUS
                         ]);
-
                         $entityManager->persist($supplierArticle);
                     } catch (Exception $exception) {
                         if ($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
@@ -236,7 +239,8 @@ class ReferenceArticleController extends AbstractController
             }
 
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE &&
-                $refArticle->getQuantiteStock() > 0) {
+                $refArticle->getQuantiteStock() > 0 &&
+                $refArticle->getStatut()->getCode() !== ReferenceArticle::DRAFT_STATUS) {
                 $mvtStock = $mouvementStockService->createMouvementStock(
                     $loggedUser,
                     null,
@@ -268,6 +272,11 @@ class ReferenceArticleController extends AbstractController
             $attachmentService->manageAttachments($entityManager, $refArticle, $request->files);
 
             $entityManager->flush();
+
+            if (!empty($sendMail)){
+                $refArticleDataService->sendMailCreateDraftOrDraftToActive($refArticle, $sendMail, true);
+            }
+
             return $this->json([
                 'success' => true,
                 'msg' => 'La référence ' . $refArticle->getReference() . ' a bien été créée',
@@ -374,7 +383,7 @@ class ReferenceArticleController extends AbstractController
      * @Route("/modifier", name="reference_article_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function edit(Request $request, EntityManagerInterface $entityManager, FreeFieldService $champLibreService): Response
+    public function edit(Request $request, EntityManagerInterface $entityManager, FreeFieldService $champLibreService, MouvementStockService $stockMovementService): Response
     {
         if ($data = $request->request->all()) {
             $refId = intval($data['idRefArticle']);
@@ -383,7 +392,6 @@ class ReferenceArticleController extends AbstractController
 
             // on vérifie que la référence n'existe pas déjà
             $refAlreadyExist = $referenceArticleRepository->countByReference($data['reference'], $refId);
-
             if ($refAlreadyExist) {
                 return new JsonResponse([
                     'success' => false,
@@ -396,9 +404,7 @@ class ReferenceArticleController extends AbstractController
                     /** @var Utilisateur $currentUser */
                     $currentUser = $this->getUser();
                     $refArticle->removeIfNotIn($data['files'] ?? []);
-                    $refArticle->setEditedBy($currentUser);
-                    $refArticle->setEditedAt(new DateTime());
-                    $response = $this->refArticleDataService->editRefArticle($refArticle, $data, $currentUser, $champLibreService, $request);
+                    $response = $this->refArticleDataService->editRefArticle($refArticle, $data, $currentUser, $champLibreService,$stockMovementService, $request);
                 }
                 catch (ArticleNotAvailableException $exception) {
                     $response = [
@@ -748,7 +754,7 @@ class ReferenceArticleController extends AbstractController
      * @Route("/export-donnees", name="exports_params")
      * @HasPermission({Menu::PARAM, Action::DISPLAY_EXPO})
      */
-    public function renderParams(UserService $userService)
+    public function renderParams()
     {
         return $this->render('exports/exportsMenu.html.twig');
     }
@@ -943,13 +949,16 @@ class ReferenceArticleController extends AbstractController
     /**
      * @Route("/nouveau-page", name="reference_article_new_page", options={"expose"=true})
      */
-    public function newTemplate(EntityManagerInterface $manager) {
+    public function newTemplate(EntityManagerInterface $manager, GlobalParamService $globalParamService) {
         $typeRepository = $manager->getRepository(Type::class);
         $inventoryCategoryRepository = $manager->getRepository(InventoryCategory::class);
         $freeFieldRepository = $manager->getRepository(FreeField::class);
+        $referenceArcicleRepository = $manager->getRepository(ReferenceArticle::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $inventoryCategories = $inventoryCategoryRepository->findAll();
+
+        $referenceCount = $referenceArcicleRepository->countByReference("A DEFINIR", null, "LIKE");
 
         $typeChampLibre = [];
         $freeFieldsGroupedByTypes = [];
@@ -968,6 +977,8 @@ class ReferenceArticleController extends AbstractController
             "new_reference" => new ReferenceArticle(),
             "submit_url" => $this->generateUrl("reference_article_new"),
             "types" => $types,
+            'defaultLocation' => $globalParamService->getParamLocation(ParametrageGlobal::DEFAULT_LOCATION_REFERENCE),
+            'referenceName' => $referenceCount ? ("A DEFINIR" . ($referenceCount + 1)) : "A DEFINIR1",
             "stockManagement" => [
                 ReferenceArticle::STOCK_MANAGEMENT_FEFO,
                 ReferenceArticle::STOCK_MANAGEMENT_FIFO
