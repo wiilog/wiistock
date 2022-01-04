@@ -37,7 +37,7 @@
                         <div class="content focus-shadow">
                             {% include [path ~ key ~ '.html.twig', 'settings/todo.html.twig'] with {
                                 page: path ~ key ~ '.html.twig'
-                            } | merge(submenu ? (values[category][menu][submenu] ?? []) : (values[category][key] ?? [])) %}
+                            } | merge(submenu ? (values[category][menu][key] ?? []) : (values[category][key] ?? [])) %}
                         </div>
                     </div>
                 {% endif %}

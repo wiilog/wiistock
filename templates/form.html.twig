@@ -61,14 +61,14 @@
 {% endmacro %}
 
 {% macro checkbox(name, label, required, value = 1, options = {}) %}
-    {% set id = random(100000, 10000000) %}
+    {% set id = options.id ?? ('checkbox-' ~ random(100000, 10000000)) %}
     <div class="wii-checkbox">
-        <input type="checkbox" id="checkbox-{{ id }}" class="data"
+        <input type="checkbox" id="{{ id }}" class="data"
             {{ required ? 'required' }}
             {{ _self.common_attributes(name, options) }}
             {{ _self.multiple_key(options) }}
             {{ {on: 1, off: 0}[value] ?? value ? 'checked' }}>
-        <label class="{{ options.labelClass ?? '' }}" for="checkbox-{{ id }}"><span>{{ _self.label(label, required) }}</span></label>
+        <label class="{{ options.labelClass ?? '' }}" for="{{ id }}"><span>{{ _self.label(label, required) }}</span></label>
     </div>
 {% endmacro %}
 

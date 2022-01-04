@@ -14,6 +14,7 @@ const initializers = {
     global_jours_non_travailles: initializeOffDays,
     global_apparence_site: initializeSiteAppearance,
     global_etiquettes: initializeGlobalLabels,
+    stock_articles_etiquettes: initializeStockArticlesLabels,
 };
 
 const slowOperations = [
@@ -121,21 +122,13 @@ function updateTitle(selectedMenu, canEdit) {
             element: $element,
             ...(initializers[path] ? initializers[path]($element, canEdit) : []),
         };
+
+        console.log(initializers[path] ? `Initializiing ${path}` : `No initializer for ${path}`);
     }
 
     $(`#page-title`).html(title);
     document.title = `Paramétrage | ${title}`;
 
-    let urlParts = (window.location.href).split(`/`);
-    console.log(submenu, submenu ? 'x' : 'd');
-    if(submenu) {
-        urlParts[urlParts.length - 2] = menu;
-        urlParts[urlParts.length - 1] = selectedMenu;
-    } else {
-        urlParts[urlParts.length - 1] = selectedMenu;
-    }
-
-    const url = urlParts.join(`/`);
     history.pushState({}, title, Routing.generate(`settings_item`, {
         category,
         menu,
@@ -211,4 +204,18 @@ function initializeSiteAppearance() {
 
 function initializeGlobalLabels() {
     updateImagePreview('#preview-label-logo', '#upload-label-logo');
+}
+
+function initializeStockArticlesLabels() {
+    $(`#show-destination-in-label`).on(`change`, function() {
+        if($(this).prop(`checked`)) {
+            $('#show-dropzone-in-label').prop('checked', false);
+        }
+    });
+
+    $(`#show-dropzone-in-label`).on(`change`, function() {
+        if($(this).prop(`checked`)) {
+            $('#show-destination-in-label').prop('checked', false);
+        }
+    });
 }
