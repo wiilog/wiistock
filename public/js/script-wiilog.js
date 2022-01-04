@@ -145,7 +145,6 @@ function showRow(button, path, modal) {
     let params = JSON.stringify(id);
     $.post(path, params, function (data) {
         modal.find('.modal-body').html(data);
-        $('.list-multiple').select2();
     }, 'json');
 }
 
@@ -196,7 +195,7 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
         Select2Old.location(modal.find('.ajax-autocomplete-location-edit'));
         Select2Old.carrier(modal.find('.ajax-autocomplete-transporteur-edit'));
         Select2Old.user(modal.find('.ajax-autocomplete-user-edit'));
-        modal.find('.list-multiple').select2();
+
         if (wantsFreeFieldsRequireCheck) {
             toggleRequiredChampsLibres(modal.find('#typeEdit'), 'edit');
         }
@@ -318,7 +317,6 @@ function toggleRequiredChampsLibres(type, require, $freeFieldContainer = null) {
                     $formControl.addClass('needed');
                 });
             }
-            $('.list-multiple').select2();
         }, 'json');
     }
 }
