@@ -2,8 +2,11 @@
 
 namespace App\Controller;
 
+use App\Entity\CategorieStatut;
 use App\Entity\DaysWorked;
+use App\Entity\Import;
 use App\Entity\MailerServer;
+use App\Entity\Statut;
 use App\Entity\WorkFreeDay;
 use App\Helper\FormatHelper;
 use App\Service\SettingsService;
@@ -43,6 +46,7 @@ class SettingsController extends AbstractController {
                 self::MENU_MAIL_SERVER => "Serveur mail",
             ],
         ],
+
         self::CATEGORY_STOCK => [
             "label" => "Stock",
             "icon" => "stock",
@@ -172,7 +176,7 @@ class SettingsController extends AbstractController {
             "label" => "Données",
             "icon" => "accueil",
             "menus" => [
-                self::MENU_CSV_EXPORTS => "Alertes",
+                self::MENU_CSV_EXPORTS => "Exports CSV",
                 self::MENU_IMPORTS => "Imports & mises à jour",
                 self::MENU_INVENTORY_IMPORTS => "Imports d'inventaires",
             ],
@@ -303,7 +307,11 @@ class SettingsController extends AbstractController {
 
     public function customValues(): array {
         $mailerServerRepository = $this->manager->getRepository(MailerServer::class);
-
+        $statusRepository = $this->getDoctrine()->getRepository(Statut::class);
+        $statuts = $statusRepository->findByCategoryNameAndStatusCodes(
+            CategorieStatut::IMPORT,
+            [Import::STATUS_PLANNED, Import::STATUS_IN_PROGRESS, Import::STATUS_CANCELLED, Import::STATUS_FINISHED]
+        );
         return [
             self::CATEGORY_GLOBAL => [
                 self::MENU_SITE_APPEARANCE => [],
@@ -318,6 +326,9 @@ class SettingsController extends AbstractController {
             self::CATEGORY_STOCK => [
                 self::MENU_ALERTS => [],
             ],
+            self::CATEGORY_DATA => [
+                self::MENU_IMPORTS => ["statuts" => $statuts],
+            ]
         ];
     }
 

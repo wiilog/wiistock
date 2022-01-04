@@ -1,0 +1,46 @@
+<div class="row">
+    <div class="col-12">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Titre de colonne de fichier</th>
+                <th>Aperçu (ligne 1)</th>
+                <th>Champ Follow GT</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for i in 0..(data.headers|length -  1) %}
+                <tr>
+                    <td>{{ data.headers[i] }}</td>
+                    <td>{{ data.firstRow[i] is defined ? data.firstRow[i] | ellipsis(35) }}</td>
+                    <td>
+                        <select class="form-control data no-clear import-options" name="{{ i }}" onchange="updateOptions($(this))">
+                            <option></option>
+                            {% for fieldValue, fieldName in fields %}
+                                {% set needed = fieldValue in fieldsNeeded ? '*'%}
+                                {% set pk = (fieldValue == fieldPK) ? ' [clé unique]' %}
+                                {% set selected = (
+                                    preselection[data.headers[i]] is defined
+                                    and (
+                                        preselection[data.headers[i]] == fieldName
+                                        or (fromExistingImport and preselection[data.headers[i]] == fieldValue)
+                                    )
+                                ) %}
+                                <option value="{{ fieldValue }}" {{ selected ? 'selected' }}>{{ fieldName|capitalize }}{{ needed }}{{ pk }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12">
+        <p class="italic little-font">
+            * champ obligatoire à la création<br>
+            La clé unique permet d'identifier une valeur unique d'enregistrement et sera utilisée pour effectuer une mise à jour.
+        </p>
+    </div>
+</div>

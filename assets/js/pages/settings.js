@@ -32,8 +32,8 @@ $(document).ready(() => {
         $(`.settings-item.selected`).removeClass(`selected`);
         $(this).addClass(`selected`);
 
-        $(`.settings main .wii-box`).addClass(`d-none`);
-        $(`.settings main .wii-box[data-menu="${selectedMenu}"]`).removeClass(`d-none`);
+        $(`.settings main > div`).addClass(`d-none`);
+        $(`.settings main > div[data-menu="${selectedMenu}"]`).removeClass(`d-none`);
 
         updateTitle(selectedMenu);
     });

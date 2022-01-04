@@ -58,12 +58,10 @@ function importFile() {
                 if (data.success === true) {
                     showBSAlert('Les catégories ont bien été modifiées.', 'success');
                 } else if (data.success === false) {
-                    let exportedFilenmae = 'log-error.txt';
-                    let pathFile = '../uploads/log/';
-                    let pathWithFileName = pathFile.concat(data.nameFile);
+                    let url = window.location.protocol+'//'+window.location.host+'/uploads/log/'+data.nameFile;
                     let link = document.createElement("a");
-                    link.setAttribute("href", pathWithFileName);
-                    link.setAttribute("download", exportedFilenmae);
+                    link.setAttribute("href", url);
+                    link.setAttribute("download", 'log_error.txt');
                     link.style.visibility = 'hidden';
                     document.body.appendChild(link);
                     link.click();
@@ -113,14 +111,13 @@ let urlDeleteFrequency = Routing.generate('frequency_delete', true)
 InitModal(ModalDeleteFrequency, SubmitDeleteFrequency, urlDeleteFrequency, {tables: [tableFrequencies]});
 
 function downloadModele() {
-    const pathFile = '../modele/';
-    const pathWithFileName = pathFile.concat('modeleImportCategorie.csv');
+
+    const url = window.location.protocol+'//'+window.location.host+'/modele/modeleImportCategorie.csv';
     const $link = $('<a/>', {
-        href: pathWithFileName,
+        href: url,
         download: 'modeleImportCategorie.csv',
         hidden: true
     });
-
     $('body').append($link);
     $link.on('click', function (e) {
         e.preventDefault();  //stop the browser from following

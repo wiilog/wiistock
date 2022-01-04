@@ -1,0 +1,40 @@
+{% import 'form.html.twig' as form %}
+
+<div class="row">
+    <p class="ml-3 mb-2">Type d'encodage des fichiers d'export</p>
+    <div class="col-12">
+        {{ form.select(setting('USES_UTF8'), " Encodage des exports CSV", false, {
+            labelClass: "wii-field-name",
+            items:setting('ENCODING_VALUES'),
+            value: setting_value('USES_UTF8'),
+        }) }}
+    </div>
+</div>
+
+<section>Export Stock</section>
+
+<div class="d-flex">
+    <div class="container-fluid">
+        <p class="do-not-click-me-several-times">
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            Les références et articles exportés sont seulement ceux avec le groupe de visibilité rattaché à l'utilisateur
+        </p>
+
+        <div class="d-flex">
+            <p class="mt-4 bold col-2">Références</p>
+            <div class="btn btn-primary mt-3 ml-5"
+                 onclick="saveExportFile('export_all_refs', false)">
+                <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
+            </div>
+        </div>
+
+        <div class="d-flex">
+            <p class="mt-4 bold col-2">Articles</p>
+            <div class="btn btn-primary mt-3 ml-5"
+                 onclick="saveExportFile('export_all_arts', false)">
+                <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
+            </div>
+        </div>
+    </div>
+    {% include 'exports/easterEgg.html.twig' %}
+</div>
