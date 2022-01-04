@@ -44,10 +44,10 @@ class FiltreRefRepository extends EntityRepository
     }
 
     public function findOneByUserAndChampFixe(Utilisateur $user, string $fixedField) {
-
         return $this->createQueryBuilder('reference_filter')
-            ->where('reference_filter.utilisateur = :user')
+            ->andWhere('reference_filter.utilisateur = :user')
             ->andWhere('reference_filter.champFixe = :fixed_field')
+            ->setMaxResults(1)
             ->setParameter('user', $user)
             ->setParameter('fixed_field', $fixedField)
             ->getQuery()

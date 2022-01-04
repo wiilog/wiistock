@@ -136,6 +136,14 @@ $wii-switch-height: $input-height;
     input:last-of-type, input:last-of-type + label {
         border-radius: 0 4px 4px 0;
     }
+
+    input:disabled {
+        cursor: not-allowed;
+        &:checked {
+            background-color: $grey;
+            color: $black;
+        }
+    }
 }
 
 .form-control, .select2-search__field, .select2-selection__placeholder {

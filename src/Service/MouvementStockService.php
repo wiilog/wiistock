@@ -170,14 +170,23 @@ class MouvementStockService
             ->setType($type)
             ->setQuantity($quantity);
 
-        if($article instanceof Article) {
+        if ($article instanceof Article) {
             $newMouvement->setArticle($article);
+            $reference = $article->getArticleFournisseur()->getReferenceArticle();
 
-            if($type === MouvementStock::TYPE_SORTIE) {
+            if ($type === MouvementStock::TYPE_SORTIE) {
                 $article->setInactiveSince(new DateTime());
+                $reference->setLastStockExit(new DateTime());
+            } else if ($type === MouvementStock::TYPE_ENTREE) {
+                $reference->setLastStockEntry(new DateTime());
             }
-        }
-        else if($article instanceof ReferenceArticle) {
+
+        } else if ($article instanceof ReferenceArticle) {
+            if ($type === MouvementStock::TYPE_SORTIE) {
+                $article->setLastStockExit(new DateTime());
+            } else if ($type === MouvementStock::TYPE_ENTREE) {
+                $article->setLastStockEntry(new DateTime());
+            }
             $newMouvement->setRefArticle($article);
         }
 

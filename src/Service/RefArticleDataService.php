@@ -45,6 +45,7 @@ class RefArticleDataService {
 
     private const REF_ARTICLE_FIELDS = [
         ["name" => "actions", "class" => "noVis", "alwaysVisible" => true, "orderable" => false],
+        ["title" => "Image", "name" => "image", "type" => "image", "orderable" => false],
         ["title" => "Libellé", "name" => "label", "type" => "text", "searchable" => true],
         ["title" => "Référence", "name" => "reference", "type" => "text", "searchable" => true],
         ["title" => "Code barre", "name" => "barCode", "type" => "text", "searchable" => true],
@@ -67,6 +68,12 @@ class RefArticleDataService {
         ["title" => "Gestionnaire(s)", "name" => "managers", "orderable" => false, "type" => "text"],
         ["title" => "Commentaire", "name" => "comment", "type" => "text", "orderable" => false],
         ["title" => "Commentaire d'urgence", "name" => "emergencyComment", "type" => "text", "orderable" => false],
+        ["title" => "Créée le", "name" => "createdAt", "type" => "date"],
+        ["title" => "Créée par", "name" => "createdBy", "type" => "text"],
+        ["title" => "Dernière modification le", "name" => "editedAt", "type" => "date"],
+        ["title" => "Dernière modification par", "name" => "editedBy", "type" => "text"],
+        ["title" => "Dernière entrée le", "name" => "lastStockEntry", "type" => "date"],
+        ["title" => "Dernière sortie le", "name" => "lastStockExit", "type" => "date"],
         ["title" => FiltreRef::FIXED_FIELD_VISIBILITY_GROUP, "name" => "visibilityGroups", "type" => "list multiple", "orderable" => true],
     ];
 
@@ -399,14 +406,15 @@ class RefArticleDataService {
             ->toArray();
 
         $providerLabels = Stream::from($refArticle->getArticlesFournisseur())
-            ->map(function(ArticleFournisseur $articleFournisseur) {
-                return $articleFournisseur->getFournisseur() ? $articleFournisseur->getFournisseur()->getNom() : '';
-            })
+            ->map(fn(ArticleFournisseur $articleFournisseur) => FormatHelper::provider($articleFournisseur->getFournisseur()))
             ->unique()
             ->toArray();
 
         $row = [
             "id" => $refArticle->getId(),
+            "image" => $this->templating->render('datatable/image.html.twig', [
+                "image" => $refArticle->getImage()
+            ]),
             "label" => $refArticle->getLibelle() ?? "Non défini",
             "reference" => $refArticle->getReference() ?? "Non défini",
             "quantityType" => $refArticle->getTypeQuantite() ?? "Non défini",
@@ -441,6 +449,12 @@ class RefArticleDataService {
                 })
                 ->unique()
                 ->join(", "),
+            "createdAt" => FormatHelper::datetime($refArticle->getCreatedAt()),
+            "createdBy" => $refArticle->getCreatedBy() ? FormatHelper::user($refArticle->getCreatedBy()) : "-",
+            "lastStockEntry" => FormatHelper::datetime($refArticle->getLastStockEntry()),
+            "editedAt" => FormatHelper::datetime($refArticle->getEditedAt()),
+            "editedBy" => FormatHelper::user($refArticle->getEditedBy()),
+            "lastStockExit" => FormatHelper::datetime($refArticle->getLastStockExit()),
             "actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
                 "attachmentsLength" => $refArticle->getAttachments()->count(),
                 "reference_id" => $refArticle->getId(),

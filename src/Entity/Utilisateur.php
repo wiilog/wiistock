@@ -3,6 +3,7 @@ namespace App\Entity;
 
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\PreparationOrder\Preparation;
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -48,186 +49,194 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
+
     /**
      * @ORM\Column(type="string", length=255)
      * @Assert\NotBlank(message="Le champ ne peut pas être vide.")
      */
-    private $username;
+    private ?string $username = null;
+
     /**
      * @ORM\Column(type="string", length=255, unique=true)
      * @Assert\NotBlank(message="Le champ ne peut pas être vide.")
      * @Assert\Email(message="Le format de l'adresse email n'est pas valide.")
      */
-    private $email;
+    private ?string $email = null;
+
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private $password;
+    private ?string $password = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $token;
+    private ?string $token = null;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\FiltreSup", mappedBy="user")
      */
-    private $filtresSup;
+    private Collection $filtresSup;
 
     /**
      * @Assert\Length(min=8, max=4096, minMessage="Le mot de passe doit contenir 8 caractères minimum.", maxMessage="Le mot de passe est trop long.")
      * @Assert\NotBlank(message="Le champ ne peut pas être vide.")
      */
-    private $plainPassword;
+    private ?string $plainPassword = null;
+
     /**
      * @ORM\Column(type="array")
      */
-    private $roles;
+    private ?array $roles;
+
     /**
      * @ORM\Column(type="boolean")
      */
-    private $status;
+    private ?bool $status = null;
+
     /**
      * @ORM\ManyToOne(targetEntity="Role", inversedBy="users")
      */
-    private $role;
+    private ?Role $role = null;
 
-    private $salt;
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private $lastLogin;
+    private ?DateTime $lastLogin = null;
 
     /**
      * @ORM\Column(type="text", nullable=true)
      */
-    private $address;
+    private ?string $address = null;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Reception", mappedBy="utilisateur")
      */
-    private $receptions;
+    private Collection $receptions;
+
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\DeliveryRequest\Demande", mappedBy="utilisateur")
      */
-    private $demandes;
+    private Collection $demandes;
+
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Collecte", mappedBy="demandeur")
      */
-    private $collectes;
+    private Collection $collectes;
+
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\PreparationOrder\Preparation", mappedBy="utilisateur")
      */
-    private $preparations;
+    private Collection $preparations;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Livraison", mappedBy="utilisateur")
      */
-    private $livraisons;
+    private Collection $livraisons;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\MouvementStock", mappedBy="user")
      */
-    private $mouvements;
+    private Collection $mouvements;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $apiKey;
+    private ?string $apiKey = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=false, unique=true)
      */
-    private $mobileLoginKey;
+    private ?string $mobileLoginKey = null;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Handling", mappedBy="requester")
      */
-    private $handlings;
+    private Collection $handlings;
 
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\Dispatch", mappedBy="receivers")
      */
-    private $receivedDispatches;
+    private Collection $receivedDispatches;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Dispatch", mappedBy="requester")
      */
-    private $requestedDispatches;
+    private Collection $requestedDispatches;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Dispatch", mappedBy="treatedBy")
      */
-    private $treatedDispatches;
+    private Collection $treatedDispatches;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Handling", mappedBy="treatedByHandling")
      */
-    private $treatedHandlings;
+    private Collection $treatedHandlings;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\FiltreRef", mappedBy="utilisateur", orphanRemoval=true)
      */
-    private $filters;
+    private Collection $filters;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\OrdreCollecte", mappedBy="utilisateur")
      */
-    private $ordreCollectes;
+    private Collection $ordreCollectes;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Arrivage", mappedBy="destinataire")
      */
-    private $arrivagesDestinataire;
+    private Collection $arrivagesDestinataire;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Urgence", mappedBy="buyer")
      */
-    private $emergencies;
+    private Collection $emergencies;
 
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\Arrivage", mappedBy="acheteurs")
      */
-    private $arrivagesAcheteur;
+    private Collection $arrivagesAcheteur;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Arrivage", mappedBy="utilisateur")
      */
-    private $arrivagesUtilisateur;
+    private Collection $arrivagesUtilisateur;
 
     /**
-     * @ORM\Column(type="json_array", nullable=true)
+     * @ORM\Column(type="json", nullable=true)
      */
-    private $recherche;
+    private ?array $recherche;
 
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\Type", inversedBy="deliveryUsers")
      * @ORM\JoinTable(name="user_delivery_type")
      */
-    private $deliveryTypes;
+    private Collection $deliveryTypes;
 
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\Type", inversedBy="dispatchUsers")
      * @ORM\JoinTable(name="user_dispatch_type")
      */
-    private $dispatchTypes;
+    private Collection $dispatchTypes;
 
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\Type", inversedBy="handlingUsers")
      * @ORM\JoinTable(name="user_handling_type")
      */
-    private $handlingTypes;
+    private Collection $handlingTypes;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\InventoryEntry", mappedBy="operator")
      */
-    private $inventoryEntries;
+    private Collection $inventoryEntries;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\InventoryCategoryHistory", inversedBy="operator")
      */
-    private $inventoryCategoryHistory;
+    private ?InventoryCategoryHistory $inventoryCategoryHistory = null;
 
     /**
      * @ORM\OneToMany(targetEntity=DisputeHistoryRecord::class, mappedBy="user")
@@ -237,55 +246,52 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\ReceiptAssociation", mappedBy="user")
      */
-    private $receptionsTraca;
+    private Collection $receptionsTraca;
 
     /**
      * @ORM\ManyToMany(targetEntity=Dispute::class, mappedBy="buyers")
      */
-    private $disputes;
-
-    /**
-     * @ORM\Column(type="json_array", nullable=true)
-     */
-    private $rechercheForArticle;
-
-    /**
-     * @ORM\Column(type="integer", options={"unsigned":true})
-     */
-    private $pageLengthForArrivage = 100;
-
-    /**
-     * @var array|null
-     * @ORM\Column(type="json")
-     */
-    private $savedDispatchDeliveryNoteData;
-
-    /**
-     * @var array|null
-     * @ORM\Column(type="json")
-     */
-    private $savedDispatchWaybillData;
-
-    /**
-     * @var string|null
-     * @ORM\Column(type="string", nullable=true)
-     */
-    private $phone;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="utilisateurs")
-     */
-    private $dropzone;
-
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\ReferenceArticle", mappedBy="userThatTriggeredEmergency")
-     */
-    private $referencesEmergenciesTriggered;
+    private Collection $disputes;
 
     /**
      * @ORM\Column(type="json", nullable=true)
      */
-    private $secondaryEmails = [];
+    private ?array $rechercheForArticle;
+
+    /**
+     * @ORM\Column(type="integer", options={"unsigned":true})
+     */
+    private ?int $pageLengthForArrivage = 100;
+
+    /**
+     * @ORM\Column(type="json")
+     */
+    private ?array $savedDispatchDeliveryNoteData = [];
+
+    /**
+     * @ORM\Column(type="json")
+     */
+    private ?array $savedDispatchWaybillData = [];
+
+    /**
+     * @ORM\Column(type="string", nullable=true)
+     */
+    private ?string $phone = null;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="utilisateurs")
+     */
+    private ?Emplacement $dropzone = null;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\ReferenceArticle", mappedBy="userThatTriggeredEmergency")
+     */
+    private Collection $referencesEmergenciesTriggered;
+
+    /**
+     * @ORM\Column(type="json", nullable=true)
+     */
+    private ?array $secondaryEmails = [];
 
     /**
      * @ORM\OneToMany(targetEntity=Dispute::class, mappedBy="reporter")
@@ -295,17 +301,17 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\ReferenceArticle", mappedBy="managers")
      */
-    private $referencesArticle;
+    private Collection $referencesArticle;
 
     /**
      * @ORM\ManyToMany(targetEntity=Handling::class, mappedBy="receivers")
      */
-    private $receivedHandlings;
+    private Collection $receivedHandlings;
 
     /**
      * @ORM\OneToMany(targetEntity=ReferenceArticle::class, mappedBy="buyer")
      */
-    private $referencesBuyer;
+    private Collection $referencesBuyer;
 
     /**
      * @ORM\OneToOne(targetEntity=Cart::class, mappedBy="user", cascade={"persist", "remove"})
@@ -331,7 +337,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     /**
      * @ORM\ManyToMany(targetEntity=Notification::class, mappedBy="users")
      */
-    private $unreadNotifications;
+    private Collection $unreadNotifications;
 
     /**
      * @ORM\ManyToMany(targetEntity=VisibilityGroup::class, mappedBy="users")
@@ -341,22 +347,32 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     /**
      * @ORM\Column(type="json", nullable=true)
      */
-    private $columnsOrder = [];
+    private ?array $columnsOrder = [];
 
     /**
      * @ORM\Column(type="array", nullable=true)
      */
-    private $searches = [];
+    private ?array $searches = [];
 
     /**
      * @ORM\Column(type="array", nullable=true)
      */
-    private $pageIndexes = [];
+    private ?array $pageIndexes = [];
 
     /**
      * @ORM\Column(type="json", nullable=true)
      */
-    private ?array $visibleColumns = [];
+    private ?array $visibleColumns;
+
+    /**
+     * @ORM\OneToMany(targetEntity=ReferenceArticle::class, mappedBy="editedBy")
+     */
+    private Collection $editedByReferenceArticles;
+
+    /**
+     * @ORM\OneToMany(targetEntity=ReferenceArticle::class, mappedBy="createdBy")
+     */
+    private Collection $createdByReferenceArticles;
 
     public function __construct()
     {
@@ -395,10 +411,8 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->sensorWrappers = new ArrayCollection();
         $this->unreadNotifications = new ArrayCollection();
         $this->visibilityGroups = new ArrayCollection();
-
-        $this->secondaryEmails = [];
-        $this->savedDispatchDeliveryNoteData = [];
-        $this->savedDispatchWaybillData = [];
+        $this->editedByReferenceArticles = new ArrayCollection();
+        $this->createdByReferenceArticles = new ArrayCollection();
 
         $this->recherche = Utilisateur::SEARCH_DEFAULT;
         $this->rechercheForArticle = Utilisateur::SEARCH_DEFAULT;
@@ -1862,6 +1876,78 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     public function setVisibleColumns(?array $visibleColumns): self
     {
         $this->visibleColumns = $visibleColumns;
+
+        return $this;
+    }
+
+    public function getEditedByReferenceArticles(): Collection {
+        return $this->editedByReferenceArticles;
+    }
+
+    public function addEditedByReferenceArticle(ReferenceArticle $referenceArticle): self {
+        if (!$this->editedByReferenceArticles->contains($referenceArticle)) {
+            $this->editedByReferenceArticles[] = $referenceArticle;
+            $referenceArticle->setEditedBy($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEditedByReferenceArticle(ReferenceArticle $referenceArticle): self {
+        if ($this->editedByReferenceArticles->removeElement($referenceArticle)) {
+            if ($referenceArticle->getEditedBy() === $this) {
+                $referenceArticle->setEditedBy(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setEditedByReferenceArticles(?array $referenceArticles): self {
+        foreach($this->getEditedByReferenceArticles()->toArray() as $referenceArticle) {
+            $this->removeEditedByReferenceArticle($referenceArticle);
+        }
+
+        $this->editedByReferenceArticles = new ArrayCollection();
+        foreach($referenceArticles as $referenceArticle) {
+            $this->addEditedByReferenceArticle($referenceArticle);
+        }
+
+        return $this;
+    }
+
+    public function getCreatedByReferenceArticles(): Collection {
+        return $this->createdByReferenceArticles;
+    }
+
+    public function addCreatedByReferenceArticle(ReferenceArticle $referenceArticle): self {
+        if (!$this->createdByReferenceArticles->contains($referenceArticle)) {
+            $this->createdByReferenceArticles[] = $referenceArticle;
+            $referenceArticle->setCreatedBy($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCreatedByReferenceArticle(ReferenceArticle $referenceArticle): self {
+        if ($this->createdByReferenceArticles->removeElement($referenceArticle)) {
+            if ($referenceArticle->getCreatedBy() === $this) {
+                $referenceArticle->setCreatedBy(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setCreatedByReferenceArticles(?array $referenceArticles): self {
+        foreach($this->getCreatedByReferenceArticles()->toArray() as $referenceArticle) {
+            $this->removeCreatedByReferenceArticle($referenceArticle);
+        }
+
+        $this->editedByReferenceArticles = new ArrayCollection();
+        foreach($referenceArticles as $referenceArticle) {
+            $this->addCreatedByReferenceArticle($referenceArticle);
+        }
 
         return $this;
     }
