@@ -2,9 +2,12 @@
 
 namespace App\Controller;
 
+use App\Entity\Action;
+use App\Entity\CategorieCL;
 use App\Entity\DaysWorked;
+use App\Entity\FreeField;
 use App\Entity\MailerServer;
-use App\Entity\Role;
+use App\Entity\Menu;
 use App\Entity\WorkFreeDay;
 use App\Helper\FormatHelper;
 use App\Service\SettingsService;
@@ -18,8 +21,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Annotation\HasPermission;
-use App\Entity\Menu;
-use App\Entity\Action;
+use WiiCommon\Helper\Stream;
 
 /**
  * @Route("/parametrage")
@@ -281,7 +283,7 @@ class SettingsController extends AbstractController {
     }
 
     /**
-     * @Route("/afficher/{category}/{menu}/{submenu}", name="settings_item")
+     * @Route("/afficher/{category}/{menu}/{submenu}", name="settings_item", options={"expose"=true})
      */
     public function item(string $category, string $menu, ?string $submenu = null): Response {
         if($submenu) {
@@ -317,6 +319,7 @@ class SettingsController extends AbstractController {
 
     public function customValues(): array {
         $mailerServerRepository = $this->manager->getRepository(MailerServer::class);
+        $freeFieldRepository = $this->manager->getRepository(FreeField::class);
 
         return [
             self::CATEGORY_GLOBAL => [
@@ -331,6 +334,13 @@ class SettingsController extends AbstractController {
             ],
             self::CATEGORY_STOCK => [
                 self::MENU_ALERTS => [],
+                self::MENU_ARTICLES => [
+                    self::MENU_LABELS => [
+                        "free_fields" => Stream::from($freeFieldRepository->findByCategory(CategorieCL::ARTICLE))
+                            ->keymap(fn(FreeField $field) => [$field->getLabel(), $field->getLabel()])
+                            ->toArray(),
+                    ],
+                ],
             ],
         ];
     }

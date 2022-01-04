@@ -1,0 +1,26 @@
+{% import 'form.html.twig' as form %}
+
+<span class="wii-field-name">Sur l'étiquette article</span>
+<div class="row">
+    <div class="form-group col-6">
+        {{ form.checkbox(setting('INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL'), 'Afficher l\'emplacement de destination', false, setting_value('INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL')) }}
+        {{ form.checkbox(setting('INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL'), 'Afficher l\'emplacement de dropzone', false, setting_value('INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL')) }}
+        {{ form.checkbox(setting('INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL'), 'Afficher date de péremption', false, setting_value('INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL')) }}
+    </div>
+
+    <div class="form-group col-6">
+        {{ form.checkbox(setting('INCLUDE_RECIPIENT_IN_ARTICLE_LABEL'), 'Afficher le destinataire', false, setting_value('INCLUDE_RECIPIENT_IN_ARTICLE_LABEL')) }}
+        {{ form.checkbox(setting('INCLUDE_QTT_IN_LABEL'), 'Afficher la quantité', false, setting_value('INCLUDE_QTT_IN_LABEL')) }}
+        {{ form.checkbox(setting('INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL'), 'Afficher le numéro de lot', false, setting_value('INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL')) }}
+    </div>
+</div>
+
+<div class="form-group">
+    {{ form.select(setting('CL_USED_IN_LABELS'), 'Champ libre présent sur les étiquettes', false, {
+        items: free_fields,
+        value: setting_value('CL_USED_IN_LABELS'),
+        labelClass: 'wii-field-name'
+    }) }}
+
+    {{ form.checkbox(setting('INCLUDE_BL_IN_LABEL'), 'Afficher le champ libre ci-dessus sur les étiquettes', false, setting_value('INCLUDE_BL_IN_LABEL')) }}
+</div>

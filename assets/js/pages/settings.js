@@ -127,10 +127,20 @@ function updateTitle(selectedMenu, canEdit) {
     document.title = `Paramétrage | ${title}`;
 
     let urlParts = (window.location.href).split(`/`);
-    urlParts[urlParts.length - 1] = selectedMenu;
+    console.log(submenu, submenu ? 'x' : 'd');
+    if(submenu) {
+        urlParts[urlParts.length - 2] = menu;
+        urlParts[urlParts.length - 1] = selectedMenu;
+    } else {
+        urlParts[urlParts.length - 1] = selectedMenu;
+    }
 
     const url = urlParts.join(`/`);
-    history.pushState({}, title, url);
+    history.pushState({}, title, Routing.generate(`settings_item`, {
+        category,
+        menu,
+        submenu,
+    }));
 }
 
 function initializeWorkingHours($container, canEdit) {

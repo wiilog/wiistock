@@ -29,6 +29,7 @@
         <main>
             {% for key, label in parent.menus %}
                 {% if label is not iterable %}
+                    {% dump (submenu ? (values[category][menu][submenu] ?? []) : (values[category][key] ?? [])) %}
                     <div class="wii-box {{ key != selected ? 'd-none' }}"
                          data-path="{{ category }}_{{ submenu ? menu : key }}{{ submenu ? '_' ~ key : '' }}"
                          data-menu="{{ key }}">
@@ -36,7 +37,7 @@
                         <div class="content focus-shadow">
                             {% include [path ~ key ~ '.html.twig', 'settings/todo.html.twig'] with {
                                 page: path ~ key ~ '.html.twig'
-                            } | merge(values[category][key] ?? []) %}
+                            } | merge(submenu ? (values[category][menu][submenu] ?? []) : (values[category][key] ?? [])) %}
                         </div>
                     </div>
                 {% endif %}
