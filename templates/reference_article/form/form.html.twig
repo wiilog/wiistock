@@ -45,7 +45,7 @@
 
 {% set editable = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
 {% set partialEdit = reference.id and hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT_PARTIALLY')) %}
-{% set hasRightCreateDraft = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_DRAFT_REFERENCE')) %}
+{% set hasRightCreateDraft = (not reference.id or reference.statut.draft) and hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_DRAFT_REFERENCE')) %}
 {% set disabled = editable ? '' : 'disabled' %}
 {% set isReferenceManagementQuantity = reference.id and reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_REFERENCE') %}
 {% set statuses = {
@@ -112,8 +112,8 @@
                                    name="reference"
                                    class="form-control data needed"
                                    placeholder="Référence"
-                                   data-draft-default="{{ draftDefaultReference }}"
-                                   value="{{ reference.reference ? reference.reference : (hasRightCreateDraft ? draftDefaultReference : ' ') }}"
+                                   data-draft-default="{{ draftDefaultReference ?? null }}"
+                                   value="{{ reference.reference ? reference.reference : (hasRightCreateDraft ? draftDefaultReference ?? null : ' ') }}"
                                    {{ hasRightCreateDraft ? 'disabled' : ' '}}>
                         </label>
                         {% else %}
@@ -144,6 +144,8 @@
                                 Statut*
                             </label>
                             <div class="wii-switch needed" data-title="Statut">
+                                {% dump reference.statut %}
+                                {% if not reference.id or reference.statut.draft %}
                                 <input type="radio"
                                        name="statut"
                                        value="{{ constant('App\\Entity\\ReferenceArticle::DRAFT_STATUS') }}"
@@ -151,6 +153,8 @@
                                        {{ ((reference.statut and reference.statut.code == constant('App\\Entity\\ReferenceArticle::DRAFT_STATUS'))
                                             or (not reference.id and hasRightCreateDraft)) ? 'checked' }}
                                        onchange="changeNewReferenceStatus($(this))">
+                                {% endif %}
+
                                 {% if not hasRightCreateDraft %}
                                     <input type="radio"
                                            name="statut"

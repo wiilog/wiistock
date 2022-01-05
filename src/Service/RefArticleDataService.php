@@ -266,7 +266,6 @@ class RefArticleDataService {
         $userRepository = $this->entityManager->getRepository(Utilisateur::class);
         $visibilityGroupRepository = $this->entityManager->getRepository(VisibilityGroup::class);
 
-        dump($data);
         //modification champsFixes
         $entityManager = $this->entityManager;
         $category = $inventoryCategoryRepository->find($data['categorie']);

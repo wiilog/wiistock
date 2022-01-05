@@ -298,7 +298,6 @@ class ReferenceArticleRepository extends EntityRepository {
         }
 
         foreach ($filters as $filter) {
-            dump($filter['champFixe']);
             $index++;
             if ($filter['champFixe'] === FiltreRef::FIXED_FIELD_ACTIVE_ONLY) {
                 if ($filter['value'] === ReferenceArticle::STATUT_ACTIF) {
@@ -380,7 +379,6 @@ class ReferenceArticleRepository extends EntityRepository {
                             case 'date':
                                 $dateTimeFilter = DateTime::createFromFormat('d/m/Y', $filter['value']);
                                 $dateStrFilter = $dateTimeFilter ? $dateTimeFilter->format('Y-m-d') : null;
-                                dump($dateStrFilter);
                                 $queryBuilder
                                     ->andWhere("ra." . $field . " LIKE :value" . $index)
                                     ->setParameter('value' . $index, '%' . $dateStrFilter . '%');
