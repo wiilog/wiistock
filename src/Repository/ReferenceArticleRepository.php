@@ -737,10 +737,10 @@ class ReferenceArticleRepository extends EntityRepository {
 
         $parameter = $reference;
         if($operator === "LIKE") {
-            $parameter = "$parameter%";
+            $parameter .= "%";
         }
 
-        $qb->where("reference_article.reference $operator :reference")
+        $qb->andWhere("reference_article.reference $operator :reference")
             ->setParameter("reference", $parameter);
 
         if ($referenceId) {

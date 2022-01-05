@@ -163,7 +163,7 @@ class StatutRepository extends EntityRepository {
         return $queryBuilder->getQuery()->execute();
     }
 
-    public function findByCategoryNameAndStatusCodes($categoryName, $statusCodes) {
+    public function findByCategoryNameAndStatusCodes($categoryName, $statusCodes): ?Statut {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */

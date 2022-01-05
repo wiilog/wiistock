@@ -884,4 +884,11 @@ class RefArticleDataService {
         );
     }
 
+    public function getDraftDefaultReference(EntityManagerInterface $entityManager): string {
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $prefix = "A DEFINIR";
+        $referenceCount = $referenceArticleRepository->countByReference($prefix, null, "LIKE");
+        return $prefix . ($referenceCount + 1);
+    }
+
 }

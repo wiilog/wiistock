@@ -62,6 +62,7 @@
         'color': '#EAEDFA'
     }
 } %}
+<input type="hidden" name="draft-status-name" value="{{ constant('App\\Entity\\ReferenceArticle::DRAFT_STATUS') }}"/>
 <div class="d-flex justify-content-center align-items-center" style="margin-bottom: 50px;">
     <div class="row wii-form wii-column">
         <div class="col-12 col-md-6">
@@ -107,9 +108,13 @@
                         {% if not partialEdit %}
                         <label class="wii-field-name" title="Référence">
                             Référence*
-                            <input type="text" name="reference" class="form-control data needed" placeholder="Référence"
-                                   value="{{ reference.reference ? reference.reference : (hasRightCreateDraft ? referenceName : ' ') }}"
-                                    {{ hasRightCreateDraft ? 'disabled' : ' '}}>
+                            <input type="text"
+                                   name="reference"
+                                   class="form-control data needed"
+                                   placeholder="Référence"
+                                   data-draft-default="{{ draftDefaultReference }}"
+                                   value="{{ reference.reference ? reference.reference : (hasRightCreateDraft ? draftDefaultReference : ' ') }}"
+                                   {{ hasRightCreateDraft ? 'disabled' : ' '}}>
                         </label>
                         {% else %}
                             <span class="wii-field-name" style="font-size: 20px;">Ref : {{ reference.reference }}</span>
@@ -139,15 +144,27 @@
                                 Statut*
                             </label>
                             <div class="wii-switch needed" data-title="Statut">
-                                <input type="radio" name="statut" value="{{ constant('App\\Entity\\ReferenceArticle::DRAFT_STATUS') }}" content="Brouillon"
-                                    {{ (reference.statut and reference.statut.code == constant('App\\Entity\\ReferenceArticle::DRAFT_STATUS')) ? 'checked' : (hasRightCreateDraft ? 'checked')}} onchange="changeNewReferenceStatus($(this))">
+                                <input type="radio"
+                                       name="statut"
+                                       value="{{ constant('App\\Entity\\ReferenceArticle::DRAFT_STATUS') }}"
+                                       content="Brouillon"
+                                       {{ ((reference.statut and reference.statut.code == constant('App\\Entity\\ReferenceArticle::DRAFT_STATUS'))
+                                            or (not reference.id and hasRightCreateDraft)) ? 'checked' }}
+                                       onchange="changeNewReferenceStatus($(this))">
                                 {% if not hasRightCreateDraft %}
-                                    <input type="radio" name="statut" value="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}" content="Actif"
-                                        {{ reference.statut and reference.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') ? 'checked' }} onchange="changeNewReferenceStatus($(this))">
-                                    <input type="radio" name="statut" value="{{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') }}" content="Inactif"
-                                        {{ reference.statut and reference.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') ? 'checked' }} onchange="changeNewReferenceStatus($(this))">
+                                    <input type="radio"
+                                           name="statut"
+                                           value="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}"
+                                           content="Actif"
+                                           {{ reference.statut and reference.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') ? 'checked' }}
+                                           onchange="changeNewReferenceStatus($(this))">
+                                    <input type="radio"
+                                           name="statut"
+                                           value="{{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') }}"
+                                           content="Inactif"
+                                           {{ reference.statut and reference.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') ? 'checked' }}
+                                           onchange="changeNewReferenceStatus($(this))">
                                 {% endif %}
-
                             </div>
 
                             <label class="with-checkbox">
@@ -192,54 +209,7 @@
                 <div class="header wii-title">Informations</div>
                 <div class="content">
                     <div class="row">
-                        {% if reference.id %}
-                            <div class="col-12 col-md-6 d-flex">
-                                <img src="{{ asset('svg/user-creation.svg') }}" alt="Icône créé par" width="20px">
-                                <label class="box-item ml-3">
-                                    <span class="wii-field-name">Créée par</span>
-                                    {% if not reference.createdBy and not reference.createdAt %}
-                                        <span class="wii-body-text">-</span>
-                                    {% else %}
-                                        {% if reference.createdBy %}
-                                            <span class="wii-body-text">{{ reference.createdBy.username }}</span>
-                                        {% endif %}
-                                        {% if reference.createdAt %}
-                                            <span class="wii-body-text">le {{ reference.createdAt | format_helper('datetime', '', true) }}</span>
-                                        {% endif %}
-                                    {% endif %}
-                                </label>
-                            </div>
-                            <div class="col-12 col-md-6 d-flex">
-                                <img src="{{ asset('svg/user-modification.svg') }}" alt="Icône modifié par" width="20px">
-                                <label class="box-item ml-3">
-                                    <span class="wii-field-name">Dernière modification par</span>
-                                    {% if not reference.editedBy and not reference.editedAt %}
-                                        <span class="wii-body-text">-</span>
-                                    {% else %}
-                                        {% if reference.editedBy %}
-                                            <span class="wii-body-text">{{ reference.editedBy.username }}</span>
-                                        {% endif %}
-                                        {% if reference.editedAt %}
-                                            <span class="wii-body-text">le {{ reference.editedAt | format_helper('datetime', '', true) }}</span>
-                                        {% endif %}
-                                    {% endif %}
-                                </label>
-                            </div>
-                            <div class="col-12 col-md-6 mt-3 d-flex">
-                                <img src="{{ asset('svg/calendrier-entree.svg') }}" alt="Icône entrée" width="20px">
-                                <label class="box-item ml-3">
-                                    <span class="wii-field-name">Dernière entrée le</span>
-                                    <span class="wii-body-text">{{ reference.lastStockEntry ? (reference.lastStockEntry | format_helper('datetime', '', true)) : '-' }}</span>
-                                </label>
-                            </div>
-                            <div class="col-12 col-md-6 mt-3 d-flex">
-                                <img src="{{ asset('svg/calendrier-sortie.svg') }}" alt="Icône sortie" width="20px">
-                                <label class="box-item ml-3">
-                                    <span class="wii-field-name">Dernière sortie le</span>
-                                    <span class="wii-body-text">{{ reference.lastStockExit ? (reference.lastStockExit | format_helper('datetime', '', true)) : '-' }}</span>
-                                </label>
-                            </div>
-                        {% endif %}
+                        {% include 'reference_article/reference-date.template.html.twig' with {reference: reference} %}
                         <div class="col-12 col-md-6 {% if reference.id %}mt-3{% endif %}">
                             {% if not partialEdit %}
                                 <label for="visibility-group" class="wii-field-name w-100">
@@ -357,10 +327,18 @@
                                                     <img src="{{ asset('svg/reference_article/location.svg') }}" class="icon" alt="Image emplacement">
                                                     Emplacement*
                                                 </span>
-                                                <select name="emplacement" id="emplacement" class="form-control w-100 data needed"
-                                                        data-s2="location" data-placeholder="Sélectionnez un emplacement" {{ defaultLocation ? 'disabled' : ' ' }}>
+                                                <select name="emplacement"
+                                                        id="emplacement"
+                                                        class="form-control w-100 data needed"
+                                                        data-s2="location"
+                                                        {% if defaultLocation is defined and defaultLocation %}
+                                                            data-draft-default-value="{{ defaultLocation.id }}"
+                                                            data-draft-default-text="{{ defaultLocation.text }}"
+                                                        {% endif %}
+                                                        data-placeholder="Sélectionnez un emplacement"
+                                                        {{ defaultLocation ? 'disabled' : ' ' }}>
                                                     {% if defaultLocation is defined and defaultLocation %}
-                                                        <option id="{{ defaultLocation.id }}">{{ defaultLocation.text }}</option>
+                                                        <option id="{{ defaultLocation.id }}" selected>{{ defaultLocation.text }}</option>
                                                     {% endif %}
                                                 </select>
                                             </label>

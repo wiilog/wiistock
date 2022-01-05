@@ -131,13 +131,22 @@ class ReferenceArticleController extends AbstractController
 
             // on vérifie que la référence n'existe pas déjà
             $refAlreadyExist = $referenceArticleRepository->countByReference($data['reference']);
+            $statut = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
 
             if ($refAlreadyExist) {
-                return new JsonResponse([
-                	'success' => false,
-					'msg' => 'Ce nom de référence existe déjà. Vous ne pouvez pas le recréer.',
-					'invalidFieldsSelector' => 'input[name="reference"]'
-				]);
+                $errorData = [
+                    'success' => false
+                ];
+
+                if ($statut->getCode() === ReferenceArticle::DRAFT_STATUS) {
+                    $errorData['msg'] = 'Une référence avec le même code a été créée en même temps. Le code a été actualisé, veuillez enregistrer de nouveau.';
+                    $errorData['draftDefaultReference'] = $refArticleDataService->getDraftDefaultReference($entityManager);
+                } else {
+                    $errorData['msg'] = 'Ce nom de référence existe déjà. Vous ne pouvez pas le recréer.';
+                    $errorData['invalidFieldsSelector'] = 'input[name="reference"]';
+                }
+
+                return new JsonResponse($errorData);
             }
 
             $type = $typeRepository->find($data['type']);
@@ -149,8 +158,6 @@ class ReferenceArticleController extends AbstractController
                 $emplacement = null; //TODO gérer message erreur (faire un return avec msg erreur adapté -> à ce jour un return false correspond forcément à une réf déjà utilisée)
             }
 
-            $statut = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
-
             switch($data['type_quantite']) {
                 case 'article':
                     $typeArticle = ReferenceArticle::TYPE_QUANTITE_ARTICLE;
@@ -160,7 +167,7 @@ class ReferenceArticleController extends AbstractController
                     $typeArticle = ReferenceArticle::TYPE_QUANTITE_REFERENCE;
                     break;
             }
-            dump($data);
+
             $refArticle = new ReferenceArticle();
             $refArticle
                 ->setNeedsMobileSync(filter_var($data['mobileSync'] ?? false, FILTER_VALIDATE_BOOLEAN))
@@ -193,9 +200,14 @@ class ReferenceArticleController extends AbstractController
             }
             if ($data['categorie']) {
             	$category = $inventoryCategoryRepository->find($data['categorie']);
-            	if ($category) $refArticle->setCategory($category);
+            	if ($category) {
+                    $refArticle->setCategory($category);
+                }
 			}
-            if ($statut) $refArticle->setStatut($statut);
+            if ($statut) {
+                $refArticle->setStatut($statut);
+            }
+
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 $refArticle->setQuantiteStock($data['quantite'] ? max($data['quantite'], 0) : 0); // protection contre quantités négatives
             } else {
@@ -949,16 +961,15 @@ class ReferenceArticleController extends AbstractController
     /**
      * @Route("/nouveau-page", name="reference_article_new_page", options={"expose"=true})
      */
-    public function newTemplate(EntityManagerInterface $manager, GlobalParamService $globalParamService) {
-        $typeRepository = $manager->getRepository(Type::class);
-        $inventoryCategoryRepository = $manager->getRepository(InventoryCategory::class);
-        $freeFieldRepository = $manager->getRepository(FreeField::class);
-        $referenceArcicleRepository = $manager->getRepository(ReferenceArticle::class);
+    public function newTemplate(EntityManagerInterface $entityManager,
+                                RefArticleDataService  $refArticleDataService,
+                                GlobalParamService     $globalParamService) {
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $inventoryCategories = $inventoryCategoryRepository->findAll();
-
-        $referenceCount = $referenceArcicleRepository->countByReference("A DEFINIR", null, "LIKE");
 
         $typeChampLibre = [];
         $freeFieldsGroupedByTypes = [];
@@ -978,7 +989,7 @@ class ReferenceArticleController extends AbstractController
             "submit_url" => $this->generateUrl("reference_article_new"),
             "types" => $types,
             'defaultLocation' => $globalParamService->getParamLocation(ParametrageGlobal::DEFAULT_LOCATION_REFERENCE),
-            'referenceName' => $referenceCount ? ("A DEFINIR" . ($referenceCount + 1)) : "A DEFINIR1",
+            'draftDefaultReference' => $refArticleDataService->getDraftDefaultReference($entityManager),
             "stockManagement" => [
                 ReferenceArticle::STOCK_MANAGEMENT_FEFO,
                 ReferenceArticle::STOCK_MANAGEMENT_FIFO

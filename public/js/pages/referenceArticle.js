@@ -419,6 +419,44 @@ function updateFilters() {
         });
 }
 
-function changeNewReferenceStatus(select){
-    $('input[name="quantite"]').prop(`disabled`, select.val() === 'brouillon');
+function changeNewReferenceStatus($select){
+    const draftStatusName = $(`input[name="draft-status-name"]`).val();
+    const draftSelected = $select.val() === draftStatusName;
+
+    const $reference = $(`input[name="reference"]`);
+    const $quantite = $(`input[name="quantite"]`);
+    const $location = $(`input[name="emplacement"]`);
+
+    $quantite.prop(`disabled`, draftSelected);
+    $reference.prop(`disabled`, draftSelected);
+    if ($location.exists()) {
+        $location.prop(`disabled`, draftSelected);
+    }
+
+    if (draftSelected) {
+        const defaultDraftReference = $reference.data('draft-default');
+
+        $reference.val(defaultDraftReference);
+        $quantite.val(0);
+
+        $location.exists()
+
+        if ($location.exists()) {
+            const optionValue = $location.data('draft-default-value');
+            const optionText = $location.data('draft-default-text');
+            if (optionValue && optionText) {
+                const existing = $location.find(`option[value="${optionValue}"]`).exists();
+                if (existing) {
+                    $location
+                        .val(optionValue)
+                        .trigger('change');
+                } else {
+                    $location
+                        .append(new Option(optionText, optionValue, true, true))
+                        .trigger('change');
+                }
+            }
+        }
+    }
+
 }

@@ -196,7 +196,6 @@ function clearFormErrors($modal) {
 }
 
 function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable) {
-    console.log('ON PASSE ICIIIIIII')
     resetDroppedFiles();
     if (data.redirect && !keepModal) {
         window.location.href = data.redirect;

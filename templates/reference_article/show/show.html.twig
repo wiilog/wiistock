@@ -70,52 +70,7 @@
                     <div class="header wii-title">Informations</div>
                     <div class="content">
                         <div class="row">
-                            <div class="col-12 col-md-6 d-flex">
-                                <img src="{{ asset('svg/user-creation.svg') }}" alt="Icône créé par" width="20px">
-                                <label class="box-item ml-3">
-                                    <span class="wii-field-name">Créée par</span>
-                                    {% if not referenceArticle.createdBy and not referenceArticle.createdAt %}
-                                        <span class="wii-body-text">-</span>
-                                    {% else %}
-                                        {% if referenceArticle.createdBy %}
-                                            <span class="wii-body-text">{{ referenceArticle.createdBy.username }}</span>
-                                        {% endif %}
-                                        {% if referenceArticle.createdAt %}
-                                            <span class="wii-body-text">le {{ referenceArticle.createdAt | format_helper('datetime', '', true) }}</span>
-                                        {% endif %}
-                                    {% endif %}
-                                </label>
-                            </div>
-                            <div class="col-12 col-md-6 d-flex">
-                                <img src="{{ asset('svg/user-modification.svg') }}" alt="Icône modifié par" width="20px">
-                                <label class="box-item ml-3">
-                                    <span class="wii-field-name">Dernière modification par</span>
-                                    {% if not referenceArticle.editedBy and not referenceArticle.editedAt %}
-                                        <span class="wii-body-text">-</span>
-                                    {% else %}
-                                        {% if referenceArticle.editedBy %}
-                                            <span class="wii-body-text">{{ referenceArticle.editedBy.username }}</span>
-                                        {% endif %}
-                                        {% if referenceArticle.editedAt %}
-                                            <span class="wii-body-text">le {{ referenceArticle.editedAt | format_helper('datetime', '', true) }}</span>
-                                        {% endif %}
-                                    {% endif %}
-                                </label>
-                            </div>
-                            <div class="col-12 col-md-6 mt-3 d-flex">
-                                <img src="{{ asset('svg/calendrier-entree.svg') }}" alt="Icône entrée" width="20px">
-                                <label class="box-item ml-3">
-                                    <span class="wii-field-name">Dernière entrée le</span>
-                                    <span class="wii-body-text">{{ referenceArticle.lastStockEntry ? (referenceArticle.lastStockEntry | format_helper('datetime', '', true)) : '-' }}</span>
-                                </label>
-                            </div>
-                            <div class="col-12 col-md-6 mt-3 d-flex">
-                                <img src="{{ asset('svg/calendrier-sortie.svg') }}" alt="Icône sortie" width="20px">
-                                <label class="box-item ml-3">
-                                    <span class="wii-field-name">Dernière sortie le</span>
-                                    <span class="wii-body-text">{{ referenceArticle.lastStockExit ? (referenceArticle.lastStockExit | format_helper('datetime', '', true)) : '-' }}</span>
-                                </label>
-                            </div>
+                            {% include 'reference_article/reference-date.template.html.twig' with {reference: referenceArticle} %}
                             <div class="col-12 col-md-6 mt-3 d-flex">
                                 <img src="{{ asset('svg/visibility-group.svg') }}" alt="Icône groupe de visibilité" width="20px">
                                 <label class="box-item ml-3">
