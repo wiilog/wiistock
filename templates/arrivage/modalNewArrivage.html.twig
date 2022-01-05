@@ -225,9 +225,9 @@
                         <div class="error-empty-status d-none">
                             {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
                                 array: [],
-                                warningLabel: 'Attention ! Aucun statut pour ce type.',
+                                warningLabel: 'Attention ! Aucun statut pour ce type',
                                 redirectPath: path('status_param_index'),
-                                redirectLabel: 'Créer un statut.'
+                                redirectLabel: 'Créer un statut'
                             } %}
                         </div>
                     </div>
@@ -340,7 +340,7 @@
                         <div class="col-12">
                             {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
                                 array: natures,
-                                warningLabel: 'Attention ! Aucune nature ' ~ ('arrivage.de colis'|trans) ~ ' n\'a été créée.',
+                                warningLabel: 'Attention ! Aucune nature ' ~ ('arrivage.de colis'|trans) ~ ' n\'a été créée',
                                 redirectPath: path('nature_param_index'),
                                 redirectLabel: 'Aller vers la création des natures',
                                 title: 'de colis'

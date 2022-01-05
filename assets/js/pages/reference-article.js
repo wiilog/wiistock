@@ -3,7 +3,6 @@ import {initEditor} from '../utils';
 
 $(document).ready(() => {
     initEditor(`.editor-container`);
-    $('.list-multiple').select2();
 
     $(`.add-supplier-article`).click(function() {
         $(this).siblings(`.supplier-articles`).append($(`#supplier-article-template`).html());

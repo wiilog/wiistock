@@ -196,6 +196,7 @@ function clearFormErrors($modal) {
 }
 
 function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable) {
+    console.log('ON PASSE ICIIIIIII')
     resetDroppedFiles();
     if (data.redirect && !keepModal) {
         window.location.href = data.redirect;
@@ -242,6 +243,7 @@ function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, hea
     if (waitDatatable) {
         return Promise.all(tablesReloadingPromises);
     } else {
+        Promise.all(tablesReloadingPromises); // we launch datatable reloading even if we do not wait
         return new Promise((resolve) => {
             resolve();
         });
