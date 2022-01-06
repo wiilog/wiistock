@@ -25,12 +25,11 @@ $(document).ready(() => {
             clearFormErrors($form);
             processSubmitAction($form, $button, $button.data(`submit`), {
                 success: data => {
-                    if (data.success) {
-                        window.location.href = Routing.generate('reference_article_show_page', {id: data.data.id})
-                    }
-                    else if (data.draftDefaultReference) {
-                        $('input[name="reference"]').val(data.draftDefaultReference);
-                    }
+                    window.location.href = Routing.generate('reference_article_show_page', {id: data.data.id});
+                },
+            }).then(data => {
+                if(!data.success && data.draftDefaultReference) {
+                    $('input[name="reference"]').val(data.draftDefaultReference);
                 }
             });
         }
