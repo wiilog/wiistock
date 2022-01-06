@@ -163,7 +163,7 @@ class StatutRepository extends EntityRepository {
         return $queryBuilder->getQuery()->execute();
     }
 
-    public function findByCategoryNameAndStatusCodes($categoryName, $statusCodes): ?Statut {
+    public function findByCategoryNameAndStatusCodes($categoryName, $statusCodes) {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */
@@ -179,7 +179,7 @@ class StatutRepository extends EntityRepository {
         return $query->execute();
     }
 
-    public function findOneByCategorieNameAndStatutCode($categorieName, $statutCode) {
+    public function findOneByCategorieNameAndStatutCode($categorieName, $statutCode): ?Statut {
         $queryBuilder = $this->createQueryBuilder('s');
         $queryBuilder
             ->join('s.categorie', 'c')
