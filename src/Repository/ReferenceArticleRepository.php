@@ -556,8 +556,7 @@ class ReferenceArticleRepository extends EntityRepository {
                         default:
                             $field = self::DtToDbLabels[$searchField] ?? $searchField;
                             $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
-                            if (is_numeric($freeFieldId)) {
-                                $freeField = $freeFieldRepository->find($freeFieldId);
+                            if (is_numeric($freeFieldId) && $freeField = $freeFieldRepository->find($freeFieldId)) {
                                 if ($freeField->getTypage() === FreeField::TYPE_BOOL) {
                                     $lowerSearchValue = strtolower($searchValue);
 
