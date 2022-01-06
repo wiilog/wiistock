@@ -48,7 +48,8 @@
                                 <span class="wii-field-text">Quantité disponible <strong>{{ referenceArticle.quantiteDisponible }}</strong></span>
                             </div>
                             <div class="d-flex align-content-center">
-                                <span class="wii-small-text mr-3">
+                                <span class="reference-status wii-body-text mr-3"
+                                      style="background-color: {{ statuses[referenceArticle.statut.code]['color'] }};">
                                     Référence {{ statuses[referenceArticle.statut.code]['status'] }}
                                 </span>
                                 <div class="d-flex align-content-center">
