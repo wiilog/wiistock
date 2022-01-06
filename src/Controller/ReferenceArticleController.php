@@ -127,7 +127,6 @@ class ReferenceArticleController extends AbstractController
             $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
             $userRepository = $entityManager->getRepository(Utilisateur::class);
             $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
-            $sendMail = $userRepository->getUserMailByReferenceValidatorAction();
 
             // on vérifie que la référence n'existe pas déjà
             $refAlreadyExist = $referenceArticleRepository->countByReference($data['reference']);
@@ -285,8 +284,8 @@ class ReferenceArticleController extends AbstractController
 
             $entityManager->flush();
 
-            if (!empty($sendMail)){
-                $refArticleDataService->sendMailCreateDraftOrDraftToActive($refArticle, $sendMail, true);
+            if ($refArticle->getStatut()->getCode() === ReferenceArticle::DRAFT_STATUS){
+                $refArticleDataService->sendMailCreateDraftOrDraftToActive($refArticle, $userRepository->getUserMailByReferenceValidatorAction(), true);
             }
 
             return $this->json([
