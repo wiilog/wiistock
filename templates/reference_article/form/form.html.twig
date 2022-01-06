@@ -106,16 +106,16 @@
                     </div>
                     <div class="col-md-8 col-12">
                         {% if not partialEdit %}
-                        <label class="wii-field-name" title="Référence">
-                            Référence*
-                            <input type="text"
-                                   name="reference"
-                                   class="form-control data needed"
-                                   placeholder="Référence"
-                                   data-draft-default="{{ draftDefaultReference ?? null }}"
-                                   value="{{ reference.reference ? reference.reference : (hasRightCreateDraft ? draftDefaultReference ?? null) }}"
-                                   {{ hasRightCreateDraft ? 'disabled' : ' '}}>
-                        </label>
+                            <label class="wii-field-name" title="Référence">
+                                Référence*
+                                <input type="text"
+                                       name="reference"
+                                       class="form-control data needed"
+                                       placeholder="Référence"
+                                       data-draft-default="{{ draftDefaultReference ?? null }}"
+                                       value="{{ reference.reference ? reference.reference : (hasRightCreateDraft ? draftDefaultReference ?? null) }}"
+                                       {{ hasRightCreateDraft ? 'disabled' : ' '}}>
+                            </label>
                         {% else %}
                             <span class="wii-field-name" style="font-size: 20px;">Ref : {{ reference.reference }}</span>
                             <input type="hidden" name="reference" class="data" value="{{ reference.reference }}">
