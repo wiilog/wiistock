@@ -281,6 +281,8 @@ class RefArticleDataService {
             }
         }
 
+        $wasDraft = $refArticle->getStatut()->getCode() === ReferenceArticle::DRAFT_STATUS;
+
         $sendMail = false;
         if (isset($data['statut'])) {
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
@@ -385,7 +387,7 @@ class RefArticleDataService {
 
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE &&
             $refArticle->getQuantiteStock() > 0 &&
-            $refArticle->getStatut()->getCode() !== ReferenceArticle::DRAFT_STATUS) {
+            $wasDraft && $refArticle->getStatut()->getCode() === ReferenceArticle::STATUT_ACTIF) {
             $mvtStock = $mouvementStockService->createMouvementStock(
                 $user,
                 null,
