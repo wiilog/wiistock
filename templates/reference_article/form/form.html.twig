@@ -339,7 +339,7 @@
                                                             data-draft-default-text="{{ defaultLocation.text }}"
                                                         {% endif %}
                                                         data-placeholder="Sélectionnez un emplacement"
-                                                        {{ defaultLocation ? 'disabled' : ' ' }}>
+                                                        {{ hasRightCreateDraft ? 'disabled' : ' ' }}>
                                                     {% if defaultLocation is defined and defaultLocation %}
                                                         <option id="{{ defaultLocation.id }}" selected>{{ defaultLocation.text }}</option>
                                                     {% endif %}

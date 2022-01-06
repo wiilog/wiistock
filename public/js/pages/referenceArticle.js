@@ -425,10 +425,12 @@ function changeNewReferenceStatus($select){
 
     const $reference = $(`input[name="reference"]`);
     const $quantite = $(`input[name="quantite"]`);
-    const $location = $(`input[name="emplacement"]`);
+    const $location = $(`select[name="emplacement"]`);
 
     $quantite.prop(`disabled`, draftSelected);
     $reference.prop(`disabled`, draftSelected);
+    $location.prop('disabled', draftSelected);
+
     if ($location.exists()) {
         $location.prop(`disabled`, draftSelected);
     }
