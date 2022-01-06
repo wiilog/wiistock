@@ -10,7 +10,7 @@
                     <span class="wii-body-text">{{ reference.createdBy.username }}</span>
                 {% endif %}
                 {% if reference.createdAt %}
-                    <span class="wii-body-text">le {{ reference.createdAt | format_helper('datetime', '', true) }}</span>
+                    <span class="wii-body-text">le {{ reference.createdAt | format_helper('longDate', '', true, true) }}</span>
                 {% endif %}
             {% endif %}
         </label>
@@ -26,7 +26,7 @@
                     <span class="wii-body-text">{{ reference.editedBy.username }}</span>
                 {% endif %}
                 {% if reference.editedAt %}
-                    <span class="wii-body-text">le {{ reference.editedAt | format_helper('datetime', '', true) }}</span>
+                    <span class="wii-body-text">le {{ reference.editedAt | format_helper('longDate', '', true, true) }}</span>
                 {% endif %}
             {% endif %}
         </label>
@@ -35,14 +35,14 @@
         <img src="{{ asset('svg/calendrier-entree.svg') }}" alt="Icône entrée" width="20px">
         <label class="box-item ml-3">
             <span class="wii-field-name">Dernière entrée le</span>
-            <span class="wii-body-text">{{ reference.lastStockEntry ? (reference.lastStockEntry | format_helper('datetime', '', true)) : '-' }}</span>
+            <span class="wii-body-text">{{ reference.lastStockEntry ? (reference.lastStockEntry | format_helper('longDate', '', true, true)) : '-' }}</span>
         </label>
     </div>
     <div class="col-12 col-md-6 mt-3 d-flex">
         <img src="{{ asset('svg/calendrier-sortie.svg') }}" alt="Icône sortie" width="20px">
         <label class="box-item ml-3">
             <span class="wii-field-name">Dernière sortie le</span>
-            <span class="wii-body-text">{{ reference.lastStockExit ? (reference.lastStockExit | format_helper('datetime', '', true)) : '-' }}</span>
+            <span class="wii-body-text">{{ reference.lastStockExit ? (reference.lastStockExit | format_helper('longDate', '', true, true)) : '-' }}</span>
         </label>
     </div>
 {% endif %}

@@ -168,7 +168,7 @@ class FormatHelper {
         return $date ? $date->format($addAt ? "d/m/Y à H:i" : "d/m/Y H:i") : $else;
     }
 
-    public static function longDate(?DateTimeInterface $date, bool $short = false, $else = "-"): ?string {
+    public static function longDate(?DateTimeInterface $date, bool $short = false, bool $time = false, $else = "-"): ?string {
         return $date
             ? (($short
                 ? substr(self::WEEK_DAYS[$date->format("w")], 0, 3)
@@ -178,7 +178,8 @@ class FormatHelper {
                     . " "
                     . self::MONTHS[$date->format("n")]
                     . " "
-                    . $date->format("Y"))
+                    . $date->format("Y")
+            . ($time ? $date->format(" à H:i") : ""))
             : $else;
     }
 
