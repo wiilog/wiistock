@@ -107,7 +107,7 @@ class TransferOrderService {
                 ->setOperator($operator)
                 ->setTransferDate(new DateTime());
             $locationTo = $request->getDestination();
-            $this->releaseRefsAndArticles($locationTo, $order, $operator, $entityManager, true);
+            $this->releaseRefsAndArticles($destination ?? $locationTo, $order, $operator, $entityManager, true);
         }
     }
 
