@@ -346,7 +346,7 @@
                                                 </select>
                                             </label>
                                         </div>
-                                        <div class="col-12 col-md-6 reference mt-3">
+                                        <div class="col-12 col-md-4 reference mt-3">
                                             <label>
                                                 <span class="icon wii-field-name">
                                                     <img src="{{ asset('svg/reference_article/stock.svg') }}" class="icon" alt="Image quantité">
@@ -369,56 +369,60 @@
                                     <div class="col"></div>
                                 </div>
                             </div>
+                            <div class="col-12">
+                                <div class="row">
+                                    <div class="col-md-4 mt-3">
+                                        {% if not partialEdit %}
+                                            <label class="w-100">
+                                                <span class="icon wii-field-name">
+                                                    <img src="{{ asset('svg/reference_article/manager.svg') }}" class="icon" alt="Image gestionnaire">
+                                                    Gestionnaires
+                                                </span>
+                                                <select name="managers" class="form-control w-100 data" data-s2="user"
+                                                        data-placeholder="Sélectionnez des gestionnaires" multiple>
+                                                    {% for manager in reference.managers %}
+                                                    <option value="{{ manager.id }}" selected>{{ manager.username }}</option>
+                                                    {% endfor %}>
+                                                </select>
+                                            </label>
+                                        {% else %}
+                                            <div class="d-flex">
+                                                <img src="{{ asset('svg/reference_article/manager.svg') }}" class="icon" alt="Image gestionnaire"
+                                                     width="20px">
+                                                <label class="box-item ml-3">
+                                                    <span class="wii-field-name">Gestionnaires</span>
+                                                    <span class="wii-body-text">{{ reference.managers is not empty ? reference.managers | join(', ') : '-' }}</span>
+                                                </label>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4 mt-3">
+                                        {% if not partialEdit %}
+                                            <label>
+                                                <span class="icon wii-field-name">
+                                                    <img src="{{ asset('svg/reference_article/manager.svg') }}" class="icon" alt="Image acheteur">
+                                                    Acheteur
+                                                </span>
+                                                <select name="buyer" class="form-control data w-100" data-s2="user"
+                                                        data-placeholder="Sélectionnez un utilisateur">
+                                                    {% if reference.buyer %}
+                                                    <option value="{{ reference.buyer.id }}" selected>{{ reference.buyer.username }}</option>
+                                                    {% endif %}>
+                                                </select>
+                                            </label>
+                                        {% else %}
+                                            <div class="d-flex">
+                                                <img src="{{ asset('svg/reference_article/manager.svg') }}" class="icon" alt="Image acheteur"
+                                                     width="20px">
+                                                <label class="box-item ml-3">
+                                                    <span class="wii-field-name">Acheteur</span>
+                                                    <span class="wii-body-text">{{ reference.buyer ? reference.buyer.username : '-' }}</span>
+                                                </label>
+                                            </div>
+                                        {% endif %}
+                                    </div>
 
-                            <div class="col-12 col-md-6 mt-3">
-                                {% if not partialEdit %}
-                                    <label class="w-100">
-                                        <span class="icon wii-field-name">
-                                            <img src="{{ asset('svg/reference_article/manager.svg') }}" class="icon" alt="Image gestionnaire">
-                                            Gestionnaires
-                                        </span>
-                                        <select name="managers" class="form-control w-100 data" data-s2="user"
-                                                data-placeholder="Sélectionnez des gestionnaires" multiple>
-                                            {% for manager in reference.managers %}
-                                            <option value="{{ manager.id }}" selected>{{ manager.username }}</option>
-                                            {% endfor %}>
-                                        </select>
-                                    </label>
-                                {% else %}
-                                    <div class="d-flex">
-                                        <img src="{{ asset('svg/reference_article/manager.svg') }}" class="icon" alt="Image gestionnaire"
-                                             width="20px">
-                                        <label class="box-item ml-3">
-                                            <span class="wii-field-name">Gestionnaires</span>
-                                            <span class="wii-body-text">{{ reference.managers is not empty ? reference.managers | join(', ') : '-' }}</span>
-                                        </label>
-                                    </div>
-                                {% endif %}
-                            </div>
-                            <div class="col-12 col-md-6 mt-3">
-                                {% if not partialEdit %}
-                                    <label>
-                                        <span class="icon wii-field-name">
-                                            <img src="{{ asset('svg/reference_article/manager.svg') }}" class="icon" alt="Image acheteur">
-                                            Acheteur
-                                        </span>
-                                        <select name="buyer" class="form-control data w-100" data-s2="user"
-                                                data-placeholder="Sélectionnez un utilisateur">
-                                            {% if reference.buyer %}
-                                            <option value="{{ reference.buyer.id }}" selected>{{ reference.buyer.username }}</option>
-                                            {% endif %}>
-                                        </select>
-                                    </label>
-                                {% else %}
-                                    <div class="d-flex">
-                                        <img src="{{ asset('svg/reference_article/manager.svg') }}" class="icon" alt="Image acheteur"
-                                             width="20px">
-                                        <label class="box-item ml-3">
-                                            <span class="wii-field-name">Acheteur</span>
-                                            <span class="wii-body-text">{{ reference.buyer ? reference.buyer.username : '-' }}</span>
-                                        </label>
-                                    </div>
-                                {% endif %}
+                                </div>
                             </div>
                             <div class="col-12 col-md-4 mt-3">
                                 <div class="reference">
@@ -428,6 +432,23 @@
                                                 Prix unitaire (€)
                                             </span>
                                         <input type="number" name="prix" class="form-control w-100 data" value="{{ reference.prixUnitaire }}" min="0">
+                                    </label>
+                                </div>
+                                <div class="article">
+                                    <label>
+                                        <span class="icon wii-field-name">
+                                            <img src="{{ asset('svg/reference_article/stock-management.svg') }}" class="icon"
+                                                 alt="Image gestion de stock">
+                                            Gestion de stock
+                                        </span>
+                                        <select name="stockManagement" data-s2 data-placeholder="Sélectionnez une gestion de stock"
+                                                class="form-control data">
+                                            {% for value in stockManagement %}
+                                                <option value="{{ value }}" {{ reference.stockManagement == value ? 'selected' }}>
+                                                    {{ value }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
                                     </label>
                                 </div>
                             </div>
@@ -462,24 +483,6 @@
                                     </div>
                                 </label>
                             </div>
-                        </div>
-
-                        <div class="col-12 col-md-4 article mt-3">
-                            <label>
-                                <span class="icon wii-field-name">
-                                    <img src="{{ asset('svg/reference_article/stock-management.svg') }}" class="icon"
-                                         alt="Image gestion de stock">
-                                    Gestion de stock
-                                </span>
-                                <select name="stockManagement" data-s2 data-placeholder="Sélectionnez une gestion de stock"
-                                        class="form-control data">
-                                    {% for value in stockManagement %}
-                                        <option value="{{ value }}" {{ reference.stockManagement == value ? 'selected' }}>
-                                            {{ value }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </label>
                         </div>
                         <div class="col-12">
                             <div class="row">
