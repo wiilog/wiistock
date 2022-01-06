@@ -113,6 +113,9 @@ class RefArticleDataService {
     public AttachmentService $attachmentService;
 
     /** @Required */
+    public MouvementStockService $mouvementStockService;
+
+    /** @Required */
     public MailerService $mailerService;
 
     private ?array $freeFieldsConfig = null;
@@ -548,7 +551,7 @@ class RefArticleDataService {
             }
 
             if(!$fromNomade && $editRef) {
-                $this->editRefArticle($referenceArticle, $data, $user, $champLibreService);
+                $this->editRefArticle($referenceArticle, $data, $user, $champLibreService, $this->mouvementStockService);
             }
         } else if($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             if($fromNomade || $this->userService->hasParamQuantityByRef() || $fromCart) {
