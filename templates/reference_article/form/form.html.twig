@@ -241,7 +241,7 @@
                                 'isNew' : not reference.id,
                                 'button': 'Parcourir vos fichiers',
                                 'attachments': reference.attachments,
-                                'editAttachments': hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')),
+                                'editAttachments': editable or partialEdit,
                                 'fieldNameClass': 'wii-field-name',
                             } %}
                         </div>
@@ -562,7 +562,7 @@
                                         <img src="{{ asset('svg/reference_article/warehouse.svg') }}" class="icon" alt="Image entrepôt">
                                         Catégorie d'inventaire
                                     </span>
-                                {% if editable %}
+                                {% if editable and not partialEdit %}
                                     <select name="categorie" data-s2 class="form-control data {{ disabled }}">
                                         {% for category in categories %}
                                             <option value="{{ category.id }}"
@@ -572,13 +572,12 @@
                                         {% endfor %}
                                     </select>
                                 {% else %}
-                                    <input class="form-control" type="text"
-                                           value="{{ reference.category ? reference.category.label }}" {{ disabled }}>
+                                    <span class="font-weight-regular">{{ reference.category ? reference.category.label : '-' }}</span>
                                 {% endif %}
                             </label>
                         </div>
                         {% if reference.id %}
-                            <div class="col-12 col-md-6 mt-3 d-flex flex-column justify-content-around">
+                            <div class="col-12 col-md-6 d-flex flex-column justify-content-around">
                                 <span class="icon wii-field-name">
                                     <img src="{{ asset('svg/reference_article/calendar.svg') }}"
                                          class="icon"
