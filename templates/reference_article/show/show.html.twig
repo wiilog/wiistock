@@ -24,6 +24,10 @@
             'color': '#EAEDFA'
         }
     } %}
+    {% set hasRightEdit =
+        hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) or
+        hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT_PARTIALLY'))%}
+
     <div class="ra-container d-flex justify-content-center align-content-center">
         <div class="row wii-column">
             <div class="col-12 col-md-6">
@@ -285,9 +289,11 @@
                         } %}
                     </div>
                 </div>
-                <div class="d-flex justify-content-end mt-4">
-                    <a href="{{ path('reference_article_edit_page', {'reference': referenceArticle.id, 'from': 'show'}) }}" class="btn btn-success">Modifier</a>
-                </div>
+                {% if hasRightEdit %}
+                    <div class="d-flex justify-content-end mt-4">
+                        <a href="{{ path('reference_article_edit_page', {'reference': referenceArticle.id, 'from': 'show'}) }}" class="btn btn-success">Modifier</a>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
