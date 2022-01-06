@@ -113,7 +113,7 @@
                                    class="form-control data needed"
                                    placeholder="Référence"
                                    data-draft-default="{{ draftDefaultReference ?? null }}"
-                                   value="{{ reference.reference ? reference.reference : (hasRightCreateDraft ? draftDefaultReference ?? null : ' ') }}"
+                                   value="{{ reference.reference ? reference.reference : (hasRightCreateDraft ? draftDefaultReference ?? null) }}"
                                    {{ hasRightCreateDraft ? 'disabled' : ' '}}>
                         </label>
                         {% else %}
