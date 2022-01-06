@@ -189,16 +189,16 @@ class ReferenceArticleController extends AbstractController
                 $refArticle->setUserThatTriggeredEmergency($loggedUser);
             }
 
-            if ($data['limitSecurity']) {
+            if (!empty($data['limitSecurity'])) {
             	$refArticle->setLimitSecurity($data['limitSecurity']);
 			}
-            if ($data['limitWarning']) {
+            if (!empty($data['limitWarning'])) {
             	$refArticle->setLimitWarning($data['limitWarning']);
 			}
-            if ($data['emergency-comment-input']) {
+            if (!empty($data['emergency-comment-input'])) {
                 $refArticle->setEmergencyComment($data['emergency-comment-input']);
             }
-            if ($data['categorie']) {
+            if (!empty($data['categorie'])) {
             	$category = $inventoryCategoryRepository->find($data['categorie']);
             	if ($category) {
                     $refArticle->setCategory($category);
