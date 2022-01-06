@@ -274,13 +274,14 @@
                                 </span>
                             </div>
                         </div>
-                        <input type="radio" name="type_quantite"
+                        <input type="radio"
+                               name="type_quantite"
                                class="type_quantite"
                                hidden
                                value="{{ isReferenceManagementQuantity ? "reference" : "article" }}"
                                content="{{ isReferenceManagementQuantity ? "Référence" : "Article" }}"
                                data-title="{{ isReferenceManagementQuantity ? "reference" : "article" }}"
-                               onclick="toggleRequiredChampsFixes($(this), '.wii-form'); updateQuantityDisplay($(this), '.wii-form', true)" checked>
+                               checked>
                     {% else %}
                         <label class="wii-field-name w-100">
                             Gestion quantité*
@@ -288,11 +289,11 @@
                         <div class="wii-switch needed" data-title="Statut">
                             <input type="radio" name="type_quantite" value="reference" content="Référence" data-title="reference"
                                 {{ reference.id ? 'class="type_quantite" disabled' : 'class="type_quantite data"' }}
-                                   onclick="toggleRequiredChampsFixes($(this), '.wii-form'); updateQuantityDisplay($(this), '.wii-form', true)"
+                                   onclick="toggleRequiredChampsFixes($(this), '.wii-form'); updateQuantityDisplay($(this), '.wii-form', true); changeNewReferenceStatus($('[name=statut]'))"
                                 {{ not reference.typeQuantite or reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_REFERENCE') ? 'checked' }}>
                             <input type="radio" name="type_quantite" value="article" content="Article" data-title="article"
                                 {{ reference.id ? 'class="type_quantite" disabled' : 'class="type_quantite data"' }}
-                                   onclick="toggleRequiredChampsFixes($(this), '.wii-form'); updateQuantityDisplay($(this), '.wii-form', true)"
+                                   onclick="toggleRequiredChampsFixes($(this), '.wii-form'); updateQuantityDisplay($(this), '.wii-form', true); changeNewReferenceStatus($('[name=statut]'))"
                                 {{ reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_ARTICLE') ? 'checked' }}>
                         </div>
                     {% endif %}
@@ -360,7 +361,7 @@
                                                            class="form-control data needed w-50"
                                                            min="0"
                                                            value="{{ hasRightCreateDraft ? 0 : '' }}"
-                                                        {{ hasRightCreateDraft ? 'disabled' }}>
+                                                           {{ hasRightCreateDraft ? 'disabled' }}>
                                                     <button class="increase"></button>
                                                 </div>
                                             </label>

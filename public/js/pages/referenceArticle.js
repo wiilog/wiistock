@@ -420,42 +420,45 @@ function updateFilters() {
 }
 
 function changeNewReferenceStatus($select){
-    const draftStatusName = $(`input[name="draft-status-name"]`).val();
-    const draftSelected = $select.val() === draftStatusName;
+    console.log($select);
+    if ($select.exists()) {
+        const draftStatusName = $(`input[name="draft-status-name"]`).val();
+        const draftSelected = $select.val() === draftStatusName;
 
-    const $reference = $(`input[name="reference"]`);
-    const $quantite = $(`input[name="quantite"]`);
-    const $location = $(`select[name="emplacement"]`);
+        const $reference = $(`input[name="reference"]`);
+        const $quantite = $(`input[name="quantite"]`);
+        const $location = $(`select[name="emplacement"]`);
 
-    $quantite.prop(`disabled`, draftSelected);
-    $reference.prop(`disabled`, draftSelected);
-    $location.prop('disabled', draftSelected);
-
-    if ($location.exists()) {
-        $location.prop(`disabled`, draftSelected);
-    }
-
-    if (draftSelected) {
-        const defaultDraftReference = $reference.data('draft-default');
-
-        $reference.val(defaultDraftReference);
-        $quantite.val(0);
-
-        $location.exists()
+        $quantite.prop(`disabled`, draftSelected);
+        $reference.prop(`disabled`, draftSelected);
+        $location.prop('disabled', draftSelected);
 
         if ($location.exists()) {
-            const optionValue = $location.data('draft-default-value');
-            const optionText = $location.data('draft-default-text');
-            if (optionValue && optionText) {
-                const existing = $location.find(`option[value="${optionValue}"]`).exists();
-                if (existing) {
-                    $location
-                        .val(optionValue)
-                        .trigger('change');
-                } else {
-                    $location
-                        .append(new Option(optionText, optionValue, true, true))
-                        .trigger('change');
+            $location.prop(`disabled`, draftSelected);
+        }
+
+        if (draftSelected) {
+            const defaultDraftReference = $reference.data('draft-default');
+
+            $reference.val(defaultDraftReference);
+            $quantite.val(0);
+
+            $location.exists()
+
+            if ($location.exists()) {
+                const optionValue = $location.data('draft-default-value');
+                const optionText = $location.data('draft-default-text');
+                if (optionValue && optionText) {
+                    const existing = $location.find(`option[value="${optionValue}"]`).exists();
+                    if (existing) {
+                        $location
+                            .val(optionValue)
+                            .trigger('change');
+                    } else {
+                        $location
+                            .append(new Option(optionText, optionValue, true, true))
+                            .trigger('change');
+                    }
                 }
             }
         }
