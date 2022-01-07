@@ -439,8 +439,10 @@ function changeNewReferenceStatus($select){
         if (draftSelected) {
             const defaultDraftReference = $reference.data('draft-default');
 
-            $reference.val(defaultDraftReference);
-            $quantite.val(0);
+            if (defaultDraftReference) {
+                $reference.val(defaultDraftReference);
+                $quantite.val(0);
+            }
 
             $location.exists()
 

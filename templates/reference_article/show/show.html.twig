@@ -126,7 +126,7 @@
                     <div class="header wii-title">Gestion quantité</div>
                     <div class="content">
                         <div class="d-flex">
-                            <div class="col-6 d-flex">
+                            <div class="col-auto d-flex">
                                 {% set isReferenceManagementQuantity = referenceArticle.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_REFERENCE') %}
                                 <img src="{{ asset('svg/reference_article/' ~ (isReferenceManagementQuantity ? 'pack.svg' : 'article.svg')) }}"
                                      alt="Icône colis" width="20px">
@@ -196,14 +196,14 @@
                                 </div>
                             {% endif %}
                             <div class="col-{{ isReferenceManagementQuantity ? '4' : '6' }} d-flex">
-                                <img src="{{ asset('svg/reference_article/alert-threshold.svg') }}" alt="Icône seuil d'alerte" width="20px">
+                                <img src="{{ asset('svg/reference_article/alert-threshold.svg') }}" alt="Icône seuil d'alerte" width="25px">
                                 <div class="box-item ml-3">
                                     <span class="wii-field-name">Seuil d'alerte</span>
                                     <span class="wii-body-text">{{ referenceArticle.limitWarning ?? '-' }}</span>
                                 </div>
                             </div>
                             <div class="col-{{ isReferenceManagementQuantity ? '4' : '6' }} d-flex">
-                                <img src="{{ asset('svg/reference_article/security-threshold.svg') }}" alt="Icône seuil de sécurité" width="20px">
+                                <img src="{{ asset('svg/reference_article/security-threshold.svg') }}" alt="Icône seuil de sécurité" width="25px">
                                 <div class="box-item ml-3">
                                     <span class="wii-field-name">Seuil de sécurité</span>
                                     <span class="wii-body-text">{{ referenceArticle.limitSecurity ?? '-' }}</span>

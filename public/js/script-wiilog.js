@@ -251,7 +251,7 @@ function updateQuantityDisplay($elem, parent = '.modal-body') {
     const $reference = $modalBody.find('.reference');
     const $article = $modalBody.find('.article');
     const $allArticle = $modalBody.find('.article, .emergency-comment');
-    let typeQuantite = $modalBody.find('.type_quantite').val();
+    let typeQuantite = $elem.data('title');
     if (typeQuantite == 'reference') {
         $allArticle.addClass('d-none');
         $reference.removeClass('d-none');
