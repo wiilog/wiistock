@@ -18,8 +18,8 @@ class FournisseurRepository extends EntityRepository
 {
 
     private const DtToDbLabels = [
-        'Nom' => 'nom',
-        'Code de référence' => 'codeReference',
+        'name' => 'nom',
+        'code' => 'codeReference'
     ];
 
     public function findOneByCodeReference($code)
@@ -111,12 +111,12 @@ class FournisseurRepository extends EntityRepository
 
         // prise en compte des paramètres issus du datatable
         if (!empty($params)) {
-
             if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
+                    $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
                     $qb
-                        ->orderBy('supplier.' . self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']], $order);
+                        ->orderBy('supplier.' . (self::DtToDbLabels[$column] ?? $column), $order);
                 }
             }
             if (!empty($params->get('search'))) {

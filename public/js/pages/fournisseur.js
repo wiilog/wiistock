@@ -5,15 +5,17 @@ let tableFournisseurConfig = {
     processing: true,
     serverSide: true,
     paging: true,
-    order: [['Nom', 'desc']],
+    order: [['name', 'desc']],
     ajax: {
         "url": pathFournisseur,
         "type": "POST"
     },
     columns: [
-        {"data": 'Actions', title: '', className: 'noVis', orderable: false},
-        {"data": 'Nom', title: 'Nom'},
-        {"data": 'Code de référence', title: 'Code de référence'},
+        {data: 'Actions', title: '', className: 'noVis', orderable: false},
+        {data: 'name', title: 'Nom'},
+        {data: 'code', title: 'Code de référence'},
+        {data: 'isPossibleCustoms', title: 'Possible douane'},
+        {data: 'isUrgent', title: 'Urgent'},
     ],
     rowConfig: {
         needsRowClickAction: true,
