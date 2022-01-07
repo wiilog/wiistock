@@ -53,8 +53,9 @@ final class Version20220107102021 extends AbstractMigration
                                 SELECT stock_movement.date
                                 FROM mouvement_stock stock_movement
                                          INNER JOIN article ON stock_movement.article_id = article.id
-                                         INNER JOIN article_fournisseur ON article.article_fournisseur_id = article_fournisseur.id AND article_fournisseur.reference_article_id = reference_article_to_update.id
+                                         INNER JOIN article_fournisseur ON article.article_fournisseur_id = article_fournisseur.id
                                 WHERE type = 'entrée'
+                                    AND article_fournisseur.reference_article_id = reference_article_to_update.id
                                 ORDER BY stock_movement.date DESC,
                                          stock_movement.id DESC
                                 LIMIT 1
@@ -65,8 +66,9 @@ final class Version20220107102021 extends AbstractMigration
                                 SELECT stock_movement.date
                                 FROM mouvement_stock stock_movement
                                          INNER JOIN article ON stock_movement.article_id = article.id
-                                         INNER JOIN article_fournisseur ON article.article_fournisseur_id = article_fournisseur.id AND article_fournisseur.reference_article_id = reference_article_to_update.id
+                                         INNER JOIN article_fournisseur ON article.article_fournisseur_id = article_fournisseur.id
                                 WHERE type = 'sortie'
+                                    AND article_fournisseur.reference_article_id = reference_article_to_update.id
                                 ORDER BY stock_movement.date DESC,
                                          stock_movement.id DESC
                                 LIMIT 1
