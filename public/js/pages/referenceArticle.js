@@ -420,7 +420,6 @@ function updateFilters() {
 }
 
 function changeNewReferenceStatus($select){
-    console.log($select);
     if ($select.exists()) {
         const draftStatusName = $(`input[name="draft-status-name"]`).val();
         const draftSelected = $select.val() === draftStatusName;

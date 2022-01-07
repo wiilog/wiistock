@@ -260,9 +260,6 @@ class RefArticleDataService {
                                    FreeFieldService $champLibreService,
                                    MouvementStockService $mouvementStockService,
                                    $request = null) {
-        if(!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
-            return new RedirectResponse($this->router->generate('access_denied'));
-        }
         $typeRepository = $this->entityManager->getRepository(Type::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
         $inventoryCategoryRepository = $this->entityManager->getRepository(InventoryCategory::class);
@@ -271,10 +268,8 @@ class RefArticleDataService {
 
         //modification champsFixes
         $entityManager = $this->entityManager;
-        $category = $inventoryCategoryRepository->find($data['categorie']);
-        $price = max(0, $data['prix']);
         if (isset($data['reference'])) {
-            $refArticle->setReference($data['reference'])->setEditedBy($user)->setEditedAt(new DateTime('now'));
+            $refArticle->setReference($data['reference']);
         }
 
         if (isset($data['suppliers-to-remove']) && $data['suppliers-to-remove'] !== "") {
@@ -332,7 +327,8 @@ class RefArticleDataService {
         }
 
         if(isset($data['categorie'])) {
-            $refArticle->setCategory($category)->setEditedBy($user)->setEditedAt(new DateTime('now'));
+            $category = $inventoryCategoryRepository->find($data['categorie']);
+            $refArticle->setCategory($category);
         }
 
         if (isset($data['urgence'])) {
@@ -342,36 +338,39 @@ class RefArticleDataService {
                 $refArticle->setUserThatTriggeredEmergency(null);
                 $refArticle->setEmergencyComment('');
             }
-            $refArticle->setIsUrgent(filter_var($data['urgence'] ?? false, FILTER_VALIDATE_BOOLEAN))->setEditedBy($user)->setEditedAt(new DateTime('now'));
+            $refArticle->setIsUrgent(filter_var($data['urgence'] ?? false, FILTER_VALIDATE_BOOLEAN));
         }
 
         if(isset($data['prix'])) {
-            $refArticle->setPrixUnitaire($price)->setEditedBy($user)->setEditedAt(new DateTime('now'));
+            $price = max(0, $data['prix']);
+            $refArticle->setPrixUnitaire($price);
         }
 
         if(isset($data['libelle'])) {
-            $refArticle->setLibelle($data['libelle'])->setEditedBy($user)->setEditedAt(new DateTime('now'));
+            $refArticle->setLibelle($data['libelle']);
         }
 
         if(isset($data['commentaire'])) {
-            $refArticle->setCommentaire($data['commentaire'])->setEditedBy($user)->setEditedAt(new DateTime('now'));
+            $refArticle->setCommentaire($data['commentaire']);
         }
 
         if(isset($data['mobileSync'])) {
-            $refArticle->setNeedsMobileSync(filter_var($data['mobileSync'] ?? false, FILTER_VALIDATE_BOOLEAN))->setEditedBy($user)->setEditedAt(new DateTime('now'));
+            $refArticle->setNeedsMobileSync(filter_var($data['mobileSync'] ?? false, FILTER_VALIDATE_BOOLEAN));
         }
 
         $refArticle->setBuyer(isset($data['buyer']) ? $userRepository->find($data['buyer']) : null);
-        $refArticle->setLimitWarning((empty($data['limitWarning']) && $data['limitWarning'] !== 0 && $data['limitWarning'] !== '0') ? null : intval($data['limitWarning']))->setEditedBy($user)->setEditedAt(new DateTime('now'));
-        $refArticle->setLimitSecurity((empty($data['limitSecurity']) && $data['limitSecurity'] !== 0 && $data['limitSecurity'] !== '0') ? null : intval($data['limitSecurity']))->setEditedBy($user)->setEditedAt(new DateTime('now'));
+        $refArticle->setLimitWarning((empty($data['limitWarning']) && $data['limitWarning'] !== 0 && $data['limitWarning'] !== '0') ? null : intval($data['limitWarning']));
+        $refArticle->setLimitSecurity((empty($data['limitSecurity']) && $data['limitSecurity'] !== 0 && $data['limitSecurity'] !== '0') ? null : intval($data['limitSecurity']));
 
-        if($data['emergency-comment-input']) {
-            $refArticle->setEmergencyComment($data['emergency-comment-input'])->setEditedBy($user)->setEditedAt(new DateTime('now'));
+        if(isset($data['emergency-comment-input'])) {
+            $refArticle->setEmergencyComment($data['emergency-comment-input']);
         }
 
         if(isset($data['type'])) {
             $type = $typeRepository->find(intval($data['type']));
-            if($type) $refArticle->setType($type)->setEditedBy($user)->setEditedAt(new DateTime('now'));
+            if($type) {
+                $refArticle->setType($type);
+            }
         }
 
         $refArticle->setStockManagement($data['stockManagement'] ?? null);
@@ -405,6 +404,10 @@ class RefArticleDataService {
             );
             $entityManager->persist($mvtStock);
         }
+
+        $refArticle
+            ->setEditedBy($user)
+            ->setEditedAt(new DateTime('now'));
 
         $entityManager->persist($refArticle);
         $entityManager->flush();
