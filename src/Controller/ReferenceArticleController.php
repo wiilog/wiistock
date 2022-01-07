@@ -105,9 +105,9 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/creer", name="reference_article_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request,
+                        UserService $userService,
                         FreeFieldService $champLibreService,
                         EntityManagerInterface $entityManager,
                         MouvementStockService $mouvementStockService,
@@ -115,8 +115,15 @@ class ReferenceArticleController extends AbstractController
                         ArticleFournisseurService $articleFournisseurService,
                         AttachmentService $attachmentService): Response
     {
-        if (($data = $request->request->all()) || ($data = json_decode($request->getContent(), true))) {
+        if (!$userService->hasRightFunction(Menu::STOCK, Action::CREATE)
+            && !$userService->hasRightFunction(Menu::STOCK, Action::CREATE_DRAFT_REFERENCE)) {
+            return $this->json([
+                "success" => false,
+                "msg" => "Accès refusé",
+            ]);
+        }
 
+        if (($data = $request->request->all()) || ($data = json_decode($request->getContent(), true))) {
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
 
