@@ -394,8 +394,20 @@ class ReferenceArticleController extends AbstractController
      * @Route("/modifier", name="reference_article_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function edit(Request $request, EntityManagerInterface $entityManager, FreeFieldService $champLibreService, MouvementStockService $stockMovementService): Response
-    {
+    public function edit(Request $request,
+                         EntityManagerInterface $entityManager,
+                         FreeFieldService $champLibreService,
+                         UserService $userService,
+                         MouvementStockService $stockMovementService): Response {
+
+        if(!$userService->hasRightFunction(Menu::STOCK, Action::EDIT)
+            || !$userService->hasRightFunction(Menu::STOCK, Action::EDIT_PARTIALLY)) {
+            return $this->json([
+                "success" => false,
+                "msg" => "Accès refusé",
+            ]);
+        }
+
         if ($data = $request->request->all()) {
             $refId = intval($data['idRefArticle']);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
