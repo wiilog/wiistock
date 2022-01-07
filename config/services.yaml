@@ -89,6 +89,10 @@ services:
         tags:
             - { name: 'doctrine.orm.entity_listener', event: 'preRemove', lazy: true, entity: 'App\Entity\TrackingMovement' }
 
+    App\EventListener\StockMovementListener:
+        tags:
+            - { name: 'doctrine.orm.entity_listener', event: 'postPersist', lazy: true, entity: 'App\Entity\MouvementStock' }
+
     App\EventListener\AnnotationListener:
         arguments:
             $mobileVersion: '%nomade_versions%'

@@ -153,15 +153,13 @@ class MouvementStockController extends AbstractController
                         $emplacementFrom = $chosenArticleToMove->getEmplacement();
                         if ($chosenArticleToMove instanceof ReferenceArticle) {
                             $chosenArticleToMove
-                                ->setLastStockExit(new DateTime())
                                 ->setQuantiteStock($chosenArticleToMoveStockQuantity - $quantity);
                         } else {
                             if ($chosenArticleToMoveStockQuantity - $quantity === 0) {
                                 $chosenArticleToMove->setStatut($unavailableArticleStatus);
                             } else {
                                 $chosenArticleToMove
-                                    ->getReceptionReferenceArticle()->getReferenceArticle()->setLastStockExit(new DateTime())
-                                    ->setQuantite($chosenArticleToMoveStockQuantity - $quantity);
+                                    ->setQuantiteStock($chosenArticleToMoveStockQuantity - $quantity);
                             }
                         }
                     }
@@ -171,12 +169,10 @@ class MouvementStockController extends AbstractController
                     $emplacementTo = $chosenArticleToMove->getEmplacement();
                     if ($chosenArticleToMove instanceof ReferenceArticle) {
                         $chosenArticleToMove
-                            ->setLastStockEntry(new DateTime())
                             ->setQuantiteStock($chosenArticleToMoveStockQuantity + $quantity);
                     } else {
                         $chosenArticleToMove
-                            ->getReceptionReferenceArticle()->getReferenceArticle()->setLastStockEntry(new DateTime())
-                            ->setQuantite($chosenArticleToMoveAvailableQuantity + $quantity);
+                            ->setQuantiteStock($chosenArticleToMoveAvailableQuantity + $quantity);
                     }
                 } else if ($chosenMvtType === MouvementStock::TYPE_TRANSFER) {
                     $chosenLocation = $emplacementRepository->find($chosenMvtLocation);
