@@ -25,7 +25,7 @@ $(function () {
     });
     displayActifOrInactif($('#toggleActivOrInactiv'), true);
     registerNumberInputProtection($('#modalNewRefArticle').find('input[type="number"]'));
-    $('input[name="type_quantite"]:checked').click();
+    onTypeQuantityChange($('input[name="type_quantite"]:checked'));
     $('input[name="urgence"]:checked').trigger('change');
 });
 
@@ -464,4 +464,10 @@ function changeNewReferenceStatus($select){
         }
     }
 
+}
+
+function onTypeQuantityChange($input) {
+    toggleRequiredChampsFixes($(this), '.wii-form');
+    updateQuantityDisplay($input, '.wii-form');
+    changeNewReferenceStatus($('[name=statut]:checked'));
 }

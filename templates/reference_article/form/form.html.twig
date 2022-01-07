@@ -287,14 +287,22 @@
                             Gestion quantité*
                         </label>
                         <div class="wii-switch needed" data-title="Statut">
-                            <input type="radio" name="type_quantite" value="reference" content="Référence" data-title="reference"
-                                {{ reference.id ? 'class="type_quantite" disabled' : 'class="type_quantite data"' }}
-                                   onclick="toggleRequiredChampsFixes($(this), '.wii-form'); updateQuantityDisplay($(this), '.wii-form', true); changeNewReferenceStatus($('[name=statut]:checked'))"
-                                {{ not reference.typeQuantite or reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_REFERENCE') ? 'checked' }}>
-                            <input type="radio" name="type_quantite" value="article" content="Article" data-title="article"
-                                {{ reference.id ? 'class="type_quantite" disabled' : 'class="type_quantite data"' }}
-                                   onclick="toggleRequiredChampsFixes($(this), '.wii-form'); updateQuantityDisplay($(this), '.wii-form', true); changeNewReferenceStatus($('[name=statut]:checked'))"
-                                {{ reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_ARTICLE') ? 'checked' }}>
+                            <input type="radio"
+                                   name="type_quantite"
+                                   value="reference"
+                                   content="Référence"
+                                   data-title="reference"
+                                   onclick="onTypeQuantityChange($(this))"
+                                   {{ reference.id ? 'class="type_quantite" disabled' : 'class="type_quantite data"' }}
+                                   {{ not reference.typeQuantite or reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_REFERENCE') ? 'checked' }}>
+                            <input type="radio"
+                                   name="type_quantite"
+                                   value="article"
+                                   content="Article"
+                                   data-title="article"
+                                   onclick="onTypeQuantityChange($(this))"
+                                   {{ reference.id ? 'class="type_quantite" disabled' : 'class="type_quantite data"' }}
+                                   {{ reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_ARTICLE') ? 'checked' }}>
                         </div>
                     {% endif %}
 
