@@ -157,4 +157,10 @@ class FournisseurRepository extends EntityRepository
 
         return $qb->getQuery()->getOneOrNullResult();
     }
+
+    public function getForExport(): iterable {
+        return $this->createQueryBuilder("supplier")
+            ->getQuery()
+            ->toIterable();
+    }
 }

@@ -195,6 +195,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
             Action::CREATE,
             Action::EDIT,
             Action::DELETE,
+            Action::EXPORT
         ],
         Menu::IOT => [
             Action::DISPLAY_SENSOR,

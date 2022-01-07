@@ -234,7 +234,7 @@ class ImportService
     public function dataRowImport(Import $import)
     {
         $importId = $import->getId();
-        $url['edit'] = $this->router->generate('fournisseur_edit', ['id' => $importId]);
+        $url['edit'] = $this->router->generate('supplier_edit', ['id' => $importId]);
 
         $importStatus = $import->getStatus();
         $statusLabel = isset($importStatus) ? $importStatus->getNom() : null;

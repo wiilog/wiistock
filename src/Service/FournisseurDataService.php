@@ -40,7 +40,7 @@ class FournisseurDataService
     public function dataRowFournisseur(Fournisseur $supplier): array
     {
         $supplierId = $supplier->getId();
-        $url['edit'] = $this->router->generate('fournisseur_edit', ['id' => $supplierId]);
+        $url['edit'] = $this->router->generate('supplier_edit', ['id' => $supplierId]);
 
         return [
             "name" => $supplier->getNom(),

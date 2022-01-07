@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Helper\FormatHelper;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -314,5 +315,14 @@ class Fournisseur
         $this->isPossibleCustoms = $isPossibleCustoms;
 
         return $this;
+    }
+
+    public function serialize(): array {
+        return [
+            'name' => $this->getNom(),
+            'code' => $this->getCodeReference(),
+            'isPossibleCustoms' => FormatHelper::bool($this->isPossibleCustoms()),
+            'isUrgent' => FormatHelper::bool($this->isUrgent()),
+        ];
     }
 }
