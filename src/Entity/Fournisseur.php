@@ -18,42 +18,52 @@ class Fournisseur
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="string", length=255, unique=true)
      */
-    private $codeReference;
+    private ?string $codeReference = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $nom;
+    private ?string $nom = null;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Reception", mappedBy="fournisseur")
      */
-    private $receptions;
+    private Collection $receptions;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\ArticleFournisseur", mappedBy="fournisseur")
      */
-    private $articlesFournisseur;
+    private Collection $articlesFournisseur;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\ReceptionReferenceArticle", mappedBy="fournisseur")
      */
-    private $receptionReferenceArticles;
+    private Collection $receptionReferenceArticles;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Arrivage", mappedBy="fournisseur")
      */
-    private $arrivages;
+    private Collection $arrivages;
 
     /**
      * @ORM\OneToMany(targetEntity=PurchaseRequestLine::class, mappedBy="supplier")
      */
-    private ?Collection $purchaseRequestLines;
+    private Collection $purchaseRequestLines;
+
+    /**
+     * @ORM\Column(type="boolean", options={"default": false})
+     */
+    private ?bool $isUrgent = null;
+
+    /**
+     * @ORM\Column(type="boolean", options={"default": false})
+     */
+    private ?bool $isPossibleCustoms = null;
 
     public function __construct()
     {
@@ -280,6 +290,28 @@ class Fournisseur
         foreach($purchaseRequestLines as $purchaseRequestLine) {
             $this->addPurchaseRequestLine($purchaseRequestLine);
         }
+
+        return $this;
+    }
+
+    public function isUrgent() {
+        return $this->isUrgent;
+    }
+
+    public function setIsUrgent(?bool $isUrgent): self
+    {
+        $this->isUrgent = $isUrgent;
+
+        return $this;
+    }
+
+    public function isPossibleCustoms() {
+        return $this->isPossibleCustoms;
+    }
+
+    public function setIsPossibleCustoms(?bool $isPossibleCustoms): self
+    {
+        $this->isPossibleCustoms = $isPossibleCustoms;
 
         return $this;
     }
