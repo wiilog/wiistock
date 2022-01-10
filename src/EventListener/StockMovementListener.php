@@ -12,17 +12,20 @@ class StockMovementListener {
     public EntityManagerInterface $entityManager;
 
     public function postPersist(MouvementStock $movement) {
-        $now = new DateTime();
-
         $type = $movement->getType();
-        $reference = $movement->getRefArticle() ?? $movement->getArticle()->getReferenceArticle();
+        if (in_array($type, [MouvementStock::TYPE_ENTREE, MouvementStock::TYPE_SORTIE])) {
+            $now = new DateTime();
 
-        if($type === MouvementStock::TYPE_SORTIE) {
-            $reference->setLastStockExit($now);
-        } elseif($type === MouvementStock::TYPE_ENTREE) {
-            $reference->setLastStockEntry($now);
+            $reference = $movement->getRefArticle() ?? $movement->getArticle()->getReferenceArticle();
+
+            if ($type === MouvementStock::TYPE_SORTIE) {
+                $reference->setLastStockExit($now);
+            }
+            else if ($type === MouvementStock::TYPE_ENTREE) {
+                $reference->setLastStockEntry($now);
+            }
+
+            $this->entityManager->flush();
         }
-
-        $this->entityManager->flush();
     }
 }

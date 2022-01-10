@@ -120,6 +120,8 @@ class MouvementStockController extends AbstractController
             $chosenMvtLocation = $data["chosen-mvt-location"];
             $movementBarcode = $data["movement-barcode"];
             $unavailableArticleStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
+
+            /** @var Article|ReferenceArticle|null $chosenArticleToMove */
             $chosenArticleToMove = (
                 $referenceArticleRepository->findOneBy(['barCode' => $movementBarcode])
                 ?: $articleRepository->findOneBy(['barCode' => $movementBarcode])
@@ -159,7 +161,7 @@ class MouvementStockController extends AbstractController
                                 $chosenArticleToMove->setStatut($unavailableArticleStatus);
                             } else {
                                 $chosenArticleToMove
-                                    ->setQuantiteStock($chosenArticleToMoveStockQuantity - $quantity);
+                                    ->setQuantite($chosenArticleToMoveStockQuantity - $quantity);
                             }
                         }
                     }
@@ -172,7 +174,7 @@ class MouvementStockController extends AbstractController
                             ->setQuantiteStock($chosenArticleToMoveStockQuantity + $quantity);
                     } else {
                         $chosenArticleToMove
-                            ->setQuantiteStock($chosenArticleToMoveAvailableQuantity + $quantity);
+                            ->setQuantite($chosenArticleToMoveAvailableQuantity + $quantity);
                     }
                 } else if ($chosenMvtType === MouvementStock::TYPE_TRANSFER) {
                     $chosenLocation = $emplacementRepository->find($chosenMvtLocation);
