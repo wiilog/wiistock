@@ -59,12 +59,12 @@ class Fournisseur
     /**
      * @ORM\Column(type="boolean", options={"default": false})
      */
-    private ?bool $isUrgent = null;
+    private bool $urgent = false;
 
     /**
      * @ORM\Column(type="boolean", options={"default": false})
      */
-    private ?bool $isPossibleCustoms = null;
+    private bool $possibleCustoms = false;
 
     public function __construct()
     {
@@ -295,25 +295,21 @@ class Fournisseur
         return $this;
     }
 
-    public function isUrgent() {
-        return $this->isUrgent;
+    public function isUrgent(): bool {
+        return $this->urgent;
     }
 
-    public function setIsUrgent(?bool $isUrgent): self
-    {
-        $this->isUrgent = $isUrgent;
-
+    public function setUrgent(bool $urgent): self {
+        $this->urgent = $urgent;
         return $this;
     }
 
-    public function isPossibleCustoms() {
-        return $this->isPossibleCustoms;
+    public function isPossibleCustoms(): bool {
+        return $this->possibleCustoms;
     }
 
-    public function setIsPossibleCustoms(?bool $isPossibleCustoms): self
-    {
-        $this->isPossibleCustoms = $isPossibleCustoms;
-
+    public function setPossibleCustoms(bool $possibleCustoms): self {
+        $this->possibleCustoms = $possibleCustoms;
         return $this;
     }
 
