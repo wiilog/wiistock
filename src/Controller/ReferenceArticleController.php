@@ -934,8 +934,8 @@ class ReferenceArticleController extends AbstractController
         $mouvements = $mouvementStockRepository->findByRef($referenceArticle);
 
         $data['data'] = array_map(
-            function(MouvementStock $mouvement) use ($entityManager, $mouvementStockService) {
-                $fromColumnConfig = $mouvementStockService->getFromColumnConfig($entityManager, $mouvement);
+            function(MouvementStock $mouvement) use ($mouvementStockService) {
+                $fromColumnConfig = $mouvementStockService->getFromColumnConfig($mouvement);
                 $from = $fromColumnConfig['from'];
                 $orderPath = $fromColumnConfig['orderPath'];
                 $orderId = $fromColumnConfig['orderId'];
