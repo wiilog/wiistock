@@ -457,6 +457,8 @@ class RefArticleDataService {
             ->unique()
             ->toArray();
 
+        $typeColor = $refArticle->getType()->getColor();
+
         $row = [
             "id" => $refArticle->getId(),
             "image" => $this->templating->render('datatable/image.html.twig', [
@@ -465,7 +467,9 @@ class RefArticleDataService {
             "label" => $refArticle->getLibelle() ?? "Non défini",
             "reference" => $refArticle->getReference() ?? "Non défini",
             "quantityType" => $refArticle->getTypeQuantite() ?? "Non défini",
-            "type" => FormatHelper::type($refArticle->getType()),
+            "type" => "<div class='d-flex align-items-center'><span class='dt-type-color mr-2' style='background-color: $typeColor;'></span>"
+                . FormatHelper::type($refArticle->getType())
+                . "</div>",
             "location" => FormatHelper::location($refArticle->getEmplacement()),
             "availableQuantity" => $refArticle->getQuantiteDisponible() ?? 0,
             "stockQuantity" => $refArticle->getQuantiteStock() ?? 0,
