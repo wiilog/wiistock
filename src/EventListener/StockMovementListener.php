@@ -25,7 +25,7 @@ class StockMovementListener {
                 $reference->setLastStockEntry($now);
             }
 
-            $this->entityManager->flush();
+            // do not flush here, it will remove other changes on the reference
         }
     }
 }
