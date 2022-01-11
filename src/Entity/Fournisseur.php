@@ -317,8 +317,8 @@ class Fournisseur
         return [
             'name' => $this->getNom(),
             'code' => $this->getCodeReference(),
-            'isPossibleCustoms' => FormatHelper::bool($this->isPossibleCustoms()),
-            'isUrgent' => FormatHelper::bool($this->isUrgent()),
+            'possibleCustoms' => FormatHelper::bool($this->isPossibleCustoms()),
+            'urgent' => FormatHelper::bool($this->isUrgent()),
         ];
     }
 }

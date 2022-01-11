@@ -165,8 +165,8 @@ class Import
         'isOngoingVisibleOnMobile' => 'Encours visible nomade',
         'isActive' => 'Actif',
 
-        'isPossibleCustoms' => 'Possible douane',
-        'isUrgent' => 'Urgent',
+        'possibleCustoms' => 'Possible douane',
+        'urgent' => 'Urgent',
 	];
 
 	public CONST IMPORT_FIELDS_TO_FIELDS_PARAM = [

@@ -45,8 +45,8 @@ class FournisseurDataService
         return [
             "name" => $supplier->getNom(),
             "code" => $supplier->getCodeReference(),
-            "isPossibleCustoms" => FormatHelper::bool($supplier->isPossibleCustoms()),
-            "isUrgent" => FormatHelper::bool($supplier->isUrgent()),
+            "possibleCustoms" => FormatHelper::bool($supplier->isPossibleCustoms()),
+            "urgent" => FormatHelper::bool($supplier->isUrgent()),
             'Actions' => $this->templating->render('fournisseur/datatableFournisseurRow.html.twig', [
                 'url' => $url,
                 'supplierId' => $supplierId

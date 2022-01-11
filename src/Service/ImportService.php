@@ -99,8 +99,8 @@ class ImportService
         Import::ENTITY_FOU => [
             'nom',
             'codeReference',
-            'isPossibleCustoms',
-            'isUrgent'
+            'possibleCustoms',
+            'urgent'
         ],
         Import::ENTITY_RECEPTION => [
             "anomalie",
@@ -570,13 +570,13 @@ class ImportService
                         'needed' => $this->fieldIsNeeded('nom', Import::ENTITY_FOU),
                         'value' => $corresp['nom'] ?? null
                     ],
-                    'isPossibleCustoms' => [
-                        'needed' => $this->fieldIsNeeded('isPossibleCustoms', Import::ENTITY_FOU),
-                        'value' => $corresp['isPossibleCustoms'] ?? null
+                    'possibleCustoms' => [
+                        'needed' => $this->fieldIsNeeded('possibleCustoms', Import::ENTITY_FOU),
+                        'value' => $corresp['possibleCustoms'] ?? null
                     ],
-                    'isUrgent' => [
-                        'needed' => $this->fieldIsNeeded('isUrgent', Import::ENTITY_FOU),
-                        'value' => $corresp['isUrgent'] ?? null
+                    'urgent' => [
+                        'needed' => $this->fieldIsNeeded('urgent', Import::ENTITY_FOU),
+                        'value' => $corresp['urgent'] ?? null
                     ],
                 ];
                 break;
@@ -992,8 +992,8 @@ class ImportService
 
         $supplier
             ->setNom($data['nom'])
-            ->setIsPossibleCustoms(filter_var($data["isPossibleCustoms"] ?? false, FILTER_VALIDATE_BOOLEAN))
-            ->setIsUrgent(filter_var($data["isUrgent"] ?? false, FILTER_VALIDATE_BOOLEAN));
+            ->setPossibleCustoms(filter_var($data["possibleCustoms"] ?? false, FILTER_VALIDATE_BOOLEAN))
+            ->setUrgent(filter_var($data["urgent"] ?? false, FILTER_VALIDATE_BOOLEAN));
 
         $this->em->persist($supplier);
 

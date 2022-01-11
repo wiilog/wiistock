@@ -23,19 +23,16 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 /**
  * @Route("/fournisseur")
  */
-class FournisseurController extends AbstractController
-{
-
-    /** @Required */
-    public FournisseurDataService $fournisseurDataService;
+class FournisseurController extends AbstractController {
 
     /**
      * @Route("/api", name="supplier_api", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::REFERENTIEL, Action::DISPLAY_FOUR}, mode=HasPermission::IN_JSON)
      */
-    public function api(Request $request): Response
+    public function api(Request $request,
+                        FournisseurDataService $fournisseurDataService): Response
     {
-        $data = $this->fournisseurDataService->getFournisseurDataByParams($request->request);
+        $data = $fournisseurDataService->getFournisseurDataByParams($request->request);
 
         return $this->json($data);
     }
@@ -70,8 +67,8 @@ class FournisseurController extends AbstractController
             $supplier = (new Fournisseur())
 				->setNom($data["name"])
 				->setCodeReference($data["code"])
-                ->setIsPossibleCustoms($data["isPossibleCustoms"])
-                ->setIsUrgent($data["isPossibleCustoms"]);
+                ->setPossibleCustoms($data["possibleCustoms"])
+                ->setUrgent($data["urgent"]);
 
             $entityManager->persist($supplier);
             $entityManager->flush();
@@ -115,8 +112,8 @@ class FournisseurController extends AbstractController
             $supplier
                 ->setNom($data['name'])
                 ->setCodeReference($data['code'])
-                ->setIsPossibleCustoms($data['isPossibleCustoms'])
-                ->setIsUrgent($data['isUrgent']);
+                ->setPossibleCustoms($data['possibleCustoms'])
+                ->setUrgent($data['urgent']);
 
             $entityManager->flush();
             return $this->json([

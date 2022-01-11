@@ -15,8 +15,8 @@ $(function () {
             {data: 'Actions', title: '', className: 'noVis', orderable: false},
             {data: 'name', title: 'Nom'},
             {data: 'code', title: 'Code de référence'},
-            {data: 'isPossibleCustoms', title: 'Possible douane'},
-            {data: 'isUrgent', title: 'Urgent'},
+            {data: 'possibleCustoms', title: 'Possible douane'},
+            {data: 'urgent', title: 'Urgent'},
         ],
         rowConfig: {
             needsRowClickAction: true,
