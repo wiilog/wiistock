@@ -61,7 +61,7 @@ function startPicking($button, managementType) {
                 domConfig: {
                     needsPaginationRemoval: true
                 },
-                ordering: !showTargetLocationPicking
+                order: []
             };
             if (!showTargetLocationPicking && managementType) {
                 tableSplittingArticlesConfig.order = [
