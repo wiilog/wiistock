@@ -990,10 +990,13 @@ class ImportService
             $supplier->setCodeReference($data['codeReference']);
         }
 
+        $possibleCustoms = strtolower($data["possibleCustoms"] ?? 'non');
+        $urgent = strtolower($data["urgent"] ?? 'non');
+
         $supplier
             ->setNom($data['nom'])
-            ->setPossibleCustoms(filter_var($data["possibleCustoms"] ?? false, FILTER_VALIDATE_BOOLEAN))
-            ->setUrgent(filter_var($data["urgent"] ?? false, FILTER_VALIDATE_BOOLEAN));
+            ->setPossibleCustoms($possibleCustoms === 'oui')
+            ->setUrgent($urgent === 'oui');
 
         $this->em->persist($supplier);
 
