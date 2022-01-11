@@ -179,7 +179,7 @@ class StatutRepository extends EntityRepository {
         return $query->execute();
     }
 
-    public function findOneByCategorieNameAndStatutCode($categorieName, $statutCode) {
+    public function findOneByCategorieNameAndStatutCode($categorieName, $statutCode): ?Statut {
         $queryBuilder = $this->createQueryBuilder('s');
         $queryBuilder
             ->join('s.categorie', 'c')

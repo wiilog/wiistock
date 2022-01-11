@@ -113,6 +113,9 @@ class RefArticleDataService {
     public AttachmentService $attachmentService;
 
     /** @Required */
+    public MouvementStockService $mouvementStockService;
+
+    /** @Required */
     public MailerService $mailerService;
 
     private ?array $freeFieldsConfig = null;
@@ -257,9 +260,6 @@ class RefArticleDataService {
                                    FreeFieldService $champLibreService,
                                    MouvementStockService $mouvementStockService,
                                    $request = null) {
-        if(!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
-            return new RedirectResponse($this->router->generate('access_denied'));
-        }
         $typeRepository = $this->entityManager->getRepository(Type::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
         $inventoryCategoryRepository = $this->entityManager->getRepository(InventoryCategory::class);
@@ -268,10 +268,8 @@ class RefArticleDataService {
 
         //modification champsFixes
         $entityManager = $this->entityManager;
-        $category = $inventoryCategoryRepository->find($data['categorie']);
-        $price = max(0, $data['prix']);
         if (isset($data['reference'])) {
-            $refArticle->setReference($data['reference'])->setEditedBy($user)->setEditedAt(new DateTime('now'));
+            $refArticle->setReference($data['reference']);
         }
 
         if (isset($data['suppliers-to-remove']) && $data['suppliers-to-remove'] !== "") {
@@ -280,6 +278,8 @@ class RefArticleDataService {
                 $refArticle->removeArticleFournisseur($supplier);
             }
         }
+
+        $wasDraft = $refArticle->getStatut()->getCode() === ReferenceArticle::DRAFT_STATUS;
 
         $sendMail = false;
         if (isset($data['statut'])) {
@@ -327,7 +327,8 @@ class RefArticleDataService {
         }
 
         if(isset($data['categorie'])) {
-            $refArticle->setCategory($category)->setEditedBy($user)->setEditedAt(new DateTime('now'));
+            $category = $inventoryCategoryRepository->find($data['categorie']);
+            $refArticle->setCategory($category);
         }
 
         if (isset($data['urgence'])) {
@@ -337,36 +338,39 @@ class RefArticleDataService {
                 $refArticle->setUserThatTriggeredEmergency(null);
                 $refArticle->setEmergencyComment('');
             }
-            $refArticle->setIsUrgent(filter_var($data['urgence'] ?? false, FILTER_VALIDATE_BOOLEAN))->setEditedBy($user)->setEditedAt(new DateTime('now'));
+            $refArticle->setIsUrgent(filter_var($data['urgence'] ?? false, FILTER_VALIDATE_BOOLEAN));
         }
 
         if(isset($data['prix'])) {
-            $refArticle->setPrixUnitaire($price)->setEditedBy($user)->setEditedAt(new DateTime('now'));
+            $price = max(0, $data['prix']);
+            $refArticle->setPrixUnitaire($price);
         }
 
         if(isset($data['libelle'])) {
-            $refArticle->setLibelle($data['libelle'])->setEditedBy($user)->setEditedAt(new DateTime('now'));
+            $refArticle->setLibelle($data['libelle']);
         }
 
         if(isset($data['commentaire'])) {
-            $refArticle->setCommentaire($data['commentaire'])->setEditedBy($user)->setEditedAt(new DateTime('now'));
+            $refArticle->setCommentaire($data['commentaire']);
         }
 
         if(isset($data['mobileSync'])) {
-            $refArticle->setNeedsMobileSync(filter_var($data['mobileSync'] ?? false, FILTER_VALIDATE_BOOLEAN))->setEditedBy($user)->setEditedAt(new DateTime('now'));
+            $refArticle->setNeedsMobileSync(filter_var($data['mobileSync'] ?? false, FILTER_VALIDATE_BOOLEAN));
         }
 
         $refArticle->setBuyer(isset($data['buyer']) ? $userRepository->find($data['buyer']) : null);
-        $refArticle->setLimitWarning((empty($data['limitWarning']) && $data['limitWarning'] !== 0 && $data['limitWarning'] !== '0') ? null : intval($data['limitWarning']))->setEditedBy($user)->setEditedAt(new DateTime('now'));
-        $refArticle->setLimitSecurity((empty($data['limitSecurity']) && $data['limitSecurity'] !== 0 && $data['limitSecurity'] !== '0') ? null : intval($data['limitSecurity']))->setEditedBy($user)->setEditedAt(new DateTime('now'));
+        $refArticle->setLimitWarning((empty($data['limitWarning']) && $data['limitWarning'] !== 0 && $data['limitWarning'] !== '0') ? null : intval($data['limitWarning']));
+        $refArticle->setLimitSecurity((empty($data['limitSecurity']) && $data['limitSecurity'] !== 0 && $data['limitSecurity'] !== '0') ? null : intval($data['limitSecurity']));
 
-        if($data['emergency-comment-input']) {
-            $refArticle->setEmergencyComment($data['emergency-comment-input'])->setEditedBy($user)->setEditedAt(new DateTime('now'));
+        if(isset($data['emergency-comment-input'])) {
+            $refArticle->setEmergencyComment($data['emergency-comment-input']);
         }
 
         if(isset($data['type'])) {
             $type = $typeRepository->find(intval($data['type']));
-            if($type) $refArticle->setType($type)->setEditedBy($user)->setEditedAt(new DateTime('now'));
+            if($type) {
+                $refArticle->setType($type);
+            }
         }
 
         $refArticle->setStockManagement($data['stockManagement'] ?? null);
@@ -379,13 +383,13 @@ class RefArticleDataService {
         }
         $entityManager->flush();
         if (isset($data["visibility-group"]) && $data["visibility-group"] !== 'null') {
-            $refArticle->setVisibilityGroup($data['visibility-group'] ? $visibilityGroupRepository->find(intval($data['visibility-group'])) : null);
+            $refArticle->setProperties(['visibilityGroup' => $data['visibility-group'] ? $visibilityGroupRepository->find(intval($data['visibility-group'])) : null]);
         }
 
 
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE &&
             $refArticle->getQuantiteStock() > 0 &&
-            $refArticle->getStatut()->getCode() !== ReferenceArticle::DRAFT_STATUS) {
+            $wasDraft && $refArticle->getStatut()->getCode() === ReferenceArticle::STATUT_ACTIF) {
             $mvtStock = $mouvementStockService->createMouvementStock(
                 $user,
                 null,
@@ -400,6 +404,10 @@ class RefArticleDataService {
             );
             $entityManager->persist($mvtStock);
         }
+
+        $refArticle
+            ->setEditedBy($user)
+            ->setEditedAt(new DateTime('now'));
 
         $entityManager->persist($refArticle);
         $entityManager->flush();
@@ -449,6 +457,8 @@ class RefArticleDataService {
             ->unique()
             ->toArray();
 
+        $typeColor = $refArticle->getType()->getColor();
+
         $row = [
             "id" => $refArticle->getId(),
             "image" => $this->templating->render('datatable/image.html.twig', [
@@ -457,7 +467,9 @@ class RefArticleDataService {
             "label" => $refArticle->getLibelle() ?? "Non défini",
             "reference" => $refArticle->getReference() ?? "Non défini",
             "quantityType" => $refArticle->getTypeQuantite() ?? "Non défini",
-            "type" => FormatHelper::type($refArticle->getType()),
+            "type" => "<div class='d-flex align-items-center'><span class='dt-type-color mr-2' style='background-color: $typeColor;'></span>"
+                . FormatHelper::type($refArticle->getType())
+                . "</div>",
             "location" => FormatHelper::location($refArticle->getEmplacement()),
             "availableQuantity" => $refArticle->getQuantiteDisponible() ?? 0,
             "stockQuantity" => $refArticle->getQuantiteStock() ?? 0,
@@ -546,7 +558,7 @@ class RefArticleDataService {
             }
 
             if(!$fromNomade && $editRef) {
-                $this->editRefArticle($referenceArticle, $data, $user, $champLibreService);
+                $this->editRefArticle($referenceArticle, $data, $user, $champLibreService, $this->mouvementStockService);
             }
         } else if($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             if($fromNomade || $this->userService->hasParamQuantityByRef() || $fromCart) {

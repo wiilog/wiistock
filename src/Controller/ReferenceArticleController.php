@@ -105,9 +105,9 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/creer", name="reference_article_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request,
+                        UserService $userService,
                         FreeFieldService $champLibreService,
                         EntityManagerInterface $entityManager,
                         MouvementStockService $mouvementStockService,
@@ -115,8 +115,15 @@ class ReferenceArticleController extends AbstractController
                         ArticleFournisseurService $articleFournisseurService,
                         AttachmentService $attachmentService): Response
     {
-        if (($data = $request->request->all()) || ($data = json_decode($request->getContent(), true))) {
+        if (!$userService->hasRightFunction(Menu::STOCK, Action::CREATE)
+            && !$userService->hasRightFunction(Menu::STOCK, Action::CREATE_DRAFT_REFERENCE)) {
+            return $this->json([
+                "success" => false,
+                "msg" => "Accès refusé",
+            ]);
+        }
 
+        if (($data = $request->request->all()) || ($data = json_decode($request->getContent(), true))) {
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
 
@@ -127,7 +134,6 @@ class ReferenceArticleController extends AbstractController
             $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
             $userRepository = $entityManager->getRepository(Utilisateur::class);
             $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
-            $sendMail = $userRepository->getUserMailByReferenceValidatorAction();
 
             // on vérifie que la référence n'existe pas déjà
             $refAlreadyExist = $referenceArticleRepository->countByReference($data['reference']);
@@ -152,7 +158,7 @@ class ReferenceArticleController extends AbstractController
             $type = $typeRepository->find($data['type']);
 
             if ($data['emplacement'] !== null) {
-                $emplacement = $emplacementRepository->findOneBy(['label' => $data['emplacement']]);
+                $emplacement = $emplacementRepository->find($data['emplacement']);
                 //$emplacement = $emplacementRepository->find($data['emplacement']);
             } else {
                 $emplacement = null; //TODO gérer message erreur (faire un return avec msg erreur adapté -> à ce jour un return false correspond forcément à une réf déjà utilisée)
@@ -174,7 +180,6 @@ class ReferenceArticleController extends AbstractController
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
                 ->setCommentaire($data['commentaire'])
-                ->setVisibilityGroup($data['visibility-group'] ? $visibilityGroupRepository->find(intval($data['visibility-group'])) : null)
                 ->setTypeQuantite($typeArticle)
                 ->setPrixUnitaire(max(0, $data['prix']))
                 ->setType($type)
@@ -185,20 +190,23 @@ class ReferenceArticleController extends AbstractController
                 ->setCreatedBy($loggedUser)
                 ->setCreatedAt(new DateTime('now'));
 
+            $refArticle->setProperties(['visibilityGroup' => $data['visibility-group'] ? $visibilityGroupRepository->find(intval($data['visibility-group'])) : null]);
+
+
             if ($refArticle->getIsUrgent()) {
                 $refArticle->setUserThatTriggeredEmergency($loggedUser);
             }
 
-            if ($data['limitSecurity']) {
+            if (!empty($data['limitSecurity'])) {
             	$refArticle->setLimitSecurity($data['limitSecurity']);
 			}
-            if ($data['limitWarning']) {
+            if (!empty($data['limitWarning'])) {
             	$refArticle->setLimitWarning($data['limitWarning']);
 			}
-            if ($data['emergency-comment-input']) {
+            if (!empty($data['emergency-comment-input'])) {
                 $refArticle->setEmergencyComment($data['emergency-comment-input']);
             }
-            if ($data['categorie']) {
+            if (!empty($data['categorie'])) {
             	$category = $inventoryCategoryRepository->find($data['categorie']);
             	if ($category) {
                     $refArticle->setCategory($category);
@@ -285,8 +293,8 @@ class ReferenceArticleController extends AbstractController
 
             $entityManager->flush();
 
-            if (!empty($sendMail)){
-                $refArticleDataService->sendMailCreateDraftOrDraftToActive($refArticle, $sendMail, true);
+            if ($refArticle->getStatut()->getCode() === ReferenceArticle::DRAFT_STATUS){
+                $refArticleDataService->sendMailCreateDraftOrDraftToActive($refArticle, $userRepository->getUserMailByReferenceValidatorAction(), true);
             }
 
             return $this->json([
@@ -393,10 +401,20 @@ class ReferenceArticleController extends AbstractController
 
     /**
      * @Route("/modifier", name="reference_article_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function edit(Request $request, EntityManagerInterface $entityManager, FreeFieldService $champLibreService, MouvementStockService $stockMovementService): Response
-    {
+    public function edit(Request $request,
+                         EntityManagerInterface $entityManager,
+                         FreeFieldService $champLibreService,
+                         UserService $userService,
+                         MouvementStockService $stockMovementService): Response {
+        if (!$userService->hasRightFunction(Menu::STOCK, Action::EDIT)
+            && !$userService->hasRightFunction(Menu::STOCK, Action::EDIT_PARTIALLY)) {
+            return $this->json([
+                "success" => false,
+                "msg" => "Accès refusé",
+            ]);
+        }
+
         if ($data = $request->request->all()) {
             $refId = intval($data['idRefArticle']);
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -916,8 +934,8 @@ class ReferenceArticleController extends AbstractController
         $mouvements = $mouvementStockRepository->findByRef($referenceArticle);
 
         $data['data'] = array_map(
-            function(MouvementStock $mouvement) use ($entityManager, $mouvementStockService) {
-                $fromColumnConfig = $mouvementStockService->getFromColumnConfig($entityManager, $mouvement);
+            function(MouvementStock $mouvement) use ($mouvementStockService) {
+                $fromColumnConfig = $mouvementStockService->getFromColumnConfig($mouvement);
                 $from = $fromColumnConfig['from'];
                 $orderPath = $fromColumnConfig['orderPath'];
                 $orderId = $fromColumnConfig['orderId'];

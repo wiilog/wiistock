@@ -27,6 +27,9 @@ final class Version20211215110228 extends AbstractMigration
             $user = $this->connection->executeQuery("SELECT id FROM utilisateur WHERE username = 'Société GT'")->fetchOne();
             // j'attribue l'id de société GT à la colonne createdBy de toute les references
             if ($user) {
+                if(!$schema->getTable('reference_article')->hasColumn('created_by_id')){
+                    $this->addSql("ALTER TABLE reference_article ADD COLUMN created_by_id INT DEFAULT NULL");
+                }
                 $this->addSql("
                     UPDATE reference_article
                     SET reference_article.created_by_id = $user

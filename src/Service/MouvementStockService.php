@@ -12,12 +12,10 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
+use Symfony\Component\HttpFoundation\InputBag;
 use Twig\Environment as Twig_Environment;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 
 class MouvementStockService
 {
@@ -27,15 +25,7 @@ class MouvementStockService
     /** @Required */
     public EntityManagerInterface $entityManager;
 
-    /**
-     * @param Utilisateur $user
-     * @param array|null $params
-     * @return array
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
-    public function getDataForDatatable(Utilisateur $user, $params = null)
+    public function getDataForDatatable(Utilisateur $user, ?InputBag $params = null): array
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $mouvementStockRepository = $this->entityManager->getRepository(MouvementStock::class);
@@ -58,16 +48,9 @@ class MouvementStockService
 		];
     }
 
-	/**
-	 * @param MouvementStock $mouvement
-	 * @return array
-	 * @throws LoaderError
-	 * @throws RuntimeError
-	 * @throws SyntaxError
-     */
-    public function dataRowMouvement($mouvement)
+    public function dataRowMouvement(MouvementStock $mouvement): array
     {
-        $fromColumnConfig = $this->getFromColumnConfig($this->entityManager, $mouvement);
+        $fromColumnConfig = $this->getFromColumnConfig($mouvement);
         $from = $fromColumnConfig['from'];
         $orderPath = $fromColumnConfig['orderPath'];
         $orderId = $fromColumnConfig['orderId'];
@@ -108,9 +91,7 @@ class MouvementStockService
 		];
     }
 
-    public function getFromColumnConfig(EntityManagerInterface $entityManager, MouvementStock $mouvement) {
-        $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
-
+    public function getFromColumnConfig(MouvementStock $mouvement): array {
         $orderPath = null;
         $orderId = null;
         $from = null;
@@ -147,16 +128,6 @@ class MouvementStockService
         ];
     }
 
-    /**
-     * @param Utilisateur $user
-     * @param Emplacement|null $locationFrom
-     * @param int $quantity
-     * @param Article|ReferenceArticle $article
-     * @param string $type
-     * @param bool $needsTracing
-     * @return void
-     * @throws \Exception
-     */
     public function createMouvementStock(Utilisateur $user,
                                          ?Emplacement $locationFrom,
                                          int $quantity,
@@ -170,23 +141,14 @@ class MouvementStockService
             ->setType($type)
             ->setQuantity($quantity);
 
-        if ($article instanceof Article) {
+        if($article instanceof Article) {
             $newMouvement->setArticle($article);
-            $reference = $article->getArticleFournisseur()->getReferenceArticle();
 
-            if ($type === MouvementStock::TYPE_SORTIE) {
+            if($type === MouvementStock::TYPE_SORTIE) {
                 $article->setInactiveSince(new DateTime());
-                $reference->setLastStockExit(new DateTime());
-            } else if ($type === MouvementStock::TYPE_ENTREE) {
-                $reference->setLastStockEntry(new DateTime());
             }
-
-        } else if ($article instanceof ReferenceArticle) {
-            if ($type === MouvementStock::TYPE_SORTIE) {
-                $article->setLastStockExit(new DateTime());
-            } else if ($type === MouvementStock::TYPE_ENTREE) {
-                $article->setLastStockEntry(new DateTime());
-            }
+        }
+        else if($article instanceof ReferenceArticle) {
             $newMouvement->setRefArticle($article);
         }
 
@@ -201,12 +163,8 @@ class MouvementStockService
             ->setEmplacementTo($locationTo);
     }
 
-    /**
-     * @param MouvementStock $mouvementStock
-     * @param EntityManagerInterface $entityManager
-     */
     public function manageMouvementStockPreRemove(MouvementStock $mouvementStock,
-                                                  EntityManagerInterface $entityManager) {
+                                                  EntityManagerInterface $entityManager): void {
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
         foreach ($trackingMovementRepository->findBy(['mouvementStock' => $mouvementStock]) as $mvtTraca) {
             $entityManager->remove($mvtTraca);
@@ -215,7 +173,7 @@ class MouvementStockService
 
     public function putMovementLine($handle,
                                     CSVExportService $CSVExportService,
-                                    array $mouvement)
+                                    array $mouvement): void
     {
         $orderNo = $mouvement['preparationOrder']
             ?? $mouvement['livraisonOrder']
