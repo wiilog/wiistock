@@ -211,3 +211,47 @@ function createButtonConfigs({modalType, arrivalId, alertConfig, nextAlertConfig
 
     return buttonConfigs;
 }
+
+function checkPossibleCustoms($modal) {
+    const isCustoms = $modal.find('[name="customs"]').is(':checked');
+    const $select = $modal.find('[name="fournisseur"]')
+
+    const $selectedSupplier = $select.find(':selected');
+    const possibleCustom = $selectedSupplier.data('possible-customs');
+
+    return new Promise((resolve) => {
+        if (!isCustoms && possibleCustom){
+            displayAlertModal(
+                undefined,
+                $('<div/>', {
+                    class: 'text-center',
+                    html: `Attention, ce fournisseur livre habituellement des colis sous douanes.`
+                        + `Voulez vous modifier votre saisie pour déclarer le colis sous douanes ?`
+                }),
+                [
+                    {
+                        class: 'btn btn-outline-secondary m-0',
+                        text: 'Non',
+                        action: ($modal) => {
+                            resolve(true);
+                            $modal.modal('hide');
+                        }
+                    },
+                    {
+                        class: 'btn btn-success m-0',
+                        text: 'Oui',
+                        action: ($modal) => {
+                            resolve(false);
+                            $modal.modal('hide');
+                        }
+                    }
+                ],
+                'warning'
+            );
+        }
+        else {
+            resolve(true);
+        }
+    });
+
+}

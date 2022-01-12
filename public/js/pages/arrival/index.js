@@ -26,6 +26,9 @@ $(function () {
             {
                 keepForm: true,
                 keepModal: true,
+                waitForUserAction: () => {
+                    return checkPossibleCustoms($modalNewArrivage);
+                },
                 success: (res) => {
                     res = res || {};
                     arrivalCallback(

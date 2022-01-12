@@ -10,6 +10,7 @@ let droppedFiles = [];
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery|string} submit jQuery element of the submit button
  * @param {string} path url to call on submit
+ * @param {undefined | function(): Promise<boolean>} waitForUserAction function run on submit button click and we wait for true return
  * @param {{
  *      confirmMessage: function|undefined,
  *      tables: undefined|Array<jQuery>,
@@ -23,13 +24,13 @@ let droppedFiles = [];
  *   - tables is an array of datatable
  *   - keepForm is an array of datatable
  *   - keepModal true if we do not close form
- *   - success success handler
+ *   - success handler for success
  *   - clearOnClose clear the modal on close action
  *   - validator function which calculate custom form validation
  *   - confirmMessage Function which return promise throwing when form can be submitted
  *   - waitDatatable if true returned a Promise resolve whe Datatable is reloaded
  */
-function InitModal($modal, submit, path, options = {}) {
+function InitModal($modal, submit, path, {waitForUserAction, ...options} = {}) {
     if(options.clearOnClose) {
         $modal.on('hidden.bs.modal', function () {
             clearModal($modal);
@@ -47,7 +48,14 @@ function InitModal($modal, submit, path, options = {}) {
         if ($button.hasClass(LOADING_CLASS)) {
             showBSAlert('L\'opération est en cours de traitement', 'info');
         } else {
-            SubmitAction($modal, $button, path, options)
+            (waitForUserAction
+                ? waitForUserAction()
+                : new Promise((resolve) => resolve(true)))
+                .then((doSubmit) => {
+                    if (doSubmit) {
+                        SubmitAction($modal, $button, path, options)
+                    }
+                })
                 .catch(() => {});
         }
     };
@@ -101,14 +109,12 @@ function SubmitAction($modal,
 }
 
 /**
- *
- * @param {{tables: undefined|Array<jQuery>, waitDatatable: undefined|boolean, keepModal: undefined|boolean, success: function, keepForm: undefined|boolean, validator: function|undefined}} options Object containing some options.
- *   - tables is an array of datatable
- *   - keepForm true if we do not clear form
- *   - keepModal true if we do not close form
- *   - validator function which calculate custom form validation
- *   - success called on success
- *   - waitDatatable if true returned a Promise resolve whe Datatable is reloaded
+ * @param {undefined|Array<jQuery>} tables tables is an array of datatable
+ * @param {undefined|boolean} waitDatatable if true returned a Promise resolve whe Datatable is reloaded
+ * @param {undefined|boolean} keepModal true if we do not close form
+ * @param {undefined|boolean} keepForm true if we do not clear form
+ * @param {function} success called on success
+ * @param {function|undefined} validator function which calculate custom form validation
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery} $submit jQuery element of the submit button
  * @param {string} path

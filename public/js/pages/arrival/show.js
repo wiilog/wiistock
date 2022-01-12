@@ -43,10 +43,15 @@ $(function () {
     }
 
     //édition de colis
-    const modalEditPack = $('#modalEditPack');
-    const submitEditPack = $('#submitEditPack');
+    const $modalEditPack = $('#modalEditPack');
+    const $submitEditPack = $('#submitEditPack');
     const urlEditPack = Routing.generate('pack_edit', true);
-    InitModal(modalEditPack, submitEditPack, urlEditPack, {tables: [tableColis]});
+    InitModal($modalEditPack, $submitEditPack, urlEditPack, {
+        tables: [tableColis],
+        waitForUserAction: () => {
+            return checkPossibleCustoms($modalEditPack);
+        },
+    });
 
     //suppression de colis
     let modalDeletePack = $("#modalDeletePack");
