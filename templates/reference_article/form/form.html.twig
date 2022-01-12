@@ -515,25 +515,25 @@
                                     </div>
                                 </label>
                             </div>
-                        </div>
-                        <div class="col-12">
-                            <div class="row">
-                                <div class="form-group col-12 col-md-4 mt-2">
-                                    <div class="article d-none">
-                                        <label class="with-checkbox">
-                                            <input type="checkbox" name="urgence" class="checkbox data"
-                                                   onchange="toggleEmergency($(this))" {{ reference.isUrgent ? 'checked' }}>
-                                            Urgence
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="form-group col-12 col-md-8 mt-4">
-                                    <label class="emergency-comment d-none">
-                                        <span class="wii-field-name">Commentaire de l'urgence</span>
-                                        <input class="form-control data" type="text" name="emergency-comment-input"
-                                               value="{{ reference.emergencyComment }}">
+                    </div>
+                        <div class="row">
+                            <div class="form-group col-12 col-md-4 mt-2">
+                                <div class="article d-none">
+                                    <label class="with-checkbox">
+                                        <input type="checkbox"
+                                               name="urgence"
+                                               class="checkbox data"
+                                               onchange="toggleEmergency($(this))" {{ reference.isUrgent ? 'checked' }}>
+                                        Urgence
                                     </label>
                                 </div>
+                            </div>
+                            <div class="form-group col-12 col-md-8 mt-4">
+                                <label class="emergency-comment d-none">
+                                    <span class="wii-field-name">Commentaire de l'urgence</span>
+                                    <input class="form-control data" type="text" name="emergency-comment-input"
+                                           value="{{ reference.emergencyComment }}">
+                                </label>
                             </div>
                         </div>
                     </div>
