@@ -30,7 +30,7 @@ let droppedFiles = [];
  *   - confirmMessage Function which return promise throwing when form can be submitted
  *   - waitDatatable if true returned a Promise resolve whe Datatable is reloaded
  */
-function InitModal($modal, submit, path, {waitForUserAction, ...options} = {}) {
+function InitModal($modal, submit, path, options= {}) {
     if(options.clearOnClose) {
         $modal.on('hidden.bs.modal', function () {
             clearModal($modal);
@@ -48,14 +48,7 @@ function InitModal($modal, submit, path, {waitForUserAction, ...options} = {}) {
         if ($button.hasClass(LOADING_CLASS)) {
             showBSAlert('L\'opération est en cours de traitement', 'info');
         } else {
-            (waitForUserAction
-                ? waitForUserAction()
-                : new Promise((resolve) => resolve(true)))
-                .then((doSubmit) => {
-                    if (doSubmit) {
-                        SubmitAction($modal, $button, path, options)
-                    }
-                })
+            SubmitAction($modal, $button, path, options)
                 .catch(() => {});
         }
     };
@@ -114,6 +107,8 @@ function SubmitAction($modal,
  * @param {undefined|boolean} keepModal true if we do not close form
  * @param {undefined|boolean} keepForm true if we do not clear form
  * @param {function} success called on success
+ * @param {function} waitForUserAction wait for user modal action
+ * @param {function} headerCallback header callback
  * @param {function|undefined} validator function which calculate custom form validation
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery} $submit jQuery element of the submit button
@@ -122,7 +117,7 @@ function SubmitAction($modal,
 function processSubmitAction($modal,
                              $submit,
                              path,
-                             {tables, keepModal, keepForm, validator, success, headerCallback, waitDatatable} = {}) {
+                             {tables, keepModal, keepForm, validator, success, headerCallback, waitDatatable, waitForUserAction} = {}) {
     const isAttachmentForm = $modal.find('input[name="isAttachmentForm"]').val() === '1';
     const {success: formValidation, errorMessages, $isInvalidElements, data} = ProcessForm($modal, isAttachmentForm, validator);
     if (formValidation) {
@@ -131,48 +126,17 @@ function processSubmitAction($modal,
             : JSON.stringify(data);
 
         $submit.pushLoader('white');
-        // launch ajax request
-        return $
-            .ajax({
-                url: path,
-                data: smartData,
-                type: 'post',
-                contentType: false,
-                processData: false,
-                cache: false,
-                dataType: 'json',
-            })
-            .then((data) => {
-                $submit.popLoader();
-
-                if (data.success === false) {
-                    const errorMessage = data.msg || data.message;
-                    displayFormErrors($modal, {
-                        $isInvalidElements: data.invalidFieldsSelector ? [$(data.invalidFieldsSelector)] : undefined,
-                        errorMessages: errorMessage ? [errorMessage] : undefined
-                    });
-                }
-                else {
-                    const res = treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable);
-                    if (!res) {
-                        return;
+        if (waitForUserAction) {
+            waitForUserAction()
+                .then((doSubmit) => {
+                    if (doSubmit) {
+                        postForm(path, smartData, $submit, $modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable, success);
                     }
-                    else {
-                        return res
-                            .then(() => {
-                                if(data && data.success && success) {
-                                    success(data);
-                                }
-                            })
-                    }
-                }
-
-                return data;
-            })
-            .catch((err) => {
-                $submit.popLoader();
-                throw err;
-            });
+                })
+                .catch(() => {});
+        } else {
+            postForm(path, smartData, $submit, $modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable, success);
+        }
     }
     else {
         displayFormErrors($modal, {
@@ -184,6 +148,50 @@ function processSubmitAction($modal,
             reject(false);
         });
     }
+}
+
+function postForm(path, smartData, $submit, $modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable, success) {
+    return $
+        .ajax({
+            url: path,
+            data: smartData,
+            type: 'post',
+            contentType: false,
+            processData: false,
+            cache: false,
+            dataType: 'json',
+        })
+        .then((data) => {
+            $submit.popLoader();
+
+            if (data.success === false) {
+                const errorMessage = data.msg || data.message;
+                displayFormErrors($modal, {
+                    $isInvalidElements: data.invalidFieldsSelector ? [$(data.invalidFieldsSelector)] : undefined,
+                    errorMessages: errorMessage ? [errorMessage] : undefined
+                });
+            }
+            else {
+                const res = treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable);
+                if (!res) {
+                    return;
+                }
+                else {
+                    return res
+                        .then(() => {
+                            if(data && data.success && success) {
+                                success(data);
+                            }
+                        })
+                }
+            }
+
+            return data;
+        })
+        .catch((err) => {
+            $submit.popLoader();
+            throw err;
+        });
 }
 
 /**
