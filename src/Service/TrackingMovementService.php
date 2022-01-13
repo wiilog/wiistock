@@ -23,6 +23,7 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use Symfony\Component\HttpFoundation\FileBag;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use WiiCommon\Helper\Stream;
 use App\Repository\TrackingMovementRepository;
 use DateTime;
@@ -50,6 +51,9 @@ class TrackingMovementService
 
     /** @Required */
     public MouvementStockService $stockMovementService;
+
+    /** @Required */
+    public TranslatorInterface $translator;
 
     private array $stockStatuses = [];
 
@@ -832,6 +836,153 @@ class TrackingMovementService
                     }
                 }
             }
+        }
+    }
+
+    public function persistTrackingMovement(EntityManagerInterface $entityManager,
+                                                                   $packOrCode,
+                                            ?Emplacement           $location,
+                                            Utilisateur            $operator,
+                                            DateTime               $date,
+                                            ?bool                  $finished,
+                                                                   $trackingType,
+                                            bool                   $forced,
+                                            array                  $options = [],
+                                            bool                   $isGroupTracking = false): array {
+
+        $movement = $this->createTrackingMovement(
+            $packOrCode,
+            $location,
+            $operator,
+            $date,
+            false,
+            $finished,
+            $trackingType,
+            $options
+        );
+
+        $associatedPack = $movement->getPack();
+        if (!$isGroupTracking && $associatedPack) {
+            $associatedGroup = $associatedPack->getParent();
+
+            if (!$forced && $associatedGroup) {
+                return [
+                    'success' => false,
+                    'error' => Pack::CONFIRM_CREATE_GROUP,
+                    'group' => $associatedGroup->getCode()
+                ];
+            } else if ($forced) {
+                $associatedPack->setParent(null);
+            }
+        }
+
+        $movementType = $movement->getType();
+        $movementTypeName = $movementType ? $movementType->getNom() : null;
+
+        // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir le colis
+        if ($movementTypeName === TrackingMovement::TYPE_DEPOSE && !$location->ableToBeDropOff($movement->getPack())) {
+            $packTranslation = $this->translator->trans('arrivage.colis');
+            $natureTranslation = $this->translator->trans('natures.natures requises');
+            $packCode = $movement->getPack()->getCode();
+            $bold = '<span class="font-weight-bold"> ';
+            return [
+                'success' => false,
+                'msg' => 'Le ' . $packTranslation . $bold . $packCode . '</span> ne dispose pas des ' . $natureTranslation . ' pour être déposé sur l\'emplacement' . $bold . $location . '</span>.'
+            ];
+        }
+
+        $this->persistSubEntities($entityManager, $movement);
+        $entityManager->persist($movement);
+
+        return [
+            'success' => true,
+            'movement' => $movement
+        ];
+    }
+
+    public function persistTrackingMovementForPackOrGroup(EntityManagerInterface $entityManager,
+                                                                                 $packOrCode,
+                                                          ?Emplacement           $location,
+                                                          Utilisateur            $operator,
+                                                          DateTime               $date,
+                                                          ?bool                  $finished,
+                                                                                 $trackingType,
+                                                          bool                   $forced,
+                                                          array                  $options = []): array {
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $pack = $packOrCode instanceof Pack
+            ? $packOrCode
+            : $packRepository->findOneBy(['code' => $packOrCode]);
+        if (!isset($pack) || $pack->getGroupIteration() === null) { // it's a simple pack
+            return $this->persistTrackingMovement(
+                $entityManager,
+                $pack ?? $packOrCode,
+                $location,
+                $operator,
+                $date,
+                $finished,
+                $trackingType,
+                $forced,
+                $options
+            );
+        }
+        else { // it's a group
+            $parent = $pack;
+            $newMovements = [];
+            /** @var Pack $child */
+            foreach ($parent->getChildren() as $child) {
+                $childOptions = [
+                    $options,
+                    'parent' => $parent,
+                    'disableUngrouping' => true
+                ];
+                dump('-------------');
+                $childTrackingRes = $this->persistTrackingMovement(
+                    $entityManager,
+                    $child,
+                    $location,
+                    $operator,
+                    $date,
+                    $finished,
+                    $trackingType,
+                    $forced,
+                    $childOptions,
+                    true
+                );
+
+                if (!$childTrackingRes['success']) {
+                    return $childTrackingRes;
+                }
+                else {
+                    $newMovements[] = $childTrackingRes['movement'];
+                }
+            }
+
+            $childTrackingRes = $this->persistTrackingMovement(
+                $entityManager,
+                $parent,
+                $location,
+                $operator,
+                $date,
+                $finished,
+                $trackingType,
+                $forced,
+                $options
+            );
+
+            if (!$childTrackingRes['success']) {
+                return $childTrackingRes;
+            }
+            else {
+                $newMovements[] = $childTrackingRes['movement'];
+            }
+
+            return [
+                'success' => true,
+                'multiple' => true,
+                'movements' => $newMovements,
+                'parent' => $parent
+            ];
         }
     }
 }
