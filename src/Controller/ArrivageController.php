@@ -271,7 +271,10 @@ class ArrivageController extends AbstractController {
         $supplierEmergencyAlert = $arrivageDataService->createSupplierEmergencyAlert($arrivage);
         $isArrivalUrgent = isset($supplierEmergencyAlert);
         $alertConfigs = $isArrivalUrgent
-            ? [$supplierEmergencyAlert]
+            ? [
+                $supplierEmergencyAlert,
+                $arrivageDataService->createArrivalAlertConfig($arrivage, false)
+            ]
             : $arrivageDataService->processEmergenciesOnArrival($arrivage);
 
         if ($isArrivalUrgent) {
@@ -526,7 +529,10 @@ class ArrivageController extends AbstractController {
             : null;
         $isArrivalUrgent = isset($supplierEmergencyAlert);
         $alertConfig = $isArrivalUrgent
-            ? $supplierEmergencyAlert
+            ? [
+                $supplierEmergencyAlert,
+                $arrivageDataService->createArrivalAlertConfig($arrivage, false)
+            ]
             : $arrivageDataService->createArrivalAlertConfig($arrivage, $isSEDCurrentClient);
 
         if ($isArrivalUrgent) {
@@ -541,7 +547,7 @@ class ArrivageController extends AbstractController {
                 'canBeDeleted' => $arrivageRepository->countUnsolvedDisputesByArrivage($arrivage) == 0,
                 'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage)
             ]),
-            'alertConfigs' => [$alertConfig]
+            'alertConfigs' => $alertConfig
         ];
         return new JsonResponse($response);
     }
