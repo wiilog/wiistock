@@ -226,7 +226,7 @@ function checkPossibleCustoms($modal) {
                 $('<div/>', {
                     class: 'text-center',
                     html: `Attention, ce fournisseur livre habituellement des colis sous douanes.`
-                        + `Voulez vous modifier votre saisie pour déclarer le colis sous douanes ?`
+                        + ` Voulez-vous modifier votre saisie pour déclarer le colis sous douanes ?`
                 }),
                 [
                     {
