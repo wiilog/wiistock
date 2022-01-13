@@ -991,16 +991,18 @@ class ImportService
         }
 
         $allowedValues = ['oui', 'non'];
-        if(!isset($data["possibleCustoms"]) || !in_array(strtolower($data["possibleCustoms"]), $allowedValues)) {
+        $possibleCustoms = isset($data["possibleCustoms"]) ? strtolower($data["possibleCustoms"]) : null;
+        if(isset($data["possibleCustoms"]) && !in_array($possibleCustoms, $allowedValues)) {
             $this->throwError("La valeur du champ Douane possible n'est pas correcte (oui ou non)");
         } else {
-            $supplier->setPossibleCustoms(strtolower($data["possibleCustoms"]) === 'oui');
+            $supplier->setPossibleCustoms($possibleCustoms === 'oui');
         }
 
-        if(!isset($data["urgent"]) || !in_array(strtolower($data["urgent"]), $allowedValues)) {
+        $urgent = isset($data["urgent"]) ? strtolower($data["urgent"]) : null;
+        if(isset($data["urgent"]) && !in_array($urgent, $allowedValues)) {
             $this->throwError("La valeur du champ Urgent n'est pas correcte (oui ou non)");
         } else {
-            $supplier->setUrgent(strtolower($data["urgent"]) === 'oui');
+            $supplier->setUrgent($urgent === 'oui');
         }
 
         $supplier->setNom($data['nom']);
