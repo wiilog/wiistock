@@ -990,13 +990,20 @@ class ImportService
             $supplier->setCodeReference($data['codeReference']);
         }
 
-        $possibleCustoms = strtolower($data["possibleCustoms"] ?? 'non');
-        $urgent = strtolower($data["urgent"] ?? 'non');
+        $allowedValues = ['oui', 'non'];
+        if(!isset($data["possibleCustoms"]) || !in_array(strtolower($data["possibleCustoms"]), $allowedValues)) {
+            $this->throwError("La valeur du champ Douane possible n'est pas correcte (oui ou non)");
+        } else {
+            $supplier->setPossibleCustoms(strtolower($data["possibleCustoms"]) === 'oui');
+        }
 
-        $supplier
-            ->setNom($data['nom'])
-            ->setPossibleCustoms($possibleCustoms === 'oui')
-            ->setUrgent($urgent === 'oui');
+        if(!isset($data["urgent"]) || !in_array(strtolower($data["urgent"]), $allowedValues)) {
+            $this->throwError("La valeur du champ Urgent n'est pas correcte (oui ou non)");
+        } else {
+            $supplier->setUrgent(strtolower($data["urgent"]) === 'oui');
+        }
+
+        $supplier->setNom($data['nom']);
 
         $this->em->persist($supplier);
 
@@ -1153,7 +1160,7 @@ class ImportService
                 isset($data['anomalie'])
                 && (
                     filter_var($data['anomalie'], FILTER_VALIDATE_BOOLEAN)
-                    || in_array($data['anomalie'], SELF::POSITIVE_ARRAY)
+                    || in_array($data['anomalie'], self::POSITIVE_ARRAY)
                 )
             );
             if ($anomaly || $reception->getStatut()->getCode() === Reception::STATUT_ANOMALIE) {
@@ -1173,7 +1180,7 @@ class ImportService
                 isset($data['manualUrgent'])
                 && (
                     filter_var($data['manualUrgent'], FILTER_VALIDATE_BOOLEAN)
-                    || in_array($data['manualUrgent'], SELF::POSITIVE_ARRAY)
+                    || in_array($data['manualUrgent'], self::POSITIVE_ARRAY)
                 )
             );
         }
@@ -1193,7 +1200,7 @@ class ImportService
                         isset($data['anomalie'])
                         && (
                             filter_var($data['anomalie'], FILTER_VALIDATE_BOOLEAN)
-                            || in_array($data['anomalie'], SELF::POSITIVE_ARRAY)
+                            || in_array($data['anomalie'], self::POSITIVE_ARRAY)
                         )
                     );
                     $receptionRefArticle->setAnomalie($anomaly ? 1 : 0);
