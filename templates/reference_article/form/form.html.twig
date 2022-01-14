@@ -194,7 +194,8 @@
                                         : 'mobile-sync-off.svg')) }}"
                                          alt="Icône synchronisation nomade"
                                          width="10px">
-                                    <span class="wii-small-text ml-2" style="margin: auto 0;">Synchronisation nomade
+                                    <span class="wii-small-text ml-2 d-flex align-items-center" style="margin: auto 0;">
+                                        Synchronisation nomade
                                         <sup><img src="{{ asset('svg/reference_article/information.svg') }}"
                                                   alt="Icône information"
                                                   width="10px"
@@ -313,7 +314,9 @@
                                     {% if reference.id %}
                                         <div class="col-12 col-md-6 reference mt-3">
                                             <div class="d-flex">
-                                                <img src="{{ asset('svg/reference_article/location.svg') }}" class="icon" alt="Image emplacement"
+                                                <img src="{{ asset('svg/reference_article/location.svg') }}"
+                                                     class="icon"
+                                                     alt="Image emplacement"
                                                      width="20px">
                                                 <label class="box-item ml-3">
                                                     <span class="wii-field-name">Emplacement</span>
@@ -349,7 +352,6 @@
                                                     Emplacement*
                                                 </span>
                                                 <select name="emplacement"
-                                                        id="emplacement"
                                                         class="form-control w-100 data needed"
                                                         data-s2="location"
                                                         {% if defaultLocation is defined and defaultLocation %}
@@ -372,8 +374,8 @@
                                                 </span>
                                                 <div class="increase-decrease-field">
                                                     <button class="decrease"></button>
-                                                    <input type="number" data-no-arrow
-                                                           id="quantite"
+                                                    <input type="number"
+                                                           data-no-arrow
                                                            name="quantite"
                                                            class="form-control data needed w-50"
                                                            min="0"
@@ -439,81 +441,88 @@
                                             </div>
                                         {% endif %}
                                     </div>
-
                                 </div>
                             </div>
-                            {% if not partialEdit %}
-                                <div class="col-12 col-md-4 mt-3">
-                                    <div class="reference">
-                                        <label>
-                                            <span class="icon wii-field-name">
-                                                <img src="{{ asset('svg/reference_article/euro.svg') }}" class="icon" alt="Image euro">
-                                                Prix unitaire (€)
-                                            </span>
-                                            <input type="number" name="prix" class="form-control w-100 data" value="{{ reference.prixUnitaire }}" min="0">
-                                        </label>
-                                    </div>
-                                    <div class="article">
-                                        <label>
-                                        <span class="icon wii-field-name">
-                                            <img src="{{ asset('svg/reference_article/stock-management.svg') }}" class="icon"
-                                                 alt="Image gestion de stock">
-                                            Gestion de stock
-                                        </span>
-                                            <select name="stockManagement" data-s2 data-placeholder="Sélectionnez une gestion de stock"
-                                                    class="form-control data">
-                                                {% for value in stockManagement %}
-                                                    <option value="{{ value }}" {{ reference.stockManagement == value ? 'selected' }}>
-                                                        {{ value }}
-                                                    </option>
-                                                {% endfor %}
-                                            </select>
-                                        </label>
-                                    </div>
-                                </div>
-                                {% else %}
-                                    <div class="col-12 col-md-4 mt-3 reference">
-                                        <div class="reference">
-                                            <label>
+                            <div class="col-12">
+                                <div class="row">
+                                    {% if not partialEdit %}
+                                        <div class="col-12 col-md-4 mt-3">
+                                            <div class="reference">
+                                                <label>
                                                     <span class="icon wii-field-name">
                                                         <img src="{{ asset('svg/reference_article/euro.svg') }}" class="icon" alt="Image euro">
                                                         Prix unitaire (€)
                                                     </span>
-                                                <input type="number" name="prix" class="form-control w-100 data" value="{{ reference.prixUnitaire }}" min="0">
-                                            </label>
+                                                    <input type="number" name="prix" class="form-control w-100 data" value="{{ reference.prixUnitaire }}" min="0">
+                                                </label>
+                                            </div>
+                                            <div class="article">
+                                                <label>
+                                                    <span class="icon wii-field-name">
+                                                        <img src="{{ asset('svg/reference_article/stock-management.svg') }}"
+                                                             class="icon"
+                                                             alt="Image gestion de stock">
+                                                        Gestion de stock
+                                                    </span>
+                                                    <select name="stockManagement"
+                                                            data-s2
+                                                            data-placeholder="Sélectionnez une gestion de stock"
+                                                            class="form-control data w-100">
+                                                        {% for value in stockManagement %}
+                                                            <option value="{{ value }}" {{ reference.stockManagement == value ? 'selected' }}>
+                                                                {{ value }}
+                                                            </option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </label>
+                                            </div>
                                         </div>
+                                    {% else %}
+                                        <div class="col-12 col-md-4 mt-3 reference">
+                                            <div class="reference">
+                                                <label>
+                                                        <span class="icon wii-field-name">
+                                                            <img src="{{ asset('svg/reference_article/euro.svg') }}" class="icon" alt="Image euro">
+                                                            Prix unitaire (€)
+                                                        </span>
+                                                    <input type="number" name="prix" class="form-control w-100 data" value="{{ reference.prixUnitaire }}" min="0">
+                                                </label>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+
+                                    <div class="col-12 col-md-4 mt-3 {{ partialEdit ? 'mr-auto' }}">
+                                        <label>
+                                        <span class="icon wii-field-name">
+                                            <img src="{{ asset('svg/reference_article/threshold.svg') }}" class="icon" alt="Image seuil d'alerte">
+                                            Seuil d'alerte
+                                        </span>
+                                            <div class="increase-decrease-field">
+                                                <button class="decrease"></button>
+                                                <input type="number" data-no-arrow
+                                                       name="limitWarning" class="form-control data w-50"
+                                                       value="{{ reference.limitWarning ?? '' }}" min="0">
+                                                <button class="increase"></button>
+                                            </div>
+                                        </label>
                                     </div>
-                            {% endif %}
-                            <div class="col-12 col-md-4 mt-3 {{ partialEdit ? 'mr-5' }}">
-                                <label>
-                                <span class="icon wii-field-name">
-                                    <img src="{{ asset('svg/reference_article/threshold.svg') }}" class="icon" alt="Image seuil d'alerte">
-                                    Seuil d'alerte
-                                </span>
-                                    <div class="increase-decrease-field">
-                                        <button class="decrease"></button>
-                                        <input type="number" data-no-arrow
-                                               name="limitWarning" class="form-control data w-50"
-                                               value="{{ reference.limitWarning ?? '' }}" min="0">
-                                        <button class="increase"></button>
+                                    <div class="col-12 col-md-4 mt-3 {{ partialEdit ? 'mr-auto' }}">
+                                        <label>
+                                        <span class="icon wii-field-name">
+                                            <img src="{{ asset('svg/reference_article/threshold_red.svg') }}" class="icon"
+                                                 alt="Image seuil de sécurité">
+                                            Seuil de sécurité
+                                        </span>
+                                            <div class="increase-decrease-field">
+                                                <button class="decrease"></button>
+                                                <input type="number" data-no-arrow
+                                                       name="limitSecurity" class="form-control data w-50"
+                                                       value="{{ reference.limitSecurity ?? '' }}" min="0">
+                                                <button class="increase"></button>
+                                            </div>
+                                        </label>
                                     </div>
-                                </label>
-                            </div>
-                            <div class="col-12 col-md-4 mt-3 {{ partialEdit ? 'ml-5' }}">
-                                <label>
-                                <span class="icon wii-field-name">
-                                    <img src="{{ asset('svg/reference_article/threshold_red.svg') }}" class="icon"
-                                         alt="Image seuil de sécurité">
-                                    Seuil de sécurité
-                                </span>
-                                    <div class="increase-decrease-field">
-                                        <button class="decrease"></button>
-                                        <input type="number" data-no-arrow
-                                               name="limitSecurity" class="form-control data w-50"
-                                               value="{{ reference.limitSecurity ?? '' }}" min="0">
-                                        <button class="increase"></button>
-                                    </div>
-                                </label>
+                                </div>
                             </div>
                     </div>
                         <div class="row">
