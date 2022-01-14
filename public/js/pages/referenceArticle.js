@@ -468,7 +468,7 @@ function changeNewReferenceStatus($select){
 }
 
 function onTypeQuantityChange($input) {
-    toggleRequiredChampsFixes($(this), '.wii-form');
+    toggleRequiredChampsFixes($input, '.wii-form');
     updateQuantityDisplay($input, '.wii-form');
     changeNewReferenceStatus($('[name=statut]:checked'));
 }
