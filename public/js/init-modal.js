@@ -131,6 +131,8 @@ function processSubmitAction($modal,
                 .then((doSubmit) => {
                     if (doSubmit) {
                         postForm(path, smartData, $submit, $modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable, success);
+                    } else {
+                        $submit.popLoader();
                     }
                 })
                 .catch(() => {});
