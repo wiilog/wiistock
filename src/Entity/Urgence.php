@@ -2,7 +2,7 @@
 
 namespace App\Entity;
 
-use DateTime as WiiDateTime;
+use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -17,67 +17,66 @@ class Urgence {
         "commande" => "Numéro de commande"
     ];
 
-
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="datetime")
      */
-    private $dateStart;
+    private ?DateTime $dateStart = null;
 
     /**
      * @ORM\Column(type="datetime")
      */
-    private $dateEnd;
+    private ?DateTime $dateEnd = null;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private $createdAt;
+    private ?DateTime $createdAt;
 
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private $commande;
+    private ?string $commande = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="emergencies")
      */
-    private $buyer;
+    private ?Utilisateur $buyer = null;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Fournisseur")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Fournisseur", inversedBy="emergencies")
      */
-    private $provider;
+    private ?Fournisseur $provider = null;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Transporteur")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Transporteur", inversedBy="emergencies")
      */
-    private $carrier;
+    private ?Transporteur $carrier = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true, nullable=true)
      */
-    private $trackingNb;
+    private ?string $trackingNb = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $postNb;
+    private ?string $postNb = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Arrivage", inversedBy="urgences")
      */
-    private $lastArrival;
+    private ?Arrivage $lastArrival = null;
 
     public function __construct()
     {
-        $this->createdAt = (new WiiDateTime('now'));
+        $this->createdAt = new DateTime('now');
     }
 
     public function getId(): ?int
@@ -190,18 +189,11 @@ class Urgence {
         return $this;
     }
 
-    /**
-     * @return DateTime|null
-     */
     public function getCreatedAt(): ?DateTime
     {
         return $this->createdAt;
     }
 
-    /**
-     * @param DateTime $createdAt
-     * @return Urgence
-     */
     public function setCreatedAt(DateTime $createdAt): self
     {
         $this->createdAt = $createdAt;
@@ -211,17 +203,17 @@ class Urgence {
     public function serialize()
     {
         return [
-            'dateStart' => $this->getDateStart() ? $this->getDateStart()->format('d/m/Y H:i:s') : '',
-            'dateEnd' => $this->getDateEnd() ? $this->getDateEnd()->format('d/m/Y H:i:s') : '',
-            'commande' => $this->getCommande() ? $this->getCommande() : '',
-            'numposte' => $this->getPostNb() ? $this->getPostNb() : '',
-            'buyer' => $this->getBuyer() ? $this->getBuyer()->getUsername() : '',
-            'provider' => $this->getProvider() ? $this->getProvider()->getNom() : '',
+            'dateStart' => FormatHelper::datetime($this->getDateStart()),
+            'dateEnd' => FormatHelper::datetime($this->getDateEnd()),
+            'commande' => $this->getCommande() ?: '',
+            'numposte' => $this->getPostNb() ?: '',
+            'buyer' => FormatHelper::user($this->getBuyer()),
+            'provider' => FormatHelper::supplier($this->getProvider()),
             'carrier' => $this->getCarrier() ? $this->getCarrier()->getLabel() : '',
-            'trackingnum' => $this->getTrackingNb() ? $this->getTrackingNb() : '',
-            'datearrival' => $this->getLastArrival() ? $this->getLastArrival()->getDate()->format('d/m/Y H:i:s') : '',
+            'trackingnum' => $this->getTrackingNb() ?: '',
+            'datearrival' => $this->getLastArrival() ? FormatHelper::datetime($this->getLastArrival()->getDate()) : '',
             'arrivageNumber' => $this->getLastArrival() ? $this->getLastArrival()->getNumeroArrivage() : '',
-            'creationDate' => $this->getCreatedAt() ? $this->getCreatedAt()->format('d/m/Y H:i:s') : '',
+            'creationDate' => FormatHelper::datetime($this->getCreatedAt()),
         ];
     }
 }

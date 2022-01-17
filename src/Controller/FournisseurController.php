@@ -4,12 +4,8 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
-use App\Entity\Arrivage;
-use App\Entity\ArticleFournisseur;
 use App\Entity\Fournisseur;
 use App\Entity\Menu;
-use App\Entity\Reception;
-use App\Entity\ReceptionReferenceArticle;
 use App\Service\CSVExportService;
 use App\Service\FournisseurDataService;
 use DateTime;
@@ -153,22 +149,26 @@ class FournisseurController extends AbstractController {
     private function isSupplierUsed(int $supplierId, EntityManagerInterface $entityManager): array
     {
     	$usedBy = [];
-        $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
-        $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
-        $arrivageRepository = $entityManager->getRepository(Arrivage::class);
-        $receptionRepository = $entityManager->getRepository(Reception::class);
+        $supplier = $entityManager->find(Fournisseur::class, $supplierId);
+    	if (!$supplier->getArticlesFournisseur()->isEmpty()) {
+            $usedBy[] = 'articles fournisseur';
+        }
 
-        $AF = $articleFournisseurRepository->countByFournisseur($supplierId);
-    	if ($AF > 0) $usedBy[] = 'articles fournisseur';
+    	if (!$supplier->getReceptions()->isEmpty()) {
+            $usedBy[] = 'réceptions';
+        }
 
-    	$receptions = $receptionRepository->countByFournisseur($supplierId);
-    	if ($receptions > 0) $usedBy[] = 'réceptions';
+		if (!$supplier->getReceptionReferenceArticles()->isEmpty()) {
+            $usedBy[] = 'lignes de réception';
+        }
 
-		$ligneReceptions = $receptionReferenceArticleRepository->countByFournisseurId($supplierId);
-		if ($ligneReceptions > 0) $usedBy[] = 'lignes réception';
+		if (!$supplier->getArrivages()->isEmpty()) {
+            $usedBy[] = 'arrivages';
+        }
 
-		$arrivages = $arrivageRepository->countByFournisseur($supplierId);
-		if ($arrivages > 0) $usedBy[] = 'arrivages';
+        if (!$supplier->getEmergencies()->isEmpty()) {
+            $usedBy[] = 'urgences';
+        }
 
         return $usedBy;
     }

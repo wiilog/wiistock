@@ -221,18 +221,6 @@ class ArticleFournisseurRepository extends EntityRepository
         return $query->getResult();
     }
 
-    public function countByFournisseur($fournisseurId)
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-			"SELECT COUNT(af)
-			FROM App\Entity\ArticleFournisseur af
-			WHERE af.fournisseur = :fournisseurId"
-		)->setParameter('fournisseurId', $fournisseurId);
-
-		return $query->getSingleScalarResult();
-	}
-
     public function getIdAndLibelleBySearch($search, $refArticle = null)
     {
         $queryBuilder = $this->createQueryBuilder('articleFournisseur')
