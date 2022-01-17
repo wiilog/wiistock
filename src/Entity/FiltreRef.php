@@ -10,40 +10,44 @@ use Doctrine\ORM\Mapping as ORM;
 class FiltreRef
 {
     const FIXED_FIELD_REF_ART_FOURN = 'référence article fournisseur';
-    const FIXED_FIELD_STATUT = 'status';
+    const FIXED_FIELD_ACTIVE_ONLY = 'active_only';
+    const FIXED_FIELD_STATUS = 'Statut';
     const FIXED_FIELD_MANAGERS = 'Gestionnaire(s)';
     const FIXED_FIELD_VISIBILITY_GROUP = 'Groupe de visibilité';
     const FIXED_FIELD_PROVIDER_CODE = 'Code fournisseur';
     const FIXED_FIELD_PROVIDER_LABEL = 'Nom fournisseur';
+    const FIXED_FIELD_EDITED_BY = 'Dernière modification par';
+    const FIXED_FIELD_CREATED_BY = 'Créée par';
+    const FIXED_FIELD_BUYER = 'Acheteur';
 
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="FreeField", inversedBy="filters")
      * @ORM\JoinColumn(nullable=true)
      */
-    private $champLibre;
+    private ?FreeField $champLibre = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $champFixe;
+    private ?string $champFixe = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $value;
+    private ?string $value = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="filters")
      * @ORM\JoinColumn(nullable=false)
      */
-    private $utilisateur;
+    private ?Utilisateur $utilisateur = null;
 
     public function getId(): ?int
     {

@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Helper\FormatHelper;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -18,42 +19,52 @@ class Fournisseur
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="string", length=255, unique=true)
      */
-    private $codeReference;
+    private ?string $codeReference = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $nom;
+    private ?string $nom = null;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Reception", mappedBy="fournisseur")
      */
-    private $receptions;
+    private Collection $receptions;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\ArticleFournisseur", mappedBy="fournisseur")
      */
-    private $articlesFournisseur;
+    private Collection $articlesFournisseur;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\ReceptionReferenceArticle", mappedBy="fournisseur")
      */
-    private $receptionReferenceArticles;
+    private Collection $receptionReferenceArticles;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Arrivage", mappedBy="fournisseur")
      */
-    private $arrivages;
+    private Collection $arrivages;
 
     /**
      * @ORM\OneToMany(targetEntity=PurchaseRequestLine::class, mappedBy="supplier")
      */
-    private ?Collection $purchaseRequestLines;
+    private Collection $purchaseRequestLines;
+
+    /**
+     * @ORM\Column(type="boolean", options={"default": false})
+     */
+    private bool $urgent = false;
+
+    /**
+     * @ORM\Column(type="boolean", options={"default": false})
+     */
+    private bool $possibleCustoms = false;
 
     public function __construct()
     {
@@ -282,5 +293,32 @@ class Fournisseur
         }
 
         return $this;
+    }
+
+    public function isUrgent(): bool {
+        return $this->urgent;
+    }
+
+    public function setUrgent(bool $urgent): self {
+        $this->urgent = $urgent;
+        return $this;
+    }
+
+    public function isPossibleCustoms(): bool {
+        return $this->possibleCustoms;
+    }
+
+    public function setPossibleCustoms(bool $possibleCustoms): self {
+        $this->possibleCustoms = $possibleCustoms;
+        return $this;
+    }
+
+    public function serialize(): array {
+        return [
+            'name' => $this->getNom(),
+            'code' => $this->getCodeReference(),
+            'possibleCustoms' => FormatHelper::bool($this->isPossibleCustoms()),
+            'urgent' => FormatHelper::bool($this->isUrgent()),
+        ];
     }
 }

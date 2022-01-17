@@ -2,20 +2,19 @@
     <div class="col-6">
         <div class="form-group">
             <label for="dateStart" title="date de début">{{ 'urgences.date de début'|trans }}*</label>
-            <input type="text"
-                   class="form-control cursor-default data needed datepicker dateStart"
-                   name="dateStart"
-                   data-date="{{ urgence.dateStart|date('Y-m-d H:i') }}">
+            <input type="datetime-local" class="form-control cursor-default data needed date first-date"
+                   value="{{ urgence.dateStart|date('Y-m-d\\TH:i') }}"
+                   placeholder="jj/mm/aaaa"
+                   id="dateStart" name="dateStart">
         </div>
     </div>
 
     <div class="col-6">
         <div class="form-group">
             <label for="dateEnd" title="date de fin">{{ 'urgences.date de fin'|trans }}*</label>
-            <input type="text"
-                   class="form-control cursor-default data needed datepicker dateEnd"
-                   name="dateEnd"
-                   data-date="{{ urgence.dateEnd|date('Y-m-d H:i') }}">
+            <input type="datetime-local" class="form-control cursor-default data needed date last-date" id="dateEnd" name="dateEnd"
+                   value="{{ urgence.dateEnd|date('Y-m-d\\TH:i') }}"
+                   placeholder="jj/mm/aaaa">
         </div>
     </div>
 </div>

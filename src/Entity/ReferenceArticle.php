@@ -9,6 +9,7 @@ use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Entity\Traits\LitePropertiesSetterTrait;
+use DateTime;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -29,6 +30,7 @@ class ReferenceArticle {
     const CATEGORIE = 'referenceArticle';
     const STATUT_ACTIF = 'actif';
     const STATUT_INACTIF = 'inactif';
+    const DRAFT_STATUS = 'brouillon';
 
     const TYPE_QUANTITE_REFERENCE = 'reference';
     const TYPE_QUANTITE_ARTICLE = 'article';
@@ -46,37 +48,37 @@ class ReferenceArticle {
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $libelle;
+    private ?string $libelle = null;
 
     /**
      * @ORM\Column(type="string", length=255, unique=true)
      */
-    private $reference;
+    private ?string $reference = null;
 
     /**
      * @ORM\Column(type="string", length=15, nullable=true)
      */
-    private $barCode;
+    private ?string $barCode = null;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
-    private $quantiteDisponible;
+    private ?int $quantiteDisponible = null;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
-    private $quantiteReservee;
+    private ?int $quantiteReservee = null;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
-    private $quantiteStock;
+    private ?int $quantiteStock = null;
 
     /**
      * @ORM\OneToMany(targetEntity=DeliveryRequestReferenceLine::class, mappedBy="reference")
@@ -86,97 +88,97 @@ class ReferenceArticle {
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="referenceArticles")
      */
-    private $type;
+    private ?Type $type = null;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\ArticleFournisseur", mappedBy="referenceArticle")
      */
-    private $articlesFournisseur;
+    private Collection $articlesFournisseur;
 
     /**
      * @ORM\Column(type="string", length=16, nullable=true)
      */
-    private $typeQuantite;
+    private ?string $typeQuantite = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="referenceArticles")
      */
-    private $statut;
+    private ?Statut $statut = null;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\CollecteReference", mappedBy="referenceArticle")
      */
-    private $collecteReferences;
+    private Collection $collecteReferences;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\OrdreCollecteReference", mappedBy="referenceArticle")
      */
-    private $ordreCollecteReferences;
+    private Collection $ordreCollecteReferences;
 
     /**
      * @ORM\Column(type="text", nullable=true)
      */
-    private $commentaire;
+    private ?string $commentaire = null;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\ReceptionReferenceArticle", mappedBy="referenceArticle")
      */
-    private $receptionReferenceArticles;
+    private Collection $receptionReferenceArticles;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="referenceArticles")
      */
-    private $emplacement;
+    private ?Emplacement $emplacement = null;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\MouvementStock", mappedBy="refArticle")
      */
-    private $mouvements;
+    private Collection $mouvements;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\InventoryCategory", inversedBy="refArticle")
      */
-    private $category;
+    private ?InventoryCategory $category = null;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\InventoryEntry", mappedBy="refArticle")
      */
-    private $inventoryEntries;
+    private Collection $inventoryEntries;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\InventoryCategoryHistory", mappedBy="refArticle")
      */
-    private $inventoryCategoryHistory;
+    private Collection $inventoryCategoryHistory;
 
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\InventoryMission", mappedBy="refArticles")
      */
-    private $inventoryMissions;
+    private Collection $inventoryMissions;
 
     /**
      * @ORM\Column(type="float", nullable=true)
      */
-    private $prixUnitaire;
+    private ?float $prixUnitaire = null;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private $dateLastInventory;
+    private ?DateTime $dateLastInventory = null;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
-    private $limitSecurity;
+    private ?int $limitSecurity = null;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
-    private $limitWarning;
+    private ?int $limitWarning = null;
 
     /**
      * @ORM\Column(type="boolean", nullable=true)
      */
-    private $isUrgent;
+    private ?bool $isUrgent = false;
 
     /**
      * @ORM\OneToMany(targetEntity=PreparationOrderReferenceLine::class, mappedBy="reference")
@@ -186,48 +188,48 @@ class ReferenceArticle {
     /**
      * @ORM\Column(type="text", nullable=true)
      */
-    private $emergencyComment;
+    private ?string $emergencyComment = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="referencesEmergenciesTriggered")
      */
-    private $userThatTriggeredEmergency;
+    private ?Utilisateur $userThatTriggeredEmergency = null;
 
     /**
      * @var Pack|null
      * @ORM\OneToOne(targetEntity=Pack::class, mappedBy="referenceArticle")
      */
-    private $trackingPack;
+    private ?Pack $trackingPack = null;
 
     /**
      * @ORM\Column(type="boolean", nullable=true)
      */
-    private $needsMobileSync;
+    private ?bool $needsMobileSync = null;
 
     /**
      * @ORM\ManyToMany(targetEntity=TransferRequest::class, mappedBy="references")
      */
-    private $transferRequests;
+    private Collection $transferRequests;
 
     /**
      * @ORM\Column(type="string", nullable=true)
      */
-    private $stockManagement;
+    private ?string $stockManagement = null;
 
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\Utilisateur", inversedBy="referencesArticle")
      */
-    private $managers;
+    private Collection $managers;
 
     /**
      * @ORM\OneToMany(targetEntity=Alert::class, mappedBy="reference", cascade={"remove"})
      */
-    private $alerts;
+    private Collection $alerts;
 
     /**
      * @ORM\ManyToOne(targetEntity=Utilisateur::class, inversedBy="referencesBuyer")
      */
-    private $buyer;
+    private ?Utilisateur $buyer = null;
 
     /**
      * @ORM\ManyToMany(targetEntity=Cart::class, mappedBy="references")
@@ -247,7 +249,7 @@ class ReferenceArticle {
     /**
      * @ORM\OneToMany(targetEntity=RequestTemplateLine::class, mappedBy="reference", orphanRemoval=true)
      */
-    private $requestTemplateLines;
+    private Collection $requestTemplateLines;
 
     /**
      * @ORM\ManyToOne(targetEntity=VisibilityGroup::class, inversedBy="articleReferences")
@@ -257,7 +259,37 @@ class ReferenceArticle {
     /**
      * @ORM\OneToOne(targetEntity=Attachment::class, inversedBy="referenceArticle", cascade={"persist", "remove"})
      */
-    private $image;
+    private ?Attachment $image = null;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Utilisateur::class, inversedBy="createdByReferenceArticles")
+     */
+    private ?Utilisateur $createdBy = null;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private ?DateTime $createdAt = null;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Utilisateur::class, inversedBy="editedByReferenceArticles")
+     */
+    private ?Utilisateur $editedBy = null;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private ?DateTime $editedAt = null;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private ?DateTime $lastStockEntry = null;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private ?DateTime $lastStockExit = null;
 
     public function __construct()
     {
@@ -273,17 +305,15 @@ class ReferenceArticle {
         $this->preparationOrderReferenceLines = new ArrayCollection();
         $this->managers = new ArrayCollection();
         $this->attachments = new ArrayCollection();
-
-        $this->quantiteStock = 0;
-        $this->quantiteReservee = 0;
-        $this->quantiteDisponible = 0;
         $this->transferRequests = new ArrayCollection();
         $this->alerts = new ArrayCollection();
         $this->carts = new ArrayCollection();
         $this->purchaseRequestLines = new ArrayCollection();
-        $this->deliveryRequestTemplates = new ArrayCollection();
-        $this->collectRequestTemplates = new ArrayCollection();
         $this->requestTemplateLines = new ArrayCollection();
+
+        $this->quantiteStock = 0;
+        $this->quantiteReservee = 0;
+        $this->quantiteDisponible = 0;
     }
 
     public function getId()
@@ -1169,6 +1199,88 @@ class ReferenceArticle {
         if($this->image && $this->image->getReferenceArticle() !== $this) {
             $this->image->setReferenceArticle($this);
         }
+
+        return $this;
+    }
+
+    public function getCreatedBy(): ?Utilisateur
+    {
+        return $this->createdBy;
+    }
+
+    public function setCreatedBy(?Utilisateur $createdBy): self {
+        if($this->createdBy && $this->createdBy !== $createdBy) {
+            $this->createdBy->removeCreatedByReferenceArticle($this);
+        }
+        $this->createdBy = $createdBy;
+        if($createdBy) {
+            $createdBy->addCreatedByReferenceArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?DateTime
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(?DateTime $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getEditedBy(): ?Utilisateur
+    {
+        return $this->editedBy;
+    }
+
+    public function setEditedBy(?Utilisateur $editedBy): self {
+        if($this->editedBy && $this->editedBy !== $editedBy) {
+            $this->editedBy->removeEditedByReferenceArticle($this);
+        }
+        $this->editedBy = $editedBy;
+        if($editedBy) {
+            $editedBy->addEditedByReferenceArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function getEditedAt(): ?DateTime
+    {
+        return $this->editedAt;
+    }
+
+    public function setEditedAt(?DateTime $editedAt): self
+    {
+        $this->editedAt = $editedAt;
+
+        return $this;
+    }
+
+    public function getLastStockEntry(): ?DateTime
+    {
+        return $this->lastStockEntry;
+    }
+
+    public function setLastStockEntry(?DateTime $lastStockEntry): self
+    {
+        $this->lastStockEntry = $lastStockEntry;
+
+        return $this;
+    }
+
+    public function getLastStockExit(): ?DateTime
+    {
+        return $this->lastStockExit;
+    }
+
+    public function setLastStockExit(?DateTime $lastStockExit): self
+    {
+        $this->lastStockExit = $lastStockExit;
 
         return $this;
     }

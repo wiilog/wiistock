@@ -10,6 +10,7 @@ let droppedFiles = [];
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery|string} submit jQuery element of the submit button
  * @param {string} path url to call on submit
+ * @param {undefined | function(): Promise<boolean>} waitForUserAction function run on submit button click and we wait for true return
  * @param {{
  *      confirmMessage: function|undefined,
  *      tables: undefined|Array<jQuery>,
@@ -23,13 +24,13 @@ let droppedFiles = [];
  *   - tables is an array of datatable
  *   - keepForm is an array of datatable
  *   - keepModal true if we do not close form
- *   - success success handler
+ *   - success handler for success
  *   - clearOnClose clear the modal on close action
  *   - validator function which calculate custom form validation
  *   - confirmMessage Function which return promise throwing when form can be submitted
  *   - waitDatatable if true returned a Promise resolve whe Datatable is reloaded
  */
-function InitModal($modal, submit, path, options = {}) {
+function InitModal($modal, submit, path, options= {}) {
     if(options.clearOnClose) {
         $modal.on('hidden.bs.modal', function () {
             clearModal($modal);
@@ -101,14 +102,14 @@ function SubmitAction($modal,
 }
 
 /**
- *
- * @param {{tables: undefined|Array<jQuery>, waitDatatable: undefined|boolean, keepModal: undefined|boolean, success: function, keepForm: undefined|boolean, validator: function|undefined}} options Object containing some options.
- *   - tables is an array of datatable
- *   - keepForm true if we do not clear form
- *   - keepModal true if we do not close form
- *   - validator function which calculate custom form validation
- *   - success called on success
- *   - waitDatatable if true returned a Promise resolve whe Datatable is reloaded
+ * @param {undefined|Array<jQuery>} tables tables is an array of datatable
+ * @param {undefined|boolean} waitDatatable if true returned a Promise resolve whe Datatable is reloaded
+ * @param {undefined|boolean} keepModal true if we do not close form
+ * @param {undefined|boolean} keepForm true if we do not clear form
+ * @param {function} success called on success
+ * @param {function} waitForUserAction wait for user modal action
+ * @param {function} headerCallback header callback
+ * @param {function|undefined} validator function which calculate custom form validation
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery} $submit jQuery element of the submit button
  * @param {string} path
@@ -116,7 +117,7 @@ function SubmitAction($modal,
 function processSubmitAction($modal,
                              $submit,
                              path,
-                             {tables, keepModal, keepForm, validator, success, headerCallback, waitDatatable} = {}) {
+                             {tables, keepModal, keepForm, validator, success, headerCallback, waitDatatable, waitForUserAction} = {}) {
     const isAttachmentForm = $modal.find('input[name="isAttachmentForm"]').val() === '1';
     const {success: formValidation, errorMessages, $isInvalidElements, data} = ProcessForm($modal, isAttachmentForm, validator);
     if (formValidation) {
@@ -125,48 +126,19 @@ function processSubmitAction($modal,
             : JSON.stringify(data);
 
         $submit.pushLoader('white');
-        // launch ajax request
-        return $
-            .ajax({
-                url: path,
-                data: smartData,
-                type: 'post',
-                contentType: false,
-                processData: false,
-                cache: false,
-                dataType: 'json',
-            })
-            .then((data) => {
-                $submit.popLoader();
-
-                if (data.success === false) {
-                    const errorMessage = data.msg || data.message;
-                    displayFormErrors($modal, {
-                        $isInvalidElements: data.invalidFieldsSelector ? [$(data.invalidFieldsSelector)] : undefined,
-                        errorMessages: errorMessage ? [errorMessage] : undefined
-                    });
-                }
-                else {
-                    const res = treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable);
-                    if (!res) {
-                        return;
+        if (waitForUserAction) {
+            waitForUserAction()
+                .then((doSubmit) => {
+                    if (doSubmit) {
+                        postForm(path, smartData, $submit, $modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable, success);
+                    } else {
+                        $submit.popLoader();
                     }
-                    else {
-                        return res
-                            .then(() => {
-                                if(data && data.success && success) {
-                                    success(data);
-                                }
-                            })
-                    }
-                }
-
-                return data;
-            })
-            .catch((err) => {
-                $submit.popLoader();
-                throw err;
-            });
+                })
+                .catch(() => {});
+        } else {
+            postForm(path, smartData, $submit, $modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable, success);
+        }
     }
     else {
         displayFormErrors($modal, {
@@ -178,6 +150,50 @@ function processSubmitAction($modal,
             reject(false);
         });
     }
+}
+
+function postForm(path, smartData, $submit, $modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable, success) {
+    return $
+        .ajax({
+            url: path,
+            data: smartData,
+            type: 'post',
+            contentType: false,
+            processData: false,
+            cache: false,
+            dataType: 'json',
+        })
+        .then((data) => {
+            $submit.popLoader();
+
+            if (data.success === false) {
+                const errorMessage = data.msg || data.message;
+                displayFormErrors($modal, {
+                    $isInvalidElements: data.invalidFieldsSelector ? [$(data.invalidFieldsSelector)] : undefined,
+                    errorMessages: errorMessage ? [errorMessage] : undefined
+                });
+            }
+            else {
+                const res = treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable);
+                if (!res) {
+                    return;
+                }
+                else {
+                    return res
+                        .then(() => {
+                            if(data && data.success && success) {
+                                success(data);
+                            }
+                        })
+                }
+            }
+
+            return data;
+        })
+        .catch((err) => {
+            $submit.popLoader();
+            throw err;
+        });
 }
 
 /**
@@ -242,6 +258,7 @@ function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, hea
     if (waitDatatable) {
         return Promise.all(tablesReloadingPromises);
     } else {
+        Promise.all(tablesReloadingPromises); // we launch datatable reloading even if we do not wait
         return new Promise((resolve) => {
             resolve();
         });

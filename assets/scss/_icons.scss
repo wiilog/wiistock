@@ -1,3 +1,5 @@
+@import "variables";
+
 //uniquement pour les icônes contenues dans des tableaux (ne s'applique pas aux icônes des menus)
 .table {
     .fas {
@@ -69,6 +71,7 @@ $icons: (
     'plus': "../../public/svg/plus.svg",
     'check': "../../public/svg/check.svg",
     'wysiwyg-edit': "../../public/svg/wysiwyg-edit.svg",
+    'visibility-group': "../../public/svg/visibility-group.svg",
 );
 
 @each $iconName, $iconPath in $icons {
@@ -76,4 +79,13 @@ $icons: (
         -webkit-mask: url(#{$iconPath}) no-repeat center;
         mask: url(#{$iconPath}) no-repeat center;
     }
+}
+
+
+
+.wii-icon-20px {
+    background-color: $primary;
+    width: 15px;
+    height: 15px;
+    display: inline-block;
 }

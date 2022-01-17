@@ -10,92 +10,73 @@ use App\Entity\Fournisseur;
 use App\Entity\Menu;
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
-use App\Service\UserService;
+use App\Service\CSVExportService;
 use App\Service\FournisseurDataService;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
  * @Route("/fournisseur")
  */
-class FournisseurController extends AbstractController
-{
+class FournisseurController extends AbstractController {
 
     /**
-     * @var FournisseurDataService
-     */
-    private $fournisseurDataService;
-
-    /**
-     * @var UserService
-     */
-    private $userService;
-
-    public function __construct(FournisseurDataService $fournisseurDataService,
-                                UserService $userService) {
-        $this->fournisseurDataService = $fournisseurDataService;
-        $this->userService = $userService;
-    }
-
-    /**
-     * @Route("/api", name="fournisseur_api", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     * @Route("/api", name="supplier_api", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::REFERENTIEL, Action::DISPLAY_FOUR}, mode=HasPermission::IN_JSON)
      */
-    public function api(Request $request): Response
+    public function api(Request $request,
+                        FournisseurDataService $fournisseurDataService): Response
     {
-        $data = $this->fournisseurDataService->getFournisseurDataByParams($request->request);
+        $data = $fournisseurDataService->getFournisseurDataByParams($request->request);
 
-        return new JsonResponse($data);
+        return $this->json($data);
     }
 
     /**
-     * @Route("/", name="fournisseur_index", methods="GET")
+     * @Route("/", name="supplier_index", methods="GET")
      * @HasPermission({Menu::REFERENTIEL, Action::DISPLAY_FOUR})
      */
-    public function index(EntityManagerInterface $entityManager): Response
+    public function index(): Response
     {
-        $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-
-        return $this->render('fournisseur/index.html.twig', [
-            'fournisseur' => $fournisseurRepository->findAll()
-        ]);
+        return $this->render('fournisseur/index.html.twig');
     }
 
     /**
-     * @Route("/creer", name="fournisseur_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @Route("/creer", name="supplier_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::REFERENTIEL, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request,
                         EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
-			// unicité du code fournisseur
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-            $codeAlreadyUsed = intval($fournisseurRepository->countByCode($data['Code']));
+            $codeAlreadyUsed = intval($fournisseurRepository->countByCode($data['code']));
 
 			if ($codeAlreadyUsed) {
-				return new JsonResponse([
+				return $this->json([
 					'success' => false,
 					'msg' => "Ce code fournisseur est déjà utilisé.",
 				]);
 			}
 
-            $fournisseur = new Fournisseur();
-            $fournisseur
-				->setNom($data["Nom"])
-				->setCodeReference($data["Code"]);
-            $entityManager->persist($fournisseur);
+            $supplier = (new Fournisseur())
+				->setNom($data["name"])
+				->setCodeReference($data["code"])
+                ->setPossibleCustoms($data["possibleCustoms"])
+                ->setUrgent($data["urgent"]);
+
+            $entityManager->persist($supplier);
             $entityManager->flush();
 
-			return new JsonResponse([
+			return $this->json([
 			    'success' => true,
-                'id' => $fournisseur->getId(),
-                'text' => $fournisseur->getCodeReference()
+                'id' => $supplier->getId(),
+                'text' => $supplier->getCodeReference()
             ]);
         }
 
@@ -103,53 +84,55 @@ class FournisseurController extends AbstractController
     }
 
     /**
-     * @Route("/api-modifier", name="fournisseur_api_edit", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @Route("/api-modifier", name="supplier_api_edit", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::REFERENTIEL, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function apiEdit(Request $request,
                             EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
-            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-
-            $fournisseur = $fournisseurRepository->find($data['id']);
+            $supplier = $entityManager->find(Fournisseur::class, $data['id']);
             $json = $this->renderView('fournisseur/modalEditFournisseurContent.html.twig', [
-                'fournisseur' => $fournisseur,
+                'supplier' => $supplier,
             ]);
-            return new JsonResponse($json);
+            return $this->json($json);
         }
         throw new BadRequestHttpException();
     }
 
     /**
-     * @Route("/modifier", name="fournisseur_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @Route("/modifier", name="supplier_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::REFERENTIEL, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function edit(Request $request,
                          EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
-            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-            $fournisseur = $fournisseurRepository->find($data['id']);
-            $fournisseur
-                ->setNom($data['nom'])
-                ->setCodeReference($data['codeReference']);
-            $em = $this->getDoctrine()->getManager();
-            $em->flush();
-            return new JsonResponse();
+            $supplier = $entityManager->find(Fournisseur::class, $data['id']);
+            $supplier
+                ->setNom($data['name'])
+                ->setCodeReference($data['code'])
+                ->setPossibleCustoms($data['possibleCustoms'])
+                ->setUrgent($data['urgent']);
+
+            $entityManager->flush();
+            return $this->json([
+                'success' => true,
+                'msg' => "Le fournisseur a bien été modifié"
+            ]);
         }
         throw new BadRequestHttpException();
     }
 
 
     /**
-     * @Route("/verification", name="fournisseur_check_delete", options={"expose"=true}, condition="request.isXmlHttpRequest()")
+     * @Route("/verification", name="supplier_check_delete", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::REFERENTIEL, Action::DISPLAY_FOUR}, mode=HasPermission::IN_JSON)
      */
-    public function checkFournisseurCanBeDeleted(Request $request): Response
+    public function checkSupplierCanBeDeleted(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($fournisseurId = json_decode($request->getContent(), true)) {
-            $isUsedBy = $this->isFournisseurUsed($fournisseurId);
+            $isUsedBy = $this->isSupplierUsed($fournisseurId, $entityManager);
 
             if (empty($isUsedBy)) {
                 $delete = true;
@@ -162,33 +145,29 @@ class FournisseurController extends AbstractController
 				]);
             }
 
-            return new JsonResponse(['delete' => $delete, 'html' => $html]);
+            return $this->json(['delete' => $delete, 'html' => $html]);
         }
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @param int $fournisseurId
-     * @return array
-     */
-    private function isFournisseurUsed($fournisseurId)
+    private function isSupplierUsed(int $supplierId, EntityManagerInterface $entityManager): array
     {
     	$usedBy = [];
-        $articleFournisseurRepository = $this->getDoctrine()->getRepository(ArticleFournisseur::class);
-        $receptionReferenceArticleRepository = $this->getDoctrine()->getRepository(ReceptionReferenceArticle::class);
-        $arrivageRepository = $this->getDoctrine()->getRepository(Arrivage::class);
-        $receptionRepository = $this->getDoctrine()->getRepository(Reception::class);
+        $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+        $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
+        $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+        $receptionRepository = $entityManager->getRepository(Reception::class);
 
-        $AF = $articleFournisseurRepository->countByFournisseur($fournisseurId);
+        $AF = $articleFournisseurRepository->countByFournisseur($supplierId);
     	if ($AF > 0) $usedBy[] = 'articles fournisseur';
 
-    	$receptions = $receptionRepository->countByFournisseur($fournisseurId);
+    	$receptions = $receptionRepository->countByFournisseur($supplierId);
     	if ($receptions > 0) $usedBy[] = 'réceptions';
 
-		$ligneReceptions = $receptionReferenceArticleRepository->countByFournisseurId($fournisseurId);
+		$ligneReceptions = $receptionReferenceArticleRepository->countByFournisseurId($supplierId);
 		if ($ligneReceptions > 0) $usedBy[] = 'lignes réception';
 
-		$arrivages = $arrivageRepository->countByFournisseur($fournisseurId);
+		$arrivages = $arrivageRepository->countByFournisseur($supplierId);
 		if ($arrivages > 0) $usedBy[] = 'arrivages';
 
         return $usedBy;
@@ -196,48 +175,46 @@ class FournisseurController extends AbstractController
 
 
     /**
-     * @Route("/supprimer", name="fournisseur_delete",  options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @Route("/supprimer", name="supplier_delete",  options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::REFERENTIEL, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request,
                            EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
-            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-            $fournisseurId = $data['fournisseur'] ?? null;
-            if ($fournisseurId) {
-                $fournisseur = $fournisseurRepository->find($fournisseurId);
+            $supplierId = $data['fournisseur'] ?? null;
+            if ($supplierId) {
+                $supplier = $entityManager->find(Fournisseur::class, $supplierId);
 
-                // on vérifie que le fournisseur n'est plus utilisé
-                $usedFournisseur = $this->isFournisseurUsed($fournisseurId);
+                $usedFournisseur = $this->isSupplierUsed($supplierId, $entityManager);
 
                 if (!empty($usedFournisseur)) {
-                    return new JsonResponse(false);
+                    return $this->json(false);
                 }
 
-                $entityManager->remove($fournisseur);
+                $entityManager->remove($supplier);
                 $entityManager->flush();
             }
-            return new JsonResponse();
+            return $this->json([
+                'success' => true,
+                'msg' => "Le fournisseur a bien été supprimé"
+            ]);
         }
         throw new BadRequestHttpException();
     }
 
     /**
      * @Route("/autocomplete", name="get_fournisseur", options={"expose"=true})
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse
      */
     public function getFournisseur(Request $request,
-                                   EntityManagerInterface $entityManager)
+                                   EntityManagerInterface $entityManager): Response
     {
         $search = $request->query->get('term');
 
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
         $fournisseur = $fournisseurRepository->getIdAndCodeBySearch($search);
 
-        return new JsonResponse(['results' => $fournisseur]);
+        return $this->json(['results' => $fournisseur]);
     }
 
     /**
@@ -249,8 +226,33 @@ class FournisseurController extends AbstractController
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
 
         $fournisseurs = $fournisseurRepository->getIdAndLabelseBySearch($search);
-        return new JsonResponse([
+        return $this->json([
             'results' => $fournisseurs
         ]);
+    }
+
+    /**
+     * @Route("/export", name="get_suppliers_csv", options={"expose"=true}, methods="GET")
+     * @HasPermission({Menu::REFERENTIEL, Action::EXPORT})
+     */
+    public function export(EntityManagerInterface $manager,
+                           CSVExportService $csvService): Response
+    {
+        $now = (new DateTime())->format("d-m-Y-H-i-s");
+
+        $headers = [
+            'Nom',
+            'Code',
+            'Possible douane',
+            'Urgent'
+        ];
+
+        return $csvService->streamResponse(function ($output) use ($manager, $csvService) {
+            $suppliers = $manager->getRepository(Fournisseur::class)->getForExport();
+
+            foreach ($suppliers as $supplier) {
+                $csvService->putLine($output, $supplier->serialize());
+            }
+        }, "fournisseurs_$now.csv", $headers);
     }
 }

@@ -35,6 +35,7 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
         $categorieStatutRepository = $manager->getRepository(CategorieStatut::class);
 
         $statefulCategories = [
+            CategorieStatut::REFERENCE_ARTICLE,
             CategorieStatut::DEM_COLLECTE,
             CategorieStatut::ORDRE_COLLECTE,
             CategorieStatut::DEM_LIVRAISON,
@@ -49,8 +50,9 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface
 
         $categoriesStatus = [
     		CategorieStatut::REFERENCE_ARTICLE => [
-    			ReferenceArticle::STATUT_ACTIF,
-				ReferenceArticle::STATUT_INACTIF
+    			ReferenceArticle::STATUT_ACTIF => null,
+				ReferenceArticle::STATUT_INACTIF => null,
+                ReferenceArticle::DRAFT_STATUS => Statut::DRAFT,
 			],
 			CategorieStatut::ARTICLE => [
 				Article::STATUT_ACTIF,

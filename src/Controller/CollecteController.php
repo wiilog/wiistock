@@ -18,6 +18,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\Article;
 use App\Helper\FormatHelper;
+use App\Service\MouvementStockService;
 use DateTime;
 use App\Service\CSVExportService;
 use App\Service\DemandeCollecteService;
@@ -256,6 +257,7 @@ class CollecteController extends AbstractController
     public function addArticle(Request $request,
                                FreeFieldService $champLibreService,
                                EntityManagerInterface $entityManager,
+                               MouvementStockService $mouvementStockService,
                                DemandeCollecteService $demandeCollecteService): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
@@ -289,7 +291,7 @@ class CollecteController extends AbstractController
                     return $this->redirectToRoute('access_denied');
                 }
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                    $this->refArticleDataService->editRefArticle($refArticle, $data, $this->getUser(), $champLibreService);
+                    $this->refArticleDataService->editRefArticle($refArticle, $data, $this->getUser(), $champLibreService, $mouvementStockService);
                 }
             } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                 $demandeCollecteService->persistArticleInDemand($data, $refArticle, $collecte);

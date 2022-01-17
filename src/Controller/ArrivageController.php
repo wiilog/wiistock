@@ -23,9 +23,6 @@ use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Service\DashboardService;
-use App\Service\GlobalParamService;
-use App\Service\MailerService;
 use App\Service\VisibleColumnService;
 use WiiCommon\Helper\Stream;
 use App\Service\ArrivageService;
@@ -66,22 +63,8 @@ class ArrivageController extends AbstractController {
     public UserService $userService;
 
     /** @Required */
-    public GlobalParamService $globalParamService;
-
-    /** @Required */
-    public MailerService $mailerService;
-
-    /** @Required */
-    public SpecificService $specificSerfice;
-
-    /** @Required */
     public AttachmentService $attachmentService;
 
-    /** @Required */
-    public ArrivageService $arrivageService;
-
-    /** @Required */
-    public DashboardService $dashboardService;
 
     /**
      * @Route("/", name="arrivage_index")
@@ -143,7 +126,8 @@ class ArrivageController extends AbstractController {
      * @Route("/api", name="arrivage_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI}, mode=HasPermission::IN_JSON)
      */
-    public function api(Request $request): Response
+    public function api(Request $request,
+                        ArrivageService $arrivageService): Response
     {
         if($this->userService->hasRightFunction(Menu::TRACA, Action::LIST_ALL) || !$this->getUser()) {
             $userId = null;
@@ -151,7 +135,7 @@ class ArrivageController extends AbstractController {
             $userId = $this->getUser()->getId();
         }
 
-        return $this->json($this->arrivageService->getDataForDatatable(
+        return $this->json($arrivageService->getDataForDatatable(
             $request->request,
             $userId,
         ));
@@ -284,7 +268,18 @@ class ArrivageController extends AbstractController {
 
         $champLibreService->manageFreeFields($arrivage, $data, $entityManager);
 
-        $alertConfigs = $arrivageDataService->processEmergenciesOnArrival($arrivage);
+        $supplierEmergencyAlert = $arrivageDataService->createSupplierEmergencyAlert($arrivage);
+        $isArrivalUrgent = isset($supplierEmergencyAlert);
+        $alertConfigs = $isArrivalUrgent
+            ? [
+                $supplierEmergencyAlert,
+                $arrivageDataService->createArrivalAlertConfig($arrivage, false)
+            ]
+            : $arrivageDataService->processEmergenciesOnArrival($arrivage);
+
+        if ($isArrivalUrgent) {
+            $arrivage->setIsUrgent(true);
+        }
 
         // persist packs after set arrival urgent
         $colisService->persistMultiPacks(
@@ -477,6 +472,8 @@ class ArrivageController extends AbstractController {
 
         $sendMail = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL);
 
+        $oldSupplierId = $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getId() : null;
+
         $arrivage
             ->setCommentaire($post->get('commentaire'))
             ->setNoTracking(substr($post->get('noTracking'), 0, 64))
@@ -492,6 +489,8 @@ class ArrivageController extends AbstractController {
             ->setBusinessUnit($post->get('businessUnit') ?? null)
             ->setProjectNumber($post->get('noProject') ?? null)
             ->setType($typeRepository->find($type));
+
+        $newSupplierId = $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getId() : null;
 
         $acheteurs = $post->get('acheteurs');
 
@@ -524,6 +523,23 @@ class ArrivageController extends AbstractController {
 
         $champLibreService->manageFreeFields($arrivage, $post->all(), $entityManager);
         $entityManager->flush();
+
+        $supplierEmergencyAlert = ($oldSupplierId !== $newSupplierId && $newSupplierId)
+            ? $arrivageDataService->createSupplierEmergencyAlert($arrivage)
+            : null;
+        $isArrivalUrgent = isset($supplierEmergencyAlert);
+        $alertConfig = $isArrivalUrgent
+            ? [
+                $supplierEmergencyAlert,
+                $arrivageDataService->createArrivalAlertConfig($arrivage, false)
+            ]
+            : $arrivageDataService->createArrivalAlertConfig($arrivage, $isSEDCurrentClient);
+
+        if ($isArrivalUrgent) {
+            $arrivage->setIsUrgent(true);
+            $entityManager->flush();
+        }
+
         $response = [
             'success' => true,
             'entete' => $this->renderView('arrivage/arrivage-show-header.html.twig', [
@@ -531,9 +547,7 @@ class ArrivageController extends AbstractController {
                 'canBeDeleted' => $arrivageRepository->countUnsolvedDisputesByArrivage($arrivage) == 0,
                 'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage)
             ]),
-            'alertConfigs' => [
-                $arrivageDataService->createArrivalAlertConfig($arrivage, $isSEDCurrentClient)
-            ]
+            'alertConfigs' => $alertConfig
         ];
         return new JsonResponse($response);
     }
