@@ -379,27 +379,6 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
-     * @Route("/api-modifier", name="reference_article_edit_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
-    public function editApi(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        if ($data = json_decode($request->getContent(), true)) {
-            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-
-            $refArticle = $referenceArticleRepository->find((int)$data['id']);
-
-            if ($refArticle) {
-                $json = $this->refArticleDataService->getViewEditRefArticle($refArticle, $data['isADemand'], true, true);
-            } else {
-                $json = false;
-            }
-            return new JsonResponse($json);
-        }
-        throw new BadRequestHttpException();
-    }
-
-    /**
      * @Route("/modifier", name="reference_article_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function edit(Request $request,
