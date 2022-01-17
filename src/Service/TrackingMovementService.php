@@ -936,7 +936,7 @@ class TrackingMovementService
                     'parent' => $parent,
                     'disableUngrouping' => true
                 ];
-                dump('-------------');
+
                 $childTrackingRes = $this->persistTrackingMovement(
                     $entityManager,
                     $child,
