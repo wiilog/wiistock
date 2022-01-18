@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Dashboard\Page;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -85,6 +86,9 @@ class Action {
     const DISPLAY_ALER = 'afficher alertes';
     const INVENTORY_MANAGER = 'gestionnaire d\'inventaire';
     const EXPORT_ALER = 'exporter alertes';
+    const CREATE_DRAFT_REFERENCE = 'créer en brouillon';
+    const EDIT_PARTIALLY = 'modifier partiellement';
+    const REFERENCE_VALIDATOR = 'valideur des références';
 
     // menu référentiel
     const DISPLAY_FOUR = 'afficher fournisseurs';
@@ -122,27 +126,37 @@ class Action {
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
-
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private $label;
+    private ?int $id = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="Menu", inversedBy="actions")
      */
-    private $menu;
+    private ?Menu $menu = null;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=SubMenu::class, inversedBy="actions")
+     */
+    private ?SubMenu $subMenu = null;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private ?string $label = null;
 
     /**
      * @ORM\ManyToMany(targetEntity="Role", inversedBy="actions")
      */
-    private $roles;
+    private Collection $roles;
 
     /**
      * @ORM\OneToOne(targetEntity=Dashboard\Page::class, mappedBy="action")
      */
-    private $dashboard;
+    private ?Page $dashboard = null;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private ?int $displayOrder = null;
 
     public function __construct() {
         $this->roles = new ArrayCollection();
@@ -190,7 +204,29 @@ class Action {
     }
 
     public function setMenu(?Menu $menu): self {
+        if($this->menu && $this->menu !== $menu) {
+            $this->menu->removeAction($this);
+        }
         $this->menu = $menu;
+        if($menu) {
+            $menu->addAction($this);
+        }
+
+        return $this;
+    }
+
+    public function getSubMenu(): ?SubMenu {
+        return $this->subMenu;
+    }
+
+    public function setSubMenu(?SubMenu $subMenu): self {
+        if($this->subMenu && $this->subMenu !== $subMenu) {
+            $this->subMenu->removeAction($this);
+        }
+        $this->subMenu = $subMenu;
+        if($subMenu) {
+            $subMenu->addAction($this);
+        }
 
         return $this;
     }
@@ -201,6 +237,16 @@ class Action {
 
     public function setDashboard(?Dashboard\Page $dashboard): self {
         $this->dashboard = $dashboard;
+        return $this;
+    }
+
+    public function getDisplayOrder(): ?int {
+        return $this->displayOrder;
+    }
+
+    public function setDisplayOrder(?int $displayOrder): self {
+        $this->displayOrder = $displayOrder;
+
         return $this;
     }
 

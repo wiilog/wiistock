@@ -111,8 +111,8 @@ class Import
         'limitWarning' => "seuil d'alerte",
         'quantiteStock' => 'quantité en stock',
         'typeQuantite' => 'type quantité (article ou référence)',
-        'codeReference' => 'code',
-        'nom' => 'libellé',
+        'codeReference' => 'Code',
+        'nom' => 'Nom',
         'referenceReference' => 'référence article de référence',
         'fournisseurReference' => 'référence fournisseur',
         'emplacement' => 'emplacement',
@@ -163,7 +163,10 @@ class Import
         'allowedCollectTypes' => 'Types de collectes autorisés',
         'isDeliveryPoint' => 'Point de livraison',
         'isOngoingVisibleOnMobile' => 'Encours visible nomade',
-        'isActive' => 'Actif'
+        'isActive' => 'Actif',
+
+        'possibleCustoms' => 'Possible douane',
+        'urgent' => 'Urgent',
 	];
 
 	public CONST IMPORT_FIELDS_TO_FIELDS_PARAM = [

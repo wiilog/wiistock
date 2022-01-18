@@ -125,3 +125,7 @@
     display: inline-block !important;
     background: white !important;
 }
+
+.select2-container--disabled {
+    cursor: not-allowed;
+}

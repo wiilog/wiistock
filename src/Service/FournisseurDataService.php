@@ -4,41 +4,25 @@ namespace App\Service;
 
 use App\Entity\Fournisseur;
 
+use App\Helper\FormatHelper;
+use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 
 class FournisseurDataService
 {
 
-    /**
-     * @var Twig_Environment
-     */
-    private $templating;
-    /**
-     * @var RouterInterface
-     */
-    private $router;
+    /** @Required */
+    public Twig_Environment $templating;
 
-    private $entityManager;
+    /** @Required */
+    public RouterInterface $router;
 
-    public function __construct(RouterInterface $router,
-                                EntityManagerInterface $entityManager,
-                                Twig_Environment $templating)
-    {
-        $this->templating = $templating;
-        $this->entityManager = $entityManager;
-        $this->router = $router;
-    }
+    /** @Required */
+    public EntityManagerInterface $entityManager;
 
-    /**
-     * @param null $params
-     * @return array
-     */
-    public function getFournisseurDataByParams($params = null)
+    public function getFournisseurDataByParams(?InputBag $params = null): array
     {
         $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);
         $fournisseursData = $fournisseurRepository->getByParams($params);
@@ -53,26 +37,21 @@ class FournisseurDataService
         return $fournisseursData;
     }
 
-    /**
-     * @param Fournisseur $fournisseur
-     * @return array
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
-    public function dataRowFournisseur($fournisseur)
+    public function dataRowFournisseur(Fournisseur $supplier): array
     {
-        $fournisseurId = $fournisseur->getId();
-        $url['edit'] = $this->router->generate('fournisseur_edit', ['id' => $fournisseurId]);
-        $row = [
-            "Nom" => $fournisseur->getNom(),
-            "Code de référence" => $fournisseur->getCodeReference(),
+        $supplierId = $supplier->getId();
+        $url['edit'] = $this->router->generate('supplier_edit', ['id' => $supplierId]);
+
+        return [
+            "name" => $supplier->getNom(),
+            "code" => $supplier->getCodeReference(),
+            "possibleCustoms" => FormatHelper::bool($supplier->isPossibleCustoms()),
+            "urgent" => FormatHelper::bool($supplier->isUrgent()),
             'Actions' => $this->templating->render('fournisseur/datatableFournisseurRow.html.twig', [
                 'url' => $url,
-                'fournisseurId' => $fournisseurId
+                'supplierId' => $supplierId
             ]),
         ];
-        return $row;
     }
 }
 

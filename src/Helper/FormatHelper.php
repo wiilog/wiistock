@@ -113,8 +113,8 @@ class FormatHelper {
         return $pack ? $pack->getCode() : $else;
     }
 
-    public static function provider(?Fournisseur $provider, $else = "") {
-        return $provider ? $provider->getNom() : $else;
+    public static function supplier(?Fournisseur $supplier, $else = "") {
+        return $supplier ? $supplier->getNom() : $else;
     }
 
     public static function location(?Emplacement $location, $else = "") {
@@ -168,7 +168,7 @@ class FormatHelper {
         return $date ? $date->format($addAt ? "d/m/Y à H:i" : "d/m/Y H:i") : $else;
     }
 
-    public static function longDate(?DateTimeInterface $date, bool $short = false, $else = "-"): ?string {
+    public static function longDate(?DateTimeInterface $date, bool $short = false, bool $time = false, $else = "-"): ?string {
         return $date
             ? (($short
                 ? substr(self::WEEK_DAYS[$date->format("w")], 0, 3)
@@ -176,9 +176,10 @@ class FormatHelper {
                     . " "
                     . $date->format("d")
                     . " "
-                    . mb_strtolower(self::MONTHS[$date->format("n")])
+                    . self::MONTHS[$date->format("n")]
                     . " "
-                    . $date->format("Y"))
+                    . $date->format("Y")
+            . ($time ? $date->format(" à H:i") : ""))
             : $else;
     }
 

@@ -25,7 +25,7 @@ $(function () {
     });
     displayActifOrInactif($('#toggleActivOrInactiv'), true);
     registerNumberInputProtection($('#modalNewRefArticle').find('input[type="number"]'));
-    $('input[name="type_quantite"]:checked').click();
+    onTypeQuantityChange($('input[name="type_quantite"]:checked'));
     $('input[name="urgence"]:checked').trigger('change');
 });
 
@@ -104,6 +104,7 @@ function initTableRefArticle() {
                     columns,
                     tableFilter: 'tableRefArticle_id_filter'
                 },
+                page: 'reference'
             };
 
             pageTables = initDataTable('tableRefArticle_id', tableRefArticleConfig);
@@ -416,4 +417,58 @@ function updateFilters() {
                 });
             }
         });
+}
+
+function changeNewReferenceStatus($select){
+    if ($select.exists()) {
+        const draftStatusName = $(`input[name="draft-status-name"]`).val();
+        const draftSelected = $select.val() === draftStatusName;
+
+        const $reference = $(`input[name="reference"]`);
+        const $quantite = $(`input[name="quantite"]`);
+        const $location = $(`select[name="emplacement"]`);
+
+        $quantite.prop(`disabled`, draftSelected);
+        $reference.prop(`disabled`, draftSelected);
+        $location.prop('disabled', draftSelected);
+
+        if ($location.exists()) {
+            $location.prop(`disabled`, draftSelected);
+        }
+
+        if (draftSelected) {
+            const defaultDraftReference = $reference.data('draft-default');
+
+            if (defaultDraftReference) {
+                $reference.val(defaultDraftReference);
+                $quantite.val(0);
+            }
+
+            $location.exists()
+
+            if ($location.exists()) {
+                const optionValue = $location.data('draft-default-value');
+                const optionText = $location.data('draft-default-text');
+                if (optionValue && optionText) {
+                    const existing = $location.find(`option[value="${optionValue}"]`).exists();
+                    if (existing) {
+                        $location
+                            .val(optionValue)
+                            .trigger('change');
+                    } else {
+                        $location
+                            .append(new Option(optionText, optionValue, true, true))
+                            .trigger('change');
+                    }
+                }
+            }
+        }
+    }
+
+}
+
+function onTypeQuantityChange($input) {
+    toggleRequiredChampsFixes($input, '.wii-form');
+    updateQuantityDisplay($input, '.wii-form');
+    changeNewReferenceStatus($('[name=statut]:checked'));
 }

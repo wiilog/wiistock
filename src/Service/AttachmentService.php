@@ -54,7 +54,8 @@ class AttachmentService {
                 $attachment = new Attachment();
                 $attachment
                     ->setOriginalName($originalFileName)
-                    ->setFileName($fileName);
+                    ->setFileName($fileName)
+                    ->setFullPath("/uploads/attachements/$fileName");
                 $attachments[] = $attachment;
 			}
 		}

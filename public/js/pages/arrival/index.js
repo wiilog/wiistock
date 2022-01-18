@@ -26,6 +26,9 @@ $(function () {
             {
                 keepForm: true,
                 keepModal: true,
+                waitForUserAction: () => {
+                    return checkPossibleCustoms($modalNewArrivage);
+                },
                 success: (res) => {
                     res = res || {};
                     arrivalCallback(
@@ -33,8 +36,6 @@ $(function () {
                         {
                             ...(res || {}),
                             success: () => {
-                                $modalNewArrivage.find('.list-multiple').select2();
-
                                 let isPrintColisChecked = $modalNewArrivage.find('#printColisChecked').val();
                                 $modalNewArrivage.find('#printColis').prop('checked', isPrintColisChecked);
 
@@ -145,7 +146,6 @@ function initNewArrivageEditor(modal) {
     Select2Old.init($modal.find('.ajax-autocomplete-chauffeur'));
     Select2Old.location($modal.find('.ajax-autocomplete-location'));
     Select2Old.init($modal.find('.ajax-autocomplete-user'), '', 1);
-    $modal.find('.list-multiple').select2();
     Select2Old.initFree($('.select2-free'));
 }
 

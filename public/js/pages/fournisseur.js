@@ -1,40 +1,44 @@
-$('.select2').select2();
+$(function () {
+    $('.select2').select2();
 
-let pathFournisseur = Routing.generate('fournisseur_api');
-let tableFournisseurConfig = {
-    processing: true,
-    serverSide: true,
-    paging: true,
-    order: [['Nom', 'desc']],
-    ajax: {
-        "url": pathFournisseur,
-        "type": "POST"
-    },
-    columns: [
-        {"data": 'Actions', title: '', className: 'noVis', orderable: false},
-        {"data": 'Nom', title: 'Nom'},
-        {"data": 'Code de référence', title: 'Code de référence'},
-    ],
-    rowConfig: {
-        needsRowClickAction: true,
-    },
-    drawConfig: {
-        needsSearchOverride: true
-    }
-};
-let tableFournisseur = initDataTable('tableFournisseur_id', tableFournisseurConfig);
+    let pathSupplier = Routing.generate('supplier_api');
+    let supplierTableConfig = {
+        processing: true,
+        serverSide: true,
+        paging: true,
+        order: [['name', 'desc']],
+        ajax: {
+            "url": pathSupplier,
+            "type": "POST"
+        },
+        columns: [
+            {data: 'Actions', title: '', className: 'noVis', orderable: false},
+            {data: 'name', title: 'Nom'},
+            {data: 'code', title: 'Code de référence'},
+            {data: 'possibleCustoms', title: 'Possible douane'},
+            {data: 'urgent', title: 'Urgent'},
+        ],
+        rowConfig: {
+            needsRowClickAction: true,
+        },
+        drawConfig: {
+            needsSearchOverride: true
+        }
+    };
+    let supplierTable = initDataTable('supplierTable_id', supplierTableConfig);
 
-let modalNewFournisseur = $("#modalNewFournisseur");
-let submitNewFournisseur = $("#submitNewFournisseur");
-let urlNewFournisseur = Routing.generate('fournisseur_new', true);
-InitModal(modalNewFournisseur, submitNewFournisseur, urlNewFournisseur, {tables: [tableFournisseur]});
+    let modalNewSupplier = $("#modalNewFournisseur");
+    let submitNewSupplier = $("#submitNewFournisseur");
+    let urlNewSupplier = Routing.generate('supplier_new', true);
+    InitModal(modalNewSupplier, submitNewSupplier, urlNewSupplier, {tables: [supplierTable]});
 
-let ModalDeleteFournisseur = $("#modalDeleteFournisseur");
-let SubmitDeleteFournisseur = $("#submitDeleteFournisseur");
-let urlDeleteFournisseur = Routing.generate('fournisseur_delete', true)
-InitModal(ModalDeleteFournisseur, SubmitDeleteFournisseur, urlDeleteFournisseur, {tables: [tableFournisseur]});
+    let modalDeleteSupplier = $("#modalDeleteFournisseur");
+    let submitDeleteSupplier = $("#submitDeleteFournisseur");
+    let urlDeleteSupplier = Routing.generate('supplier_delete', true)
+    InitModal(modalDeleteSupplier, submitDeleteSupplier, urlDeleteSupplier, {tables: [supplierTable]});
 
-let modalModifyFournisseur = $('#modalEditFournisseur');
-let submitModifyFournisseur = $('#submitEditFournisseur');
-let urlModifyFournisseur = Routing.generate('fournisseur_edit', true);
-InitModal(modalModifyFournisseur, submitModifyFournisseur, urlModifyFournisseur, {tables: [tableFournisseur]});
+    let modalEditSupplier = $('#modalEditFournisseur');
+    let submitEditSupplier = $('#submitEditFournisseur');
+    let urlEditSupplier = Routing.generate('supplier_edit', true);
+    InitModal(modalEditSupplier, submitEditSupplier, urlEditSupplier, {tables: [supplierTable]});
+});
