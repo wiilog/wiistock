@@ -453,7 +453,7 @@ class RefArticleDataService {
             ->toArray();
 
         $providerLabels = Stream::from($refArticle->getArticlesFournisseur())
-            ->map(fn(ArticleFournisseur $articleFournisseur) => FormatHelper::provider($articleFournisseur->getFournisseur()))
+            ->map(fn(ArticleFournisseur $articleFournisseur) => FormatHelper::supplier($articleFournisseur->getFournisseur()))
             ->unique()
             ->toArray();
 

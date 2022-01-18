@@ -7,7 +7,6 @@ use App\Entity\Action;
 use App\Entity\Chauffeur;
 use App\Entity\Transporteur;
 use App\Entity\Menu;
-use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -21,16 +20,6 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class TransporteurController extends AbstractController
 {
-
-	/**
-	 * @var UserService
-	 */
-    private $userService;
-
-    public function __construct(UserService $userService)
-    {
-        $this->userService = $userService;
-    }
 
     /**
      * @Route("/api", name="transporteur_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
@@ -47,8 +36,8 @@ class TransporteurController extends AbstractController
         foreach ($transporteurs as $transporteur) {
 
             $rows[] = [
-                'Label' => $transporteur->getLabel() ? $transporteur->getLabel() : null,
-                'Code' => $transporteur->getCode() ? $transporteur->getCode(): null,
+                'Label' => $transporteur->getLabel() ?: null,
+                'Code' => $transporteur->getCode() ?: null,
                 'Nombre_chauffeurs' => $chauffeurRepository->countByTransporteur($transporteur) ,
                 'Actions' => $this->renderView('transporteur/datatableTransporteurRow.html.twig', [
                     'transporteur' => $transporteur
@@ -62,8 +51,6 @@ class TransporteurController extends AbstractController
 
     /**
      * @Route("/", name="transporteur_index", methods={"GET"})
-     * @param EntityManagerInterface $entityManager
-     * @return Response
      */
     public function index(EntityManagerInterface $entityManager): Response
     {
@@ -165,9 +152,21 @@ class TransporteurController extends AbstractController
             $transporteurRepository = $entityManager->getRepository(Transporteur::class);
             $transporteur = $transporteurRepository->find($data['transporteur']);
 
+            if(!$transporteur->getEmergencies()->isEmpty()) {
+                return $this->json([
+                    'success' => false,
+                    'msg' => "Ce transporteur est lié à une ou plusieurs urgences, vous ne pouvez pas le supprimer"
+                ]);
+            }
+
             $entityManager->remove($transporteur);
             $entityManager->flush();
-            return new JsonResponse();
+
+            $name = $transporteur->getLabel();
+            return $this->json([
+                'success' => true,
+                'msg' => "Le transporteur $name a bien été créé"
+            ]);
         }
 
         throw new BadRequestHttpException();

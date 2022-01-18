@@ -16,43 +16,49 @@ class Transporteur
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="string", length=128, nullable=true)
      */
-    private $label;
+    private ?string $label = null;
 
     /**
      * @ORM\Column(type="string", length=64)
      */
-    private $code;
+    private ?string $code = null;
 
      /**
       *@ORM\OneToMany(targetEntity="App\Entity\Chauffeur", mappedBy="transporteur")
       */
-    private $chauffeurs;
+    private Collection $chauffeurs;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Arrivage", mappedBy="transporteur")
      */
-    private $arrivages;
+    private Collection $arrivages;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Reception", mappedBy="transporteur")
      */
-    private $reception;
+    private Collection $reception;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Dispatch", mappedBy="carrier")
      */
-    private $dispatches;
+    private Collection $dispatches;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Urgence", mappedBy="carrier")
+     */
+    private Collection $emergencies;
 
     public function __construct()
     {
         $this->chauffeurs = new ArrayCollection();
         $this->arrivages = new ArrayCollection();
         $this->reception = new ArrayCollection();
+        $this->emergencies = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -203,6 +209,42 @@ class Transporteur
             if ($dispatch->getCarrier() === $this) {
                 $dispatch->setCarrier(null);
             }
+        }
+
+        return $this;
+    }
+
+    public function getEmergencies(): Collection {
+        return $this->emergencies;
+    }
+
+    public function addEmergency(Urgence $urgence): self {
+        if (!$this->emergencies->contains($urgence)) {
+            $this->emergencies[] = $urgence;
+            $urgence->setCarrier($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEmergency(Urgence $urgence): self {
+        if ($this->emergencies->removeElement($urgence)) {
+            if ($urgence->getCarrier() === $this) {
+                $urgence->setCarrier(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setEmergencies(?array $emergencies): self {
+        foreach($this->getEmergencies()->toArray() as $emergency) {
+            $this->removeEmergency($emergency);
+        }
+
+        $this->emergencies = new ArrayCollection();
+        foreach($emergencies as $emergency) {
+            $this->addEmergency($emergency);
         }
 
         return $this;
