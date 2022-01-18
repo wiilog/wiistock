@@ -492,6 +492,7 @@ class TrackingMovementService
 
         $pack = $tracking->getPack();
         $lastTrackingMovements = $pack ? $pack->getTrackingMovements()->toArray() : [];
+        $locationClusterRecordRepository = $entityManager->getRepository(LocationClusterRecord::class);
 
         $previousLastTracking = (!empty($lastTrackingMovements) && count($lastTrackingMovements) > 1)
             ? $lastTrackingMovements[1]
@@ -511,7 +512,9 @@ class TrackingMovementService
         if ($pack && $location) {
             /** @var LocationCluster $cluster */
             foreach ($location->getClusters() as $cluster) {
-                $record = $cluster->getLocationClusterRecord($pack);
+                $record = $pack->getId()
+                    ? $locationClusterRecordRepository->findOneByPackAndCluster($cluster, $pack)
+                    : null;
 
                 if (isset($record)) {
                     $currentFirstDrop = $record->getFirstDrop();
