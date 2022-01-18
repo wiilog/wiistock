@@ -2,6 +2,9 @@
 
 namespace App\Repository;
 
+use App\Entity\LocationCluster;
+use App\Entity\LocationClusterRecord;
+use App\Entity\Pack;
 use Doctrine\ORM\EntityRepository;
 
 /**
@@ -9,4 +12,18 @@ use Doctrine\ORM\EntityRepository;
  * @package App\Repository
  */
 class LocationClusterRecordRepository extends EntityRepository {
+
+    public function findOneByPackAndCluster(LocationCluster $cluster, Pack $pack): ?LocationClusterRecord {
+        return $this->createQueryBuilder('record')
+            ->andWhere('record.pack = :pack')
+            ->andWhere('record.locationCluster = :cluster')
+            ->setMaxResults(1)
+            ->setParameters([
+                'pack' => $pack,
+                'cluster' => $cluster,
+            ])
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
 }
