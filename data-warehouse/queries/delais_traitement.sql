@@ -52,50 +52,50 @@ FROM (SELECT
           (SELECT (SELECT(IF(horaire1 IS NOT NULL AND horaire2 IS NOT NULL, TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME)), 0)) FROM TEMP_worked_days WHERE jour = 'lundi')+
                   (SELECT(IF(horaire3 IS NOT NULL AND horaire4 IS NOT NULL, TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME)), 0)) FROM TEMP_worked_days WHERE jour = 'lundi')) DURLUN,
           COALESCE((SELECT CASE
-                               WHEN (CAST(validated_at AS TIME))<CAST(horaire1 AS TIME)
+                               WHEN (CAST(validated_at AS TIME))<IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0)
                                    THEN 0
-                               WHEN (CAST(validated_at AS TIME))<CAST(horaire2 AS TIME)
-                                   THEN TIME_TO_SEC(CAST(validated_at AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME))
-                               WHEN (CAST(validated_at AS TIME))<CAST(horaire3 AS TIME)
-                                   THEN TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME))
-                               WHEN (CAST(validated_at AS TIME))<CAST(horaire4 AS TIME)
-                                   THEN (TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME)))+(TIME_TO_SEC(CAST(validated_at AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME)))
-                               ELSE ((TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME)))+(TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME))))
+                               WHEN (CAST(validated_at AS TIME))<IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0)
+                                   THEN TIME_TO_SEC(CAST(validated_at AS TIME))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0))
+                               WHEN (CAST(validated_at AS TIME))<IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0)
+                                   THEN TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0))
+                               WHEN (CAST(validated_at AS TIME))<IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0)
+                                   THEN (TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0)))+(TIME_TO_SEC(CAST(validated_at AS TIME))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0)))
+                               ELSE ((TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0)))+(TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0))))
                                END FROM TEMP_worked_days WHERE jour = 'lundi' AND DAYOFWEEK(validated_at) = 2), 0) CORR_DEB_LUN,
           COALESCE((SELECT CASE
                                WHEN CAST((SELECT MAX(livraison.date_fin)
                                           FROM demande AS sub_demande
                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                          WHERE sub_demande.id = demande.id) AS TIME)>CAST(horaire4 AS TIME)
+                                          WHERE sub_demande.id = demande.id) AS TIME)>IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 99)
                                    THEN 0
                                WHEN CAST((SELECT MAX(livraison.date_fin)
                                           FROM demande AS sub_demande
                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                          WHERE sub_demande.id = demande.id) AS TIME)>CAST(horaire3 AS TIME)
-                                   THEN TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST((SELECT MAX(livraison.date_fin)
-                                                                                              FROM demande AS sub_demande
-                                                                                                       LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                                                                                                       LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                                                                              WHERE sub_demande.id = demande.id) AS TIME))
+                                          WHERE sub_demande.id = demande.id) AS TIME)>IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 99)
+                                   THEN TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(CAST((SELECT MAX(livraison.date_fin)
+                                                                                                                           FROM demande AS sub_demande
+                                                                                                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
+                                                                                                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
+                                                                                                                           WHERE sub_demande.id = demande.id) AS TIME))
                                WHEN CAST((SELECT MAX(livraison.date_fin)
                                           FROM demande AS sub_demande
                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                          WHERE sub_demande.id = demande.id) AS TIME)>CAST(horaire2 AS TIME)
-                                   THEN TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME))
+                                          WHERE sub_demande.id = demande.id) AS TIME)>IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 99)
+                                   THEN TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0))
                                WHEN CAST((SELECT MAX(livraison.date_fin)
                                           FROM demande AS sub_demande
                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                          WHERE sub_demande.id = demande.id) AS TIME)>CAST(horaire1 AS TIME)
-                                   THEN (TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME)))+(TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST((SELECT MAX(livraison.date_fin)
-                                                                                                                                                                         FROM demande AS sub_demande
-                                                                                                                                                                                  LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                                                                                                                                                                                  LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                                                                                                                                                         WHERE sub_demande.id = demande.id) AS TIME)))
-                               ELSE ((TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME)))+(TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME))))
+                                          WHERE sub_demande.id = demande.id) AS TIME)>IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 99)
+                                   THEN (TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0)))+(TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(CAST((SELECT MAX(livraison.date_fin)
+                                                                                                                                                                                                                                                                FROM demande AS sub_demande
+                                                                                                                                                                                                                                                                         LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
+                                                                                                                                                                                                                                                                         LEFT JOIN livraison ON preparation.id = livraison.preparation_id
+                                                                                                                                                                                                                                                                WHERE sub_demande.id = demande.id) AS TIME)))
+                               ELSE ((TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0)))+(TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0))))
                                END FROM TEMP_worked_days WHERE jour = 'lundi' AND DAYOFWEEK((SELECT MAX(livraison.date_fin)
                                                                                              FROM demande AS sub_demande
                                                                                                       LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
@@ -126,50 +126,50 @@ FROM (SELECT
           (SELECT (SELECT(IF(horaire1 IS NOT NULL AND horaire2 IS NOT NULL, TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME)), 0)) FROM TEMP_worked_days WHERE jour = 'mardi')+
                   (SELECT(IF(horaire3 IS NOT NULL AND horaire4 IS NOT NULL, TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME)), 0)) FROM TEMP_worked_days WHERE jour = 'mardi')) DURMAR,
           COALESCE((SELECT CASE
-                               WHEN (CAST(validated_at AS TIME))<CAST(horaire1 AS TIME)
+                               WHEN (CAST(validated_at AS TIME))<IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0)
                                    THEN 0
-                               WHEN (CAST(validated_at AS TIME))<CAST(horaire2 AS TIME)
-                                   THEN TIME_TO_SEC(CAST(validated_at AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME))
-                               WHEN (CAST(validated_at AS TIME))<CAST(horaire3 AS TIME)
-                                   THEN TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME))
-                               WHEN (CAST(validated_at AS TIME))<CAST(horaire4 AS TIME)
-                                   THEN (TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME)))+(TIME_TO_SEC(CAST(validated_at AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME)))
-                               ELSE ((TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME)))+(TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME))))
+                               WHEN (CAST(validated_at AS TIME))<IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0)
+                                   THEN TIME_TO_SEC(CAST(validated_at AS TIME))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0))
+                               WHEN (CAST(validated_at AS TIME))<IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0)
+                                   THEN TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0))
+                               WHEN (CAST(validated_at AS TIME))<IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0)
+                                   THEN (TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0)))+(TIME_TO_SEC(CAST(validated_at AS TIME))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0)))
+                               ELSE ((TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0)))+(TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0))))
                                END FROM TEMP_worked_days WHERE jour = 'mardi' AND DAYOFWEEK(validated_at) = 3), 0) CORR_DEB_MAR,
           COALESCE((SELECT CASE
                                WHEN CAST((SELECT MAX(livraison.date_fin)
                                           FROM demande AS sub_demande
                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                          WHERE sub_demande.id = demande.id) AS TIME)>CAST(horaire4 AS TIME)
+                                          WHERE sub_demande.id = demande.id) AS TIME)>IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 99)
                                    THEN 0
                                WHEN CAST((SELECT MAX(livraison.date_fin)
                                           FROM demande AS sub_demande
                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                          WHERE sub_demande.id = demande.id) AS TIME)>CAST(horaire3 AS TIME)
-                                   THEN TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST((SELECT MAX(livraison.date_fin)
-                                                                                              FROM demande AS sub_demande
-                                                                                                       LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                                                                                                       LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                                                                              WHERE sub_demande.id = demande.id) AS TIME))
+                                          WHERE sub_demande.id = demande.id) AS TIME)>IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 99)
+                                   THEN TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(CAST((SELECT MAX(livraison.date_fin)
+                                                                                                                           FROM demande AS sub_demande
+                                                                                                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
+                                                                                                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
+                                                                                                                           WHERE sub_demande.id = demande.id) AS TIME))
                                WHEN CAST((SELECT MAX(livraison.date_fin)
                                           FROM demande AS sub_demande
                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                          WHERE sub_demande.id = demande.id) AS TIME)>CAST(horaire2 AS TIME)
-                                   THEN TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME))
+                                          WHERE sub_demande.id = demande.id) AS TIME)>IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 99)
+                                   THEN TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0))
                                WHEN CAST((SELECT MAX(livraison.date_fin)
                                           FROM demande AS sub_demande
                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                          WHERE sub_demande.id = demande.id) AS TIME)>CAST(horaire1 AS TIME)
-                                   THEN (TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME)))+(TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST((SELECT MAX(livraison.date_fin)
-                                                                                                                                                                         FROM demande AS sub_demande
-                                                                                                                                                                                  LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                                                                                                                                                                                  LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                                                                                                                                                         WHERE sub_demande.id = demande.id) AS TIME)))
-                               ELSE ((TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME)))+(TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME))))
+                                          WHERE sub_demande.id = demande.id) AS TIME)>IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 99)
+                                   THEN (TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0)))+(TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(CAST((SELECT MAX(livraison.date_fin)
+                                                                                                                                                                                                                                                                FROM demande AS sub_demande
+                                                                                                                                                                                                                                                                         LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
+                                                                                                                                                                                                                                                                         LEFT JOIN livraison ON preparation.id = livraison.preparation_id
+                                                                                                                                                                                                                                                                WHERE sub_demande.id = demande.id) AS TIME)))
+                               ELSE ((TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0)))+(TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0))))
                                END FROM TEMP_worked_days WHERE jour = 'mardi' AND DAYOFWEEK((SELECT MAX(livraison.date_fin)
                                                                                              FROM demande AS sub_demande
                                                                                                       LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
@@ -200,55 +200,55 @@ FROM (SELECT
           (SELECT (SELECT(IF(horaire1 IS NOT NULL AND horaire2 IS NOT NULL, TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME)), 0)) FROM TEMP_worked_days WHERE jour = 'mercredi')+
                   (SELECT(IF(horaire3 IS NOT NULL AND horaire4 IS NOT NULL, TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME)), 0)) FROM TEMP_worked_days WHERE jour = 'mercredi')) DURMER,
           COALESCE((SELECT CASE
-                               WHEN (CAST(validated_at AS TIME))<CAST(horaire1 AS TIME)
+                               WHEN (CAST(validated_at AS TIME))<IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0)
                                    THEN 0
-                               WHEN (CAST(validated_at AS TIME))<CAST(horaire2 AS TIME)
-                                   THEN TIME_TO_SEC(CAST(validated_at AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME))
-                               WHEN (CAST(validated_at AS TIME))<CAST(horaire3 AS TIME)
-                                   THEN TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME))
-                               WHEN (CAST(validated_at AS TIME))<CAST(horaire4 AS TIME)
-                                   THEN (TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME)))+(TIME_TO_SEC(CAST(validated_at AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME)))
-                               ELSE ((TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME)))+(TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME))))
+                               WHEN (CAST(validated_at AS TIME))<IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0)
+                                   THEN TIME_TO_SEC(CAST(validated_at AS TIME))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0))
+                               WHEN (CAST(validated_at AS TIME))<IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0)
+                                   THEN TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0))
+                               WHEN (CAST(validated_at AS TIME))<IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0)
+                                   THEN (TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0)))+(TIME_TO_SEC(CAST(validated_at AS TIME))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0)))
+                               ELSE ((TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0)))+(TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0))))
                                END FROM TEMP_worked_days WHERE jour = 'mercredi' AND DAYOFWEEK(validated_at) = 4), 0) CORR_DEB_MER,
           COALESCE((SELECT CASE
                                WHEN CAST((SELECT MAX(livraison.date_fin)
                                           FROM demande AS sub_demande
                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                          WHERE sub_demande.id = demande.id) AS TIME)>CAST(horaire4 AS TIME)
+                                          WHERE sub_demande.id = demande.id) AS TIME)>IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 99)
                                    THEN 0
                                WHEN CAST((SELECT MAX(livraison.date_fin)
                                           FROM demande AS sub_demande
                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                          WHERE sub_demande.id = demande.id) AS TIME)>CAST(horaire3 AS TIME)
-                                   THEN TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST((SELECT MAX(livraison.date_fin)
-                                                                                              FROM demande AS sub_demande
-                                                                                                       LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                                                                                                       LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                                                                              WHERE sub_demande.id = demande.id) AS TIME))
+                                          WHERE sub_demande.id = demande.id) AS TIME)>IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 99)
+                                   THEN TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(CAST((SELECT MAX(livraison.date_fin)
+                                                                                                                           FROM demande AS sub_demande
+                                                                                                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
+                                                                                                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
+                                                                                                                           WHERE sub_demande.id = demande.id) AS TIME))
                                WHEN CAST((SELECT MAX(livraison.date_fin)
                                           FROM demande AS sub_demande
                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                          WHERE sub_demande.id = demande.id) AS TIME)>CAST(horaire2 AS TIME)
-                                   THEN TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME))
+                                          WHERE sub_demande.id = demande.id) AS TIME)>IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 99)
+                                   THEN TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0))
                                WHEN CAST((SELECT MAX(livraison.date_fin)
                                           FROM demande AS sub_demande
                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                          WHERE sub_demande.id = demande.id) AS TIME)>CAST(horaire1 AS TIME)
-                                   THEN (TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME)))+(TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST((SELECT MAX(livraison.date_fin)
-                                                                                                                                                                         FROM demande AS sub_demande
-                                                                                                                                                                                  LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                                                                                                                                                                                  LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                                                                                                                                                         WHERE sub_demande.id = demande.id) AS TIME)))
-                               ELSE ((TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME)))+(TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME))))
+                                          WHERE sub_demande.id = demande.id) AS TIME)>IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 99)
+                                   THEN (TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0)))+(TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(CAST((SELECT MAX(livraison.date_fin)
+                                                                                                                                                                                                                                                                FROM demande AS sub_demande
+                                                                                                                                                                                                                                                                         LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
+                                                                                                                                                                                                                                                                         LEFT JOIN livraison ON preparation.id = livraison.preparation_id
+                                                                                                                                                                                                                                                                WHERE sub_demande.id = demande.id) AS TIME)))
+                               ELSE ((TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0)))+(TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0))))
                                END FROM TEMP_worked_days WHERE jour = 'mercredi' AND DAYOFWEEK((SELECT MAX(livraison.date_fin)
                                                                                                 FROM demande AS sub_demande
                                                                                                          LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                                                                          LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                                                                                WHERE sub_demande.id = demande.id)) = 4),0) CORR_FIN_MER,
+                                                                                                WHERE sub_demande.id = demande.id)) = 4), 0) CORR_FIN_MER,
 
 
           ((DATEDIFF(((SELECT MAX(livraison.date_fin)
@@ -274,50 +274,50 @@ FROM (SELECT
           (SELECT (SELECT(IF(horaire1 IS NOT NULL AND horaire2 IS NOT NULL, TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME)), 0)) FROM TEMP_worked_days WHERE jour = 'jeudi')+
                   (SELECT(IF(horaire3 IS NOT NULL AND horaire4 IS NOT NULL, TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME)), 0)) FROM TEMP_worked_days WHERE jour = 'jeudi')) DURJEU,
           COALESCE((SELECT CASE
-                               WHEN (CAST(validated_at AS TIME))<CAST(horaire1 AS TIME)
+                               WHEN (CAST(validated_at AS TIME))<IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0)
                                    THEN 0
-                               WHEN (CAST(validated_at AS TIME))<CAST(horaire2 AS TIME)
-                                   THEN TIME_TO_SEC(CAST(validated_at AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME))
-                               WHEN (CAST(validated_at AS TIME))<CAST(horaire3 AS TIME)
-                                   THEN TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME))
-                               WHEN (CAST(validated_at AS TIME))<CAST(horaire4 AS TIME)
-                                   THEN (TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME)))+(TIME_TO_SEC(CAST(validated_at AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME)))
-                               ELSE ((TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME)))+(TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME))))
+                               WHEN (CAST(validated_at AS TIME))<IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0)
+                                   THEN TIME_TO_SEC(CAST(validated_at AS TIME))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0))
+                               WHEN (CAST(validated_at AS TIME))<IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0)
+                                   THEN TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0))
+                               WHEN (CAST(validated_at AS TIME))<IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0)
+                                   THEN (TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0)))+(TIME_TO_SEC(CAST(validated_at AS TIME))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0)))
+                               ELSE ((TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0)))+(TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0))))
                                END FROM TEMP_worked_days WHERE jour = 'jeudi' AND DAYOFWEEK(validated_at) = 5), 0) CORR_DEB_JEU,
           COALESCE((SELECT CASE
                                WHEN CAST((SELECT MAX(livraison.date_fin)
                                           FROM demande AS sub_demande
                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                          WHERE sub_demande.id = demande.id) AS TIME)>CAST(horaire4 AS TIME)
+                                          WHERE sub_demande.id = demande.id) AS TIME)>IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 99)
                                    THEN 0
                                WHEN CAST((SELECT MAX(livraison.date_fin)
                                           FROM demande AS sub_demande
                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                          WHERE sub_demande.id = demande.id) AS TIME)>CAST(horaire3 AS TIME)
-                                   THEN TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST((SELECT MAX(livraison.date_fin)
-                                                                                              FROM demande AS sub_demande
-                                                                                                       LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                                                                                                       LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                                                                              WHERE sub_demande.id = demande.id) AS TIME))
+                                          WHERE sub_demande.id = demande.id) AS TIME)>IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 99)
+                                   THEN TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(CAST((SELECT MAX(livraison.date_fin)
+                                                                                                                           FROM demande AS sub_demande
+                                                                                                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
+                                                                                                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
+                                                                                                                           WHERE sub_demande.id = demande.id) AS TIME))
                                WHEN CAST((SELECT MAX(livraison.date_fin)
                                           FROM demande AS sub_demande
                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                          WHERE sub_demande.id = demande.id) AS TIME)>CAST(horaire2 AS TIME)
-                                   THEN TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME))
+                                          WHERE sub_demande.id = demande.id) AS TIME)>IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 99)
+                                   THEN TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0))
                                WHEN CAST((SELECT MAX(livraison.date_fin)
                                           FROM demande AS sub_demande
                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                          WHERE sub_demande.id = demande.id) AS TIME)>CAST(horaire1 AS TIME)
-                                   THEN (TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME)))+(TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST((SELECT MAX(livraison.date_fin)
-                                                                                                                                                                         FROM demande AS sub_demande
-                                                                                                                                                                                  LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                                                                                                                                                                                  LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                                                                                                                                                         WHERE sub_demande.id = demande.id) AS TIME)))
-                               ELSE ((TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME)))+(TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME))))
+                                          WHERE sub_demande.id = demande.id) AS TIME)>IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 99)
+                                   THEN (TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0)))+(TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(CAST((SELECT MAX(livraison.date_fin)
+                                                                                                                                                                                                                                                                FROM demande AS sub_demande
+                                                                                                                                                                                                                                                                         LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
+                                                                                                                                                                                                                                                                         LEFT JOIN livraison ON preparation.id = livraison.preparation_id
+                                                                                                                                                                                                                                                                WHERE sub_demande.id = demande.id) AS TIME)))
+                               ELSE ((TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0)))+(TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0))))
                                END FROM TEMP_worked_days WHERE jour = 'jeudi' AND DAYOFWEEK((SELECT MAX(livraison.date_fin)
                                                                                              FROM demande AS sub_demande
                                                                                                       LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
@@ -348,50 +348,50 @@ FROM (SELECT
           (SELECT (SELECT(IF(horaire1 IS NOT NULL AND horaire2 IS NOT NULL, TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME)), 0)) FROM TEMP_worked_days WHERE jour = 'vendredi')+
                   (SELECT(IF(horaire3 IS NOT NULL AND horaire4 IS NOT NULL, TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME)), 0)) FROM TEMP_worked_days WHERE jour = 'vendredi')) DURVEN,
           COALESCE((SELECT CASE
-                               WHEN (CAST(validated_at AS TIME))<CAST(horaire1 AS TIME)
+                               WHEN (CAST(validated_at AS TIME))<IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0)
                                    THEN 0
-                               WHEN (CAST(validated_at AS TIME))<CAST(horaire2 AS TIME)
-                                   THEN TIME_TO_SEC(CAST(validated_at AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME))
-                               WHEN (CAST(validated_at AS TIME))<CAST(horaire3 AS TIME)
-                                   THEN TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME))
-                               WHEN (CAST(validated_at AS TIME))<CAST(horaire4 AS TIME)
-                                   THEN (TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME)))+(TIME_TO_SEC(CAST(validated_at AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME)))
-                               ELSE ((TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME)))+(TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME))))
+                               WHEN (CAST(validated_at AS TIME))<IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0)
+                                   THEN TIME_TO_SEC(CAST(validated_at AS TIME))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0))
+                               WHEN (CAST(validated_at AS TIME))<IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0)
+                                   THEN TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0))
+                               WHEN (CAST(validated_at AS TIME))<IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0)
+                                   THEN (TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0)))+(TIME_TO_SEC(CAST(validated_at AS TIME))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0)))
+                               ELSE ((TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0)))+(TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0))))
                                END FROM TEMP_worked_days WHERE jour = 'vendredi' AND DAYOFWEEK(validated_at) = 6), 0) CORR_DEB_VEN,
           COALESCE((SELECT CASE
                                WHEN CAST((SELECT MAX(livraison.date_fin)
                                           FROM demande AS sub_demande
                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                          WHERE sub_demande.id = demande.id) AS TIME)>CAST(horaire4 AS TIME)
+                                          WHERE sub_demande.id = demande.id) AS TIME)>IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 99)
                                    THEN 0
                                WHEN CAST((SELECT MAX(livraison.date_fin)
                                           FROM demande AS sub_demande
                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                          WHERE sub_demande.id = demande.id) AS TIME)>CAST(horaire3 AS TIME)
-                                   THEN TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST((SELECT MAX(livraison.date_fin)
-                                                                                              FROM demande AS sub_demande
-                                                                                                       LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                                                                                                       LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                                                                              WHERE sub_demande.id = demande.id) AS TIME))
+                                          WHERE sub_demande.id = demande.id) AS TIME)>IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 99)
+                                   THEN TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(CAST((SELECT MAX(livraison.date_fin)
+                                                                                                                           FROM demande AS sub_demande
+                                                                                                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
+                                                                                                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
+                                                                                                                           WHERE sub_demande.id = demande.id) AS TIME))
                                WHEN CAST((SELECT MAX(livraison.date_fin)
                                           FROM demande AS sub_demande
                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                          WHERE sub_demande.id = demande.id) AS TIME)>CAST(horaire2 AS TIME)
-                                   THEN TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME))
+                                          WHERE sub_demande.id = demande.id) AS TIME)>IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 99)
+                                   THEN TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0))
                                WHEN CAST((SELECT MAX(livraison.date_fin)
                                           FROM demande AS sub_demande
                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                          WHERE sub_demande.id = demande.id) AS TIME)>CAST(horaire1 AS TIME)
-                                   THEN (TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME)))+(TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST((SELECT MAX(livraison.date_fin)
-                                                                                                                                                                         FROM demande AS sub_demande
-                                                                                                                                                                                  LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                                                                                                                                                                                  LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                                                                                                                                                         WHERE sub_demande.id = demande.id) AS TIME)))
-                               ELSE ((TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME)))+(TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME))))
+                                          WHERE sub_demande.id = demande.id) AS TIME)>IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 99)
+                                   THEN (TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0)))+(TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(CAST((SELECT MAX(livraison.date_fin)
+                                                                                                                                                                                                                                                                FROM demande AS sub_demande
+                                                                                                                                                                                                                                                                         LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
+                                                                                                                                                                                                                                                                         LEFT JOIN livraison ON preparation.id = livraison.preparation_id
+                                                                                                                                                                                                                                                                WHERE sub_demande.id = demande.id) AS TIME)))
+                               ELSE ((TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0)))+(TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0))))
                                END FROM TEMP_worked_days WHERE jour = 'vendredi' AND DAYOFWEEK((SELECT MAX(livraison.date_fin)
                                                                                                 FROM demande AS sub_demande
                                                                                                          LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
@@ -422,50 +422,50 @@ FROM (SELECT
           (SELECT (SELECT(IF(horaire1 IS NOT NULL AND horaire2 IS NOT NULL, TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME)), 0)) FROM TEMP_worked_days WHERE jour = 'samedi')+
                   (SELECT(IF(horaire3 IS NOT NULL AND horaire4 IS NOT NULL, TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME)), 0)) FROM TEMP_worked_days WHERE jour = 'samedi')) DURSAM,
           COALESCE((SELECT CASE
-                               WHEN (CAST(validated_at AS TIME))<CAST(horaire1 AS TIME)
+                               WHEN (CAST(validated_at AS TIME))<IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0)
                                    THEN 0
-                               WHEN (CAST(validated_at AS TIME))<CAST(horaire2 AS TIME)
-                                   THEN TIME_TO_SEC(CAST(validated_at AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME))
-                               WHEN (CAST(validated_at AS TIME))<CAST(horaire3 AS TIME)
-                                   THEN TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME))
-                               WHEN (CAST(validated_at AS TIME))<CAST(horaire4 AS TIME)
-                                   THEN (TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME)))+(TIME_TO_SEC(CAST(validated_at AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME)))
-                               ELSE ((TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME)))+(TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME))))
+                               WHEN (CAST(validated_at AS TIME))<IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0)
+                                   THEN TIME_TO_SEC(CAST(validated_at AS TIME))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0))
+                               WHEN (CAST(validated_at AS TIME))<IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0)
+                                   THEN TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0))
+                               WHEN (CAST(validated_at AS TIME))<IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0)
+                                   THEN (TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0)))+(TIME_TO_SEC(CAST(validated_at AS TIME))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0)))
+                               ELSE ((TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0)))+(TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0))))
                                END FROM TEMP_worked_days WHERE jour = 'samedi' AND DAYOFWEEK(validated_at) = 7), 0) CORR_DEB_SAM,
           COALESCE((SELECT CASE
                                WHEN CAST((SELECT MAX(livraison.date_fin)
                                           FROM demande AS sub_demande
                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                          WHERE sub_demande.id = demande.id) AS TIME)>CAST(horaire4 AS TIME)
+                                          WHERE sub_demande.id = demande.id) AS TIME)>IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 99)
                                    THEN 0
                                WHEN CAST((SELECT MAX(livraison.date_fin)
                                           FROM demande AS sub_demande
                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                          WHERE sub_demande.id = demande.id) AS TIME)>CAST(horaire3 AS TIME)
-                                   THEN TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST((SELECT MAX(livraison.date_fin)
-                                                                                              FROM demande AS sub_demande
-                                                                                                       LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                                                                                                       LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                                                                              WHERE sub_demande.id = demande.id) AS TIME))
+                                          WHERE sub_demande.id = demande.id) AS TIME)>IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 99)
+                                   THEN TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(CAST((SELECT MAX(livraison.date_fin)
+                                                                                                                           FROM demande AS sub_demande
+                                                                                                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
+                                                                                                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
+                                                                                                                           WHERE sub_demande.id = demande.id) AS TIME))
                                WHEN CAST((SELECT MAX(livraison.date_fin)
                                           FROM demande AS sub_demande
                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                          WHERE sub_demande.id = demande.id) AS TIME)>CAST(horaire2 AS TIME)
-                                   THEN TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME))
+                                          WHERE sub_demande.id = demande.id) AS TIME)>IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 99)
+                                   THEN TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0))
                                WHEN CAST((SELECT MAX(livraison.date_fin)
                                           FROM demande AS sub_demande
                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                          WHERE sub_demande.id = demande.id) AS TIME)>CAST(horaire1 AS TIME)
-                                   THEN (TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME)))+(TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST((SELECT MAX(livraison.date_fin)
-                                                                                                                                                                         FROM demande AS sub_demande
-                                                                                                                                                                                  LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                                                                                                                                                                                  LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                                                                                                                                                         WHERE sub_demande.id = demande.id) AS TIME)))
-                               ELSE ((TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME)))+(TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME))))
+                                          WHERE sub_demande.id = demande.id) AS TIME)>IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 99)
+                                   THEN (TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0)))+(TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(CAST((SELECT MAX(livraison.date_fin)
+                                                                                                                                                                                                                                                                FROM demande AS sub_demande
+                                                                                                                                                                                                                                                                         LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
+                                                                                                                                                                                                                                                                         LEFT JOIN livraison ON preparation.id = livraison.preparation_id
+                                                                                                                                                                                                                                                                WHERE sub_demande.id = demande.id) AS TIME)))
+                               ELSE ((TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0)))+(TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0))))
                                END FROM TEMP_worked_days WHERE jour = 'samedi' AND DAYOFWEEK((SELECT MAX(livraison.date_fin)
                                                                                               FROM demande AS sub_demande
                                                                                                        LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
@@ -495,50 +495,50 @@ FROM (SELECT
           (SELECT (SELECT(IF(horaire1 IS NOT NULL AND horaire2 IS NOT NULL, TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME)), 0)) FROM TEMP_worked_days WHERE jour = 'dimanche')+
                   (SELECT(IF(horaire3 IS NOT NULL AND horaire4 IS NOT NULL, TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME)), 0)) FROM TEMP_worked_days WHERE jour = 'dimanche')) DURDIM,
           COALESCE((SELECT CASE
-                               WHEN (CAST(validated_at AS TIME))<CAST(horaire1 AS TIME)
+                               WHEN (CAST(validated_at AS TIME))<IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0)
                                    THEN 0
-                               WHEN (CAST(validated_at AS TIME))<CAST(horaire2 AS TIME)
-                                   THEN TIME_TO_SEC(CAST(validated_at AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME))
-                               WHEN (CAST(validated_at AS TIME))<CAST(horaire3 AS TIME)
-                                   THEN TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME))
-                               WHEN (CAST(validated_at AS TIME))<CAST(horaire4 AS TIME)
-                                   THEN (TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME)))+(TIME_TO_SEC(CAST(validated_at AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME)))
-                               ELSE ((TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME)))+(TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME))))
+                               WHEN (CAST(validated_at AS TIME))<IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0)
+                                   THEN TIME_TO_SEC(CAST(validated_at AS TIME))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0))
+                               WHEN (CAST(validated_at AS TIME))<IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0)
+                                   THEN TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0))
+                               WHEN (CAST(validated_at AS TIME))<IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0)
+                                   THEN (TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0)))+(TIME_TO_SEC(CAST(validated_at AS TIME))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0)))
+                               ELSE ((TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0)))+(TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0))))
                                END FROM TEMP_worked_days WHERE jour = 'dimanche' AND DAYOFWEEK(validated_at) = 1), 0) CORR_DEB_DIM,
           COALESCE((SELECT CASE
                                WHEN CAST((SELECT MAX(livraison.date_fin)
                                           FROM demande AS sub_demande
                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                          WHERE sub_demande.id = demande.id) AS TIME)>CAST(horaire4 AS TIME)
+                                          WHERE sub_demande.id = demande.id) AS TIME)>IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 99)
                                    THEN 0
                                WHEN CAST((SELECT MAX(livraison.date_fin)
                                           FROM demande AS sub_demande
                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                          WHERE sub_demande.id = demande.id) AS TIME)>CAST(horaire3 AS TIME)
-                                   THEN TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST((SELECT MAX(livraison.date_fin)
-                                                                                              FROM demande AS sub_demande
-                                                                                                       LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                                                                                                       LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                                                                              WHERE sub_demande.id = demande.id) AS TIME))
+                                          WHERE sub_demande.id = demande.id) AS TIME)>IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 99)
+                                   THEN TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(CAST((SELECT MAX(livraison.date_fin)
+                                                                                                                           FROM demande AS sub_demande
+                                                                                                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
+                                                                                                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
+                                                                                                                           WHERE sub_demande.id = demande.id) AS TIME))
                                WHEN CAST((SELECT MAX(livraison.date_fin)
                                           FROM demande AS sub_demande
                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                          WHERE sub_demande.id = demande.id) AS TIME)>CAST(horaire2 AS TIME)
-                                   THEN TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME))
+                                          WHERE sub_demande.id = demande.id) AS TIME)>IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 99)
+                                   THEN TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0))
                                WHEN CAST((SELECT MAX(livraison.date_fin)
                                           FROM demande AS sub_demande
                                                    LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
                                                    LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                          WHERE sub_demande.id = demande.id) AS TIME)>CAST(horaire1 AS TIME)
-                                   THEN (TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME)))+(TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST((SELECT MAX(livraison.date_fin)
-                                                                                                                                                                         FROM demande AS sub_demande
-                                                                                                                                                                                  LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
-                                                                                                                                                                                  LEFT JOIN livraison ON preparation.id = livraison.preparation_id
-                                                                                                                                                                         WHERE sub_demande.id = demande.id) AS TIME)))
-                               ELSE ((TIME_TO_SEC(CAST(horaire2 AS TIME))-TIME_TO_SEC(CAST(horaire1 AS TIME)))+(TIME_TO_SEC(CAST(horaire4 AS TIME))-TIME_TO_SEC(CAST(horaire3 AS TIME))))
+                                          WHERE sub_demande.id = demande.id) AS TIME)>IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 99)
+                                   THEN (TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0)))+(TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(CAST((SELECT MAX(livraison.date_fin)
+                                                                                                                                                                                                                                                                FROM demande AS sub_demande
+                                                                                                                                                                                                                                                                         LEFT JOIN preparation ON sub_demande.id = preparation.demande_id
+                                                                                                                                                                                                                                                                         LEFT JOIN livraison ON preparation.id = livraison.preparation_id
+                                                                                                                                                                                                                                                                WHERE sub_demande.id = demande.id) AS TIME)))
+                               ELSE ((TIME_TO_SEC(IF(horaire2 IS NOT NULL, CAST(horaire2 AS TIME), 0))-TIME_TO_SEC(IF(horaire1 IS NOT NULL, CAST(horaire1 AS TIME), 0)))+(TIME_TO_SEC(IF(horaire4 IS NOT NULL, CAST(horaire4 AS TIME), 0))-TIME_TO_SEC(IF(horaire3 IS NOT NULL, CAST(horaire3 AS TIME), 0))))
                                END FROM TEMP_worked_days WHERE jour = 'dimanche' AND DAYOFWEEK((SELECT MAX(livraison.date_fin)
                                                                                                 FROM demande AS sub_demande
                                                                                                          LEFT JOIN preparation ON sub_demande.id = preparation.demande_id

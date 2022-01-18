@@ -2,24 +2,54 @@
 
 {% block title %}Référentiel | Fournisseurs{% endblock %}
 
+{% set hasRightToCreate = hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
+{% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::EXPORT')) %}
+
 {% block page_content %}
     <div class="m-4 wii-page-card">
-        {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
+        {% if hasRightToCreate %}
             <div class="row wii-page-card-header">
                 <div class="col-auto ml-auto">
-                    <button data-toggle="modal"
-                            data-target="#modalNewFournisseur"
-                            class="btn btn-primary">
-                        <span class="fa fa-plus mr-2"></span>
-                        Nouveau Fournisseur
-                    </button>
+                    <div class="btn-group">
+                        {% if hasRightToCreate %}
+                            <button data-toggle="modal"
+                                    data-target="#modalNewFournisseur"
+                                    class="btn btn-primary">
+                                <span class="fa fa-plus mr-2"></span>
+                                Nouveau fournisseur
+                            </button>
+                        {% elseif hasRightToExport %}
+                            <button type="button"
+                                    class="btn btn-primary split-button"
+                                    onclick="saveExportFile('get_suppliers_csv')">
+                                <span class="fa fa-file-csv mr-2" style="padding: 0 2px"></span>
+                                Exporter au format CSV
+                            </button>
+                        {% endif %}
+                        {% if hasRightToCreate and hasRightToExport %}
+                            <button type="button"
+                                    class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
+                                    data-toggle="dropdown"
+                                    aria-haspopup="true"
+                                    aria-expanded="false">
+                                <span class="fa fa-angle-down"></span>
+                            </button>
+                            <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
+                                <a class="dropdown-item pointer"
+                                   onclick="saveExportFile('get_suppliers_csv', false)">
+                                    <i class="fa fa-file-csv mr-2" style="padding: 0 2px"></i>
+                                    Exporter au format CSV
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         {% endif %}
 
         <div class="row">
             <div class="col-12">
-                <table id="tableFournisseur_id"
+                <table id="supplierTable_id"
                        class="table w-100">
                 </table>
             </div>

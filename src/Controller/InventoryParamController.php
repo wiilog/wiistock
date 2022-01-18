@@ -34,7 +34,6 @@ class InventoryParamController extends AbstractController
 
     /**
      * @Route("/", name="inventaire_param_index")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_INVE})
      */
     public function index(EntityManagerInterface $entityManager)
     {
@@ -48,7 +47,6 @@ class InventoryParamController extends AbstractController
 
     /**
      * @Route("/api", name="invParam_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
      */
     public function api(): Response
     {
@@ -259,7 +257,6 @@ class InventoryParamController extends AbstractController
 
     /**
      * @Route("/frequences/voir", name="invParamFrequencies_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_INVE}, mode=HasPermission::IN_JSON)
      */
     public function apiFrequencies(EntityManagerInterface $entityManager): Response
     {

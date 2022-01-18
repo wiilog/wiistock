@@ -24,4 +24,20 @@ class ActionRepository extends EntityRepository {
             ->getOneOrNullResult();
     }
 
+    public function findOneByParams($menuLabel, $actionLabel, $subMenu = null): ?Action {
+        $qb = $this->createQueryBuilder("action")
+            ->join("action.menu", "menu")
+            ->where("action.label = :action")
+            ->andWhere("menu.label = :menu")
+            ->setParameter("action", $actionLabel)
+            ->setParameter("menu", $menuLabel);
+
+        if($subMenu) {
+            $qb->andWhere("action.subMenu = :sub_menu")
+                ->setParameter("sub_menu", $subMenu);
+        }
+
+        return $qb->getQuery()->getOneOrNullResult();
+    }
+
 }

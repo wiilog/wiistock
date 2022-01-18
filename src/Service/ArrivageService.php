@@ -257,8 +257,25 @@ class ArrivageService {
             'emergencyAlert' => $isArrivalUrgent,
             'numeroCommande' => $numeroCommande,
             'postNb' => $postNb,
-            'arrivalId' => $arrivage->getId() ? $arrivage->getId() : $arrivage->getNumeroArrivage()
+            'arrivalId' => $arrivage->getId() ?: $arrivage->getNumeroArrivage()
         ];
+    }
+
+    public function createSupplierEmergencyAlert(Arrivage $arrival): ?array {
+        $supplier = $arrival->getFournisseur();
+        $supplierName = $supplier ? $supplier->getNom() : null;
+        $isArrivalUrgent = ($supplier && $supplier->isUrgent() && $supplierName);
+        $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
+        return $isArrivalUrgent
+            ? [
+                'autoHide' => false,
+                'message' => "Attention, les colis $supplierName doivent être traités en urgence",
+                'iconType' => 'warning',
+                'modalType' => 'info',
+                'autoPrint' => !$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL),
+                'arrivalId' => $arrival->getId() ?: $arrival->getNumeroArrivage()
+            ]
+            : null;
     }
 
     public function processEmergenciesOnArrival(Arrivage $arrival): array
@@ -270,8 +287,6 @@ class ArrivageService {
             || $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_NS);
 
         if (!empty($numeroCommandeList)) {
-            $urgenceRepository = $this->entityManager->getRepository(Urgence::class);
-
             foreach ($numeroCommandeList as $numeroCommande) {
                 $urgencesMatching = $this->urgenceService->matchingEmergencies(
                     $arrival,

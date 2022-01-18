@@ -20,6 +20,7 @@ use App\Entity\Utilisateur;
 
 use App\Helper\FormatHelper;
 use App\Service\NotificationService;
+use GuzzleHttp\Exception\ConnectException;
 use WiiCommon\Helper\Stream;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
@@ -191,23 +192,30 @@ class HandlingController extends AbstractController
 
         $entityManager->persist($handling);
         try {
+            if (($handling->getStatus()->getState() == Statut::NOT_TREATED)
+                && $handling->getType()
+                && ($handling->getType()->isNotificationsEnabled() || $handling->getType()->isNotificationsEmergency($handling->getEmergency()))) {
+                $notificationService->toTreat($handling);
+            }
             $entityManager->flush();
         }
         /** @noinspection PhpRedundantCatchClauseInspection */
-        catch (UniqueConstraintViolationException $e) {
-            return new JsonResponse([
-                'success' => false,
-                'msg' => $translator->trans('services.Une autre demande de service est en cours de création, veuillez réessayer').'.'
-            ]);
+        catch (UniqueConstraintViolationException | ConnectException $e) {
+
+            if ($e instanceof UniqueConstraintViolationException) {
+                $message = $translator->trans('services.Une autre demande de service est en cours de création, veuillez réessayer') . '.';
+            } else if ($e instanceof ConnectException) {
+                $message = "Une erreur s'est produite lors de l'envoi de la notifiation de cette demande de service. Veuillez réessayer.";
+            }
+            if (!empty($message)) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => $message
+                ]);
+            }
         }
         $viewHoursOnExpectedDate = !$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME);
         $handlingService->sendEmailsAccordingToStatus($entityManager, $handling, $viewHoursOnExpectedDate, !$status->isTreated());
-
-        if (($handling->getStatus()->getState() == Statut::NOT_TREATED)
-            && $handling->getType()
-            && ($handling->getType()->isNotificationsEnabled() || $handling->getType()->isNotificationsEmergency($handling->getEmergency()))) {
-            $notificationService->toTreat($handling);
-        }
 
         return new JsonResponse([
             'success' => true,

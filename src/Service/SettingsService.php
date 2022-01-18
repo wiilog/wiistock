@@ -59,10 +59,12 @@ class SettingsService {
 
         $alreadySaved = $this->customSave($request, $settings);
         $updated = [];
+
         foreach($request->request->all() as $key => $value) {
             if(in_array($key, $alreadySaved)) {
                 continue;
             }
+
             $setting = $settings[$key] ?? null;
             if(!isset($setting)) {
                 $settings[$key] = $setting = $this->createSetting($key);

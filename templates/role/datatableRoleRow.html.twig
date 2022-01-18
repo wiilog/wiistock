@@ -2,7 +2,6 @@
     <div class="dropdown dropright">
         {% include 'datatable/dotsRow.html.twig' %}
         <div class="dropdown-menu dropdown-follow-gt pointer">
-            {% if hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::EDIT')) %}
                 <div class="d-none">
                     <div class="action-on-click" data-id='{{ roleId }}' data-toggle='modal' data-target='#modalEditRole'
                          onclick="editRow($(this), Routing.generate('role_api_edit', true), $('#modalEditRole'), $('#submitEditRole'))">
@@ -13,7 +12,6 @@
                      onclick="checkAndDeleteRow($(this), '#modalDeleteRole', 'role_check_delete', '#submitDeleteRole')">
                     <i class='fas fa-trash mr-2'></i>Supprimer
                 </div>
-            {% endif %}
         </div>
     </div>
 </div>

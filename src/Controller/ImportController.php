@@ -37,7 +37,6 @@ class ImportController extends AbstractController
 {
     /**
      * @Route("/", name="import_index")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_IMPORT})
      */
     public function index()
     {
@@ -54,7 +53,6 @@ class ImportController extends AbstractController
 
     /**
      * @Route("/api", name="import_api", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_IMPORT}, mode=HasPermission::IN_JSON)
      */
     public function api(Request $request, ImportService $importDataService): Response
     {
@@ -67,7 +65,6 @@ class ImportController extends AbstractController
 
     /**
      * @Route("/creer", name="import_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_IMPORT}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request,
                         AttachmentService $attachmentService,

@@ -43,10 +43,15 @@ $(function () {
     }
 
     //édition de colis
-    const modalEditPack = $('#modalEditPack');
-    const submitEditPack = $('#submitEditPack');
+    const $modalEditPack = $('#modalEditPack');
+    const $submitEditPack = $('#submitEditPack');
     const urlEditPack = Routing.generate('pack_edit', true);
-    InitModal(modalEditPack, submitEditPack, urlEditPack, {tables: [tableColis]});
+    InitModal($modalEditPack, $submitEditPack, urlEditPack, {
+        tables: [tableColis],
+        waitForUserAction: () => {
+            return checkPossibleCustoms($modalEditPack);
+        },
+    });
 
     //suppression de colis
     let modalDeletePack = $("#modalDeletePack");
@@ -212,7 +217,6 @@ function editRowArrivage(button) {
         }
         modal.find('#acheteursEdit').val(data.acheteurs).select2();
         modal.find('.select2').select2();
-        modal.find('.list-multiple').select2();
         initDateTimePicker('.date-cl');
         Select2Old.initFree($('.select2-free'));
         Select2Old.location(modal.find('.ajax-autocomplete-location'));

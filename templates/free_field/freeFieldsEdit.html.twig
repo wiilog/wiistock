@@ -54,6 +54,8 @@
 
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_LIST_MULTIPLE') %}
                                 <select class="form-control data list-multiple {{ needed ? 'needed' : '' }} w-100"
+                                        data-s2
+                                        data-simple
                                         name="{{ freeField.id }}" multiple="multiple">
                                     {% set entityValuesArray = freeFieldValues[freeField.id] is defined ? freeFieldValues[freeField.id]|split(';') : [] %}
                                     {% for elem in freeField.elements %}

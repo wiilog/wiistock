@@ -70,12 +70,15 @@ class ArticleFournisseurService
                 $generatedReference = $referencePrefix;
             }
 
+            $isVisible = $referenceArticle->getStatut()->getCode() !== ReferenceArticle::DRAFT_STATUS;
+
             $articleFournisseur = new ArticleFournisseur();
             $articleFournisseur
                 ->setFournisseur($fournisseur)
                 ->setReference($generatedReference)
                 ->setReferenceArticle($referenceArticle)
-                ->setLabel($label);
+                ->setLabel($label)
+                ->setVisible($isVisible);
         }
         else {
             throw new Exception(self::ERROR_REFERENCE_ALREADY_EXISTS);

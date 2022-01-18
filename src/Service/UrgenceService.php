@@ -76,8 +76,8 @@ class UrgenceService
     }
 
     public function updateUrgence(Urgence $urgence, $data): Urgence {
-        $dateStart = DateTime::createFromFormat('d/m/Y H:i', $data['dateStart']);
-        $dateEnd = DateTime::createFromFormat('d/m/Y H:i', $data['dateEnd']);
+        $dateStart = DateTime::createFromFormat('Y-m-d\TH:i', $data['dateStart']);
+        $dateEnd = DateTime::createFromFormat('Y-m-d\TH:i', $data['dateEnd']);
 
         $utilisateurRepository = $this->entityManager->getRepository(Utilisateur::class);
         $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);

@@ -719,11 +719,12 @@ class ReceptionController extends AbstractController {
                 ->setCommentaire($data['commentaire']);
 
             $typeQuantite = $receptionReferenceArticle->getReferenceArticle()->getTypeQuantite();
+            $referenceArticle = $receptionReferenceArticle->getReferenceArticle();
             if($typeQuantite === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                $referenceArticle = $receptionReferenceArticle->getReferenceArticle();
-                $oldReceivedQuantity = $receptionReferenceArticle->getQuantite();
+                $oldReceivedQuantity = $receptionReferenceArticle->getQuantite() ?? 0;
                 $newReceivedQuantity = max((int)$quantite, 0);
                 $diffReceivedQuantity = $newReceivedQuantity - $oldReceivedQuantity;
+
                 // protection quantité reçue <= quantité à recevoir
                 if($receptionReferenceArticle->getQuantiteAR() && $quantite > $receptionReferenceArticle->getQuantiteAR()) {
                     return new JsonResponse([
@@ -780,7 +781,7 @@ class ReceptionController extends AbstractController {
                             ]
                         );
 
-                        $receptionReferenceArticle->setQuantite($newReceivedQuantity); // protection contre quantités négatives
+                        $receptionReferenceArticle->setQuantite($newReceivedQuantity);
                         $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
                         $referenceArticle->setQuantiteStock($newRefQuantity);
                         $entityManager->persist($createdMvt);
@@ -795,7 +796,7 @@ class ReceptionController extends AbstractController {
 
             $entityManager->flush();
 
-            $referenceLabel = $receptionReferenceArticle->getReferenceArticle() ? $receptionReferenceArticle->getReferenceArticle()->getReference() : '';
+            $referenceLabel = $referenceArticle ? $referenceArticle->getReference() : '';
 
             return new JsonResponse([
                 'success' => true,

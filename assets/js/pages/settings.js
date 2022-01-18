@@ -1,5 +1,5 @@
 import '../../scss/pages/settings.scss';
-import EditableDatatable, {MODE_ADD_ONLY, MODE_DOUBLE_CLICK, SAVE_MANUALLY} from "../editatable";
+import EditableDatatable, {MODE_ADD_ONLY, MODE_DOUBLE_CLICK, MODE_NO_EDIT, SAVE_MANUALLY} from "../editatable";
 import Flash from '../flash';
 
 const settings = JSON.parse($(`input#settings`).val());
@@ -14,6 +14,7 @@ const initializers = {
     global_jours_non_travailles: initializeOffDays,
     global_apparence_site: initializeSiteAppearance,
     global_etiquettes: initializeGlobalLabels,
+    stock_articles_etiquettes: initializeStockArticlesLabels,
 };
 
 const slowOperations = [
@@ -24,7 +25,9 @@ const slowOperations = [
 const $saveButton = $(`.save-settings`);
 
 $(document).ready(() => {
-    updateTitle(submenu || menu);
+    let canEdit = $(`input#edit`).val();
+
+    updateTitle(submenu || menu, edit);
 
     $(`.settings-item`).on(`click`, function() {
         const selectedMenu = $(this).data(`menu`);
@@ -35,7 +38,7 @@ $(document).ready(() => {
         $(`.settings main > div`).addClass(`d-none`);
         $(`.settings main > div[data-menu="${selectedMenu}"]`).removeClass(`d-none`);
 
-        updateTitle(selectedMenu);
+        updateTitle(selectedMenu, edit);
     });
 
     $saveButton.on(`click`, async function() {
@@ -66,12 +69,14 @@ $(document).ready(() => {
             Flash.add(`info`, `Mise à jour des paramétrage en cours, cette opération peut prendre quelques minutes`, false);
         }
 
+        $saveButton.pushLoader('white');
         await AJAX.route(`POST`, `settings_save`)
             .json(data)
             .then(() => {
                 for(const table of tablesToReload) {
                     table.toggleEdit(false, true);
                 }
+                $saveButton.popLoader();
             });
     });
 });
@@ -98,7 +103,7 @@ function getSubmenuLabel() {
     }
 }
 
-function updateTitle(selectedMenu) {
+function updateTitle(selectedMenu, canEdit) {
     let title;
     if(!submenu) {
         menu = selectedMenu;
@@ -117,26 +122,30 @@ function updateTitle(selectedMenu) {
         currentForm = path;
         forms[path] = {
             element: $element,
-            ...(initializers[path] ? initializers[path]($element) : []),
+            ...(initializers[path] ? initializers[path]($element, canEdit) : []),
         };
+
+        console.log(initializers[path] ? `Initializiing ${path}` : `No initializer for ${path}`);
     }
 
-    $(`#page-title`).html(title);
-    document.title = `Paramétrage | ${title}`;
+    const $pageTitle = $(`#page-title`);
+    $pageTitle.html(title);
+    const textTitle = $pageTitle.text();
+    document.title = `Paramétrage | ${textTitle}`;
 
-    let urlParts = (window.location.href).split(`/`);
-    urlParts[urlParts.length - 1] = selectedMenu;
-
-    const url = urlParts.join(`/`);
-    history.pushState({}, title, url);
+    history.pushState({}, title, Routing.generate(`settings_item`, {
+        category,
+        menu,
+        submenu,
+    }));
 }
 
-function initializeWorkingHours($container) {
+function initializeWorkingHours($container, canEdit) {
     $saveButton.hide();
 
     const table = EditableDatatable.create(`#table-working-hours`, {
         route: Routing.generate('settings_working_hours_api', true),
-        edit: MODE_DOUBLE_CLICK,
+        edit: canEdit ? MODE_DOUBLE_CLICK : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         onEditStart: () => $saveButton.show(),
         onEditStop: () => $saveButton.hide(),
@@ -148,7 +157,7 @@ function initializeWorkingHours($container) {
     });
 }
 
-function initializeOffDays($container) {
+function initializeOffDays($container, canEdit) {
     const $addButton = $container.find(`.add-row-button`);
     const $tableHeader = $(`.wii-page-card-header`);
 
@@ -157,7 +166,7 @@ function initializeOffDays($container) {
     const table = EditableDatatable.create(`#table-off-days`, {
         route: Routing.generate(`settings_off_days_api`, true),
         deleteRoute: `settings_off_days_delete`,
-        edit: MODE_ADD_ONLY,
+        edit: canEdit ? MODE_ADD_ONLY : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         search: true,
         paginate: true,
@@ -199,4 +208,18 @@ function initializeSiteAppearance() {
 
 function initializeGlobalLabels() {
     updateImagePreview('#preview-label-logo', '#upload-label-logo');
+}
+
+function initializeStockArticlesLabels() {
+    $(`#show-destination-in-label`).on(`change`, function() {
+        if($(this).prop(`checked`)) {
+            $('#show-dropzone-in-label').prop('checked', false);
+        }
+    });
+
+    $(`#show-dropzone-in-label`).on(`change`, function() {
+        if($(this).prop(`checked`)) {
+            $('#show-destination-in-label').prop('checked', false);
+        }
+    });
 }

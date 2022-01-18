@@ -56,7 +56,7 @@ class ParametrageGlobalController extends AbstractController
 
     /**
      * @Route("/", name="global_param_index")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_GLOBAL})
      */
     public function index(GlobalParamService $globalParamService,
                           EntityManagerInterface $entityManager,
@@ -153,6 +153,7 @@ class ParametrageGlobalController extends AbstractController
                 'stockSettings' => [
                     'alertThreshold' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_MANAGER_WARNING_THRESHOLD),
                     'securityThreshold' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_MANAGER_SECURITY_THRESHOLD),
+                    'defaultLocation' => $globalParamService->getParamLocation(ParametrageGlobal::DEFAULT_LOCATION_REFERENCE),
                     'expirationDelay' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::STOCK_EXPIRATION_DELAY)
                 ],
                 'dispatchSettings' => [
@@ -217,7 +218,7 @@ class ParametrageGlobalController extends AbstractController
 
     /**
      * @Route("/ajax-etiquettes", name="ajax_dimensions_etiquettes",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_GLOBAL}, mode=HasPermission::IN_JSON)
      */
     public function ajaxDimensionEtiquetteServer(Request $request,
                                                  AttachmentService $attachmentService,
@@ -453,7 +454,7 @@ class ParametrageGlobalController extends AbstractController
 
     /**
      * @Route("/ajax-documents", name="ajax_documents",  options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_GLOBAL}, mode=HasPermission::IN_JSON)
      */
     public function ajaxDocuments(Request $request,
                                   UserService $userService,
@@ -567,7 +568,7 @@ class ParametrageGlobalController extends AbstractController
 
     /**
      * @Route("/api", name="days_param_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_GLOBAL}, mode=HasPermission::IN_JSON)
      */
     public function api(EntityManagerInterface $entityManager): Response {
 
@@ -668,7 +669,7 @@ class ParametrageGlobalController extends AbstractController
 
     /**
      * @Route("/ajax-mail-server", name="ajax_mailer_server", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_GLOBAL}, mode=HasPermission::IN_JSON)
      */
     public function ajaxMailerServer(Request $request,
                                      EntityManagerInterface $entityManager): Response {

@@ -354,8 +354,7 @@ class ArticleRepository extends EntityRepository {
                             default:
                                 $field = self::FIELD_ENTITY_NAME[$searchField] ?? $searchField;
                                 $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
-                                if(is_numeric($freeFieldId)) {
-                                    $freeField = $freeFieldRepository->find($freeFieldId);
+                                if(is_numeric($freeFieldId) && $freeField = $freeFieldRepository->find($freeFieldId)) {
                                     if ($freeField->getTypage() === FreeField::TYPE_BOOL) {
 
                                         $lowerSearchValue = strtolower($searchValue);

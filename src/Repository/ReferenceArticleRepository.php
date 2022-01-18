@@ -15,6 +15,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
+use App\Helper\FormatHelper;
 use App\Helper\QueryCounter;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
@@ -47,7 +48,11 @@ class ReferenceArticleRepository extends EntityRepository {
     ];
 
     private const FIELDS_TYPE_DATE = [
-        "dateLastInventory"
+        "dateLastInventory",
+        "createdAt",
+        "editedAt",
+        "lastStockEntry",
+        "lastStockExit",
     ];
 
     private const CART_COLUMNS_ASSOCIATION = [
@@ -71,7 +76,10 @@ class ReferenceArticleRepository extends EntityRepository {
         return $queryBuilder
             ->select("reference.id AS id, reference.reference AS text, reference.libelle AS label")
             ->andWhere("reference.reference LIKE :term")
+            ->andWhere("status.code != :draft")
+            ->leftJoin("reference.statut", "status")
             ->setParameter("term", "%$term%")
+            ->setParameter("draft", ReferenceArticle::DRAFT_STATUS)
             ->getQuery()
             ->getArrayResult();
     }
@@ -104,6 +112,12 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('referenceArticle.limitWarning')
             ->addSelect('referenceArticle.prixUnitaire')
             ->addSelect('referenceArticle.barCode')
+            ->addSelect('join_createdBy.username as createdBy')
+            ->addSelect('referenceArticle.createdAt')
+            ->addSelect('referenceArticle.editedAt')
+            ->addSelect('join_editedBy.username as editedBy')
+            ->addSelect('referenceArticle.lastStockEntry')
+            ->addSelect('referenceArticle.lastStockExit')
             ->addSelect('categoryRef.label as category')
             ->addSelect('referenceArticle.dateLastInventory')
             ->addSelect('referenceArticle.needsMobileSync')
@@ -116,6 +130,8 @@ class ReferenceArticleRepository extends EntityRepository {
             ->leftJoin('referenceArticle.category', 'categoryRef')
             ->leftJoin('referenceArticle.buyer', 'join_buyer')
             ->leftJoin('referenceArticle.visibilityGroup', 'join_visibilityGroup')
+            ->leftJoin('referenceArticle.createdBy', 'join_createdBy')
+            ->leftJoin('referenceArticle.editedBy', 'join_editedBy')
             ->groupBy('referenceArticle.id')
             ->orderBy('referenceArticle.id', 'ASC')
             ->getQuery()
@@ -188,8 +204,11 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('join_location.label AS location')
             ->addSelect('reference.quantiteDisponible')
             ->leftJoin('reference.emplacement', 'join_location')
+            ->leftJoin('reference.statut', 'join_draft_status')
             ->where("reference.${field} LIKE :search")
-            ->setParameter('search', '%' . $search . '%');
+            ->andWhere("join_draft_status.code <> :draft")
+            ->setParameter('search', '%' . $search . '%')
+            ->setParameter('draft', ReferenceArticle::DRAFT_STATUS);
 
         $visibilityGroup = $user->getVisibilityGroups();
         if (!$visibilityGroup->isEmpty()) {
@@ -238,7 +257,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->execute();
     }
 
-    public function findByFiltersAndParams($filters, InputBag $params, Utilisateur $user)
+    public function findByFiltersAndParams(array $filters, InputBag $params, Utilisateur $user): array
     {
         $em = $this->getEntityManager();
         $index = 0;
@@ -255,12 +274,16 @@ class ReferenceArticleRepository extends EntityRepository {
             'Code barre' => ['field' => 'barCode', 'typage' => 'text'],
             'Quantité disponible' => ['field' => 'quantiteDisponible', 'typage' => 'text'],
             'Commentaire d\'urgence' => ['field' => 'emergencyComment', 'typage' => 'text'],
-            'Dernier inventaire' => ['field' => 'dateLastInventory', 'typage' => 'text'],
+            'Dernier inventaire' => ['field' => 'dateLastInventory', 'typage' => 'date'],
             'Seuil d\'alerte' => ['field' => 'limitWarning', 'typage' => 'number'],
             'Seuil de sécurité' => ['field' => 'limitSecurity', 'typage' => 'number'],
             'Urgence' => ['field' => 'isUrgent', 'typage' => 'boolean'],
             'Synchronisation nomade' => ['field' => 'needsMobileSync', 'typage' => 'sync'],
-            'Gestion de stock' => ['field' => 'stockManagement', 'typage' => 'text']
+            'Gestion de stock' => ['field' => 'stockManagement', 'typage' => 'text'],
+            'Créée le' => ['field' => 'createdAt', 'typage' => 'date'],
+            'Dernière modification le' => ['field' => 'editedAt', 'typage' => 'date'],
+            'Dernière sortie le' => ['field' => 'lastStockExit', 'typage' => 'date'],
+            'Dernière entrée le' => ['field' => 'lastStockEntry', 'typage' => 'date']
         ];
 
         $queryBuilder = $this->createQueryBuilder("ra");
@@ -276,7 +299,7 @@ class ReferenceArticleRepository extends EntityRepository {
 
         foreach ($filters as $filter) {
             $index++;
-            if ($filter['champFixe'] === FiltreRef::FIXED_FIELD_STATUT) {
+            if ($filter['champFixe'] === FiltreRef::FIXED_FIELD_ACTIVE_ONLY) {
                 if ($filter['value'] === ReferenceArticle::STATUT_ACTIF) {
                     $queryBuilder->leftJoin('ra.statut', 'filter_sra');
                     $queryBuilder->andWhere('filter_sra.nom LIKE \'' . $filter['value'] . '\'');
@@ -302,6 +325,29 @@ class ReferenceArticleRepository extends EntityRepository {
                     ->leftJoin('filter_af_provider_label.fournisseur', 'filter_provider_label')
                     ->andWhere('filter_provider_label.nom LIKE :providerLabel')
                     ->setParameter('providerLabel', '%' . $filter['value'] . '%');
+            } else if(in_array($filter['champFixe'], [FiltreRef::FIXED_FIELD_CREATED_BY, FiltreRef::FIXED_FIELD_EDITED_BY, FiltreRef::FIXED_FIELD_BUYER])) {
+                $field = $filter['champFixe'];
+                switch ($field) {
+                    case FiltreRef::FIXED_FIELD_CREATED_BY:
+                        $field = 'createdBy';
+                        break;
+                    case FiltreRef::FIXED_FIELD_EDITED_BY:
+                        $field = 'editedBy';
+                        break;
+                    case FiltreRef::FIXED_FIELD_BUYER:
+                        $field = 'buyer';
+                        break;
+                }
+
+                $queryBuilder
+                    ->leftJoin("ra.$field", "filter_$field")
+                    ->andWhere("filter_$field.username LIKE :$field")
+                    ->setParameter($field, '%' . $filter['value'] . '%');
+            } else if($filter['champFixe'] === FiltreRef::FIXED_FIELD_STATUS) {
+                $queryBuilder
+                    ->leftJoin("ra.statut", "filter_status")
+                    ->andWhere("filter_status.nom = :status")
+                    ->setParameter("status", $filter['value']);
             }
             else {
                 // cas particulier champ référence article fournisseur
@@ -329,6 +375,13 @@ class ReferenceArticleRepository extends EntityRepository {
                                         ->andWhere("ra.needsMobileSync = :value$index")
                                         ->setParameter("value$index", $filter['value']);
                                 }
+                                break;
+                            case 'date':
+                                $dateTimeFilter = DateTime::createFromFormat('d/m/Y', $filter['value']);
+                                $dateStrFilter = $dateTimeFilter ? $dateTimeFilter->format('Y-m-d') : null;
+                                $queryBuilder
+                                    ->andWhere("ra." . $field . " LIKE :value" . $index)
+                                    ->setParameter('value' . $index, '%' . $dateStrFilter . '%');
                                 break;
                             case 'text':
                                 $queryBuilder
@@ -503,8 +556,7 @@ class ReferenceArticleRepository extends EntityRepository {
                         default:
                             $field = self::DtToDbLabels[$searchField] ?? $searchField;
                             $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
-                            if (is_numeric($freeFieldId)) {
-                                $freeField = $freeFieldRepository->find($freeFieldId);
+                            if (is_numeric($freeFieldId) && $freeField = $freeFieldRepository->find($freeFieldId)) {
                                 if ($freeField->getTypage() === FreeField::TYPE_BOOL) {
                                     $lowerSearchValue = strtolower($searchValue);
 
@@ -603,6 +655,18 @@ class ReferenceArticleRepository extends EntityRepository {
                             ->leftJoin('ra.buyer', 'order_buyer')
                             ->orderBy('order_buyer.username', $order);
                         break;
+                    case "createdBy":
+                        $orderAddSelect[] = 'order_createdBy.username';
+                        $queryBuilder
+                            ->leftJoin('ra.createdBy', 'order_createdBy')
+                            ->orderBy('order_createdBy.username', $order);
+                        break;
+                    case "editedBy":
+                        $orderAddSelect[] = 'order_editedBy.username';
+                        $queryBuilder
+                            ->leftJoin('ra.editedBy', 'order_editedBy')
+                            ->orderBy('order_editedBy.username', $order);
+                        break;
                     default:
                         $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
                         if(is_numeric($freeFieldId)) {
@@ -664,18 +728,26 @@ class ReferenceArticleRepository extends EntityRepository {
         return $query->getSingleScalarResult();
     }
 
-    public function countByReference($reference, $refId = null): int {
-        $qb = $this->createQueryBuilder("ra")
-            ->select("COUNT(ra)")
-            ->where("ra.reference = :reference")
-            ->setParameter('reference', $reference);
+    public function countByReference($reference, $referenceId = null, string $operator = "="): int {
+        $qb = $this->createQueryBuilder("reference_article")
+            ->select("COUNT(reference_article)");
 
-        if ($refId) {
-            $qb->andWhere("ra.id != :id")
-                ->setParameter('id', $refId);
+        $parameter = $reference;
+        if($operator === "LIKE") {
+            $parameter .= "%";
         }
 
-        return $qb->getQuery()->getSingleScalarResult();
+        $qb->andWhere("reference_article.reference $operator :reference")
+            ->setParameter("reference", $parameter);
+
+        if ($referenceId) {
+            $qb->andWhere("reference_article.id != :id")
+                ->setParameter('id', $referenceId);
+        }
+
+        return $qb
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function getByPreparationsIds($preparationsIds): array
@@ -1214,5 +1286,4 @@ class ReferenceArticleRepository extends EntityRepository {
             ->keymap(fn(ReferenceArticle $reference) => [$reference->getId(), $reference])
             ->toArray();
     }
-
 }

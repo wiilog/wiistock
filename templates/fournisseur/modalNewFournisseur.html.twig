@@ -1,58 +1,40 @@
-<!-- Modal -->
-<form method=""
-      class="modal fade"
-      id="modalNewFournisseur"
-      role="dialog"
-      aria-labelledby="dataModalCenterTitle"
-      aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered"
-         role="document">
+<form class="modal fade" id="modalNewFournisseur" aria-labelledby="dataModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"
-                    id="exampleModalLongTitle">
-                    Nouveau fournisseur
-                </h5>
-                <button type="button"
-                        class="close"
-                        data-dismiss="modal"
-                        aria-label="Close">
+                <h5 class="modal-title" id="exampleModalLongTitle">Nouveau fournisseur</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid">
                 <div class="form-group">
-                    <label for="Nom">
-                        Nom*
-                    </label>
-                    <input type="text"
-                           id="Nom"
-                           class="form-control data needed"
-                           name="Nom">
+                    <label>Nom*</label>
+                    <input type="text" class="form-control data needed" name="name">
                 </div>
 
                 <div class="form-group">
-                    <label for="Code">
-                        Code de référence*
-                    </label>
-                    <input type="text"
-                           id="Code"
-                           class="form-control data needed"
-                           name="Code">
+                    <label>Code de référence*</label>
+                    <input type="text" class="form-control data needed" name="code">
+                </div>
+
+                <div class="row">
+                    <div class="col-6 d-flex align-items-center">
+                        <input class="checkbox data" type="checkbox" name="possibleCustoms">
+                        <span class="font-size-mini pointer ml-2"
+                              onclick="$(this).closest('div').find('.checkbox').click();">Possible douane</span>
+                    </div>
+                    <div class="col-6 d-flex align-items-center">
+                        <input class="checkbox data" type="checkbox" name="urgent">
+                        <span class="font-size-mini pointer ml-2"
+                              onclick="$(this).closest('div').find('.checkbox').click();">Urgent</span>
+                    </div>
                 </div>
             </div>
             <div class="error-msg"></div>
             <div class="modal-footer">
-                <button type="button"
-                        class="btn btn-outline-secondary"
-                        data-dismiss="modal">
-                    Annuler
-                </button>
-                <button id="submitNewFournisseur"
-                        type="button"
-                        class="btn btn-success">
-                    Enregistrer
-                </button>
+                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
+                <button id="submitNewFournisseur" type="button" class="btn btn-success">Enregistrer</button>
             </div>
         </div>
     </div>

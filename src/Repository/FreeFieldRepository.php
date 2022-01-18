@@ -15,11 +15,9 @@ use Doctrine\ORM\NonUniqueResultException;
  * @method FreeField[]    findAll()
  * @method FreeField[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class FreeFieldRepository extends EntityRepository
-{
+class FreeFieldRepository extends EntityRepository {
 
-    public function getByTypeAndRequiredCreate($type)
-    {
+    public function getByTypeAndRequiredCreate($type) {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT c.label, c.id
@@ -29,8 +27,7 @@ class FreeFieldRepository extends EntityRepository
         return $query->getResult();
     }
 
-    public function getByTypeAndRequiredEdit($type)
-    {
+    public function getByTypeAndRequiredEdit($type) {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT c.label, c.id
@@ -72,9 +69,9 @@ class FreeFieldRepository extends EntityRepository
 
     /**
      * @param string $label
-	 * @return FreeField|null
-	 * @throws NonUniqueResultException
-	 */
+     * @return FreeField|null
+     * @throws NonUniqueResultException
+     */
     public function findOneByLabel($label) {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
@@ -87,8 +84,7 @@ class FreeFieldRepository extends EntityRepository
     }
 
     // pour les colonnes dynamiques
-    public function getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, $type)
-    {
+    public function getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, $type) {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT cl.label, cl.id, cl.typage
@@ -101,14 +97,13 @@ class FreeFieldRepository extends EntityRepository
             [
                 'category' => $category,
                 'categorie' => $categorieCL,
-                'text' => $type
+                'text' => $type,
             ]
         );
         return $query->getResult();
     }
 
-    public function countByType($typeId)
-    {
+    public function countByType($typeId) {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT COUNT(cl)
@@ -120,11 +115,10 @@ class FreeFieldRepository extends EntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function deleteByType($typeId)
-    {
+    public function deleteByType($typeId) {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-            /** @lang DQL */
+        /** @lang DQL */
             "DELETE FROM App\Entity\FreeField cl
             WHERE cl.type = :typeId"
         )->setParameter('typeId', $typeId);
@@ -132,8 +126,7 @@ class FreeFieldRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function countByLabel($label)
-    {
+    public function countByLabel($label) {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT COUNT(cl)
@@ -150,13 +143,12 @@ class FreeFieldRepository extends EntityRepository
      * @param string $categorieCLLabel
      * @return FreeField[]
      */
-	public function findByTypeAndCategorieCLLabel($types, $categorieCLLabel)
-	{
-        if (!is_array($types)){
+    public function findByTypeAndCategorieCLLabel($types, $categorieCLLabel) {
+        if(!is_array($types)) {
             $types = [$types];
         }
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
             "SELECT champLibre
             FROM App\Entity\FreeField champLibre
             JOIN champLibre.categorieCL categorieChampLibre
@@ -166,15 +158,15 @@ class FreeFieldRepository extends EntityRepository
         )
             ->setParameter(
                 'types',
-                array_map( function (Type $type) {
+                array_map(function(Type $type) {
                     return $type->getId();
-                } , $types),
+                }, $types),
                 Connection::PARAM_STR_ARRAY
             )
             ->setParameter('categorieCLLabel', $categorieCLLabel);
 
         return $query->execute();
-	}
+    }
 
     /**
      * @param Type $type
@@ -182,9 +174,8 @@ class FreeFieldRepository extends EntityRepository
      * @param bool $creation
      * @return FreeField[]
      */
-	public function getMandatoryByTypeAndCategorieCLLabel($type, $categorieCLLabel, $creation = true)
-	{
-		$qb = $this->createQueryBuilder('c')
+    public function getMandatoryByTypeAndCategorieCLLabel($type, $categorieCLLabel, $creation = true) {
+        $qb = $this->createQueryBuilder('c')
             ->join('c.categorieCL', 'ccl')
             ->where('c.type = :type AND ccl.label = :categorieCLLabel')
             ->setParameters([
@@ -192,21 +183,20 @@ class FreeFieldRepository extends EntityRepository
                 'categorieCLLabel' => $categorieCLLabel,
             ]);
 
-		if ($creation) {
+        if($creation) {
             $qb->andWhere('c.requiredCreate = 1');
         } else {
             $qb->andWhere('c.requiredEdit = 1');
         }
 
-		return $qb->getQuery()->getResult();
-	}
+        return $qb->getQuery()->getResult();
+    }
 
-	/**
-	 * @param int|Type $typeId
-	 * @return FreeField[]
-	 */
-    public function findByType($typeId)
-    {
+    /**
+     * @param int|Type $typeId
+     * @return FreeField[]
+     */
+    public function findByType($typeId) {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT c
@@ -217,33 +207,31 @@ class FreeFieldRepository extends EntityRepository
         return $query->execute();
     }
 
-	/**
-	 * @param string[] $categoryTypeLabels
-	 * @return FreeField[]
-	 */
-	public function findByCategoryTypeLabels(array $categoryTypeLabels)
-	{
-	    return $this->createQueryBuilder('free_field')
+    /**
+     * @param string[] $categoryTypeLabels
+     * @return FreeField[]
+     */
+    public function findByCategoryTypeLabels(array $categoryTypeLabels) {
+        return $this->createQueryBuilder('free_field')
             ->join('free_field.type', 'type')
             ->join('type.category', 'category')
             ->where('category.label IN (:categoryTypeLabels)')
             ->setParameter('categoryTypeLabels', $categoryTypeLabels, Connection::PARAM_STR_ARRAY)
             ->getQuery()
             ->execute();
-	}
+    }
 
     /**
      * @param string[] $categoryCLLabels
      * @return FreeField[]
      */
-	public function findByFreeFieldCategoryLabels(array $categoryCLLabels, ?array $typeCategories = [])
-	{
-		$queryBuilder = $this->createQueryBuilder('freeField')
+    public function findByFreeFieldCategoryLabels(array $categoryCLLabels, ?array $typeCategories = []) {
+        $queryBuilder = $this->createQueryBuilder('freeField')
             ->join('freeField.categorieCL', 'categorieCL')
             ->where('categorieCL.label IN (:categoryCLLabels)')
             ->setParameter('categoryCLLabels', $categoryCLLabels, Connection::PARAM_STR_ARRAY);
 
-        if (!empty($typeCategories)) {
+        if(!empty($typeCategories)) {
             $queryBuilder
                 ->join("freeField.type", "join_type")
                 ->join("join_type.category", "join_type_category")
@@ -254,33 +242,32 @@ class FreeFieldRepository extends EntityRepository
         return $queryBuilder
             ->getQuery()
             ->getResult();
-	}
+    }
 
-	/**
-	 * @param string $categoryCL
-	 * @param string $label
-	 * @return FreeField|null
-	 * @throws NonUniqueResultException
-	 */
-	public function findOneByCategoryCLAndLabel($categoryCL, $label)
-	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			/** @lang DQL */
+    /**
+     * @param string $categoryCL
+     * @param string $label
+     * @return FreeField|null
+     * @throws NonUniqueResultException
+     */
+    public function findOneByCategoryCLAndLabel($categoryCL, $label) {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        /** @lang DQL */
             "SELECT cl
             FROM App\Entity\FreeField cl
             JOIN cl.categorieCL ccl
             WHERE ccl.label = :categoryCL
             AND cl.label = :label"
-		)->setParameters([
-			'categoryCL' => $categoryCL,
-			'label' => $label
-			]);
+        )->setParameters([
+            'categoryCL' => $categoryCL,
+            'label' => $label,
+        ]);
 
-		return $query->getOneOrNullResult();
-	}
+        return $query->getOneOrNullResult();
+    }
 
-	public function deleteByLabel($label){
+    public function deleteByLabel($label) {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "DELETE FROM App\Entity\FreeField cl
@@ -289,8 +276,7 @@ class FreeFieldRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function getIdAndElementsWithMachine()
-    {
+    public function getIdAndElementsWithMachine() {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT c.id, c.elements
@@ -300,21 +286,30 @@ class FreeFieldRepository extends EntityRepository
         return $query->execute();
     }
 
-	/**
-	 * @param string $categoryCL
-	 * @return array
-	 */
-    public function getLabelAndIdByCategory($categoryCL)
-	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			/** @lang DQL */
+    /**
+     * @param string $categoryCL
+     * @return array
+     */
+    public function getLabelAndIdByCategory($categoryCL) {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+        /** @lang DQL */
             "SELECT cl.label as value, cl.id as id
 			FROM App\Entity\FreeField cl
 			JOIN cl.categorieCL cat
 			WHERE cat.label = :categoryCL")
-			->setParameter('categoryCL', $categoryCL);
+            ->setParameter('categoryCL', $categoryCL);
 
-		return $query->execute();
-	}
+        return $query->execute();
+    }
+
+    public function findByCategory(string $category): array {
+        return $this->createQueryBuilder("free_field")
+            ->join("free_field.categorieCL", "category")
+            ->andWhere("category.label = :category")
+            ->setParameter("category", $category)
+            ->getQuery()
+            ->getResult();
+    }
+
 }

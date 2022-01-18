@@ -18,8 +18,8 @@ class FournisseurRepository extends EntityRepository
 {
 
     private const DtToDbLabels = [
-        'Nom' => 'nom',
-        'Code de référence' => 'codeReference',
+        'name' => 'nom',
+        'code' => 'codeReference'
     ];
 
     public function findOneByCodeReference($code)
@@ -106,24 +106,42 @@ class FournisseurRepository extends EntityRepository
     public function getByParams(InputBag $params = null)
     {
         $qb = $this->createQueryBuilder('supplier');
+        $expr = $qb->expr();
 
         $countTotal = QueryCounter::count($qb, 'supplier');
 
         // prise en compte des paramètres issus du datatable
         if (!empty($params)) {
-
             if (!empty($params->get('order'))) {
                 $order = $params->get('order')[0]['dir'];
                 if (!empty($order)) {
+                    $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
                     $qb
-                        ->orderBy('supplier.' . self::DtToDbLabels[$params->get('columns')[$params->get('order')[0]['column']]['data']], $order);
+                        ->orderBy('supplier.' . (self::DtToDbLabels[$column] ?? $column), $order);
                 }
             }
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
+                    $searchOr = $expr->orX(
+                        'supplier.nom LIKE :value',
+                        'supplier.codeReference LIKE :value'
+                    );
+
+                    $searchLowercase = strtolower($search);
+                    if ($searchLowercase === 'oui') {
+                        $searchOr
+                            ->add('supplier.possibleCustoms = true')
+                            ->add('supplier.urgent = true');
+                    }
+                    else if ($searchLowercase === 'non') {
+                        $searchOr
+                            ->add('supplier.possibleCustoms = false')
+                            ->add('supplier.urgent = false');
+                    }
+
                     $qb
-                        ->andWhere('supplier.nom LIKE :value OR supplier.codeReference LIKE :value')
+                        ->andWhere($searchOr)
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
@@ -156,5 +174,11 @@ class FournisseurRepository extends EntityRepository
             ->setParameter('pack', $pack);
 
         return $qb->getQuery()->getOneOrNullResult();
+    }
+
+    public function getForExport(): iterable {
+        return $this->createQueryBuilder("supplier")
+            ->getQuery()
+            ->toIterable();
     }
 }

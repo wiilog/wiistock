@@ -18,18 +18,20 @@
                         <div class="form-group col w-100">
                             <label
                                 for="fournisseur">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'requiredCreate') ? '*' : '' }}</label>
-                            <select
-                                class="no-clear form-control input-sm data select2 ajax-autocomplete-fournisseur {{ fieldsParam|isFieldRequired('fournisseur', 'requiredCreate') ? 'needed' : '' }}"
-                                name="fournisseur"
-                                id="fournisseur">
+                            <select class="no-clear form-control input-sm data select2 ajax-autocomplete-fournisseur {{ fieldsParam|isFieldRequired('fournisseur', 'requiredCreate') ? 'needed' : '' }}"
+                                    name="fournisseur"
+                                    id="fournisseur">
                                 <option selected disabled>&nbsp;</option>
                                 {% for fournisseur in fournisseurs %}
-                                    <option value="{{ fournisseur.id }}">{{ fournisseur.nom }}</option>
+                                    <option value="{{ fournisseur.id }}"
+                                            data-possible-customs="{{ fournisseur.possibleCustoms ? 1 : 0 }}">
+                                        {{ fournisseur.nom }}
+                                    </option>
                                 {% endfor %}
                             </select>
                         </div>
                         {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
-                            <div class="form-group col-1 toggle-button-container">
+                            <div class="form-group col-auto toggle-button-container">
                                 <span class="btn btn-primary"
                                       onclick="onFlyFormToggle('fournisseurDisplay', 'addFournisseur')">
                                     <i class="fa fa-plus"></i>
@@ -51,7 +53,7 @@
                             </select>
                         </div>
                         {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
-                            <div class="form-group col-1 toggle-button-container">
+                            <div class="form-group col-auto toggle-button-container">
                                 <span class="btn btn-primary"
                                       onclick="onFlyFormToggle('transporteurDisplay', 'addTransporteur')">
                                     <i class="fa fa-plus"></i>
@@ -74,7 +76,7 @@
                             </select>
                         </div>
                         {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
-                            <div class="form-group col-1 toggle-button-container">
+                            <div class="form-group col-auto toggle-button-container">
                                 <span class="btn btn-primary"
                                       onclick="onFlyFormToggle('chauffeurDisplay', 'addChauffeur')">
                                     <i class="fa fa-plus"></i>
@@ -225,9 +227,9 @@
                         <div class="error-empty-status d-none">
                             {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
                                 array: [],
-                                warningLabel: 'Attention ! Aucun statut pour ce type.',
+                                warningLabel: 'Attention ! Aucun statut pour ce type',
                                 redirectPath: path('status_param_index'),
-                                redirectLabel: 'Créer un statut.'
+                                redirectLabel: 'Créer un statut'
                             } %}
                         </div>
                     </div>
@@ -340,7 +342,7 @@
                         <div class="col-12">
                             {% include 'parametrage_global/warningSelectEmpty.html.twig' with {
                                 array: natures,
-                                warningLabel: 'Attention ! Aucune nature ' ~ ('arrivage.de colis'|trans) ~ ' n\'a été créée.',
+                                warningLabel: 'Attention ! Aucune nature ' ~ ('arrivage.de colis'|trans) ~ ' n\'a été créée',
                                 redirectPath: path('nature_param_index'),
                                 redirectLabel: 'Aller vers la création des natures',
                                 title: 'de colis'
