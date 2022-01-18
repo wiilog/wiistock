@@ -69,12 +69,14 @@ $(document).ready(() => {
             Flash.add(`info`, `Mise à jour des paramétrage en cours, cette opération peut prendre quelques minutes`, false);
         }
 
+        $saveButton.pushLoader('white');
         await AJAX.route(`POST`, `settings_save`)
             .json(data)
             .then(() => {
                 for(const table of tablesToReload) {
                     table.toggleEdit(false, true);
                 }
+                $saveButton.popLoader();
             });
     });
 });
@@ -126,8 +128,10 @@ function updateTitle(selectedMenu, canEdit) {
         console.log(initializers[path] ? `Initializiing ${path}` : `No initializer for ${path}`);
     }
 
-    $(`#page-title`).html(title);
-    document.title = `Paramétrage | ${title}`;
+    const $pageTitle = $(`#page-title`);
+    $pageTitle.html(title);
+    const textTitle = $pageTitle.text();
+    document.title = `Paramétrage | ${textTitle}`;
 
     history.pushState({}, title, Routing.generate(`settings_item`, {
         category,

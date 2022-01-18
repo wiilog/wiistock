@@ -60,7 +60,7 @@
     </label>
 {% endmacro %}
 
-{% macro checkbox(name, label, required, value = 1, options = {}) %}
+{% macro checkbox(name, label, required, value = true, options = {}) %}
     {% set id = options.id ?? ('checkbox-' ~ random(100000, 10000000)) %}
     <div class="wii-checkbox">
         <input type="checkbox" id="{{ id }}" class="data"

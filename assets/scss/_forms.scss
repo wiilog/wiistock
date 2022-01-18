@@ -214,77 +214,12 @@ $wii-switch-height: $input-height;
 }
 
 .wii-checkbox {
-    width: 100%;
-    margin: 15px auto;
-    position: relative;
-    display: block;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    font-weight: normal;
 
-    label {
-        position: relative;
-        min-height: 20px;
-        display: block;
-        padding-left: 25px;
-        margin-bottom: 0;
-        font-weight: normal;
-        cursor: pointer;
-
-        span {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-
-        &:before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            margin: 2px 4px 4px;
-            width: 15px;
-            height: 15px;
-            transition: transform 0.28s ease;
-            border-radius: 3px;
-            border: 2px solid $primary;
-        }
-
-        &:after {
-            content: '';
-            display: block;
-            width: 6px;
-            height: 7px;
-            border-bottom: 2px solid white;
-            border-left: 2px solid white;
-            transform: rotate(-45deg) scale(0);
-            transition: transform ease 0.25s;
-            position: absolute;
-            border-radius: 2px;
-            top: 5px;
-            left: 8px;
-        }
-    }
-
-    input[type="checkbox"] {
-        width: auto;
-        opacity: 0.00000001;
-        position: absolute;
-        left: 0;
-        margin-left: -20px;
-
-        &:checked ~ label {
-            &:before {
-                border: 2px solid $primary;
-                background: $primary;
-            }
-
-            &:after {
-                transform: rotate(45deg) scaleX(-1);
-            }
-        }
-
-        &:focus + label::before {
-            outline: 0;
-        }
-    }
+    display: flex;
+    align-items: center;
 }
 
 label, .wii-checkbox, .wii-radio {
