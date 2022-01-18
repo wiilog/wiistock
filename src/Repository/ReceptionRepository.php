@@ -32,18 +32,6 @@ class ReceptionRepository extends EntityRepository
         'dateAttendue' =>'dateAttendue'
     ];
 
-	public function countByFournisseur($fournisseurId)
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-			"SELECT COUNT(r)
-			FROM App\Entity\Reception r
-			WHERE r.fournisseur = :fournisseurId"
-		)->setParameter('fournisseurId', $fournisseurId);
-
-		return $query->getSingleScalarResult();
-	}
-
     public function getLastNumberByDate(string $date): ?string {
         $result = $this->createQueryBuilder('reception')
             ->select('reception.number AS number')

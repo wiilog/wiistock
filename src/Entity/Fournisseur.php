@@ -66,6 +66,11 @@ class Fournisseur
      */
     private bool $possibleCustoms = false;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Urgence::class, mappedBy="provider")
+     */
+    private Collection $emergencies;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -73,6 +78,7 @@ class Fournisseur
         $this->receptionReferenceArticles = new ArrayCollection();
         $this->arrivages = new ArrayCollection();
         $this->purchaseRequestLines = new ArrayCollection();
+        $this->emergencies = new ArrayCollection();
     }
 
     public function getId() : ? int
@@ -310,6 +316,42 @@ class Fournisseur
 
     public function setPossibleCustoms(bool $possibleCustoms): self {
         $this->possibleCustoms = $possibleCustoms;
+        return $this;
+    }
+
+    public function getEmergencies(): Collection {
+        return $this->emergencies;
+    }
+
+    public function addEmergency(Urgence $emergency): self {
+        if (!$this->emergencies->contains($emergency)) {
+            $this->emergencies[] = $emergency;
+            $emergency->setProvider($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEmergency(Urgence $emergency): self {
+        if ($this->emergencies->removeElement($emergency)) {
+            if ($emergency->getProvider() === $this) {
+                $emergency->setProvider(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setEmergencies(?array $emergencies): self {
+        foreach($this->getEmergencies()->toArray() as $emergency) {
+            $this->removeEmergency($emergency);
+        }
+
+        $this->emergencies = new ArrayCollection();
+        foreach($emergencies as $emergency) {
+            $this->addEmergency($emergency);
+        }
+
         return $this;
     }
 

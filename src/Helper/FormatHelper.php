@@ -113,8 +113,8 @@ class FormatHelper {
         return $pack ? $pack->getCode() : $else;
     }
 
-    public static function provider(?Fournisseur $provider, $else = "") {
-        return $provider ? $provider->getNom() : $else;
+    public static function supplier(?Fournisseur $supplier, $else = "") {
+        return $supplier ? $supplier->getNom() : $else;
     }
 
     public static function location(?Emplacement $location, $else = "") {
