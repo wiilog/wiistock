@@ -5,7 +5,6 @@ $(function() {
 
     const filtersContainer = $('.filters-container');
 
-    Select2Old.init($('#statut'), 'Statuts');
     Select2Old.init(filtersContainer.find('.filter-select2[name="carriers"]'), 'Transporteurs');
     Select2Old.init(filtersContainer.find('.filter-select2[name="emergencyMultiple"]'), 'Urgences');
     Select2Old.dispatch(filtersContainer.find('.filter-select2[name="dispatchNumber"]'), 'Numéro de demande');

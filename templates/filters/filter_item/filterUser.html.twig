@@ -4,8 +4,12 @@
 <div class="col-auto m-1 select-filter pr-0">
     <div class="select2-overflow">
         <div class="input-group w-100 cursor-default">
-            <select class="form-control data ajax-autocomplete-user filter-select2" name="{{ name }}"
-                    multiple="multiple" {{ disabled }}>
+            <select class="form-control data ajax-autocomplete-user filter-select2"
+                    data-s2="user"
+                    data-placeholder="Utilisateurs"
+                    name="{{ name }}"
+                    multiple="multiple"
+                    {{ disabled }}>
                 {% for manager in managersFilter %}
                     <option selected value="{{ manager.id }}">{{ manager.username }}</option>
                 {% endfor %}

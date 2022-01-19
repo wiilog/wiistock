@@ -5,7 +5,6 @@ $(function () {
     $('.select2').select2();
 
     initDateTimePicker();
-    Select2Old.init($('#statut'), 'Statuts');
     Select2Old.articleReference($('.ajax-autocomplete'));
     Select2Old.user('Utilisateurs');
 
