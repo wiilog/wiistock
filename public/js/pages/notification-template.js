@@ -196,7 +196,7 @@ function onTemplateTypeChange($select) {
         $modal.find('.is-invalid').removeClass('is-invalid');
 
         if(type === 'mail' || type === 'push') {
-            updateImagePreview('#preview-mail-image', '#upload-mail-image');
+            $('#upload-mail-image').on('change', () => updateImagePreview('#preview-mail-image', '#upload-mail-image'));
             initEditor('.editor-container');
         } else if(type === 'sms') {
             const $input = $('input[name=receivers]');
