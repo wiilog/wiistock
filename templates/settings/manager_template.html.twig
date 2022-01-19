@@ -1,0 +1,42 @@
+{% import 'form.html.twig' as form %}
+
+<div class="w-100">
+    <div class="wii-box mt-15px">
+        <div class="header wii-title">{% block title %}{% endblock %}</div>
+        <div class="content focus-shadow">
+            {% block filters %}{% endblock %}
+        </div>
+    </div>
+
+    <div class="wii-box">
+        <div class="row p-2">
+            <div class="ml-3 col-auto d-flex justify-content-center align-items-center">
+                <button class="btn btn-silent delete-main-entity">
+                    <i class="wii-icon wii-icon-trash text-primary"></i>
+                </button>
+            </div>
+            <div class="col">
+                <div class="row main-entity-content"></div>
+            </div>
+            <div class="col-auto d-flex justify-content-center align-items-center mr-2">
+                <button class="btn btn-primary edit-button">
+                    <i class="fa fa-pen mr-2"></i> Modifier
+                </button>
+            </div>
+        </div>
+
+        <section class="mt-0 px-5">{% block subtitle %}{% endblock %}</section>
+
+        <div class="p-4">
+            <div class="row">
+                <div class="col-12">
+                    <table class="table subentities-table w-100"></table>
+                </div>
+            </div>
+        </div>
+
+        {% block footer %}{% endblock %}
+    </div>
+</div>
+
+

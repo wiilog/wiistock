@@ -14,8 +14,7 @@
         <aside class="wii-box">
             {% for key, label in parent.menus %}
                 {% if label is iterable %}
-                    <a href="{{ path(label.route is defined ? label.route : 'settings_item', label.route is not defined ? {category, menu: selected} : []) }}"
-                       class="settings-item">
+                    <a href="{{ path(label.route is defined ? label.route : 'settings_item', label.route is not defined ? {category, menu: key} : []) }}" class="settings-item">
                         {{ label.label }}
                     </a>
                 {% else %}
@@ -29,16 +28,29 @@
         <main>
             {% for key, label in parent.menus %}
                 {% if label is not iterable %}
-                    <div class="wii-box {{ key != selected ? 'd-none' }}"
-                         data-path="{{ category }}_{{ submenu ? menu : key }}{{ submenu ? '_' ~ key : '' }}"
-                         data-menu="{{ key }}">
-                        <div class="header wii-title">{{ label }}</div>
-                        <div class="content focus-shadow">
+                    {% set fetcher = submenu ? (values[category][menu][key] ?? []) : (values[category][key] ?? []) %}
+
+                    {% if path ~ key not in ['settings/donnees/imports', 'settings/stock/articles/types_champs_libres'] %}
+                        <div class="wii-box {{ key != selected ? 'd-none' }}"
+                             data-path="{{ category }}_{{ submenu ? menu : key }}{{ submenu ? '_' ~ key : '' }}"
+                             data-menu="{{ key }}">
+                            <div class="header wii-title">{{ label }}</div>
+                            <div class="content focus-shadow">
+                                {% dump values %}
+                                {% include [path ~ key ~ '.html.twig', 'settings/todo.html.twig'] with {
+                                    page: path ~ key ~ '.html.twig'
+                                } | merge(fetcher ? call(fetcher) : []) %}
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="{{ key != selected ? 'd-none' }}"
+                             data-path="{{ category }}_{{ submenu ? menu : key }}{{ submenu ? '_' ~ key : '' }}"
+                             data-menu="{{ key }}">
                             {% include [path ~ key ~ '.html.twig', 'settings/todo.html.twig'] with {
                                 page: path ~ key ~ '.html.twig'
-                            } | merge(submenu ? (values[category][menu][key] ?? []) : (values[category][key] ?? [])) %}
+                            } | merge(fetcher ? call(fetcher) : []) %}
                         </div>
-                    </div>
+                    {% endif %}
                 {% endif %}
             {% endfor %}
 

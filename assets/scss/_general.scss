@@ -183,6 +183,10 @@ a {
     max-width: 250px;
 }
 
+.maxw-150px {
+    max-width: 150px !important;
+}
+
 .minw-150px {
     min-width: 150px !important;
 }
@@ -844,4 +848,12 @@ label.required:after {
     .flag {
         margin: 0 10px;
     }
+}
+
+.d-grid {
+    display: grid !important;
+}
+
+.d-grid {
+    display: grid !important;
 }

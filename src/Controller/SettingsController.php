@@ -4,15 +4,21 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\CategorieCL;
+use App\Entity\CategorieStatut;
+use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
 use App\Entity\FreeField;
+use App\Entity\Import;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
+use App\Entity\Statut;
+use App\Entity\Type;
 use App\Entity\WorkFreeDay;
 use App\Helper\FormatHelper;
 use App\Service\SettingsService;
 use App\Service\SpecificService;
 use App\Service\UserService;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -284,6 +290,7 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/afficher/{category}/{menu}/{submenu}", name="settings_item", options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB})
      */
     public function item(string $category, string $menu, ?string $submenu = null): Response {
         if($submenu) {
@@ -319,18 +326,18 @@ class SettingsController extends AbstractController {
 
     public function customValues(): array {
         $mailerServerRepository = $this->manager->getRepository(MailerServer::class);
+        $typeRepository = $this->manager->getRepository(Type::class);
         $freeFieldRepository = $this->manager->getRepository(FreeField::class);
+        $statusRepository = $this->manager->getRepository(Statut::class);
 
         return [
             self::CATEGORY_GLOBAL => [
-                self::MENU_SITE_APPEARANCE => [],
                 self::MENU_CLIENT => [
                     "current_client" => $this->specificService->getAppClient(),
                 ],
-                self::MENU_MAIL_SERVER => [
+                self::MENU_MAIL_SERVER => fn() => [
                     "mailer_server" => $mailerServerRepository->findOneBy([]),
                 ],
-                self::MENU_LABELS => [],
             ],
             self::CATEGORY_STOCK => [
                 self::MENU_ALERTS => [],
@@ -340,8 +347,51 @@ class SettingsController extends AbstractController {
                             ->keymap(fn(FreeField $field) => [$field->getLabel(), $field->getLabel()])
                             ->toArray(),
                     ],
+                    self::MENU_TYPES_FREE_FIELDS => function() use ($typeRepository) {
+                        $types = Stream::from($typeRepository->findByCategoryLabels([CategoryType::ARTICLE]))
+                            ->map(fn(Type $type) => [
+                                "label" => $type->getLabel(),
+                                "value" => $type->getId(),
+                            ])
+                            ->toArray();
+
+                        $types[0]["checked"] = true;
+
+                        $categorieCLRepository = $this->manager->getRepository(CategorieCL::class);
+                        $categories = Stream::from($categorieCLRepository->findByLabel([CategorieCL::ARTICLE, CategorieCL::REFERENCE_ARTICLE]))
+                            ->map(fn(CategorieCL $category) => "<option value='{$category->getId()}'>{$category->getLabel()}</option>")
+                            ->join("");
+
+                        $defaultValue = $this->renderView("form_element.html.twig", [
+                            "element" => "switch",
+                            "arguments" => [
+                                "defaultValue",
+                                null,
+                                false,
+                                [
+                                    ["label" => "Oui", "value" => 1],
+                                    ["label" => "Non", "value" => 0],
+                                    ["label" => "Aucune", "value" => ""],
+                                ]
+                            ],
+                        ]);
+
+                        return [
+                            "types" => $types,
+                            "categories" => "<select name='category' class='form-control data'>$categories</select>",
+                            "default_value" => $defaultValue,
+                        ];
+                    },
                 ],
             ],
+            self::CATEGORY_DATA => [
+                self::MENU_IMPORTS => fn() => [
+                    "statuts" => $statusRepository->findByCategoryNameAndStatusCodes(
+                        CategorieStatut::IMPORT,
+                        [Import::STATUS_PLANNED, Import::STATUS_IN_PROGRESS, Import::STATUS_CANCELLED, Import::STATUS_FINISHED]
+                    ),
+                ],
+            ]
         ];
     }
 
@@ -441,6 +491,202 @@ class SettingsController extends AbstractController {
         return $this->json([
             "success" => true,
             "msg" => "Le jour non travaillé a été supprimé",
+        ]);
+    }
+
+    /**
+     * @Route("/champs-libes/{type}/header", name="settings_free_field_header", options={"expose"=true})
+     */
+    public function freeFieldHeader(Request $request, Type $type): Response {
+        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
+
+        if($edit) {
+            $data = [[
+                "label" => "Description",
+                "value" => "<input name='description' class='data form-control' value='{$type->getDescription()}'>",
+            ], [
+                "label" => "Couleur",
+                "value" => "
+                    <input type='color' class='form-control wii-color-picker data' name='color' value='{$type->getColor()}' list='type-color-{$type->getId()}'/>
+                    <datalist id='type-color-{$type->getId()}'>
+                        <option>#D76433</option>
+                        <option>#D7B633</option>
+                        <option>#A5D733</option>
+                        <option>#33D7D1</option>
+                        <option>#33A5D7</option>
+                        <option>#3353D7</option>
+                        <option>#6433D7</option>
+                        <option>#D73353</option>
+                    </datalist>",
+            ]];
+        } else {
+            $data = [[
+                "label" => "Description",
+                "value" => $type->getDescription(),
+            ], [
+                "label" => "Couleur",
+                "value" => "<div class='dt-type-color' style='background: {$type->getColor()}'></div>",
+            ]];
+        }
+
+        return $this->json([
+            "success" => true,
+            "data" => $data,
+        ]);
+    }
+
+    /**
+     * @Route("/champs-libes/{type}", name="settings_free_field_api", options={"expose"=true})
+     */
+    public function freeFieldApi(Request $request, EntityManagerInterface $manager, Type $type): Response {
+        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
+
+        $class = "form-control data";
+
+        $categorieCLRepository = $manager->getRepository(CategorieCL::class);
+        $categories = Stream::from($categorieCLRepository->findByLabel([CategorieCL::ARTICLE, CategorieCL::REFERENCE_ARTICLE]))
+            ->map(fn(CategorieCL $category) => "<option value='{$category->getId()}'>{$category->getLabel()}</option>")
+            ->join("");
+
+        $rows = [];
+        foreach($type->getChampsLibres() as $freeField) {
+            if($freeField->getTypage() === FreeField::TYPE_BOOL) {
+                $typageCLFr = "Oui/Non";
+            } else if($freeField->getTypage() === FreeField::TYPE_NUMBER) {
+                $typageCLFr = "Nombre";
+            } else if($freeField->getTypage() === FreeField::TYPE_TEXT) {
+                $typageCLFr = "Texte";
+            } else if($freeField->getTypage() === FreeField::TYPE_LIST) {
+                $typageCLFr = "Liste";
+            } else if($freeField->getTypage() === FreeField::TYPE_DATE) {
+                $typageCLFr = "Date";
+            } else if($freeField->getTypage() === FreeField::TYPE_DATETIME) {
+                $typageCLFr = "Date et heure";
+            } else if($freeField->getTypage() === FreeField::TYPE_LIST_MULTIPLE) {
+                $typageCLFr = "Liste multiple";
+            } else {
+                $typageCLFr = "";
+            }
+
+            $defaultValue = null;
+            if($freeField->getTypage() == FreeField::TYPE_BOOL) {
+                if(!$edit) {
+                    $defaultValue = ($freeField->getDefaultValue() === null || $freeField->getDefaultValue() === "")
+                        ? "" : ($freeField->getDefaultValue() ? "Oui" : "Non");
+                } else {
+                    if($freeField->getDefaultValue() === "") {
+                        $freeField->setDefaultValue(null);
+                    }
+
+                    $defaultValue = $this->renderView("form_element.html.twig", [
+                        "element" => "switch",
+                        "arguments" => [
+                            "defaultValue",
+                            null,
+                            false,
+                            [
+                                ["label" => "Oui", "value" => 1],
+                                ["label" => "Non", "value" => 0],
+                                ["label" => "Aucune", "value" => ""],
+                            ]
+                        ],
+                    ]);
+                }
+            } else if($freeField->getTypage() === FreeField::TYPE_DATETIME || $freeField->getTypage() === FreeField::TYPE_DATE) {
+                $defaultValueDate = new DateTime(str_replace("/", "-", $freeField->getDefaultValue())) ?: null;
+                if(!$edit) {
+                    $defaultValue = $defaultValueDate ? $defaultValueDate->format('d/m/Y H:i') : "";
+                } else {
+                    if($freeField->getTypage() === FreeField::TYPE_DATETIME) {
+                        $defaultValueDate = $defaultValueDate ? $defaultValueDate->format("Y-m-d\\TH:i") : "";
+                        $defaultValue = "<input type='datetime-local' name='defaultValue' class='$class' value='$defaultValueDate'/>";
+                    } else {
+                        $defaultValueDate = $defaultValueDate ? $defaultValueDate->format("Y-m-d") : "";
+                        $defaultValue = "<input type='date' name='defaultValue' class='$class' value='$defaultValueDate'/>";
+                    }
+                }
+            } else if($edit && $freeField->getTypage() === FreeField::TYPE_LIST) {
+                $options = Stream::from($freeField->getElements())
+                    ->map(fn(string $value) => "<option value='$value' " . ($value === $freeField->getDefaultValue() ? "selected" : "") . ">$value</option>")
+                    ->join("");
+
+                $defaultValue = "<select name='defaultValue' class='form-control data' data-global-error='Valeur par défaut'>$options</select>";
+            } else if ($freeField->getTypage() !== FreeField::TYPE_LIST_MULTIPLE) {
+                if(!$edit) {
+                    $defaultValue = $freeField->getDefaultValue();
+                } else {
+                    $inputType = $freeField->getTypage() === FreeField::TYPE_NUMBER ? "number" : "text";
+                    $defaultValue = "<input type='$inputType' name='defaultValue' class='$class' value='{$freeField->getDefaultValue()}'/>";
+                }
+            }
+
+            if($edit) {
+                $displayedCreate = $freeField->getDisplayedCreate() ? "checked" : "";
+                $requiredCreate = $freeField->getRequiredCreate() ? "checked" : "";
+                $requiredEdit = $freeField->getRequiredEdit() ? "checked" : "";
+                $elements = join(";", $freeField->getElements());
+
+                $rows[] = [
+                    "id" => $freeField->getId(),
+                    "actions" => "<input type='hidden' class='$class' name='id' value='{$freeField->getId()}'>
+                        <button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>",
+                    "label" => "<input type='text' name='label' class='$class' value='{$freeField->getLabel()}' required/>",
+                    "appliesTo" => "<select name='category' class='$class' required>$categories</select>",
+                    "type" => $typageCLFr,
+                    "displayedCreate" => "<input type='checkbox' name='displayedCreate' class='$class' $displayedCreate/>",
+                    "requiredCreate" => "<input type='checkbox' name='requiredCreate' class='$class' $requiredCreate/>",
+                    "requiredEdit" => "<input type='checkbox' name='requiredEdit' class='$class' $requiredEdit/>",
+                    "defaultValue" => $defaultValue,
+                    "elements" => $freeField->getTypage() == FreeField::TYPE_LIST || $freeField->getTypage() == FreeField::TYPE_LIST_MULTIPLE
+                        ? "<input type='text' name='elements' class='$class' value='$elements'/>"
+                        : "",
+                ];
+            } else {
+                $rows[] = [
+                    "id" => $freeField->getId(),
+                    "actions" => "<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>",
+                    "label" => $freeField->getLabel() ?: 'Non défini',
+                    "appliesTo" => $freeField->getCategorieCL() ? ucfirst($freeField->getCategorieCL()->getLabel()) : "",
+                    "type" => $typageCLFr,
+                    "displayedCreate" => ($freeField->getDisplayedCreate() ? "oui" : "non"),
+                    "requiredCreate" => ($freeField->getRequiredCreate() ? "oui" : "non"),
+                    "requiredEdit" => ($freeField->getRequiredEdit() ? "oui" : "non"),
+                    "defaultValue" => $defaultValue,
+                    "elements" => $freeField->getTypage() == FreeField::TYPE_LIST || $freeField->getTypage() == FreeField::TYPE_LIST_MULTIPLE ? $this->renderView('free_field/freeFieldElems.html.twig', ['elems' => $freeField->getElements()]) : '',
+                ];
+            }
+        }
+
+        if($edit) {
+            $rows[] = [
+                "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
+                "label" => "",
+                "appliesTo" => "",
+                "type" => "",
+                "displayedCreate" => "",
+                "requiredCreate" => "",
+                "requiredEdit" => "",
+                "defaultValue" => "",
+                "elements" => "",
+            ];
+        }
+
+        return $this->json([
+            "data" => $rows,
+        ]);
+    }
+
+    /**
+     * @Route("/champ-libre/supprimer/{entity}", name="settings_free_field_delete", options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::DELETE})
+     */
+    public function deleteFreeField(EntityManagerInterface $manager, FreeField $entity) {
+        $manager->remove($entity);
+        $manager->flush();
+
+        return $this->json([
+            "success" => true,
+            "msg" => "Le champ libre a été supprimé",
         ]);
     }
 

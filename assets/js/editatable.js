@@ -1,14 +1,15 @@
 export const MODE_NO_EDIT = 1;
-export const MODE_DOUBLE_CLICK = 2;
-export const MODE_ADD_ONLY = 3;
-export const MODE_EDIT = 4;
+export const MODE_MANUAL = 2;
+export const MODE_DOUBLE_CLICK = 3;
+export const MODE_ADD_ONLY = 4;
+export const MODE_EDIT = 5;
 
 export const SAVE_FOCUS_OUT = 1;
 export const SAVE_MANUALLY = 2;
 
-const STATE_VIEWING = 1;
-const STATE_EDIT = 2;
-const STATE_ADD = 2;
+export const STATE_VIEWING = 1;
+export const STATE_EDIT = 2;
+export const STATE_ADD = 3;
 
 const datatables = {};
 
@@ -22,18 +23,21 @@ export default class EditableDatatable {
         const $element = $(id);
         const $parent = $element.parent();
 
+        if(config.name) {
+            $element.attr(`data-table-processing`, config.name)
+        }
+
         const datatable = new EditableDatatable();
         datatable.element = $element;
         datatable.config = config;
         datatable.state = config.edit === MODE_EDIT ? STATE_EDIT : STATE_VIEWING;
-        datatable.editable = config.edit === MODE_EDIT;
         datatable.table = initDataTable(datatable.element, {
             serverSide: false,
             ajax: {
                 type: `GET`,
                 url: config.route,
                 data: data => {
-                    data.edit = datatable.editable;
+                    data.edit = datatable.state !== STATE_VIEWING;
                 },
             },
             rowConfig: {
@@ -42,7 +46,7 @@ export default class EditableDatatable {
             domConfig: {
                 removeInfo: true,
             },
-            ordering: datatable.editable,
+            ordering: datatable.state !== STATE_VIEWING,
             paging: config.paginate,
             searching: config.search ?? false,
             scrollY: false,
@@ -65,9 +69,8 @@ export default class EditableDatatable {
 
                 if(config.edit === MODE_DOUBLE_CLICK) {
                     $rows.off(`dblclick.${id}.startEdit`).on(`dblclick.${id}.startEdit`, function() {
-                        if(!datatable.editable) {
-                            datatable.editable = true;
-                            datatable.toggleEdit(true, true);
+                        if(datatable.state === STATE_VIEWING) {
+                            datatable.toggleEdit(STATE_EDIT, true);
                         }
                     });
                 }
@@ -86,6 +89,7 @@ export default class EditableDatatable {
                             return;
                         }
 
+                        config.state = STATE_VIEWING;
                         config.onEditStop();
                         datatable.save($row);
                     });
@@ -117,26 +121,24 @@ export default class EditableDatatable {
             columns: config.columns,
         });
 
-        if(datatable.editable) {
-            datatable.toggleEdit(true);
+        if(datatable.state !== STATE_VIEWING) {
+            datatable.toggleEdit(STATE_EDIT);
         }
 
-        if(config.edit === MODE_ADD_ONLY) {
-            $element.on(`click`, `tr`, function() {
-                const $row = $(this);
-                if(!$row.find(`.add-row`).exists()) {
-                    return;
-                }
+        $element.on(`click`, `tr`, function() {
+            const $row = $(this);
+            if(!$row.find(`.add-row`).exists()) {
+                return;
+            }
 
-                const row = datatable.table.row($row);
-                const data = row.data();
+            const row = datatable.table.row($row);
+            const data = row.data();
 
-                row.remove();
-                datatable.table.row.add(Object.assign({}, config.form));
-                datatable.table.row.add(data);
-                datatable.table.draw();
-            });
-        }
+            row.remove();
+            datatable.table.row.add(Object.assign({}, config.form));
+            datatable.table.row.add(data);
+            datatable.table.draw();
+        });
 
         $element.on(`click`, `.delete-row`, function() {
             const $button = $(this);
@@ -190,9 +192,7 @@ export default class EditableDatatable {
         row[Object.keys(row)[0]] = `<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>`;
 
         if(this.state !== STATE_ADD) {
-            this.state = STATE_ADD;
-
-            this.toggleEdit(true);
+            this.toggleEdit(STATE_ADD);
             this.table.clear();
         } else {
             this.table.row(':last').remove();
@@ -203,14 +203,20 @@ export default class EditableDatatable {
         this.table.draw();
     }
 
-    toggleEdit(edit, reload = false) {
+    setURL(url) {
+        this.table.ajax.url(url).load();
+    }
+
+    toggleEdit(state = this.state === STATE_VIEWING ? STATE_EDIT : STATE_VIEWING, reload = false) {
+        this.state = state;
+
         if(reload) {
             this.table.clear();
             this.table.draw();
             this.table.ajax.reload();
         }
 
-        if(edit) {
+        if(state !== STATE_VIEWING) {
             if(this.config.onEditStart) {
                 this.config.onEditStart();
             }
