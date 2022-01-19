@@ -43,6 +43,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use App\Helper\FormatHelper;
+use WiiCommon\Helper\Stream;
 
 /**
  * @Route("/article")
@@ -318,6 +319,20 @@ class ArticleController extends AbstractController
                     $entityManager->remove($mouvementStock);
                 }
                 $entityManager->flush();
+
+                /** @var DeliveryRequestArticleLine[] $line */
+                $lines = $article->getDeliveryRequestLines()->toArray();
+
+                $requests = Stream::from($lines)
+                    ->map(fn(DeliveryRequestArticleLine $line) => $line->getRequest())
+                    ->filter()
+                    ->unique()
+                    ->values();
+
+                /** @var Request $request */
+                foreach ($requests as $request) {
+                    $entityManager->remove($request);
+                }
 
                 /** @var DeliveryRequestArticleLine $line */
                 foreach ($article->getDeliveryRequestLines()->toArray() as $line) {
