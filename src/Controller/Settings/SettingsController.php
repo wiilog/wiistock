@@ -144,7 +144,7 @@ class SettingsController extends AbstractController {
         ],
         self::CATEGORY_MOBILE => [
             "label" => "Terminal mobile",
-            "icon" => "accueil",
+            "icon" => "menu-terminal-mobile",
             "right" => Action::SETTINGS_MOBILE,
             "menus" => [
                 self::MENU_DISPATCHES => ["label" => "Acheminements"],
@@ -156,7 +156,7 @@ class SettingsController extends AbstractController {
         ],
         self::CATEGORY_DASHBOARDS => [
             "label" => "Dashboards",
-            "icon" => "accueil",
+            "icon" => "menu-dashboard",
             "right" => Action::SETTINGS_DASHBOARDS,
             "menus" => [
                 self::MENU_FULL_SETTINGS => [
@@ -167,15 +167,15 @@ class SettingsController extends AbstractController {
         ],
         self::CATEGORY_IOT => [
             "label" => "IoT",
-            "icon" => "accueil",
+            "icon" => "menu-iot",
             "right" => Action::SETTINGS_IOT,
             "menus" => [
-                self::MENU_TYPES_FREE_FIELDS => "Types et champs libres",
+                self::MENU_TYPES_FREE_FIELDS => ["label" => "Types et champs libres"],
             ],
         ],
         self::CATEGORY_NOTIFICATIONS => [
             "label" => "Modèles de notifications",
-            "icon" => "accueil",
+            "icon" => "menu-notification",
             "right" => Action::SETTINGS_NOTIFICATIONS,
             "menus" => [
                 self::MENU_ALERTS => ["label" => "Alertes"],
@@ -184,7 +184,7 @@ class SettingsController extends AbstractController {
         ],
         self::CATEGORY_USERS => [
             "label" => "Utilisateurs",
-            "icon" => "accueil",
+            "icon" => "user",
             "right" => Action::SETTINGS_USERS,
             "menus" => [
                 self::MENU_LANGUAGES => [
@@ -197,7 +197,7 @@ class SettingsController extends AbstractController {
         ],
         self::CATEGORY_DATA => [
             "label" => "Données",
-            "icon" => "accueil",
+            "icon" => "menu-donnees",
             "right" => Action::SETTINGS_DATA,
             "menus" => [
                 self::MENU_CSV_EXPORTS => ["label" => "Exports CSV"],
