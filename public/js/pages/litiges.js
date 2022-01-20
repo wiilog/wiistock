@@ -13,7 +13,6 @@ let tableArticleLitige;
 $(function () {
     initDateTimePicker();
     Select2Old.init($('#carriers'), 'Transporteurs');
-    Select2Old.init($('#statut'), 'Statuts');
     Select2Old.init($('#litigeOrigin'), 'Origines');
     Select2Old.user($('.ajax-autocomplete-user:eq(0)'), 'Acheteurs');
     Select2Old.user($('.ajax-autocomplete-user:eq(1)'), 'Déclarant');

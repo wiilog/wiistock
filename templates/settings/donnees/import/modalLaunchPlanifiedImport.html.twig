@@ -4,7 +4,9 @@
             <div class="modal-header">
                 <h5 class="modal-title">Lancement d'un import planifié</h5>
 
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close"
+                        data-dismiss="modal"
+                        aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -16,7 +18,10 @@
 
             <div class="error-msg pl-4 pb-4"></div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
+                <button type="button"
+                        class="btn btn-outline-secondary"
+                        data-dismiss="modal">Annuler
+                </button>
                 <button id="importIdToLaunch"
                         onclick="launchImport($(this).data('id'), true)"
                         data-id=""

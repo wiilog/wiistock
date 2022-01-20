@@ -31,7 +31,6 @@ let tableCollecteConfig = {
 let tableCollecte = initDataTable('tableCollecte', tableCollecteConfig);
 $(function () {
     initDateTimePicker();
-    Select2Old.init($('#statut'), 'Statuts');
     Select2Old.collect($('.ajax-autocomplete-dem-collecte'));
     Select2Old.user('Opérateurs');
 

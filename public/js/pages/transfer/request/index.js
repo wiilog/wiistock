@@ -2,7 +2,6 @@ $(document).ready(() => {
     const $statusSelector = $('.filterService select[name="statut"]');
 
     initDateTimePicker();
-    Select2Old.init($statusSelector, 'Statuts');
     Select2Old.location($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
     Select2Old.user($('.filterService select[name="requesters"]'), "Demandeurs");
     Select2Old.user($('.filterService select[name="operators"]'), "Opérateurs");

@@ -9,7 +9,6 @@ $(function () {
     initTableReception();
     $('.select2').select2();
     initDateTimePicker();
-    Select2Old.init($('#statut'), 'Statuts');
     Select2Old.initFree($('.select2-free'), 'N° de commande');
     initOnTheFlyCopies($('.copyOnTheFly'));
     Select2Old.user($('.filters .ajax-autocomplete-user'), 'Destinataire(s)');

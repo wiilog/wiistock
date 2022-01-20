@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Settings;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
@@ -13,6 +14,7 @@ use App\Entity\MailerServer;
 use App\Entity\Menu;
 use App\Entity\Statut;
 use App\Entity\Type;
+use App\Entity\Statut;
 use App\Entity\WorkFreeDay;
 use App\Helper\FormatHelper;
 use App\Service\SettingsService;
@@ -25,8 +27,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Annotation\HasPermission;
 use WiiCommon\Helper\Stream;
 
 /**
@@ -40,18 +42,23 @@ class SettingsController extends AbstractController {
     /** @Required */
     public SpecificService $specificService;
 
+    public KernelInterface $kernel;
+
     public const SETTINGS = [
         self::CATEGORY_GLOBAL => [
             "label" => "Global",
             "icon" => "accueil",
             "right" => Action::SETTINGS_GLOBAL,
             "menus" => [
-                self::MENU_SITE_APPEARANCE => "Apparence du site",
-                self::MENU_CLIENT => "Client application",
-                self::MENU_LABELS => "Étiquettes",
-                self::MENU_WORKING_HOURS => "Heures travaillées",
-                self::MENU_OFF_DAYS => "Jours non travaillés",
-                self::MENU_MAIL_SERVER => "Serveur mail",
+                self::MENU_SITE_APPEARANCE => ["label" => "Apparence du site"],
+                self::MENU_CLIENT => [
+                    "label" => "Client application",
+                    "env" => ['preprod'],
+                ],
+                self::MENU_LABELS => ["label" => "Étiquettes"],
+                self::MENU_WORKING_HOURS => ["label" => "Heures travaillées"],
+                self::MENU_OFF_DAYS => ["label" => "Jours non travaillés"],
+                self::MENU_MAIL_SERVER => ["label" => "Serveur mail"],
             ],
         ],
         self::CATEGORY_STOCK => [
@@ -59,32 +66,32 @@ class SettingsController extends AbstractController {
             "icon" => "stock",
             "right" => Action::SETTINGS_STOCK,
             "menus" => [
-                self::MENU_CONFIGURATIONS => "Configurations",
-                self::MENU_ALERTS => "Alertes",
+                self::MENU_CONFIGURATIONS => ["label" => "Configurations"],
+                self::MENU_ALERTS => ["label" => "Alertes"],
                 self::MENU_ARTICLES => [
                     "label" => "Articles",
                     "menus" => [
-                        self::MENU_LABELS => "Étiquettes",
-                        self::MENU_TYPES_FREE_FIELDS => "Types et champs libres",
+                        self::MENU_LABELS => ["label" => "Étiquettes"],
+                        self::MENU_TYPES_FREE_FIELDS => ["label" => "Types et champs libres"],
                     ],
                 ],
-                self::MENU_REQUESTS => "Demandes",
-                self::MENU_VISIBILITY_GROUPS => "Groupes de visibilité",
+                self::MENU_REQUESTS => ["label" => "Demandes"],
+                self::MENU_VISIBILITY_GROUPS => ["label" => "Groupes de visibilité"],
                 self::MENU_INVENTORIES => [
                     "label" => "Inventaires",
                     "menus" => [
-                        self::MENU_FREQUENCIES => "Fréquences",
-                        self::MENU_CATEGORIES => "Catégories",
+                        self::MENU_FREQUENCIES => ["label" => "Fréquences"],
+                        self::MENU_CATEGORIES => ["label" => "Catégories"],
                     ],
                 ],
                 self::MENU_RECEPTIONS => [
                     "label" => "Réceptions",
                     "menus" => [
-                        self::MENU_RECEPTIONS_STATUSES => "Réceptions - Statuts",
-                        self::MENU_RECEPTIONS_FIXED_FIELDS => "Réceptions - Champs fixes",
-                        self::MENU_RECEPTIONS_FREE_FIELDS => "Réceptions - Champs libres",
-                        self::MENU_DISPUTE_STATUSES => "Litiges - Statuts",
-                        self::MENU_DISPUTE_TYPES => "Litiges - Types",
+                        self::MENU_RECEPTIONS_STATUSES => ["label" => "Réceptions - Statuts"],
+                        self::MENU_RECEPTIONS_FIXED_FIELDS => ["label" => "Réceptions - Champs fixes"],
+                        self::MENU_RECEPTIONS_FREE_FIELDS => ["label" => "Réceptions - Champs libres"],
+                        self::MENU_DISPUTE_STATUSES => ["label" => "Litiges - Statuts"],
+                        self::MENU_DISPUTE_TYPES => ["label" => "Litiges - Types"],
                     ],
                 ],
             ],
@@ -97,38 +104,38 @@ class SettingsController extends AbstractController {
                 self::MENU_DISPATCHES => [
                     "label" => "Acheminements",
                     "menus" => [
-                        self::MENU_CONFIGURATIONS => "Configurations",
-                        self::MENU_STATUSES => "Statuts",
-                        self::MENU_FIXED_FIELDS => "Champs fixes",
-                        self::MENU_TYPES_FREE_FIELDS => "Types et champs libres",
-                        self::MENU_WAYBILL => "Lettre de voiture",
-                        self::MENU_OVERCONSUMPTION_BILL => "Bon de surconsommation",
+                        self::MENU_CONFIGURATIONS => ["label" => "Configurations"],
+                        self::MENU_STATUSES => ["label" => "Statuts"],
+                        self::MENU_FIXED_FIELDS => ["label" => "Champs fixes"],
+                        self::MENU_TYPES_FREE_FIELDS => ["label" => "Types et champs libres"],
+                        self::MENU_WAYBILL => ["label" => "Lettre de voiture"],
+                        self::MENU_OVERCONSUMPTION_BILL => ["label" => "Bon de surconsommation"],
                     ],
                 ],
                 self::MENU_ARRIVALS => [
                     "label" => "Arrivages",
                     "menus" => [
-                        self::MENU_CONFIGURATIONS => "Configurations",
-                        self::MENU_LABELS => "Étiquettes",
-                        self::MENU_STATUSES => "Statuts",
-                        self::MENU_FIXED_FIELDS => "Champs fixes",
-                        self::MENU_TYPES_FREE_FIELDS => "Types et champs libres",
-                        self::MENU_DISPUTE_STATUSES => "Litiges - Statuts",
+                        self::MENU_CONFIGURATIONS => ["label" => "Configurations"],
+                        self::MENU_LABELS => ["label" => "Étiquettes"],
+                        self::MENU_STATUSES => ["label" => "Statuts"],
+                        self::MENU_FIXED_FIELDS => ["label" => "Champs fixes"],
+                        self::MENU_TYPES_FREE_FIELDS => ["label" => "Types et champs libres"],
+                        self::MENU_DISPUTE_STATUSES => ["label" => "Litiges - Statuts"],
                     ],
                 ],
                 self::MENU_MOVEMENTS => [
                     "label" => "Mouvements",
                     "menus" => [
-                        self::MENU_FREE_FIELDS => "Champs libres",
+                        self::MENU_FREE_FIELDS => ["label" => "Champs libres"],
                     ],
                 ],
                 self::MENU_HANDLINGS => [
                     "label" => "Services",
                     "menus" => [
-                        self::MENU_STATUSES => "Statuts",
-                        self::MENU_FIXED_FIELDS => "Champs fixes",
-                        self::MENU_REQUEST_TEMPLATES => "Modèles de demande",
-                        self::MENU_TYPES_FREE_FIELDS => "Types et champs libres",
+                        self::MENU_STATUSES => ["label" => "Statuts"],
+                        self::MENU_FIXED_FIELDS => ["label" => "Champs fixes"],
+                        self::MENU_REQUEST_TEMPLATES => ["label" => "Modèles de demande"],
+                        self::MENU_TYPES_FREE_FIELDS => ["label" => "Types et champs libres"],
                     ],
                 ],
             ],
@@ -138,11 +145,11 @@ class SettingsController extends AbstractController {
             "icon" => "accueil",
             "right" => Action::SETTINGS_MOBILE,
             "menus" => [
-                self::MENU_DISPATCHES => "Acheminements",
-                self::MENU_PREPARATIONS => "Préparations",
-                self::MENU_HANDLINGS => "Services",
-                self::MENU_TRANSFERS => "Transferts à traiter",
-                self::MENU_VALIDATION => "Gestion des validations",
+                self::MENU_DISPATCHES => ["label" => "Acheminements"],
+                self::MENU_PREPARATIONS => ["label" => "Préparations"],
+                self::MENU_HANDLINGS => ["label" => "Services"],
+                self::MENU_TRANSFERS => ["label" => "Transferts à traiter"],
+                self::MENU_VALIDATION => ["label" => "Gestion des validations"],
             ],
         ],
         self::CATEGORY_DASHBOARDS => [
@@ -169,8 +176,8 @@ class SettingsController extends AbstractController {
             "icon" => "accueil",
             "right" => Action::SETTINGS_NOTIFICATIONS,
             "menus" => [
-                self::MENU_ALERTS => "Alertes",
-                self::MENU_PUSH_NOTIFICATIONS => "Notifications push",
+                self::MENU_ALERTS => ["label" => "Alertes"],
+                self::MENU_PUSH_NOTIFICATIONS => ["label" => "Notifications push"],
             ],
         ],
         self::CATEGORY_USERS => [
@@ -182,8 +189,8 @@ class SettingsController extends AbstractController {
                     "label" => "Langues",
                     "route" => "settings_language",
                 ],
-                self::MENU_USERS => "Utilisateurs",
-                self::MENU_ROLES => "Rôles",
+                self::MENU_USERS => ["label" => "Utilisateurs"],
+                self::MENU_ROLES => ["label" => "Rôles"],
             ],
         ],
         self::CATEGORY_DATA => [
@@ -191,9 +198,15 @@ class SettingsController extends AbstractController {
             "icon" => "accueil",
             "right" => Action::SETTINGS_DATA,
             "menus" => [
-                self::MENU_CSV_EXPORTS => "Alertes",
-                self::MENU_IMPORTS => "Imports & mises à jour",
-                self::MENU_INVENTORY_IMPORTS => "Imports d'inventaires",
+                self::MENU_CSV_EXPORTS => ["label" => "Exports CSV"],
+                self::MENU_IMPORTS => [
+                    "label" => "Imports & mises à jour",
+                    "save" => false
+                ],
+                self::MENU_INVENTORIES_IMPORTS => [
+                    "label" => "Imports d'inventaires",
+                    "save" => false
+                ],
             ],
         ],
     ];
@@ -206,7 +219,7 @@ class SettingsController extends AbstractController {
     private const CATEGORY_IOT = "iot";
     private const CATEGORY_NOTIFICATIONS = "notifications";
     private const CATEGORY_USERS = "utilisateurs";
-    private const CATEGORY_DATA = "donnees";
+    public const CATEGORY_DATA = "donnees";
 
     private const MENU_SITE_APPEARANCE = "apparence_site";
     private const MENU_WORKING_HOURS = "heures_travaillees";
@@ -256,8 +269,8 @@ class SettingsController extends AbstractController {
     private const MENU_USERS = "utilisateurs";
 
     private const MENU_CSV_EXPORTS = "exports_csv";
-    private const MENU_IMPORTS = "imports";
-    private const MENU_INVENTORY_IMPORTS = "imports_inventaires";
+    public const MENU_IMPORTS = "imports";
+    private const MENU_INVENTORIES_IMPORTS = "inventories_imports";
 
     /**
      * @Required
@@ -283,9 +296,7 @@ class SettingsController extends AbstractController {
      * @HasPermission({Menu::PARAM, Action::SETTINGS_USERS})
      */
     public function language(): Response {
-        return $this->render("settings/utilisateurs/langues.html.twig", [
-            "settings" => self::SETTINGS,
-        ]);
+        return $this->render("settings/utilisateurs/langues.html.twig");
     }
 
     /**
@@ -297,7 +308,8 @@ class SettingsController extends AbstractController {
             $parent = self::SETTINGS[$category]["menus"][$menu] ?? null;
             $path = "settings/$category/$menu/";
         } else {
-            if(is_array(self::SETTINGS[$category]["menus"][$menu])) {
+            // contains sub menus
+            if (isset(self::SETTINGS[$category]["menus"][$menu]['menus'])) {
                 $parent = self::SETTINGS[$category]["menus"][$menu] ?? null;
                 $submenu = array_key_first($parent["menus"]);
 
@@ -327,6 +339,7 @@ class SettingsController extends AbstractController {
     public function customValues(): array {
         $mailerServerRepository = $this->manager->getRepository(MailerServer::class);
         $typeRepository = $this->manager->getRepository(Type::class);
+        $statusRepository = $this->manager->getRepository(Statut::class);
         $freeFieldRepository = $this->manager->getRepository(FreeField::class);
         $statusRepository = $this->manager->getRepository(Statut::class);
 
@@ -342,7 +355,7 @@ class SettingsController extends AbstractController {
             self::CATEGORY_STOCK => [
                 self::MENU_ALERTS => [],
                 self::MENU_ARTICLES => [
-                    self::MENU_LABELS => [
+                    self::MENU_LABELS => fn() => [
                         "free_fields" => Stream::from($freeFieldRepository->findByCategory(CategorieCL::ARTICLE))
                             ->keymap(fn(FreeField $field) => [$field->getLabel(), $field->getLabel()])
                             ->toArray(),

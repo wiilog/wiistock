@@ -98,9 +98,9 @@ class SettingsService {
             $updated[] = $key;
         }
 
-        $this->postSaveTreatment($updated);
-
         $this->manager->flush();
+
+        $this->postSaveTreatment($updated);
     }
 
     /**

@@ -149,6 +149,10 @@ class ParametrageGlobal {
 
     // export csv
     const USES_UTF8 = 'USES_UTF8';
+    const ENCODING_VALUES = [
+        0 => self::ENCODAGE_EUW ['label'],
+        1 => self::ENCODAGE_UTF8['label'],
+    ];
     const ENCODAGE_UTF8 = [
         'value' => true,
         'label' => "UTF-8",

@@ -86,6 +86,9 @@ class RefArticleDataService {
     /** @Required */
     public UserService $userService;
 
+    /** @Required */
+    public CSVExportService $CSVExportService;
+
     /**
      * @var object|string
      */
@@ -900,6 +903,49 @@ class RefArticleDataService {
         $prefix = "A DEFINIR";
         $referenceCount = $referenceArticleRepository->countByReference($prefix, null, "LIKE");
         return $prefix . ($referenceCount + 1);
+    }
+
+    public function putReferenceLine($handle,
+                                     array $managersByReference,
+                                     array $reference,
+                                     array $suppliersByReference,
+                                     array $freeFieldsConfig) {
+        $id = (int)$reference["id"];
+        $line = [
+            $reference["reference"],
+            $reference["libelle"],
+            $reference["quantiteStock"],
+            $reference["type"],
+            $reference["buyer"],
+            $reference["typeQuantite"],
+            $reference["statut"],
+            $reference["commentaire"] ? strip_tags($reference["commentaire"]) : "",
+            $reference["emplacement"],
+            $reference["limitSecurity"],
+            $reference["limitWarning"],
+            $reference["prixUnitaire"],
+            $reference["barCode"],
+            $reference["category"],
+            $reference["dateLastInventory"] ? $reference["dateLastInventory"]->format("d/m/Y H:i:s") : "",
+            $reference["needsMobileSync"],
+            $reference["stockManagement"],
+            $managersByReference[$id] ?? "",
+            $suppliersByReference[$id]["supplierLabels"] ?? "",
+            $suppliersByReference[$id]["supplierCodes"] ?? "",
+            $reference["visibilityGroup"],
+            $reference["createdAt"] ? $reference["createdAt"]->format("d/m/Y H:i:s") : "",
+            $reference["createdBy"] ?? "-",
+            $reference["editedAt"] ? $reference["editedAt"]->format("d/m/Y H:i:s") : "",
+            $reference["editedBy"] ?? "",
+            $reference["lastStockEntry"] ? $reference["lastStockEntry"]->format("d/m/Y H:i:s") : "",
+            $reference["lastStockExit"] ? $reference["lastStockExit"]->format("d/m/Y H:i:s") : "",
+        ];
+
+        foreach ($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
+            $line[] = FormatHelper::freeField($reference['freeFields'][$freeFieldId] ?? '', $freeField);
+        }
+
+        $this->CSVExportService->putLine($handle, $line);
     }
 
 }

@@ -1,7 +1,16 @@
-$(function () {
+window.importTemplateChanged = importTemplateChanged;
+window.displayFirstModal = displayFirstModal;
+window.openConfirmCancelModal = openConfirmCancelModal;
+window.deleteImport = deleteImport;
+window.updateOptions = updateOptions;
+window.launchImport = launchImport;
+
+let $modalNewImport = $("#modalNewImport");
+let $submitNewImport = $("#submitNewImport");
+let tableImport;
+
+export function initializeImports() {
     initDateTimePicker('#dateMin, #dateMax');
-    Select2Old.init($('#statut'), 'Statuts');
-    Select2Old.user($('.filters .ajax-autocomplete-user'), 'Utilisateurs');
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
@@ -10,42 +19,39 @@ $(function () {
     $.post(path, params, function (data) {
         displayFiltersSup(data);
     }, 'json');
-});
 
-let pathImport = Routing.generate('import_api');
-let tableImportConfig = {
-    processing: true,
-    serverSide: true,
-    ajax: {
-        "url": pathImport,
-        "type": "POST"
-    },
-    columns: [
-        {"data": 'actions', 'title': '', orderable: false, className: 'noVis'},
-        {"data": 'id', visible: false},
-        {"data": 'status', 'title': 'Statut'},
-        {"data": 'startDate', 'title': 'Date début'},
-        {"data": 'endDate', 'title': 'Date fin'},
-        {"data": 'label', 'title': 'Nom import'},
-        {"data": 'newEntries', 'title': 'Nvx enreg.'},
-        {"data": 'updatedEntries', 'title': 'Mises à jour'},
-        {"data": 'nbErrors', 'title': "Nombre d'erreurs"},
-        {"data": 'user', 'title': 'Utilisateur'},
-        {"data" : 'entity','title' : 'Type de données importées'},
-    ],
-    rowConfig: {
-        needsRowClickAction: true
-    },
-    drawConfig: {
-        callback: () => initDoubleClick('.status-planifié'),
-        needsSearchOverride: true,
-    },
-    order: [['id', "desc"]],
-};
-let tableImport = initDataTable('tableImport', tableImportConfig);
-
-let $modalNewImport = $("#modalNewImport");
-let $submitNewImport = $("#submitNewImport");
+    let pathImport = Routing.generate('import_api');
+    let tableImportConfig = {
+        processing: true,
+        serverSide: true,
+        ajax: {
+            "url": pathImport,
+            "type": "POST"
+        },
+        columns: [
+            {"data": 'actions', 'title': '', orderable: false, className: 'noVis'},
+            {"data": 'id', visible: false},
+            {"data": 'status', 'title': 'Statut'},
+            {"data": 'startDate', 'title': 'Date début'},
+            {"data": 'endDate', 'title': 'Date fin'},
+            {"data": 'label', 'title': 'Nom import'},
+            {"data": 'newEntries', 'title': 'Nvx enreg.'},
+            {"data": 'updatedEntries', 'title': 'Mises à jour'},
+            {"data": 'nbErrors', 'title': "Nombre d'erreurs"},
+            {"data": 'user', 'title': 'Utilisateur'},
+            {"data" : 'entity','title' : 'Type de données importées'},
+        ],
+        rowConfig: {
+            needsRowClickAction: true
+        },
+        drawConfig: {
+            callback: () => initDoubleClick('.status-planifié'),
+            needsSearchOverride: true,
+        },
+        order: [['id', "desc"]],
+    };
+    tableImport = initDataTable('tableImport', tableImportConfig);
+}
 
 function displayFirstModal(importId = null) {
     let $inputImportId = $modalNewImport.find('[name="importId"]');

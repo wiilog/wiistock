@@ -8,7 +8,6 @@ let arrivalsTable;
 $(function () {
     const $filtersContainer = $('.filters-container');
     initDateTimePicker('#dateMin, #dateMax, .date-cl');
-    Select2Old.init($('#statut'), 'Statuts');
     Select2Old.location($('#emplacement'), {}, 'Emplacement de dépose');
     Select2Old.init($filtersContainer.find('[name="carriers"]'), 'Transporteurs');
     initOnTheFlyCopies($('.copyOnTheFly'));

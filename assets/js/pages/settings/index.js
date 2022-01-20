@@ -1,8 +1,9 @@
-import '../../scss/pages/settings.scss';
-import EditableDatatable, {MODE_ADD_ONLY, MODE_DOUBLE_CLICK, MODE_MANUAL, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING} from "../editatable";
-import Flash from '../flash';
+import '../../../scss/pages/settings.scss';
+import EditableDatatable, {MODE_ADD_ONLY, MODE_DOUBLE_CLICK, MODE_NO_EDIT, SAVE_MANUALLY, MODE_MANUAL, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING} from "../../editatable";
+import Flash from '../../flash';
+import {initializeImports} from "./data/imports.js";
 
-const settings = JSON.parse($(`input#settings`).val());
+const index = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();
 let menu = $(`input#menu`).val();
 let submenu = $(`input#submenu`).val();
@@ -16,6 +17,7 @@ const initializers = {
     global_etiquettes: initializeGlobalLabels,
     stock_articles_etiquettes: initializeStockArticlesLabels,
     stock_articles_types_champs_libres: initializeStockArticlesTypesFreeFields,
+    donnees_imports: initializeImports,
 };
 
 const slowOperations = [
@@ -28,7 +30,7 @@ const $saveButton = $(`.save-settings`);
 $(document).ready(() => {
     let canEdit = $(`input#edit`).val();
 
-    updateTitle(submenu || menu, canEdit);
+    updateMenu(submenu || menu, canEdit);
 
     $(`.settings-item`).on(`click`, function() {
         const selectedMenu = $(this).data(`menu`);
@@ -36,10 +38,7 @@ $(document).ready(() => {
         $(`.settings-item.selected`).removeClass(`selected`);
         $(this).addClass(`selected`);
 
-        $(`.settings main > div`).addClass(`d-none`);
-        $(`.settings main > div[data-menu="${selectedMenu}"]`).removeClass(`d-none`);
-
-        updateTitle(selectedMenu, canEdit);
+        updateMenu(selectedMenu, canEdit);
     });
 
     $saveButton.on(`click`, async function() {
@@ -83,11 +82,11 @@ $(document).ready(() => {
 });
 
 function getCategoryLabel() {
-    return settings[category].label;
+    return index[category].label;
 }
 
 function getMenuLabel() {
-    const menuData = settings[category].menus[menu];
+    const menuData = index[category].menus[menu];
 
     if(typeof menuData === `string`) {
         return menuData;
@@ -100,11 +99,19 @@ function getSubmenuLabel() {
     if(!submenu) {
         return null;
     } else {
-        return settings[category].menus[menu].menus[submenu];
+        return index[category].menus[menu].menus[submenu];
     }
 }
 
-function updateTitle(selectedMenu, canEdit) {
+function updateMenu(selectedMenu, canEdit) {
+    $(`.settings main > .settings-content`).addClass(`d-none`);
+
+    const $selectedMenu = $(`.settings main > .settings-content[data-menu="${selectedMenu}"]`);
+    $selectedMenu.removeClass(`d-none`);
+
+    const displaySaveButton = $selectedMenu.data('saveButton');
+    $saveButton.toggleClass('d-none', !displaySaveButton);
+
     let title;
     if(!submenu) {
         menu = selectedMenu;
@@ -116,8 +123,6 @@ function updateTitle(selectedMenu, canEdit) {
 
     const path = `${category}_${menu}` + (submenu ? `_` + submenu : ``);
     const $element = $(`[data-path="${path}"]`);
-
-    $saveButton.show();
 
     if(!forms[path]) {
         currentForm = path;
@@ -213,14 +218,14 @@ function loadItems($container, config, type, edit) {
 }
 
 function initializeWorkingHours($container, canEdit) {
-    $saveButton.hide();
+    $saveButton.addClass('d-none');
 
     const table = EditableDatatable.create(`#table-working-hours`, {
         route: Routing.generate('settings_working_hours_api', true),
         edit: canEdit ? MODE_DOUBLE_CLICK : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
-        onEditStart: () => $saveButton.show(),
-        onEditStop: () => $saveButton.hide(),
+        onEditStart: () => $saveButton.addClass('d-none'),
+        onEditStop: () => $saveButton.removeClass('d-none'),
         columns: [
             {data: `day`, title: `Jour`},
             {data: `hours`, title: `Horaires de travail`},
@@ -233,7 +238,7 @@ function initializeOffDays($container, canEdit) {
     const $addButton = $container.find(`.add-row-button`);
     const $tableHeader = $(`.wii-page-card-header`);
 
-    $saveButton.hide();
+    $saveButton.addClass('d-none');
 
     const table = EditableDatatable.create(`#table-off-days`, {
         route: Routing.generate(`settings_off_days_api`, true),
@@ -246,11 +251,11 @@ function initializeOffDays($container, canEdit) {
             $addButton.removeClass(`d-none`);
         },
         onEditStart: () => {
-            $saveButton.show();
+            $saveButton.removeClass('d-none');
             $tableHeader.hide();
         },
         onEditStop: () => {
-            $saveButton.hide();
+            $saveButton.removeClass('d-none');
             $tableHeader.show();
         },
         columns: [

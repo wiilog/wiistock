@@ -4,65 +4,70 @@
 
 {% block stylesheets %}
     {{ parent() }}
-    {{ encore_entry_link_tags('settings') }}
+    {{ encore_entry_link_tags('settings-index') }}
 {% endblock %}
 
 {% set can_edit = hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::EDIT')) %}
 
 {% block page_content %}
-    <div class="settings">
-        <aside class="wii-box">
-            {% for key, label in parent.menus %}
-                {% if label is iterable %}
-                    <a href="{{ path(label.route is defined ? label.route : 'settings_item', label.route is not defined ? {category, menu: key} : []) }}" class="settings-item">
-                        {{ label.label }}
-                    </a>
-                {% else %}
-                    <div class="settings-item {{ key == selected ? 'selected' }}" data-menu="{{ key }}">
-                        {{ label }}
-                    </div>
-                {% endif %}
-            {% endfor %}
+    <div class="settings row">
+        <aside class="col-xl-3 col-4 d-flex">
+            <div class="wii-box flex-fill">
+                {% for key, item in parent.menus %}
+                    {% if item.environment is not defined
+                          or app.environment in item.environment %}
+                        {% if item.route is defined %}
+                            <a href="{{ path(item.route is defined ? item.route : 'settings_item', item.route is not defined ? {category, menu: key} : []) }}"
+                               class="settings-item">
+                                {{ item.label }}
+                            </a>
+                        {% else %}
+                            <div class="settings-item {{ key == selected ? 'selected' }}" data-menu="{{ key }}">
+                                {{ item.label }}
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            </div>
         </aside>
 
-        <main>
-            {% for key, label in parent.menus %}
-                {% if label is not iterable %}
+        <main class="col-xl-9 col-8">
+            {% for key, item in parent.menus %}
+                {% if item.menus is not defined
+                      and item.route is not defined
+                      and (item.environment is not defined or app.environment in item.environment)  %}
+                    {% set isCard = path ~ key not in ['settings/donnees/imports'] %}
                     {% set fetcher = submenu ? (values[category][menu][key] ?? []) : (values[category][key] ?? []) %}
 
-                    {% if path ~ key not in ['settings/donnees/imports', 'settings/stock/articles/types_champs_libres'] %}
-                        <div class="wii-box {{ key != selected ? 'd-none' }}"
-                             data-path="{{ category }}_{{ submenu ? menu : key }}{{ submenu ? '_' ~ key : '' }}"
-                             data-menu="{{ key }}">
-                            <div class="header wii-title">{{ label }}</div>
+                    <div class="{{ isCard ? 'wii-box' }} {{ key != selected ? 'd-none' }} settings-content"
+                         data-path="{{ category }}_{{ submenu ? menu : key }}{{ submenu ? '_' ~ key : '' }}"
+                         data-menu="{{ key }}"
+                         data-save-button="{{ (item.save is not defined or item.save) ? 1 : 0 }}">
+                        {% if isCard %}
+                            <div class="header wii-title">{{ item.label }}</div>
                             <div class="content focus-shadow">
-                                {% dump values %}
                                 {% include [path ~ key ~ '.html.twig', 'settings/todo.html.twig'] with {
                                     page: path ~ key ~ '.html.twig'
                                 } | merge(fetcher ? call(fetcher) : []) %}
                             </div>
-                        </div>
-                    {% else %}
-                        <div class="{{ key != selected ? 'd-none' }}"
-                             data-path="{{ category }}_{{ submenu ? menu : key }}{{ submenu ? '_' ~ key : '' }}"
-                             data-menu="{{ key }}">
+                        {% else %}
                             {% include [path ~ key ~ '.html.twig', 'settings/todo.html.twig'] with {
                                 page: path ~ key ~ '.html.twig'
                             } | merge(fetcher ? call(fetcher) : []) %}
-                        </div>
-                    {% endif %}
+                        {% endif %}
+                    </div>
                 {% endif %}
             {% endfor %}
 
             {% if can_edit %}
                 <div class="save">
-                    <button class="btn btn-success save-settings">Enregistrer</button>
+                    <button class="btn btn-success save-settings d-none">Enregistrer</button>
                 </div>
             {% endif %}
         </main>
     </div>
 
-    <input type="hidden" id="settings" value="{{ constant('App\\Controller\\SettingsController::SETTINGS') | json_encode }}">
+    <input type="hidden" id="settings" value="{{ constant('App\\Controller\\Settings\\SettingsController::SETTINGS') | json_encode }}">
     <input type="hidden" id="category" value="{{ category }}">
     <input type="hidden" id="menu" value="{{ menu }}">
     <input type="hidden" id="submenu" value="{{ submenu }}">
@@ -71,5 +76,7 @@
 
 {% block javascripts %}
     {{ parent() }}
-    {{ encore_entry_script_tags('settings') }}
+    {{ encore_entry_script_tags('settings-index') }}
+    {{ encore_entry_script_tags('settings-data-imports') }}
+    {{ encore_entry_script_tags('settings-data-inventories-imports') }}
 {% endblock %}

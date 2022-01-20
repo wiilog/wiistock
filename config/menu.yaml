@@ -237,8 +237,6 @@ parameters:
                     path: 'request_template_index'
                 -   label: 'Modèles de notifications'
                     path: 'notification_template_index'
-                -   label: 'Import et mise à jour'
-                    path: 'import_index'
                 -   label: 'Documentation'
                     url: 'https://wiilog.fr/doc/'
                     isExtern: 'true'
