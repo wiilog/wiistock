@@ -290,7 +290,6 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/afficher/{category}/{menu}/{submenu}", name="settings_item", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB})
      */
     public function item(string $category, string $menu, ?string $submenu = null): Response {
         if($submenu) {
@@ -342,7 +341,7 @@ class SettingsController extends AbstractController {
             self::CATEGORY_STOCK => [
                 self::MENU_ALERTS => [],
                 self::MENU_ARTICLES => [
-                    self::MENU_LABELS => [
+                    self::MENU_LABELS => fn() => [
                         "free_fields" => Stream::from($freeFieldRepository->findByCategory(CategorieCL::ARTICLE))
                             ->keymap(fn(FreeField $field) => [$field->getLabel(), $field->getLabel()])
                             ->toArray(),
