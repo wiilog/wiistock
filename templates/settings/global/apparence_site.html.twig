@@ -9,12 +9,12 @@
     <div class="form-group w-fit-content col-6">
         <label class="wii-field-name">Logo sur web entête</label>
         <div class="form-group d-flex">
-            <div class="stripped-blue-background d-flex p-1 mr-2">
+            <div class="preview-container stripped-background d-flex p-1 mr-2">
                 <img src="{{ website_logo ? app.request.scheme ~'://'~ app.request.httpHost ~ "/" ~ website_logo : '' }}"
                      id="preview-website-logo"
                      alt="Logo choisi"
                      height="50px"
-                     class="logo {{ not website_logo ? 'd-none' }}"/>
+                     class="image {{ not website_logo ? 'd-none' }}"/>
             </div>
             <input type="hidden" class="default-value" value="{{ setting('DEFAULT_WEBSITE_LOGO_VALUE') }}"/>
             <button class="btn btn-primary" onclick="$('#upload-website-logo').click();">
@@ -37,12 +37,12 @@
     <div class="form-group w-fit-content col-6">
         <label class="wii-field-name">Logo sur nomade page connexion</label>
         <div class="form-group d-flex">
-            <div class="stripped-blue-background d-flex p-1 mr-2">
+            <div class="preview-container stripped-background d-flex p-1 mr-2">
                 <img src="{{ mobile_logo_login ? app.request.scheme ~ '://'~ app.request.httpHost ~ "/" ~ mobile_logo_login : '' }}"
                      id="preview-mobile-logo-login"
                      alt="Logo choisi"
                      height="50px"
-                     class="logo {{ not mobile_logo_login ? 'd-none' }}"/>
+                     class="image {{ not mobile_logo_login ? 'd-none' }}"/>
             </div>
             <button class="btn btn-primary"
                     onclick="$('#upload-mobile-logo-login').click();">
@@ -68,12 +68,12 @@
     <div class="form-group w-fit-content col-6">
         <label class="wii-field-name">Logo sur les emails</label>
         <div class="form-group d-flex">
-            <div class="stripped-blue-background d-flex p-1 mr-2">
+            <div class="preview-container stripped-background d-flex p-1 mr-2">
                 <img src="{{ email_logo ? app.request.scheme ~'://'~ app.request.httpHost ~ "/" ~ email_logo : '' }}"
                      id="preview-email-logo"
                      alt="Logo choisi"
                      height="50px"
-                     class="logo {{ not email_logo ? 'd-none' }}"/>
+                     class="image {{ not email_logo ? 'd-none' }}"/>
             </div>
             <button class="btn btn-primary"
                     onclick="$('#upload-email-logo').click();">{{ email_logo ? "<i class='fas fa-pencil-alt'></i> " : 'Choisir un logo' }}</button>
@@ -95,12 +95,12 @@
     <div class="form-group w-fit-content col-6">
         <label class="wii-field-name">Logo sur nomade entête</label>
         <div class="form-group d-flex">
-            <div class="stripped-blue-background d-flex p-1 mr-2">
+            <div class="preview-container stripped-background d-flex p-1 mr-2">
                 <img src="{{ mobile_logo_header ? app.request.scheme ~ '://'~ app.request.httpHost ~ "/" ~ mobile_logo_header : '' }}"
                      id="preview-mobile-logo-header"
                      alt="Logo choisi"
                      height="50px"
-                     class="logo {{ not mobile_logo_header ? 'd-none' }}"/>
+                     class="image {{ not mobile_logo_header ? 'd-none' }}"/>
             </div>
             <button class="btn btn-primary"
                     onclick="$('#upload-mobile-logo-header').click();">

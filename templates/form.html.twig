@@ -111,7 +111,7 @@
                 <option disabled selected>{{ options.placeholder }}</option>
             {% endif %}
 
-            {% if options.items['value'] is defined and options.items['text'] is defined %}
+            {% if options.items['value'] is not defined and options.items['text'] is not defined %}
                 {% for item in options.items ?? [] %}
                     <option value="{{ item.value }}" {{ item.value in values ? 'selected' }}
                         {% for dataKey, dataValue in item %}
@@ -190,7 +190,7 @@
     <label class="{{ options.labelClass ?? '' }}">
         <span>{{ _self.label(label, required) }}</span>
         <div class="form-group d-flex">
-            <div class="preview-container stripped-blue-background d-flex p-1 mr-2">
+            <div class="preview-container stripped-background d-flex p-1 mr-2">
                 <img src="{{ image ? (app.request.scheme ~ '://' ~ app.request.httpHost ~ "/img/" ~ image) : '' }}"
                      id="preview-{{ name }}"
                      alt="{{ name }}"

@@ -4,10 +4,14 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\CategorieCL;
+use App\Entity\CategorieStatut;
+use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
 use App\Entity\FreeField;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
+use App\Entity\Statut;
+use App\Entity\Type;
 use App\Entity\WorkFreeDay;
 use App\Helper\FormatHelper;
 use App\Service\SettingsService;
@@ -320,6 +324,8 @@ class SettingsController extends AbstractController {
     public function customValues(): array {
         $mailerServerRepository = $this->manager->getRepository(MailerServer::class);
         $freeFieldRepository = $this->manager->getRepository(FreeField::class);
+        $typeRepository = $this->manager->getRepository(Type::class);
+        $statusRepository = $this->manager->getRepository(Statut::class);
 
         return [
             self::CATEGORY_GLOBAL => [
@@ -342,6 +348,23 @@ class SettingsController extends AbstractController {
                     ],
                 ],
             ],
+            self::CATEGORY_TRACKING => [
+                self::MENU_DISPATCHES => [
+                    self::MENU_OVERCONSUMPTION_BILL => [
+                        "types" => Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]))
+                            ->map(fn(Type $type) => [
+                                "value" => $type->getId(),
+                                "text" => $type->getLabel()
+                            ])->toArray(),
+                        "statuses" => Stream::from($statusRepository->findByCategorieName(CategorieStatut::DISPATCH))
+                            ->filter(fn(Statut $status) => $status->getState() === Statut::NOT_TREATED)
+                            ->map(fn(Statut $status) => [
+                                "value" => $status->getId(),
+                                "text" => $status->getNom()
+                            ])->toArray()
+                    ]
+                ]
+            ]
         ];
     }
 

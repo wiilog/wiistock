@@ -81,9 +81,14 @@ function updateImagePreview(preview, upload, $title = null, $delete = null, $cal
 
 function resetImage($button) {
     const $defaultValue = $button.siblings('.default-value');
-    const $image = $button.prev('.preview-container').find('.image');
+    const $image = $button.siblings('.preview-container').first().find('.image');
     const $input = $button.siblings('[type="file"]');
     const defaultValue = $defaultValue.val();
+
+    console.log($defaultValue);
+    console.log($image);
+    console.log($input);
+    console.log(defaultValue);
 
     $input.val('');
     $image.attr('src', defaultValue);
