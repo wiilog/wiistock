@@ -427,6 +427,10 @@ input[type="checkbox"] {
     -webkit-transition: box-shadow 200ms;
     cursor: pointer;
 
+    &:disabled {
+        border-color: $grey;
+    }
+
     &:not(:disabled):hover {
         border-color: $primary;
     }

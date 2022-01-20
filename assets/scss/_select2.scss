@@ -59,6 +59,7 @@
 }
 
 .select2-search__field {
+    min-width: 5em !important;
     outline: none !important;
 
     &:focus {

@@ -109,6 +109,25 @@ class FieldsParam
     const FIELD_LABEL_CARRIED_OUT_OPERATION_COUNT = 'nombre d\'opération(s) réalisée(s)';
     const FIELD_LABEL_RECEIVERS_HANDLING = 'destinataires';
 
+    public const FILTERED_FIELDS = [
+        // Arrivages
+        FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE,
+        FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE,
+        FieldsParam::FIELD_CODE_FOURNISSEUR,
+        FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE,
+        FieldsParam::FIELD_CODE_TRANSPORTEUR,
+        FieldsParam::FIELD_CODE_TARGET_ARRIVAGE,
+
+        // Acheminements
+        FieldsParam::FIELD_CODE_EMERGENCY,
+        FieldsParam::FIELD_CODE_RECEIVER_DISPATCH,
+        FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH,
+        FieldsParam::FIELD_CODE_DESTINATION,
+
+        // Services
+        FieldsParam::FIELD_CODE_RECEIVERS_HANDLING
+    ];
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -195,7 +214,7 @@ class FieldsParam
         return $this;
     }
 
-    public function getRequiredCreate(): ?bool
+    public function isRequiredCreate(): ?bool
     {
         return $this->requiredCreate;
     }
@@ -207,7 +226,7 @@ class FieldsParam
         return $this;
     }
 
-    public function getRequiredEdit(): ?bool
+    public function isRequiredEdit(): ?bool
     {
         return $this->requiredEdit;
     }

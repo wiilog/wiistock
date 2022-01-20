@@ -68,8 +68,8 @@ class FieldsParamController extends AbstractController
                     'displayedCreate' => $field->isDisplayedCreate() ? 'oui' : 'non',
                     'displayedEdit' => $field->isDisplayedEdit() ? 'oui' : 'non',
                     'displayedFilters' => (in_array($field->getFieldCode(), $this->filteredFields) && $field->isDisplayedFilters()) ? 'oui' : 'non',
-                    'mustCreate' => $field->getRequiredCreate() ? 'oui' : 'non',
-                    'mustEdit' => $field->getRequiredEdit() ? 'oui' : 'non',
+                    'mustCreate' => $field->isRequiredCreate() ? 'oui' : 'non',
+                    'mustEdit' => $field->isRequiredEdit() ? 'oui' : 'non',
                     'Actions' => $this->renderView('fields_param/datatableFieldsRow.html.twig', [
                         'url' => $url,
                         'fieldId' => $field->getId(),
@@ -84,10 +84,7 @@ class FieldsParamController extends AbstractController
      * @Route("/api-modifier", name="fields_api_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function apiEdit(Request $request,
-                            UserService $userService,
-                            EntityManagerInterface $entityManager): Response
-    {
+    public function apiEdit(Request $request, EntityManagerInterface $entityManager): Response  {
         if ($data = json_decode($request->getContent(), true)) {
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
             $field = $fieldsParamRepository->find($data['id']);

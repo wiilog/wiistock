@@ -8,6 +8,7 @@ use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
+use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\Import;
 use App\Entity\MailerServer;
@@ -344,6 +345,7 @@ class SettingsController extends AbstractController {
         $statusRepository = $this->manager->getRepository(Statut::class);
         $freeFieldRepository = $this->manager->getRepository(FreeField::class);
         $statusRepository = $this->manager->getRepository(Statut::class);
+        $fixedFieldRepository = $this->manager->getRepository(FieldsParam::class);
 
         return [
             self::CATEGORY_GLOBAL => [
@@ -387,7 +389,7 @@ class SettingsController extends AbstractController {
                                     ["label" => "Oui", "value" => 1],
                                     ["label" => "Non", "value" => 0],
                                     ["label" => "Aucune", "value" => ""],
-                                ]
+                                ],
                             ],
                         ]);
 
@@ -399,6 +401,73 @@ class SettingsController extends AbstractController {
                     },
                 ],
             ],
+            self::CATEGORY_TRACKING => [
+                self::MENU_DISPATCHES => [
+                    self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
+                        $emergencyField = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY);
+                        $businessField = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_BUSINESS_UNIT);
+
+                        return [
+                            "emergency" => [
+                                "field" => $emergencyField->getId(),
+                                "elements" => Stream::from($emergencyField->getElements())
+                                    ->map(fn(string $element) => [
+                                        "text" => $element,
+                                        "value" => $element,
+                                        "selected" => true,
+                                    ])
+                                    ->toArray(),
+                            ],
+                            "businessUnit" => [
+                                "field" => $businessField->getId(),
+                                "elements" => Stream::from($businessField->getElements())
+                                    ->map(fn(string $element) => [
+                                        "text" => $element,
+                                        "value" => $element,
+                                        "selected" => true,
+                                    ])
+                                    ->toArray(),
+                            ],
+                        ];
+                    },
+                ],
+                self::MENU_ARRIVALS => [
+                    self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
+                        $field = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUSINESS_UNIT);
+
+                        return [
+                            "businessUnit" => [
+                                "field" => $field->getId(),
+                                "elements" => Stream::from($field->getElements())
+                                    ->map(fn(string $element) => [
+                                        "text" => $element,
+                                        "value" => $element,
+                                        "selected" => true,
+                                    ])
+                                    ->toArray(),
+                            ],
+                        ];
+                    },
+                ],
+                self::MENU_HANDLINGS => [
+                    self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
+                        $field = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY);
+
+                        return [
+                            "emergency" => [
+                                "field" => $field->getId(),
+                                "elements" => Stream::from($field->getElements())
+                                    ->map(fn(string $element) => [
+                                        "text" => $element,
+                                        "value" => $element,
+                                        "selected" => true,
+                                    ])
+                                    ->toArray(),
+                            ],
+                        ];
+                    },
+                ],
+            ],
             self::CATEGORY_DATA => [
                 self::MENU_IMPORTS => fn() => [
                     "statuts" => $statusRepository->findByCategoryNameAndStatusCodes(
@@ -406,7 +475,7 @@ class SettingsController extends AbstractController {
                         [Import::STATUS_PLANNED, Import::STATUS_IN_PROGRESS, Import::STATUS_CANCELLED, Import::STATUS_FINISHED]
                     ),
                 ],
-            ]
+            ],
         ];
     }
 
@@ -427,6 +496,20 @@ class SettingsController extends AbstractController {
         return $this->json([
             "success" => true,
             "msg" => "Les nouveaux paramétrages ont été enregistrés",
+        ]);
+    }
+
+    /**
+     * @Route("/enregistrer/champ-fixe/{field}", name="settings_save_field_param", options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
+     */
+    public function saveFieldParam(Request $request, EntityManagerInterface $manager, FieldsParam $field): Response {
+        $field->setElements(explode(",", $request->request->get("elements")));
+        $manager->flush();
+
+        return $this->json([
+            "success" => true,
+            "msg" => "Les nouveaux paramétrages du champ ont été enregistrés",
         ]);
     }
 
@@ -603,7 +686,7 @@ class SettingsController extends AbstractController {
                                 ["label" => "Oui", "value" => 1],
                                 ["label" => "Non", "value" => 0],
                                 ["label" => "Aucune", "value" => ""],
-                            ]
+                            ],
                         ],
                     ]);
                 }
@@ -626,7 +709,7 @@ class SettingsController extends AbstractController {
                     ->join("");
 
                 $defaultValue = "<select name='defaultValue' class='form-control data' data-global-error='Valeur par défaut'>$options</select>";
-            } else if ($freeField->getTypage() !== FreeField::TYPE_LIST_MULTIPLE) {
+            } else if($freeField->getTypage() !== FreeField::TYPE_LIST_MULTIPLE) {
                 if(!$edit) {
                     $defaultValue = $freeField->getDefaultValue();
                 } else {
@@ -637,8 +720,8 @@ class SettingsController extends AbstractController {
 
             if($edit) {
                 $displayedCreate = $freeField->getDisplayedCreate() ? "checked" : "";
-                $requiredCreate = $freeField->getRequiredCreate() ? "checked" : "";
-                $requiredEdit = $freeField->getRequiredEdit() ? "checked" : "";
+                $requiredCreate = $freeField->isRequiredCreate() ? "checked" : "";
+                $requiredEdit = $freeField->isRequiredEdit() ? "checked" : "";
                 $elements = join(";", $freeField->getElements());
 
                 $rows[] = [
@@ -664,8 +747,8 @@ class SettingsController extends AbstractController {
                     "appliesTo" => $freeField->getCategorieCL() ? ucfirst($freeField->getCategorieCL()->getLabel()) : "",
                     "type" => $typageCLFr,
                     "displayedCreate" => ($freeField->getDisplayedCreate() ? "oui" : "non"),
-                    "requiredCreate" => ($freeField->getRequiredCreate() ? "oui" : "non"),
-                    "requiredEdit" => ($freeField->getRequiredEdit() ? "oui" : "non"),
+                    "requiredCreate" => ($freeField->isRequiredCreate() ? "oui" : "non"),
+                    "requiredEdit" => ($freeField->isRequiredEdit() ? "oui" : "non"),
                     "defaultValue" => $defaultValue,
                     "elements" => $freeField->getTypage() == FreeField::TYPE_LIST || $freeField->getTypage() == FreeField::TYPE_LIST_MULTIPLE ? $this->renderView('free_field/freeFieldElems.html.twig', ['elems' => $freeField->getElements()]) : '',
                 ];
@@ -704,6 +787,61 @@ class SettingsController extends AbstractController {
             "msg" => "Le champ libre a été supprimé",
         ]);
     }
+
+
+    /**
+     * @Route("/champ-fixe/{entity}", name="settings_fixed_field_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     */
+    public function fixedFieldApi(Request $request, EntityManagerInterface $entityManager, string $entity): Response {
+        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
+
+        $class = "form-control data";
+
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $arrayFields = $fieldsParamRepository->findByEntityForEntity($entity);
+
+        $rows = [];
+        foreach($arrayFields as $field) {
+            $label = ucfirst($field->getFieldLabel());
+            $displayedCreate = $field->isDisplayedCreate() ? "checked" : "";
+            $requiredCreate = $field->isRequiredCreate() ? "checked" : "";
+            $displayedEdit = $field->isDisplayedEdit() ? "checked" : "";
+            $requiredEdit = $field->isRequiredEdit() ? "checked" : "";
+            $filtersDisabled = !in_array($field->getFieldCode(), FieldsParam::FILTERED_FIELDS) ? "disabled" : "";
+            $displayedFilters = !$filtersDisabled && $field->isDisplayedFilters() ? "checked" : "";
+
+            if($edit) {
+                $labelAttributes = "class='font-weight-bold'";
+                if($field->getElements() !== null) {
+                    $modal = strtolower($field->getFieldCode());
+                    $labelAttributes = "class='font-weight-bold btn-link' data-target='#modal-fixed-field-$modal' data-toggle='modal'";
+                }
+
+                $rows[] = [
+                    "label" => "<span $labelAttributes>$label</span> <input type='hidden' name='id' class='$class' value='{$field->getId()}'/>",
+                    "displayedCreate" => "<input type='checkbox' name='displayedCreate' class='$class' $displayedCreate/>",
+                    "displayedEdit" => "<input type='checkbox' name='displayedEdit' class='$class' $displayedEdit/>",
+                    "requiredCreate" => "<input type='checkbox' name='requiredCreate' class='$class' $requiredCreate/>",
+                    "requiredEdit" => "<input type='checkbox' name='requiredEdit' class='$class' $requiredEdit/>",
+                    "displayedFilters" => "<input type='checkbox' name='displayedFilters' class='$class' $displayedFilters $filtersDisabled/>",
+                ];
+            } else {
+                $rows[] = [
+                    "label" => "<span class='font-weight-bold'>$label</span>",
+                    "displayedCreate" => $field->isDisplayedCreate() ? "Oui" : "Non",
+                    "displayedEdit" => $field->isDisplayedEdit() ? "Oui" : "Non",
+                    "requiredCreate" => $field->isRequiredCreate() ? "Oui" : "Non",
+                    "requiredEdit" => $field->isRequiredEdit() ? "Oui" : "Non",
+                    "displayedFilters" => (in_array($field->getFieldCode(), FieldsParam::FILTERED_FIELDS) && $field->isDisplayedFilters()) ? "Oui" : "Non",
+                ];
+            }
+        }
+
+        return $this->json([
+            "data" => $rows,
+        ]);
+    }
+
 
     private function canEdit(): bool {
         return $this->userService->hasRightFunction(Menu::PARAM, Action::EDIT);
