@@ -85,11 +85,6 @@ function resetImage($button) {
     const $input = $button.siblings('[type="file"]');
     const defaultValue = $defaultValue.val();
 
-    console.log($defaultValue);
-    console.log($image);
-    console.log($input);
-    console.log(defaultValue);
-
     $input.val('');
     $image.attr('src', defaultValue);
 }
