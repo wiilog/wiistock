@@ -50,20 +50,16 @@
     min-height: 80vh;
     padding: 0 20px;
 
-    aside {
-        min-width: 400px;
-        max-width: 400px;
-        height: auto;
-        padding: 0 !important;
-        margin-right: 20px;
+    .wii-box {
         border-radius: 10px;
+    }
 
+    aside {
         .settings-item {
             display: flex;
             justify-content: space-between;
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: black;
+            font-size: 1.1rem;
+            font-weight: 600;
             padding: 20px;
             border-bottom: 1px solid $grey;
             cursor: pointer;
@@ -86,6 +82,7 @@
                 width: 20px;
                 height: 20px;
                 background-image: url("../../../public/svg/arrow.svg");
+                background-repeat: no-repeat;
                 transform: rotate(90deg);
                 margin-right: 5px;
                 content: "";
@@ -97,18 +94,11 @@
         flex: 1 1 auto;
 
         .wii-box {
-            border-radius: 10px;
-
-            section {
+            .management-title {
                 color: black;
                 background-color: #F2F3F7;
-                padding: 2px 20px;
-                margin: 25px -16px 15px;
+                padding: 5px #{$grid-gutter-width / 2};
                 font-weight: 600;
-
-                &:first-child {
-                    margin-top: -16px;
-                }
             }
         }
 

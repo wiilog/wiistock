@@ -310,6 +310,6 @@ class FreeFieldRepository extends EntityRepository {
             ->setParameter("category", $category)
             ->getQuery()
             ->getResult();
-    }
+	}
 
 }

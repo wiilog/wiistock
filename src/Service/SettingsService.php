@@ -2,9 +2,12 @@
 
 namespace App\Service;
 
+use App\Entity\CategorieCL;
 use App\Entity\DaysWorked;
+use App\Entity\FreeField;
 use App\Entity\MailerServer;
 use App\Entity\ParametrageGlobal;
+use App\Entity\Type;
 use App\Entity\WorkFreeDay;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -53,7 +56,7 @@ class SettingsService {
         ));
 
         if($request->request->has("datatables")) {
-            $this->saveDatatables(json_decode($request->request->get("datatables"), true));
+            $this->saveDatatables(json_decode($request->request->get("datatables"), true), $request->request->all());
             $request->request->remove("datatables");
         }
 
@@ -95,9 +98,9 @@ class SettingsService {
             $updated[] = $key;
         }
 
-        $this->postSaveTreatment($updated);
-
         $this->manager->flush();
+
+        $this->postSaveTreatment($updated);
     }
 
     /**
@@ -139,12 +142,12 @@ class SettingsService {
         return $saved;
     }
 
-    private function saveDatatables(array $tables) {
+    private function saveDatatables(array $tables, array $data) {
         if(isset($tables["workingHours"])) {
             $ids = array_map(fn($day) => $day["id"], $tables["workingHours"]);
 
-            $daysWorkedRepository = $this->manager->getRepository(DaysWorked::class);
-            $daysWorked = Stream::from($daysWorkedRepository->findBy(["id" => $ids]))
+            $freeFieldRepository = $this->manager->getRepository(DaysWorked::class);
+            $daysWorked = Stream::from($freeFieldRepository->findBy(["id" => $ids]))
                 ->keymap(fn($day) => [$day->getId(), $day])
                 ->toArray();
 
@@ -172,6 +175,36 @@ class SettingsService {
                 $day->setDay(DateTime::createFromFormat("Y-m-d", $offDay["day"]));
 
                 $this->manager->persist($day);
+            }
+        }
+
+        if(isset($tables["articlesFreeFields"])) {
+            $ids = array_map(fn($freeField) => $freeField["id"] ?? null, $tables["articlesFreeFields"]);
+
+            $type = $this->manager->find(Type::class, $data["entity"]);
+            $type->setDescription($data["description"] ?? null)
+                ->setColor($data["color"] ?? null);
+
+            $freeFieldRepository = $this->manager->getRepository(FreeField::class);
+            $freeFields = Stream::from($freeFieldRepository->findBy(["id" => $ids]))
+                ->keymap(fn($day) => [$day->getId(), $day])
+                ->toArray();
+
+            foreach(array_filter($tables["articlesFreeFields"]) as $item) {
+                /** @var FreeField $freeField */
+                $freeField = isset($item["id"]) ? $freeFields[$item["id"]] : new FreeField();
+
+                $freeField->setLabel($item["label"])
+                    ->setType($type)
+                    ->setTypage($item["type"] ?? $freeField->getTypage())
+                    ->setCategorieCL($this->manager->find(CategorieCL::class, $item["category"]))
+                    ->setDefaultValue($item["defaultValue"] ?? null)
+                    ->setElements(isset($item["elements"]) ? explode(";", $item["elements"]) : null)
+                    ->setDisplayedCreate($item["displayedCreate"])
+                    ->setRequiredCreate($item["requiredCreate"])
+                    ->setRequiredEdit($item["requiredEdit"]);
+
+                $this->manager->persist($freeField);
             }
         }
     }

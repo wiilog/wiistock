@@ -53,6 +53,7 @@ class AppExtension extends AbstractExtension {
             new TwigFunction('class', [$this, 'class']),
             new TwigFunction('setting', [$this, 'setting']),
             new TwigFunction('setting_value', [$this, 'settingValue']),
+            new TwigFunction('call', [$this, 'call']),
         ];
     }
 
@@ -147,6 +148,10 @@ class AppExtension extends AbstractExtension {
 
     public function formatHelper($input, string $formatter, ...$options): string {
         return FormatHelper::{$formatter}($input, ...$options);
+    }
+
+    public function call($function) {
+        return $function();
     }
 
     public function class($object): string {

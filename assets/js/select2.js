@@ -96,12 +96,9 @@ export default class Select2 {
                 }
 
                 const allowClear = !($element.is(`[multiple]`) || $element.is(`[data-no-empty-option]`));
-                if (!config.placeholder) {
-                    config.placeholder = '';
-                }
 
                 $element.select2({
-                    placeholder: $element.data(`placeholder`),
+                    placeholder: $element.data(`placeholder`) || '',
                     tags: $element.is('[data-editable]'),
                     allowClear,
                     dropdownParent,
@@ -119,7 +116,7 @@ export default class Select2 {
                         return data.html || data.text;
                     },
                     templateSelection: function (data, container) {
-                        return data.html || data.text;
+                        return data.html || data.text || undefined;
                     },
                     ...config,
                 });
@@ -182,8 +179,8 @@ export default class Select2 {
                     const $prefixContainer = $dropdown.find('.select2-search');
                     $prefixContainer.addClass(`d-flex`);
                     $prefixContainer.prepend(`
-                    <input class="search-prefix" name="searchPrefix" size=${searchPrefixDisplayed.length} value="${searchPrefixDisplayed}" disabled/>
-                `);
+                        <input class="search-prefix" name="searchPrefix" size=${searchPrefixDisplayed.length} value="${searchPrefixDisplayed}" disabled/>
+                    `);
                 }
             }
         });

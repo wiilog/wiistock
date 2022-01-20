@@ -386,38 +386,36 @@ class InventoryParamController extends AbstractController
     /**
      * @Route("/import-categories", name="update_category", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-	public function updateCategory(Request $request): Response
-	{
+    public function updateCategory(Request $request): Response
+    {
         $entityManager = $this->getDoctrine()->getManager();
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
 
         $file = $request->files->get('file');
 
-        $delimiters = array(
+        $delimiters = [
             ';' => 0,
             ',' => 0,
             "\t" => 0,
             "|" => 0
-        );
+        ];
 
         $fileDetectDelimiter = fopen($file, "r");
         $firstLine = fgets($fileDetectDelimiter);
         fclose($fileDetectDelimiter);
+
         foreach ($delimiters as $delimiter => &$count) {
             $count = count(str_getcsv($firstLine, $delimiter));
         }
 
         $delimiter = array_search(max($delimiters), $delimiters);
-
         $rows = [];
-
         $fileOpen = fopen($file->getPathname(), "r");
-        while (($data = fgetcsv($fileOpen, 1000, $delimiter)) !== false) {
-            $rows[] = array_map('utf8_encode', $data);
-        }
 
-        array_shift($rows); // supprime la 1è ligne d'en-têtes
+        while (($data = fgetcsv($fileOpen, 1000, $delimiter)) !== false) {
+            $rows[] = $data;
+        }
 
         if (!file_exists('./uploads/log')) {
             mkdir('./uploads/log', 0777, true);
@@ -428,25 +426,21 @@ class InventoryParamController extends AbstractController
         $myFile = fopen($uri, "w");
         $success = true;
 
-        foreach ($rows as $row)
-        {
+        foreach ($rows as $row) {
             $inventoryCategory = $inventoryCategoryRepository->findOneBy(['label' => $row[1]]);
             $refArticle = $referenceArticleRepository->findOneBy(['reference' => $row[0]]);
-            if (!empty($refArticle) && !empty($inventoryCategory))
-            {
+
+            if (!empty($refArticle) && !empty($inventoryCategory)) {
                 $refArticle->setCategory($inventoryCategory);
                 $entityManager->persist($refArticle);
                 $entityManager->flush();
-            }
-            else
-            {
+            } else {
                 $success = false;
                 if (empty($refArticle)) {
                     fwrite($myFile, "La référence " . "'" . $row[0] . "' n'existe pas. \n");
                 }
-                if (empty($inventoryCategory))
-                {
-                    fwrite($myFile, "La catégorie " . "'" . $row[1] . "' n'existe pas. \n" );
+                if (empty($inventoryCategory)) {
+                    fwrite($myFile, "La catégorie " . "'" . $row[1] . "' n'existe pas. \n");
                 }
             }
         }
@@ -464,7 +458,7 @@ class InventoryParamController extends AbstractController
         fclose($myFile);
 
         return new JsonResponse(['success' => $success, 'nameFile' => $nameFile]);
-	}
+    }
 
     /**
      * @Route("/autocomplete-frequencies", name="get_frequencies", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")

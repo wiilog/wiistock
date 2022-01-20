@@ -72,6 +72,12 @@ $icons: (
     'check': "../../public/svg/check.svg",
     'wysiwyg-edit': "../../public/svg/wysiwyg-edit.svg",
     'visibility-group': "../../public/svg/visibility-group.svg",
+    'menu-terminal-mobile': "../../public/svg/menu-terminal-mobile.svg",
+    'menu-dashboard': "../../public/svg/menu-dashboard.svg",
+    'menu-iot': "../../public/svg/menu-iot.svg",
+    'menu-notification': "../../public/svg/menu-notification.svg",
+    'user': "../../public/svg/user.svg",
+    'menu-donnees': "../../public/svg/menu-donnees.svg",
 );
 
 @each $iconName, $iconPath in $icons {

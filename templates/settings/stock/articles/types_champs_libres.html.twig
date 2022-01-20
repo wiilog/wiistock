@@ -1,0 +1,16 @@
+{% extends 'settings/manager_template.html.twig' %}
+
+{% import 'form.html.twig' as form %}
+
+{% block title %}Types et champs libres{% endblock %}
+
+{% block filters %}
+    {{ form.switch('entity', null, false, types, {expanded: true}) }}
+{% endblock %}
+
+{% block subtitle %}Champs libres{% endblock %}
+
+{% block footer %}
+    <input type="hidden" id="article-free-field-categories" value="{{ categories | json_encode }}">
+    <input type="hidden" id="article-free-field-boolean-default-value" value="{{ default_value | json_encode }}">
+{% endblock %}

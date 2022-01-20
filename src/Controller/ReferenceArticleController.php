@@ -678,109 +678,6 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
-     * @Route("/exporter-refs", name="export_all_refs", options={"expose"=true}, methods="GET|POST")
-     */
-    public function exportAllRefs(EntityManagerInterface $manager,
-                                  CSVExportService       $csvService,
-                                  FreeFieldService       $freeFieldService): Response {
-        $freeFieldsConfig = $freeFieldService->createExportArrayConfig($manager, [CategorieCL::REFERENCE_ARTICLE], [CategoryType::ARTICLE]);
-
-        $header = array_merge([
-            'reference',
-            'libellé',
-            'quantité',
-            'type',
-            'acheteur',
-            'type quantité',
-            'statut',
-            'commentaire',
-            'emplacement',
-            'seuil sécurite',
-            'seuil alerte',
-            'prix unitaire',
-            'code barre',
-            'catégorie inventaire',
-            'date dernier inventaire',
-            'synchronisation nomade',
-            'gestion de stock',
-            'gestionnaire(s)',
-            'Labels Fournisseurs',
-            'Codes Fournisseurs',
-            'Groupe de visibilité',
-            'date de création',
-            'crée par',
-            'date de dérniere modification',
-            'modifié par',
-            "date dernier mouvement d'entrée",
-            "date dernier mouvement de sortie",
-        ], $freeFieldsConfig['freeFieldsHeader']);
-
-        $today = new DateTime();
-        $today = $today->format("d-m-Y H:i:s");
-        $user = $this->userService->getUser();
-
-        return $csvService->streamResponse(function($output) use ($manager, $csvService, $user, $freeFieldsConfig) {
-            $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
-            $managersByReference = $manager
-                ->getRepository(Utilisateur::class)
-                ->getUsernameManagersGroupByReference();
-
-            $suppliersByReference = $manager
-                ->getRepository(Fournisseur::class)
-                ->getCodesAndLabelsGroupedByReference();
-
-            $references = $referenceArticleRepository->iterateAll($user);
-            foreach($references as $reference) {
-                $this->putReferenceLine($output, $csvService, $managersByReference, $reference, $suppliersByReference, $freeFieldsConfig);
-            }
-        }, "export-references-$today.csv", $header);
-    }
-
-    private function putReferenceLine(                 $handle,
-                                      CSVExportService $csvService,
-                                      array            $managersByReference,
-                                      array            $reference,
-                                      array            $suppliersByReference,
-                                      array            $freeFieldsConfig) {
-        $id = (int)$reference["id"];
-        $line = [
-            $reference["reference"],
-            $reference["libelle"],
-            $reference["quantiteStock"],
-            $reference["type"],
-            $reference["buyer"],
-            $reference["typeQuantite"],
-            $reference["statut"],
-            $reference["commentaire"] ? strip_tags($reference["commentaire"]) : "",
-            $reference["emplacement"],
-            $reference["limitSecurity"],
-            $reference["limitWarning"],
-            $reference["prixUnitaire"],
-            $reference["barCode"],
-            $reference["category"],
-            $reference["dateLastInventory"] ? $reference["dateLastInventory"]->format("d/m/Y H:i:s") : "",
-            $reference["needsMobileSync"],
-            $reference["stockManagement"],
-            $managersByReference[$id] ?? "",
-            $suppliersByReference[$id]["supplierLabels"] ?? "",
-            $suppliersByReference[$id]["supplierCodes"] ?? "",
-            $reference["visibilityGroup"],
-            $reference["createdAt"] ? $reference["createdAt"]->format("d/m/Y H:i:s") : "",
-            $reference["createdBy"] ?? "-",
-            $reference["editedAt"] ? $reference["editedAt"]->format("d/m/Y H:i:s") : "",
-            $reference["editedBy"] ?? "",
-            $reference["lastStockEntry"] ? $reference["lastStockEntry"]->format("d/m/Y H:i:s") : "",
-            $reference["lastStockExit"] ? $reference["lastStockExit"]->format("d/m/Y H:i:s") : "",
-        ];
-
-        foreach($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
-            $line[] = FormatHelper::freeField($reference['freeFields'][$freeFieldId] ?? '', $freeField);
-        }
-
-        $csvService->putLine($handle, $line);
-    }
-
-    /**
      * @Route("/export-donnees", name="exports_params")
      */
     public function renderParams()
@@ -936,8 +833,8 @@ class ReferenceArticleController extends AbstractController
             function(MouvementStock $mouvement) use ($mouvementStockService) {
                 $fromColumnConfig = $mouvementStockService->getFromColumnConfig($mouvement);
                 $from = $fromColumnConfig['from'];
-                $orderPath = $fromColumnConfig['orderPath'];
-                $orderId = $fromColumnConfig['orderId'];
+                $fromPath = $fromColumnConfig['path'];
+                $fromPathParams = $fromColumnConfig['pathParams'];
 
                 return [
                     'Date' => $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : 'aucune',
@@ -949,8 +846,8 @@ class ReferenceArticleController extends AbstractController
                     'from' => $this->templating->render('mouvement_stock/datatableMvtStockRowFrom.html.twig', [
                         'from' => $from,
                         'mvt' => $mouvement,
-                        'orderPath' => $orderPath,
-                        'orderId' => $orderId
+                        'path' => $fromPath,
+                        'pathParams' => $fromPathParams
                     ]),
                     'ArticleCode' => $mouvement->getArticle() ? $mouvement->getArticle()->getBarCode() : $mouvement->getRefArticle()->getBarCode()
                 ];

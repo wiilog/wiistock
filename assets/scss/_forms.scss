@@ -148,6 +148,73 @@ $wii-switch-height: $input-height;
     }
 }
 
+.wii-expanded-switch {
+    display: inline-flex;
+    flex-wrap: wrap;
+    padding: 0;
+
+    input, input + label {
+        display: flex;
+        appearance: none;
+        -moz-appearance: none;
+        outline: 0;
+        padding: 0 15px;
+        border-radius: 4px;
+        border: 1px solid #CBCBCB;
+        height: $wii-switch-height;
+        line-height: $wii-switch-height;
+        font-weight: normal;
+        transition: all 200ms linear;
+        font-size: 1rem;
+        background: white;
+        color: #666666;
+    }
+
+    input + label {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 5px;
+    }
+
+    input:not([content]) {
+        display: none;
+    }
+
+    input:not(:disabled), input:not(:disabled) + label {
+        cursor: pointer;
+
+        &:hover:not(:checked) {
+            color: lighten(#666666, 5%);
+            border-color: lighten(#CBCBCB, 5%);
+        }
+    }
+
+    input:checked, input:checked + label {
+        background: #F2F3F7;
+        color: #3353D7;
+        border-color: #3353D7;
+
+        &:hover {
+            background: lighten(#F2F3F7, 5%) !important;
+            color: lighten(#3353D7, 5%) !important;
+            border-color: lighten(#3353D7, 5%) !important;
+        }
+    }
+
+    input:before, input + label:before {
+        content: attr(content);
+        height: $wii-switch-height;
+        line-height: $wii-switch-height;
+        text-align: center;
+        padding: 0;
+    }
+
+    &:first-child {
+        margin-top: 0 !important;
+    }
+}
+
 .form-control, .select2-search__field, .select2-selection__placeholder {
     border-radius: 5px;
     padding: 5px 15px;
@@ -390,4 +457,17 @@ input[type="checkbox"] {
 
 textarea {
     resize: none;
+}
+
+.wii-color-picker {
+    width: 80px !important;
+
+    &::-webkit-color-swatch {
+        border-radius: 50px;
+        border: none;
+    }
+
+    option {
+        border-radius: 50px;
+    }
 }

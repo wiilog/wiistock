@@ -5,7 +5,6 @@ $(function() {
     initModals(tableHandling);
 
     initDateTimePicker();
-    Select2Old.init($('.filter-select2[name="statut"]'), 'Statuts');
     Select2Old.user($('.filter-select2[name="utilisateurs"]'), 'Demandeurs');
     Select2Old.user($('.filter-select2[name="receivers"]'), 'Destinataires');
     Select2Old.init($('.filter-select2[name="emergencyMultiple"]'), 'Urgences');
