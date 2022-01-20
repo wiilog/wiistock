@@ -301,7 +301,6 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/afficher/{category}/{menu}/{submenu}", name="settings_item", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB})
      */
     public function item(string $category, string $menu, ?string $submenu = null): Response {
         if($submenu) {
