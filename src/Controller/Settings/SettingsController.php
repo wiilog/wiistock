@@ -14,7 +14,6 @@ use App\Entity\MailerServer;
 use App\Entity\Menu;
 use App\Entity\Statut;
 use App\Entity\Type;
-use App\Entity\Statut;
 use App\Entity\WorkFreeDay;
 use App\Helper\FormatHelper;
 use App\Service\SettingsService;
@@ -72,7 +71,10 @@ class SettingsController extends AbstractController {
                     "label" => "Articles",
                     "menus" => [
                         self::MENU_LABELS => ["label" => "Étiquettes"],
-                        self::MENU_TYPES_FREE_FIELDS => ["label" => "Types et champs libres"],
+                        self::MENU_TYPES_FREE_FIELDS => [
+                            "label" => "Types et champs libres",
+                            "wrapped" => false
+                        ],
                     ],
                 ],
                 self::MENU_REQUESTS => ["label" => "Demandes"],
@@ -201,7 +203,8 @@ class SettingsController extends AbstractController {
                 self::MENU_CSV_EXPORTS => ["label" => "Exports CSV"],
                 self::MENU_IMPORTS => [
                     "label" => "Imports & mises à jour",
-                    "save" => false
+                    "save" => false,
+                    "wrapped" => false
                 ],
                 self::MENU_INVENTORIES_IMPORTS => [
                     "label" => "Imports d'inventaires",
@@ -301,7 +304,6 @@ class SettingsController extends AbstractController {
 
     /**
      * @Route("/afficher/{category}/{menu}/{submenu}", name="settings_item", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB})
      */
     public function item(string $category, string $menu, ?string $submenu = null): Response {
         if($submenu) {

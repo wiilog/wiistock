@@ -94,16 +94,11 @@
         flex: 1 1 auto;
 
         .wii-box {
-            section {
+            .management-title {
                 color: black;
                 background-color: #F2F3F7;
-                padding: 2px 20px;
-                margin: 25px -16px 15px;
+                padding: 5px #{$grid-gutter-width / 2};
                 font-weight: 600;
-
-                &:first-child {
-                    margin-top: -16px;
-                }
             }
         }
 

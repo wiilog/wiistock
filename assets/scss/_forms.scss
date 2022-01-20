@@ -150,8 +150,8 @@ $wii-switch-height: $input-height;
 
 .wii-expanded-switch {
     display: inline-flex;
+    flex-wrap: wrap;
     padding: 0;
-    height: $wii-switch-height;
 
     input, input + label {
         display: flex;
@@ -168,16 +168,13 @@ $wii-switch-height: $input-height;
         font-size: 1rem;
         background: white;
         color: #666666;
-
-        &:not(:first-of-type) {
-            margin-left: 5px;
-        }
     }
 
     input + label {
         display: flex;
         justify-content: center;
         align-items: center;
+        margin: 5px;
     }
 
     input:not([content]) {
