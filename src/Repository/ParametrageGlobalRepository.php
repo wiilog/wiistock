@@ -16,15 +16,13 @@ use WiiCommon\Helper\Stream;
 class ParametrageGlobalRepository extends EntityRepository
 {
     public function getOneParamByLabel($label) {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT pg.value
-            FROM App\Entity\ParametrageGlobal pg
-            WHERE pg.label LIKE :label
-            "
-        )->setParameter('label', $label);
-
-        $result = $query->getOneOrNullResult();
+        $result = $this->createQueryBuilder('parameter')
+            ->select('parameter.value')
+            ->andWhere('parameter.label LIKE :label')
+            ->setMaxResults(1)
+            ->setParameter('label', $label)
+            ->getQuery()
+            ->getOneOrNullResult();
 
         return $result ? $result['value'] : null;
     }

@@ -95,10 +95,10 @@
                                 <span class='fas fa-pencil-alt'></span>
                             </div>
                             <div class="mx-3">
-                                <div class="stripped-blue-background logo-icon">
+                                <div class="preview-container stripped-background logo-icon">
                                     <img src="{{ logoURL }}"
                                          height="50px"
-                                         class="preview-component-image logo {{ not logoURL ? 'd-none' }}"/>
+                                         class="preview-component-image image {{ not logoURL ? 'd-none' }}"/>
                                 </div>
                                 <span class="title-component-image" title="{{ titleComponentLogo }}">{{ titleComponentLogo ? titleComponentLogo | slice(0, 5) ~ '...' }}</span>
                                 <input type="hidden" name="titleComponentLogo" class="data" value="">

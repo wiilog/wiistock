@@ -1,4 +1,4 @@
-window.importInventoryFile = importInventoryFile;
+global.importInventoryFile = importInventoryFile;
 
 function importInventoryFile() {
     let importExcel = $('#importExcel')[0];

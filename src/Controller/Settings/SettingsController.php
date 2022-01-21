@@ -343,7 +343,6 @@ class SettingsController extends AbstractController {
         $typeRepository = $this->manager->getRepository(Type::class);
         $statusRepository = $this->manager->getRepository(Statut::class);
         $freeFieldRepository = $this->manager->getRepository(FreeField::class);
-        $statusRepository = $this->manager->getRepository(Statut::class);
 
         return [
             self::CATEGORY_GLOBAL => [
@@ -406,6 +405,23 @@ class SettingsController extends AbstractController {
                         [Import::STATUS_PLANNED, Import::STATUS_IN_PROGRESS, Import::STATUS_CANCELLED, Import::STATUS_FINISHED]
                     ),
                 ],
+            ],
+            self::CATEGORY_TRACKING => [
+                self::MENU_DISPATCHES => [
+                    self::MENU_OVERCONSUMPTION_BILL => fn() => [
+                        "types" => Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]))
+                            ->map(fn(Type $type) => [
+                                "value" => $type->getId(),
+                                "text" => $type->getLabel()
+                            ])->toArray(),
+                        "statuses" => Stream::from($statusRepository->findByCategorieName(CategorieStatut::DISPATCH))
+                            ->filter(fn(Statut $status) => $status->getState() === Statut::NOT_TREATED)
+                            ->map(fn(Statut $status) => [
+                                "value" => $status->getId(),
+                                "text" => $status->getNom()
+                            ])->toArray()
+                    ]
+                ]
             ]
         ];
     }
