@@ -26,6 +26,7 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Service\NotificationService;
 use App\Service\VisibleColumnService;
+use GuzzleHttp\Exception\ConnectException;
 use Symfony\Bundle\MakerBundle\Str;
 use WiiCommon\Helper\Stream;
 use App\Service\AttachmentService;
@@ -830,17 +831,23 @@ class DispatchController extends AbstractController {
             $untreatedStatus = $statusRepository->find($statusId);
 
             if($untreatedStatus && $untreatedStatus->isNotTreated() && ($untreatedStatus->getType() === $dispatch->getType())) {
-                $dispatch
-                    ->setStatut($untreatedStatus)
-                    ->setValidationDate(new DateTime('now'));
-
-                if( $dispatch->getType() &&
-                    ($dispatch->getType()->isNotificationsEnabled() || $dispatch->getType()->isNotificationsEmergency($dispatch->getEmergency()))) {
-                    $notificationService->toTreat($dispatch);
+                try {
+                    if( $dispatch->getType() &&
+                        ($dispatch->getType()->isNotificationsEnabled() || $dispatch->getType()->isNotificationsEmergency($dispatch->getEmergency()))) {
+                        $notificationService->toTreat($dispatch);
+                    }
+                    $dispatchService->sendEmailsAccordingToStatus($dispatch, true);
+                    $dispatch
+                        ->setStatut($untreatedStatus)
+                        ->setValidationDate(new DateTime('now'));
+                    $entityManager->flush();
+                } catch (Exception $e) {
+                    return new JsonResponse([
+                        'success' => false,
+                        'msg' => "L'envoi du mail ou de la notification a échoué. Veuillez rééssayer."
+                    ]);
                 }
 
-                $entityManager->flush();
-                $dispatchService->sendEmailsAccordingToStatus($dispatch, true);
             } else {
                 return new JsonResponse([
                     'success' => false,

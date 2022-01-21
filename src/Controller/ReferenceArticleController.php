@@ -355,11 +355,10 @@ class ReferenceArticleController extends AbstractController
             $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
         }
 
-        $filter = $filtreRefRepository->findOneByUserAndChampFixe($user, FiltreRef::FIXED_FIELD_ACTIVE_ONLY);
+        $filter = $filtreRefRepository->findOneByUserAndChampFixe($user, FiltreRef::FIXED_FIELD_STATUS);
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
-
         return $this->render('reference_article/index.html.twig', [
             "fields" => $fields,
             "searches" => $user->getRecherche(),
@@ -370,7 +369,7 @@ class ReferenceArticleController extends AbstractController
             'types' => $types,
             'typeQuantite' => $typeQuantite,
             'categories' => $inventoryCategories,
-            'wantInactif' => !empty($filter) && $filter->getValue() === Article::STATUT_INACTIF,
+            'wantActive' => !empty($filter) && $filter->getValue() === ReferenceArticle::STATUT_ACTIF,
             'stockManagement' => [
                 ReferenceArticle::STOCK_MANAGEMENT_FEFO,
                 ReferenceArticle::STOCK_MANAGEMENT_FIFO
@@ -777,20 +776,22 @@ class ReferenceArticleController extends AbstractController
 
             $filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
 
-            $filter = $filtreRefRepository->findOneByUserAndChampFixe($user, FiltreRef::FIXED_FIELD_ACTIVE_ONLY);
+            $filter = $filtreRefRepository->findOneByUserAndChampFixe($user, FiltreRef::FIXED_FIELD_STATUS);
 
             $em = $this->getDoctrine()->getManager();
+
             if($filter == null) {
                 $filter = new FiltreRef();
                 $filter
                     ->setUtilisateur($user)
-                    ->setChampFixe(FiltreRef::FIXED_FIELD_ACTIVE_ONLY)
-                    ->setValue(ReferenceArticle::STATUT_ACTIF);
+                    ->setChampFixe(FiltreRef::FIXED_FIELD_STATUS);
                 $em->persist($filter);
             }
 
-            if ($filter->getValue() != $statutArticle) {
-                $filter->setValue($statutArticle);
+            $filter->setValue(ReferenceArticle::STATUT_ACTIF);
+
+            if ($statutArticle !== ReferenceArticle::STATUT_ACTIF) {
+                $entityManager->remove($filter);
             }
             $em->flush();
 

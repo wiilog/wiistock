@@ -48,8 +48,8 @@ class FiltreRefController extends AbstractController
 
             // on vérifie qu'il n'existe pas déjà un filtre sur le même champ
             $userId = $user->getId();
-            $existingFilter = $filtreRefRepository->countByChampAndUser($data['field'], $userId);
-
+            $title = $refArticleDataService->getFieldTitle($data['field']);
+            $existingFilter = $filtreRefRepository->countByChampAndUser($title, $userId);
             if($existingFilter == 0) {
                 $filter = new FiltreRef();
 
@@ -63,7 +63,6 @@ class FiltreRefController extends AbstractController
                         $champLibre = $champLibreRepository->find($freeFieldId);
                         $filter->setChampLibre($champLibre);
                     } else {
-                        $title = $refArticleDataService->getFieldTitle($data['field']);
                         if (!empty($title)) {
                             $filter->setChampFixe($title);
                         }
