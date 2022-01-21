@@ -3,11 +3,17 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
             <div class="form-group col-4">
                 <label for="fournisseur">Fournisseur{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : '' }}</label>
-                <select class="form-control data select2 {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'needed' : '' }}" id="fournisseur" name="fournisseur">
+                <select class="form-control data select2 {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'needed' : '' }}"
+                        id="fournisseur"
+                        name="fournisseur">
                     <option {{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? 'disabled' }} selected></option>
                     {% for fournisseur in fournisseurs %}
                         {% set selected = (((arrivage.fournisseur is not empty) and (fournisseur.id == arrivage.fournisseur.id)) ? 'selected' : '') %}
-                        <option value="{{ fournisseur.id }}" {{ selected }}>{{ fournisseur.nom }}</option>
+                        <option value="{{ fournisseur.id }}"
+                                data-possible-customs="{{ fournisseur.possibleCustoms ? 1 : 0 }}"
+                                {{ selected }}>
+                            {{ fournisseur.nom }}
+                        </option>
                     {% endfor %}
                 </select>
             </div>

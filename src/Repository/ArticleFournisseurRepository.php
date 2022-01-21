@@ -183,7 +183,8 @@ class ArticleFournisseurRepository extends EntityRepository
             $countQuery = $countTotal;
         }
         $queryBuilder
-            ->select('supplier_article');
+            ->select('supplier_article')
+            ->andWhere('supplier_article.visible = 1');
 
         if ($params->getInt('start')) $queryBuilder->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $queryBuilder->setMaxResults($params->getInt('length'));
@@ -219,18 +220,6 @@ class ArticleFournisseurRepository extends EntityRepository
 
         return $query->getResult();
     }
-
-    public function countByFournisseur($fournisseurId)
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-			"SELECT COUNT(af)
-			FROM App\Entity\ArticleFournisseur af
-			WHERE af.fournisseur = :fournisseurId"
-		)->setParameter('fournisseurId', $fournisseurId);
-
-		return $query->getSingleScalarResult();
-	}
 
     public function getIdAndLibelleBySearch($search, $refArticle = null)
     {

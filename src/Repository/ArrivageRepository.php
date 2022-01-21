@@ -133,18 +133,6 @@ class ArrivageRepository extends EntityRepository
             ]);
     }
 
-    public function countByFournisseur($fournisseurId): ?int
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT COUNT(a)
-			FROM App\Entity\Arrivage a
-			WHERE a.fournisseur = :fournisseurId"
-        )->setParameter('fournisseurId', $fournisseurId);
-
-        return $query->getSingleScalarResult();
-    }
-
     public function countByChauffeur($chauffeur)
     {
         $em = $this->getEntityManager();

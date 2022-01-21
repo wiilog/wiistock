@@ -25,7 +25,7 @@ $(function () {
     });
     displayActifOrInactif($('#toggleActivOrInactiv'), true);
     registerNumberInputProtection($('#modalNewRefArticle').find('input[type="number"]'));
-    $('input[name="type_quantite"]:checked').click();
+    onTypeQuantityChange($('input[name="type_quantite"]:checked'));
     $('input[name="urgence"]:checked').trigger('change');
 });
 
@@ -104,6 +104,7 @@ function initTableRefArticle() {
                     columns,
                     tableFilter: 'tableRefArticle_id_filter'
                 },
+                page: 'reference'
             };
 
             pageTables = initDataTable('tableRefArticle_id', tableRefArticleConfig);
@@ -137,7 +138,7 @@ function displayNewFilter(data) {
     $printTag.tooltip('dispose');
 }
 
-function removeFilter($button, filterId) {
+function removeFilter($button, filterId, triggersUncheck) {
     $.ajax({
         url: Routing.generate('filter_ref_delete', true),
         type: 'DELETE',
@@ -150,6 +151,9 @@ function removeFilter($button, filterId) {
                 const $filter = $button.closest('.filter');
                 $filter.tooltip('dispose');
                 $filter.parent().remove();
+                if (triggersUncheck) {
+                    $('#toggleActivOrInactiv').attr('checked', false);
+                }
                 if ($('#filters').find('.filter').length <= 0) {
                     $('#noFilters').removeClass('d-none');
                     if ($('#tableRefArticle_id_filter input').val() === '') {
@@ -330,9 +334,12 @@ function displayActifOrInactif(select, onInit) {
 
         let params = {donnees: donnees};
         let path = Routing.generate('reference_article_actif_inactif');
-        $.post(path, JSON.stringify(params), function () {
-            if (!onInit) pageTables.ajax.reload();
-        });
+        if (!onInit) {
+            $.post(path, JSON.stringify(params), function () {
+                updateFilters();
+                pageTables.ajax.reload();
+            });
+        }
     }
 }
 
@@ -406,8 +413,10 @@ function updateQuantity(referenceArticleId) {
 }
 
 function updateFilters() {
+    $('#filters .filter-parent[data-removable="1"]').remove();
     $.get(Routing.generate('update_filters'))
         .then(({templates}) => {
+            console.log(templates);
             if (templates.length === 0) {
                 $('.printButton').addClass('disabled');
             } else {
@@ -416,4 +425,58 @@ function updateFilters() {
                 });
             }
         });
+}
+
+function changeNewReferenceStatus($select){
+    if ($select.exists()) {
+        const draftStatusName = $(`input[name="draft-status-name"]`).val();
+        const draftSelected = $select.val() === draftStatusName;
+
+        const $reference = $(`input[name="reference"]`);
+        const $quantite = $(`input[name="quantite"]`);
+        const $location = $(`select[name="emplacement"]`);
+
+        $quantite.prop(`disabled`, draftSelected);
+        $reference.prop(`disabled`, draftSelected);
+        $location.prop('disabled', draftSelected);
+
+        if ($location.exists()) {
+            $location.prop(`disabled`, draftSelected);
+        }
+
+        if (draftSelected) {
+            const defaultDraftReference = $reference.data('draft-default');
+
+            if (defaultDraftReference) {
+                $reference.val(defaultDraftReference);
+                $quantite.val(0);
+            }
+
+            $location.exists()
+
+            if ($location.exists()) {
+                const optionValue = $location.data('draft-default-value');
+                const optionText = $location.data('draft-default-text');
+                if (optionValue && optionText) {
+                    const existing = $location.find(`option[value="${optionValue}"]`).exists();
+                    if (existing) {
+                        $location
+                            .val(optionValue)
+                            .trigger('change');
+                    } else {
+                        $location
+                            .append(new Option(optionText, optionValue, true, true))
+                            .trigger('change');
+                    }
+                }
+            }
+        }
+    }
+
+}
+
+function onTypeQuantityChange($input) {
+    toggleRequiredChampsFixes($input, '.wii-form');
+    updateQuantityDisplay($input, '.wii-form');
+    changeNewReferenceStatus($('[name=statut]:checked'));
 }

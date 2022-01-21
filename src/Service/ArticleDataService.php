@@ -45,6 +45,9 @@ class ArticleDataService
 	private $typeCLOnLabel;
 
     /** @Required */
+    public CSVExportService $CSVExportService;
+
+    /** @Required */
     public FreeFieldService $freeFieldService;
 
     private $visibleColumnService;
@@ -598,5 +601,31 @@ class ArticleDataService
         ];
 
         return $this->visibleColumnService->getArrayConfig($fieldConfig, $freeFields, $currentUser->getVisibleColumns()['article']);
+    }
+
+    public function putArticleLine($handle,
+                                    array $article,
+                                    array $freeFieldsConfig) {
+        $line = [
+            $article['reference'],
+            $article['label'],
+            $article['quantite'],
+            $article['typeLabel'],
+            $article['statutName'],
+            $article['commentaire'] ? strip_tags($article['commentaire']) : '',
+            $article['empLabel'],
+            $article['barCode'],
+            $article['dateLastInventory'] ? $article['dateLastInventory']->format('d/m/Y H:i:s') : '',
+            $article['batch'],
+            $article['stockEntryDate'] ? $article['stockEntryDate']->format('d/m/Y H:i:s') : '',
+            $article['expiryDate'] ? $article['expiryDate']->format('d/m/Y') : '',
+            $article['visibilityGroup'],
+        ];
+
+        foreach($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
+            $line[] = FormatHelper::freeField($article['freeFields'][$freeFieldId] ?? '', $freeField);
+        }
+
+        $this->CSVExportService->putLine($handle, $line);
     }
 }

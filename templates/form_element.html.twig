@@ -1,0 +1,7 @@
+{% import 'form.html.twig' as form %}
+
+{% if element == 'switch' %}
+    {{ form.switch(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4] ?? {}) }}
+{% else %}
+    {{ dump('TODO : Add ' ~ element) }}
+{% endif %}

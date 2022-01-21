@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Settings;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Dashboard;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
 use App\Entity\Nature;
@@ -13,16 +14,15 @@ use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use WiiCommon\Helper\Stream;
 use App\Service\DashboardSettingsService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Entity\Dashboard;
-use Symfony\Component\HttpFoundation\Request;
+use WiiCommon\Helper\Stream;
 
 /**
  * @Route("/parametrage-global/dashboard")
@@ -34,7 +34,7 @@ class DashboardSettingsController extends AbstractController {
 
     /**
      * @Route("/", name="dashboard_settings", methods={"GET"})
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_DASHBOARDS})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DASHBOARDS})
      */
     public function settings(DashboardSettingsService $dashboardSettingsService,
                              EntityManagerInterface $entityManager): Response {
@@ -75,7 +75,7 @@ class DashboardSettingsController extends AbstractController {
 
     /**
      * @Route("/save", name="save_dashboard_settings", options={"expose"=true}, methods={"POST"})
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_DASHBOARDS}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DASHBOARDS}, mode=HasPermission::IN_JSON)
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param DashboardSettingsService $dashboardSettingsService
@@ -123,7 +123,7 @@ class DashboardSettingsController extends AbstractController {
 
     /**
      * @Route("/api-component-type/{componentType}", name="dashboard_component_type_form", methods={"POST"}, options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_DASHBOARDS}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DASHBOARDS}, mode=HasPermission::IN_JSON)
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param Dashboard\ComponentType $componentType
@@ -333,7 +333,7 @@ class DashboardSettingsController extends AbstractController {
 
     /**
      * @Route("/api-component-type/{componentType}/example-values", name="dashboard_component_type_example_values", methods={"POST"}, options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_DASHBOARDS}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_DASHBOARDS}, mode=HasPermission::IN_JSON)
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @param DashboardSettingsService $dashboardSettingsService

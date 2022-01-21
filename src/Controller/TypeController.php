@@ -30,7 +30,6 @@ class TypeController extends AbstractController
 
     /**
      * @Route("/", name="types_index")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_TYPE})
      */
     public function index(EntityManagerInterface $entityManager) {
 
@@ -52,7 +51,6 @@ class TypeController extends AbstractController
 
     /**
      * @Route("/api", name="types_param_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_TYPE}, mode=HasPermission::IN_JSON)
      */
     public function api(EntityManagerInterface $entityManager): Response
     {
@@ -211,16 +209,15 @@ class TypeController extends AbstractController
             $statusRepository = $entityManager->getRepository(Statut::class);
 
             $canDelete = !$typeRepository->isTypeUsed($typeId);
-            $usedStatuses = Stream::from($statusRepository->findBy(['type' => $typeId]))
-                ->filter(function(Statut $statut) use ($statusRepository) {
-                    $count = $statusRepository->countUsedById($statut->getId());
-                    return $count > 0;
-                })
-                ->toArray();
+            $usedStatuses = $statusRepository->count(['type' => $typeId]);
 
-            $html = $canDelete && empty($usedStatuses)
+            $html = $canDelete && $usedStatuses === 0
                 ? $this->renderView('types/modalDeleteTypeRight.html.twig')
-                : $this->renderView('types/modalDeleteTypeWrong.html.twig');
+                : $this->renderView('types/modalDeleteTypeWrong.html.twig', [
+                    'message' => !$canDelete
+                        ? 'Ce type est utilisé, vous ne pouvez pas le supprimer.'
+                        : 'Ce type est lié à des statuts, veuillez les supprimer avant de procéder à la suppression du type'
+                ]);
 
             return new JsonResponse([
                 'delete' => $canDelete && empty($usedStatuses),

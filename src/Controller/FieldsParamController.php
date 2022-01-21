@@ -43,7 +43,6 @@ class FieldsParamController extends AbstractController
 
     /**
      * @Route("/", name="fields_param_index")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_CF})
      */
     public function index()
     {
@@ -52,7 +51,6 @@ class FieldsParamController extends AbstractController
 
     /**
      * @Route("/api/{entityCode}", name="fields_param_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_CF}, mode=HasPermission::IN_JSON)
      */
     public function api(EntityManagerInterface $entityManager,
                         string $entityCode): Response

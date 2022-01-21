@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Dashboard\Page;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -85,6 +86,9 @@ class Action {
     const DISPLAY_ALER = 'afficher alertes';
     const INVENTORY_MANAGER = 'gestionnaire d\'inventaire';
     const EXPORT_ALER = 'exporter alertes';
+    const CREATE_DRAFT_REFERENCE = 'créer en brouillon';
+    const EDIT_PARTIALLY = 'modifier partiellement';
+    const REFERENCE_VALIDATOR = 'valideur des références';
 
     // menu référentiel
     const DISPLAY_FOUR = 'afficher fournisseurs';
@@ -98,19 +102,15 @@ class Action {
     const DISPLAY_PAIRING = 'afficher associations';
 
     // menu paramétrage
-    const DISPLAY_GLOB = 'afficher paramétrage global';
-    const DISPLAY_ROLE = 'afficher rôles';
-    const DISPLAY_UTIL = 'afficher utilisateurs';
-    const DISPLAY_VISIBILITY_GROUPS = 'afficher groupes de visibilité';
-    const DISPLAY_DASHBOARDS = 'afficher dashboards';
-    const DISPLAY_EXPO = 'afficher exports';
-    const DISPLAY_TYPE = 'afficher types';
-    const DISPLAY_STATU_LITI = 'afficher statuts litiges';
-    const DISPLAY_NATU_COLI = 'afficher nature colis';
-    const DISPLAY_CF = 'afficher champs fixes';
-    const DISPLAY_REQUEST_TEMPLATE = 'afficher modèles de demandes';
-    const DISPLAY_NOTIFICATIONS = 'afficher modèles de notifications';
-    const DISPLAY_IMPORT = 'afficher import et mise à jour';
+    const SETTINGS_GLOBAL = 'afficher paramétrage global';
+    const SETTINGS_STOCK = 'afficher stock';
+    const SETTINGS_TRACKING = 'afficher trace';
+    const SETTINGS_MOBILE = 'afficher terminal mobile';
+    const SETTINGS_DASHBOARDS = 'afficher dashboards';
+    const SETTINGS_IOT = 'afficher iot';
+    const SETTINGS_NOTIFICATIONS = 'afficher notifications';
+    const SETTINGS_USERS = 'afficher utilisateurs';
+    const SETTINGS_DATA = 'afficher données';
 
     // menu nomade
     const MODULE_ACCESS_STOCK = 'Accès Stock';
@@ -126,27 +126,37 @@ class Action {
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
-
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private $label;
+    private ?int $id = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="Menu", inversedBy="actions")
      */
-    private $menu;
+    private ?Menu $menu = null;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=SubMenu::class, inversedBy="actions")
+     */
+    private ?SubMenu $subMenu = null;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private ?string $label = null;
 
     /**
      * @ORM\ManyToMany(targetEntity="Role", inversedBy="actions")
      */
-    private $roles;
+    private Collection $roles;
 
     /**
      * @ORM\OneToOne(targetEntity=Dashboard\Page::class, mappedBy="action")
      */
-    private $dashboard;
+    private ?Page $dashboard = null;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private ?int $displayOrder = null;
 
     public function __construct() {
         $this->roles = new ArrayCollection();
@@ -194,7 +204,29 @@ class Action {
     }
 
     public function setMenu(?Menu $menu): self {
+        if($this->menu && $this->menu !== $menu) {
+            $this->menu->removeAction($this);
+        }
         $this->menu = $menu;
+        if($menu) {
+            $menu->addAction($this);
+        }
+
+        return $this;
+    }
+
+    public function getSubMenu(): ?SubMenu {
+        return $this->subMenu;
+    }
+
+    public function setSubMenu(?SubMenu $subMenu): self {
+        if($this->subMenu && $this->subMenu !== $subMenu) {
+            $this->subMenu->removeAction($this);
+        }
+        $this->subMenu = $subMenu;
+        if($subMenu) {
+            $subMenu->addAction($this);
+        }
 
         return $this;
     }
@@ -205,6 +237,16 @@ class Action {
 
     public function setDashboard(?Dashboard\Page $dashboard): self {
         $this->dashboard = $dashboard;
+        return $this;
+    }
+
+    public function getDisplayOrder(): ?int {
+        return $this->displayOrder;
+    }
+
+    public function setDisplayOrder(?int $displayOrder): self {
+        $this->displayOrder = $displayOrder;
+
         return $this;
     }
 

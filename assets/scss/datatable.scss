@@ -188,6 +188,22 @@ th.hideOrder {
     background-image: none !important;
 }
 
+.dt-image {
+    width: 80px;
+    height: 80px;
+    max-width: 80px !important;
+    max-height: 80px !important;
+    object-fit: cover;
+    border-radius: 5px;
+}
+
+.dt-type-color {
+    display: inline-block;
+    height: 15px;
+    width: 15px;
+    border-radius: 50%;
+}
+
 .checkbox-container {
     width: 20px;
     height: 20px;
@@ -197,4 +213,11 @@ th.hideOrder {
         width: 20px;
         height: 20px;
     }
+}
+
+.small-column {
+    max-width: 100px !important;
+    overflow: initial !important;
+    text-overflow: initial !important;
+    white-space: initial !important;
 }

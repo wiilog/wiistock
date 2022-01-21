@@ -2,8 +2,6 @@ $('.select2').select2();
 
 $(function () {
     initDateTimePicker();
-    Select2Old.init($('#statut'), 'Statuts');
-
     Select2Old.demand($('.ajax-autocomplete-demande'));
     Select2Old.user('Opérateurs');
 

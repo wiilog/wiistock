@@ -183,6 +183,10 @@ a {
     max-width: 250px;
 }
 
+.maxw-150px {
+    max-width: 150px !important;
+}
+
 .minw-150px {
     min-width: 150px !important;
 }
@@ -402,7 +406,7 @@ label.required:after {
     }
 }
 
-.stripped-blue-background {
+.stripped-background {
     background-color: #F2F3F7;
     opacity: 0.8;
     background-image:  repeating-linear-gradient(45deg, #CBCBCB 25%, transparent 25%, transparent 75%, #CBCBCB 75%, #CBCBCB), repeating-linear-gradient(45deg, #CBCBCB 25%, #F2F3F7 25%, #F2F3F7 75%, #CBCBCB 75%, #CBCBCB);
@@ -617,14 +621,23 @@ label.required:after {
             width: 20px;
             height: 20px;
             border-radius: 5px;
+
+            &:disabled {
+                cursor: not-allowed;
+                border-color: $grey;
+            }
         }
 
         input, .select2.select2-container {
             margin-top: 5px;
+
+            &:disabled {
+                cursor: not-allowed;
+            }
         }
 
         input[type="radio"] {
-            margin-top: 0px;
+            margin-top: 0;
         }
     }
 
@@ -805,8 +818,8 @@ label.required:after {
 .wii-icon-trash {
     display: block;
     background-color: $primary;
-    width: 19px;
-    height: 19px;
+    width: 18px;
+    height: 18px;
 }
 .p-sticky {
     position: sticky !important;
@@ -814,8 +827,16 @@ label.required:after {
     left: 0;
 }
 
+.font-weight-regular {
+    font-weight: 400 !important;
+}
+
 .text-regular {
     font-weight: normal !important;
+}
+
+.mt-15px {
+    margin-top: 15px;
 }
 
 .flag {
@@ -831,4 +852,8 @@ label.required:after {
     .flag {
         margin: 0 10px;
     }
+}
+
+.d-grid {
+    display: grid !important;
 }

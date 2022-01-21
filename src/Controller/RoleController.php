@@ -29,7 +29,6 @@ class RoleController extends AbstractController {
 
     /**
      * @Route("/", name="role_index")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_ROLE})
      */
     public function index(RoleService $roleService) {
         $templateParameters = $roleService->createFormTemplateParameters();
@@ -38,7 +37,6 @@ class RoleController extends AbstractController {
 
     /**
      * @Route("/api", name="role_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_ROLE}, mode=HasPermission::IN_JSON)
      */
     public function api(EntityManagerInterface $entityManager): Response {
 
@@ -123,7 +121,6 @@ class RoleController extends AbstractController {
 
     /**
      * @Route("/api-modifier", name="role_api_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function apiEdit(Request $request,
                             RoleService $roleService,
@@ -153,7 +150,6 @@ class RoleController extends AbstractController {
 
     /**
      * @Route("/modifier", name="role_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function edit(Request $request,
                          RoleService $roleService,

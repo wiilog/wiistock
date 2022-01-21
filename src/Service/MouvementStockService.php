@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Controller\Settings\SettingsController;
 use App\Entity\Article;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
@@ -12,12 +13,10 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
+use Symfony\Component\HttpFoundation\InputBag;
 use Twig\Environment as Twig_Environment;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 
 class MouvementStockService
 {
@@ -27,15 +26,7 @@ class MouvementStockService
     /** @Required */
     public EntityManagerInterface $entityManager;
 
-    /**
-     * @param Utilisateur $user
-     * @param array|null $params
-     * @return array
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
-    public function getDataForDatatable(Utilisateur $user, $params = null)
+    public function getDataForDatatable(Utilisateur $user, ?InputBag $params = null): array
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $mouvementStockRepository = $this->entityManager->getRepository(MouvementStock::class);
@@ -58,19 +49,12 @@ class MouvementStockService
 		];
     }
 
-	/**
-	 * @param MouvementStock $mouvement
-	 * @return array
-	 * @throws LoaderError
-	 * @throws RuntimeError
-	 * @throws SyntaxError
-     */
-    public function dataRowMouvement($mouvement)
+    public function dataRowMouvement(MouvementStock $mouvement): array
     {
-        $fromColumnConfig = $this->getFromColumnConfig($this->entityManager, $mouvement);
+        $fromColumnConfig = $this->getFromColumnConfig($mouvement);
         $from = $fromColumnConfig['from'];
-        $orderPath = $fromColumnConfig['orderPath'];
-        $orderId = $fromColumnConfig['orderId'];
+        $fromPath = $fromColumnConfig['path'];
+        $fromPathParams = $fromColumnConfig['pathParams'];
 
 		$refArticleCheck = '';
         if($mouvement->getArticle()) {
@@ -91,8 +75,8 @@ class MouvementStockService
 			'from' => $this->templating->render('mouvement_stock/datatableMvtStockRowFrom.html.twig', [
 				'from' => $from,
 				'mvt' => $mouvement,
-				'orderPath' => $orderPath,
-				'orderId' => $orderId
+				'path' => $fromPath,
+				'pathParams' => $fromPathParams
 			]),
 			'date' => $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : '',
 			'refArticle' => $refArticleCheck,
@@ -108,55 +92,54 @@ class MouvementStockService
 		];
     }
 
-    public function getFromColumnConfig(EntityManagerInterface $entityManager, MouvementStock $mouvement) {
-        $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
-
-        $orderPath = null;
-        $orderId = null;
-        $from = null;
+    public function getFromColumnConfig(MouvementStock $mouvement): array {
         if ($mouvement->getPreparationOrder()) {
             $from = 'préparation';
-            $orderPath = 'preparation_show';
-            $orderId = $mouvement->getPreparationOrder()->getId();
+            $path = 'preparation_show';
+            $pathParams = [
+                'id' => $mouvement->getPreparationOrder()->getId()
+            ];
         } else if ($mouvement->getLivraisonOrder()) {
             $from = 'livraison';
-            $orderPath = 'livraison_show';
-            $orderId = $mouvement->getLivraisonOrder()->getId();
+            $path = 'livraison_show';
+            $pathParams = [
+                'id' => $mouvement->getLivraisonOrder()->getId()
+            ];
         } else if ($mouvement->getCollecteOrder()) {
             $from = 'collecte';
-            $orderPath = 'ordre_collecte_show';
-            $orderId = $mouvement->getCollecteOrder()->getId();
+            $path = 'ordre_collecte_show';
+            $pathParams = [
+                'id' => $mouvement->getCollecteOrder()->getId()
+            ];
         } else if ($mouvement->getReceptionOrder()) {
             $from = 'réception';
-            $orderPath = 'reception_show';
-            $orderId = $mouvement->getReceptionOrder()->getId();
+            $path = 'reception_show';
+            $pathParams = [
+                'id' => $mouvement->getReceptionOrder()->getId()
+            ];
         } else if ($mouvement->getImport()) {
             $from = 'import';
-            $orderPath = 'import_index';
+            $path = 'settings_item';
+            $pathParams = [
+                'category' => SettingsController::CATEGORY_DATA,
+                'menu' => SettingsController::MENU_IMPORTS,
+            ];
         } else if ($mouvement->getTransferOrder()) {
             $from = 'transfert de stock';
-            $orderPath = 'transfer_order_show';
-            $orderId = $mouvement->getTransferOrder()->getId();
+            $path = 'transfer_order_show';
+            $pathParams = [
+                'id' => $mouvement->getTransferOrder()->getId()
+            ];
         }  else if (in_array($mouvement->getType(), [MouvementStock::TYPE_INVENTAIRE_ENTREE, MouvementStock::TYPE_INVENTAIRE_SORTIE])) {
             $from = 'inventaire';
         }
         return [
-            'orderPath' => $orderPath,
-            'orderId' => $orderId,
-            'from' => $from
+            'path' => $path ?? null,
+            'pathParams' => $pathParams ?? [],
+            'from' => $from ?? null
         ];
     }
 
-    /**
-     * @param Utilisateur $user
-     * @param Emplacement|null $locationFrom
-     * @param int $quantity
-     * @param Article|ReferenceArticle $article
-     * @param string $type
-     * @param bool $needsTracing
-     * @return void
-     * @throws \Exception
-     */
     public function createMouvementStock(Utilisateur $user,
                                          ?Emplacement $locationFrom,
                                          int $quantity,
@@ -192,12 +175,8 @@ class MouvementStockService
             ->setEmplacementTo($locationTo);
     }
 
-    /**
-     * @param MouvementStock $mouvementStock
-     * @param EntityManagerInterface $entityManager
-     */
     public function manageMouvementStockPreRemove(MouvementStock $mouvementStock,
-                                                  EntityManagerInterface $entityManager) {
+                                                  EntityManagerInterface $entityManager): void {
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
         foreach ($trackingMovementRepository->findBy(['mouvementStock' => $mouvementStock]) as $mvtTraca) {
             $entityManager->remove($mvtTraca);
@@ -206,7 +185,7 @@ class MouvementStockService
 
     public function putMovementLine($handle,
                                     CSVExportService $CSVExportService,
-                                    array $mouvement)
+                                    array $mouvement): void
     {
         $orderNo = $mouvement['preparationOrder']
             ?? $mouvement['livraisonOrder']

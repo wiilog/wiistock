@@ -49,7 +49,7 @@
                             <td>{{ article.label }}</td>
                             <td>{{ quantiteArt }}</td>
                             <td>{{ article.emplacement ? article.emplacement.label : '' }}</td>
-                            {% if displayTargetLocationPicking and displayedDateHeader is not null %}
+                            {% if displayedDateHeader is not null %}
                                 <td data-sort="{{ displayedDate ? displayedDate|date('U') : "Non défini" }}">
                                     {{ displayedDate ? displayedDate|date("d/m/Y", "Europe/Paris") : "Non définie" }}
                                 </td>

@@ -26,13 +26,6 @@ let submitEditDays = $('#submitEditDays');
 let urlEditDays = Routing.generate('days_edit', true);
 InitModal(modalEditDays, submitEditDays, urlEditDays, {tables: [tableDays]});
 
-const resetLogos = {
-    website: false,
-    mailLogo: false,
-    nomadeAccueil: false,
-    nomadeHeader: false,
-};
-
 const dispatchColorHasChanged = {
     after: false,
     DDay: false,
@@ -56,22 +49,26 @@ $(function () {
     Select2Old.location($('.ajax-autocomplete-location'));
     Select2Old.carrier($('.ajax-autocomplete-transporteur'));
     Select2Old.initValues($('#receptionLocation'), $('#receptionLocationValue'));
+    Select2Old.initValues($('#defaultLocation'), $('#defaultLocationValue'));
 
     initDeliveryRequestDefaultLocations();
 
-    updateImagePreview('#preview-label-logo', '#upload-label-logo');
-    updateImagePreview('#preview-emergency-icon', '#upload-emergency-icon');
-    updateImagePreview('#preview-custom-icon', '#upload-custom-icon');
-
-    updateImagePreview('#preview-delivery-note-logo', '#upload-delivery-note-logo');
-    updateImagePreview('#preview-waybill-logo', '#upload-waybill-logo');
-    updateImagePreview('#preview-overconsumption-logo', '#upload-overconsumption-logo');
+    $('#upload-label-logo').on('change', () => updateImagePreview('#preview-label-logo', '#upload-label-logo'));
+    $('#upload-emergency-icon').on('change', () => updateImagePreview('#preview-emergency-icon', '#upload-emergency-icon'));
+    $('#upload-custom-icon').on('change', () => updateImagePreview('#preview-custom-icon', '#upload-custom-icon'));
+    $('#upload-delivery-note-logo').on('change', () => updateImagePreview('#preview-delivery-note-logo', '#upload-delivery-note-logo'));
+    $('#upload-waybill-logo').on('change', () => updateImagePreview('#preview-waybill-logo', '#upload-waybill-logo'));
+    $('#upload-overconsumption-logo').on('change', () => updateImagePreview('#preview-overconsumption-logo', '#upload-overconsumption-logo'));
 
     // config tableau de bord : emplacements
     initValuesForDashboard();
 
     $('#receptionLocation').on('change', function () {
         editParamLocations($(this), $('#receptionLocationValue'));
+    });
+
+    $('#defaultLocation').on('change', function () {
+        editParamLocations($(this), $('#defaultLocationValue'));
     });
 
     $('#locationArrivageDest').on('change', function () {
@@ -497,26 +494,13 @@ function saveDispatchesParam() {
 }
 
 function toggleRecipient($checkbox) {
-     if ($checkbox.attr('name') === 'param-add-destination-location-article-label'
+    if ($checkbox.attr('name') === 'param-add-destination-location-article-label'
         && $checkbox.prop('checked')) {
         $('.checkbox[name="param-add-recipient-dropzone-location-article-label"]').prop('checked', false);
     } else if ($checkbox.attr('name') === 'param-add-recipient-dropzone-location-article-label'
         && $checkbox.prop('checked')) {
         $('.checkbox[name="param-add-destination-location-article-label"]').prop('checked', false);
     }
-}
-
-function onResetLogoClicked($button) {
-    const $defaultValue = $button.siblings('.default-value');
-    const $logoImg = $button.siblings('.logo');
-    const $inputFile = $button.siblings('[type="file"]');
-    const defaultValue = $defaultValue.val();
-
-    $inputFile.val('');
-    $logoImg.attr('src', defaultValue);
-    const name = $button.data('name');
-    resetLogos[name] = true;
-
 }
 
 function saveHandlingParams() {

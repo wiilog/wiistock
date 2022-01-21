@@ -1,26 +1,12 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Settings;
 
-use App\Annotation\HasPermission;
-use App\Entity\Action;
-use App\Entity\Article;
-use App\Entity\ArticleFournisseur;
-use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
-use App\Entity\DeliveryRequest\Demande;
-use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
-use App\Entity\FreeField;
-use App\Entity\Fournisseur;
 use App\Entity\Import;
-use App\Entity\Menu;
-use App\Entity\ParametrageGlobal;
-use App\Entity\Reception;
-use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use WiiCommon\Helper\Stream;
 use App\Service\AttachmentService;
 use App\Service\ImportService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -33,28 +19,10 @@ use Symfony\Component\Routing\Annotation\Route;
 /**
  * @Route("/import")
  */
-class ImportController extends AbstractController
+class DataImportController extends AbstractController
 {
     /**
-     * @Route("/", name="import_index")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_IMPORT})
-     */
-    public function index()
-    {
-        $statusRepository = $this->getDoctrine()->getRepository(Statut::class);
-        $statuts = $statusRepository->findByCategoryNameAndStatusCodes(
-            CategorieStatut::IMPORT,
-            [Import::STATUS_PLANNED, Import::STATUS_IN_PROGRESS, Import::STATUS_CANCELLED, Import::STATUS_FINISHED]
-        );
-
-        return $this->render('import/index.html.twig', [
-            'statuts' => $statuts
-        ]);
-    }
-
-    /**
      * @Route("/api", name="import_api", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_IMPORT}, mode=HasPermission::IN_JSON)
      */
     public function api(Request $request, ImportService $importDataService): Response
     {
@@ -67,7 +35,6 @@ class ImportController extends AbstractController
 
     /**
      * @Route("/creer", name="import_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_IMPORT}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request,
                         AttachmentService $attachmentService,
@@ -176,7 +143,7 @@ class ImportController extends AbstractController
                     $response = [
                         'success' => true,
                         'importId' => $import->getId(),
-                        'html' => $this->renderView('import/modalNewImportSecond.html.twig', [
+                        'html' => $this->renderView('settings/donnees/import/modalNewImportSecond.html.twig', [
                             'data' => $data ?? [],
                             'fields' => $fieldsToAssociate ?? [],
                             'preselection' => $preselection ?? [],
@@ -217,19 +184,22 @@ class ImportController extends AbstractController
 
 		return new JsonResponse([
 			'success' => true,
-			'html' => $this->renderView('import/modalNewImportConfirm.html.twig')
+			'html' => $this->renderView('settings/donnees/import/modalNewImportConfirm.html.twig')
 		]);
 	}
 
     /**
      * @Route("/modale-une", name="get_first_modal_content", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-	public function getFirstModalContent(Request $request)
+	public function getFirstModalContent(Request $request,
+                                         EntityManagerInterface $entityManager): JsonResponse
 	{
 	    $importId = $request->get('importId');
-	    $import = $importId ? $this->getDoctrine()->getRepository(Import::class)->find($importId) : null;
+	    $import = $importId ? $entityManager->getRepository(Import::class)->find($importId) : null;
 
-		return new JsonResponse($this->renderView('import/modalNewImportFirst.html.twig', ['import' => $import]));
+		return new JsonResponse($this->renderView('settings/donnees/import/modalNewImportFirst.html.twig', [
+            'import' => $import
+        ]));
 	}
 
     /**

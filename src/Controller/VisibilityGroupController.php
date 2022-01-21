@@ -22,7 +22,6 @@ class VisibilityGroupController extends AbstractController
 {
     /**
      * @Route("/liste", name="visibility_group_index", methods="GET")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_VISIBILITY_GROUPS})
      */
     public function index(): Response {
         return $this->render('visibility_group/index.html.twig');
@@ -30,7 +29,6 @@ class VisibilityGroupController extends AbstractController
 
     /**
      * @Route("/api", name="visibility_group_api", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_VISIBILITY_GROUPS})
      */
     public function api(EntityManagerInterface $entityManager,
                         VisibilityGroupService $visibilityGroupService,
@@ -41,7 +39,6 @@ class VisibilityGroupController extends AbstractController
 
     /**
      * @Route("/verification", name="visibility_group_check_delete", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_VISIBILITY_GROUPS})
      */
     public function checkDelete(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -62,7 +59,6 @@ class VisibilityGroupController extends AbstractController
 
     /**
      * @Route("/supprimer", name="visibility_group_delete", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_VISIBILITY_GROUPS})
      */
     public function delete(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -81,7 +77,6 @@ class VisibilityGroupController extends AbstractController
 
     /**
      * @Route("/creer", name="visibility_group_new", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_VISIBILITY_GROUPS})
      */
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -100,7 +95,6 @@ class VisibilityGroupController extends AbstractController
 
     /**
      * @Route("/modifier", name="visibility_group_edit", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_VISIBILITY_GROUPS})
      */
     public function edit(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -120,7 +114,6 @@ class VisibilityGroupController extends AbstractController
 
     /**
      * @Route("/api-modifier", name="visibility_group_api_edit", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_VISIBILITY_GROUPS}, mode=HasPermission::IN_JSON)
      */
     public function apiEdit(Request $request,
                             EntityManagerInterface $entityManager): Response

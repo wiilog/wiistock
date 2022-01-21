@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Action;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -233,6 +234,22 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
             ->join('utilisateur.role','role' )
             ->where('role.isMailSendAccountCreation = :isMailSend')
             ->setParameter('isMailSend', true)
+            ->getQuery()
+            ->execute();
+
+        return array_map(function (array $userMail) {
+            return $userMail['email'];
+        }, $result);
+    }
+
+    public function getUserMailByReferenceValidatorAction()
+    {
+        $result = $this->createQueryBuilder('utilisateur')
+            ->select('utilisateur.email AS email')
+            ->join('utilisateur.role','role' )
+            ->join('role.actions','actions' )
+            ->where('actions.label = :actionLabel')
+            ->setParameter('actionLabel', Action::REFERENCE_VALIDATOR)
             ->getQuery()
             ->execute();
 

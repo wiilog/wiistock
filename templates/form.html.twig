@@ -13,8 +13,8 @@
     {% endif %}
 {% endmacro %}
 
-{% macro label(label, required) %}
-    <span class="d-inline-flex align-items-center field-label nowrap">
+{% macro label(label, required, wrap = false) %}
+    <span class="d-inline-flex align-items-center field-label {{ not wrap ? 'nowrap' }}">
         {% if label is iterable %}
             {% if label.wiiIcon is defined %}
                 <span class="mr-2 wii-icon wii-icon-{{ label.wiiIcon }}"></span>
@@ -35,8 +35,9 @@
     {# TODO: add support for required #}
 
     <div class="d-flex flex-column align-items-start">
-        <label class="{{ options.labelClass ?? '' }}">{{ _self.label(label, required) }}</label>
-        <div class="wii-switch text-truncate mt-1" data-title="{{ label | striptags }}{{ required ? '*' }}">
+        {% if label %}<label class="{{ options.labelClass ?? '' }}">{{ _self.label(label, required) }}</label>{% endif %}
+        <div class="{{ options.expanded ?? false ? 'wii-expanded-switch' : 'wii-switch' }} text-truncate mt-1"
+             data-title="{{ label | striptags }}{{ required ? '*' }}">
             {% for switch in switches %}
                 {% set id = random(100000, 10000000) %}
 
@@ -51,24 +52,27 @@
 {% macro slider(name, label, required, checked = false, options = {}) %}
     <label class="{{ options.labelClass ?? '' }}">{{ _self.label(label, required) }}</label>
     <label class="switch">
-        <input class="checkbox data" type="checkbox"
-            {{ required ? 'required' }}
-            {{ _self.common_attributes(name, options) }}
-            {{ _self.multiple_key(options) }}
-            {{ checked ? 'checked' }}>
+        <input class="checkbox data"
+               type="checkbox"
+               {{ required ? 'required' }}
+               {{ _self.common_attributes(name, options) }}
+               {{ _self.multiple_key(options) }}
+               {{ checked ? 'checked' }}>
         <span class="slider round"></span>
     </label>
 {% endmacro %}
 
-{% macro checkbox(name, label, required, value = 1, options = {}) %}
-    {% set id = random(100000, 10000000) %}
+{% macro checkbox(name, label, required, value = true, options = {}) %}
+    {% set id = options.id ?? ('checkbox-' ~ random(100000, 10000000)) %}
     <div class="wii-checkbox">
-        <input type="checkbox" id="checkbox-{{ id }}" class="data"
+        <input type="checkbox" id="{{ id }}" class="data"
             {{ required ? 'required' }}
             {{ _self.common_attributes(name, options) }}
             {{ _self.multiple_key(options) }}
             {{ {on: 1, off: 0}[value] ?? value ? 'checked' }}>
-        <label class="{{ options.labelClass ?? '' }}" for="checkbox-{{ id }}"><span>{{ _self.label(label, required) }}</span></label>
+        <label class="{{ options.labelClass ?? '' }}" for="{{ id }}">
+            <span>{{ _self.label(label, required, true) }}</span>
+        </label>
     </div>
 {% endmacro %}
 
@@ -111,7 +115,7 @@
                 <option disabled selected>{{ options.placeholder }}</option>
             {% endif %}
 
-            {% if options.items['value'] is defined and options.items['text'] is defined %}
+            {% if options.items['value'] is not defined and options.items['text'] is not defined %}
                 {% for item in options.items ?? [] %}
                     <option value="{{ item.value }}" {{ item.value in values ? 'selected' }}
                         {% for dataKey, dataValue in item %}
@@ -151,19 +155,19 @@
     {% set disabled = options.disabled is defined and options.disabled ? 'disabled' %}
     <label class="{{ options.labelClass ?? '' }}">
         <span>{{ _self.label(label, required and not disabled) }}</span>
-        <div class="increase-decrease-field" style="min-width: 120px;">
+        <span class="increase-decrease-field" style="min-width: 120px;">
             <button class="decrease" {{ disabled }}></button>
             <input type="number" data-no-arrow class="form-control w-50 p-0 text-center {{ not disabled ? 'data' }}"
                    placeholder="{{ options.placeholder ?? '' }}"
                    value="{{ value }}"
-                {{ required and not disabled ? 'required' }}
-                {{ disabled }}
-                {{ _self.common_attributes(name, options) }}
-                {{ _self.multiple_key(options) }}
-                {% if options.min is defined and options.min is not null %}min="{{ options.min }}"{% endif %}
-                {% if options.max is defined and options.max is not null %}max="{{ options.max }}"{% endif %}>
+                   {{ required and not disabled ? 'required' }}
+                   {{ disabled }}
+                   {{ _self.common_attributes(name, options) }}
+                   {{ _self.multiple_key(options) }}
+                   {% if options.min is defined and options.min is not null %}min="{{ options.min }}"{% endif %}
+                   {% if options.max is defined and options.max is not null %}max="{{ options.max }}"{% endif %}>
             <button class="increase" {{ disabled }}></button>
-        </div>
+        </span>
     </label>
 {% endmacro %}
 
@@ -171,9 +175,8 @@
     <label class="{{ options.labelClass ?? '' }}">
         <span>{{ _self.label(label, required) }}</span>
         <textarea class="form-control w-100 data"
-            {{ required ? 'required' }}
-            {{ options.readonly ?? false ? 'readonly' }}
-            {{ options.disabled ?? false ? 'disabled' }}>
+                  {{ _self.common_attributes(name, options) }}
+                  {{ required ? 'required' }}>
             {{- value | raw -}}
         </textarea>
     </label>
@@ -184,4 +187,43 @@
 
     <label class="wii-subtitle">{{ _self.label(label, required) }}</label>
     <div class="data" data-wysiwyg="{{ name }}" {{ required ? 'data-required' }}>{{- value | raw -}}</div>
+{% endmacro %}
+
+{% macro image(name, label, required, image = '', options = {}) %}
+    <label class="{{ options.labelClass ?? '' }}">
+        <span>{{ _self.label(label, required) }}</span>
+        <div class="form-group d-flex">
+            <div class="preview-container stripped-background d-flex p-1 mr-2">
+                <img src="{{ image ? (app.request.scheme ~ '://' ~ app.request.httpHost ~ "/" ~ image) : '' }}"
+                     id="preview-{{ name }}"
+                     alt="image"
+                     height="50px"
+                     class="image {{ not image ? 'd-none' }}"/>
+            </div>
+            <button class="btn btn-primary" onclick="$('#upload-{{ name }}').click();">
+                {% if not image %}
+                    Choisir une image
+                {% else %}
+                    <i class='fas fa-pencil-alt'></i>
+                {% endif %}
+            </button>
+
+            {% if options.defaultImage is defined and options.defaultImage %}
+                <input type="hidden"
+                       class="default-value"
+                       value="{{ options.defaultImage }}"/>
+                <button class="btn btn-primary ml-2"
+                        onclick="resetImage($(this))">
+                    <i class="fas fa-undo"></i>
+                </button>
+            {% endif %}
+
+            <input type="file" id="upload-{{ name }}"
+                   name="{{ name }}"
+                   accept="image/png, image/jpeg, image/jpg, image/svg+xml, image/gif"
+                   class="data force-data"
+                   onchange="updateImagePreview('#preview-{{ name }}', '#upload-{{ name }}')"
+                   hidden {{ required ? 'required' }}>
+        </div>
+    </label>
 {% endmacro %}

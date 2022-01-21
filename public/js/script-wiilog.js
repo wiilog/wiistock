@@ -141,7 +141,6 @@ function showRow(button, path, modal) {
     let params = JSON.stringify(id);
     $.post(path, params, function (data) {
         modal.find('.modal-body').html(data);
-        $('.list-multiple').select2();
     }, 'json');
 }
 
@@ -192,7 +191,7 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
         Select2Old.location(modal.find('.ajax-autocomplete-location-edit'));
         Select2Old.carrier(modal.find('.ajax-autocomplete-transporteur-edit'));
         Select2Old.user(modal.find('.ajax-autocomplete-user-edit'));
-        modal.find('.list-multiple').select2();
+
         if (wantsFreeFieldsRequireCheck) {
             toggleRequiredChampsLibres(modal.find('#typeEdit'), 'edit');
         }
@@ -248,7 +247,7 @@ function updateQuantityDisplay($elem, parent = '.modal-body') {
     const $reference = $modalBody.find('.reference');
     const $article = $modalBody.find('.article');
     const $allArticle = $modalBody.find('.article, .emergency-comment');
-    let typeQuantite = $modalBody.find('.type_quantite').val();
+    let typeQuantite = $elem.data('title');
     if (typeQuantite == 'reference') {
         $allArticle.addClass('d-none');
         $reference.removeClass('d-none');
@@ -314,7 +313,6 @@ function toggleRequiredChampsLibres(type, require, $freeFieldContainer = null) {
                     $formControl.addClass('needed');
                 });
             }
-            $('.list-multiple').select2();
         }, 'json');
     }
 }
@@ -670,7 +668,7 @@ function initDateTimePicker(dateInput = '#dateMin, #dateMax, #expectedDate', for
         options.disabledDates = disableDates;
     }
     if (minDate) {
-        options.minDate = moment().hours(0).minutes(0).seconds(0);
+        options.minDate = moment().subtract(1, "days").hours(23).minutes(59).seconds(59);
     }
     if (defaultHours !== null && defaultMinutes !== null) {
         options.defaultDate = moment().hours(defaultHours).minutes(defaultMinutes);

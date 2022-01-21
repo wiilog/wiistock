@@ -13,7 +13,7 @@
                     <select class="form-control data needed" id="field" name="field" onchange="displayFilterValue($(this))">
                         <option disabled selected> </option>
                         {% for field in fields|sort((a,b) => a.title <=> b.title) %}
-                            {% if field.name not in ['actions', 'comment', 'status'] %}
+                            {% if field.name not in ['actions', 'comment', 'image'] %}
                                 <option value="{{ field.name }}" data-type="{{ field.type }}">{{ field.title }}</option>
                             {% endif %}
                         {% endfor %}

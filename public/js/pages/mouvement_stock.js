@@ -43,7 +43,6 @@ $(function() {
 
     initDateTimePicker();
     Select2Old.init($('#emplacement'), 'Emplacements');
-    Select2Old.init($('#statut'), 'Types');
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');

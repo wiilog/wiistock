@@ -70,7 +70,6 @@ $.fn.dataTable.ext.search.push(
 
 $(function() {
     initDateTimePicker();
-    Select2Old.init($('#statut'), 'Statuts');
     Select2Old.user('Demandeurs');
 
     // applique les filtres si pré-remplis

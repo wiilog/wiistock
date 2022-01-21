@@ -3,7 +3,6 @@ import {initEditor} from '../utils';
 
 $(document).ready(() => {
     initEditor(`.editor-container`);
-    $('.list-multiple').select2();
 
     $(`.add-supplier-article`).click(function() {
         $(this).siblings(`.supplier-articles`).append($(`#supplier-article-template`).html());
@@ -25,7 +24,13 @@ $(document).ready(() => {
             const $form = $(`.wii-form`);
             clearFormErrors($form);
             processSubmitAction($form, $button, $button.data(`submit`), {
-                success: data => window.location.href = Routing.generate('reference_article_show_page', {id: data.data.id})
+                success: data => {
+                    window.location.href = Routing.generate('reference_article_show_page', {id: data.data.id});
+                },
+            }).then(data => {
+                if(data && !data.success && data.draftDefaultReference) {
+                    $('input[name="reference"]').val(data.draftDefaultReference);
+                }
             });
         }
     });

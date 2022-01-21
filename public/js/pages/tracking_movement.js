@@ -7,7 +7,6 @@ $(function () {
     $modalNewMvtTraca.find('.list-multiple').select2();
 
     initDateTimePicker();
-    Select2Old.init($('#statut'), 'Types');
     Select2Old.init($('#emplacement'), 'Emplacements');
 
     // filtres enregistrés en base pour chaque utilisateur
