@@ -99,7 +99,7 @@ function getSubmenuLabel() {
     if(!submenu) {
         return null;
     } else {
-        return index[category].menus[menu].menus[submenu];
+        return index[category].menus[menu].menus[submenu].label;
     }
 }
 
