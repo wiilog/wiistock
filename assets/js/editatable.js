@@ -2,13 +2,14 @@ export const MODE_NO_EDIT = 1;
 export const MODE_DOUBLE_CLICK = 2;
 export const MODE_ADD_ONLY = 3;
 export const MODE_EDIT = 4;
+export const MODE_EDIT_AND_ADD = 5;
 
 export const SAVE_FOCUS_OUT = 1;
 export const SAVE_MANUALLY = 2;
 
 const STATE_VIEWING = 1;
 const STATE_EDIT = 2;
-const STATE_ADD = 2;
+const STATE_ADD = 3;
 
 const datatables = {};
 
@@ -121,22 +122,23 @@ export default class EditableDatatable {
             datatable.toggleEdit(true);
         }
 
-        if(config.edit === MODE_ADD_ONLY) {
-            $element.on(`click`, `tr`, function() {
-                const $row = $(this);
-                if(!$row.find(`.add-row`).exists()) {
-                    return;
-                }
+        $element.on(`click`, `tr`, function() {
+            const $row = $(this);
+            if(!$row.find(`.add-row`).exists()) {
+                return;
+            }
+            if(config.edit === MODE_EDIT_AND_ADD && !datatable.editable){
+                datatable.editable = true;
+                datatable.toggleEdit(true, true);
+            }
 
-                const row = datatable.table.row($row);
-                const data = row.data();
-
-                row.remove();
-                datatable.table.row.add(Object.assign({}, config.form));
-                datatable.table.row.add(data);
-                datatable.table.draw();
-            });
-        }
+            const row = datatable.table.row($row);
+            const data = row.data();
+            row.remove();
+            datatable.table.row.add(Object.assign({}, config.form));
+            datatable.table.row.add(data);
+            datatable.table.draw();
+        });
 
         $element.on(`click`, `.delete-row`, function() {
             const $button = $(this);

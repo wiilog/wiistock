@@ -3,6 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\DaysWorked;
+use App\Entity\InventoryCategory;
+use App\Entity\InventoryFrequency;
 use App\Entity\MailerServer;
 use App\Entity\WorkFreeDay;
 use App\Helper\FormatHelper;
@@ -13,11 +15,13 @@ use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Annotation\HasPermission;
 use App\Entity\Menu;
 use App\Entity\Action;
+use WiiCommon\Helper\Stream;
 
 /**
  * @Route("/parametrage")
@@ -303,6 +307,7 @@ class SettingsController extends AbstractController {
 
     public function customValues(): array {
         $mailerServerRepository = $this->manager->getRepository(MailerServer::class);
+        $frequencyRepository = $this->manager->getRepository(InventoryFrequency::class);
 
         return [
             self::CATEGORY_GLOBAL => [
@@ -317,6 +322,17 @@ class SettingsController extends AbstractController {
             ],
             self::CATEGORY_STOCK => [
                 self::MENU_ALERTS => [],
+                self::MENU_CATEGORIES => [
+                    "frequencyOptions" => Stream::from($frequencyRepository->findAll())
+                        ->map(fn(InventoryFrequency $n) => [
+                            "id" => $n->getId(),
+                            "label" => $n->getLabel()
+                        ])
+                        ->sort(fn(array $a, array $b) => $a["label"] <=> $b["label"])
+                        ->map(fn(array $n) => "<option value='{$n["id"]}'>{$n["label"]}</option>")
+                        ->prepend("<option disabled selected>Sélectionnez une nature</option>")
+                        ->join("")
+                ],
             ],
         ];
     }
@@ -420,4 +436,144 @@ class SettingsController extends AbstractController {
         ]);
     }
 
+    /**
+     * @Route("/frequences-api", name="frequences_api", options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB})
+     */
+    public function frequencesApi(Request $request, EntityManagerInterface $manager) {
+        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
+        $class = "form-control data";
+
+        $data = [];
+        $inventoryFrequencyRepository = $manager->getRepository(InventoryFrequency::class);
+
+        foreach($inventoryFrequencyRepository->findAll() as $frequence) {
+            if($edit) {
+                $data[] = [
+                    "actions" => "
+                    <button class='btn btn-silent delete-row w-50' data-id='{$frequence->getId()}'>
+                        <i class='wii-icon wii-icon-trash text-primary'></i>
+                    </button><input type='hidden' name='frequenceId' class='data' value='{$frequence->getId()}'/>",
+                    "label" => "<input type='text' name='label' class='$class w-50' value='{$frequence->getLabel()}'/>",
+                    "nb_months" => "<input type='number' name='nbMonths' min='1' class='$class w-50' value='{$frequence->getNbMonths()}'/>",
+                ];
+            } else {
+                $data[] = [
+                    "actions" => "
+                    <button class='btn btn-silent delete-row  w-50' data-id='{$frequence->getId()}'>
+                        <i class='wii-icon wii-icon-trash text-primary'></i>
+                    </button>
+                ",
+                    "label" => $frequence->getLabel(),
+                    "nb_months" => $frequence->getNbMonths(),
+                ];
+            }
+        }
+
+        $data[] = [
+            "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
+            "label" => "",
+            "nb_months" => "",
+            ];
+
+        return $this->json([
+            "data" => $data,
+            "recordsTotal" => count($data),
+            "recordsFiltered" => count($data),
+        ]);
+    }
+
+    /**
+     * @Route("/frequences/supprimer/{entity}", name="settings_delete_frequence", options={"expose"=true})
+     */
+    public function deleteFrequence(EntityManagerInterface $entityManager, InventoryFrequency $entity): Response {
+        if($entity->getCategories()->isEmpty()) {
+            $entityManager->remove($entity);
+            $entityManager->flush();
+            return $this->json([
+                "success" => true,
+                "msg" => "La ligne a bien été supprimée",
+            ]);
+        } else {
+            return $this->json([
+                "success" => false,
+                "msg" => "Cette fréquence est liée à des catégories. Vous ne pouvez pas la supprimer.",
+            ]);
+        }
+    }
+
+    /**
+     * @Route("/categories-api", name="categories_api", options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB})
+     */
+    public function categoriesApi(Request $request, EntityManagerInterface $manager) {
+        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
+        $class = "form-control data";
+
+        $data = [];
+        $inventoryCategoryRepository = $manager->getRepository(InventoryCategory::class);
+        $inventoryFrequencyRepository = $manager->getRepository(InventoryFrequency::class);
+
+        $frequencies = $inventoryFrequencyRepository->findAll();
+        $frequencyOptions = [];
+        foreach($inventoryCategoryRepository->findAll() as $category) {
+            if($edit) {
+                $isPermament = $category->getPermanent() == 1 ? 'checked' : "";
+                $frequencyOptions = Stream::from($frequencies)
+                    ->map(fn(InventoryFrequency $n) => [
+                        "id" => $n->getId(),
+                        "label" => $n->getLabel(),
+                        "selected" => ($n->getLabel() === $category->getFrequency()->getLabel()) ? "selected" : "",
+                    ])
+                    ->sort(fn(array $a, array $b) => $a["label"] <=> $b["label"])
+                    ->map(fn(array $n) => "<option value='{$n["id"]}' {$n["selected"]}>{$n["label"]}</option>")
+                    ->prepend("<option disabled selected>Sélectionnez une nature</option>")
+                    ->join("");
+
+                $data[] = [
+                "actions" => "<button class='btn btn-silent delete-row w-50' data-id='{$category->getId()}'><i class='wii-icon wii-icon-trash text-primary'></i></button>
+                              <input type='hidden' name='categoryId' class='data' value='{$category->getId()}'/>",
+                "label" => "<input type='text' name='label' class='{$class} w-50' value='{$category->getLabel()}'/>",
+                "frequency" => "<select name='frequency' class='{$class} needed w-50'>
+                                    {$frequencyOptions}
+                                </select>",
+                "permanent" => "<div class='checkbox-container'><input type='checkbox' name='permanent' class='{$class} w-50' {$isPermament}/></div>",
+
+                ];
+            } else {
+                $data[] = [
+                    "actions" => "
+                    <button class='btn btn-silent delete-row w-50' data-id='{$category->getId()}'>
+                        <i class='wii-icon wii-icon-trash text-primary'></i>
+                    </button>",
+                    "label" => $category->getLabel(),
+                    "frequency" => $category->getFrequency()->getLabel(),
+                    "permanent" => $category->getPermanent() ? "Oui" : "Non",
+                ];
+            }
+        }
+
+        $data[] = [
+            "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
+            "label" => "",
+            "frequency" => "",
+            "permanent" => "",
+        ];
+
+        return $this->json([
+            "data" => $data,
+            "recordsTotal" => count($data),
+            "recordsFiltered" => count($data),
+        ]);
+    }
+
+    /**
+     * @Route("/categories/supprimer/{entity}", name="settings_delete_category", options={"expose"=true})
+     */
+    public function deleteCategories(EntityManagerInterface $entityManager, InventoryFrequency $entity): Response {
+        return $this->json([
+            "success" => true,
+            "msg" => "La ligne a bien été supprimée",
+        ]);
+    }
 }

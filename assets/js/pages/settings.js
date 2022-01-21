@@ -1,5 +1,5 @@
 import '../../scss/pages/settings.scss';
-import EditableDatatable, {MODE_ADD_ONLY, MODE_DOUBLE_CLICK, SAVE_MANUALLY} from "../editatable";
+import EditableDatatable, {MODE_ADD_ONLY, MODE_DOUBLE_CLICK, MODE_EDIT, MODE_EDIT_AND_ADD, SAVE_MANUALLY} from "../editatable";
 import Flash from '../flash';
 
 const settings = JSON.parse($(`input#settings`).val());
@@ -14,6 +14,8 @@ const initializers = {
     global_jours_non_travailles: initializeOffDays,
     global_apparence_site: initializeSiteAppearance,
     global_etiquettes: initializeGlobalLabels,
+    stock_inventaires_frequences: initializeFrequencesTable,
+    stock_inventaires_categories: initializeCategoriesTable,
 };
 
 const slowOperations = [
@@ -70,6 +72,7 @@ $(document).ready(() => {
             .json(data)
             .then(() => {
                 for(const table of tablesToReload) {
+                    table.editable = false;
                     table.toggleEdit(false, true);
                 }
             });
@@ -199,4 +202,69 @@ function initializeSiteAppearance() {
 
 function initializeGlobalLabels() {
     updateImagePreview('#preview-label-logo', '#upload-label-logo');
+}
+
+function initializeFrequencesTable(){
+    $saveButton.hide();
+
+    const table = EditableDatatable.create(`#frequencesTable`, {
+        route: Routing.generate('frequences_api', true),
+        deleteRoute: `settings_delete_frequence`,
+        edit: MODE_EDIT_AND_ADD,
+        save: SAVE_MANUALLY,
+        search: false,
+        paginate: false,
+        scrollY: false,
+        scrollX: false,
+        onEditStart: () => {
+            $saveButton.show();
+        },
+        onEditStop: () => {
+            $saveButton.hide();
+        },
+        columns: [
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+            {data: `label`, title: `Libelle`},
+            {data: `nb_months`, title: `Nombre de mois`},
+        ],
+        form: {
+            actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
+            label: `<input type='text' name='label' class='form-control data'/>`,
+            nb_months: `<input type='number' name='nbMonths' min='1' class='data form-control'/>`,
+        },
+    });
+}
+
+function initializeCategoriesTable(){
+    $saveButton.hide();
+    const $frequencyOptions = JSON.parse($(`#frequency_options`).val());
+
+    const table = EditableDatatable.create(`#categoriesTable`, {
+        route: Routing.generate('categories_api', true),
+        deleteRoute: `settings_delete_category`,
+        edit: MODE_EDIT_AND_ADD,
+        save: SAVE_MANUALLY,
+        search: false,
+        paginate: false,
+        scrollY: false,
+        scrollX: false,
+        onEditStart: () => {
+            $saveButton.show();
+        },
+        onEditStop: () => {
+            $saveButton.hide();
+        },
+        columns: [
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+            {data: `label`, title: `Libelle`},
+            {data: `frequency`, title: `Fréquence`},
+            {data: `permanent`, title: `Permanent`},
+        ],
+        form: {
+            actions: `<button class='btn btn-silent delete-row w-50'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
+            label: `<input type='text' name='label' class='form-control data w-50'/>`,
+            frequency: `<select name='frequency' class='form-control data needed w-50'>`+$frequencyOptions+`</select>`,
+            permanent: `<div class='checkbox-container'><input type='checkbox' name='permanent' class='form-control data'/></div>`,
+        },
+    });
 }

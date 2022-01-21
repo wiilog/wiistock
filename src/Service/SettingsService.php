@@ -3,6 +3,8 @@
 namespace App\Service;
 
 use App\Entity\DaysWorked;
+use App\Entity\InventoryCategory;
+use App\Entity\InventoryFrequency;
 use App\Entity\MailerServer;
 use App\Entity\ParametrageGlobal;
 use App\Entity\WorkFreeDay;
@@ -170,6 +172,41 @@ class SettingsService {
                 $day->setDay(DateTime::createFromFormat("Y-m-d", $offDay["day"]));
 
                 $this->manager->persist($day);
+            }
+        }
+
+        if(isset($tables["frequencesTable"])){
+            foreach(array_filter($tables["frequencesTable"]) as $frequenceData) {
+                $frequenceRepository = $this->manager->getRepository(InventoryFrequency::class);
+                $frequence = "";
+                if (isset($frequenceData['frequenceId'])){
+                    $frequence = $frequenceRepository->find($frequenceData['frequenceId']);
+                } else {
+                    $frequence = new InventoryFrequency();
+                }
+                $frequence->setLabel($frequenceData['label']);
+                $frequence->setNbMonths($frequenceData['nbMonths']);
+
+                $this->manager->persist($frequence);
+            }
+        }
+
+        if(isset($tables["categoriesTable"])){
+            foreach(array_filter($tables["categoriesTable"]) as $categoryData) {
+                $frequenceRepository = $this->manager->getRepository(InventoryFrequency::class);
+                $categoryRepository = $this->manager->getRepository(InventoryCategory::class);
+                $frequence = $frequenceRepository->find($categoryData['frequency']);
+                $category = "";
+                if (isset($categoryData['categoryId'])){
+                    $category = $categoryRepository->find($categoryData['categoryId']);
+                } else {
+                    $category = new InventoryCategory();
+                }
+                $category->setLabel($categoryData['label']);
+                $category->setFrequency($frequence);
+                $category->setPermanent($categoryData['permanent']);
+
+                $this->manager->persist($category);
             }
         }
     }
