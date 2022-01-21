@@ -1,9 +1,9 @@
-window.importTemplateChanged = importTemplateChanged;
-window.displayFirstModal = displayFirstModal;
-window.openConfirmCancelModal = openConfirmCancelModal;
-window.deleteImport = deleteImport;
-window.updateOptions = updateOptions;
-window.launchImport = launchImport;
+global.importTemplateChanged = importTemplateChanged;
+global.displayFirstModal = displayFirstModal;
+global.openConfirmCancelModal = openConfirmCancelModal;
+global.deleteImport = deleteImport;
+global.updateOptions = updateOptions;
+global.launchImport = launchImport;
 
 let $modalNewImport = $("#modalNewImport");
 let $submitNewImport = $("#submitNewImport");

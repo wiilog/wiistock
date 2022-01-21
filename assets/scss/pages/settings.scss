@@ -102,7 +102,7 @@
             }
 
             .sub-content {
-                padding: 4px 16px;
+                padding: 5px #{$grid-gutter-width / 2};
             }
         }
 
@@ -129,4 +129,8 @@
     img {
         margin-right: 10px;
     }
+}
+
+textarea {
+    resize: none;
 }

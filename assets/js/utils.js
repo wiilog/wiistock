@@ -2,6 +2,15 @@ export const MAX_UPLOAD_FILE_SIZE = 10000000;
 export const MAX_IMAGE_PIXELS = 1000000;
 export const ALLOWED_IMAGE_EXTENSIONS = [`png`, `jpeg`, `jpg`, `svg`, `gif`];
 
+global.MAX_UPLOAD_FILE_SIZE = MAX_UPLOAD_FILE_SIZE;
+global.MAX_IMAGE_PIXELS = MAX_IMAGE_PIXELS;
+global.ALLOWED_IMAGE_EXTENSIONS = ALLOWED_IMAGE_EXTENSIONS;
+
+global.initEditor = initEditor;
+global.initEditorInModal = initEditorInModal;
+global.updateImagePreview = updateImagePreview;
+global.resetImage = resetImage;
+
 export function initEditorInModal(modal) {
     initEditor(`${modal} .editor-container`);
 }
@@ -88,12 +97,3 @@ function resetImage($button) {
     $input.val('');
     $image.attr('src', defaultValue);
 }
-
-global.MAX_UPLOAD_FILE_SIZE = MAX_UPLOAD_FILE_SIZE;
-global.MAX_IMAGE_PIXELS = MAX_IMAGE_PIXELS;
-global.ALLOWED_IMAGE_EXTENSIONS = ALLOWED_IMAGE_EXTENSIONS;
-
-global.initEditor = initEditor;
-global.initEditorInModal = initEditorInModal;
-global.updateImagePreview = updateImagePreview;
-global.resetImage = resetImage;
