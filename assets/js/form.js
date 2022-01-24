@@ -1,4 +1,5 @@
 import WysiwygManager from "./wysiwyg-manager";
+import Flash from "./flash";
 
 export default class Form {
 
@@ -183,7 +184,6 @@ export default class Form {
         }
 
         // display errors under each field
-        $form.find(`.global-error`).remove();
         for(const error of errors) {
             error.elements.forEach($elem => Form.showInvalid($elem, error.message));
         }
@@ -234,7 +234,7 @@ export default class Form {
         $parent.find(`.invalid-feedback`).remove();
         if($field.is(`[data-global-error]`)) {
             const label = $field.data(`global-error`) || $parent.find(`.field-label`).text();
-            showBSAlert(`${label} : ${message}`, `danger`);
+            Flash.add(`danger`, `${label} : ${message}`);
         } else {
             $parent.append(`<span class="invalid-feedback">${message}</span>`);
         }

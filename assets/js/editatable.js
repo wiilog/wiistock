@@ -66,6 +66,10 @@ export default class EditableDatatable {
                     });
 
                     $row.data(`data`, JSON.stringify(data instanceof FormData ? data.asObject() : data));
+
+                    if ($row.find(`.add-row`).exists()) {
+                        $row.addClass('pointer');
+                    }
                 });
 
                 if(config.edit === MODE_DOUBLE_CLICK) {
@@ -131,18 +135,16 @@ export default class EditableDatatable {
                 return;
             }
 
-            if(config.edit === MODE_EDIT_AND_ADD && !datatable.editable){
-                datatable.editable = true;
-                datatable.toggleEdit(true, true);
+            if(config.edit === MODE_EDIT_AND_ADD && datatable.state !== STATE_EDIT){
+                datatable
+                    .toggleEdit(STATE_EDIT, true)
+                    .then(() => {
+                        createNewForm(datatable);
+                    });
             }
-
-            const row = datatable.table.row($row);
-            const data = row.data();
-
-            row.remove();
-            datatable.table.row.add(Object.assign({}, config.form));
-            datatable.table.row.add(data);
-            datatable.table.draw();
+            else {
+                createNewForm(datatable);
+            }
         });
 
         $element.on(`click`, `.delete-row`, function() {
@@ -180,9 +182,7 @@ export default class EditableDatatable {
         const data = [];
 
         $(this.table.rows().nodes()).each(function() {
-            const result = Form.process($(this), {
-                ignoreErrors: true,
-            });
+            const result = Form.process($(this));
 
             if(result) {
                 data.push(result.asObject());
@@ -218,21 +218,16 @@ export default class EditableDatatable {
         if(reload) {
             this.table.clear();
             this.table.draw();
-            this.table.ajax.reload();
+            return new Promise((resolve) => {
+                this.table.ajax.reload(() => {
+                    applyState(this, state);
+                    resolve()
+                });
+            });
         }
-
-        if(state !== STATE_VIEWING) {
-            if(this.config.onEditStart) {
-                this.config.onEditStart();
-            }
-
-            this.element.closest(`.dataTables_wrapper`).find(`.datatable-paging`).hide();
-        } else {
-            if(this.config.onEditStop) {
-                this.config.onEditStop();
-            }
-
-            this.element.closest(`.dataTables_wrapper`).find(`.datatable-paging`).show();
+        else {
+            applyState(this, state);
+            return new Promise((resolve) => resolve());
         }
     }
 
@@ -252,4 +247,33 @@ export default class EditableDatatable {
 
         return false;
     }
+}
+
+function applyState(datatable, state) {
+    const {config, element: $element} = datatable;
+    if (state !== STATE_VIEWING) {
+        if (config.onEditStart) {
+            config.onEditStart();
+        }
+
+        $element.closest(`.dataTables_wrapper`).find(`.datatable-paging`).hide();
+    } else {
+        if (config.onEditStop) {
+            config.onEditStop();
+        }
+
+        $element.closest(`.dataTables_wrapper`).find(`.datatable-paging`).show();
+    }
+}
+
+function createNewForm(datatable) {
+    const {config, table, element: $element} = datatable;
+    const $addRow = $element.find(`.add-row`).closest('tr');
+    const row = table.row($addRow);
+    const data = row.data();
+
+    row.remove();
+    table.row.add(Object.assign({}, config.form));
+    table.row.add(data);
+    table.draw();
 }

@@ -1,7 +1,8 @@
 import '../../../scss/pages/settings.scss';
-import EditableDatatable, {MODE_ADD_ONLY, MODE_DOUBLE_CLICK, MODE_MANUAL, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING} from "../../editatable";
-import Flash from '../../flash';
+import EditableDatatable, {MODE_ADD_ONLY, MODE_DOUBLE_CLICK, MODE_MANUAL, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING, MODE_EDIT, MODE_EDIT_AND_ADD, } from "../../editatable";
+import Flash, {INFO} from '../../flash';
 import {initializeImports} from "./data/imports.js";
+import {LOADING_CLASS} from "../../loading";
 
 const index = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();
@@ -18,6 +19,8 @@ const initializers = {
     stock_articles_etiquettes: initializeStockArticlesLabels,
     stock_articles_types_champs_libres: initializeStockArticlesTypesFreeFields,
     donnees_imports: initializeImports,
+    stock_inventaires_frequences: initializeFrequencesTable,
+    stock_inventaires_categories: initializeCategoriesTable,
 };
 
 const slowOperations = [
@@ -48,12 +51,18 @@ $(document).ready(() => {
             ignored: `[data-table-processing]`,
         });
 
+        let hasErrors = false;
+
         if(data) {
             const tables = {};
             form.element.find(`[id][data-table-processing]`).each(function() {
                 const datatable = EditableDatatable.of(this);
-                tables[$(this).data(`table-processing`)] = datatable.data();
+                const tableData = datatable.data();
+                tables[$(this).data(`table-processing`)] = tableData;
                 tablesToReload.push(datatable);
+                hasErrors = Object.keys(tableData)
+                    .filter((rowKey) => !tableData[rowKey])
+                    .length > 0;
             });
 
             if(Object.entries(tables).length) {
@@ -61,11 +70,20 @@ $(document).ready(() => {
             }
         }
 
+        if (!data || hasErrors) {
+            return;
+        }
+
+        if ($saveButton.hasClass(LOADING_CLASS)) {
+            Flash.add(INFO, `L'opération est en cours de traitement`);
+            return;
+        }
+
         const slow = Object.keys(data.asObject()).find(function(n) {
             return slowOperations.indexOf(n) !== -1;
         });
 
-        if(slow) {
+        if(slow || $saveButton.hasClass(LOADING_CLASS)) {
             Flash.add(`info`, `Mise à jour des paramétrage en cours, cette opération peut prendre quelques minutes`, false);
         }
 
@@ -76,6 +94,9 @@ $(document).ready(() => {
                 for(const table of tablesToReload) {
                     table.toggleEdit(STATE_VIEWING, true);
                 }
+                $saveButton.popLoader();
+            })
+            .catch(() => {
                 $saveButton.popLoader();
             });
     });
@@ -394,5 +415,70 @@ function initializeStockArticlesTypesFreeFields($container, canEdit) {
         }
 
         $defaultValue.trigger('change');
+    });
+}
+
+function initializeFrequencesTable(){
+    $saveButton.addClass('d-none');
+
+    const table = EditableDatatable.create(`#frequencesTable`, {
+        route: Routing.generate('frequencies_api', true),
+        deleteRoute: `settings_delete_frequency`,
+        edit: MODE_EDIT_AND_ADD,
+        save: SAVE_MANUALLY,
+        search: false,
+        paginate: false,
+        scrollY: false,
+        scrollX: false,
+        onEditStart: () => {
+            $saveButton.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $saveButton.addClass('d-none');
+        },
+        columns: [
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+            {data: `label`, title: `Libellé`},
+            {data: `nb_months`, title: `Nombre de mois`},
+        ],
+        form: {
+            actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
+            label: `<input type='text' name='label' class='form-control data needed' data-global-error="Libellé"/>`,
+            nb_months: `<input type='number' name='nbMonths' min='1' class='data form-control needed' data-global-error="Nombre de mois"/>`,
+        },
+    });
+}
+
+function initializeCategoriesTable(){
+    $saveButton.addClass('d-none');
+    const $frequencyOptions = JSON.parse($(`#frequency_options`).val());
+
+    const table = EditableDatatable.create(`#categoriesTable`, {
+        route: Routing.generate('categories_api', true),
+        deleteRoute: `settings_delete_category`,
+        edit: MODE_EDIT_AND_ADD,
+        save: SAVE_MANUALLY,
+        search: false,
+        paginate: false,
+        scrollY: false,
+        scrollX: false,
+        onEditStart: () => {
+            $saveButton.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $saveButton.addClass('d-none');
+        },
+        columns: [
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+            {data: `label`, title: `Libellé`},
+            {data: `frequency`, title: `Fréquence`},
+            {data: `permanent`, title: `Permanent`},
+        ],
+        form: {
+            actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
+            label: `<input type='text' name='label' class='form-control data needed'  data-global-error="Libellé"/>`,
+            frequency: `<select name='frequency' class='form-control data needed' data-global-error="Fréquence>`+$frequencyOptions+`</select>`,
+            permanent: `<div class='checkbox-container'><input type='checkbox' name='permanent' class='form-control data'/></div>`,
+        },
     });
 }
