@@ -19,7 +19,7 @@
 
                             {% for menu, label in category.menus %}
                                 <a href="{{ path(label.route is defined ? label.route : 'settings_item', label.route is not defined ? {category: category_key, menu, submenu: submenu ?? null} : []) }}"
-                                   class="settings-item py-1 {{ category.menus | length <= 4 ? 'full-size' }}">
+                                   class="settings-item pb-1 {{ category.menus | length <= 4 ? 'full-size' }}">
                                     {{ label is iterable ? label.label : label }}
                                 </a>
                             {% endfor %}

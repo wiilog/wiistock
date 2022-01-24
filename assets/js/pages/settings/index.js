@@ -11,6 +11,9 @@ let submenu = $(`input#submenu`).val();
 
 let currentForm = null;
 const forms = {};
+
+//keys are from url with / replaced by _
+//http://wiistock/parametrage/afficher/stock/receptions/champs_fixes_receptions => stock_receptions_champs_fixes_receptions
 const initializers = {
     global_heures_travaillees: initializeWorkingHours,
     global_jours_non_travailles: initializeOffDays,
@@ -19,6 +22,10 @@ const initializers = {
     stock_articles_etiquettes: initializeStockArticlesLabels,
     stock_articles_types_champs_libres: initializeStockArticlesTypesFreeFields,
     donnees_imports: initializeImports,
+    stock_receptions_champs_fixes_receptions: initializeReceptionFixedFields,
+    trace_acheminements_champs_fixes: initializeDispatchFixedFields,
+    trace_arrivages_champs_fixes: initializeArrivalFixedFields,
+    trace_services_champs_fixes: initializeHandlingFixedFields,
     stock_inventaires_frequences: initializeFrequencesTable,
     stock_inventaires_categories: initializeCategoriesTable,
 };
@@ -92,13 +99,27 @@ $(document).ready(() => {
             .json(data)
             .then(() => {
                 for(const table of tablesToReload) {
-                    table.toggleEdit(STATE_VIEWING, true);
+                    if(table.mode !== MODE_EDIT) {
+                        table.toggleEdit(STATE_VIEWING, true);
+                    }
                 }
                 $saveButton.popLoader();
             })
             .catch(() => {
                 $saveButton.popLoader();
             });
+    });
+
+    $(document).on(`click`, `.submit-field-param`, function() {
+        const $button = $(this);
+        const $modal = $button.closest(`.modal`);
+
+        const data = Form.process($modal);
+        const field = $modal.find(`[name=field]`).val();
+        if(data) {
+            AJAX.route(`POST`, `settings_save_field_param`, {field}).json(data);
+            $modal.modal(`hide`);
+        }
     });
 });
 
@@ -415,6 +436,86 @@ function initializeStockArticlesTypesFreeFields($container, canEdit) {
         }
 
         $defaultValue.trigger('change');
+    });
+}
+
+function initializeReceptionFixedFields($container, canEdit) {
+    EditableDatatable.create(`#table-reception-fixed-fields`, {
+        route: Routing.generate('settings_fixed_field_api', {entity: `réception`}),
+        edit: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+        save: SAVE_MANUALLY,
+        ordering: false,
+        paginate: false,
+        onEditStart: () => $saveButton.show(),
+        onEditStop: () => $saveButton.hide(),
+        columns: [
+            {data: `label`, title: `Champ fixe`},
+            {data: `displayedCreate`, title: `Afficher`},
+            {data: `requiredCreate`, title: `Obligatoire`},
+            {data: `displayedEdit`, title: `Afficher`},
+            {data: `requiredEdit`, title: `Obligatoire`},
+            {data: `displayedFilters`, title: `Afficher`},
+        ],
+    });
+}
+
+function initializeDispatchFixedFields($container, canEdit) {
+    EditableDatatable.create(`#table-dispatch-fixed-fields`, {
+        route: Routing.generate('settings_fixed_field_api', {entity: `acheminements`}),
+        edit: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+        save: SAVE_MANUALLY,
+        ordering: false,
+        paginate: false,
+        onEditStart: () => $saveButton.show(),
+        onEditStop: () => $saveButton.hide(),
+        columns: [
+            {data: `label`, title: `Champ fixe`},
+            {data: `displayedCreate`, title: `Afficher`},
+            {data: `requiredCreate`, title: `Obligatoire`},
+            {data: `displayedEdit`, title: `Afficher`},
+            {data: `requiredEdit`, title: `Obligatoire`},
+            {data: `displayedFilters`, title: `Afficher`},
+        ],
+    });
+}
+
+function initializeArrivalFixedFields($container, canEdit) {
+    EditableDatatable.create(`#table-arrival-fixed-fields`, {
+        route: Routing.generate('settings_fixed_field_api', {entity: `arrivage`}),
+        edit: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+        save: SAVE_MANUALLY,
+        ordering: false,
+        paginate: false,
+        onEditStart: () => $saveButton.show(),
+        onEditStop: () => $saveButton.hide(),
+        columns: [
+            {data: `label`, title: `Champ fixe`},
+            {data: `displayedCreate`, title: `Afficher`},
+            {data: `requiredCreate`, title: `Obligatoire`},
+            {data: `displayedEdit`, title: `Afficher`},
+            {data: `requiredEdit`, title: `Obligatoire`},
+            {data: `displayedFilters`, title: `Afficher`},
+        ],
+    });
+}
+
+function initializeHandlingFixedFields($container, canEdit) {
+    EditableDatatable.create(`#table-handling-fixed-fields`, {
+        route: Routing.generate('settings_fixed_field_api', {entity: `services`}),
+        edit: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+        save: SAVE_MANUALLY,
+        ordering: false,
+        paginate: false,
+        onEditStart: () => $saveButton.show(),
+        onEditStop: () => $saveButton.hide(),
+        columns: [
+            {data: `label`, title: `Champ fixe`},
+            {data: `displayedCreate`, title: `Afficher`},
+            {data: `requiredCreate`, title: `Obligatoire`},
+            {data: `displayedEdit`, title: `Afficher`},
+            {data: `requiredEdit`, title: `Obligatoire`},
+            {data: `displayedFilters`, title: `Afficher`},
+        ],
     });
 }
 

@@ -31,6 +31,7 @@ export default class EditableDatatable {
         const datatable = new EditableDatatable();
         datatable.element = $element;
         datatable.config = config;
+        datatable.mode = config.edit;
         datatable.state = config.edit === MODE_EDIT ? STATE_EDIT : STATE_VIEWING;
         datatable.table = initDataTable(datatable.element, {
             serverSide: false,
@@ -47,7 +48,7 @@ export default class EditableDatatable {
             domConfig: {
                 removeInfo: true,
             },
-            ordering: datatable.state !== STATE_VIEWING,
+            ordering: config.ordering !== undefined ? config.ordering : datatable.state !== STATE_VIEWING,
             paging: config.paginate,
             searching: config.search ?? false,
             scrollY: false,

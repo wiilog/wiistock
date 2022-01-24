@@ -227,7 +227,7 @@ class FreeField implements Serializable {
         return $this;
     }
 
-    public function getRequiredCreate(): ?bool
+    public function isRequiredCreate(): ?bool
     {
         return $this->requiredCreate;
     }
@@ -239,7 +239,7 @@ class FreeField implements Serializable {
         return $this;
     }
 
-    public function getRequiredEdit(): ?bool
+    public function isRequiredEdit(): ?bool
     {
         return $this->requiredEdit;
     }
@@ -281,8 +281,8 @@ class FreeField implements Serializable {
             'elements' => $this->getElements(),
             'typing' => $this->getTypage(),
             'defaultValue' => $this->getDefaultValue(),
-            'requiredCreate' => $this->getRequiredCreate(),
-            'requiredEdit' => $this->getRequiredEdit(),
+            'requiredCreate' => $this->isRequiredCreate(),
+            'requiredEdit' => $this->isRequiredEdit(),
             'typeId' => $this->getType() ? $this->getType()->getId() : null,
             'categoryType' => $categoryType ? $categoryType->getLabel() : null,
         ];

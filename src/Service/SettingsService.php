@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\CategorieCL;
 use App\Entity\DaysWorked;
+use App\Entity\FieldsParam;
 use App\Entity\InventoryCategory;
 use App\Entity\InventoryFrequency;
 use App\Entity\FreeField;
@@ -242,6 +243,28 @@ class SettingsService {
                     ->setRequiredEdit($item["requiredEdit"]);
 
                 $this->manager->persist($freeField);
+            }
+        }
+
+        if(isset($tables["fixedFields"])) {
+            $ids = array_map(fn($freeField) => $freeField["id"] ?? null, $tables["fixedFields"]);
+
+            $fieldsParamRepository = $this->manager->getRepository(FieldsParam::class);
+            $fieldsParams = Stream::from($fieldsParamRepository->findBy(["id" => $ids]))
+                ->keymap(fn($day) => [$day->getId(), $day])
+                ->toArray();
+
+            foreach(array_filter($tables["fixedFields"]) as $item) {
+                /** @var FreeField $freeField */
+                $fieldsParam = $fieldsParams[$item["id"]] ?? null;
+
+                if($fieldsParam) {
+                    $fieldsParam->setDisplayedCreate($item["displayedCreate"])
+                        ->setRequiredCreate($item["requiredCreate"])
+                        ->setDisplayedEdit($item["displayedEdit"])
+                        ->setRequiredEdit($item["requiredEdit"])
+                        ->setDisplayedFilters($item["displayedFilters"] ?? null);
+                }
             }
         }
     }

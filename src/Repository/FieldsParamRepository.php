@@ -24,8 +24,8 @@ class FieldsParamRepository extends EntityRepository
 
         return Stream::from($fields)
             ->keymap(fn(FieldsParam $field) => [$field->getFieldCode(), [
-                "requiredCreate" => $field->getRequiredCreate(),
-                "requiredEdit" => $field->getRequiredEdit(),
+                "requiredCreate" => $field->isRequiredCreate(),
+                "requiredEdit" => $field->isRequiredEdit(),
                 "displayedCreate" => $field->isDisplayedCreate(),
                 "displayedEdit" =>$field->isDisplayedEdit(),
                 "displayedFilters" => $field->isDisplayedFilters(),
@@ -64,6 +64,16 @@ class FieldsParamRepository extends EntityRepository
         )->setParameter('entity', $entity);
 
         return $query->execute();
+    }
+
+    public function findByEntityAndCode(string $entity, string $field): ?FieldsParam {
+        return $this->createQueryBuilder("f")
+            ->where("f.entityCode = :entity")
+            ->andWhere("f.fieldCode = :field")
+            ->setParameter("entity", $entity)
+            ->setParameter("field", $field)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
     public function getElements(string $entity, string $field): ?array {

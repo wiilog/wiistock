@@ -231,7 +231,7 @@ class ReceptionController extends AbstractController {
                         'typage' => $champLibre->getTypage(),
                         'elements' => ($champLibre->getElements() ? $champLibre->getElements() : ''),
                         'defaultValue' => $champLibre->getDefaultValue(),
-                        'requiredEdit' => $champLibre->getRequiredEdit()
+                        'requiredEdit' => $champLibre->isRequiredEdit()
                     ];
                     $champsLibresEntity[] = $champLibre;
                 }

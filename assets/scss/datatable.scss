@@ -221,3 +221,23 @@ th.hideOrder {
     text-overflow: initial !important;
     white-space: initial !important;
 }
+
+thead th.datatable-main-header, tbody th.datatable-main-header {
+    color: $primary;
+    font-size: 1.2rem;
+        border-bottom: none !important;
+}
+
+table.no-border-top th {
+    border-top: none !important;
+}
+
+thead th.datatable-main-header, tbody th.datatable-main-header {
+    color: $primary;
+    font-size: 1.2rem;
+        border-bottom: none !important;
+}
+
+table.no-border-top th {
+    border-top: none !important;
+}

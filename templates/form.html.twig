@@ -101,8 +101,10 @@
         <span>{{ _self.label(label, required) }}</span>
         <select class="form-control w-100 data"
             {{ required ? 'required' }}
+            {{ options.multiple ?? false ? 'multiple' }}
             {% if options.type is defined %}
                 data-s2="{{ options.type }}"
+                {% if options.editable ?? false %}data-editable{% endif %}
                 {% if options.placeholder is defined %}data-placeholder="{{ options.placeholder }}"{% endif %}
                 {% if options.includeParams is defined %}data-include-params="{{ options.includeParams }}"{% endif %}
             {% endif %}
@@ -115,18 +117,17 @@
                 <option disabled selected>{{ options.placeholder }}</option>
             {% endif %}
 
-            {% if options.items['value'] is not defined and options.items['text'] is not defined %}
-                {% for item in options.items ?? [] %}
-                    <option value="{{ item.value }}" {{ item.value in values ? 'selected' }}
-                        {% for dataKey, dataValue in item %}
+            {# TODO: au merge faut prendre cette version #}
+            {% for value, text in options.items ?? [] %}
+                {% if text.value is defined and text.text is defined %}
+                    <option value="{{ text.value }}" {{ (text.selected ?? false) or text.value in values ? 'selected' }}
+                        {% for dataKey, dataValue in text %}
                         data-{{ dataKey }}="{{ dataValue }}"
-                        {% endfor %}>{{ item.text }}</option>
-                {% endfor %}
-            {% else %}
-                {% for value, text in options.items ?? [] %}
+                        {% endfor %}>{{ text.text }}</option>
+                {% else %}
                     <option value="{{ value }}" {{ value in values ? 'selected' }}>{{ text }}</option>
-                {% endfor %}
-            {% endif %}
+                {% endif %}
+            {% endfor %}
         </select>
     </label>
 {% endmacro %}
