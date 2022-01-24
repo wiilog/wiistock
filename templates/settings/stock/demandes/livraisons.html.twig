@@ -1,0 +1,72 @@
+{% import 'form.html.twig' as form %}
+
+<div class="management-title">Création livraison</div>
+
+<div class="row sub-content">
+    <div class="col-md-6 col-12">
+        {{ form.checkbox(setting('CREATE_DL_AFTER_RECEPTION'), 'Créer une demande de livraison après réception', false, setting_value('CREATE_DL_AFTER_RECEPTION')) }}
+    </div>
+    <div class="col-md-6 col-12">
+        {{ form.checkbox(setting('CREATE_PREPA_AFTER_DL'), 'Créer une préparation après demande de livraison', false, setting_value('CREATE_PREPA_AFTER_DL')) }}
+    </div>
+
+    <div class="col-md-6 col-12">
+        {{ form.checkbox(setting('REQUESTER_IN_DELIVERY'), "Le demandeur est l'utilisateur de la session en cours", false, setting_value('REQUESTER_IN_DELIVERY')) }}
+    </div>
+    <div class="col-md-6 col-12">
+        {{ form.checkbox(setting('MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST'), 'Gérer le champ "Destination" en liste déroulante', false, setting_value('MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST')) }}
+    </div>
+</div>
+
+<div class="management-title">Ajout référence</div>
+
+<div class="row sub-content">
+    <div class="col-12">
+        {{ form.checkbox(setting('DISPLAY_PICKING_LOCATION'), "Faire apparaitre l'emplacement cible de picking à l'ajout d'une référence et dans son traitement", false, setting_value('DISPLAY_PICKING_LOCATION')) }}
+    </div>
+</div>
+
+<div class="management-title">Emplacements de livraison par défaut</div>
+
+<div class="sub-content mt-2">
+    <div class="row justify-content-end">
+        <div class="col-auto">
+            <button class="btn btn-sm btn-primary new-type-association-button" disabled>
+                <i class="fa fa-plus"></i>
+                Ajouter un emplacement
+            </button>
+        </div>
+    </div>
+    <div class="row setting-type-association"></div>
+</div>
+
+<template id="type-template">
+    <div class="d-flex col-8 mb-3 type-association-container">
+        <div class="d-flex align-items-center w-100">
+            <label class="w-100">
+                <span class="wii-field-name">Type</span>
+                <select name="deliveryType" class="form-control needed" data-s2="deliveryType"
+                        data-include-params-parent=".wii-box"
+                        data-include-params="input[name=alreadyDefinedTypes]">
+                </select>
+            </label>
+        </div>
+        <div class="d-flex align-items-center w-100">
+            <label class="w-100 ml-2">
+                <span class="wii-field-name">Emplacement</span>
+                <select name="deliveryRequestLocation" class="form-control" data-s2="location"
+                        data-include-params-parent=".wii-box"
+                        data-include-params="select[name=deliveryType]">
+                </select>
+            </label>
+        </div>
+        <div class="d-flex align-items-end">
+            <div class="btn btn-outline-primary delete-association-line d-flex align-items-center ml-2"
+                 title="Supprimer la ligne" style="max-height: 40px">
+                <i class="wii-icon wii-icon-trash"></i>
+            </div>
+        </div>
+    </div>
+</template>
+<input type="hidden" value="{{ deliveryTypeSettings }}" name="deliveryTypeSettings">
+<input type="hidden" value="" name="alreadyDefinedTypes">

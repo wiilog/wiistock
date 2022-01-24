@@ -33,9 +33,10 @@ class EmplacementRepository extends EntityRepository
         $query = $this->createQueryBuilder("location");
 
         if($deliveryType) {
+            $types = is_array($deliveryType) ? $deliveryType : [$deliveryType];
             $query->leftJoin("location.allowedDeliveryTypes", "allowed_delivery_types")
-                ->andWhere("allowed_delivery_types.id = :type")
-                ->setParameter("type", $deliveryType);
+                ->andWhere("allowed_delivery_types.id IN (:types)")
+                ->setParameter("types", $types);
         }
 
         if($collectType) {

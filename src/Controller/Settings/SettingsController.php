@@ -8,10 +8,12 @@ use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
+use App\Entity\Emplacement;
 use App\Entity\FreeField;
 use App\Entity\Import;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
+use App\Entity\ParametrageGlobal;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\WorkFreeDay;
@@ -78,7 +80,18 @@ class SettingsController extends AbstractController {
                         ],
                     ],
                 ],
-                self::MENU_REQUESTS => ["label" => "Demandes"],
+                self::MENU_REQUESTS => [
+                    "label" => "Demandes",
+                    "menus" => [
+                        self::MENU_DELIVERIES => ["label" => "Livraisons"],
+                        self::MENU_DELIVERY_REQUEST_TEMPLATES => ["label" => "Livraisons - Modèle de demande"],
+                        self::MENU_DELIVERY_TYPES_FREE_FIELDS => ["label" => "Livraisons - Types et champs libres"],
+                        self::MENU_COLLECTS => ["label" => "Collectes"],
+                        self::MENU_COLLECT_REQUEST_TEMPLATES => ["label" => "Collectes - Modèle de demande"],
+                        self::MENU_COLLECT_TYPES_FREE_FIELDS => ["label" => "Collectes - Types et champs libres"],
+                        self::MENU_PURCHASE_STATUSES => ["label" => "Achats - Statut"],
+                    ],
+                ],
                 self::MENU_VISIBILITY_GROUPS => ["label" => "Groupes de visibilité"],
                 self::MENU_INVENTORIES => [
                     "label" => "Inventaires",
@@ -258,6 +271,14 @@ class SettingsController extends AbstractController {
     private const MENU_HANDLINGS = "services";
     private const MENU_REQUEST_TEMPLATES = "modeles_demande";
 
+    private const MENU_DELIVERIES = "livraisons";
+    private const MENU_DELIVERY_REQUEST_TEMPLATES = "modeles_demande_livraisons";
+    private const MENU_DELIVERY_TYPES_FREE_FIELDS = "types_champs_libres_livraisons";
+    private const MENU_COLLECTS = "collectes";
+    private const MENU_COLLECT_REQUEST_TEMPLATES = "modeles_demande_collectes";
+    private const MENU_COLLECT_TYPES_FREE_FIELDS = "types_champs_libres_collectes";
+    private const MENU_PURCHASE_STATUSES = "statuts_achats";
+
     private const MENU_PREPARATIONS = "preparations";
     private const MENU_VALIDATION = "validation";
     private const MENU_TRANSFERS = "transferts";
@@ -399,6 +420,11 @@ class SettingsController extends AbstractController {
                             "default_value" => $defaultValue,
                         ];
                     },
+                ],
+                self::MENU_REQUESTS => [
+                    self::MENU_DELIVERIES => fn() => [
+                        "deliveryTypeSettings" => json_encode($this->getDefaultDeliveryLocationsByType($this->manager))
+                    ],
                 ],
             ],
             self::CATEGORY_TRACKING => [
@@ -862,6 +888,42 @@ class SettingsController extends AbstractController {
 
     private function canDelete(): bool {
         return $this->userService->hasRightFunction(Menu::PARAM, Action::DELETE);
+    }
+
+    public function getDefaultDeliveryLocationsByType(EntityManagerInterface $entityManager): array {
+
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+
+        $defaultDeliveryLocationsParam = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON) ?? [];
+        $defaultDeliveryLocationsIds = json_decode($defaultDeliveryLocationsParam, true);
+
+        $defaultDeliveryLocations = [];
+        foreach ($defaultDeliveryLocationsIds as $typeId => $locationId) {
+            if ($typeId !== 'all' && $typeId) {
+                $type = $typeRepository->find($typeId);
+            }
+            if ($locationId) {
+                $location = $locationRepository->find($locationId);
+            }
+
+            $defaultDeliveryLocations[] = [
+                'location' => isset($location)
+                    ? [
+                        'label' => $location->getLabel(),
+                        'id' => $location->getId()
+                    ]
+                    : null,
+                'type' => isset($type)
+                    ? [
+                        'label' => $type->getLabel(),
+                        'id' => $type->getId()
+                    ]
+                    : null,
+            ];
+        }
+        return $defaultDeliveryLocations;
     }
 
 }
