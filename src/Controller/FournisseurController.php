@@ -63,8 +63,8 @@ class FournisseurController extends AbstractController {
             $supplier = (new Fournisseur())
 				->setNom($data["name"])
 				->setCodeReference($data["code"])
-                ->setPossibleCustoms($data["possibleCustoms"])
-                ->setUrgent($data["urgent"]);
+                ->setPossibleCustoms($data["possibleCustoms"] ?? false)
+                ->setUrgent($data["urgent"] ?? false);
 
             $entityManager->persist($supplier);
             $entityManager->flush();
