@@ -100,6 +100,10 @@
                 padding: 5px #{$grid-gutter-width / 2};
                 font-weight: 600;
             }
+
+            .sub-content {
+                padding: 5px #{$grid-gutter-width / 2};
+            }
         }
 
         .save {
@@ -125,4 +129,8 @@
     img {
         margin-right: 10px;
     }
+}
+
+textarea {
+    resize: none;
 }

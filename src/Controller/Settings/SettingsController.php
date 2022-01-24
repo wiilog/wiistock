@@ -8,7 +8,6 @@ use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
-use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\Import;
 use App\Entity\MailerServer;
@@ -30,6 +29,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
+use App\Entity\FieldsParam;
 
 /**
  * @Route("/parametrage")
@@ -403,6 +403,19 @@ class SettingsController extends AbstractController {
             ],
             self::CATEGORY_TRACKING => [
                 self::MENU_DISPATCHES => [
+                    self::MENU_OVERCONSUMPTION_BILL => fn() => [
+                        "types" => Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]))
+                            ->map(fn(Type $type) => [
+                                "value" => $type->getId(),
+                                "text" => $type->getLabel(),
+                            ])->toArray(),
+                        "statuses" => Stream::from($statusRepository->findByCategorieName(CategorieStatut::DISPATCH))
+                            ->filter(fn(Statut $status) => $status->getState() === Statut::NOT_TREATED)
+                            ->map(fn(Statut $status) => [
+                                "value" => $status->getId(),
+                                "text" => $status->getNom(),
+                            ])->toArray(),
+                    ],
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
                         $emergencyField = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY);
                         $businessField = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_BUSINESS_UNIT);

@@ -120,7 +120,7 @@ function getSubmenuLabel() {
     if(!submenu) {
         return null;
     } else {
-        return index[category].menus[menu].menus[submenu];
+        return index[category].menus[menu].menus[submenu].label;
     }
 }
 
@@ -299,14 +299,14 @@ function initializeOffDays($container, canEdit) {
 }
 
 function initializeSiteAppearance() {
-    updateImagePreview('#preview-website-logo', '#upload-website-logo');
-    updateImagePreview('#preview-email-logo', '#upload-email-logo');
-    updateImagePreview('#preview-mobile-logo-login', '#upload-mobile-logo-login');
-    updateImagePreview('#preview-mobile-logo-header', '#upload-mobile-logo-header');
+    $('#upload-website-logo').on('change', () => updateImagePreview('#preview-website-logo', '#upload-website-logo'));
+    $('#upload-email-logo').on('change', () => updateImagePreview('#preview-email-logo', '#upload-email-logo'));
+    $('#upload-mobile-logo-login').on('change', () => updateImagePreview('#preview-mobile-logo-login', '#upload-mobile-logo-login'));
+    $('#upload-mobile-logo-header').on('change', () => updateImagePreview('#preview-mobile-logo-header', '#upload-mobile-logo-header'));
 }
 
 function initializeGlobalLabels() {
-    updateImagePreview('#preview-label-logo', '#upload-label-logo');
+    $('#upload-label-logo').on('change', () => updateImagePreview('#preview-label-logo', '#upload-label-logo'));
 }
 
 function initializeStockArticlesLabels() {

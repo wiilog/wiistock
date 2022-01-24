@@ -545,7 +545,6 @@ class MobileController extends AbstractFOSRestController
                 } else {
                     $exceptionLoggerService->sendLog($throwable, $request);
                     $successData['data']['errors'][$mvt['ref_article']] = 'Une erreur s\'est produite lors de l\'enregistrement de ' . $mvt['ref_article'];
-                    throw $throwable;
                 }
             }
         }
