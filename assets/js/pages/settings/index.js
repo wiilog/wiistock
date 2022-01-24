@@ -202,7 +202,7 @@ function createManagementPage($container, config) {
 
     const table = EditableDatatable.create(`#${$table.attr(`id`)}`, {
         name: config.name,
-        edit: config.edit ? MODE_MANUAL : MODE_NO_EDIT,
+        mode: config.edit ? MODE_MANUAL : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         route: config.table.route(selectedEntity),
         deleteRoute: config.table.deleteRoute,
@@ -265,7 +265,7 @@ function initializeWorkingHours($container, canEdit) {
 
     const table = EditableDatatable.create(`#table-working-hours`, {
         route: Routing.generate('settings_working_hours_api', true),
-        edit: canEdit ? MODE_DOUBLE_CLICK : MODE_NO_EDIT,
+        mode: canEdit ? MODE_DOUBLE_CLICK : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         onEditStart: () => $saveButton.addClass('d-none'),
         onEditStop: () => $saveButton.removeClass('d-none'),
@@ -286,7 +286,7 @@ function initializeOffDays($container, canEdit) {
     const table = EditableDatatable.create(`#table-off-days`, {
         route: Routing.generate(`settings_off_days_api`, true),
         deleteRoute: `settings_off_days_delete`,
-        edit: canEdit ? MODE_ADD_ONLY : MODE_NO_EDIT,
+        mode: canEdit ? MODE_ADD_ONLY : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         search: true,
         paginate: true,
@@ -442,7 +442,7 @@ function initializeStockArticlesTypesFreeFields($container, canEdit) {
 function initializeReceptionFixedFields($container, canEdit) {
     EditableDatatable.create(`#table-reception-fixed-fields`, {
         route: Routing.generate('settings_fixed_field_api', {entity: `réception`}),
-        edit: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         ordering: false,
         paginate: false,
@@ -462,7 +462,7 @@ function initializeReceptionFixedFields($container, canEdit) {
 function initializeDispatchFixedFields($container, canEdit) {
     EditableDatatable.create(`#table-dispatch-fixed-fields`, {
         route: Routing.generate('settings_fixed_field_api', {entity: `acheminements`}),
-        edit: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         ordering: false,
         paginate: false,
@@ -482,7 +482,7 @@ function initializeDispatchFixedFields($container, canEdit) {
 function initializeArrivalFixedFields($container, canEdit) {
     EditableDatatable.create(`#table-arrival-fixed-fields`, {
         route: Routing.generate('settings_fixed_field_api', {entity: `arrivage`}),
-        edit: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         ordering: false,
         paginate: false,
@@ -502,7 +502,7 @@ function initializeArrivalFixedFields($container, canEdit) {
 function initializeHandlingFixedFields($container, canEdit) {
     EditableDatatable.create(`#table-handling-fixed-fields`, {
         route: Routing.generate('settings_fixed_field_api', {entity: `services`}),
-        edit: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         ordering: false,
         paginate: false,
@@ -525,7 +525,7 @@ function initializeFrequencesTable(){
     const table = EditableDatatable.create(`#frequencesTable`, {
         route: Routing.generate('frequencies_api', true),
         deleteRoute: `settings_delete_frequency`,
-        edit: MODE_EDIT_AND_ADD,
+        mode: MODE_EDIT_AND_ADD,
         save: SAVE_MANUALLY,
         search: false,
         paginate: false,
@@ -557,7 +557,7 @@ function initializeCategoriesTable(){
     const table = EditableDatatable.create(`#categoriesTable`, {
         route: Routing.generate('categories_api', true),
         deleteRoute: `settings_delete_category`,
-        edit: MODE_EDIT_AND_ADD,
+        mode: MODE_EDIT_AND_ADD,
         save: SAVE_MANUALLY,
         search: false,
         paginate: false,

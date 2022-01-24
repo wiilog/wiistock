@@ -31,8 +31,8 @@ export default class EditableDatatable {
         const datatable = new EditableDatatable();
         datatable.element = $element;
         datatable.config = config;
-        datatable.mode = config.edit;
-        datatable.state = config.edit === MODE_EDIT ? STATE_EDIT : STATE_VIEWING;
+        datatable.mode = config.mode;
+        datatable.state = config.mode === MODE_EDIT ? STATE_EDIT : STATE_VIEWING;
         datatable.table = initDataTable(datatable.element, {
             serverSide: false,
             ajax: {
@@ -73,7 +73,7 @@ export default class EditableDatatable {
                     }
                 });
 
-                if(config.edit === MODE_DOUBLE_CLICK) {
+                if(config.mode === MODE_DOUBLE_CLICK) {
                     $rows.off(`dblclick.${id}.startEdit`).on(`dblclick.${id}.startEdit`, function() {
                         if(datatable.state === STATE_VIEWING) {
                             datatable.toggleEdit(STATE_EDIT, true);
@@ -136,7 +136,7 @@ export default class EditableDatatable {
                 return;
             }
 
-            if(config.edit === MODE_EDIT_AND_ADD && datatable.state !== STATE_EDIT){
+            if(datatable.mode === MODE_EDIT_AND_ADD && datatable.state !== STATE_EDIT){
                 datatable
                     .toggleEdit(STATE_EDIT, true)
                     .then(() => {

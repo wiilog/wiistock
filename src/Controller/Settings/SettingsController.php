@@ -842,7 +842,7 @@ class SettingsController extends AbstractController {
                 $labelAttributes = "class='font-weight-bold'";
                 if($field->getElements() !== null) {
                     $modal = strtolower($field->getFieldCode());
-                    $labelAttributes = "class='font-weight-bold btn-link' data-target='#modal-fixed-field-$modal' data-toggle='modal'";
+                    $labelAttributes = "class='font-weight-bold btn-link pointer' data-target='#modal-fixed-field-$modal' data-toggle='modal'";
                 }
 
                 $rows[] = [
