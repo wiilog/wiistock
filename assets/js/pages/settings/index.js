@@ -1,7 +1,8 @@
 import '../../../scss/pages/settings.scss';
-import EditableDatatable, {MODE_ADD_ONLY, MODE_DOUBLE_CLICK, MODE_MANUAL, MODE_EDIT, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING} from "../../editatable";
-import Flash from '../../flash';
+import EditableDatatable, {MODE_ADD_ONLY, MODE_DOUBLE_CLICK, MODE_MANUAL, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING, MODE_EDIT, MODE_EDIT_AND_ADD, } from "../../editatable";
+import Flash, {INFO} from '../../flash';
 import {initializeImports} from "./data/imports.js";
+import {LOADING_CLASS} from "../../loading";
 
 const index = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();
@@ -25,6 +26,8 @@ const initializers = {
     trace_acheminements_champs_fixes: initializeDispatchFixedFields,
     trace_arrivages_champs_fixes: initializeArrivalFixedFields,
     trace_services_champs_fixes: initializeHandlingFixedFields,
+    stock_inventaires_frequences: initializeFrequencesTable,
+    stock_inventaires_categories: initializeCategoriesTable,
     stock_demandes_livraisons: initializeDeliveries
 };
 
@@ -56,12 +59,18 @@ $(document).ready(() => {
             ignored: `[data-table-processing]`,
         });
 
+        let hasErrors = false;
+
         if(data) {
             const tables = {};
             form.element.find(`[id][data-table-processing]`).each(function() {
                 const datatable = EditableDatatable.of(this);
-                tables[$(this).data(`table-processing`)] = datatable.data();
+                const tableData = datatable.data();
+                tables[$(this).data(`table-processing`)] = tableData;
                 tablesToReload.push(datatable);
+                hasErrors = Object.keys(tableData)
+                    .filter((rowKey) => !tableData[rowKey])
+                    .length > 0;
             });
 
             if(Object.entries(tables).length) {
@@ -69,11 +78,20 @@ $(document).ready(() => {
             }
         }
 
+        if (!data || hasErrors) {
+            return;
+        }
+
+        if ($saveButton.hasClass(LOADING_CLASS)) {
+            Flash.add(INFO, `L'opération est en cours de traitement`);
+            return;
+        }
+
         const slow = Object.keys(data.asObject()).find(function(n) {
             return slowOperations.indexOf(n) !== -1;
         });
 
-        if(slow) {
+        if(slow || $saveButton.hasClass(LOADING_CLASS)) {
             Flash.add(`info`, `Mise à jour des paramétrage en cours, cette opération peut prendre quelques minutes`, false);
         }
 
@@ -86,6 +104,9 @@ $(document).ready(() => {
                         table.toggleEdit(STATE_VIEWING, true);
                     }
                 }
+                $saveButton.popLoader();
+            })
+            .catch(() => {
                 $saveButton.popLoader();
             });
     });
@@ -182,7 +203,7 @@ function createManagementPage($container, config) {
 
     const table = EditableDatatable.create(`#${$table.attr(`id`)}`, {
         name: config.name,
-        edit: config.edit ? MODE_MANUAL : MODE_NO_EDIT,
+        mode: config.edit ? MODE_MANUAL : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         route: config.table.route(selectedEntity),
         deleteRoute: config.table.deleteRoute,
@@ -245,7 +266,7 @@ function initializeWorkingHours($container, canEdit) {
 
     const table = EditableDatatable.create(`#table-working-hours`, {
         route: Routing.generate('settings_working_hours_api', true),
-        edit: canEdit ? MODE_DOUBLE_CLICK : MODE_NO_EDIT,
+        mode: canEdit ? MODE_DOUBLE_CLICK : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         onEditStart: () => $saveButton.addClass('d-none'),
         onEditStop: () => $saveButton.removeClass('d-none'),
@@ -266,7 +287,7 @@ function initializeOffDays($container, canEdit) {
     const table = EditableDatatable.create(`#table-off-days`, {
         route: Routing.generate(`settings_off_days_api`, true),
         deleteRoute: `settings_off_days_delete`,
-        edit: canEdit ? MODE_ADD_ONLY : MODE_NO_EDIT,
+        mode: canEdit ? MODE_ADD_ONLY : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         search: true,
         paginate: true,
@@ -422,7 +443,7 @@ function initializeStockArticlesTypesFreeFields($container, canEdit) {
 function initializeReceptionFixedFields($container, canEdit) {
     EditableDatatable.create(`#table-reception-fixed-fields`, {
         route: Routing.generate('settings_fixed_field_api', {entity: `réception`}),
-        edit: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         ordering: false,
         paginate: false,
@@ -442,7 +463,7 @@ function initializeReceptionFixedFields($container, canEdit) {
 function initializeDispatchFixedFields($container, canEdit) {
     EditableDatatable.create(`#table-dispatch-fixed-fields`, {
         route: Routing.generate('settings_fixed_field_api', {entity: `acheminements`}),
-        edit: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         ordering: false,
         paginate: false,
@@ -462,7 +483,7 @@ function initializeDispatchFixedFields($container, canEdit) {
 function initializeArrivalFixedFields($container, canEdit) {
     EditableDatatable.create(`#table-arrival-fixed-fields`, {
         route: Routing.generate('settings_fixed_field_api', {entity: `arrivage`}),
-        edit: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         ordering: false,
         paginate: false,
@@ -482,7 +503,7 @@ function initializeArrivalFixedFields($container, canEdit) {
 function initializeHandlingFixedFields($container, canEdit) {
     EditableDatatable.create(`#table-handling-fixed-fields`, {
         route: Routing.generate('settings_fixed_field_api', {entity: `services`}),
-        edit: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         ordering: false,
         paginate: false,
@@ -626,4 +647,69 @@ function appendSelectOptions(typeSelect, locationSelect, type, location) {
     locationSelect
         .append(new Option(location.label, location.id, false, true))
         .trigger(`change`);
+}
+
+function initializeFrequencesTable(){
+    $saveButton.addClass('d-none');
+
+    const table = EditableDatatable.create(`#frequencesTable`, {
+        route: Routing.generate('frequencies_api', true),
+        deleteRoute: `settings_delete_frequency`,
+        mode: MODE_EDIT_AND_ADD,
+        save: SAVE_MANUALLY,
+        search: false,
+        paginate: false,
+        scrollY: false,
+        scrollX: false,
+        onEditStart: () => {
+            $saveButton.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $saveButton.addClass('d-none');
+        },
+        columns: [
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+            {data: `label`, title: `Libellé`},
+            {data: `nb_months`, title: `Nombre de mois`},
+        ],
+        form: {
+            actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
+            label: `<input type='text' name='label' class='form-control data needed' data-global-error="Libellé"/>`,
+            nb_months: `<input type='number' name='nbMonths' min='1' class='data form-control needed' data-global-error="Nombre de mois"/>`,
+        },
+    });
+}
+
+function initializeCategoriesTable(){
+    $saveButton.addClass('d-none');
+    const $frequencyOptions = JSON.parse($(`#frequency_options`).val());
+
+    const table = EditableDatatable.create(`#categoriesTable`, {
+        route: Routing.generate('categories_api', true),
+        deleteRoute: `settings_delete_category`,
+        mode: MODE_EDIT_AND_ADD,
+        save: SAVE_MANUALLY,
+        search: false,
+        paginate: false,
+        scrollY: false,
+        scrollX: false,
+        onEditStart: () => {
+            $saveButton.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $saveButton.addClass('d-none');
+        },
+        columns: [
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+            {data: `label`, title: `Libellé`},
+            {data: `frequency`, title: `Fréquence`},
+            {data: `permanent`, title: `Permanent`},
+        ],
+        form: {
+            actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
+            label: `<input type='text' name='label' class='form-control data needed'  data-global-error="Libellé"/>`,
+            frequency: `<select name='frequency' class='form-control data needed' data-global-error="Fréquence>`+$frequencyOptions+`</select>`,
+            permanent: `<div class='checkbox-container'><input type='checkbox' name='permanent' class='form-control data'/></div>`,
+        },
+    });
 }

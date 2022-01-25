@@ -117,13 +117,15 @@
                 <option disabled selected>{{ options.placeholder }}</option>
             {% endif %}
 
-            {# TODO: au merge faut prendre cette version #}
             {% for value, text in options.items ?? [] %}
                 {% if text.value is defined and text.text is defined %}
-                    <option value="{{ text.value }}" {{ (text.selected ?? false) or text.value in values ? 'selected' }}
-                        {% for dataKey, dataValue in text %}
-                        data-{{ dataKey }}="{{ dataValue }}"
-                        {% endfor %}>{{ text.text }}</option>
+                    <option value="{{ text.value }}"
+                            {{ (text.selected ?? false) or text.value in values ? 'selected' }}
+                            {% for dataKey, dataValue in text %}
+                                data-{{ dataKey }}="{{ dataValue }}"
+                            {% endfor %}>
+                        {{ text.text }}
+                    </option>
                 {% else %}
                     <option value="{{ value }}" {{ value in values ? 'selected' }}>{{ text }}</option>
                 {% endif %}

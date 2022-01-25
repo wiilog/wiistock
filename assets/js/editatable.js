@@ -3,6 +3,7 @@ export const MODE_MANUAL = 2;
 export const MODE_DOUBLE_CLICK = 3;
 export const MODE_ADD_ONLY = 4;
 export const MODE_EDIT = 5;
+export const MODE_EDIT_AND_ADD = 6;
 
 export const SAVE_FOCUS_OUT = 1;
 export const SAVE_MANUALLY = 2;
@@ -30,8 +31,8 @@ export default class EditableDatatable {
         const datatable = new EditableDatatable();
         datatable.element = $element;
         datatable.config = config;
-        datatable.mode = config.edit;
-        datatable.state = config.edit === MODE_EDIT ? STATE_EDIT : STATE_VIEWING;
+        datatable.mode = config.mode;
+        datatable.state = config.mode === MODE_EDIT ? STATE_EDIT : STATE_VIEWING;
         datatable.table = initDataTable(datatable.element, {
             serverSide: false,
             ajax: {
@@ -66,9 +67,13 @@ export default class EditableDatatable {
                     });
 
                     $row.data(`data`, JSON.stringify(data instanceof FormData ? data.asObject() : data));
+
+                    if ($row.find(`.add-row`).exists()) {
+                        $row.addClass('pointer');
+                    }
                 });
 
-                if(config.edit === MODE_DOUBLE_CLICK) {
+                if(config.mode === MODE_DOUBLE_CLICK) {
                     $rows.off(`dblclick.${id}.startEdit`).on(`dblclick.${id}.startEdit`, function() {
                         if(datatable.state === STATE_VIEWING) {
                             datatable.toggleEdit(STATE_EDIT, true);
@@ -131,13 +136,16 @@ export default class EditableDatatable {
                 return;
             }
 
-            const row = datatable.table.row($row);
-            const data = row.data();
-
-            row.remove();
-            datatable.table.row.add(Object.assign({}, config.form));
-            datatable.table.row.add(data);
-            datatable.table.draw();
+            if(datatable.mode === MODE_EDIT_AND_ADD && datatable.state !== STATE_EDIT){
+                datatable
+                    .toggleEdit(STATE_EDIT, true)
+                    .then(() => {
+                        createNewForm(datatable);
+                    });
+            }
+            else {
+                createNewForm(datatable);
+            }
         });
 
         $element.on(`click`, `.delete-row`, function() {
@@ -175,9 +183,7 @@ export default class EditableDatatable {
         const data = [];
 
         $(this.table.rows().nodes()).each(function() {
-            const result = Form.process($(this), {
-                ignoreErrors: true,
-            });
+            const result = Form.process($(this));
 
             if(result) {
                 data.push(result.asObject());
@@ -213,21 +219,16 @@ export default class EditableDatatable {
         if(reload) {
             this.table.clear();
             this.table.draw();
-            this.table.ajax.reload();
+            return new Promise((resolve) => {
+                this.table.ajax.reload(() => {
+                    applyState(this, state);
+                    resolve()
+                });
+            });
         }
-
-        if(state !== STATE_VIEWING) {
-            if(this.config.onEditStart) {
-                this.config.onEditStart();
-            }
-
-            this.element.closest(`.dataTables_wrapper`).find(`.datatable-paging`).hide();
-        } else {
-            if(this.config.onEditStop) {
-                this.config.onEditStop();
-            }
-
-            this.element.closest(`.dataTables_wrapper`).find(`.datatable-paging`).show();
+        else {
+            applyState(this, state);
+            return new Promise((resolve) => resolve());
         }
     }
 
@@ -247,4 +248,33 @@ export default class EditableDatatable {
 
         return false;
     }
+}
+
+function applyState(datatable, state) {
+    const {config, element: $element} = datatable;
+    if (state !== STATE_VIEWING) {
+        if (config.onEditStart) {
+            config.onEditStart();
+        }
+
+        $element.closest(`.dataTables_wrapper`).find(`.datatable-paging`).hide();
+    } else {
+        if (config.onEditStop) {
+            config.onEditStop();
+        }
+
+        $element.closest(`.dataTables_wrapper`).find(`.datatable-paging`).show();
+    }
+}
+
+function createNewForm(datatable) {
+    const {config, table, element: $element} = datatable;
+    const $addRow = $element.find(`.add-row`).closest('tr');
+    const row = table.row($addRow);
+    const data = row.data();
+
+    row.remove();
+    table.row.add(Object.assign({}, config.form));
+    table.row.add(data);
+    table.draw();
 }
