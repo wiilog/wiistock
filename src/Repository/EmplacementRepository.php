@@ -47,6 +47,7 @@ class EmplacementRepository extends EntityRepository
 
         return $query->select("location.id AS id, location.label AS text")
             ->andWhere("location.label LIKE :term")
+            ->andWhere("location.isActive = true")
             ->setParameter("term", "%$term%")
             ->getQuery()
             ->getArrayResult();

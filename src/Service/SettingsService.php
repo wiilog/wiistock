@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\CategorieCL;
 use App\Entity\DaysWorked;
+use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
 use App\Entity\InventoryCategory;
 use App\Entity\InventoryFrequency;
@@ -222,7 +223,10 @@ class SettingsService {
             $type = $this->manager->find(Type::class, $data["entity"]);
             $type->setLabel($data["label"] ?? $type->getLabel())
                 ->setDescription($data["description"] ?? null)
+                ->setPickLocation(isset($data["pickLocation"]) ? $this->manager->find(Emplacement::class, $data["pickLocation"]) : null)
+                ->setDropLocation(isset($data["dropLocation"]) ? $this->manager->find(Emplacement::class, $data["dropLocation"]) : null)
                 ->setNotificationsEnabled($data["pushNotifications"] ?? null)
+                ->setNotificationsEmergencies(isset($data["notificationEmergencies"]) ? explode(",", $data["notificationEmergencies"]) : null)
                 ->setColor($data["color"] ?? null);
 
             $freeFieldRepository = $this->manager->getRepository(FreeField::class);

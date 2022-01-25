@@ -59,7 +59,7 @@ function loadItems($container, config, type, edit) {
             for(const item of data.data) {
                 const value = item.value === undefined || item.value === null ? '' : item.value;
                 $itemContainer.append(`
-                    <div class="col-auto ml-3">
+                    <div class="col-auto ml-3 ${item.hidden ? `d-none` : ``}">
                         <div class="d-flex justify-content-center align-items-center py-2">
                             ${item.icon ? `<img src="/svg/reference_article/${item.icon}.svg" alt="Icône" width="20px">` : ``}
                             <div class="d-grid">

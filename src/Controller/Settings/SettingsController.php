@@ -78,7 +78,7 @@ class SettingsController extends AbstractController {
                         self::MENU_LABELS => ["label" => "Étiquettes"],
                         self::MENU_TYPES_FREE_FIELDS => [
                             "label" => "Types et champs libres",
-                            "wrapped" => false
+                            "wrapped" => false,
                         ],
                     ],
                 ],
@@ -335,7 +335,7 @@ class SettingsController extends AbstractController {
             $path = "settings/$category/$menu/";
         } else {
             // contains sub menus
-            if (isset(self::SETTINGS[$category]["menus"][$menu]['menus'])) {
+            if(isset(self::SETTINGS[$category]["menus"][$menu]['menus'])) {
                 $parent = self::SETTINGS[$category]["menus"][$menu] ?? null;
                 $submenu = array_key_first($parent["menus"]);
 
@@ -446,14 +446,14 @@ class SettingsController extends AbstractController {
                         "frequencyOptions" => Stream::from($frequencyRepository->findAll())
                             ->map(fn(InventoryFrequency $n) => [
                                 "id" => $n->getId(),
-                                "label" => $n->getLabel()
+                                "label" => $n->getLabel(),
                             ])
                             ->sort(fn(array $a, array $b) => $a["label"] <=> $b["label"])
                             ->map(fn(array $n) => "<option value='{$n["id"]}'>{$n["label"]}</option>")
                             ->prepend("<option disabled selected>Sélectionnez une nature</option>")
-                            ->join("")
+                            ->join(""),
                     ],
-                ]
+                ],
             ],
             self::CATEGORY_TRACKING => [
                 self::MENU_DISPATCHES => [
@@ -497,6 +497,20 @@ class SettingsController extends AbstractController {
                             ],
                         ];
                     },
+                    self::MENU_TYPES_FREE_FIELDS => function() use ($typeRepository) {
+                        $types = Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]))
+                            ->map(fn(Type $type) => [
+                                "label" => $type->getLabel(),
+                                "value" => $type->getId(),
+                            ])
+                            ->toArray();
+
+                        $types[0]["checked"] = true;
+
+                        return [
+                            "types" => $types,
+                        ];
+                    }
                 ],
                 self::MENU_ARRIVALS => [
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
@@ -721,15 +735,103 @@ class SettingsController extends AbstractController {
             ]];
         } else {
             $data = [[
-                "label" => "Libellé*",
+                "label" => "Libellé",
                 "value" => $type->getLabel(),
             ], [
                 "label" => "Description",
                 "value" => $type->getDescription(),
             ], [
                 "label" => "Notifications push",
-                "value" => $type->isNotificationsEnabled() ? "Activées" : "Désactivée",
+                "value" => $type->isNotificationsEnabled() ? "Activées" : "Désactivées",
             ]];
+        }
+
+        return $this->json([
+            "success" => true,
+            "data" => $data,
+        ]);
+    }
+
+    /**
+     * @Route("/champs-libes/acheminements/{type}/header", name="settings_dispatch_type_header", options={"expose"=true})
+     */
+    public function dispatchTypeHeader(Request $request, Type $type): Response {
+        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
+
+        if($edit) {
+            $fixedFieldRepository = $this->manager->getRepository(FieldsParam::class);
+
+            $notificationsEnabled = $type->isNotificationsEnabled() ? "checked" : "";
+            $pickLocationOption = $type->getPickLocation() ? "<option value='{$type->getPickLocation()->getId()}'>{$type->getPickLocation()->getLabel()}</option>" : "";
+            $dropLocationOption = $type->getDropLocation() ? "<option value='{$type->getDropLocation()->getId()}'>{$type->getDropLocation()->getLabel()}</option>" : "";
+
+            $pushNotifications = $this->renderView("form_element.html.twig", [
+                "element" => "radio",
+                "arguments" => [
+                    "pushNotifications",
+                    "Notifications push",
+                    false,
+                    [
+                        ["label" => "Désactiver", "value" => 0, "checked" => !$type->isNotificationsEnabled()],
+                        ["label" => "Activer", "value" => 1, "checked" => $type->isNotificationsEnabled() && !$type->getNotificationsEmergencies()],
+                        ["label" => "Activer seulement si urgence", "value" => 2, "checked" => $type->isNotificationsEnabled() && $type->getNotificationsEmergencies()],
+                    ],
+                ],
+            ]);
+
+            $emergencies = $fixedFieldRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY);
+            $emergencyValues = Stream::from($emergencies)
+                ->map(fn(string $emergency) => "<option value='$emergency' " . (in_array($emergency, $type->getNotificationsEmergencies()) ? "selected" : "") . ">$emergency</option>")
+                ->join("");
+
+            $data = [[
+                "label" => "Libellé*",
+                "value" => "<input name='label' class='data form-control' required value='{$type->getLabel()}'>",
+            ], [
+                "label" => "Description",
+                "value" => "<input name='description' class='data form-control' value='{$type->getDescription()}'>",
+            ], [
+                "label" => "Emplacement de prise par défaut",
+                "value" => "<select name='pickLocation' data-s2='location' class='data form-control'>$pickLocationOption</select>",
+            ], [
+                "label" => "Emplacement de dépose par défaut",
+                "value" => "<select name='dropLocation' data-s2='location' class='data form-control'>$dropLocationOption</select>",
+            ], [
+                "label" => "Notifications push",
+                "value" => $pushNotifications,
+            ], [
+                "label" => "Pour les valeurs",
+                "value" => "<select name='notificationEmergencies' data-s2 data-no-empty-option multiple class='data form-control'>$emergencyValues</select>",
+                "hidden" => !$type->isNotificationsEnabled() || !$type->getNotificationsEmergencies(),
+            ]];
+        } else {
+            $data = [[
+                "label" => "Libellé",
+                "value" => $type->getLabel(),
+            ], [
+                "label" => "Description",
+                "value" => $type->getDescription(),
+            ], [
+                "label" => "Emplacement de prise par défaut",
+                "value" => FormatHelper::location($type->getPickLocation()),
+            ], [
+                "label" => "Emplacement de dépose par défaut",
+                "value" => FormatHelper::location($type->getDropLocation()),
+            ], [
+                "label" => "Notifications push",
+                "value" => !$type->isNotificationsEnabled()
+                    ? "Désactivées"
+                    : ($type->getNotificationsEmergencies()
+                        ? "Activées seulement si urgence"
+                        : "Activées"),
+            ]];
+
+            if($type->isNotificationsEnabled() && $type->getNotificationsEmergencies()) {
+                $data[] = [
+                    "label" => "Pour les valeurs",
+                    "value" => join(", ", $type->getNotificationsEmergencies()),
+                ];
+            }
         }
 
         return $this->json([
@@ -1120,11 +1222,11 @@ class SettingsController extends AbstractController {
         $defaultDeliveryLocationsIds = json_decode($defaultDeliveryLocationsParam, true);
 
         $defaultDeliveryLocations = [];
-        foreach ($defaultDeliveryLocationsIds as $typeId => $locationId) {
-            if ($typeId !== 'all' && $typeId) {
+        foreach($defaultDeliveryLocationsIds as $typeId => $locationId) {
+            if($typeId !== 'all' && $typeId) {
                 $type = $typeRepository->find($typeId);
             }
-            if ($locationId) {
+            if($locationId) {
                 $location = $locationRepository->find($locationId);
             }
 
@@ -1132,13 +1234,13 @@ class SettingsController extends AbstractController {
                 'location' => isset($location)
                     ? [
                         'label' => $location->getLabel(),
-                        'id' => $location->getId()
+                        'id' => $location->getId(),
                     ]
                     : null,
                 'type' => isset($type)
                     ? [
                         'label' => $type->getLabel(),
-                        'id' => $type->getId()
+                        'id' => $type->getId(),
                     ]
                     : null,
             ];

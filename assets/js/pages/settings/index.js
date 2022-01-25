@@ -1,9 +1,14 @@
 import '../../../scss/pages/settings.scss';
-import EditableDatatable, {MODE_ADD_ONLY, MODE_DOUBLE_CLICK, MODE_MANUAL, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING, MODE_EDIT, MODE_EDIT_AND_ADD, } from "../../editatable";
+import EditableDatatable, {MODE_ADD_ONLY, MODE_DOUBLE_CLICK, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING, MODE_EDIT, MODE_EDIT_AND_ADD, } from "../../editatable";
 import Flash, {INFO} from '../../flash';
-import {initializeImports} from "./data/imports.js";
-import {initializeStockArticlesTypesFreeFields, initializeStockCollectTypesFreeFields, initializeStockDeliveryTypesFreeFields} from "./free-fields";
 import {LOADING_CLASS} from "../../loading";
+import {initializeImports} from "./data/imports.js";
+import {
+    initializeStockArticlesTypesFreeFields,
+    initializeStockCollectTypesFreeFields,
+    initializeStockDeliveryTypesFreeFields,
+    initializeTrackingDispatchTypesFreeFields,
+} from "./free-fields";
 
 const index = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();
@@ -24,6 +29,7 @@ const initializers = {
     stock_articles_types_champs_libres: initializeStockArticlesTypesFreeFields,
     stock_demandes_types_champs_libres_livraisons: initializeStockDeliveryTypesFreeFields,
     stock_demandes_types_champs_libres_collectes: initializeStockCollectTypesFreeFields,
+    trace_acheminements_types_champs_libres: initializeTrackingDispatchTypesFreeFields,
     donnees_imports: initializeImports,
     stock_receptions_champs_fixes_receptions: initializeReceptionFixedFields,
     trace_acheminements_champs_fixes: initializeDispatchFixedFields,
