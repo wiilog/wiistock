@@ -108,7 +108,7 @@
                 {% if options.placeholder is defined %}data-placeholder="{{ options.placeholder }}"{% endif %}
                 {% if options.includeParams is defined %}data-include-params="{{ options.includeParams }}"{% endif %}
             {% endif %}
-            {% if options.dataAttributes %}
+            {% if options.dataAttributes is defined %}
                 {% for key, attribute in options.dataAttributes %}
                     data-{{ key }}="{{ attribute }}"
                 {% endfor %}

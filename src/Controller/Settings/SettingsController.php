@@ -351,7 +351,7 @@ class SettingsController extends AbstractController {
 
         return [
             self::CATEGORY_GLOBAL => [
-                self::MENU_CLIENT => [
+                self::MENU_CLIENT => fn() => [
                     "current_client" => $this->specificService->getAppClient(),
                 ],
                 self::MENU_MAIL_SERVER => fn() => [
@@ -359,7 +359,6 @@ class SettingsController extends AbstractController {
                 ],
             ],
             self::CATEGORY_STOCK => [
-                self::MENU_ALERTS => [],
                 self::MENU_ARTICLES => [
                     self::MENU_LABELS => fn() => [
                         "free_fields" => Stream::from($freeFieldRepository->findByCategory(CategorieCL::ARTICLE))
