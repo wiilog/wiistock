@@ -65,7 +65,6 @@ class SelectController extends AbstractController {
         $alreadyDefinedTypes = [];
         if($request->query->has('alreadyDefinedTypes')) {
             $alreadyDefinedTypes = explode(";", json_decode($request->query->get('alreadyDefinedTypes'), true));
-            dump($alreadyDefinedTypes);
         }
 
         $results = $manager->getRepository(Type::class)->getForSelect(

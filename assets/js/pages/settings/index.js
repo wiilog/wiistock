@@ -2,6 +2,7 @@ import '../../../scss/pages/settings.scss';
 import EditableDatatable, {MODE_ADD_ONLY, MODE_DOUBLE_CLICK, MODE_MANUAL, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING, MODE_EDIT, MODE_EDIT_AND_ADD, } from "../../editatable";
 import Flash, {INFO} from '../../flash';
 import {initializeImports} from "./data/imports.js";
+import {initializeStockArticlesTypesFreeFields, initializeStockCollectTypesFreeFields, initializeStockDeliveryTypesFreeFields} from "./free-fields";
 import {LOADING_CLASS} from "../../loading";
 
 const index = JSON.parse($(`input#settings`).val());
@@ -21,14 +22,16 @@ const initializers = {
     global_etiquettes: initializeGlobalLabels,
     stock_articles_etiquettes: initializeStockArticlesLabels,
     stock_articles_types_champs_libres: initializeStockArticlesTypesFreeFields,
+    stock_demandes_types_champs_libres_livraisons: initializeStockDeliveryTypesFreeFields,
+    stock_demandes_types_champs_libres_collectes: initializeStockCollectTypesFreeFields,
     donnees_imports: initializeImports,
     stock_receptions_champs_fixes_receptions: initializeReceptionFixedFields,
     trace_acheminements_champs_fixes: initializeDispatchFixedFields,
     trace_arrivages_champs_fixes: initializeArrivalFixedFields,
     trace_services_champs_fixes: initializeHandlingFixedFields,
+    stock_demandes_livraisons: initializeDeliveries,
     stock_inventaires_frequences: initializeFrequencesTable,
     stock_inventaires_categories: initializeCategoriesTable,
-    stock_demandes_livraisons: initializeDeliveries
 };
 
 const slowOperations = [
@@ -98,12 +101,15 @@ $(document).ready(() => {
         $saveButton.pushLoader('white');
         await AJAX.route(`POST`, `settings_save`)
             .json(data)
-            .then(() => {
-                for(const table of tablesToReload) {
-                    if(table.mode !== MODE_EDIT) {
-                        table.toggleEdit(STATE_VIEWING, true);
+            .then(result => {
+                if(result.success) {
+                    for(const table of tablesToReload) {
+                        if(table.mode !== MODE_EDIT) {
+                            table.toggleEdit(STATE_VIEWING, true);
+                        }
                     }
                 }
+
                 $saveButton.popLoader();
             })
             .catch(() => {
@@ -189,78 +195,6 @@ function updateMenu(selectedMenu, canEdit) {
     }));
 }
 
-function createManagementPage($container, config) {
-    let selectedEntity = $container.find(`[name=entity]:first`).attr(`value`);
-
-    const $table = $container.find(`.subentities-table`);
-    const $editButton = $container.find(`.edit-button`);
-
-    $saveButton.addClass('d-none');
-    $editButton.removeClass('d-none');
-    $table.attr(`id`, `table-${Math.floor(Math.random() * 1000000)}`);
-
-    loadItems($container, config, selectedEntity, false);
-
-    const table = EditableDatatable.create(`#${$table.attr(`id`)}`, {
-        name: config.name,
-        mode: config.edit ? MODE_MANUAL : MODE_NO_EDIT,
-        save: SAVE_MANUALLY,
-        route: config.table.route(selectedEntity),
-        deleteRoute: config.table.deleteRoute,
-        form: config.table.form,
-        columns: config.table.columns,
-        initComplete: () => console.warn('huh'),
-        onEditStart: () => {
-            $editButton.addClass('d-none');
-            $saveButton.removeClass('d-none');
-
-            loadItems($container, config, selectedEntity, true);
-        },
-        onEditStop: () => {
-            $saveButton.addClass('d-none');
-            $editButton.removeClass('d-none');
-            loadItems($container, config, selectedEntity, false)
-        },
-    });
-
-    $container.find(`[name=entity]`).on(`change`, function() {
-        selectedEntity = $(this).val();
-
-        loadItems($container, config, selectedEntity, table.state !== STATE_VIEWING);
-        table.setURL(config.table.route(selectedEntity))
-    });
-
-    $editButton.on(`click`, function() {
-        table.toggleEdit(undefined, true);
-    });
-}
-
-function loadItems($container, config, type, edit) {
-    const route = config.header.route(type, edit);
-
-    $.post(route, function(data) {
-        if(data.success) {
-            const $itemContainer = $container.find(`.main-entity-content`);
-            $itemContainer.empty();
-
-            for(const item of data.data) {
-                const value = item.value === undefined || item.value === null ? '' : item.value;
-                $itemContainer.append(`
-                    <div class="col-auto ml-3">
-                        <div class="d-flex justify-content-center align-items-center py-2">
-                            ${item.icon ? `<img src="/svg/reference_article/${item.icon}.svg" alt="Icône" width="20px">` : ``}
-                            <div class="d-grid">
-                                <span class="wii-field-name">${item.label}</span>
-                                <span class="wii-body-text">${value}</span>
-                            </div>
-                        </div>
-                    </div>
-                `);
-            }
-        }
-    });
-}
-
 function initializeWorkingHours($container, canEdit) {
     $saveButton.addClass('d-none');
 
@@ -342,101 +276,6 @@ function initializeStockArticlesLabels() {
         if($(this).prop(`checked`)) {
             $('#show-destination-in-label').prop('checked', false);
         }
-    });
-}
-
-function initializeStockArticlesTypesFreeFields($container, canEdit) {
-    const booleanDefaultValue = JSON.parse($(`#article-free-field-boolean-default-value`).val());
-
-    createManagementPage($container, {
-        name: `articlesFreeFields`,
-        edit: canEdit,
-        header: {
-            route: (type, edit) => Routing.generate('settings_free_field_header', {type, edit}, true),
-        },
-        table: {
-            route: (type) => Routing.generate('settings_free_field_api', {type}, true),
-            deleteRoute: `settings_free_field_delete`,
-            columns: [
-                {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-                {data: `label`, title: `Libellé`},
-                {data: `appliesTo`, title: `S'applique à`},
-                {data: `type`, title: `Typage`},
-                {data: `elements`, title: `Éléments`},
-                {data: `defaultValue`, title: `Valeur par défaut`},
-                {data: `displayedCreate`, title: `<div class='small-column'>Affiché à la création</div>`},
-                {data: `requiredCreate`, title: `<div class='small-column'>Obligatoire à la création</div>`},
-                {data: `requiredEdit`, title: `<div class='small-column'>Obligatoire à la modification</div>`},
-            ],
-            form: {
-                actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
-                label: `<input type="text" name="label" class="form-control data" data-global-error="Libellé"/>`,
-                type: `
-                    <select class="form-control data" name="type">
-                        <option selected disabled>Type de champ</option>
-                        <option value="text">Texte</option>
-                        <option value="number">Nombre</option>
-                        <option value="booleen">Oui/Non</option>
-                        <option value="date">Date</option>
-                        <option value="datetime">Date et heure</option>
-                        <option value="list">Liste</option>
-                        <option value="list multiple">Liste multiple</option>
-                    </select>`,
-                appliesTo: JSON.parse($(`#article-free-field-categories`).val()),
-                elements: `<input type="text" name="elements" class="form-control data" data-global-error="Eléments"/>`,
-                defaultValue: `
-                    <div class="d-none boolean-default-value">${booleanDefaultValue}</div>
-                    <input type="text" name="defaultValue" class="form-control data" data-global-error="Valeur par défaut"/>
-                    <input type="number" name="defaultValue" class="form-control data d-none" data-global-error="Valeur par défaut"/>
-                    <input type="date" name="defaultValue" class="form-control data d-none" data-global-error="Valeur par défaut"/>
-                    <input type="datetime-local" name="defaultValue" class="form-control data d-none" data-global-error="Valeur par défaut"/>
-                    <select name="defaultValue" class="form-control data d-none" data-global-error="Valeur par défaut"></select>
-                `,
-                displayedCreate: `<input type="checkbox" name="displayedCreate" class="form-control data" data-global-error="Affiché à la création"/>`,
-                requiredCreate: `<input type="checkbox" name="requiredCreate" class="form-control data" data-global-error="Obligatoire à la création"/>`,
-                requiredEdit: `<input type="checkbox" name="requiredEdit" class="form-control data" data-global-error="Obligatoire à la modification"/>`,
-            },
-        }
-    });
-
-    $container.on(`change`, `[name=type]`, function() {
-        const $select = $(this);
-        const $row = $select.closest(`tr`);
-        const type = $select.val();
-
-        $row.find(`[name=defaultValue], .boolean-default-value`).addClass(`d-none`);
-
-        const isList = [`list`, `list multiple`].includes(type);
-        const selectors = {
-            "text": `[name=defaultValue][type=text]`,
-            "number": `[name=defaultValue][type=number]`,
-            "date": `[name=defaultValue][type=date]`,
-            "datetime": `[name=defaultValue][type=datetime-local]`,
-            "booleen": `.boolean-default-value`,
-            "list": `select[name=defaultValue]`,
-        }
-
-        if(selectors[type]) {
-            $row.find(selectors[type]).removeClass(`d-none`);
-        }
-
-        $row.find(`[name=elements]`)
-            .toggleClass(`d-none`, !isList)
-            .trigger(`keyup`);
-    });
-
-    $container.on(`keyup`, `[name=elements]`, function() {
-        const $input = $(this);
-        const $row = $input.closest(`tr`);
-        const $defaultValue = $row.find(`select[name="defaultValue"]`);
-        const elements = $input.val().split(`;`);
-
-        $defaultValue.empty();
-        for(const element of elements) {
-            $defaultValue.append(new Option(element, element, false, false))
-        }
-
-        $defaultValue.trigger('change');
     });
 }
 

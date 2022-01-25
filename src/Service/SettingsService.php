@@ -216,11 +216,13 @@ class SettingsService {
             }
         }
 
-        if(isset($tables["articlesFreeFields"])) {
-            $ids = array_map(fn($freeField) => $freeField["id"] ?? null, $tables["articlesFreeFields"]);
+        if(isset($tables["freeFields"])) {
+            $ids = array_map(fn($freeField) => $freeField["id"] ?? null, $tables["freeFields"]);
 
             $type = $this->manager->find(Type::class, $data["entity"]);
-            $type->setDescription($data["description"] ?? null)
+            $type->setLabel($data["label"] ?? $type->getLabel())
+                ->setDescription($data["description"] ?? null)
+                ->setNotificationsEnabled($data["pushNotifications"] ?? null)
                 ->setColor($data["color"] ?? null);
 
             $freeFieldRepository = $this->manager->getRepository(FreeField::class);
@@ -228,14 +230,19 @@ class SettingsService {
                 ->keymap(fn($day) => [$day->getId(), $day])
                 ->toArray();
 
-            foreach(array_filter($tables["articlesFreeFields"]) as $item) {
+            foreach(array_filter($tables["freeFields"]) as $item) {
                 /** @var FreeField $freeField */
                 $freeField = isset($item["id"]) ? $freeFields[$item["id"]] : new FreeField();
+
+                $existing = $freeFieldRepository->findOneBy(["label" => $item["label"]]);
+                if($existing && $existing->getId() != $freeField->getId()) {
+                    throw new RuntimeException("Un champ libre existe déjà avec le libellé {$item["label"]}");
+                }
 
                 $freeField->setLabel($item["label"])
                     ->setType($type)
                     ->setTypage($item["type"] ?? $freeField->getTypage())
-                    ->setCategorieCL($this->manager->find(CategorieCL::class, $item["category"]))
+                    ->setCategorieCL(isset($item["category"]) ? $this->manager->find(CategorieCL::class, $item["category"]) : null)
                     ->setDefaultValue($item["defaultValue"] ?? null)
                     ->setElements(isset($item["elements"]) ? explode(";", $item["elements"]) : null)
                     ->setDisplayedCreate($item["displayedCreate"])
