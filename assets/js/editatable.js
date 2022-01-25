@@ -96,7 +96,6 @@ export default class EditableDatatable {
                 }
             },
             initComplete: () => {
-                console.log($element, $element.parents('.dataTables_wrapper').find('.dataTables_filter'));
                 let $searchInputContainer = $element.parents('.dataTables_wrapper').find('.dataTables_filter');
                 moveSearchInputToHeader($searchInputContainer);
 

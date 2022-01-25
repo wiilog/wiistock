@@ -42,12 +42,12 @@
 
 <template id="type-template">
     <div class="d-flex col-8 mb-3 type-association-container">
-        <div class="d-flex align-items-center w-100">
+        <div class="d-flex align-items-center w-100 delivery-type-container">
             <label class="w-100">
                 <span class="wii-field-name">Type</span>
                 <select name="deliveryType" class="form-control needed" data-s2="deliveryType"
                         data-include-params-parent=".wii-box"
-                        data-include-params="input[name=alreadyDefinedTypes]">
+                        data-include-params="input[name=alreadyDefinedTypes],input[name=allTypesOption]">
                 </select>
             </label>
         </div>
@@ -69,4 +69,5 @@
     </div>
 </template>
 <input type="hidden" value="{{ deliveryTypeSettings }}" name="deliveryTypeSettings">
+<input type="hidden" value="1" name="allTypesOption">
 <input type="hidden" value="" name="alreadyDefinedTypes">
