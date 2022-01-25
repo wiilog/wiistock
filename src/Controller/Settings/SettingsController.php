@@ -16,6 +16,7 @@ use App\Entity\MailerServer;
 use App\Entity\Menu;
 use App\Entity\Statut;
 use App\Entity\Type;
+use App\Entity\VisibilityGroup;
 use App\Entity\WorkFreeDay;
 use App\Helper\FormatHelper;
 use App\Service\SettingsService;
@@ -990,7 +991,7 @@ class SettingsController extends AbstractController {
                     "frequency" => "<select name='frequency' class='{$class} needed' data-global-error='Fréquences'>
                                     {$frequencySelectContent}
                                 </select>",
-                    "permanent" => "<div class='checkbox-container'><input type='checkbox' name='permanent' class='{$class}' {$isPermament}v/></div>",
+                    "permanent" => "<div class='checkbox-container'><input type='checkbox' name='permanent' class='{$class}' {$isPermament}/></div>",
                 ];
             } else {
                 $data[] = [
@@ -1033,4 +1034,66 @@ class SettingsController extends AbstractController {
         ]);
     }
 
+    /**
+     * @Route("/groupes_visibilite-api", name="settings_visibility_group_api", options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK})
+     */
+    public function visibiliteGroupApi(Request $request, EntityManagerInterface $manager) {
+        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
+
+        $data = [];
+        $visibilityGroupRepository = $manager->getRepository(VisibilityGroup::class);
+
+        foreach($visibilityGroupRepository->findAll() as $visibilityGroup) {
+            if($edit) {
+                $isActive = $visibilityGroup->isActive() == 1 ? 'checked' : "";
+                $data[] = [
+                    "actions" => $this->canDelete() ? "
+                        <button class='btn btn-silent delete-row' data-id='{$visibilityGroup->getId()}'>
+                            <i class='wii-icon wii-icon-trash text-primary'></i>
+                        </button><input type='hidden' name='visibilityGroupId' class='data' value='{$visibilityGroup->getId()}'/>" : "",
+                    "label" => "<input type='text' name='label' class='form-control data needed' value='{$visibilityGroup->getLabel()}' data-global-error='Libellé'/>",
+                    "description" => "<input type='text' name='description' class='form-control data needed' value='{$visibilityGroup->getDescription()}' data-global-error='Description'/>",
+                    "actif" => "<div class='checkbox-container'><input type='checkbox' name='actif' class='form-control data' {$isActive}/></div>",
+                ];
+            } else {
+                $data[] = [
+                    "actions" => $this->canDelete() ? "
+                        <button class='btn btn-silent delete-row' data-id='{$visibilityGroup->getId()}'>
+                            <i class='wii-icon wii-icon-trash text-primary'></i>
+                        </button><input type='hidden' name='visibilityGroupId' class='data' value='{$visibilityGroup->getId()}'/>" : "",
+                    "label" => $visibilityGroup->getLabel(),
+                    "description" => $visibilityGroup->getDescription(),
+                    "actif" => $visibilityGroup->isActive() ? "Oui" : "Non",
+                ];
+            }
+        }
+
+        return $this->json([
+            "data" => $data,
+            "recordsTotal" => count($data),
+            "recordsFiltered" => count($data),
+        ]);
+    }
+
+    /**
+     * @Route("/groupes_visibilite/supprimer/{entity}", name="settings_visibility_group_delete", options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::DELETE})
+     */
+    public function deleteVisibilityGroup(EntityManagerInterface $manager, VisibilityGroup $entity) {
+        $visibilityGroup = $manager->getRepository(VisibilityGroup::class)->find($entity);
+        if ($visibilityGroup->getArticleReferences()->isEmpty()){
+            $manager->remove($entity);
+            $manager->flush();
+        } else {
+            return $this->json([
+                "success" => false,
+                "msg" => "Impossible de supprimer le groupe de visibilité car il est associé à des articles/références",
+            ]);
+        }
+        return $this->json([
+            "success" => true,
+            "msg" => "Le groupe de visibilité a été supprimé",
+        ]);
+    }
 }
