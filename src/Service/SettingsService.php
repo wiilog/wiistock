@@ -225,7 +225,7 @@ class SettingsService {
                 ->setDescription($data["description"] ?? null)
                 ->setPickLocation(isset($data["pickLocation"]) ? $this->manager->find(Emplacement::class, $data["pickLocation"]) : null)
                 ->setDropLocation(isset($data["dropLocation"]) ? $this->manager->find(Emplacement::class, $data["dropLocation"]) : null)
-                ->setNotificationsEnabled($data["pushNotifications"] ?? null)
+                ->setNotificationsEnabled($data["pushNotifications"] ?? false)
                 ->setNotificationsEmergencies(isset($data["notificationEmergencies"]) ? explode(",", $data["notificationEmergencies"]) : null)
                 ->setColor($data["color"] ?? null);
 

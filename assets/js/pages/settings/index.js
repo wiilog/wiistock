@@ -5,9 +5,7 @@ import {LOADING_CLASS} from "../../loading";
 import {initializeImports} from "./data/imports.js";
 import {
     initializeStockArticlesTypesFreeFields,
-    initializeStockCollectTypesFreeFields,
-    initializeStockDeliveryTypesFreeFields,
-    initializeTrackingDispatchTypesFreeFields,
+    createFreeFieldsPage,
 } from "./free-fields";
 
 const index = JSON.parse($(`input#settings`).val());
@@ -27,9 +25,11 @@ const initializers = {
     global_etiquettes: initializeGlobalLabels,
     stock_articles_etiquettes: initializeStockArticlesLabels,
     stock_articles_types_champs_libres: initializeStockArticlesTypesFreeFields,
-    stock_demandes_types_champs_libres_livraisons: initializeStockDeliveryTypesFreeFields,
-    stock_demandes_types_champs_libres_collectes: initializeStockCollectTypesFreeFields,
-    trace_acheminements_types_champs_libres: initializeTrackingDispatchTypesFreeFields,
+    stock_demandes_types_champs_libres_livraisons: createFreeFieldsPage,
+    stock_demandes_types_champs_libres_collectes: createFreeFieldsPage,
+    trace_acheminements_types_champs_libres: createFreeFieldsPage,
+    trace_arrivages_types_champs_libres: createFreeFieldsPage,
+    trace_services_types_champs_libres: createFreeFieldsPage,
     donnees_imports: initializeImports,
     stock_receptions_champs_fixes_receptions: initializeReceptionFixedFields,
     trace_acheminements_champs_fixes: initializeDispatchFixedFields,

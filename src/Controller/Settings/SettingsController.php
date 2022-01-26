@@ -529,6 +529,20 @@ class SettingsController extends AbstractController {
                             ],
                         ];
                     },
+                    self::MENU_TYPES_FREE_FIELDS => function() use ($typeRepository) {
+                        $types = Stream::from($typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]))
+                            ->map(fn(Type $type) => [
+                                "label" => $type->getLabel(),
+                                "value" => $type->getId(),
+                            ])
+                            ->toArray();
+
+                        $types[0]["checked"] = true;
+
+                        return [
+                            "types" => $types,
+                        ];
+                    },
                 ],
                 self::MENU_HANDLINGS => [
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
@@ -545,6 +559,20 @@ class SettingsController extends AbstractController {
                                     ])
                                     ->toArray(),
                             ],
+                        ];
+                    },
+                    self::MENU_TYPES_FREE_FIELDS => function() use ($typeRepository) {
+                        $types = Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]))
+                            ->map(fn(Type $type) => [
+                                "label" => $type->getLabel(),
+                                "value" => $type->getId(),
+                            ])
+                            ->toArray();
+
+                        $types[0]["checked"] = true;
+
+                        return [
+                            "types" => $types,
                         ];
                     },
                 ],
@@ -674,13 +702,15 @@ class SettingsController extends AbstractController {
     }
 
     /**
-     * @Route("/champs-libes/article/{type}/header", name="settings_type_header", options={"expose"=true})
+     * @Route("/champs-libes/{type}/header", name="settings_type_header", options={"expose"=true})
      */
-    public function articleTypeHeader(Request $request, Type $type): Response {
+    public function typeHeader(Request $request, Type $type): Response {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
         $category = $type->getCategory()->getLabel();
 
         if($edit) {
+            $fixedFieldRepository = $this->manager->getRepository(FieldsParam::class);
+
             $data = [[
                 "label" => "Libellé*",
                 "value" => "<input name='label' class='data form-control' required value='{$type->getLabel()}'>",
@@ -689,7 +719,7 @@ class SettingsController extends AbstractController {
                 "value" => "<input name='description' class='data form-control' value='{$type->getDescription()}'>",
             ]];
 
-            if($category === CategoryType::DEMANDE_HANDLING) {
+            if($category === CategoryType::ARTICLE) {
                 $data[] = [
                     "label" => "Couleur",
                     "value" => "
@@ -708,6 +738,8 @@ class SettingsController extends AbstractController {
             }
 
             if(in_array($category, [CategoryType::DEMANDE_LIVRAISON, CategoryType::DEMANDE_COLLECTE])) {
+                $notificationsEnabled = $type->isNotificationsEnabled() ? "checked" : "";
+
                 $data[] = [
                     "label" => "Notifications push",
                     "value" => "<input name='pushNotifications' type='checkbox' class='data form-control mt-1' $notificationsEnabled>",
@@ -715,10 +747,19 @@ class SettingsController extends AbstractController {
             }
 
             if($category === CategoryType::DEMANDE_DISPATCH) {
-                $fixedFieldRepository = $this->manager->getRepository(FieldsParam::class);
                 $pickLocationOption = $type->getPickLocation() ? "<option value='{$type->getPickLocation()->getId()}'>{$type->getPickLocation()->getLabel()}</option>" : "";
                 $dropLocationOption = $type->getDropLocation() ? "<option value='{$type->getDropLocation()->getId()}'>{$type->getDropLocation()->getLabel()}</option>" : "";
 
+                $data = array_merge($data, [[
+                    "label" => "Emplacement de prise par défaut",
+                    "value" => "<select name='pickLocation' data-s2='location' class='data form-control'>$pickLocationOption</select>",
+                ], [
+                    "label" => "Emplacement de dépose par défaut",
+                    "value" => "<select name='dropLocation' data-s2='location' class='data form-control'>$dropLocationOption</select>",
+                ]]);
+            }
+
+            if(in_array($category, [CategoryType::DEMANDE_HANDLING, CategoryType::DEMANDE_DISPATCH])) {
                 $pushNotifications = $this->renderView("form_element.html.twig", [
                     "element" => "radio",
                     "arguments" => [
@@ -733,18 +774,17 @@ class SettingsController extends AbstractController {
                     ],
                 ]);
 
-                $emergencies = $fixedFieldRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY);
+                $entity = [
+                    CategoryType::DEMANDE_HANDLING => FieldsParam::ENTITY_CODE_HANDLING,
+                    CategoryType::DEMANDE_DISPATCH => FieldsParam::ENTITY_CODE_DISPATCH,
+                ];
+
+                $emergencies = $fixedFieldRepository->getElements($entity[$category], FieldsParam::FIELD_CODE_EMERGENCY);
                 $emergencyValues = Stream::from($emergencies)
                     ->map(fn(string $emergency) => "<option value='$emergency' " . (in_array($emergency, $type->getNotificationsEmergencies()) ? "selected" : "") . ">$emergency</option>")
                     ->join("");
 
                 $data = array_merge($data, [[
-                    "label" => "Emplacement de prise par défaut",
-                    "value" => "<select name='pickLocation' data-s2='location' class='data form-control'>$pickLocationOption</select>",
-                ], [
-                    "label" => "Emplacement de dépose par défaut",
-                    "value" => "<select name='dropLocation' data-s2='location' class='data form-control'>$dropLocationOption</select>",
-                ], [
                     "label" => "Notifications push",
                     "value" => $pushNotifications,
                 ], [
@@ -759,7 +799,7 @@ class SettingsController extends AbstractController {
                 "value" => $type->getDescription(),
             ]];
 
-            if($category === CategoryType::DEMANDE_HANDLING) {
+            if($category === CategoryType::ARTICLE) {
                 $data[] = [
                     "label" => "Couleur",
                     "value" => "<div class='dt-type-color' style='background: {$type->getColor()}'></div>",
@@ -783,14 +823,18 @@ class SettingsController extends AbstractController {
                 ], [
                     "label" => "Emplacement de dépose par défaut",
                     "value" => FormatHelper::location($type->getDropLocation()),
-                ], [
+                ]]);
+            }
+
+            if(in_array($category, [CategoryType::DEMANDE_HANDLING, CategoryType::DEMANDE_DISPATCH])) {
+                $data[] = [
                     "label" => "Notifications push",
                     "value" => !$type->isNotificationsEnabled()
                         ? "Désactivées"
                         : ($type->getNotificationsEmergencies()
                             ? "Activées seulement si urgence"
                             : "Activées"),
-                ]]);
+                ];
 
                 if($type->isNotificationsEnabled() && $type->getNotificationsEmergencies()) {
                     $data[] = [

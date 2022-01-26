@@ -74,6 +74,39 @@ function onElementsChange() {
     $defaultValue.trigger('change');
 }
 
+export function createFreeFieldsPage($container, canEdit) {
+    createManagementPage($container, {
+        name: `freeFields`,
+        edit: canEdit,
+        header: {
+            route: (type, edit) => Routing.generate('settings_type_header', {type, edit}, true),
+        },
+        table: {
+            route: (type) => Routing.generate('settings_free_field_api', {type}, true),
+            deleteRoute: `settings_free_field_delete`,
+            columns: [
+                {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+                {data: `label`, title: `Libellé`},
+                {data: `type`, title: `Typage`},
+                {data: `elements`, title: `Éléments`},
+                {data: `defaultValue`, title: `Valeur par défaut`},
+                {data: `displayedCreate`, title: `<div class='small-column'>Affiché à la création</div>`},
+                {data: `requiredCreate`, title: `<div class='small-column'>Obligatoire à la création</div>`},
+                {data: `requiredEdit`, title: `<div class='small-column'>Obligatoire à la modification</div>`},
+            ],
+            form: generateFreeFieldForm(),
+        },
+    });
+
+    $container.on(`change`, `[name=type]`, defaultValueTypeChange);
+    $container.on(`keyup`, `[name=elements]`, onElementsChange);
+    $container.on(`change`, `[type=radio][name=pushNotifications]`, function() {
+        const $radio = $(this);
+
+        $container.find(`[name=notificationEmergencies]`).closest(`.col-auto`).toggleClass(`d-none`, $radio.val());
+    });
+}
+
 export function initializeStockArticlesTypesFreeFields($container, canEdit) {
     createManagementPage($container, {
         name: `freeFields`,
@@ -104,93 +137,4 @@ export function initializeStockArticlesTypesFreeFields($container, canEdit) {
 
     $container.on(`change`, `[name=type]`, defaultValueTypeChange);
     $container.on(`keyup`, `[name=elements]`, onElementsChange);
-}
-
-export function initializeStockDeliveryTypesFreeFields($container, canEdit) {
-    createManagementPage($container, {
-        name: `freeFields`,
-        edit: canEdit,
-        header: {
-            route: (type, edit) => Routing.generate('settings_type_header', {type, edit}, true),
-        },
-        table: {
-            route: (type) => Routing.generate('settings_free_field_api', {type}, true),
-            deleteRoute: `settings_free_field_delete`,
-            columns: [
-                {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-                {data: `label`, title: `Libellé`},
-                {data: `type`, title: `Typage`},
-                {data: `elements`, title: `Éléments`},
-                {data: `defaultValue`, title: `Valeur par défaut`},
-                {data: `displayedCreate`, title: `<div class='small-column'>Affiché à la création</div>`},
-                {data: `requiredCreate`, title: `<div class='small-column'>Obligatoire à la création</div>`},
-                {data: `requiredEdit`, title: `<div class='small-column'>Obligatoire à la modification</div>`},
-            ],
-            form: generateFreeFieldForm(),
-        },
-    });
-
-    $container.on(`change`, `[name=type]`, defaultValueTypeChange);
-    $container.on(`keyup`, `[name=elements]`, onElementsChange);
-}
-
-export function initializeStockCollectTypesFreeFields($container, canEdit) {
-    createManagementPage($container, {
-        name: `freeFields`,
-        edit: canEdit,
-        header: {
-            route: (type, edit) => Routing.generate('settings_type_header', {type, edit}, true),
-        },
-        table: {
-            route: (type) => Routing.generate('settings_free_field_api', {type}, true),
-            deleteRoute: `settings_free_field_delete`,
-            columns: [
-                {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-                {data: `label`, title: `Libellé`},
-                {data: `type`, title: `Typage`},
-                {data: `elements`, title: `Éléments`},
-                {data: `defaultValue`, title: `Valeur par défaut`},
-                {data: `displayedCreate`, title: `<div class='small-column'>Affiché à la création</div>`},
-                {data: `requiredCreate`, title: `<div class='small-column'>Obligatoire à la création</div>`},
-                {data: `requiredEdit`, title: `<div class='small-column'>Obligatoire à la modification</div>`},
-            ],
-            form: generateFreeFieldForm(),
-        },
-    });
-
-    $container.on(`change`, `[name=type]`, defaultValueTypeChange);
-    $container.on(`keyup`, `[name=elements]`, onElementsChange);
-}
-
-export function initializeTrackingDispatchTypesFreeFields($container, canEdit) {
-    createManagementPage($container, {
-        name: `freeFields`,
-        edit: canEdit,
-        header: {
-            route: (type, edit) => Routing.generate('settings_type_header', {type, edit}, true),
-        },
-        table: {
-            route: (type) => Routing.generate('settings_free_field_api', {type}, true),
-            deleteRoute: `settings_free_field_delete`,
-            columns: [
-                {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-                {data: `label`, title: `Libellé`},
-                {data: `type`, title: `Typage`},
-                {data: `elements`, title: `Éléments`},
-                {data: `defaultValue`, title: `Valeur par défaut`},
-                {data: `displayedCreate`, title: `<div class='small-column'>Affiché à la création</div>`},
-                {data: `requiredCreate`, title: `<div class='small-column'>Obligatoire à la création</div>`},
-                {data: `requiredEdit`, title: `<div class='small-column'>Obligatoire à la modification</div>`},
-            ],
-            form: generateFreeFieldForm(),
-        },
-    });
-
-    $container.on(`change`, `[name=type]`, defaultValueTypeChange);
-    $container.on(`keyup`, `[name=elements]`, onElementsChange);
-    $container.on(`change`, `[name=pushNotifications]`, function() {
-        const $radio = $(this);
-
-        $container.find(`[name=notificationEmergencies]`).closest(`.col-auto`).toggleClass(`d-none`, $radio.val());
-    })
 }
