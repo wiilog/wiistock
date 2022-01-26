@@ -38,6 +38,7 @@ const initializers = {
     stock_demandes_livraisons: initializeDeliveries,
     stock_inventaires_frequences: initializeFrequencesTable,
     stock_inventaires_categories: initializeCategoriesTable,
+    stock_groupes_visibilite: initializeVisibilityGroup,
 };
 
 const slowOperations = [
@@ -556,5 +557,51 @@ function initializeCategoriesTable(){
             frequency: `<select name='frequency' class='form-control data needed' data-global-error="Fréquence>`+$frequencyOptions+`</select>`,
             permanent: `<div class='checkbox-container'><input type='checkbox' name='permanent' class='form-control data'/></div>`,
         },
+    });
+}
+
+
+function initializeVisibilityGroup($container, canEdit) {
+    const $addButton = $container.find(`.add-row-button`);
+    const $tableHeader = $(`.wii-page-card-header`);
+
+    $saveButton.addClass('d-none');
+
+    const table = EditableDatatable.create(`#table-visibility-group`, {
+        route: Routing.generate(`settings_visibility_group_api`, true),
+        deleteRoute: `settings_visibility_group_delete`,
+        mode: canEdit ? MODE_DOUBLE_CLICK : MODE_NO_EDIT,
+        save: SAVE_MANUALLY,
+        search: false,
+        paginate: false,
+        scrollY: false,
+        scrollX: false,
+        onInit: () => {
+            $addButton.removeClass(`d-none`);
+        },
+        onEditStart: () => {
+            $saveButton.removeClass('d-none');
+            $tableHeader.addClass('d-none');
+        },
+        onEditStop: () => {
+            $saveButton.addClass('d-none');
+            $tableHeader.removeClass('d-none');
+        },
+        columns: [
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+            {data: `label`, title: `Libelle`},
+            {data: `description`, title: `Description`},
+            {data: `actif`, title: `Actif`},
+        ],
+        form: {
+            actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
+            label: `<input type='text' name='label' class='form-control data needed'  data-global-error="Libellé"/>`,
+            description: `<input type='text' name='description' class='form-control data needed'  data-global-error="Description"/>`,
+            actif: `<div class='checkbox-container'><input type='checkbox' name='actif' class='form-control data'/></div>`,
+        },
+    });
+
+    $addButton.on(`click`, function() {
+        table.addRow();
     });
 }

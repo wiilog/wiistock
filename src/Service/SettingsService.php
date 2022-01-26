@@ -12,6 +12,7 @@ use App\Entity\FreeField;
 use App\Entity\MailerServer;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Type;
+use App\Entity\VisibilityGroup;
 use App\Entity\WorkFreeDay;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -276,6 +277,23 @@ class SettingsService {
                         ->setRequiredEdit($item["requiredEdit"])
                         ->setDisplayedFilters($item["displayedFilters"] ?? null);
                 }
+            }
+        }
+
+        if(isset($tables["visibilityGroup"])){
+            foreach(array_filter($tables["visibilityGroup"]) as $visibilityGroupData) {
+                $visibilityGroupRepository = $this->manager->getRepository(VisibilityGroup::class);
+                $visibilityGroup = "";
+                if (isset($visibilityGroupData['visibilityGroupId'])){
+                    $visibilityGroup = $visibilityGroupRepository->find($visibilityGroupData['visibilityGroupId']);
+                } else {
+                    $visibilityGroup = new VisibilityGroup();
+                }
+                $visibilityGroup->setLabel($visibilityGroupData['label']);
+                $visibilityGroup->setDescription($visibilityGroupData['description']);
+                $visibilityGroup->setActive($visibilityGroupData['actif']);
+
+                $this->manager->persist($visibilityGroup);
             }
         }
     }

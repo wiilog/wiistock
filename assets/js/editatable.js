@@ -160,7 +160,7 @@ export default class EditableDatatable {
             if($button.is(`[data-id]`) && config.deleteRoute) {
                 AJAX.route(`POST`, config.deleteRoute, {entity: $button.data(`id`)})
                     .json()
-                    .then(deleteRow);
+                    .then(result => result.success ? deleteRow() : null);
             } else {
                 deleteRow();
             }
