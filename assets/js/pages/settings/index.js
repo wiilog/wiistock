@@ -1,9 +1,10 @@
 import '../../../scss/pages/settings.scss';
-import EditableDatatable, {MODE_ADD_ONLY, MODE_DOUBLE_CLICK, MODE_MANUAL, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING, MODE_EDIT, MODE_EDIT_AND_ADD, } from "../../editatable";
+import EditableDatatable, {MODE_ADD_ONLY, MODE_DOUBLE_CLICK, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING, MODE_EDIT, MODE_EDIT_AND_ADD, } from "../../editatable";
 import Flash, {INFO} from '../../flash';
-import {initializeImports} from "./data/imports.js";
 import {LOADING_CLASS} from "../../loading";
 import {initUserPage} from "./users/users";
+import {initializeImports} from "./data/imports.js";
+import {initializeStockArticlesTypesFreeFields, createFreeFieldsPage, initializeStockMovementsFreeFields,} from "./free-fields";
 
 const index = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();
@@ -22,13 +23,21 @@ const initializers = {
     global_etiquettes: initializeGlobalLabels,
     stock_articles_etiquettes: initializeStockArticlesLabels,
     stock_articles_types_champs_libres: initializeStockArticlesTypesFreeFields,
+    stock_demandes_types_champs_libres_livraisons: createFreeFieldsPage,
+    stock_demandes_types_champs_libres_collectes: createFreeFieldsPage,
+    trace_acheminements_types_champs_libres: createFreeFieldsPage,
+    trace_arrivages_types_champs_libres: createFreeFieldsPage,
+    trace_services_types_champs_libres: createFreeFieldsPage,
+    trace_mouvements_champs_libres: initializeStockMovementsFreeFields,
     donnees_imports: initializeImports,
     stock_receptions_champs_fixes_receptions: initializeReceptionFixedFields,
     trace_acheminements_champs_fixes: initializeDispatchFixedFields,
     trace_arrivages_champs_fixes: initializeArrivalFixedFields,
     trace_services_champs_fixes: initializeHandlingFixedFields,
+    stock_demandes_livraisons: initializeDeliveries,
     stock_inventaires_frequences: initializeFrequencesTable,
     stock_inventaires_categories: initializeCategoriesTable,
+    stock_groupes_visibilite: initializeVisibilityGroup,
     utilisateurs_utilisateurs: initUserPage,
 };
 
@@ -99,12 +108,15 @@ $(function() {
         $saveButton.pushLoader('white');
         await AJAX.route(`POST`, `settings_save`)
             .json(data)
-            .then(() => {
-                for(const table of tablesToReload) {
-                    if(table.mode !== MODE_EDIT) {
-                        table.toggleEdit(STATE_VIEWING, true);
+            .then(result => {
+                if(result.success) {
+                    for(const table of tablesToReload) {
+                        if(table.mode !== MODE_EDIT) {
+                            table.toggleEdit(STATE_VIEWING, true);
+                        }
                     }
                 }
+
                 $saveButton.popLoader();
             })
             .catch(() => {
@@ -192,78 +204,6 @@ function updateMenu(selectedMenu, canEdit) {
     }));
 }
 
-function createManagementPage($container, config) {
-    let selectedEntity = $container.find(`[name=entity]:first`).attr(`value`);
-
-    const $table = $container.find(`.subentities-table`);
-    const $editButton = $container.find(`.edit-button`);
-
-    $saveButton.addClass('d-none');
-    $editButton.removeClass('d-none');
-    $table.attr(`id`, `table-${Math.floor(Math.random() * 1000000)}`);
-
-    loadItems($container, config, selectedEntity, false);
-
-    const table = EditableDatatable.create(`#${$table.attr(`id`)}`, {
-        name: config.name,
-        mode: config.edit ? MODE_MANUAL : MODE_NO_EDIT,
-        save: SAVE_MANUALLY,
-        route: config.table.route(selectedEntity),
-        deleteRoute: config.table.deleteRoute,
-        form: config.table.form,
-        columns: config.table.columns,
-        initComplete: () => console.warn('huh'),
-        onEditStart: () => {
-            $editButton.addClass('d-none');
-            $saveButton.removeClass('d-none');
-
-            loadItems($container, config, selectedEntity, true);
-        },
-        onEditStop: () => {
-            $saveButton.addClass('d-none');
-            $editButton.removeClass('d-none');
-            loadItems($container, config, selectedEntity, false)
-        },
-    });
-
-    $container.find(`[name=entity]`).on(`change`, function() {
-        selectedEntity = $(this).val();
-
-        loadItems($container, config, selectedEntity, table.state !== STATE_VIEWING);
-        table.setURL(config.table.route(selectedEntity))
-    });
-
-    $editButton.on(`click`, function() {
-        table.toggleEdit(undefined, true);
-    });
-}
-
-function loadItems($container, config, type, edit) {
-    const route = config.header.route(type, edit);
-
-    $.post(route, function(data) {
-        if(data.success) {
-            const $itemContainer = $container.find(`.main-entity-content`);
-            $itemContainer.empty();
-
-            for(const item of data.data) {
-                const value = item.value === undefined || item.value === null ? '' : item.value;
-                $itemContainer.append(`
-                    <div class="col-auto ml-3">
-                        <div class="d-flex justify-content-center align-items-center py-2">
-                            ${item.icon ? `<img src="/svg/reference_article/${item.icon}.svg" alt="Icône" width="20px">` : ``}
-                            <div class="d-grid">
-                                <span class="wii-field-name">${item.label}</span>
-                                <span class="wii-body-text">${value}</span>
-                            </div>
-                        </div>
-                    </div>
-                `);
-            }
-        }
-    });
-}
-
 function initializeWorkingHours($container, canEdit) {
     $saveButton.addClass('d-none');
 
@@ -348,101 +288,6 @@ function initializeStockArticlesLabels() {
     });
 }
 
-function initializeStockArticlesTypesFreeFields($container, canEdit) {
-    const booleanDefaultValue = JSON.parse($(`#article-free-field-boolean-default-value`).val());
-
-    createManagementPage($container, {
-        name: `articlesFreeFields`,
-        edit: canEdit,
-        header: {
-            route: (type, edit) => Routing.generate('settings_free_field_header', {type, edit}, true),
-        },
-        table: {
-            route: (type) => Routing.generate('settings_free_field_api', {type}, true),
-            deleteRoute: `settings_free_field_delete`,
-            columns: [
-                {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-                {data: `label`, title: `Libellé`},
-                {data: `appliesTo`, title: `S'applique à`},
-                {data: `type`, title: `Typage`},
-                {data: `elements`, title: `Éléments`},
-                {data: `defaultValue`, title: `Valeur par défaut`},
-                {data: `displayedCreate`, title: `<div class='small-column'>Affiché à la création</div>`},
-                {data: `requiredCreate`, title: `<div class='small-column'>Obligatoire à la création</div>`},
-                {data: `requiredEdit`, title: `<div class='small-column'>Obligatoire à la modification</div>`},
-            ],
-            form: {
-                actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
-                label: `<input type="text" name="label" class="form-control data" data-global-error="Libellé"/>`,
-                type: `
-                    <select class="form-control data" name="type">
-                        <option selected disabled>Type de champ</option>
-                        <option value="text">Texte</option>
-                        <option value="number">Nombre</option>
-                        <option value="booleen">Oui/Non</option>
-                        <option value="date">Date</option>
-                        <option value="datetime">Date et heure</option>
-                        <option value="list">Liste</option>
-                        <option value="list multiple">Liste multiple</option>
-                    </select>`,
-                appliesTo: JSON.parse($(`#article-free-field-categories`).val()),
-                elements: `<input type="text" name="elements" class="form-control data" data-global-error="Eléments"/>`,
-                defaultValue: `
-                    <div class="d-none boolean-default-value">${booleanDefaultValue}</div>
-                    <input type="text" name="defaultValue" class="form-control data" data-global-error="Valeur par défaut"/>
-                    <input type="number" name="defaultValue" class="form-control data d-none" data-global-error="Valeur par défaut"/>
-                    <input type="date" name="defaultValue" class="form-control data d-none" data-global-error="Valeur par défaut"/>
-                    <input type="datetime-local" name="defaultValue" class="form-control data d-none" data-global-error="Valeur par défaut"/>
-                    <select name="defaultValue" class="form-control data d-none" data-global-error="Valeur par défaut"></select>
-                `,
-                displayedCreate: `<input type="checkbox" name="displayedCreate" class="form-control data" data-global-error="Affiché à la création"/>`,
-                requiredCreate: `<input type="checkbox" name="requiredCreate" class="form-control data" data-global-error="Obligatoire à la création"/>`,
-                requiredEdit: `<input type="checkbox" name="requiredEdit" class="form-control data" data-global-error="Obligatoire à la modification"/>`,
-            },
-        }
-    });
-
-    $container.on(`change`, `[name=type]`, function() {
-        const $select = $(this);
-        const $row = $select.closest(`tr`);
-        const type = $select.val();
-
-        $row.find(`[name=defaultValue], .boolean-default-value`).addClass(`d-none`);
-
-        const isList = [`list`, `list multiple`].includes(type);
-        const selectors = {
-            "text": `[name=defaultValue][type=text]`,
-            "number": `[name=defaultValue][type=number]`,
-            "date": `[name=defaultValue][type=date]`,
-            "datetime": `[name=defaultValue][type=datetime-local]`,
-            "booleen": `.boolean-default-value`,
-            "list": `select[name=defaultValue]`,
-        }
-
-        if(selectors[type]) {
-            $row.find(selectors[type]).removeClass(`d-none`);
-        }
-
-        $row.find(`[name=elements]`)
-            .toggleClass(`d-none`, !isList)
-            .trigger(`keyup`);
-    });
-
-    $container.on(`keyup`, `[name=elements]`, function() {
-        const $input = $(this);
-        const $row = $input.closest(`tr`);
-        const $defaultValue = $row.find(`select[name="defaultValue"]`);
-        const elements = $input.val().split(`;`);
-
-        $defaultValue.empty();
-        for(const element of elements) {
-            $defaultValue.append(new Option(element, element, false, false))
-        }
-
-        $defaultValue.trigger('change');
-    });
-}
-
 function initializeReceptionFixedFields($container, canEdit) {
     EditableDatatable.create(`#table-reception-fixed-fields`, {
         route: Routing.generate('settings_fixed_field_api', {entity: `réception`}),
@@ -523,6 +368,135 @@ function initializeHandlingFixedFields($container, canEdit) {
     });
 }
 
+function initializeDeliveries() {
+    initDeliveryRequestDefaultLocations();
+    $('.new-type-association-button').on('click', function () {
+        newTypeAssociation($(this));
+    });
+
+    $('.delete-association-line').on('click', function () {
+        removeAssociationLine($(this));
+    });
+    $(document).arrive('.delete-association-line', function () {
+        $(this).on('click', function () {
+            removeAssociationLine($(this));
+        });
+    });
+
+    $('select[name=deliveryType]').on('change', function () {
+        onTypeChange($(this));
+    });
+    $(document).arrive('select[name=deliveryType]', function() {
+        console.log('test');
+        $(this).on('change', function () {
+            onTypeChange($(this));
+        });
+    });
+}
+
+function initDeliveryRequestDefaultLocations() {
+    const $deliveryTypeSettings = $(`input[name=deliveryTypeSettings]`);
+    const deliveryTypeSettingsValues = JSON.parse($deliveryTypeSettings.val());
+
+    deliveryTypeSettingsValues.forEach(item => {
+        newTypeAssociation($(`button.new-type-association-button`), item.type, item.location);
+    });
+}
+
+function newTypeAssociation($button, type = undefined, location = undefined) {
+    const $settingTypeAssociation = $(`.setting-type-association`);
+    const $typeTemplate = $(`#type-template`);
+
+    let allFilledSelect = true;
+    $settingTypeAssociation.find(`select[name=deliveryRequestLocation]`).each(function() {
+        if(!$(this).val()) {
+            allFilledSelect = false;
+        }
+    });
+
+    if (allFilledSelect) {
+        $button.prop(`disabled`, true);
+        $settingTypeAssociation.append($typeTemplate.html());
+
+        const $typeSelect = $settingTypeAssociation.last().find(`select[name=deliveryType]`);
+        const $locationSelect = $settingTypeAssociation.last().find(`select[name=deliveryRequestLocation]`);
+
+        if (type && location) {
+            appendSelectOptions($typeSelect, $locationSelect, type, location);
+        } else if (location) {
+            let type = {
+                id: 'all',
+                label: 'Tous les types'
+            }
+            appendSelectOptions($typeSelect, $locationSelect, type, location);
+        }
+    } else {
+        showBSAlert(`Tous les emplacements doivent être renseignés`, `danger`);
+    }
+}
+
+function onTypeChange($select) {
+    const $settingTypeAssociation = $select.closest('.setting-type-association');
+    const $newTypeAssociationButton = $('.new-type-association-button');
+    const $allTypeSelect = $settingTypeAssociation.find(`select[name=deliveryType]`);
+    const $lastDeliveryTypeSelect = $allTypeSelect.last();
+
+    const $typeAssociationContainer = $select.closest('.type-association-container');
+    const $associatedLocation = $typeAssociationContainer.find('select[name="deliveryRequestLocation"]');
+    $associatedLocation.val(null).trigger('change');
+    setAlreadyDefinedTypes();
+
+    let allFilledSelect = true;
+    $allTypeSelect.each(function() {
+        if(!$(this).val()) {
+            allFilledSelect = false;
+        }
+    });
+
+    let isAllSpecifiedTypes = false;
+    if($lastDeliveryTypeSelect === $select) {
+        isAllSpecifiedTypes = $select.data("length") <= 1;
+    }
+
+    console.log($select.val() === `all`);
+    console.log(!allFilledSelect);
+    console.log(isAllSpecifiedTypes);
+    $newTypeAssociationButton.prop(`disabled`, $select.val() === `all` || !allFilledSelect || isAllSpecifiedTypes);
+}
+
+function removeAssociationLine($button) {
+    const $typeAssociationContainer = $('.type-association-container');
+
+    if($typeAssociationContainer.length === 1) {
+        showBSAlert('Au moins une association type/emplacement est nécessaire', 'danger')
+    } else {
+        $button.parent().parent(`.type-association-container`).remove();
+        $('.new-type-association-button').prop(`disabled`, false);
+    }
+}
+
+function setAlreadyDefinedTypes() {
+    const $settingTypeAssociation = $('.setting-type-association');
+
+    let types = [];
+    $settingTypeAssociation.find(`select[name=deliveryType]`).each(function() {
+        types.push($(this).val());
+    });
+
+    console.log(types.join(';'));
+    $('input[name=alreadyDefinedTypes]').val(types.join(';'));
+}
+
+function appendSelectOptions(typeSelect, locationSelect, type, location) {
+    typeSelect
+        .append(new Option(type.label, type.id, false, true))
+        .trigger(`change`);
+
+    locationSelect
+        .append(new Option(location.label, location.id, false, true))
+        .trigger(`change`);
+}
+
 function initializeFrequencesTable(){
     $saveButton.addClass('d-none');
 
@@ -585,5 +559,51 @@ function initializeCategoriesTable(){
             frequency: `<select name='frequency' class='form-control data needed' data-global-error="Fréquence>`+$frequencyOptions+`</select>`,
             permanent: `<div class='checkbox-container'><input type='checkbox' name='permanent' class='form-control data'/></div>`,
         },
+    });
+}
+
+
+function initializeVisibilityGroup($container, canEdit) {
+    const $addButton = $container.find(`.add-row-button`);
+    const $tableHeader = $(`.wii-page-card-header`);
+
+    $saveButton.addClass('d-none');
+
+    const table = EditableDatatable.create(`#table-visibility-group`, {
+        route: Routing.generate(`settings_visibility_group_api`, true),
+        deleteRoute: `settings_visibility_group_delete`,
+        mode: canEdit ? MODE_DOUBLE_CLICK : MODE_NO_EDIT,
+        save: SAVE_MANUALLY,
+        search: false,
+        paginate: false,
+        scrollY: false,
+        scrollX: false,
+        onInit: () => {
+            $addButton.removeClass(`d-none`);
+        },
+        onEditStart: () => {
+            $saveButton.removeClass('d-none');
+            $tableHeader.addClass('d-none');
+        },
+        onEditStop: () => {
+            $saveButton.addClass('d-none');
+            $tableHeader.removeClass('d-none');
+        },
+        columns: [
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+            {data: `label`, title: `Libelle`},
+            {data: `description`, title: `Description`},
+            {data: `actif`, title: `Actif`},
+        ],
+        form: {
+            actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
+            label: `<input type='text' name='label' class='form-control data needed'  data-global-error="Libellé"/>`,
+            description: `<input type='text' name='description' class='form-control data needed'  data-global-error="Description"/>`,
+            actif: `<div class='checkbox-container'><input type='checkbox' name='actif' class='form-control data'/></div>`,
+        },
+    });
+
+    $addButton.on(`click`, function() {
+        table.addRow();
     });
 }

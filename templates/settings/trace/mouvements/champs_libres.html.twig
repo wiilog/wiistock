@@ -1,0 +1,11 @@
+{% import 'form.html.twig' as form %}
+
+<div class="sub-content">
+    <table id="table-movement-free-fields" data-table-processing="freeFields" data-type="{{ type.id }}"></table>
+
+    <input type="hidden" name="default-value-template" value="{{ form.switch('defaultValue', null, false, [
+        {label: 'Oui', value: '1'},
+        {label: 'Non', value: '0'},
+        {label: 'Aucune', value: null, checked: true},
+    ]) | json_encode }}">
+</div>

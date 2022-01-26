@@ -88,6 +88,7 @@ export default class Select2 {
                                 };
                             } else {
                                 $search.removeClass(`is-invalid`);
+                                $element.attr("data-length", data.results.length);
                                 return data;
                             }
                         }
@@ -115,7 +116,6 @@ export default class Select2 {
                         if (data.highlighted) {
                             $(container).attr(`data-highlighted`, true);
                         }
-
                         return data.html || data.text;
                     },
                     templateSelection: function (data, container) {
