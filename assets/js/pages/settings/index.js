@@ -3,10 +3,7 @@ import EditableDatatable, {MODE_ADD_ONLY, MODE_DOUBLE_CLICK, MODE_NO_EDIT, SAVE_
 import Flash, {INFO} from '../../flash';
 import {LOADING_CLASS} from "../../loading";
 import {initializeImports} from "./data/imports.js";
-import {
-    initializeStockArticlesTypesFreeFields,
-    createFreeFieldsPage,
-} from "./free-fields";
+import {initializeStockArticlesTypesFreeFields, createFreeFieldsPage, initializeStockMovementsFreeFields,} from "./free-fields";
 
 const index = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();
@@ -30,6 +27,7 @@ const initializers = {
     trace_acheminements_types_champs_libres: createFreeFieldsPage,
     trace_arrivages_types_champs_libres: createFreeFieldsPage,
     trace_services_types_champs_libres: createFreeFieldsPage,
+    trace_mouvements_champs_libres: initializeStockMovementsFreeFields,
     donnees_imports: initializeImports,
     stock_receptions_champs_fixes_receptions: initializeReceptionFixedFields,
     trace_acheminements_champs_fixes: initializeDispatchFixedFields,

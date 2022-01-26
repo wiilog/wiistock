@@ -22,7 +22,6 @@ export function createManagementPage($container, config) {
         deleteRoute: config.table.deleteRoute,
         form: config.table.form,
         columns: config.table.columns,
-        initComplete: () => console.warn('huh'),
         onEditStart: () => {
             $editButton.addClass('d-none');
             $saveButton.removeClass('d-none');

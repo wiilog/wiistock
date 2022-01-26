@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\CategorieCL;
+use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
@@ -220,14 +221,18 @@ class SettingsService {
         if(isset($tables["freeFields"])) {
             $ids = array_map(fn($freeField) => $freeField["id"] ?? null, $tables["freeFields"]);
 
-            $type = $this->manager->find(Type::class, $data["entity"]);
-            $type->setLabel($data["label"] ?? $type->getLabel())
-                ->setDescription($data["description"] ?? null)
-                ->setPickLocation(isset($data["pickLocation"]) ? $this->manager->find(Emplacement::class, $data["pickLocation"]) : null)
-                ->setDropLocation(isset($data["dropLocation"]) ? $this->manager->find(Emplacement::class, $data["dropLocation"]) : null)
-                ->setNotificationsEnabled($data["pushNotifications"] ?? false)
-                ->setNotificationsEmergencies(isset($data["notificationEmergencies"]) ? explode(",", $data["notificationEmergencies"]) : null)
-                ->setColor($data["color"] ?? null);
+            if(isset($data["entity"])) {
+                $type = $this->manager->find(Type::class, $data["entity"]);
+                $type->setLabel($data["label"] ?? $type->getLabel())
+                    ->setDescription($data["description"] ?? null)
+                    ->setPickLocation(isset($data["pickLocation"]) ? $this->manager->find(Emplacement::class, $data["pickLocation"]) : null)
+                    ->setDropLocation(isset($data["dropLocation"]) ? $this->manager->find(Emplacement::class, $data["dropLocation"]) : null)
+                    ->setNotificationsEnabled($data["pushNotifications"] ?? false)
+                    ->setNotificationsEmergencies(isset($data["notificationEmergencies"]) ? explode(",", $data["notificationEmergencies"]) : null)
+                    ->setColor($data["color"] ?? null);
+            } else {
+                $type = $this->manager->getRepository(Type::class)->findOneByLabel(Type::LABEL_MVT_TRACA);
+            }
 
             $freeFieldRepository = $this->manager->getRepository(FreeField::class);
             $freeFields = Stream::from($freeFieldRepository->findBy(["id" => $ids]))

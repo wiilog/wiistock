@@ -372,7 +372,7 @@ class SettingsController extends AbstractController {
 
         return [
             self::CATEGORY_GLOBAL => [
-                self::MENU_CLIENT => [
+                self::MENU_CLIENT => fn() => [
                     "current_client" => $this->specificService->getAppClient(),
                 ],
                 self::MENU_MAIL_SERVER => fn() => [
@@ -380,7 +380,6 @@ class SettingsController extends AbstractController {
                 ],
             ],
             self::CATEGORY_STOCK => [
-                self::MENU_ALERTS => [],
                 self::MENU_ARTICLES => [
                     self::MENU_LABELS => fn() => [
                         "free_fields" => Stream::from($freeFieldRepository->findByCategory(CategorieCL::ARTICLE))
@@ -576,6 +575,11 @@ class SettingsController extends AbstractController {
                         ];
                     },
                 ],
+                self::MENU_MOVEMENTS => [
+                    self::MENU_FREE_FIELDS => fn() => [
+                        "type" => $typeRepository->findOneByLabel(Type::LABEL_MVT_TRACA),
+                    ]
+                ]
             ],
             self::CATEGORY_DATA => [
                 self::MENU_IMPORTS => fn() => [
@@ -852,7 +856,7 @@ class SettingsController extends AbstractController {
     }
 
     /**
-     * @Route("/champs-libes/{type}", name="settings_free_field_api", options={"expose"=true})
+     * @Route("/champs-libres/api/{type}", name="settings_free_field_api", options={"expose"=true})
      */
     public function freeFieldApi(Request $request, EntityManagerInterface $manager, Type $type): Response {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
@@ -901,8 +905,8 @@ class SettingsController extends AbstractController {
                             null,
                             false,
                             [
-                                ["label" => "Oui", "value" => 1, "checked" => intval($freeField->getDefaultValue()) === 1],
-                                ["label" => "Non", "value" => 0, "checked" => intval($freeField->getDefaultValue()) === 0],
+                                ["label" => "Oui", "value" => 1, "checked" => $freeField->getDefaultValue()],
+                                ["label" => "Non", "value" => 0, "checked" => $freeField->getDefaultValue() !== null && !$freeField->getDefaultValue()],
                                 ["label" => "Aucune", "value" => null, "checked" => $freeField->getDefaultValue() === null],
                             ],
                         ],
@@ -952,7 +956,7 @@ class SettingsController extends AbstractController {
                     "displayedCreate" => "<input type='checkbox' name='displayedCreate' class='$class' $displayedCreate/>",
                     "requiredCreate" => "<input type='checkbox' name='requiredCreate' class='$class' $requiredCreate/>",
                     "requiredEdit" => "<input type='checkbox' name='requiredEdit' class='$class' $requiredEdit/>",
-                    "defaultValue" => $defaultValue,
+                    "defaultValue" => "<form>$defaultValue</form>",
                     "elements" => $freeField->getTypage() == FreeField::TYPE_LIST || $freeField->getTypage() == FreeField::TYPE_LIST_MULTIPLE
                         ? "<input type='text' name='elements' required class='$class' value='$elements'/>"
                         : "",
@@ -973,7 +977,7 @@ class SettingsController extends AbstractController {
             }
         }
 
-        if($edit) {
+        if($edit || $type->getCategory()->getLabel() === CategoryType::MOUVEMENT_TRACA) {
             $rows[] = [
                 "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
                 "label" => "",

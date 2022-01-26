@@ -41,7 +41,7 @@
             {% for switch in switches %}
                 {% set id = random(100000, 10000000) %}
 
-                <input type="radio" id="{{ name }}-{{ id }}" name="{{ name }}" class="data force-data"
+                <input type="radio" id="{{ name }}-{{ id }}" name="{{ name }}" class="data"
                        value="{{ switch.value ?? '' }}" {{ switch.checked ?? false ? 'checked' }}>
                 <label for="{{ name }}-{{ id }}">{{ _self.label(switch.label, false) }}</label>
             {% endfor %}

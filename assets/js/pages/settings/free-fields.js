@@ -1,10 +1,9 @@
 import {createManagementPage} from './utils';
+import EditableDatatable, {MODE_EDIT_AND_ADD, MODE_NO_EDIT, SAVE_MANUALLY} from "../../editatable";
 
 const $saveButton = $(`.save-settings`);
 
 function generateFreeFieldForm() {
-    const booleanDefaultValue = JSON.parse($(`[name=default-value-template]`).val());
-
     return {
         actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
         label: `<input type="text" name="label" required class="form-control data" data-global-error="Libellé"/>`,
@@ -19,15 +18,27 @@ function generateFreeFieldForm() {
                 <option value="list">Liste</option>
                 <option value="list multiple">Liste multiple</option>
             </select>`,
-        elements: `<input type="text" name="elements" required class="form-control data" data-global-error="Eléments"/>`,
-        defaultValue: `
-            <div class="d-none boolean-default-value">${booleanDefaultValue}</div>
-            <input type="text" name="defaultValue" class="form-control data" data-global-error="Valeur par défaut"/>
-            <input type="number" name="defaultValue" class="form-control data d-none" data-global-error="Valeur par défaut"/>
-            <input type="date" name="defaultValue" class="form-control data d-none" data-global-error="Valeur par défaut"/>
-            <input type="datetime-local" name="defaultValue" class="form-control data d-none" data-global-error="Valeur par défaut"/>
-            <select name="defaultValue" class="form-control data d-none" data-global-error="Valeur par défaut"></select>
-        `,
+        elements: `<input type="text" name="elements" required class="form-control data d-none" data-global-error="Eléments"/>`,
+        defaultValue: () => {
+            const $booleanDefaultValue = $(JSON.parse($(`[name=default-value-template]`).val()));
+            $booleanDefaultValue.find(`[type=radio]`).each(function() {
+                const $input = $(this);
+                const $label = $booleanDefaultValue.find(`[for=${$input.attr(`id`)}]`);
+
+                const id = `defaultValue-${Math.floor(Math.random() * 1000000)}`;
+                $input.attr(`id`, id);
+                $label.attr(`for`, id);
+            });
+
+            return `
+                <form class="d-none boolean-default-value">${$booleanDefaultValue.prop(`outerHTML`)}</form>
+                <input type="text" name="defaultValue" class="form-control data d-none" data-global-error="Valeur par défaut"/>
+                <input type="number" name="defaultValue" class="form-control data d-none" data-global-error="Valeur par défaut"/>
+                <input type="date" name="defaultValue" class="form-control data d-none" data-global-error="Valeur par défaut"/>
+                <input type="datetime-local" name="defaultValue" class="form-control data d-none" data-global-error="Valeur par défaut"/>
+                <select name="defaultValue" class="form-control data d-none" data-global-error="Valeur par défaut"></select>
+            `;
+        },
         displayedCreate: `<input type="checkbox" name="displayedCreate" class="form-control data" data-global-error="Affiché à la création"/>`,
         requiredCreate: `<input type="checkbox" name="requiredCreate" class="form-control data" data-global-error="Obligatoire à la création"/>`,
         requiredEdit: `<input type="checkbox" name="requiredEdit" class="form-control data" data-global-error="Obligatoire à la modification"/>`,
@@ -133,6 +144,41 @@ export function initializeStockArticlesTypesFreeFields($container, canEdit) {
                 ...generateFreeFieldForm(),
             },
         },
+    });
+
+    $container.on(`change`, `[name=type]`, defaultValueTypeChange);
+    $container.on(`keyup`, `[name=elements]`, onElementsChange);
+}
+
+export function initializeStockMovementsFreeFields($container, canEdit) {
+    $saveButton.addClass('d-none');
+
+    const table = EditableDatatable.create(`#table-movement-free-fields`, {
+        route: Routing.generate(`settings_free_field_api`, {
+            type: $(`#table-movement-free-fields`).data(`type`),
+        }),
+        deleteRoute: `settings_free_field_delete`,
+        mode: canEdit ? MODE_EDIT_AND_ADD : MODE_NO_EDIT,
+        save: SAVE_MANUALLY,
+        search: false,
+        paginate: false,
+        onEditStart: () => {
+            $saveButton.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $saveButton.removeClass('d-none');
+        },
+        columns: [
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+            {data: `label`, title: `Libellé`},
+            {data: `type`, title: `Typage`},
+            {data: `elements`, title: `Éléments`},
+            {data: `defaultValue`, title: `Valeur par défaut`},
+            {data: `displayedCreate`, title: `<div class='small-column'>Affiché à la création</div>`},
+            {data: `requiredCreate`, title: `<div class='small-column'>Obligatoire à la création</div>`},
+            {data: `requiredEdit`, title: `<div class='small-column'>Obligatoire à la modification</div>`},
+        ],
+        form: generateFreeFieldForm(),
     });
 
     $container.on(`change`, `[name=type]`, defaultValueTypeChange);

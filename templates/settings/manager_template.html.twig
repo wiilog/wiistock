@@ -40,7 +40,7 @@
         <input type="hidden" name="default-value-template" value="{{ form.switch('defaultValue', null, false, [
             {label: 'Oui', value: '1'},
             {label: 'Non', value: '0'},
-            {label: 'Aucune', value: null},
+            {label: 'Aucune', value: null, checked: true},
         ]) | json_encode }}">
     </div>
 </div>
