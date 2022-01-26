@@ -624,9 +624,6 @@ function initializeVisibilityGroup($container, canEdit) {
             description: `<input type='text' name='description' class='form-control data needed'  data-global-error="Description"/>`,
             actif: `<div class='checkbox-container'><input type='checkbox' name='actif' class='form-control data'/></div>`,
         },
-        columnDefs: [
-            {targets: 1, width: '100%'},
-        ],
     });
 
     $addButton.on(`click`, function() {
