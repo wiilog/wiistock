@@ -79,7 +79,7 @@ export function initializeStockArticlesTypesFreeFields($container, canEdit) {
         name: `freeFields`,
         edit: canEdit,
         header: {
-            route: (type, edit) => Routing.generate('settings_article_type_header', {type, edit}, true),
+            route: (type, edit) => Routing.generate('settings_type_header', {type, edit}, true),
         },
         table: {
             route: (type) => Routing.generate('settings_free_field_api', {type}, true),
@@ -111,7 +111,7 @@ export function initializeStockDeliveryTypesFreeFields($container, canEdit) {
         name: `freeFields`,
         edit: canEdit,
         header: {
-            route: (type, edit) => Routing.generate('settings_delivery_collect_type_header', {type, edit}, true),
+            route: (type, edit) => Routing.generate('settings_type_header', {type, edit}, true),
         },
         table: {
             route: (type) => Routing.generate('settings_free_field_api', {type}, true),
@@ -139,7 +139,7 @@ export function initializeStockCollectTypesFreeFields($container, canEdit) {
         name: `freeFields`,
         edit: canEdit,
         header: {
-            route: (type, edit) => Routing.generate('settings_delivery_collect_type_header', {type, edit}, true),
+            route: (type, edit) => Routing.generate('settings_type_header', {type, edit}, true),
         },
         table: {
             route: (type) => Routing.generate('settings_free_field_api', {type}, true),
@@ -167,7 +167,7 @@ export function initializeTrackingDispatchTypesFreeFields($container, canEdit) {
         name: `freeFields`,
         edit: canEdit,
         header: {
-            route: (type, edit) => Routing.generate('settings_dispatch_type_header', {type, edit}, true),
+            route: (type, edit) => Routing.generate('settings_type_header', {type, edit}, true),
         },
         table: {
             route: (type) => Routing.generate('settings_free_field_api', {type}, true),

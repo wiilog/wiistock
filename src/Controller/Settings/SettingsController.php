@@ -510,7 +510,7 @@ class SettingsController extends AbstractController {
                         return [
                             "types" => $types,
                         ];
-                    }
+                    },
                 ],
                 self::MENU_ARRIVALS => [
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
@@ -674,18 +674,25 @@ class SettingsController extends AbstractController {
     }
 
     /**
-     * @Route("/champs-libes/article/{type}/header", name="settings_article_type_header", options={"expose"=true})
+     * @Route("/champs-libes/article/{type}/header", name="settings_type_header", options={"expose"=true})
      */
     public function articleTypeHeader(Request $request, Type $type): Response {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
+        $category = $type->getCategory()->getLabel();
 
         if($edit) {
             $data = [[
+                "label" => "Libellé*",
+                "value" => "<input name='label' class='data form-control' required value='{$type->getLabel()}'>",
+            ], [
                 "label" => "Description",
                 "value" => "<input name='description' class='data form-control' value='{$type->getDescription()}'>",
-            ], [
-                "label" => "Couleur",
-                "value" => "
+            ]];
+
+            if($category === CategoryType::DEMANDE_HANDLING) {
+                $data[] = [
+                    "label" => "Couleur",
+                    "value" => "
                     <input type='color' class='form-control wii-color-picker data' name='color' value='{$type->getColor()}' list='type-color-{$type->getId()}'/>
                     <datalist id='type-color-{$type->getId()}'>
                         <option>#D76433</option>
@@ -697,140 +704,100 @@ class SettingsController extends AbstractController {
                         <option>#6433D7</option>
                         <option>#D73353</option>
                     </datalist>",
-            ]];
-        } else {
-            $data = [[
-                "label" => "Description",
-                "value" => $type->getDescription(),
-            ], [
-                "label" => "Couleur",
-                "value" => "<div class='dt-type-color' style='background: {$type->getColor()}'></div>",
-            ]];
-        }
-
-        return $this->json([
-            "success" => true,
-            "data" => $data,
-        ]);
-    }
-
-    /**
-     * @Route("/champs-libes/livraison-collecte/{type}/header", name="settings_delivery_collect_type_header", options={"expose"=true})
-     */
-    public function deliveryCollectTypeHeader(Request $request, Type $type): Response {
-        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
-
-        if($edit) {
-            $notificationsEnabled = $type->isNotificationsEnabled() ? "checked" : "";
-
-            $data = [[
-                "label" => "Libellé*",
-                "value" => "<input name='label' class='data form-control' required value='{$type->getLabel()}'>",
-            ], [
-                "label" => "Description",
-                "value" => "<input name='description' class='data form-control' value='{$type->getDescription()}'>",
-            ], [
-                "label" => "Notifications push",
-                "value" => "<input name='pushNotifications' type='checkbox' class='data form-control mt-1' $notificationsEnabled>",
-            ]];
-        } else {
-            $data = [[
-                "label" => "Libellé",
-                "value" => $type->getLabel(),
-            ], [
-                "label" => "Description",
-                "value" => $type->getDescription(),
-            ], [
-                "label" => "Notifications push",
-                "value" => $type->isNotificationsEnabled() ? "Activées" : "Désactivées",
-            ]];
-        }
-
-        return $this->json([
-            "success" => true,
-            "data" => $data,
-        ]);
-    }
-
-    /**
-     * @Route("/champs-libes/acheminements/{type}/header", name="settings_dispatch_type_header", options={"expose"=true})
-     */
-    public function dispatchTypeHeader(Request $request, Type $type): Response {
-        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
-
-        if($edit) {
-            $fixedFieldRepository = $this->manager->getRepository(FieldsParam::class);
-
-            $notificationsEnabled = $type->isNotificationsEnabled() ? "checked" : "";
-            $pickLocationOption = $type->getPickLocation() ? "<option value='{$type->getPickLocation()->getId()}'>{$type->getPickLocation()->getLabel()}</option>" : "";
-            $dropLocationOption = $type->getDropLocation() ? "<option value='{$type->getDropLocation()->getId()}'>{$type->getDropLocation()->getLabel()}</option>" : "";
-
-            $pushNotifications = $this->renderView("form_element.html.twig", [
-                "element" => "radio",
-                "arguments" => [
-                    "pushNotifications",
-                    "Notifications push",
-                    false,
-                    [
-                        ["label" => "Désactiver", "value" => 0, "checked" => !$type->isNotificationsEnabled()],
-                        ["label" => "Activer", "value" => 1, "checked" => $type->isNotificationsEnabled() && !$type->getNotificationsEmergencies()],
-                        ["label" => "Activer seulement si urgence", "value" => 2, "checked" => $type->isNotificationsEnabled() && $type->getNotificationsEmergencies()],
-                    ],
-                ],
-            ]);
-
-            $emergencies = $fixedFieldRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY);
-            $emergencyValues = Stream::from($emergencies)
-                ->map(fn(string $emergency) => "<option value='$emergency' " . (in_array($emergency, $type->getNotificationsEmergencies()) ? "selected" : "") . ">$emergency</option>")
-                ->join("");
-
-            $data = [[
-                "label" => "Libellé*",
-                "value" => "<input name='label' class='data form-control' required value='{$type->getLabel()}'>",
-            ], [
-                "label" => "Description",
-                "value" => "<input name='description' class='data form-control' value='{$type->getDescription()}'>",
-            ], [
-                "label" => "Emplacement de prise par défaut",
-                "value" => "<select name='pickLocation' data-s2='location' class='data form-control'>$pickLocationOption</select>",
-            ], [
-                "label" => "Emplacement de dépose par défaut",
-                "value" => "<select name='dropLocation' data-s2='location' class='data form-control'>$dropLocationOption</select>",
-            ], [
-                "label" => "Notifications push",
-                "value" => $pushNotifications,
-            ], [
-                "label" => "Pour les valeurs",
-                "value" => "<select name='notificationEmergencies' data-s2 data-no-empty-option multiple class='data form-control'>$emergencyValues</select>",
-                "hidden" => !$type->isNotificationsEnabled() || !$type->getNotificationsEmergencies(),
-            ]];
-        } else {
-            $data = [[
-                "label" => "Libellé",
-                "value" => $type->getLabel(),
-            ], [
-                "label" => "Description",
-                "value" => $type->getDescription(),
-            ], [
-                "label" => "Emplacement de prise par défaut",
-                "value" => FormatHelper::location($type->getPickLocation()),
-            ], [
-                "label" => "Emplacement de dépose par défaut",
-                "value" => FormatHelper::location($type->getDropLocation()),
-            ], [
-                "label" => "Notifications push",
-                "value" => !$type->isNotificationsEnabled()
-                    ? "Désactivées"
-                    : ($type->getNotificationsEmergencies()
-                        ? "Activées seulement si urgence"
-                        : "Activées"),
-            ]];
-
-            if($type->isNotificationsEnabled() && $type->getNotificationsEmergencies()) {
-                $data[] = [
-                    "label" => "Pour les valeurs",
-                    "value" => join(", ", $type->getNotificationsEmergencies()),
                 ];
+            }
+
+            if(in_array($category, [CategoryType::DEMANDE_LIVRAISON, CategoryType::DEMANDE_COLLECTE])) {
+                $data[] = [
+                    "label" => "Notifications push",
+                    "value" => "<input name='pushNotifications' type='checkbox' class='data form-control mt-1' $notificationsEnabled>",
+                ];
+            }
+
+            if($category === CategoryType::DEMANDE_DISPATCH) {
+                $fixedFieldRepository = $this->manager->getRepository(FieldsParam::class);
+                $pickLocationOption = $type->getPickLocation() ? "<option value='{$type->getPickLocation()->getId()}'>{$type->getPickLocation()->getLabel()}</option>" : "";
+                $dropLocationOption = $type->getDropLocation() ? "<option value='{$type->getDropLocation()->getId()}'>{$type->getDropLocation()->getLabel()}</option>" : "";
+
+                $pushNotifications = $this->renderView("form_element.html.twig", [
+                    "element" => "radio",
+                    "arguments" => [
+                        "pushNotifications",
+                        "Notifications push",
+                        false,
+                        [
+                            ["label" => "Désactiver", "value" => 0, "checked" => !$type->isNotificationsEnabled()],
+                            ["label" => "Activer", "value" => 1, "checked" => $type->isNotificationsEnabled() && !$type->getNotificationsEmergencies()],
+                            ["label" => "Activer seulement si urgence", "value" => 2, "checked" => $type->isNotificationsEnabled() && $type->getNotificationsEmergencies()],
+                        ],
+                    ],
+                ]);
+
+                $emergencies = $fixedFieldRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY);
+                $emergencyValues = Stream::from($emergencies)
+                    ->map(fn(string $emergency) => "<option value='$emergency' " . (in_array($emergency, $type->getNotificationsEmergencies()) ? "selected" : "") . ">$emergency</option>")
+                    ->join("");
+
+                $data = array_merge($data, [[
+                    "label" => "Emplacement de prise par défaut",
+                    "value" => "<select name='pickLocation' data-s2='location' class='data form-control'>$pickLocationOption</select>",
+                ], [
+                    "label" => "Emplacement de dépose par défaut",
+                    "value" => "<select name='dropLocation' data-s2='location' class='data form-control'>$dropLocationOption</select>",
+                ], [
+                    "label" => "Notifications push",
+                    "value" => $pushNotifications,
+                ], [
+                    "label" => "Pour les valeurs",
+                    "value" => "<select name='notificationEmergencies' data-s2 data-no-empty-option multiple class='data form-control'>$emergencyValues</select>",
+                    "hidden" => !$type->isNotificationsEnabled() || !$type->getNotificationsEmergencies(),
+                ]]);
+            }
+        } else {
+            $data = [[
+                "label" => "Description",
+                "value" => $type->getDescription(),
+            ]];
+
+            if($category === CategoryType::DEMANDE_HANDLING) {
+                $data[] = [
+                    "label" => "Couleur",
+                    "value" => "<div class='dt-type-color' style='background: {$type->getColor()}'></div>",
+                ];
+            }
+
+            if(in_array($category, [CategoryType::DEMANDE_LIVRAISON, CategoryType::DEMANDE_COLLECTE])) {
+                $data[] = [
+                    "label" => "Notifications push",
+                    "value" => $type->isNotificationsEnabled() ? "Activées" : "Désactivées",
+                ];
+            }
+
+            if($category === CategoryType::DEMANDE_DISPATCH) {
+                $data = array_merge($data, [[
+                    "label" => "Description",
+                    "value" => $type->getDescription(),
+                ], [
+                    "label" => "Emplacement de prise par défaut",
+                    "value" => FormatHelper::location($type->getPickLocation()),
+                ], [
+                    "label" => "Emplacement de dépose par défaut",
+                    "value" => FormatHelper::location($type->getDropLocation()),
+                ], [
+                    "label" => "Notifications push",
+                    "value" => !$type->isNotificationsEnabled()
+                        ? "Désactivées"
+                        : ($type->getNotificationsEmergencies()
+                            ? "Activées seulement si urgence"
+                            : "Activées"),
+                ]]);
+
+                if($type->isNotificationsEnabled() && $type->getNotificationsEmergencies()) {
+                    $data[] = [
+                        "label" => "Pour les valeurs",
+                        "value" => join(", ", $type->getNotificationsEmergencies()),
+                    ];
+                }
             }
         }
 
