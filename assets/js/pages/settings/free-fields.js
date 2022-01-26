@@ -45,6 +45,20 @@ function generateFreeFieldForm() {
     };
 }
 
+function generateFreeFieldColumns(appliesTo = false) {
+    return [
+        {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+        {data: `label`, title: `Libellé`},
+        ...(appliesTo ? [{data: `appliesTo`, title: `S'applique à`}] : []),
+        {data: `type`, title: `Typage`},
+        {data: `elements`, title: `Éléments<br><div class='wii-small-text'>(Séparés par des ';')</div>`},
+        {data: `defaultValue`, title: `Valeur par défaut`},
+        {data: `displayedCreate`, title: `<div class='small-column'>Affiché à la création</div>`},
+        {data: `requiredCreate`, title: `<div class='small-column'>Obligatoire à la création</div>`},
+        {data: `requiredEdit`, title: `<div class='small-column'>Obligatoire à la modification</div>`},
+    ];
+}
+
 function defaultValueTypeChange() {
     const $select = $(this);
     const $row = $select.closest(`tr`);
@@ -95,16 +109,7 @@ export function createFreeFieldsPage($container, canEdit) {
         table: {
             route: (type) => Routing.generate('settings_free_field_api', {type}, true),
             deleteRoute: `settings_free_field_delete`,
-            columns: [
-                {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-                {data: `label`, title: `Libellé`},
-                {data: `type`, title: `Typage`},
-                {data: `elements`, title: `Éléments`},
-                {data: `defaultValue`, title: `Valeur par défaut`},
-                {data: `displayedCreate`, title: `<div class='small-column'>Affiché à la création</div>`},
-                {data: `requiredCreate`, title: `<div class='small-column'>Obligatoire à la création</div>`},
-                {data: `requiredEdit`, title: `<div class='small-column'>Obligatoire à la modification</div>`},
-            ],
+            columns: generateFreeFieldColumns(),
             form: generateFreeFieldForm(),
         },
     });
@@ -128,17 +133,7 @@ export function initializeStockArticlesTypesFreeFields($container, canEdit) {
         table: {
             route: (type) => Routing.generate('settings_free_field_api', {type}, true),
             deleteRoute: `settings_free_field_delete`,
-            columns: [
-                {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-                {data: `label`, title: `Libellé`},
-                {data: `appliesTo`, title: `S'applique à`},
-                {data: `type`, title: `Typage`},
-                {data: `elements`, title: `Éléments`},
-                {data: `defaultValue`, title: `Valeur par défaut`},
-                {data: `displayedCreate`, title: `<div class='small-column'>Affiché à la création</div>`},
-                {data: `requiredCreate`, title: `<div class='small-column'>Obligatoire à la création</div>`},
-                {data: `requiredEdit`, title: `<div class='small-column'>Obligatoire à la modification</div>`},
-            ],
+            columns: generateFreeFieldColumns(true),
             form: {
                 appliesTo: JSON.parse($(`#article-free-field-categories`).val()),
                 ...generateFreeFieldForm(),
@@ -168,16 +163,7 @@ export function initializeStockMovementsFreeFields($container, canEdit) {
         onEditStop: () => {
             $saveButton.removeClass('d-none');
         },
-        columns: [
-            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: `label`, title: `Libellé`},
-            {data: `type`, title: `Typage`},
-            {data: `elements`, title: `Éléments`},
-            {data: `defaultValue`, title: `Valeur par défaut`},
-            {data: `displayedCreate`, title: `<div class='small-column'>Affiché à la création</div>`},
-            {data: `requiredCreate`, title: `<div class='small-column'>Obligatoire à la création</div>`},
-            {data: `requiredEdit`, title: `<div class='small-column'>Obligatoire à la modification</div>`},
-        ],
+        columns: generateFreeFieldColumns(),
         form: generateFreeFieldForm(),
     });
 
