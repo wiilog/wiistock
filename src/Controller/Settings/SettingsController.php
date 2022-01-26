@@ -165,9 +165,9 @@ class SettingsController extends AbstractController {
             "right" => Action::SETTINGS_MOBILE,
             "menus" => [
                 self::MENU_DISPATCHES => ["label" => "Acheminements"],
-                self::MENU_PREPARATIONS => ["label" => "Préparations"],
                 self::MENU_HANDLINGS => ["label" => "Services"],
                 self::MENU_TRANSFERS => ["label" => "Transferts à traiter"],
+                self::MENU_PREPARATIONS => ["label" => "Préparations"],
                 self::MENU_VALIDATION => ["label" => "Gestion des validations"],
             ],
         ],
