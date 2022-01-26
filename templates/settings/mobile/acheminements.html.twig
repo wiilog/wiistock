@@ -1,0 +1,39 @@
+{% import 'form.html.twig' as form %}
+
+<div class="sub-content">
+    <div class="row">
+        <div class="col-3 d-flex align-items-center">
+            <span class="wii-field-name mr-3">Date attendue +1 jour</span>
+        </div>
+        <div class="col-9">
+            <input type="color"
+                   class="data form-control wii-color-picker"
+                   name="{{ setting('DISPATCH_EXPECTED_DATE_COLOR_AFTER') }}"
+                   value="{{ setting_value('DISPATCH_EXPECTED_DATE_COLOR_AFTER') }}">
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-3 d-flex align-items-center">
+            <span class="wii-field-name mr-3">Date attendue jour J</span>
+        </div>
+        <div class="col-9">
+            <input type="color"
+                   class="data form-control wii-color-picker"
+                   name="{{ setting('DISPATCH_EXPECTED_DATE_COLOR_D_DAY') }}"
+                   value="{{ setting_value('DISPATCH_EXPECTED_DATE_COLOR_D_DAY') }}">
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-3 d-flex align-items-center">
+            <span class="wii-field-name mr-3">Date attendue -1 jour</span>
+        </div>
+        <div class="col-9">
+            <input type="color"
+                   class="data form-control wii-color-picker"
+                   name="{{ setting('DISPATCH_EXPECTED_DATE_COLOR_BEFORE') }}"
+                   value="{{ setting_value('DISPATCH_EXPECTED_DATE_COLOR_BEFORE') }}">
+        </div>
+    </div>
+</div>
