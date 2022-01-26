@@ -1,0 +1,27 @@
+{% import 'form.html.twig' as form %}
+
+<div class="sub-content">
+    <div class="row">
+        <div class="col-12">
+            {{ form.select(setting('DEFAULT_LOCATION_RECEPTION'), "Emplacement de réception par défaut", false, {
+                labelClass: 'wii-field-name',
+                value: setting_value('DEFAULT_LOCATION_RECEPTION'),
+                type: 'location'
+            }) }}
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-12">
+            <label class="wii-field-name">Renommer les statuts de réception</label>
+            <div class="d-flex flex-wrap">
+                {% for status in receptionStatuses %}
+                    {% set classes = loop.index % 2 != 0 ? 'mb-2 w-50 pr-3' : 'mb-2 w-50' %}
+                    {{ form.input_group(status.id, status.code, false, status.nom, {
+                        groupClass: classes
+                    }) }}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>

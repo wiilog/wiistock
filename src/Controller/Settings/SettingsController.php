@@ -414,7 +414,12 @@ class SettingsController extends AbstractController {
                             ->prepend("<option disabled selected>Sélectionnez une nature</option>")
                             ->join("")
                     ],
-                ]
+                ],
+                self::MENU_RECEPTIONS => [
+                    self::MENU_RECEPTIONS_STATUSES => fn() => [
+                        "receptionStatuses" => $statusRepository->findByCategorieName(CategorieStatut::RECEPTION, 'displayOrder')
+                    ],
+                ],
             ],
             self::CATEGORY_TRACKING => [
                 self::MENU_DISPATCHES => [

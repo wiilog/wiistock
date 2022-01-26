@@ -383,6 +383,19 @@ input.no-overflow {
     padding-right: 5px !important;
 }
 
+.input-group {
+    .input-group-text {
+        background-color: #F2F3F7;
+        border: 2px solid #E8E9EC;
+        border-right: none;
+    }
+
+    input {
+        border: 2px solid #E8E9EC;
+        border-left: none;
+    }
+}
+
 .input-group-prepend {
     height: 35.59px;
 }

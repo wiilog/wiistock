@@ -97,8 +97,8 @@
     {% set value = options.value ?? [] %}
     {% set values = value is iterable ? value : [value] %}
 
-    <label class="{{ options.labelClass ?? '' }} {{ not options.search ?? true ? 'no-search' }}">
-        <span>{{ _self.label(label, required) }}</span>
+    <label class="{{ not options.search ?? true ? 'no-search' }}">
+        <span class="{{ options.labelClass ?? '' }}">{{ _self.label(label, required) }}</span>
         <select class="form-control w-100 data"
             {{ required ? 'required' }}
             {{ options.multiple ?? false ? 'multiple' }}
@@ -229,4 +229,18 @@
                    hidden {{ required ? 'required' }}>
         </div>
     </label>
+{% endmacro %}
+
+{% macro input_group(name, label, required, value = '', options = {}) %}
+{% set id = random(100000, 10000000) %}
+
+    <div class="input-group {{ options.groupClass ?? '' }}">
+        <div class="input-group-prepend">
+            <span class="input-group-text {{ options.labelClass ?? '' }}" id="{{ name }}-{{ id }}">
+                {{ label }}
+            </span>
+        </div>
+        <input type="text" class="form-control" name="{{ name }}"
+               aria-describedby="{{ name }}-{{ id }}" value="{{ value }}" {{ required ? 'required' }}>
+    </div>
 {% endmacro %}
