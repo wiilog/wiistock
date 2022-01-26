@@ -277,7 +277,7 @@ class SettingsController extends AbstractController {
 
     private const MENU_CSV_EXPORTS = "exports_csv";
     public const MENU_IMPORTS = "imports";
-    private const MENU_INVENTORIES_IMPORTS = "inventories_imports";
+    private const MENU_INVENTORIES_IMPORTS = "imports_inventaires";
 
     /**
      * @Required
@@ -352,7 +352,7 @@ class SettingsController extends AbstractController {
 
         return [
             self::CATEGORY_GLOBAL => [
-                self::MENU_CLIENT => [
+                self::MENU_CLIENT => fn() => [
                     "current_client" => $this->specificService->getAppClient(),
                 ],
                 self::MENU_MAIL_SERVER => fn() => [
