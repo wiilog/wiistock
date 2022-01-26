@@ -14,12 +14,14 @@ use App\Entity\Pack;
 use App\Entity\ParametrageGlobal;
 use App\Entity\PurchaseRequest;
 use App\Entity\ReferenceArticle;
+use App\Entity\Role;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -45,11 +47,38 @@ class SelectController extends AbstractController {
     }
 
     /**
+     * @Route("/select/roles", name="ajax_select_roles", options={"expose": true})
+     */
+    public function roles(Request $request, EntityManagerInterface $manager): Response {
+        $results = $manager->getRepository(Role::class)->getForSelect(
+            $request->query->get("term")
+        );
+
+        return $this->json([
+            "results" => $results,
+        ]);
+    }
+
+    /**
      * @Route("/select/types/services", name="ajax_select_handling_type", options={"expose": true})
      */
     public function handlingType(Request $request, EntityManagerInterface $manager): Response {
         $results = $manager->getRepository(Type::class)->getForSelect(
             CategoryType::DEMANDE_HANDLING,
+            $request->query->get("term")
+        );
+
+        return $this->json([
+            "results" => $results,
+        ]);
+    }
+
+    /**
+     * @Route("/select/types/dispatches", name="ajax_select_dispatch_type", options={"expose": true})
+     */
+    public function dispatchType(Request $request, EntityManagerInterface $manager): JsonResponse {
+        $results = $manager->getRepository(Type::class)->getForSelect(
+            CategoryType::DEMANDE_DISPATCH,
             $request->query->get("term")
         );
 

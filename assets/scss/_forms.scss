@@ -50,6 +50,8 @@ $wii-switch-height: $input-height;
     border: 1px solid $grey;
     height: $wii-switch-height;
     border-radius: 4px;
+    color: $black;
+    background-color: $white;
 
     input, input + label {
         display: flex;

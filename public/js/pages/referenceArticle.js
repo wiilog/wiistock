@@ -416,7 +416,6 @@ function updateFilters() {
     $('#filters .filter-parent[data-removable="1"]').remove();
     $.get(Routing.generate('update_filters'))
         .then(({templates}) => {
-            console.log(templates);
             if (templates.length === 0) {
                 $('.printButton').addClass('disabled');
             } else {

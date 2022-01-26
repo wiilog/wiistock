@@ -1519,18 +1519,11 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getMobileLoginKey(): string {
+    public function getMobileLoginKey(): ?string {
         return $this->mobileLoginKey;
     }
 
-    /**
-     * @param string $mobileLoginKey
-     * @return Utilisateur
-     */
-    public function setMobileLoginKey(string $mobileLoginKey): self {
+    public function setMobileLoginKey(?string $mobileLoginKey): self {
         $this->mobileLoginKey = $mobileLoginKey;
         return $this;
     }

@@ -3,6 +3,7 @@ import EditableDatatable, {MODE_ADD_ONLY, MODE_DOUBLE_CLICK, MODE_MANUAL, MODE_N
 import Flash, {INFO} from '../../flash';
 import {initializeImports} from "./data/imports.js";
 import {LOADING_CLASS} from "../../loading";
+import {initUserPage} from "./users/users";
 
 const index = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();
@@ -28,6 +29,7 @@ const initializers = {
     trace_services_champs_fixes: initializeHandlingFixedFields,
     stock_inventaires_frequences: initializeFrequencesTable,
     stock_inventaires_categories: initializeCategoriesTable,
+    utilisateurs_utilisateurs: initUserPage,
 };
 
 const slowOperations = [
@@ -37,7 +39,7 @@ const slowOperations = [
 
 const $saveButton = $(`.save-settings`);
 
-$(document).ready(() => {
+$(function() {
     let canEdit = $(`input#edit`).val();
 
     updateMenu(submenu || menu, canEdit);
@@ -181,7 +183,9 @@ function updateMenu(selectedMenu, canEdit) {
     const textTitle = $pageTitle.text();
     document.title = `Paramétrage | ${textTitle}`;
 
+    const requestQuery = GetRequestQuery() || {};
     history.pushState({}, title, Routing.generate(`settings_item`, {
+        ...requestQuery,
         category,
         menu,
         submenu,
