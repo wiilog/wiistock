@@ -465,14 +465,6 @@ input[type="checkbox"] {
     width: 80px;
     padding-top: 7px;
 
-    &::after {
-        content: '⯆';
-        display: block;
-        position: relative;
-        bottom: 20px;
-        left: 40px;
-    }
-
     option {
         border-radius: 50px;
     }

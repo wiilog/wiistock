@@ -154,6 +154,31 @@
     </label>
 {% endmacro %}
 
+{% macro color(name, label, required, value = '', options = {}) %}
+    {% set id = random(100000, 10000000) %}
+
+    <label class="{{ options.labelClass ?? '' }} {{ (options.inline ?? false) ? 'labelled-field' }}">
+        {% if label %}<span>{{ _self.label(label, required) }}</span>{% endif %}
+
+        <input type="color" list="color-input-{{ id }}"
+               class="data form-control wii-color-picker"
+               value="{{ value }}"
+            {{ required ? 'required' }}
+            {{ _self.common_attributes(name, options) }}
+            {{ _self.multiple_key(options) }}>
+        <datalist id="color-input-{{ id }}">
+            <option>#D76433</option>
+            <option>#D7B633</option>
+            <option>#A5D733</option>
+            <option>#33D7D1</option>
+            <option>#33A5D7</option>
+            <option>#3353D7</option>
+            <option>#6433D7</option>
+            <option>#D73353</option>
+        </datalist>
+    </label>
+{% endmacro %}
+
 {% macro number(name, label, required, value = '', options = {}) %}
     {% set disabled = options.disabled is defined and options.disabled ? 'disabled' %}
     <label class="{{ options.labelClass ?? '' }}">
