@@ -1033,4 +1033,70 @@ class SettingsController extends AbstractController {
         ]);
     }
 
+    /**
+     * @Route("/types-litige-api", name="types_litige_api", options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
+     */
+    public function typesLitigeApi(Request $request, EntityManagerInterface $manager) {
+        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
+        $data = [];
+        $typeRepository = $manager->getRepository(Type::class);
+        $typesLitige = $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]);
+        foreach($typesLitige as $type) {
+            if($edit) {
+                $data[] = [
+                    "actions" => "
+                        <button class='btn btn-silent delete-row' data-id='{$type->getId()}'>
+                            <i class='wii-icon wii-icon-trash text-primary'></i>
+                        </button>
+                        <input type='hidden' name='typeLitigeId' class='data' value='{$type->getId()}'/>",
+                    "label" => "<input type='text' name='label' class='form-control data needed' value='{$type->getLabel()}' data-global-error='Libellé'/>",
+                    "description" => "<input type='text' name='description' class='form-control data' value='{$type->getDescription()}' data-global-error='Description'/>",
+                ];
+            } else {
+                $data[] = [
+                    "actions" => "
+                        <button class='btn btn-silent delete-row' data-id='{$type->getId()}'>
+                            <i class='wii-icon wii-icon-trash text-primary'></i>
+                        </button>
+                    ",
+                    "label" => $type->getLabel(),
+                    "description" => $type->getDescription(),
+                ];
+            }
+        }
+
+        $data[] = [
+            "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
+            "label" => "",
+            "description" => "",
+        ];
+
+        return $this->json([
+            "data" => $data,
+            "recordsTotal" => count($data),
+            "recordsFiltered" => count($data),
+        ]);
+    }
+
+    /**
+     * @Route("/types_litiges/supprimer/{entity}", name="settings_delete_type_litige", options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
+     */
+    public function deleteTypeLitige(EntityManagerInterface $entityManager, Type $entity): Response {
+        if($entity->getReceptions()->isEmpty()) {
+            $entityManager->remove($entity);
+            $entityManager->flush();
+            return $this->json([
+                "success" => true,
+                "msg" => "La ligne a bien été supprimée",
+            ]);
+        } else {
+            return $this->json([
+                "success" => false,
+                "msg" => "Ce type de litige est lié à des réceptions. Vous ne pouvez pas le supprimer.",
+            ]);
+        }
+    }
+
 }

@@ -73,7 +73,7 @@ export default class EditableDatatable {
                     }
                 });
 
-                if(config.mode === MODE_DOUBLE_CLICK) {
+                if(config.mode === MODE_DOUBLE_CLICK || config.mode === MODE_EDIT_AND_ADD) {
                     $rows.off(`dblclick.${id}.startEdit`).on(`dblclick.${id}.startEdit`, function() {
                         if(datatable.state === STATE_VIEWING) {
                             datatable.toggleEdit(STATE_EDIT, true);

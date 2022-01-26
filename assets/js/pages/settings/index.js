@@ -28,6 +28,7 @@ const initializers = {
     trace_services_champs_fixes: initializeHandlingFixedFields,
     stock_inventaires_frequences: initializeFrequencesTable,
     stock_inventaires_categories: initializeCategoriesTable,
+    stock_receptions_types_litiges : initializeTypesLitige,
 };
 
 const slowOperations = [
@@ -583,3 +584,35 @@ function initializeCategoriesTable(){
         },
     });
 }
+
+function initializeTypesLitige(){
+    $saveButton.addClass('d-none');
+    const table = EditableDatatable.create(`#table-types-litige`, {
+        route: Routing.generate('types_litige_api', true),
+        deleteRoute: `settings_delete_type_litige`,
+        mode: MODE_EDIT_AND_ADD,
+        save: SAVE_MANUALLY,
+        search: false,
+        paginate: false,
+        scrollY: false,
+        scrollX: false,
+        onEditStart: () => {
+            $saveButton.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $saveButton.addClass('d-none');
+        },
+        columns: [
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+            {data: `label`, title: `Libellé`},
+            {data: `description`, title: `Description`},
+        ],
+        form: {
+            actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
+            label: `<input type='text' name='label' class='form-control data needed' data-global-error='Libellé'/>`,
+            description: `<input type='text' name='description' class='form-control data' data-global-error='Description'/>`,
+        },
+    });
+}
+
+

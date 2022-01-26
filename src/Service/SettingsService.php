@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\CategorieCL;
+use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
 use App\Entity\FieldsParam;
 use App\Entity\InventoryCategory;
@@ -265,6 +266,25 @@ class SettingsService {
                         ->setRequiredEdit($item["requiredEdit"])
                         ->setDisplayedFilters($item["displayedFilters"] ?? null);
                 }
+            }
+        }
+        if(isset($tables["typesLitigeTable"])){
+            foreach(array_filter($tables["typesLitigeTable"]) as $typeLitigeData) {
+                $typeLitigeRepository = $this->manager->getRepository(Type::class);
+                $categoryLitige = $this->manager->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::DISPUTE]);
+                $typeLitige = "";
+                if (isset($typeLitigeData['typeLitigeId'])){
+                    $typeLitige = $typeLitigeRepository->find($typeLitigeData['typeLitigeId']);
+                } else {
+                    $typeLitige = new Type();
+                    dump($categoryLitige);
+                    $typeLitige->setCategory($categoryLitige);
+                }
+                dump($typeLitigeData);
+                $typeLitige->setLabel($typeLitigeData['label']);
+                $typeLitige->setDescription(isset($typeLitigeData['description']) ? $typeLitigeData['description'] : "");
+
+                $this->manager->persist($typeLitige);
             }
         }
     }
