@@ -13,7 +13,8 @@
                     <div class="col-12">
                         <div class="wii-switch needed" data-title="Statut">
                             <input type="radio" name="status" value="1" content="Actif" title="Actif" {{ user.id and user.status ? 'checked' }}>
-                            <input type="radio" name="status" value="0" content="Inactif" title="Inactif" {{ user.id and not user.status ? 'checked' }}>
+                            <input type="radio" name="status" value="0" content="Inactif"
+                                   title="Inactif" {{ user.id and not user.status ? 'checked' }}>
                         </div>
                     </div>
                 </div>
@@ -41,7 +42,10 @@
                                value="{{ user.username }}"/>
                     </div>
                 </div>
-                <div class="form-group row">
+
+                {% set secondary_emails = (user.secondaryEmails ?? []) | filter(e => e) %}
+
+                <div class="form-group row {% if secondary_emails | length < 2 %}mb-0{% endif %}">
                     <label class="col-12 wii-field-name">Email</label>
                     <div class="col-12">
                         <input type="email"
@@ -50,9 +54,14 @@
                                name="email"
                                value="{{ user.email }}">
                     </div>
+                    {% if secondary_emails | length < 2 %}
+                        <div class="col-12" style="text-align: right">
+                            <span class="btn-link add-secondary-email font-weight-bold">Ajouter un email</span>
+                        </div>
+                    {% endif %}
                 </div>
 
-                {% for email in user.secondaryEmails %}
+                {% for email in secondary_emails %}
                     {% set label = 'Email' ~ (loop.index + 1) %}
                     <div class="form-group row">
                         <label class="col-12 wii-field-name">{{ label }}</label>
@@ -64,26 +73,20 @@
                                    value="{{ email }}">
                         </div>
                     </div>
-                {% else %}
-                    <div class="form-group row">
-                        <label class="col-12 wii-field-name">Email 2</label>
+                {% endfor %}
+
+                {% for i in range(secondary_emails | length + 1, 2) %}
+                    <div class="form-group row secondary-email d-none">
+                        <label class="col-12 wii-field-name">Email {{ i }}</label>
                         <div class="col-12">
                             <input type="email"
-                                   title="Email 2"
+                                   title="Email {{ i }}"
                                    class="form-control data-array w-100"
                                    name="secondaryEmails"/>
                         </div>
                     </div>
-                    <div class="form-group row">
-                        <label class="col-12 wii-field-name">Email 3</label>
-                        <div class="col-12">
-                            <input type="email"
-                                   title="Email 3"
-                                   class="form-control data-array w-100"
-                                   name="secondaryEmails">
-                        </div>
-                    </div>
                 {% endfor %}
+
                 <div class="form-group row">
                     <label class="col-12 wii-field-name">Mot de passe</label>
                     <div class="col-12">
@@ -121,7 +124,7 @@
                                class="form-control data w-100"
                                name="phoneNumber"
                                maxlength="10"
-                               value="{{ user.phone ?? ''}}">
+                               value="{{ user.phone ?? '' }}">
                     </div>
                 </div>
                 <div class="form-group row">
@@ -172,7 +175,7 @@
                 <div class="form-group row">
                     <label class="col-12 wii-field-name"
                            title="Types de service">
-                        {{'services.Types de service'|trans }}
+                        {{ 'services.Types de service'|trans }}
                     </label>
                     <div class="col-12">
                         <select name="handlingTypes"

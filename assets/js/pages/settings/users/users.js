@@ -1,6 +1,6 @@
 global.editRowUser = editRowUser;
 
-export function initUserPage() {
+export function initUserPage($container) {
     const tableUser = initDataTable('table-users', {
         processing: true,
         serverSide: true,
@@ -38,6 +38,18 @@ export function initUserPage() {
     let $submitDeleteUser = $("#submitDeleteUser");
     let pathDeleteUser = Routing.generate('user_delete', true);
     InitModal($modalDeleteUser, $submitDeleteUser, pathDeleteUser, {tables: [tableUser]});
+
+    $container.on(`click`, `.add-secondary-email`, function() {
+        const $modal = $(this).closest(`.modal`);
+
+        $modal.find(`.secondary-email.d-none`).first().removeClass(`d-none`);
+
+        if(!$modal.find(`.secondary-email.d-none`).exists()) {
+            $(this).addClass(`d-none`)
+                .closest(`.form-group`)
+                .removeClass(`mb-0`);
+        }
+    })
 }
 
 function editRowUser(button) {
