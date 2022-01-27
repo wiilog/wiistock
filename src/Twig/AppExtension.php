@@ -162,14 +162,20 @@ class AppExtension extends AbstractExtension {
         return constant(ParametrageGlobal::class . "::" . $setting);
     }
 
-    public function settingValue($setting): ?string {
+    public function settingValue($setting, $class = null) {
 
         if(!isset($this->settingsCache[$setting])) {
             $repository = $this->manager->getRepository(ParametrageGlobal::class);
             $this->settingsCache[$setting] = $repository->getOneParamByLabel($this->setting($setting));
         }
 
-        return $this->settingsCache[$setting];
+        $value = $this->settingsCache[$setting];
+
+        if($class) {
+            return $this->manager->find($class, $value);
+        } else {
+            return $value;
+        }
     }
 
 }

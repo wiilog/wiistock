@@ -3,9 +3,15 @@
 <div class="sub-content">
     <div class="row">
         <div class="col-12">
+            {% set location = setting_value('DEFAULT_LOCATION_RECEPTION', 'App\\Entity\\Emplacement') %}
+
             {{ form.select(setting('DEFAULT_LOCATION_RECEPTION'), "Emplacement de réception par défaut", false, {
                 labelClass: 'wii-field-name',
-                value: setting_value('DEFAULT_LOCATION_RECEPTION'),
+                value: location.id,
+                items: [{
+                    value: location.id,
+                    text: location.label,
+                }],
                 type: 'location'
             }) }}
         </div>
