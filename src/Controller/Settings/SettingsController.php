@@ -19,6 +19,7 @@ use App\Entity\Menu;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Statut;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\WorkFreeDay;
 use App\Helper\FormatHelper;
@@ -208,7 +209,10 @@ class SettingsController extends AbstractController {
                     "label" => "Langues",
                     "route" => "settings_language",
                 ],
-                self::MENU_USERS => ["label" => "Utilisateurs"],
+                self::MENU_USERS => [
+                    "label" => "Utilisateurs",
+                    "save" => false
+                ],
                 self::MENU_ROLES => ["label" => "Rôles"],
             ],
         ],
@@ -238,7 +242,7 @@ class SettingsController extends AbstractController {
     private const CATEGORY_DASHBOARDS = "dashboards";
     private const CATEGORY_IOT = "iot";
     private const CATEGORY_NOTIFICATIONS = "notifications";
-    private const CATEGORY_USERS = "utilisateurs";
+    public const CATEGORY_USERS = "utilisateurs";
     public const CATEGORY_DATA = "donnees";
 
     private const MENU_SITE_APPEARANCE = "apparence_site";
@@ -294,7 +298,7 @@ class SettingsController extends AbstractController {
 
     private const MENU_LANGUAGES = "langues";
     private const MENU_ROLES = "roles";
-    private const MENU_USERS = "utilisateurs";
+    public const MENU_USERS = "utilisateurs";
 
     private const MENU_CSV_EXPORTS = "exports_csv";
     public const MENU_IMPORTS = "imports";
@@ -590,6 +594,11 @@ class SettingsController extends AbstractController {
                     ),
                 ],
             ],
+            self::CATEGORY_USERS => [
+                self::MENU_USERS => fn() => [
+                    "newUser" => new Utilisateur()
+                ]
+            ]
         ];
     }
 

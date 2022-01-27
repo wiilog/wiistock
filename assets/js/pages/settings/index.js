@@ -2,6 +2,7 @@ import '../../../scss/pages/settings.scss';
 import EditableDatatable, {MODE_ADD_ONLY, MODE_DOUBLE_CLICK, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING, MODE_EDIT, MODE_EDIT_AND_ADD, } from "../../editatable";
 import Flash, {INFO} from '../../flash';
 import {LOADING_CLASS} from "../../loading";
+import {initUserPage} from "./users/users";
 import {initializeImports} from "./data/imports.js";
 import {initializeStockArticlesTypesFreeFields, createFreeFieldsPage, initializeStockMovementsFreeFields,} from "./free-fields";
 
@@ -37,6 +38,7 @@ const initializers = {
     stock_inventaires_frequences: initializeFrequencesTable,
     stock_inventaires_categories: initializeCategoriesTable,
     stock_groupes_visibilite: initializeVisibilityGroup,
+    utilisateurs_utilisateurs: initUserPage,
 };
 
 const slowOperations = [
@@ -46,7 +48,7 @@ const slowOperations = [
 
 const $saveButton = $(`.save-settings`);
 
-$(document).ready(() => {
+$(function() {
     let canEdit = $(`input#edit`).val();
 
     updateMenu(submenu || menu, canEdit);
@@ -193,7 +195,9 @@ function updateMenu(selectedMenu, canEdit) {
     const textTitle = $pageTitle.text();
     document.title = `Paramétrage | ${textTitle}`;
 
+    const requestQuery = GetRequestQuery() || {};
     history.pushState({}, title, Routing.generate(`settings_item`, {
+        ...requestQuery,
         category,
         menu,
         submenu,
