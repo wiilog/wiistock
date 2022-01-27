@@ -209,6 +209,7 @@
         <span>{{ _self.label(label, required) }}</span>
         <textarea class="form-control w-100 data"
                   {{ _self.common_attributes(name, options) }}
+                  rows="{{ options.rows ?? 3 }}" style="resize: vertical"
                   {{ required ? 'required' }}>
             {{- value | raw -}}
         </textarea>
