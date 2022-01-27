@@ -24,19 +24,9 @@
         </div>
 
         <div class="form-group d-flex flex-column col-12 mt-3">
-            <label class="wii-field-name">Logo sur étiquette</label>
-            <div class="d-flex">
-                <img src="{{ label_logo ? app.request.scheme ~ '://' ~ app.request.httpHost ~ '/' ~ label_logo : '' }}"
-                     id="preview-label-logo" alt="Logo choisi" height="50px" class="{{ label_logo ? '' : 'd-none' }}"/>
-
-                <button class="btn btn-primary"
-                        onclick="$('#upload-label-logo').click();">{{ label_logo ? "<i class='fas fa-pencil-alt'></i> ": 'Choisir un logo' }}</button>
-
-                <input type="file" id="upload-label-logo"
-                       name="{{ setting('LABEL_LOGO') }}"
-                       accept="image/png, image/jpeg, image/jpg"
-                       class="data force-data" hidden>
-            </div>
+            {{ form.image(setting('LABEL_LOGO'), 'Logo sur étiquette', false, setting_value('LABEL_LOGO'), {
+                labelClass: 'w-100 wii-field-name',
+            }) }}
         </div>
     </div>
 </div>
