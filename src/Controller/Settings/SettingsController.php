@@ -1084,7 +1084,7 @@ class SettingsController extends AbstractController {
     }
 
     /**
-     * @Route("/frequences-api", name="frequencies_api", options={"expose"=true})
+     * @Route("/frequences-api", name="settings_frequencies_api", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
      */
     public function frequenciesApi(Request $request, EntityManagerInterface $manager) {
@@ -1151,7 +1151,7 @@ class SettingsController extends AbstractController {
     }
 
     /**
-     * @Route("/categories-api", name="categories_api", options={"expose"=true})
+     * @Route("/categories-api", name="settings_categories_api", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
      */
     public function categoriesApi(Request $request, EntityManagerInterface $manager) {
@@ -1228,9 +1228,10 @@ class SettingsController extends AbstractController {
      * @Route("/categories/supprimer/{entity}", name="settings_delete_category", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
      */
-    public function deleteCategory(EntityManagerInterface $entityManager, InventoryFrequency $entity): Response {
+    public function deleteCategory(EntityManagerInterface $entityManager, InventoryCategory $entity): Response {
         $entityManager->remove($entity);
         $entityManager->flush();
+
         return $this->json([
             "success" => true,
             "msg" => "La ligne a bien été supprimée",

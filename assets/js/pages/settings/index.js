@@ -35,8 +35,8 @@ const initializers = {
     trace_arrivages_champs_fixes: initializeArrivalFixedFields,
     trace_services_champs_fixes: initializeHandlingFixedFields,
     stock_demandes_livraisons: initializeDeliveries,
-    stock_inventaires_frequences: initializeFrequencesTable,
-    stock_inventaires_categories: initializeCategoriesTable,
+    stock_inventaires_frequences: initializeInventoryFrequenciesTable,
+    stock_inventaires_categories: initializeInventoryCategoriesTable,
     stock_groupes_visibilite: initializeVisibilityGroup,
     utilisateurs_utilisateurs: initUserPage,
 };
@@ -496,11 +496,11 @@ function appendSelectOptions(typeSelect, locationSelect, type, location) {
         .trigger(`change`);
 }
 
-function initializeFrequencesTable(){
+function initializeInventoryFrequenciesTable(){
     $saveButton.addClass('d-none');
 
     const table = EditableDatatable.create(`#frequencesTable`, {
-        route: Routing.generate('frequencies_api', true),
+        route: Routing.generate('settings_frequencies_api', true),
         deleteRoute: `settings_delete_frequency`,
         mode: MODE_EDIT_AND_ADD,
         save: SAVE_MANUALLY,
@@ -527,12 +527,12 @@ function initializeFrequencesTable(){
     });
 }
 
-function initializeCategoriesTable(){
+function initializeInventoryCategoriesTable(){
     $saveButton.addClass('d-none');
     const $frequencyOptions = JSON.parse($(`#frequency_options`).val());
 
     const table = EditableDatatable.create(`#categoriesTable`, {
-        route: Routing.generate('categories_api', true),
+        route: Routing.generate('settings_categories_api', true),
         deleteRoute: `settings_delete_category`,
         mode: MODE_EDIT_AND_ADD,
         save: SAVE_MANUALLY,
