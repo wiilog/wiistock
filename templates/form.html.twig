@@ -209,6 +209,7 @@
         <span>{{ _self.label(label, required) }}</span>
         <textarea class="form-control w-100 data"
                   {{ _self.common_attributes(name, options) }}
+                  rows="{{ options.rows ?? 3 }}" style="resize: vertical"
                   {{ required ? 'required' }}>
             {{- value | raw -}}
         </textarea>
@@ -254,7 +255,7 @@
             <input type="file" id="upload-{{ name }}"
                    name="{{ name }}"
                    accept="image/png, image/jpeg, image/jpg, image/svg+xml, image/gif"
-                   class="data force-data" data-nullable
+                   class="data force-data" {{ options.defaultImage ?? false ? 'data-nullable' }}
                    onchange="updateImagePreview('#preview-{{ name }}', '#upload-{{ name }}')"
                    hidden {{ required ? 'required' }}>
         </div>
