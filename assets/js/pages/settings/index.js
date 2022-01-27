@@ -192,7 +192,7 @@ function updateMenu(selectedMenu, canEdit) {
         submenu = selectedMenu;
 
         const route = Routing.generate(`settings_item`, {category});
-        const categoryLabel = `<a href="${route}">${getCategoryLabel()}</a>`;
+        const categoryLabel = category !== `trace` ? `<a href="${route}">${getCategoryLabel()}</a>` : getCategoryLabel();
         title = `${categoryLabel} | ${getMenuLabel()} | <span class="bold">${getSubmenuLabel()}</span>`;
     }
 
