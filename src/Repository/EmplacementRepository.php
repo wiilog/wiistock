@@ -33,9 +33,10 @@ class EmplacementRepository extends EntityRepository
         $query = $this->createQueryBuilder("location");
 
         if($deliveryType) {
+            $types = is_array($deliveryType) ? $deliveryType : [$deliveryType];
             $query->leftJoin("location.allowedDeliveryTypes", "allowed_delivery_types")
-                ->andWhere("allowed_delivery_types.id = :type")
-                ->setParameter("type", $deliveryType);
+                ->andWhere("allowed_delivery_types.id IN (:types)")
+                ->setParameter("types", $types);
         }
 
         if($collectType) {
@@ -46,6 +47,7 @@ class EmplacementRepository extends EntityRepository
 
         return $query->select("location.id AS id, location.label AS text")
             ->andWhere("location.label LIKE :term")
+            ->andWhere("location.isActive = true")
             ->setParameter("term", "%$term%")
             ->getQuery()
             ->getArrayResult();

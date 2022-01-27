@@ -3,7 +3,9 @@
 namespace App\Service;
 
 use App\Entity\CategorieCL;
+use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
+use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
 use App\Entity\InventoryCategory;
 use App\Entity\InventoryFrequency;
@@ -11,6 +13,7 @@ use App\Entity\FreeField;
 use App\Entity\MailerServer;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Type;
+use App\Entity\VisibilityGroup;
 use App\Entity\WorkFreeDay;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -216,26 +219,40 @@ class SettingsService {
             }
         }
 
-        if(isset($tables["articlesFreeFields"])) {
-            $ids = array_map(fn($freeField) => $freeField["id"] ?? null, $tables["articlesFreeFields"]);
+        if(isset($tables["freeFields"])) {
+            $ids = array_map(fn($freeField) => $freeField["id"] ?? null, $tables["freeFields"]);
 
-            $type = $this->manager->find(Type::class, $data["entity"]);
-            $type->setDescription($data["description"] ?? null)
-                ->setColor($data["color"] ?? null);
+            if(isset($data["entity"])) {
+                $type = $this->manager->find(Type::class, $data["entity"]);
+                $type->setLabel($data["label"] ?? $type->getLabel())
+                    ->setDescription($data["description"] ?? null)
+                    ->setPickLocation(isset($data["pickLocation"]) ? $this->manager->find(Emplacement::class, $data["pickLocation"]) : null)
+                    ->setDropLocation(isset($data["dropLocation"]) ? $this->manager->find(Emplacement::class, $data["dropLocation"]) : null)
+                    ->setNotificationsEnabled($data["pushNotifications"] ?? false)
+                    ->setNotificationsEmergencies(isset($data["notificationEmergencies"]) ? explode(",", $data["notificationEmergencies"]) : null)
+                    ->setColor($data["color"] ?? null);
+            } else {
+                $type = $this->manager->getRepository(Type::class)->findOneByLabel(Type::LABEL_MVT_TRACA);
+            }
 
             $freeFieldRepository = $this->manager->getRepository(FreeField::class);
             $freeFields = Stream::from($freeFieldRepository->findBy(["id" => $ids]))
                 ->keymap(fn($day) => [$day->getId(), $day])
                 ->toArray();
 
-            foreach(array_filter($tables["articlesFreeFields"]) as $item) {
+            foreach(array_filter($tables["freeFields"]) as $item) {
                 /** @var FreeField $freeField */
                 $freeField = isset($item["id"]) ? $freeFields[$item["id"]] : new FreeField();
+
+                $existing = $freeFieldRepository->findOneBy(["label" => $item["label"]]);
+                if($existing && $existing->getId() != $freeField->getId()) {
+                    throw new RuntimeException("Un champ libre existe déjà avec le libellé {$item["label"]}");
+                }
 
                 $freeField->setLabel($item["label"])
                     ->setType($type)
                     ->setTypage($item["type"] ?? $freeField->getTypage())
-                    ->setCategorieCL($this->manager->find(CategorieCL::class, $item["category"]))
+                    ->setCategorieCL(isset($item["category"]) ? $this->manager->find(CategorieCL::class, $item["category"]) : null)
                     ->setDefaultValue($item["defaultValue"] ?? null)
                     ->setElements(isset($item["elements"]) ? explode(";", $item["elements"]) : null)
                     ->setDisplayedCreate($item["displayedCreate"])
@@ -265,6 +282,23 @@ class SettingsService {
                         ->setRequiredEdit($item["requiredEdit"])
                         ->setDisplayedFilters($item["displayedFilters"] ?? null);
                 }
+            }
+        }
+
+        if(isset($tables["visibilityGroup"])){
+            foreach(array_filter($tables["visibilityGroup"]) as $visibilityGroupData) {
+                $visibilityGroupRepository = $this->manager->getRepository(VisibilityGroup::class);
+                $visibilityGroup = "";
+                if (isset($visibilityGroupData['visibilityGroupId'])){
+                    $visibilityGroup = $visibilityGroupRepository->find($visibilityGroupData['visibilityGroupId']);
+                } else {
+                    $visibilityGroup = new VisibilityGroup();
+                }
+                $visibilityGroup->setLabel($visibilityGroupData['label']);
+                $visibilityGroup->setDescription($visibilityGroupData['description']);
+                $visibilityGroup->setActive($visibilityGroupData['actif']);
+
+                $this->manager->persist($visibilityGroup);
             }
         }
     }

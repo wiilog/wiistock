@@ -3,7 +3,7 @@
 <div class="w-100">
     <div class="wii-box mt-15px">
         <div class="header wii-title">{% block title %}{% endblock %}</div>
-        <div class="content focus-shadow">
+        <div class="sub-content focus-shadow">
             {% block filters %}{% endblock %}
         </div>
     </div>
@@ -36,6 +36,12 @@
         </div>
 
         {% block footer %}{% endblock %}
+
+        <input type="hidden" name="default-value-template" value="{{ form.switch('defaultValue', null, false, [
+            {label: 'Oui', value: '1'},
+            {label: 'Non', value: '0'},
+            {label: 'Aucune', value: null, checked: true},
+        ]) | json_encode }}">
     </div>
 </div>
 

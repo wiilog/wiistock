@@ -56,7 +56,7 @@ export default class Form {
         for(const input of $inputs) {
             let $input = $(input);
 
-            if($input.is(`:not(.force-data, [type="hidden"]):hidden`) ||
+            if($input.is(`:not(.force-data, [type="hidden"]):hidden`) && !$input.closest(`.wii-switch`).is(`:visible`) ||
                 (config.ignored && ($input.is(config.ignored) || $input.closest(config.ignored).exists()))) {
                 continue;
             }

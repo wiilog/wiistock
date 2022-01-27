@@ -5,146 +5,147 @@
 {% set mobile_logo_login = setting_value('MOBILE_LOGO_LOGIN') %}
 {% set mobile_logo_header = setting_value('MOBILE_LOGO_HEADER') %}
 
-<div class="row">
-    <div class="form-group w-fit-content col-6">
-        <label class="wii-field-name">Logo sur web entête</label>
-        <div class="form-group d-flex">
-            <div class="preview-container stripped-background d-flex p-1 mr-2">
-                <img src="{{ website_logo ? app.request.scheme ~'://'~ app.request.httpHost ~ "/" ~ website_logo : '' }}"
-                     id="preview-website-logo"
-                     alt="Logo choisi"
-                     height="50px"
-                     class="image {{ not website_logo ? 'd-none' }}"/>
+<div class="sub-content">
+    <div class="row">
+        <div class="form-group w-fit-content col-6">
+            <label class="wii-field-name">Logo sur web entête</label>
+            <div class="form-group d-flex">
+                <div class="preview-container stripped-background d-flex p-1 mr-2">
+                    <img src="{{ website_logo ? app.request.scheme ~'://'~ app.request.httpHost ~ "/" ~ website_logo : '' }}"
+                         id="preview-website-logo"
+                         alt="Logo choisi"
+                         height="50px"
+                         class="image {{ not website_logo ? 'd-none' }}"/>
+                </div>
+                <input type="hidden" class="default-value" value="{{ setting('DEFAULT_WEBSITE_LOGO_VALUE') }}"/>
+                <button class="btn btn-primary" onclick="$('#upload-website-logo').click();">
+                    {{ website_logo ? "<i class='fas fa-pencil-alt'></i> " : 'Choisir un logo' }}
+                </button>
+
+                <button class="btn btn-primary ml-2"
+                        data-name="website"
+                        onclick="resetImage($(this))">
+                    <i class="fas fa-undo"></i>
+                </button>
+
+                <input type="file" id="upload-website-logo"
+                       name="{{ setting('WEBSITE_LOGO') }}"
+                       accept="image/png, image/jpeg, image/jpg, image/svg+xml, image/gif"
+                       class="data force-data" hidden>
             </div>
-            <input type="hidden" class="default-value" value="{{ setting('DEFAULT_WEBSITE_LOGO_VALUE') }}"/>
-            <button class="btn btn-primary" onclick="$('#upload-website-logo').click();">
-                {{ website_logo ? "<i class='fas fa-pencil-alt'></i> " : 'Choisir un logo' }}
-            </button>
+        </div>
 
-            <button class="btn btn-primary ml-2"
-                    data-name="website"
-                    onclick="resetImage($(this))">
-                <i class="fas fa-undo"></i>
-            </button>
+        <div class="form-group w-fit-content col-6">
+            <label class="wii-field-name">Logo sur nomade page connexion</label>
+            <div class="form-group d-flex">
+                <div class="preview-container stripped-background d-flex p-1 mr-2">
+                    <img src="{{ mobile_logo_login ? app.request.scheme ~ '://'~ app.request.httpHost ~ "/" ~ mobile_logo_login : '' }}"
+                         id="preview-mobile-logo-login"
+                         alt="Logo choisi"
+                         height="50px"
+                         class="image {{ not mobile_logo_login ? 'd-none' }}"/>
+                </div>
+                <button class="btn btn-primary"
+                        onclick="$('#upload-mobile-logo-login').click();">
+                    {{ mobile_logo_login ? "<i class='fas fa-pencil-alt'></i> " : 'Choisir un logo' }}
+                </button>
+                <input type="hidden" class="default-value" value="{{ setting('DEFAULT_MOBILE_LOGO_LOGIN_VALUE') }}"/>
 
-            <input type="file" id="upload-website-logo"
-                   name="{{ setting('WEBSITE_LOGO') }}"
-                   accept="image/png, image/jpeg, image/jpg, image/svg+xml, image/gif"
-                   class="data force-data" hidden>
+                <button class="btn btn-primary ml-2"
+                        data-name="nomadeAccueil"
+                        onclick="resetImage($(this))">
+                    <i class="fas fa-undo"></i>
+                </button>
+
+                <input type="file" id="upload-mobile-logo-login"
+                       name="{{ setting('MOBILE_LOGO_LOGIN') }}"
+                       accept="image/png, image/jpeg, image/jpg, image/svg+xml, image/gif"
+                       class="data force-data" hidden>
+            </div>
         </div>
     </div>
 
-    <div class="form-group w-fit-content col-6">
-        <label class="wii-field-name">Logo sur nomade page connexion</label>
-        <div class="form-group d-flex">
-            <div class="preview-container stripped-background d-flex p-1 mr-2">
-                <img src="{{ mobile_logo_login ? app.request.scheme ~ '://'~ app.request.httpHost ~ "/" ~ mobile_logo_login : '' }}"
-                     id="preview-mobile-logo-login"
-                     alt="Logo choisi"
-                     height="50px"
-                     class="image {{ not mobile_logo_login ? 'd-none' }}"/>
+    <div class="row">
+        <div class="form-group w-fit-content col-6">
+            <label class="wii-field-name">Logo sur les emails</label>
+            <div class="form-group d-flex">
+                <div class="preview-container stripped-background d-flex p-1 mr-2">
+                    <img src="{{ email_logo ? app.request.scheme ~'://'~ app.request.httpHost ~ "/" ~ email_logo : '' }}"
+                         id="preview-email-logo"
+                         alt="Logo choisi"
+                         height="50px"
+                         class="image {{ not email_logo ? 'd-none' }}"/>
+                </div>
+                <button class="btn btn-primary"
+                        onclick="$('#upload-email-logo').click();">{{ email_logo ? "<i class='fas fa-pencil-alt'></i> " : 'Choisir un logo' }}</button>
+                <input type="hidden" class="default-value" value="{{ setting('DEFAULT_EMAIL_LOGO_VALUE') }}"/>
+
+                <button class="btn btn-primary ml-2"
+                        data-name="mailLogo"
+                        onclick="resetImage($(this))">
+                    <i class="fas fa-undo"></i>
+                </button>
+
+                <input type="file" id="upload-email-logo"
+                       name="{{ setting('EMAIL_LOGO') }}"
+                       accept="image/png, image/jpeg, image/jpg, image/svg+xml, image/gif"
+                       class="data force-data" hidden>
             </div>
-            <button class="btn btn-primary"
-                    onclick="$('#upload-mobile-logo-login').click();">
-                {{ mobile_logo_login ? "<i class='fas fa-pencil-alt'></i> " : 'Choisir un logo' }}
-            </button>
-            <input type="hidden" class="default-value" value="{{ setting('DEFAULT_MOBILE_LOGO_LOGIN_VALUE') }}"/>
+        </div>
 
-            <button class="btn btn-primary ml-2"
-                    data-name="nomadeAccueil"
-                    onclick="resetImage($(this))">
-                <i class="fas fa-undo"></i>
-            </button>
+        <div class="form-group w-fit-content col-6">
+            <label class="wii-field-name">Logo sur nomade entête</label>
+            <div class="form-group d-flex">
+                <div class="preview-container stripped-background d-flex p-1 mr-2">
+                    <img src="{{ mobile_logo_header ? app.request.scheme ~ '://'~ app.request.httpHost ~ "/" ~ mobile_logo_header : '' }}"
+                         id="preview-mobile-logo-header"
+                         alt="Logo choisi"
+                         height="50px"
+                         class="image {{ not mobile_logo_header ? 'd-none' }}"/>
+                </div>
+                <button class="btn btn-primary"
+                        onclick="$('#upload-mobile-logo-header').click();">
+                    {{ mobile_logo_header ? "<i class='fas fa-pencil-alt'></i> " : 'Choisir un logo' }}
+                </button>
+                <input type="hidden" class="default-value" value="{{ setting('DEFAULT_MOBILE_LOGO_HEADER_VALUE') }}"/>
 
-            <input type="file" id="upload-mobile-logo-login"
-                   name="{{ setting('MOBILE_LOGO_LOGIN') }}"
-                   accept="image/png, image/jpeg, image/jpg, image/svg+xml, image/gif"
-                   class="data force-data" hidden>
+                <button class="btn btn-primary ml-2"
+                        data-name="nomadeHeader"
+                        onclick="resetImage($(this))">
+                    <i class="fas fa-undo"></i>
+                </button>
+
+                <input type="file" id="upload-mobile-logo-header"
+                       name="{{ setting('MOBILE_LOGO_HEADER') }}"
+                       accept="image/png, image/jpeg, image/jpg, image/svg+xml, image/gif"
+                       class="data force-data" hidden>
+            </div>
         </div>
     </div>
-</div>
 
-<div class="row">
-    <div class="form-group w-fit-content col-6">
-        <label class="wii-field-name">Logo sur les emails</label>
-        <div class="form-group d-flex">
-            <div class="preview-container stripped-background d-flex p-1 mr-2">
-                <img src="{{ email_logo ? app.request.scheme ~'://'~ app.request.httpHost ~ "/" ~ email_logo : '' }}"
-                     id="preview-email-logo"
-                     alt="Logo choisi"
-                     height="50px"
-                     class="image {{ not email_logo ? 'd-none' }}"/>
-            </div>
-            <button class="btn btn-primary"
-                    onclick="$('#upload-email-logo').click();">{{ email_logo ? "<i class='fas fa-pencil-alt'></i> " : 'Choisir un logo' }}</button>
-            <input type="hidden" class="default-value" value="{{ setting('DEFAULT_EMAIL_LOGO_VALUE') }}"/>
-
-            <button class="btn btn-primary ml-2"
-                    data-name="mailLogo"
-                    onclick="resetImage($(this))">
-                <i class="fas fa-undo"></i>
-            </button>
-
-            <input type="file" id="upload-email-logo"
-                   name="{{ setting('EMAIL_LOGO') }}"
-                   accept="image/png, image/jpeg, image/jpg, image/svg+xml, image/gif"
-                   class="data force-data" hidden>
+    <div class="row">
+        <div class="form-group w-fit-content col-6">
+            {{ form.select(setting('FONT_FAMILY'), 'Choix de la police', true, {
+                labelClass: 'wii-field-name w-100',
+                items: setting('FONTS'),
+                value: setting_value('FONT_FAMILY')
+            }) }}
         </div>
     </div>
 
-    <div class="form-group w-fit-content col-6">
-        <label class="wii-field-name">Logo sur nomade entête</label>
-        <div class="form-group d-flex">
-            <div class="preview-container stripped-background d-flex p-1 mr-2">
-                <img src="{{ mobile_logo_header ? app.request.scheme ~ '://'~ app.request.httpHost ~ "/" ~ mobile_logo_header : '' }}"
-                     id="preview-mobile-logo-header"
-                     alt="Logo choisi"
-                     height="50px"
-                     class="image {{ not mobile_logo_header ? 'd-none' }}"/>
-            </div>
-            <button class="btn btn-primary"
-                    onclick="$('#upload-mobile-logo-header').click();">
-                {{ mobile_logo_header ? "<i class='fas fa-pencil-alt'></i> " : 'Choisir un logo' }}
-            </button>
-            <input type="hidden" class="default-value" value="{{ setting('DEFAULT_MOBILE_LOGO_HEADER_VALUE') }}"/>
-
-            <button class="btn btn-primary ml-2"
-                    data-name="nomadeHeader"
-                    onclick="resetImage($(this))">
-                <i class="fas fa-undo"></i>
-            </button>
-
-            <input type="file" id="upload-mobile-logo-header"
-                   name="{{ setting('MOBILE_LOGO_HEADER') }}"
-                   accept="image/png, image/jpeg, image/jpg, image/svg+xml, image/gif"
-                   class="data force-data" hidden>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <div class="form-group w-fit-content col-6">
-        {{ form.select(setting('FONT_FAMILY'), 'Choix de la police', true, {
-            labelClass: 'wii-field-name w-100',
-            items: setting('FONTS'),
-            value: setting_value('FONT_FAMILY')
-        }) }}
-    </div>
-</div>
-
-<div class="row">
-    <div class="form-group w-fit-content col-6">
-        {{ form.input(setting('MAX_SESSION_TIME'),
-            '<span class="wii-field-name">Temps de session en minutes&nbsp;</span><span class="wii-medium-text">(maximum 24h)</span>',
-            true,
-            setting_value('MAX_SESSION_TIME'),
-            {
-                labelClass: 'w-100',
-                tooltip: {
+    <div class="row">
+        <div class="form-group w-fit-content col-6">
+            {{ form.input(setting('MAX_SESSION_TIME'),
+                '<span class="wii-field-name">Temps de session en minutes&nbsp;</span><span class="wii-medium-text">(maximum 24h)</span>',
+                true,
+                setting_value('MAX_SESSION_TIME'),
+                {
+                    labelClass: 'w-100',
+                    tooltip: {
                     text: "Ce paramètre définit le temps d'inactivité maximum en minutes avant que l'utilisateur soit
                     déconnecté. Le paramétrage ne prendra effet qu'à la prochaine connexion de l'utilisateur.",
                 }
-            })
-        }}
+                }) }}
+        </div>
     </div>
 </div>

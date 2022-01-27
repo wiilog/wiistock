@@ -462,14 +462,21 @@ input[type="checkbox"] {
 }
 
 .wii-color-picker {
-    width: 80px !important;
-
-    &::-webkit-color-swatch {
-        border-radius: 50px;
-        border: none;
-    }
+    width: 80px;
+    padding-top: 7px;
 
     option {
         border-radius: 50px;
+    }
+
+    &::-webkit-color-swatch {
+        border: none;
+        border-radius: 50%;
+    }
+
+    &::-webkit-color-swatch-wrapper {
+        padding: 0;
+        width: 18px;
+        height: 18px;
     }
 }
