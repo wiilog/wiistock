@@ -163,18 +163,15 @@ class AppExtension extends AbstractExtension {
     }
 
     public function settingValue($setting, $class = null) {
-
-        if (!isset($this->settingsCache[$setting])) {
+        if(!isset($this->settingsCache[$setting])) {
             $repository = $this->manager->getRepository(ParametrageGlobal::class);
             $this->settingsCache[$setting] = $repository->getOneParamByLabel($this->setting($setting));
-            if ($class && $this->settingsCache[$setting]) {
-                $this->settingsCache[$setting] = $this->manager->find($class, $this->settingsCache[$setting]);
-            } else {
-                return null;
-            }
         }
-
-        return $this->settingsCache[$setting];
+        $value = $this->settingsCache[$setting];
+        if($class) {
+            return $this->manager->find($class, $value);
+        } else {
+            return $value;
+        }
     }
-
 }

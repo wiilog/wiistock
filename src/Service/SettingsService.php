@@ -173,6 +173,15 @@ class SettingsService {
             $saved[] = ParametrageGlobal::MOBILE_LOGO_HEADER;
         }
 
+        if ($request->request->has("typesAndLocations")){
+            $data = json_decode($request->request->get('typesAndLocations'), true);
+            $setting = $settings[ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON];
+            $associatedTypesAndLocations = array_combine($data['types'], $data['locations']);
+            $setting->setValue(json_encode($associatedTypesAndLocations));
+
+            $saved[] = ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON;
+        }
+
         return $saved;
     }
 
