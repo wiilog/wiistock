@@ -54,6 +54,7 @@ class AppExtension extends AbstractExtension {
             new TwigFunction('setting', [$this, 'setting']),
             new TwigFunction('setting_value', [$this, 'settingValue']),
             new TwigFunction('call', [$this, 'call']),
+            new TwigFunction('interleave', [$this, 'interleave']),
         ];
     }
 
@@ -174,6 +175,23 @@ class AppExtension extends AbstractExtension {
             }
         }
         return $this->settingsCache[$setting];
+    }
+
+    public function interleave(array $array1, array $array2): array {
+        $results = [];
+        $array1Keys = array_keys($array1);
+        $array2Keys = array_keys($array2);
+
+        for ($i = 0; $i < count(max($array1, $array2)); $i++) {
+            if(isset($array1Keys[$i])) {
+                $results[$array1Keys[$i]] = $array1[$array1Keys[$i]];
+            }
+            if(isset($array2Keys[$i])) {
+                $results[$array2Keys[$i]] = $array2[$array2Keys[$i]];
+            }
+        }
+
+        return $results;
     }
 
 }
