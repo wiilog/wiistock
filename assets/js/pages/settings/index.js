@@ -2,6 +2,7 @@ import '../../../scss/pages/settings.scss';
 import EditableDatatable, {MODE_ADD_ONLY, MODE_DOUBLE_CLICK, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING, MODE_EDIT, MODE_EDIT_AND_ADD, } from "../../editatable";
 import Flash, {INFO} from '../../flash';
 import {LOADING_CLASS} from "../../loading";
+import {initUserPage} from "./users/users";
 import {initializeImports} from "./data/imports.js";
 import {initializeStockArticlesTypesFreeFields, createFreeFieldsPage, initializeStockMovementsFreeFields,} from "./free-fields";
 
@@ -12,6 +13,8 @@ let submenu = $(`input#submenu`).val();
 
 let currentForm = null;
 const forms = {};
+
+let editing = false;
 
 //keys are from url with / replaced by _
 //http://wiistock/parametrage/afficher/stock/receptions/champs_fixes_receptions => stock_receptions_champs_fixes_receptions
@@ -34,9 +37,10 @@ const initializers = {
     trace_arrivages_champs_fixes: initializeArrivalFixedFields,
     trace_services_champs_fixes: initializeHandlingFixedFields,
     stock_demandes_livraisons: initializeDeliveries,
-    stock_inventaires_frequences: initializeFrequencesTable,
-    stock_inventaires_categories: initializeCategoriesTable,
+    stock_inventaires_frequences: initializeInventoryFrequenciesTable,
+    stock_inventaires_categories: initializeInventoryCategoriesTable,
     stock_groupes_visibilite: initializeVisibilityGroup,
+    utilisateurs_utilisateurs: initUserPage,
 };
 
 const slowOperations = [
@@ -45,19 +49,25 @@ const slowOperations = [
 ];
 
 const $saveButton = $(`.save-settings`);
+const $discardButton = $(`.discard-settings`);
+const $managementButtons = $(`.save-settings, .discard-settings`);
 
-$(document).ready(() => {
+$(function() {
     let canEdit = $(`input#edit`).val();
 
     updateMenu(submenu || menu, canEdit);
 
     $(`.settings-item`).on(`click`, function() {
-        const selectedMenu = $(this).data(`menu`);
+        console.log(editing);
+        if (!editing || (editing && window.confirm("Vous avez des modifications en attente, souhaitez vous continuer ?"))) {
+            const selectedMenu = $(this).data(`menu`);
 
-        $(`.settings-item.selected`).removeClass(`selected`);
-        $(this).addClass(`selected`);
-
-        updateMenu(selectedMenu, canEdit);
+            $(`.settings-item.selected`).removeClass(`selected`);
+            $(this).addClass(`selected`);
+            console.log('coucou');
+            updateMenu(selectedMenu, canEdit);
+            editing = false;
+        }
     });
 
     $saveButton.on(`click`, async function() {
@@ -71,14 +81,14 @@ $(document).ready(() => {
 
         if(data) {
             const tables = {};
-            form.element.find(`[id][data-table-processing]`).each(function() {
+            form.element.find(`[data-table-processing]`).each(function() {
                 const datatable = EditableDatatable.of(this);
-                const tableData = datatable.data();
-                tables[$(this).data(`table-processing`)] = tableData;
-                tablesToReload.push(datatable);
-                hasErrors = Object.keys(tableData)
-                    .filter((rowKey) => !tableData[rowKey])
-                    .length > 0;
+                if (datatable) {
+                    const tableData = datatable.data();
+                    tables[$(this).data(`table-processing`)] = tableData;
+                    tablesToReload.push(datatable);
+                    hasErrors = tableData.filter(row => !row).length > 0;
+                }
             });
 
             if(Object.entries(tables).length) {
@@ -99,7 +109,7 @@ $(document).ready(() => {
             return slowOperations.indexOf(n) !== -1;
         });
 
-        if(slow || $saveButton.hasClass(LOADING_CLASS)) {
+        if(slow) {
             Flash.add(`info`, `Mise à jour des paramétrage en cours, cette opération peut prendre quelques minutes`, false);
         }
 
@@ -120,6 +130,15 @@ $(document).ready(() => {
             .catch(() => {
                 $saveButton.popLoader();
             });
+    });
+
+    $discardButton.on('click', function() {
+        if ($saveButton.hasClass(LOADING_CLASS)) {
+            Flash.add(INFO, `Une opération est en cours de traitement`);
+            return;
+        }
+
+        window.location.reload();
     });
 
     $(document).on(`click`, `.submit-field-param`, function() {
@@ -164,7 +183,7 @@ function updateMenu(selectedMenu, canEdit) {
     $selectedMenu.removeClass(`d-none`);
 
     const displaySaveButton = $selectedMenu.data('saveButton');
-    $saveButton.toggleClass('d-none', !displaySaveButton);
+    $managementButtons.toggleClass('d-none', !displaySaveButton);
 
     let title;
     if(!submenu) {
@@ -179,7 +198,6 @@ function updateMenu(selectedMenu, canEdit) {
     const $element = $(`[data-path="${path}"]`);
 
     if(!forms[path]) {
-        currentForm = path;
         forms[path] = {
             element: $element,
             ...(initializers[path] ? initializers[path]($element, canEdit) : []),
@@ -187,13 +205,16 @@ function updateMenu(selectedMenu, canEdit) {
 
         console.log(initializers[path] ? `Initializiing ${path}` : `No initializer for ${path}`);
     }
+    currentForm = path;
 
     const $pageTitle = $(`#page-title`);
     $pageTitle.html(title);
     const textTitle = $pageTitle.text();
     document.title = `Paramétrage | ${textTitle}`;
 
+    const requestQuery = GetRequestQuery() || {};
     history.pushState({}, title, Routing.generate(`settings_item`, {
+        ...requestQuery,
         category,
         menu,
         submenu,
@@ -201,17 +222,23 @@ function updateMenu(selectedMenu, canEdit) {
 }
 
 function initializeWorkingHours($container, canEdit) {
-    $saveButton.addClass('d-none');
+    $managementButtons.addClass('d-none');
 
     const table = EditableDatatable.create(`#table-working-hours`, {
         route: Routing.generate('settings_working_hours_api', true),
         mode: canEdit ? MODE_DOUBLE_CLICK : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
-        onEditStart: () => $saveButton.addClass('d-none'),
-        onEditStop: () => $saveButton.removeClass('d-none'),
+        onEditStart: () => {
+            editing = true;
+            $managementButtons.removeClass('d-none')
+        },
+        onEditStop: () => {
+            editing = false;
+            $managementButtons.addClass('d-none')
+        },
         columns: [
             {data: `day`, title: `Jour`},
-            {data: `hours`, title: `Horaires de travail`},
+            {data: `hours`, title: `Horaires de travail<br><div class='wii-small-text'>Horaires sous la forme HH:MM-HH:MM;HH:MM-HH:MM</div>`},
             {data: `worked`, title: `Travaillé`},
         ],
     });
@@ -221,7 +248,7 @@ function initializeOffDays($container, canEdit) {
     const $addButton = $container.find(`.add-row-button`);
     const $tableHeader = $(`.wii-page-card-header`);
 
-    $saveButton.addClass('d-none');
+    $managementButtons.addClass('d-none');
 
     const table = EditableDatatable.create(`#table-off-days`, {
         route: Routing.generate(`settings_off_days_api`, true),
@@ -234,11 +261,11 @@ function initializeOffDays($container, canEdit) {
             $addButton.removeClass(`d-none`);
         },
         onEditStart: () => {
-            $saveButton.removeClass('d-none');
+            $managementButtons.removeClass('d-none');
             $tableHeader.addClass('d-none');
         },
         onEditStop: () => {
-            $saveButton.removeClass('d-none');
+            $managementButtons.removeClass('d-none');
             $tableHeader.removeClass('d-none');
         },
         columns: [
@@ -291,8 +318,12 @@ function initializeReceptionFixedFields($container, canEdit) {
         save: SAVE_MANUALLY,
         ordering: false,
         paginate: false,
-        onEditStart: () => $saveButton.show(),
-        onEditStop: () => $saveButton.hide(),
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
         columns: [
             {data: `label`, title: `Champ fixe`},
             {data: `displayedCreate`, title: `Afficher`},
@@ -311,8 +342,12 @@ function initializeDispatchFixedFields($container, canEdit) {
         save: SAVE_MANUALLY,
         ordering: false,
         paginate: false,
-        onEditStart: () => $saveButton.show(),
-        onEditStop: () => $saveButton.hide(),
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
         columns: [
             {data: `label`, title: `Champ fixe`},
             {data: `displayedCreate`, title: `Afficher`},
@@ -331,8 +366,12 @@ function initializeArrivalFixedFields($container, canEdit) {
         save: SAVE_MANUALLY,
         ordering: false,
         paginate: false,
-        onEditStart: () => $saveButton.show(),
-        onEditStop: () => $saveButton.hide(),
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
         columns: [
             {data: `label`, title: `Champ fixe`},
             {data: `displayedCreate`, title: `Afficher`},
@@ -351,8 +390,12 @@ function initializeHandlingFixedFields($container, canEdit) {
         save: SAVE_MANUALLY,
         ordering: false,
         paginate: false,
-        onEditStart: () => $saveButton.show(),
-        onEditStop: () => $saveButton.hide(),
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
         columns: [
             {data: `label`, title: `Champ fixe`},
             {data: `displayedCreate`, title: `Afficher`},
@@ -383,7 +426,6 @@ function initializeDeliveries() {
         onTypeChange($(this));
     });
     $(document).arrive('select[name=deliveryType]', function() {
-        console.log('test');
         $(this).on('change', function () {
             onTypeChange($(this));
         });
@@ -454,9 +496,6 @@ function onTypeChange($select) {
         isAllSpecifiedTypes = $select.data("length") <= 1;
     }
 
-    console.log($select.val() === `all`);
-    console.log(!allFilledSelect);
-    console.log(isAllSpecifiedTypes);
     $newTypeAssociationButton.prop(`disabled`, $select.val() === `all` || !allFilledSelect || isAllSpecifiedTypes);
 }
 
@@ -479,7 +518,6 @@ function setAlreadyDefinedTypes() {
         types.push($(this).val());
     });
 
-    console.log(types.join(';'));
     $('input[name=alreadyDefinedTypes]').val(types.join(';'));
 }
 
@@ -493,11 +531,11 @@ function appendSelectOptions(typeSelect, locationSelect, type, location) {
         .trigger(`change`);
 }
 
-function initializeFrequencesTable(){
-    $saveButton.addClass('d-none');
+function initializeInventoryFrequenciesTable(){
+    $managementButtons.addClass('d-none');
 
     const table = EditableDatatable.create(`#frequencesTable`, {
-        route: Routing.generate('frequencies_api', true),
+        route: Routing.generate('settings_frequencies_api', true),
         deleteRoute: `settings_delete_frequency`,
         mode: MODE_EDIT_AND_ADD,
         save: SAVE_MANUALLY,
@@ -506,10 +544,10 @@ function initializeFrequencesTable(){
         scrollY: false,
         scrollX: false,
         onEditStart: () => {
-            $saveButton.removeClass('d-none');
+            $managementButtons.removeClass('d-none');
         },
         onEditStop: () => {
-            $saveButton.addClass('d-none');
+            $managementButtons.addClass('d-none');
         },
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
@@ -524,12 +562,12 @@ function initializeFrequencesTable(){
     });
 }
 
-function initializeCategoriesTable(){
-    $saveButton.addClass('d-none');
+function initializeInventoryCategoriesTable(){
+    $managementButtons.addClass('d-none');
     const $frequencyOptions = JSON.parse($(`#frequency_options`).val());
 
     const table = EditableDatatable.create(`#categoriesTable`, {
-        route: Routing.generate('categories_api', true),
+        route: Routing.generate('settings_categories_api', true),
         deleteRoute: `settings_delete_category`,
         mode: MODE_EDIT_AND_ADD,
         save: SAVE_MANUALLY,
@@ -538,10 +576,10 @@ function initializeCategoriesTable(){
         scrollY: false,
         scrollX: false,
         onEditStart: () => {
-            $saveButton.removeClass('d-none');
+            $managementButtons.removeClass('d-none');
         },
         onEditStop: () => {
-            $saveButton.addClass('d-none');
+            $managementButtons.addClass('d-none');
         },
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
@@ -563,7 +601,7 @@ function initializeVisibilityGroup($container, canEdit) {
     const $addButton = $container.find(`.add-row-button`);
     const $tableHeader = $(`.wii-page-card-header`);
 
-    $saveButton.addClass('d-none');
+    $managementButtons.addClass('d-none');
 
     const table = EditableDatatable.create(`#table-visibility-group`, {
         route: Routing.generate(`settings_visibility_group_api`, true),
@@ -578,11 +616,11 @@ function initializeVisibilityGroup($container, canEdit) {
             $addButton.removeClass(`d-none`);
         },
         onEditStart: () => {
-            $saveButton.removeClass('d-none');
+            $managementButtons.removeClass('d-none');
             $tableHeader.addClass('d-none');
         },
         onEditStop: () => {
-            $saveButton.addClass('d-none');
+            $managementButtons.addClass('d-none');
             $tableHeader.removeClass('d-none');
         },
         columns: [

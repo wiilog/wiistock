@@ -19,11 +19,12 @@ use App\Entity\Menu;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Statut;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\WorkFreeDay;
 use App\Helper\FormatHelper;
-use App\Service\SettingsService;
 use App\Service\SpecificService;
+use App\Service\SettingsService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -52,7 +53,7 @@ class SettingsController extends AbstractController {
     public const SETTINGS = [
         self::CATEGORY_GLOBAL => [
             "label" => "Global",
-            "icon" => "accueil",
+            "icon" => "menu-global",
             "right" => Action::SETTINGS_GLOBAL,
             "menus" => [
                 self::MENU_SITE_APPEARANCE => ["label" => "Apparence du site"],
@@ -68,7 +69,7 @@ class SettingsController extends AbstractController {
         ],
         self::CATEGORY_STOCK => [
             "label" => "Stock",
-            "icon" => "stock",
+            "icon" => "menu-stock",
             "right" => Action::SETTINGS_STOCK,
             "menus" => [
                 self::MENU_CONFIGURATIONS => ["label" => "Configurations"],
@@ -117,7 +118,7 @@ class SettingsController extends AbstractController {
         ],
         self::CATEGORY_TRACKING => [
             "label" => "Trace",
-            "icon" => "traca",
+            "icon" => "menu-trace",
             "right" => Action::SETTINGS_TRACKING,
             "menus" => [
                 self::MENU_DISPATCHES => [
@@ -208,7 +209,10 @@ class SettingsController extends AbstractController {
                     "label" => "Langues",
                     "route" => "settings_language",
                 ],
-                self::MENU_USERS => ["label" => "Utilisateurs"],
+                self::MENU_USERS => [
+                    "label" => "Utilisateurs",
+                    "save" => false
+                ],
                 self::MENU_ROLES => ["label" => "Rôles"],
             ],
         ],
@@ -238,7 +242,7 @@ class SettingsController extends AbstractController {
     private const CATEGORY_DASHBOARDS = "dashboards";
     private const CATEGORY_IOT = "iot";
     private const CATEGORY_NOTIFICATIONS = "notifications";
-    private const CATEGORY_USERS = "utilisateurs";
+    public const CATEGORY_USERS = "utilisateurs";
     public const CATEGORY_DATA = "donnees";
 
     private const MENU_SITE_APPEARANCE = "apparence_site";
@@ -294,7 +298,7 @@ class SettingsController extends AbstractController {
 
     private const MENU_LANGUAGES = "langues";
     private const MENU_ROLES = "roles";
-    private const MENU_USERS = "utilisateurs";
+    public const MENU_USERS = "utilisateurs";
 
     private const MENU_CSV_EXPORTS = "exports_csv";
     public const MENU_IMPORTS = "imports";
@@ -590,6 +594,11 @@ class SettingsController extends AbstractController {
                     ),
                 ],
             ],
+            self::CATEGORY_USERS => [
+                self::MENU_USERS => fn() => [
+                    "newUser" => new Utilisateur()
+                ]
+            ]
         ];
     }
 
@@ -1075,7 +1084,7 @@ class SettingsController extends AbstractController {
     }
 
     /**
-     * @Route("/frequences-api", name="frequencies_api", options={"expose"=true})
+     * @Route("/frequences-api", name="settings_frequencies_api", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
      */
     public function frequenciesApi(Request $request, EntityManagerInterface $manager) {
@@ -1142,7 +1151,7 @@ class SettingsController extends AbstractController {
     }
 
     /**
-     * @Route("/categories-api", name="categories_api", options={"expose"=true})
+     * @Route("/categories-api", name="settings_categories_api", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
      */
     public function categoriesApi(Request $request, EntityManagerInterface $manager) {
@@ -1219,9 +1228,10 @@ class SettingsController extends AbstractController {
      * @Route("/categories/supprimer/{entity}", name="settings_delete_category", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
      */
-    public function deleteCategory(EntityManagerInterface $entityManager, InventoryFrequency $entity): Response {
+    public function deleteCategory(EntityManagerInterface $entityManager, InventoryCategory $entity): Response {
         $entityManager->remove($entity);
         $entityManager->flush();
+
         return $this->json([
             "success" => true,
             "msg" => "La ligne a bien été supprimée",

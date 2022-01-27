@@ -171,8 +171,8 @@ class FormatHelper {
     public static function longDate(?DateTimeInterface $date, bool $short = false, bool $time = false, $else = "-"): ?string {
         return $date
             ? (($short
-                ? substr(self::WEEK_DAYS[$date->format("w")], 0, 3)
-                : self::WEEK_DAYS[$date->format("w")])
+                ? substr(self::WEEK_DAYS[$date->format("N")], 0, 3)
+                : self::WEEK_DAYS[$date->format("N")])
                     . " "
                     . $date->format("d")
                     . " "

@@ -108,6 +108,11 @@
                 {% if options.placeholder is defined %}data-placeholder="{{ options.placeholder }}"{% endif %}
                 {% if options.includeParams is defined %}data-include-params="{{ options.includeParams }}"{% endif %}
             {% endif %}
+            {% if options.dataAttributes is defined %}
+                {% for key, attribute in options.dataAttributes %}
+                    data-{{ key }}="{{ attribute }}"
+                {% endfor %}
+            {% endif %}
             {{ _self.common_attributes(name, options) }}
             {{ _self.multiple_key(options) }}>
             {% if options.emptyOption is defined and options.emptyOption is not empty %}
@@ -204,6 +209,7 @@
         <span>{{ _self.label(label, required) }}</span>
         <textarea class="form-control w-100 data"
                   {{ _self.common_attributes(name, options) }}
+                  rows="{{ options.rows ?? 3 }}" style="resize: vertical"
                   {{ required ? 'required' }}>
             {{- value | raw -}}
         </textarea>
@@ -221,14 +227,14 @@
     <label class="{{ options.labelClass ?? '' }}">
         <span>{{ _self.label(label, required) }}</span>
         <div class="form-group d-flex">
-            <div class="preview-container stripped-background d-flex p-1 mr-2">
+            <div class="preview-container stripped-background d-flex p-1 mr-1">
                 <img src="{{ image ? (app.request.scheme ~ '://' ~ app.request.httpHost ~ "/" ~ image) : '' }}"
                      id="preview-{{ name }}"
                      alt="image"
                      height="50px"
                      class="image {{ not image ? 'd-none' }}"/>
             </div>
-            <button class="btn btn-primary" onclick="$('#upload-{{ name }}').click();">
+            <button class="btn btn-primary w-px-30 d-flex align-items-center justify-content-center" onclick="$('#upload-{{ name }}').click();">
                 {% if not image %}
                     Choisir une image
                 {% else %}
@@ -236,20 +242,20 @@
                 {% endif %}
             </button>
 
-            {% if options.defaultImage is defined and options.defaultImage %}
+            {% if options.defaultValue is defined and options.defaultValue %}
                 <input type="hidden"
                        class="default-value"
-                       value="{{ options.defaultImage }}"/>
-                <button class="btn btn-primary ml-2"
+                       value="{{ options.defaultValue }}"/>
+                <button class="btn btn-primary ml-1 bg-white w-px-30 d-flex align-items-center justify-content-center"
                         onclick="resetImage($(this))">
-                    <i class="fas fa-undo"></i>
+                    <i class="fas fa-undo fa-flip-horizontal text-wii-primary"></i>
                 </button>
             {% endif %}
 
             <input type="file" id="upload-{{ name }}"
                    name="{{ name }}"
                    accept="image/png, image/jpeg, image/jpg, image/svg+xml, image/gif"
-                   class="data force-data"
+                   class="data force-data" {{ options.defaultImage ?? false ? 'data-nullable' }}
                    onchange="updateImagePreview('#preview-{{ name }}', '#upload-{{ name }}')"
                    hidden {{ required ? 'required' }}>
         </div>

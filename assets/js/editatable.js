@@ -74,7 +74,7 @@ export default class EditableDatatable {
                 });
 
                 if(config.mode === MODE_DOUBLE_CLICK || config.mode === MODE_EDIT_AND_ADD) {
-                    $rows.off(`dblclick.${id}.startEdit`).on(`dblclick.${id}.startEdit`, function() {
+                    $rows.off(`click.${id}.startEdit`).on(`click.${id}.startEdit`, function() {
                         if(datatable.state === STATE_VIEWING) {
                             datatable.toggleEdit(STATE_EDIT, true);
                         }
@@ -183,11 +183,13 @@ export default class EditableDatatable {
         const data = [];
 
         $(this.table.rows().nodes()).each(function() {
-            const result = Form.process($(this));
-
-            if(result) {
-                data.push(result.asObject());
+            const $row = $(this);
+            if($row.find(`.add-row`).exists()) {
+                return;
             }
+
+            const result = Form.process($(this));
+            data.push(result instanceof FormData ? result.asObject() : result);
         });
 
         return data;

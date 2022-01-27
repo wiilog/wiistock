@@ -56,7 +56,7 @@ export default class Form {
         for(const input of $inputs) {
             let $input = $(input);
 
-            if($input.is(`:not(.force-data, [type="hidden"]):hidden`) && !$input.closest(`.wii-switch`).is(`:visible`) ||
+            if($input.is(`:not(.force-data, [type="hidden"]):hidden`) && !$input.closest(`.wii-switch, .wii-expanded-switch`).is(`:visible`) ||
                 (config.ignored && ($input.is(config.ignored) || $input.closest(config.ignored).exists()))) {
                 continue;
             }
@@ -149,7 +149,7 @@ export default class Form {
                     value = value.trim();
                 }
 
-                if(value !== null) {
+                if(value !== null || $input.is('[data-nullable]')) {
                     const $multipleKey = $input.closest(`[data-multiple-key]`);
                     if($multipleKey.exists()) {
                         const multipleKey = JSON.parse(data.get($multipleKey.data(`multiple-key`)) || `{}`);

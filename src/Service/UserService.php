@@ -96,14 +96,14 @@ class UserService
 
 		return [
 			'id' => $user->getId() ?? '',
-			"Nom d'utilisateur" => $user->getUsername() ?? '',
-			'Email' => $user->getEmail() ?? '',
-			'Dropzone' => $user->getDropzone() ? $user->getDropzone()->getLabel() : '',
-			'Dernière connexion' => $user->getLastLogin() ? $user->getLastLogin()->format('d/m/Y') : '',
+			"username" => $user->getUsername() ?? '',
+			'email' => $user->getEmail() ?? '',
+			'dropzone' => $user->getDropzone() ? $user->getDropzone()->getLabel() : '',
+			'lastLogin' => $user->getLastLogin() ? $user->getLastLogin()->format('d/m/Y') : '',
             'role' => $user->getRole() ? $user->getRole()->getLabel() : '',
             'visibilityGroup' => FormatHelper::entity($user->getVisibilityGroups()->toArray(), "label", ' / '),
             'status' => $user->getStatus() ? 'Actif' : "Inactif",
-			'Actions' => $this->templating->render('utilisateur/datatableUtilisateurRow.html.twig', ['idUser' => $idUser]),
+			'Actions' => $this->templating->render('settings/utilisateurs/utilisateurs/actions.html.twig', ['idUser' => $idUser]),
 		];
     }
 

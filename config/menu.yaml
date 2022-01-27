@@ -212,8 +212,6 @@ parameters:
                     path: 'global_param_index'
                 -   label: 'Rôles'
                     path: 'role_index'
-                -   label: 'Utilisateurs'
-                    path: 'user_index'
                 -   label: 'Groupes de visibilité'
                     path: 'visibility_group_index'
                 -   label: 'Dashboards'

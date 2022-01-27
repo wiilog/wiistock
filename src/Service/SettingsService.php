@@ -145,6 +145,34 @@ class SettingsService {
             ]);
         }
 
+        if($request->request->has(ParametrageGlobal::WEBSITE_LOGO) && $request->request->get(ParametrageGlobal::WEBSITE_LOGO) === "null") {
+            $setting = $settings[ParametrageGlobal::WEBSITE_LOGO];
+            $setting->setValue(ParametrageGlobal::DEFAULT_WEBSITE_LOGO_VALUE);
+
+            $saved[] = ParametrageGlobal::WEBSITE_LOGO;
+        }
+
+        if($request->request->has(ParametrageGlobal::MOBILE_LOGO_LOGIN) && $request->request->get(ParametrageGlobal::MOBILE_LOGO_LOGIN) === "null") {
+            $setting = $settings[ParametrageGlobal::MOBILE_LOGO_LOGIN];
+            $setting->setValue(ParametrageGlobal::DEFAULT_MOBILE_LOGO_LOGIN_VALUE);
+
+            $saved[] = ParametrageGlobal::MOBILE_LOGO_LOGIN;
+        }
+
+        if($request->request->has(ParametrageGlobal::EMAIL_LOGO) && $request->request->get(ParametrageGlobal::EMAIL_LOGO) === "null") {
+            $setting = $settings[ParametrageGlobal::EMAIL_LOGO];
+            $setting->setValue(ParametrageGlobal::DEFAULT_EMAIL_LOGO_VALUE);
+
+            $saved[] = ParametrageGlobal::EMAIL_LOGO;
+        }
+
+        if($request->request->has(ParametrageGlobal::MOBILE_LOGO_HEADER) && $request->request->get(ParametrageGlobal::MOBILE_LOGO_HEADER) === "null") {
+            $setting = $settings[ParametrageGlobal::MOBILE_LOGO_HEADER];
+            $setting->setValue(ParametrageGlobal::DEFAULT_MOBILE_LOGO_HEADER_VALUE);
+
+            $saved[] = ParametrageGlobal::MOBILE_LOGO_HEADER;
+        }
+
         return $saved;
     }
 
