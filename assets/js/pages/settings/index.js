@@ -48,8 +48,9 @@ const slowOperations = [
     `MAX_SESSION_TIME`,
 ];
 
-const $managementButtons = $(`.save-settings,.discard-settings`);
-
+const $saveButton = $(`.save-settings`);
+const $discardButton = $(`.discard-settings`);
+const $managementButtons = $(`.save-settings, .discard-settings`);
 
 $(function() {
     let canEdit = $(`input#edit`).val();
@@ -69,8 +70,7 @@ $(function() {
         }
     });
 
-    $managementButtons.on(`click`, async function() {
-
+    $saveButton.on(`click`, async function() {
         const form = forms[currentForm];
         const tablesToReload = [];
         let data = Form.process(form.element, {
@@ -96,12 +96,11 @@ $(function() {
             }
         }
 
-        console.log(data, hasErrors);
         if (!data || hasErrors) {
             return;
         }
 
-        if ($managementButtons.hasClass(LOADING_CLASS)) {
+        if ($saveButton.hasClass(LOADING_CLASS)) {
             Flash.add(INFO, `L'opération est en cours de traitement`);
             return;
         }
@@ -110,11 +109,11 @@ $(function() {
             return slowOperations.indexOf(n) !== -1;
         });
 
-        if(slow || $managementButtons.hasClass(LOADING_CLASS)) {
+        if(slow) {
             Flash.add(`info`, `Mise à jour des paramétrage en cours, cette opération peut prendre quelques minutes`, false);
         }
 
-        $managementButtons.pushLoader('white');
+        $saveButton.pushLoader('white');
         await AJAX.route(`POST`, `settings_save`)
             .json(data)
             .then(result => {
@@ -126,11 +125,20 @@ $(function() {
                     }
                 }
 
-                $managementButtons.popLoader();
+                $saveButton.popLoader();
             })
             .catch(() => {
-                $managementButtons.popLoader();
+                $saveButton.popLoader();
             });
+    });
+
+    $discardButton.on('click', function() {
+        if ($saveButton.hasClass(LOADING_CLASS)) {
+            Flash.add(INFO, `Une opération est en cours de traitement`);
+            return;
+        }
+
+        window.location.reload();
     });
 
     $(document).on(`click`, `.submit-field-param`, function() {
@@ -310,8 +318,12 @@ function initializeReceptionFixedFields($container, canEdit) {
         save: SAVE_MANUALLY,
         ordering: false,
         paginate: false,
-        onEditStart: () => $managementButtons.show(),
-        onEditStop: () => $managementButtons.hide(),
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
         columns: [
             {data: `label`, title: `Champ fixe`},
             {data: `displayedCreate`, title: `Afficher`},
@@ -330,8 +342,12 @@ function initializeDispatchFixedFields($container, canEdit) {
         save: SAVE_MANUALLY,
         ordering: false,
         paginate: false,
-        onEditStart: () => $managementButtons.show(),
-        onEditStop: () => $managementButtons.hide(),
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
         columns: [
             {data: `label`, title: `Champ fixe`},
             {data: `displayedCreate`, title: `Afficher`},
@@ -350,8 +366,12 @@ function initializeArrivalFixedFields($container, canEdit) {
         save: SAVE_MANUALLY,
         ordering: false,
         paginate: false,
-        onEditStart: () => $managementButtons.show(),
-        onEditStop: () => $managementButtons.hide(),
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
         columns: [
             {data: `label`, title: `Champ fixe`},
             {data: `displayedCreate`, title: `Afficher`},
@@ -370,8 +390,12 @@ function initializeHandlingFixedFields($container, canEdit) {
         save: SAVE_MANUALLY,
         ordering: false,
         paginate: false,
-        onEditStart: () => $managementButtons.show(),
-        onEditStop: () => $managementButtons.hide(),
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
         columns: [
             {data: `label`, title: `Champ fixe`},
             {data: `displayedCreate`, title: `Afficher`},
@@ -402,7 +426,6 @@ function initializeDeliveries() {
         onTypeChange($(this));
     });
     $(document).arrive('select[name=deliveryType]', function() {
-        console.log('test');
         $(this).on('change', function () {
             onTypeChange($(this));
         });
@@ -473,9 +496,6 @@ function onTypeChange($select) {
         isAllSpecifiedTypes = $select.data("length") <= 1;
     }
 
-    console.log($select.val() === `all`);
-    console.log(!allFilledSelect);
-    console.log(isAllSpecifiedTypes);
     $newTypeAssociationButton.prop(`disabled`, $select.val() === `all` || !allFilledSelect || isAllSpecifiedTypes);
 }
 
@@ -498,7 +518,6 @@ function setAlreadyDefinedTypes() {
         types.push($(this).val());
     });
 
-    console.log(types.join(';'));
     $('input[name=alreadyDefinedTypes]').val(types.join(';'));
 }
 
