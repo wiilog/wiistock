@@ -64,7 +64,6 @@ $(function() {
 
             $(`.settings-item.selected`).removeClass(`selected`);
             $(this).addClass(`selected`);
-            console.log('coucou');
             updateMenu(selectedMenu, canEdit);
             editing = false;
         }
@@ -191,7 +190,10 @@ function updateMenu(selectedMenu, canEdit) {
         title = `${getCategoryLabel()} | <span class="bold">${getMenuLabel()}</span>`;
     } else {
         submenu = selectedMenu;
-        title = `${getCategoryLabel()} | ${getMenuLabel()} | <span class="bold">${getSubmenuLabel()}</span>`;
+
+        const route = Routing.generate(`settings_item`, {category});
+        const categoryLabel = `<a href="${route}">${getCategoryLabel()}</a>`;
+        title = `${categoryLabel} | ${getMenuLabel()} | <span class="bold">${getSubmenuLabel()}</span>`;
     }
 
     const path = `${category}_${menu}` + (submenu ? `_` + submenu : ``);
@@ -203,7 +205,7 @@ function updateMenu(selectedMenu, canEdit) {
             ...(initializers[path] ? initializers[path]($element, canEdit) : []),
         };
 
-        console.log(initializers[path] ? `Initializiing ${path}` : `No initializer for ${path}`);
+        console.log(initializers[path] ? `Initializing ${path}` : `No initializer for ${path}`);
     }
     currentForm = path;
 
@@ -590,7 +592,7 @@ function initializeInventoryCategoriesTable(){
         form: {
             actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
             label: `<input type='text' name='label' class='form-control data needed'  data-global-error="Libellé"/>`,
-            frequency: `<select name='frequency' class='form-control data needed' data-global-error="Fréquence>`+$frequencyOptions+`</select>`,
+            frequency: `<select name='frequency' class='form-control data needed' data-global-error="Fréquence">`+$frequencyOptions+`</select>`,
             permanent: `<div class='checkbox-container'><input type='checkbox' name='permanent' class='form-control data'/></div>`,
         },
     });

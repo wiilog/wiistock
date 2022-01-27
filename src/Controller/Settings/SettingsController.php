@@ -334,11 +334,13 @@ class SettingsController extends AbstractController {
     /**
      * @Route("/afficher/{category}/{menu}/{submenu}", name="settings_item", options={"expose"=true})
      */
-    public function item(string $category, string $menu, ?string $submenu = null): Response {
+    public function item(string $category, ?string $menu = null, ?string $submenu = null): Response {
         if($submenu) {
             $parent = self::SETTINGS[$category]["menus"][$menu] ?? null;
             $path = "settings/$category/$menu/";
         } else {
+            $menu = $menu ?? array_key_first(self::SETTINGS[$category]["menus"]);
+
             // contains sub menus
             if(isset(self::SETTINGS[$category]["menus"][$menu]['menus'])) {
                 $parent = self::SETTINGS[$category]["menus"][$menu] ?? null;
@@ -838,9 +840,6 @@ class SettingsController extends AbstractController {
 
             if($category === CategoryType::DEMANDE_DISPATCH) {
                 $data = array_merge($data, [[
-                    "label" => "Description",
-                    "value" => $type->getDescription(),
-                ], [
                     "label" => "Emplacement de prise par défaut",
                     "value" => FormatHelper::location($type->getPickLocation()),
                 ], [
