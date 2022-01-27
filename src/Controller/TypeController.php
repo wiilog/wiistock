@@ -197,56 +197,6 @@ class TypeController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/verification", name="types_check_delete", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
-    public function checkTypeCanBeDeleted(Request $request,
-                                          EntityManagerInterface $entityManager): Response {
-
-        if ($typeId = json_decode($request->getContent(), true)) {
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $statusRepository = $entityManager->getRepository(Statut::class);
-
-            $canDelete = !$typeRepository->isTypeUsed($typeId);
-            $usedStatuses = $statusRepository->count(['type' => $typeId]);
-
-            $html = $canDelete && $usedStatuses === 0
-                ? $this->renderView('types/modalDeleteTypeRight.html.twig')
-                : $this->renderView('types/modalDeleteTypeWrong.html.twig', [
-                    'message' => !$canDelete
-                        ? 'Ce type est utilisé, vous ne pouvez pas le supprimer.'
-                        : 'Ce type est lié à des statuts, veuillez les supprimer avant de procéder à la suppression du type'
-                ]);
-
-            return new JsonResponse([
-                'delete' => $canDelete && empty($usedStatuses),
-                'html' => $html
-            ]);
-        }
-        throw new BadRequestHttpException();
-    }
-
-    /**
-     * @Route("/supprimer", name="types_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
-    public function delete(Request $request,
-                           EntityManagerInterface $entityManager): Response
-    {
-        if ($data = json_decode($request->getContent(), true)) {
-            $type = $entityManager->find(Type::class, $data['type']);
-            $typeLabel = $type->getLabel();
-
-            $entityManager->remove($type);
-            $entityManager->flush();
-            return new JsonResponse([
-                'success' => true,
-                'msg' => 'Le type <strong>' . $typeLabel . '</strong> a bien été supprimé.'
-            ]);
-        }
-        throw new BadRequestHttpException();
-    }
 
     /**
      * @Route("/autocomplete-unique-types", name="get_unique_types", options={"expose"=true}, condition="request.isXmlHttpRequest()")

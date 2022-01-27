@@ -8,13 +8,16 @@
                 </button>
             </div>
             <div class="modal-body">
-
+                <div class="spinner-container d-flex justify-content-center">
+                    <div class="spinner-border sizeLoader mini-loader" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                </div>
+                <div class="message-container d-none"></div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
-                <button id="submitDeleteType" name='type' data-dismiss="modal" class="btn btn-danger data">
-                    Supprimer
-                </button>
+                <button class="btn btn-danger submit-danger">Supprimer</button>
             </div>
         </div>
     </div>

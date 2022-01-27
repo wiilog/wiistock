@@ -1,9 +1,12 @@
 import EditableDatatable, {MODE_MANUAL, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING} from "../../editatable";
+import Flash from "../../flash";
 
 const $managementButtons = $(`.save-settings,.discard-settings`);
 
 export function createManagementPage($container, config) {
-    let selectedEntity = $container.find(`[name=entity]:first`).attr(`value`);
+    const $selectedEntity = $container.find(`[name=entity]:first`);
+    $selectedEntity.prop('checked', true);
+    let selectedEntity = $selectedEntity.attr(`value`);
 
     const $table = $container.find(`.subentities-table`);
     const $editButton = $container.find(`.edit-button`);
@@ -45,6 +48,10 @@ export function createManagementPage($container, config) {
     $editButton.on(`click`, function() {
         table.toggleEdit(undefined, true);
     });
+
+    if (config.header.delete) {
+        fireRemoveMainEntityButton($container, config.header.delete);
+    }
 }
 
 function loadItems($container, config, type, edit) {
@@ -70,5 +77,58 @@ function loadItems($container, config, type, edit) {
                 `);
             }
         }
+    });
+}
+
+function fireRemoveMainEntityButton($container, deleteConfig) {
+    const $deleteMainEntityButton = $container.find(`.delete-main-entity`);
+    const $modal = $(deleteConfig.modal);
+    const $spinnerContainer = $modal.find('.spinner-container');
+    const $messageContainer = $modal.find('.message-container');
+    const $submitButton = $modal.find('.submit-danger');
+
+    $deleteMainEntityButton.on(`click`, function () {
+        const $selectedEntity = $container.find(`[name=entity]:checked`);
+        const selectedEntity = $selectedEntity.attr(`value`);
+
+        $spinnerContainer
+            .addClass('d-flex')
+            .removeClass('d-none');
+        $messageContainer.addClass('d-none');
+        $submitButton.addClass('d-none');
+        $modal.modal('show');
+        $.ajax({
+            url: Routing.generate(deleteConfig.checkRoute, {[deleteConfig.selectedEntityLabel]: selectedEntity}, true),
+            type: "get",
+        })
+            .then(({success, message}) => {
+                $spinnerContainer
+                    .removeClass('d-flex')
+                    .addClass('d-none');
+                $messageContainer
+                    .html(message)
+                    .removeClass('d-none');
+                $submitButton
+                    .toggleClass('d-none', !success)
+                    .off('click');
+                if (success) {
+                    $submitButton.on('click', () => {
+                        $submitButton.pushLoader('white');
+                        $.ajax({
+                            url: Routing.generate(deleteConfig.route, {[deleteConfig.selectedEntityLabel]: selectedEntity}, true),
+                            type: "POST",
+                        })
+                            .then(({message}) => {
+                                Flash.add('success', message);
+                                $submitButton.popLoader();
+                            })
+                            .catch(() => {
+                                $submitButton.popLoader();
+                                $modal.modal('hide');
+                            });
+                    });
+                }
+                $spinnerContainer.addClass('d-none');
+            });
     });
 }

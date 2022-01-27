@@ -36,6 +36,7 @@
         </div>
 
         {% block footer %}{% endblock %}
+        {% include 'settings/common/delete-type.html.twig' %}
 
         <input type="hidden" name="default-value-template" value="{{ form.switch('defaultValue', null, false, [
             {label: 'Oui', value: '1'},

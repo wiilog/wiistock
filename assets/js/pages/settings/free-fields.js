@@ -105,6 +105,12 @@ export function createFreeFieldsPage($container, canEdit) {
         edit: canEdit,
         header: {
             route: (type, edit) => Routing.generate('settings_type_header', {type, edit}, true),
+            delete: {
+                modal: '#modalDeleteType',
+                checkRoute: 'settings_types_check_delete',
+                selectedEntityLabel: 'type',
+                route: 'settings_types_delete'
+            },
         },
         table: {
             route: (type) => Routing.generate('settings_free_field_api', {type}, true),
@@ -129,6 +135,12 @@ export function initializeStockArticlesTypesFreeFields($container, canEdit) {
         edit: canEdit,
         header: {
             route: (type, edit) => Routing.generate('settings_type_header', {type, edit}, true),
+            delete: {
+                modal: '#modalDeleteType',
+                checkRoute: 'settings_types_check_delete',
+                selectedEntityLabel: 'type',
+                route: 'settings_types_delete'
+            },
         },
         table: {
             route: (type) => Routing.generate('settings_free_field_api', {type}, true),
