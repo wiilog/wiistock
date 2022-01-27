@@ -78,9 +78,7 @@ $(function() {
                 const tableData = datatable.data();
                 tables[$(this).data(`table-processing`)] = tableData;
                 tablesToReload.push(datatable);
-                hasErrors = Object.keys(tableData)
-                    .filter((rowKey) => !tableData[rowKey])
-                    .length > 0;
+                hasErrors = tableData.filter(row => !row).length > 0;
             });
 
             if(Object.entries(tables).length) {
@@ -88,6 +86,7 @@ $(function() {
             }
         }
 
+        console.log(data, hasErrors);
         if (!data || hasErrors) {
             return;
         }

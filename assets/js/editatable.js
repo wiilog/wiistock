@@ -183,11 +183,13 @@ export default class EditableDatatable {
         const data = [];
 
         $(this.table.rows().nodes()).each(function() {
-            const result = Form.process($(this));
-
-            if(result) {
-                data.push(result.asObject());
+            const $row = $(this);
+            if($row.find(`.add-row`).exists()) {
+                return;
             }
+
+            const result = Form.process($(this));
+            data.push(result instanceof FormData ? result.asObject() : result);
         });
 
         return data;
