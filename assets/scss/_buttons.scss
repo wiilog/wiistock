@@ -58,6 +58,10 @@ $outlineButtonConfig: (
     &:disabled {
         @include button-disabled($grey, $grey, $disabled-color);
     }
+
+    .wii-icon {
+        background-color: $white;
+    }
 }
 
 @mixin outline-button($bg-color, $color, $active-bg-color, $disabled-color) {

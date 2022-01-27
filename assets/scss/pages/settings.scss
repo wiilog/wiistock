@@ -92,15 +92,15 @@
         flex: 1 1 auto;
 
         .wii-box {
-            .management-title {
+            .subtitle {
                 color: black;
                 background-color: #F2F3F7;
-                padding: 10px #{$grid-gutter-width};
+                padding: #{$grid-gutter-width};
                 font-weight: 600;
             }
 
             .sub-content {
-                padding: 10px #{$grid-gutter-width};
+                padding: #{$grid-gutter-width};
             }
         }
 
