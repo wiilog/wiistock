@@ -190,7 +190,10 @@ function updateMenu(selectedMenu, canEdit) {
         title = `${getCategoryLabel()} | <span class="bold">${getMenuLabel()}</span>`;
     } else {
         submenu = selectedMenu;
-        title = `${getCategoryLabel()} | ${getMenuLabel()} | <span class="bold">${getSubmenuLabel()}</span>`;
+
+        const route = Routing.generate(`settings_item`, {category});
+        const categoryLabel = `<a href="${route}">${getCategoryLabel()}</a>`;
+        title = `${categoryLabel} | ${getMenuLabel()} | <span class="bold">${getSubmenuLabel()}</span>`;
     }
 
     const path = `${category}_${menu}` + (submenu ? `_` + submenu : ``);
@@ -202,7 +205,7 @@ function updateMenu(selectedMenu, canEdit) {
             ...(initializers[path] ? initializers[path]($element, canEdit) : []),
         };
 
-        console.log(initializers[path] ? `Initializiing ${path}` : `No initializer for ${path}`);
+        console.log(initializers[path] ? `Initializing ${path}` : `No initializer for ${path}`);
     }
     currentForm = path;
 
