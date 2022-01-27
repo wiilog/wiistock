@@ -192,7 +192,7 @@ function updateMenu(selectedMenu, canEdit) {
         submenu = selectedMenu;
 
         const route = Routing.generate(`settings_item`, {category});
-        const categoryLabel = `<a href="${route}">${getCategoryLabel()}</a>`;
+        const categoryLabel = category !== `trace` ? `<a href="${route}">${getCategoryLabel()}</a>` : getCategoryLabel();
         title = `${categoryLabel} | ${getMenuLabel()} | <span class="bold">${getSubmenuLabel()}</span>`;
     }
 
@@ -230,6 +230,7 @@ function initializeWorkingHours($container, canEdit) {
         route: Routing.generate('settings_working_hours_api', true),
         mode: canEdit ? MODE_DOUBLE_CLICK : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
+        needsPagingHide: true,
         onEditStart: () => {
             editing = true;
             $managementButtons.removeClass('d-none')
@@ -259,6 +260,8 @@ function initializeOffDays($container, canEdit) {
         save: SAVE_MANUALLY,
         search: true,
         paginate: true,
+        needsPagingHide: true,
+        needsSearchHide: true,
         onInit: () => {
             $addButton.removeClass(`d-none`);
         },

@@ -193,9 +193,11 @@ function overrideSearch($input, table, callback = null) {
     $input.attr('placeholder', 'Entrée pour valider');
 }
 
-function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, needsColumnShow, needsResize, needsEmplacementSearchOverride, callback, table, $table, hidePagingIfEmpty}) {
+function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, needsColumnShow, needsResize, needsEmplacementSearchOverride, callback, table, $table, needsPagingHide, needsSearchHide}) {
     let $searchInputContainer = $table.parents('.dataTables_wrapper ').find('.dataTables_filter');
     let $searchInput = $searchInputContainer.find('input');
+
+    const data = table.rows().data();
 
     if (needsSearchOverride && $searchInput.length > 0) {
         overrideSearch($searchInput, table);
@@ -210,10 +212,14 @@ function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, 
         overrideSearchSpecifEmplacement($searchInput);
     }
 
-    if(hidePagingIfEmpty) {
-        const data = table.rows().data();
+    if(needsPagingHide) {
         $table.parents('.dataTables_wrapper').find(`.dataTables_paginate, .dataTables_length`).toggleClass(`d-none`, !data || data.length <= 10);
     }
+
+    if(needsSearchHide) {
+        $('.dataTables_filter').toggleClass(`d-none`, !data || data.length <= 10);
+    }
+
     if (callback) {
         callback();
     }
