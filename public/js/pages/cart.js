@@ -148,7 +148,7 @@ function initializePurchaseRequestInfos($purchaseInfos, id) {
         ordering: false,
         info: false,
         drawConfig: {
-            hidePagingIfEmpty: true,
+            needsPagingHide: true,
         },
     });
 }
@@ -206,7 +206,7 @@ function onDeliveryChanged($select) {
             ordering: false,
             info: false,
             drawConfig: {
-                hidePagingIfEmpty: true,
+                needsPagingHide: true,
             },
         }
         let tableDeliveryReferences = initDataTable('tableDeliveryReferences', tableDeliveryReferencesConfig);
@@ -249,7 +249,7 @@ function onCollectChanged($select) {
             ordering: false,
             info: false,
             drawConfig: {
-                hidePagingIfEmpty: true,
+                needsPagingHide: true,
             },
         }
         let tableCollectReferences = initDataTable('tableCollectReferences', tableCollectReferencesConfig);
