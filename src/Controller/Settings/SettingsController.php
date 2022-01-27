@@ -725,13 +725,16 @@ class SettingsController extends AbstractController {
         if($edit) {
             $fixedFieldRepository = $this->manager->getRepository(FieldsParam::class);
 
-            $data = [[
-                "label" => "Libellé*",
-                "value" => "<input name='label' class='data form-control' required value='{$type->getLabel()}'>",
-            ], [
-                "label" => "Description",
-                "value" => "<input name='description' class='data form-control' value='{$type->getDescription()}'>",
-            ]];
+            $data = [
+                [
+                    "label" => "Libellé*",
+                    "value" => "<input name='label' class='data form-control' required value='{$type->getLabel()}'>",
+                ],
+                [
+                    "label" => "Description",
+                    "value" => "<input name='description' class='data form-control' value='{$type->getDescription()}'>",
+                ]
+            ];
 
             if($category === CategoryType::ARTICLE) {
                 $data[] = [
@@ -764,13 +767,16 @@ class SettingsController extends AbstractController {
                 $pickLocationOption = $type->getPickLocation() ? "<option value='{$type->getPickLocation()->getId()}'>{$type->getPickLocation()->getLabel()}</option>" : "";
                 $dropLocationOption = $type->getDropLocation() ? "<option value='{$type->getDropLocation()->getId()}'>{$type->getDropLocation()->getLabel()}</option>" : "";
 
-                $data = array_merge($data, [[
-                    "label" => "Emplacement de prise par défaut",
-                    "value" => "<select name='pickLocation' data-s2='location' class='data form-control'>$pickLocationOption</select>",
-                ], [
-                    "label" => "Emplacement de dépose par défaut",
-                    "value" => "<select name='dropLocation' data-s2='location' class='data form-control'>$dropLocationOption</select>",
-                ]]);
+                $data = array_merge($data, [
+                    [
+                        "label" => "Emplacement de prise par défaut",
+                        "value" => "<select name='pickLocation' data-s2='location' class='data form-control'>$pickLocationOption</select>",
+                    ],
+                    [
+                        "label" => "Emplacement de dépose par défaut",
+                        "value" => "<select name='dropLocation' data-s2='location' class='data form-control'>$dropLocationOption</select>",
+                    ]
+                ]);
             }
 
             if(in_array($category, [CategoryType::DEMANDE_HANDLING, CategoryType::DEMANDE_DISPATCH])) {
@@ -795,17 +801,20 @@ class SettingsController extends AbstractController {
 
                 $emergencies = $fixedFieldRepository->getElements($entity[$category], FieldsParam::FIELD_CODE_EMERGENCY);
                 $emergencyValues = Stream::from($emergencies)
-                    ->map(fn(string $emergency) => "<option value='$emergency' " . (in_array($emergency, $type->getNotificationsEmergencies()) ? "selected" : "") . ">$emergency</option>")
+                    ->map(fn(string $emergency) => "<option value='$emergency' " . (in_array($emergency, $type->getNotificationsEmergencies() ?? []) ? "selected" : "") . ">$emergency</option>")
                     ->join("");
 
-                $data = array_merge($data, [[
-                    "label" => "Notifications push",
-                    "value" => $pushNotifications,
-                ], [
-                    "label" => "Pour les valeurs",
-                    "value" => "<select name='notificationEmergencies' data-s2 data-no-empty-option multiple class='data form-control'>$emergencyValues</select>",
-                    "hidden" => !$type->isNotificationsEnabled() || !$type->getNotificationsEmergencies(),
-                ]]);
+                $data = array_merge($data, [
+                    [
+                        "label" => "Notifications push",
+                        "value" => $pushNotifications,
+                    ],
+                    [
+                        "label" => "Pour les valeurs",
+                        "value" => "<select name='notificationEmergencies' data-s2 data-no-empty-option multiple class='data form-control w-100'>$emergencyValues</select>",
+                        "hidden" => !$type->isNotificationsEnabled() || !$type->getNotificationsEmergencies(),
+                    ]
+                ]);
             }
         } else {
             $data = [[

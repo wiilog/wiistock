@@ -118,8 +118,10 @@ export function createFreeFieldsPage($container, canEdit) {
     $container.on(`keyup`, `[name=elements]`, onElementsChange);
     $container.on(`change`, `[type=radio][name=pushNotifications]`, function() {
         const $radio = $(this);
-
-        $container.find(`[name=notificationEmergencies]`).closest(`.col-auto`).toggleClass(`d-none`, $radio.val());
+        const val = Number($radio.val());
+        $container.find(`[name=notificationEmergencies]`)
+            .closest(`.main-entity-content-item`)
+            .toggleClass(`d-none`, val !== 2);
     });
 }
 
