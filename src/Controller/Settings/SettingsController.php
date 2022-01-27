@@ -52,7 +52,7 @@ class SettingsController extends AbstractController {
     public const SETTINGS = [
         self::CATEGORY_GLOBAL => [
             "label" => "Global",
-            "icon" => "accueil",
+            "icon" => "menu-global",
             "right" => Action::SETTINGS_GLOBAL,
             "menus" => [
                 self::MENU_SITE_APPEARANCE => ["label" => "Apparence du site"],
@@ -68,7 +68,7 @@ class SettingsController extends AbstractController {
         ],
         self::CATEGORY_STOCK => [
             "label" => "Stock",
-            "icon" => "stock",
+            "icon" => "menu-stock",
             "right" => Action::SETTINGS_STOCK,
             "menus" => [
                 self::MENU_CONFIGURATIONS => ["label" => "Configurations"],
@@ -117,7 +117,7 @@ class SettingsController extends AbstractController {
         ],
         self::CATEGORY_TRACKING => [
             "label" => "Trace",
-            "icon" => "traca",
+            "icon" => "menu-trace",
             "right" => Action::SETTINGS_TRACKING,
             "menus" => [
                 self::MENU_DISPATCHES => [
