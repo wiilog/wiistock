@@ -1,7 +1,8 @@
 {% import 'form.html.twig' as form %}
 
-<div class="management-title">Sur l'étiquette article</div>
+
 <div class="sub-content">
+    <label class="wii-field-name">{{ form.label("Sur l'étiquette article", false) }}</label>
     <div class="row">
         <div class="form-group col-md-6 col-12">
             {{ form.checkbox(setting('INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL'), 'Afficher l\'emplacement de destination', false, setting_value('INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL'), {

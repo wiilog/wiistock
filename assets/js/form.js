@@ -149,7 +149,7 @@ export default class Form {
                     value = value.trim();
                 }
 
-                if(value !== null || $input.data('nullable')) {
+                if(value !== null || $input.is('[data-nullable]')) {
                     const $multipleKey = $input.closest(`[data-multiple-key]`);
                     if($multipleKey.exists()) {
                         const multipleKey = JSON.parse(data.get($multipleKey.data(`multiple-key`)) || `{}`);
