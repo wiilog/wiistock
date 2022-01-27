@@ -255,7 +255,7 @@
             <input type="file" id="upload-{{ name }}"
                    name="{{ name }}"
                    accept="image/png, image/jpeg, image/jpg, image/svg+xml, image/gif"
-                   class="data force-data" data-nullable
+                   class="data force-data" {{ options.defaultImage ?? false ? 'data-nullable' }}
                    onchange="updateImagePreview('#preview-{{ name }}', '#upload-{{ name }}')"
                    hidden {{ required ? 'required' }}>
         </div>
