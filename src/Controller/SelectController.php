@@ -93,7 +93,15 @@ class SelectController extends AbstractController {
     public function deliveryType(Request $request, EntityManagerInterface $manager): Response {
         $alreadyDefinedTypes = [];
         if($request->query->has('alreadyDefinedTypes')) {
-            $alreadyDefinedTypes = explode(";", json_decode($request->query->get('alreadyDefinedTypes'), true));
+            $alreadyDefinedTypes = explode(";", $request->query->get('alreadyDefinedTypes'));
+        }
+
+        $allTypesOption = [];
+        if($request->query->has('allTypesOption') && $request->query->getBoolean('allTypesOption') && !in_array('all', $alreadyDefinedTypes)) {
+            $allTypesOption = [[
+                'id' => 'all',
+                'text' => 'Tous les types'
+            ]];
         }
 
         $results = $manager->getRepository(Type::class)->getForSelect(
@@ -101,6 +109,8 @@ class SelectController extends AbstractController {
             $request->query->get("term"),
             $alreadyDefinedTypes
         );
+
+        $results = array_merge($results, $allTypesOption);
 
         return $this->json([
             "results" => $results,

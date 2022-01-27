@@ -386,7 +386,6 @@ function initializeDeliveries() {
         onTypeChange($(this));
     });
     $(document).arrive('select[name=deliveryType]', function() {
-        console.log('test');
         $(this).on('change', function () {
             onTypeChange($(this));
         });
@@ -399,10 +398,11 @@ function initDeliveryRequestDefaultLocations() {
 
     deliveryTypeSettingsValues.forEach(item => {
         newTypeAssociation($(`button.new-type-association-button`), item.type, item.location);
+        updateAlreadyDefinedTypes();
     });
 }
 
-function newTypeAssociation($button, type = undefined, location = undefined) {
+function newTypeAssociation($button, type = undefined, location = undefined, firstLoad = false) {
     const $settingTypeAssociation = $(`.setting-type-association`);
     const $typeTemplate = $(`#type-template`);
 
@@ -414,21 +414,8 @@ function newTypeAssociation($button, type = undefined, location = undefined) {
     });
 
     if (allFilledSelect) {
-        $button.prop(`disabled`, true);
+        $button.prop(`disabled`, false);
         $settingTypeAssociation.append($typeTemplate.html());
-
-        const $typeSelect = $settingTypeAssociation.last().find(`select[name=deliveryType]`);
-        const $locationSelect = $settingTypeAssociation.last().find(`select[name=deliveryRequestLocation]`);
-
-        if (type && location) {
-            appendSelectOptions($typeSelect, $locationSelect, type, location);
-        } else if (location) {
-            let type = {
-                id: 'all',
-                label: 'Tous les types'
-            }
-            appendSelectOptions($typeSelect, $locationSelect, type, location);
-        }
     } else {
         showBSAlert(`Tous les emplacements doivent être renseignés`, `danger`);
     }
@@ -438,12 +425,11 @@ function onTypeChange($select) {
     const $settingTypeAssociation = $select.closest('.setting-type-association');
     const $newTypeAssociationButton = $('.new-type-association-button');
     const $allTypeSelect = $settingTypeAssociation.find(`select[name=deliveryType]`);
-    const $lastDeliveryTypeSelect = $allTypeSelect.last();
 
     const $typeAssociationContainer = $select.closest('.type-association-container');
     const $associatedLocation = $typeAssociationContainer.find('select[name="deliveryRequestLocation"]');
     $associatedLocation.val(null).trigger('change');
-    setAlreadyDefinedTypes();
+    updateAlreadyDefinedTypes();
 
     let allFilledSelect = true;
     $allTypeSelect.each(function() {
@@ -452,48 +438,33 @@ function onTypeChange($select) {
         }
     });
 
-    let isAllSpecifiedTypes = false;
-    if($lastDeliveryTypeSelect === $select) {
-        isAllSpecifiedTypes = $select.data("length") <= 1;
-    }
-
-    console.log($select.val() === `all`);
-    console.log(!allFilledSelect);
-    console.log(isAllSpecifiedTypes);
-    $newTypeAssociationButton.prop(`disabled`, $select.val() === `all` || !allFilledSelect || isAllSpecifiedTypes);
+    $newTypeAssociationButton.prop(`disabled`, $select.val() === `all` || !allFilledSelect || $select.data("length") <= 1);
 }
 
 function removeAssociationLine($button) {
     const $typeAssociationContainer = $('.type-association-container');
+    const $currentDeliveryTypeSelect = $button.parent().closest('.delivery-type-container').find('select[name=deliveryType]');
 
     if($typeAssociationContainer.length === 1) {
         showBSAlert('Au moins une association type/emplacement est nécessaire', 'danger')
     } else {
         $button.parent().parent(`.type-association-container`).remove();
+        updateAlreadyDefinedTypes($currentDeliveryTypeSelect.val());
         $('.new-type-association-button').prop(`disabled`, false);
     }
 }
 
-function setAlreadyDefinedTypes() {
+function updateAlreadyDefinedTypes(withdrawedValue = undefined) {
     const $settingTypeAssociation = $('.setting-type-association');
 
     let types = [];
     $settingTypeAssociation.find(`select[name=deliveryType]`).each(function() {
-        types.push($(this).val());
+        if(withdrawedValue !== $(this).val()) {
+            types.push($(this).val());
+        }
     });
 
-    console.log(types.join(';'));
     $('input[name=alreadyDefinedTypes]').val(types.join(';'));
-}
-
-function appendSelectOptions(typeSelect, locationSelect, type, location) {
-    typeSelect
-        .append(new Option(type.label, type.id, false, true))
-        .trigger(`change`);
-
-    locationSelect
-        .append(new Option(location.label, location.id, false, true))
-        .trigger(`change`);
 }
 
 function initializeFrequencesTable(){
