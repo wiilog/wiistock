@@ -118,7 +118,7 @@ class PDFGeneratorService {
                 'dispatch' => $dispatch,
                 'logo' => $logo
             ]),
-            ($this->kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName),
+            ($this->kernel->getProjectDir() . '/public/' . $fileName),
             [
                 'page-size' => "A4",
                 'encoding' => 'UTF-8'

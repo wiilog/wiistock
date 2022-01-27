@@ -87,7 +87,7 @@
                     {{ _self.common_attributes(name, options) }}
                     {{ _self.multiple_key(options) }}
                     {{ (item.checked ?? false) ? 'checked' }} />
-                <label class="{{ options.labelClass ?? '' }}" for="radio-{{ id }}">{{ _self.label(item.label, false) }}</label>
+                <label class="{{ options.labelClass ?? '' }} pointer" for="radio-{{ id }}">{{ _self.label(item.label, false) }}</label>
             </div>
         {% endfor %}
     </div>
