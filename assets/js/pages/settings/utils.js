@@ -1,6 +1,6 @@
 import EditableDatatable, {MODE_MANUAL, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING} from "../../editatable";
 
-const $saveButton = $(`.save-settings`);
+const $managementButtons = $(`.save-settings,.discard-settings`);
 
 export function createManagementPage($container, config) {
     let selectedEntity = $container.find(`[name=entity]:first`).attr(`value`);
@@ -8,7 +8,7 @@ export function createManagementPage($container, config) {
     const $table = $container.find(`.subentities-table`);
     const $editButton = $container.find(`.edit-button`);
 
-    $saveButton.addClass('d-none');
+    $managementButtons.addClass('d-none');
     $editButton.removeClass('d-none');
     $table.attr(`id`, `table-${Math.floor(Math.random() * 1000000)}`);
 
@@ -24,12 +24,12 @@ export function createManagementPage($container, config) {
         columns: config.table.columns,
         onEditStart: () => {
             $editButton.addClass('d-none');
-            $saveButton.removeClass('d-none');
+            $managementButtons.removeClass('d-none');
 
             loadItems($container, config, selectedEntity, true);
         },
         onEditStop: () => {
-            $saveButton.addClass('d-none');
+            $managementButtons.addClass('d-none');
             $editButton.removeClass('d-none');
             loadItems($container, config, selectedEntity, false)
         },

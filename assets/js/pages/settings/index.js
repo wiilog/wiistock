@@ -14,6 +14,8 @@ let submenu = $(`input#submenu`).val();
 let currentForm = null;
 const forms = {};
 
+let editing = false;
+
 //keys are from url with / replaced by _
 //http://wiistock/parametrage/afficher/stock/receptions/champs_fixes_receptions => stock_receptions_champs_fixes_receptions
 const initializers = {
@@ -46,7 +48,8 @@ const slowOperations = [
     `MAX_SESSION_TIME`,
 ];
 
-const $saveButton = $(`.save-settings`);
+const $managementButtons = $(`.save-settings,.discard-settings`);
+
 
 $(function() {
     let canEdit = $(`input#edit`).val();
@@ -54,15 +57,20 @@ $(function() {
     updateMenu(submenu || menu, canEdit);
 
     $(`.settings-item`).on(`click`, function() {
-        const selectedMenu = $(this).data(`menu`);
+        console.log(editing);
+        if (!editing || (editing && window.confirm("Vous avez des modifications en attente, souhaitez vous continuer ?"))) {
+            const selectedMenu = $(this).data(`menu`);
 
-        $(`.settings-item.selected`).removeClass(`selected`);
-        $(this).addClass(`selected`);
-
-        updateMenu(selectedMenu, canEdit);
+            $(`.settings-item.selected`).removeClass(`selected`);
+            $(this).addClass(`selected`);
+            console.log('coucou');
+            updateMenu(selectedMenu, canEdit);
+            editing = false;
+        }
     });
 
-    $saveButton.on(`click`, async function() {
+    $managementButtons.on(`click`, async function() {
+
         const form = forms[currentForm];
         const tablesToReload = [];
         let data = Form.process(form.element, {
@@ -73,12 +81,14 @@ $(function() {
 
         if(data) {
             const tables = {};
-            form.element.find(`[id][data-table-processing]`).each(function() {
+            form.element.find(`[data-table-processing]`).each(function() {
                 const datatable = EditableDatatable.of(this);
-                const tableData = datatable.data();
-                tables[$(this).data(`table-processing`)] = tableData;
-                tablesToReload.push(datatable);
-                hasErrors = tableData.filter(row => !row).length > 0;
+                if (datatable) {
+                    const tableData = datatable.data();
+                    tables[$(this).data(`table-processing`)] = tableData;
+                    tablesToReload.push(datatable);
+                    hasErrors = tableData.filter(row => !row).length > 0;
+                }
             });
 
             if(Object.entries(tables).length) {
@@ -91,7 +101,7 @@ $(function() {
             return;
         }
 
-        if ($saveButton.hasClass(LOADING_CLASS)) {
+        if ($managementButtons.hasClass(LOADING_CLASS)) {
             Flash.add(INFO, `L'opération est en cours de traitement`);
             return;
         }
@@ -100,11 +110,11 @@ $(function() {
             return slowOperations.indexOf(n) !== -1;
         });
 
-        if(slow || $saveButton.hasClass(LOADING_CLASS)) {
+        if(slow || $managementButtons.hasClass(LOADING_CLASS)) {
             Flash.add(`info`, `Mise à jour des paramétrage en cours, cette opération peut prendre quelques minutes`, false);
         }
 
-        $saveButton.pushLoader('white');
+        $managementButtons.pushLoader('white');
         await AJAX.route(`POST`, `settings_save`)
             .json(data)
             .then(result => {
@@ -116,10 +126,10 @@ $(function() {
                     }
                 }
 
-                $saveButton.popLoader();
+                $managementButtons.popLoader();
             })
             .catch(() => {
-                $saveButton.popLoader();
+                $managementButtons.popLoader();
             });
     });
 
@@ -165,7 +175,7 @@ function updateMenu(selectedMenu, canEdit) {
     $selectedMenu.removeClass(`d-none`);
 
     const displaySaveButton = $selectedMenu.data('saveButton');
-    $saveButton.toggleClass('d-none', !displaySaveButton);
+    $managementButtons.toggleClass('d-none', !displaySaveButton);
 
     let title;
     if(!submenu) {
@@ -180,7 +190,6 @@ function updateMenu(selectedMenu, canEdit) {
     const $element = $(`[data-path="${path}"]`);
 
     if(!forms[path]) {
-        currentForm = path;
         forms[path] = {
             element: $element,
             ...(initializers[path] ? initializers[path]($element, canEdit) : []),
@@ -188,6 +197,7 @@ function updateMenu(selectedMenu, canEdit) {
 
         console.log(initializers[path] ? `Initializiing ${path}` : `No initializer for ${path}`);
     }
+    currentForm = path;
 
     const $pageTitle = $(`#page-title`);
     $pageTitle.html(title);
@@ -204,17 +214,23 @@ function updateMenu(selectedMenu, canEdit) {
 }
 
 function initializeWorkingHours($container, canEdit) {
-    $saveButton.addClass('d-none');
+    $managementButtons.addClass('d-none');
 
     const table = EditableDatatable.create(`#table-working-hours`, {
         route: Routing.generate('settings_working_hours_api', true),
         mode: canEdit ? MODE_DOUBLE_CLICK : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
-        onEditStart: () => $saveButton.addClass('d-none'),
-        onEditStop: () => $saveButton.removeClass('d-none'),
+        onEditStart: () => {
+            editing = true;
+            $managementButtons.removeClass('d-none')
+        },
+        onEditStop: () => {
+            editing = false;
+            $managementButtons.addClass('d-none')
+        },
         columns: [
             {data: `day`, title: `Jour`},
-            {data: `hours`, title: `Horaires de travail`},
+            {data: `hours`, title: `Horaires de travail<br><div class='wii-small-text'>Horaires sous la forme HH:MM-HH:MM;HH:MM-HH:MM</div>`},
             {data: `worked`, title: `Travaillé`},
         ],
     });
@@ -224,7 +240,7 @@ function initializeOffDays($container, canEdit) {
     const $addButton = $container.find(`.add-row-button`);
     const $tableHeader = $(`.wii-page-card-header`);
 
-    $saveButton.addClass('d-none');
+    $managementButtons.addClass('d-none');
 
     const table = EditableDatatable.create(`#table-off-days`, {
         route: Routing.generate(`settings_off_days_api`, true),
@@ -237,11 +253,11 @@ function initializeOffDays($container, canEdit) {
             $addButton.removeClass(`d-none`);
         },
         onEditStart: () => {
-            $saveButton.removeClass('d-none');
+            $managementButtons.removeClass('d-none');
             $tableHeader.addClass('d-none');
         },
         onEditStop: () => {
-            $saveButton.removeClass('d-none');
+            $managementButtons.removeClass('d-none');
             $tableHeader.removeClass('d-none');
         },
         columns: [
@@ -294,8 +310,8 @@ function initializeReceptionFixedFields($container, canEdit) {
         save: SAVE_MANUALLY,
         ordering: false,
         paginate: false,
-        onEditStart: () => $saveButton.show(),
-        onEditStop: () => $saveButton.hide(),
+        onEditStart: () => $managementButtons.show(),
+        onEditStop: () => $managementButtons.hide(),
         columns: [
             {data: `label`, title: `Champ fixe`},
             {data: `displayedCreate`, title: `Afficher`},
@@ -314,8 +330,8 @@ function initializeDispatchFixedFields($container, canEdit) {
         save: SAVE_MANUALLY,
         ordering: false,
         paginate: false,
-        onEditStart: () => $saveButton.show(),
-        onEditStop: () => $saveButton.hide(),
+        onEditStart: () => $managementButtons.show(),
+        onEditStop: () => $managementButtons.hide(),
         columns: [
             {data: `label`, title: `Champ fixe`},
             {data: `displayedCreate`, title: `Afficher`},
@@ -334,8 +350,8 @@ function initializeArrivalFixedFields($container, canEdit) {
         save: SAVE_MANUALLY,
         ordering: false,
         paginate: false,
-        onEditStart: () => $saveButton.show(),
-        onEditStop: () => $saveButton.hide(),
+        onEditStart: () => $managementButtons.show(),
+        onEditStop: () => $managementButtons.hide(),
         columns: [
             {data: `label`, title: `Champ fixe`},
             {data: `displayedCreate`, title: `Afficher`},
@@ -354,8 +370,8 @@ function initializeHandlingFixedFields($container, canEdit) {
         save: SAVE_MANUALLY,
         ordering: false,
         paginate: false,
-        onEditStart: () => $saveButton.show(),
-        onEditStop: () => $saveButton.hide(),
+        onEditStart: () => $managementButtons.show(),
+        onEditStop: () => $managementButtons.hide(),
         columns: [
             {data: `label`, title: `Champ fixe`},
             {data: `displayedCreate`, title: `Afficher`},
@@ -497,7 +513,7 @@ function appendSelectOptions(typeSelect, locationSelect, type, location) {
 }
 
 function initializeInventoryFrequenciesTable(){
-    $saveButton.addClass('d-none');
+    $managementButtons.addClass('d-none');
 
     const table = EditableDatatable.create(`#frequencesTable`, {
         route: Routing.generate('settings_frequencies_api', true),
@@ -509,10 +525,10 @@ function initializeInventoryFrequenciesTable(){
         scrollY: false,
         scrollX: false,
         onEditStart: () => {
-            $saveButton.removeClass('d-none');
+            $managementButtons.removeClass('d-none');
         },
         onEditStop: () => {
-            $saveButton.addClass('d-none');
+            $managementButtons.addClass('d-none');
         },
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
@@ -528,7 +544,7 @@ function initializeInventoryFrequenciesTable(){
 }
 
 function initializeInventoryCategoriesTable(){
-    $saveButton.addClass('d-none');
+    $managementButtons.addClass('d-none');
     const $frequencyOptions = JSON.parse($(`#frequency_options`).val());
 
     const table = EditableDatatable.create(`#categoriesTable`, {
@@ -541,10 +557,10 @@ function initializeInventoryCategoriesTable(){
         scrollY: false,
         scrollX: false,
         onEditStart: () => {
-            $saveButton.removeClass('d-none');
+            $managementButtons.removeClass('d-none');
         },
         onEditStop: () => {
-            $saveButton.addClass('d-none');
+            $managementButtons.addClass('d-none');
         },
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
@@ -566,7 +582,7 @@ function initializeVisibilityGroup($container, canEdit) {
     const $addButton = $container.find(`.add-row-button`);
     const $tableHeader = $(`.wii-page-card-header`);
 
-    $saveButton.addClass('d-none');
+    $managementButtons.addClass('d-none');
 
     const table = EditableDatatable.create(`#table-visibility-group`, {
         route: Routing.generate(`settings_visibility_group_api`, true),
@@ -581,11 +597,11 @@ function initializeVisibilityGroup($container, canEdit) {
             $addButton.removeClass(`d-none`);
         },
         onEditStart: () => {
-            $saveButton.removeClass('d-none');
+            $managementButtons.removeClass('d-none');
             $tableHeader.addClass('d-none');
         },
         onEditStop: () => {
-            $saveButton.addClass('d-none');
+            $managementButtons.addClass('d-none');
             $tableHeader.removeClass('d-none');
         },
         columns: [

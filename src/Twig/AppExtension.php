@@ -169,11 +169,10 @@ class AppExtension extends AbstractExtension {
             $this->settingsCache[$setting] = $repository->getOneParamByLabel($this->setting($setting));
             if ($class && $this->settingsCache[$setting]) {
                 $this->settingsCache[$setting] = $this->manager->find($class, $this->settingsCache[$setting]);
-            } else {
+            } else if ($class) {
                 return null;
             }
         }
-
         return $this->settingsCache[$setting];
     }
 

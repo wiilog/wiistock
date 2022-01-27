@@ -52,8 +52,8 @@ function extendsDateSort(name) {
 }
 
 function initActionOnRow(row) {
+    $(row).addClass('pointer');
     if ($(row).find('.action-on-click').get(0)) {
-        $(row).addClass('pointer');
         $(row).on('mouseup', 'td:not(.noVis)', function (event) {
             const highlightedText = window.getSelection
                 ? window.getSelection().toString()
