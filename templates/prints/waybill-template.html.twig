@@ -90,7 +90,7 @@
         <div>
             {% if logo %}
                 <img class="image-title"
-                     src="{{ 'https://' ~ app.request.httpHost ~ "/uploads/attachements/" ~ logo }}"
+                     src="{{ 'https://' ~ app.request.httpHost ~ "/" ~ logo }}"
                      alt="GT Logistics"/>
             {% endif %}
         </div>
@@ -138,11 +138,11 @@
 
     <table class="invisible">
         <tr>
-            <td class="no-padding"><label>Lieu de chargement :</label></td>
+            <td class="no-padding"><label>Lieu de chargement&nbsp;:</label></td>
             <td>{{ dispatch.waybillData.locationFrom }}</td>
         </tr>
         <tr>
-            <td class="no-padding"><label>Lieu de déchargement :</label></td>
+            <td class="no-padding"><label>Lieu de déchargement&nbsp;:</label></td>
             <td>{{ dispatch.waybillData.locationTo }}</td>
         </tr>
     </table>

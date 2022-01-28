@@ -1,23 +1,27 @@
 @import "variables";
 
-.dataTables_wrapper .dataTables_paginate .paginate_button {
-    @extend .btn;
-    @extend .btn-sm;
+.dataTables_wrapper {
+    overflow-x: auto !important;
 
-    &.current {
-        background: $primary !important;
-        border-color: $primary !important;
-        color: $white !important;
+    .dataTables_paginate .paginate_button {
+        @extend .btn;
+        @extend .btn-sm;
 
-        &:hover {
+        &.current {
+            background: $primary !important;
+            border-color: $primary !important;
             color: $white !important;
-        }
-    }
 
-    &:hover,&:active {
-        color: $white !important;
-        background: $darkenPrimary !important;
-        border: 1px solid $darkenPrimary !important;
+            &:hover {
+                color: $white !important;
+            }
+        }
+
+        &:hover, &:active {
+            color: $white !important;
+            background: $darkenPrimary !important;
+            border: 1px solid $darkenPrimary !important;
+        }
     }
 }
 

@@ -100,6 +100,15 @@ export default class EditableDatatable {
                         datatable.save($row);
                     });
                 }
+
+                const data = datatable.table.rows().data();
+                if(config.needsPagingHide) {
+                    $parent.find(`.dataTables_paginate, .dataTables_length`).toggleClass(`d-none`, !data || data.length <= 10);
+                }
+
+                if(config.needsSearchHide) {
+                    $('.dataTables_filter').toggleClass(`d-none`, !data || data.length <= 10);
+                }
             },
             initComplete: () => {
                 let $searchInputContainer = $element.parents('.dataTables_wrapper').find('.dataTables_filter');

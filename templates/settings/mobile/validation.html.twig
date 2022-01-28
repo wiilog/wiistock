@@ -2,27 +2,27 @@
 
 <div class="sub-content">
     <div class="row">
-        <div class="col-12">
+        <div class="col-12 my-1">
             {{ form.checkbox(setting('TRANSFER_TO_TREAT_SKIP_VALIDATIONS'), '<span class="bold">Transfert | Transfert à traiter :</span>&nbsp;désactiver les validations</span>', false, setting_value('TRANSFER_TO_TREAT_SKIP_VALIDATIONS')) }}
         </div>
 
-        <div class="col-12">
+        <div class="col-12 my-1">
             {{ form.checkbox(setting('MANUAL_TRANSFER_TO_TREAT_SKIP_VALIDATIONS'), '<span class="bold">Transfert | Transfert manuel :</span>&nbsp;désactiver les validations</span>', false, setting_value('MANUAL_TRANSFER_TO_TREAT_SKIP_VALIDATIONS')) }}
         </div>
 
-        <div class="col-12">
+        <div class="col-12 my-1">
             {{ form.checkbox(setting('PREPARATION_SKIP_VALIDATIONS'), '<span class="bold">Préparation :</span>&nbsp;désactiver les validations</span>', false, setting_value('PREPARATION_SKIP_VALIDATIONS')) }}
         </div>
 
-        <div class="col-12">
+        <div class="col-12 my-1">
             {{ form.checkbox(setting('PREPARATION_SKIP_QUANTITIES'), '<span class="bold">Préparation :</span>&nbsp;désactiver les confirmations de quantité</span>', false, setting_value('PREPARATION_SKIP_QUANTITIES')) }}
         </div>
 
-        <div class="col-12">
+        <div class="col-12 my-1">
             {{ form.checkbox(setting('LIVRAISON_SKIP_VALIDATIONS'), '<span class="bold">Livraison :</span>&nbsp;désactiver les validations</span>', false, setting_value('LIVRAISON_SKIP_VALIDATIONS')) }}
         </div>
 
-        <div class="col-12">
+        <div class="col-12 my-1">
             {{ form.checkbox(setting('LIVRAISON_SKIP_QUANTITIES'), '<span class="bold">Livraison :</span>&nbsp;désactiver les confirmations de quantité</span>', false, setting_value('LIVRAISON_SKIP_QUANTITIES')) }}
         </div>
     </div>
