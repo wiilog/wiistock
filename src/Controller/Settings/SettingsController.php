@@ -808,6 +808,9 @@ class SettingsController extends AbstractController {
 
                 $data = array_merge($data, [
                     [
+                        'breakline' => true
+                    ],
+                    [
                         "label" => "Notifications push",
                         "value" => $pushNotifications,
                     ],
@@ -849,6 +852,13 @@ class SettingsController extends AbstractController {
             }
 
             if(in_array($category, [CategoryType::DEMANDE_HANDLING, CategoryType::DEMANDE_DISPATCH])) {
+                $hasNotificationsEmergencies = $type->isNotificationsEnabled() && $type->getNotificationsEmergencies();
+                if ($hasNotificationsEmergencies) {
+                    $data[] = [
+                        "breakline" => true,
+                    ];
+                }
+
                 $data[] = [
                     "label" => "Notifications push",
                     "value" => !$type->isNotificationsEnabled()
@@ -858,7 +868,7 @@ class SettingsController extends AbstractController {
                             : "Activées"),
                 ];
 
-                if($type->isNotificationsEnabled() && $type->getNotificationsEmergencies()) {
+                if($hasNotificationsEmergencies) {
                     $data[] = [
                         "label" => "Pour les valeurs",
                         "value" => join(", ", $type->getNotificationsEmergencies()),
