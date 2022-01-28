@@ -296,7 +296,9 @@ class RefArticleDataService {
             $supplierReferenceLines = json_decode($data['frl'], true);
             foreach ($supplierReferenceLines as $supplierReferenceLine) {
                 $referenceArticleFournisseur = $supplierReferenceLine['referenceFournisseur'];
-                $existingSupplierArticle = $entityManager->getRepository(ArticleFournisseur::class)->findOneBy(['reference' => $referenceArticleFournisseur]);
+                $existingSupplierArticle = $entityManager->getRepository(ArticleFournisseur::class)->findOneBy([
+                    'reference' => $referenceArticleFournisseur
+                ]);
 
                 if (!isset($existingSupplierArticle)) {
                     try {
@@ -311,13 +313,24 @@ class RefArticleDataService {
                         $entityManager->persist($supplierArticle);
                     } catch (Exception $exception) {
                         if ($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
-                            $response['success'] = false;
-                            $response['msg'] = "La référence '$referenceArticleFournisseur' existe déjà pour un article fournisseur.";
-                            return $response;
+                            return [
+                                'success' => false,
+                                'msg' => "La référence <strong>$referenceArticleFournisseur</strong> existe déjà pour un article fournisseur."
+                            ];
                         }
                     }
+                } else if($existingSupplierArticle->getReferenceArticle()) {
+                    $supplierArticleName = $existingSupplierArticle->getReference();
+                    $referenceName = $existingSupplierArticle->getReferenceArticle()->getReference();
+
+                    return [
+                        'success' => false,
+                        'msg' => "L'article fournisseur <strong>$supplierArticleName</strong> est déjà lié à la référence <strong>$referenceName</strong>, vous ne pouvez pas l'ajouter."
+                    ];
                 } else {
-                    $existingSupplierArticle->setVisible($isVisible);
+                    $existingSupplierArticle
+                        ->setVisible($isVisible)
+                        ->setReferenceArticle($refArticle);
                 }
             }
         }
