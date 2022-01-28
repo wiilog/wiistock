@@ -456,7 +456,7 @@ class SettingsController extends AbstractController {
                             ])
                             ->sort(fn(array $a, array $b) => $a["label"] <=> $b["label"])
                             ->map(fn(array $n) => "<option value='{$n["id"]}'>{$n["label"]}</option>")
-                            ->prepend("<option disabled selected>Sélectionnez une nature</option>")
+                            ->prepend("<option disabled selected>Sélectionnez une une fréquence</option>")
                             ->join(""),
                     ],
                 ],
@@ -1188,7 +1188,7 @@ class SettingsController extends AbstractController {
                         $selected = $n['label'] === $selectedFrequency ? "selected" : '';
                         return "<option value='{$n["id"]}' {$selected}>{$n["label"]}</option>";
                     })
-                    ->prepend("<option disabled {$emptySelected}>Sélectionnez une nature</option>")
+                    ->prepend("<option disabled {$emptySelected}>Sélectionnez une fréquence</option>")
                     ->join("");
 
                 $data[] = [
