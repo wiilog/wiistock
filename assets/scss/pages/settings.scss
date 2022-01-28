@@ -100,7 +100,7 @@
             }
 
             .sub-content {
-                padding: #{$grid-gutter-width};
+                padding: #{$grid-gutter-width * 0.6} #{$grid-gutter-width};
             }
         }
 
