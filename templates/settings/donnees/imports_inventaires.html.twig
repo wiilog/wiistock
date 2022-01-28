@@ -1,11 +1,11 @@
 <div class="sub-content">
     <div class="row">
         <div class="col-auto">
-            <button class="btn btn-primary"
-                    data-title="charger un fichier .csv avec en colonne 1 les références, en colonne 2 les catégories">
+            <label for="importExcel" class="pointer btn btn-primary" data-toggle="tootlip"
+                   data-title="charger un fichier .csv avec en colonne 1 les références, en colonne 2 les catégories">
                 <span class="fas fa-folder-open mr-2"></span>Import excel
-                <input type="file" id="importExcel" class="d-none" onchange="importInventoryFile()">
-            </button>
+            </label>
+            <input type="file" id="importExcel" class="d-none" onchange="importInventoryFile()">
         </div>
         <div class="col-auto">
             <a href="/modele/modeleImportCategorie.csv"
