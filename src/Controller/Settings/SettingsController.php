@@ -456,7 +456,7 @@ class SettingsController extends AbstractController {
                             ])
                             ->sort(fn(array $a, array $b) => $a["label"] <=> $b["label"])
                             ->map(fn(array $n) => "<option value='{$n["id"]}'>{$n["label"]}</option>")
-                            ->prepend("<option disabled selected>Sélectionnez une une fréquence</option>")
+                            ->prepend("<option disabled selected>Sélectionnez une fréquence</option>")
                             ->join(""),
                     ],
                 ],
