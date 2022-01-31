@@ -97,8 +97,8 @@
     {% set value = options.value ?? [] %}
     {% set values = value is iterable ? value : [value] %}
 
-    <label class="{{ options.labelClass ?? '' }} {{ not options.search ?? true ? 'no-search' }}">
-        <span>{{ _self.label(label, required) }}</span>
+    <label class="{{ not options.search ?? true ? 'no-search' }}">
+        <span class="{{ options.labelClass ?? '' }}">{{ _self.label(label, required) }}</span>
         <select class="form-control w-100 data"
             {{ required ? 'required' }}
             {{ options.multiple ?? false ? 'multiple' }}
