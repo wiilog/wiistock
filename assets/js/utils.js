@@ -39,14 +39,13 @@ export function initEditor(div) {
 
 function updateImagePreview(preview, upload, $title = null, $delete = null, $callback = null) {
     let $upload = $(upload)[0];
-    let formats = [];
+    let formats;
 
     if($(upload).is('[accept]')) {
         const inputAcceptedFormats = $(upload).attr('accept').split(',');
-        inputAcceptedFormats.forEach((format) => {
+        formats = inputAcceptedFormats.map((format) => {
             format = format.split("/").pop();
-            format = format.indexOf('+') > -1 ? format.substring(0, format.indexOf('+')) : format;
-            formats.push(format);
+            return format.indexOf('+') > -1 ? format.substring(0, format.indexOf('+')) : format;
         });
     } else {
         formats = ALLOWED_IMAGE_EXTENSIONS;
