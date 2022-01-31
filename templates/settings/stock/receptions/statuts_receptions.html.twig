@@ -17,16 +17,16 @@
         </div>
     </div>
 
-    <div class="row mt-3">
+    <div class="row my-3">
         <div class="col-12">
             <label class="wii-field-name">Renommer les statuts de réception</label>
-            <div class="d-flex flex-wrap">
+            <div class="row">
                 {% for status in receptionStatuses %}
-                    {% set classes = loop.index % 2 != 0 ? 'mb-2 w-50 pr-3' : 'mb-2 w-50' %}
-                    {{ form.input(status.code, status.code, false, status.nom, {
-                        inline: true,
-                        groupClass: classes
-                    }) }}
+                    <div class="col-md-6 col-12">
+                        {{ form.input(status.code, status.code, false, status.nom, {
+                            inline: true,
+                        }) }}
+                    </div>
                 {% endfor %}
             </div>
         </div>

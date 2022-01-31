@@ -119,22 +119,22 @@ class SettingsService {
      */
     private function customSave(Request $request, array $settings): array {
         $saved = [];
-        $request = $request->request;
+        $data = $request->request;
 
-        if($client = $request->get(ParametrageGlobal::APP_CLIENT)) {
+        if($client = $data->get(ParametrageGlobal::APP_CLIENT)) {
             $this->changeClient($client);
             $saved[] = ParametrageGlobal::APP_CLIENT;
         }
 
-        if($request->has("MAILER_URL")) {
+        if($data->has("MAILER_URL")) {
             $mailer = $this->manager->getRepository(MailerServer::class)->findOneBy([]);
-            $mailer->setSmtp($request->get("MAILER_URL"));
-            $mailer->setUser($request->get("MAILER_USER"));
-            $mailer->setPassword($request->get("MAILER_PASSWORD"));
-            $mailer->setPort($request->get("MAILER_PORT"));
-            $mailer->setProtocol($request->get("MAILER_PROTOCOL"));
-            $mailer->setSenderName($request->get("MAILER_SENDER_NAME"));
-            $mailer->setSenderMail($request->get("MAILER_SENDER_MAIL"));
+            $mailer->setSmtp($data->get("MAILER_URL"));
+            $mailer->setUser($data->get("MAILER_USER"));
+            $mailer->setPassword($data->get("MAILER_PASSWORD"));
+            $mailer->setPort($data->get("MAILER_PORT"));
+            $mailer->setProtocol($data->get("MAILER_PROTOCOL"));
+            $mailer->setSenderName($data->get("MAILER_SENDER_NAME"));
+            $mailer->setSenderMail($data->get("MAILER_SENDER_MAIL"));
 
             $saved = array_merge($saved, [
                 "MAILER_URL",
@@ -147,17 +147,15 @@ class SettingsService {
             ]);
         }
 
-        if ($request->has("en_attente_de_réception")
-            && $request->has("réception_partielle")
-            && $request->has("réception_totale")
-            && $request->has("anomalie")) {
+        if ($data->has("en_attente_de_réception") && $data->has("réception_partielle") && $data->has("réception_totale") && $data->has("anomalie")) {
             $codes = [
-                Reception::STATUT_EN_ATTENTE => $request->get('en_attente_de_réception'),
-                Reception::STATUT_RECEPTION_PARTIELLE => $request->get('réception_partielle'),
-                Reception::STATUT_RECEPTION_TOTALE => $request->get('réception_totale'),
-                Reception::STATUT_ANOMALIE => $request->get('anomalie'),
+                Reception::STATUT_EN_ATTENTE => $data->get("en_attente_de_réception"),
+                Reception::STATUT_RECEPTION_PARTIELLE => $data->get("réception_partielle"),
+                Reception::STATUT_RECEPTION_TOTALE => $data->get("réception_totale"),
+                Reception::STATUT_ANOMALIE => $data->get("anomalie"),
             ];
-            $statuses = $this->manager->getRepository(Statut::class)->findBy(['code' => Stream::keys($codes)->toArray()]);
+
+            $statuses = $this->manager->getRepository(Statut::class)->findBy(["code" => array_keys($codes)]);
             foreach ($statuses as $status) {
                 $status->setNom($codes[$status->getCode()]);
             }

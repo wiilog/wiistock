@@ -185,7 +185,7 @@ function updateMenu(selectedMenu, canEdit) {
             ...(initializers[path] ? initializers[path]($element, canEdit) : []),
         };
 
-        console.log(initializers[path] ? `Initializiing ${path}` : `No initializer for ${path}`);
+        console.log(initializers[path] ? `Initializing ${path}` : `No initializer for ${path}`);
     }
 
     const $pageTitle = $(`#page-title`);
