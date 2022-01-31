@@ -1156,6 +1156,7 @@ class SettingsController extends AbstractController {
         if($entity->getCategories()->isEmpty()) {
             $entityManager->remove($entity);
             $entityManager->flush();
+
             return $this->json([
                 "success" => true,
                 "msg" => "La ligne a bien été supprimée",
@@ -1247,6 +1248,18 @@ class SettingsController extends AbstractController {
      * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
      */
     public function deleteCategory(EntityManagerInterface $entityManager, InventoryCategory $entity): Response {
+        if(!$entity->getRefArticle()->isEmpty()) {
+            return $this->json([
+                "success" => false,
+                "msg" => "La catégorie est liée à des références articles",
+            ]);
+        }
+
+        if($entity->getFrequency()) {
+            $entity->getFrequency()->removeCategory($entity);
+            $entity->setFrequency(null);
+        }
+
         $entityManager->remove($entity);
         $entityManager->flush();
 
