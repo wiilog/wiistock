@@ -383,7 +383,6 @@ function initializeDeliveries() {
         onTypeChange($(this));
     });
     $(document).arrive('select[name=deliveryType]', function() {
-        console.log('test');
         $(this).on('change', function () {
             onTypeChange($(this));
         });
@@ -454,9 +453,6 @@ function onTypeChange($select) {
         isAllSpecifiedTypes = $select.data("length") <= 1;
     }
 
-    console.log($select.val() === `all`);
-    console.log(!allFilledSelect);
-    console.log(isAllSpecifiedTypes);
     $newTypeAssociationButton.prop(`disabled`, $select.val() === `all` || !allFilledSelect || isAllSpecifiedTypes);
 }
 
@@ -479,7 +475,6 @@ function setAlreadyDefinedTypes() {
         types.push($(this).val());
     });
 
-    console.log(types.join(';'));
     $('input[name=alreadyDefinedTypes]').val(types.join(';'));
 }
 
