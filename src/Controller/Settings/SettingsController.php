@@ -188,7 +188,7 @@ class SettingsController extends AbstractController {
             "icon" => "menu-iot",
             "right" => Action::SETTINGS_IOT,
             "menus" => [
-                self::MENU_TYPES_FREE_FIELDS => ["label" => "Types et champs libres", "wrapped" => false],
+                self::MENU_TYPES_FREE_FIELDS => ["label" => "Types et champs libres"],
             ],
         ],
         self::CATEGORY_NOTIFICATIONS => [
@@ -592,6 +592,22 @@ class SettingsController extends AbstractController {
                         "type" => $typeRepository->findOneByLabel(Type::LABEL_MVT_TRACA),
                     ]
                 ]
+            ],
+            self::CATEGORY_IOT => [
+                self::MENU_TYPES_FREE_FIELDS => function() use ($typeRepository) {
+                    $types = Stream::from($typeRepository->findByCategoryLabels([CategoryType::SENSOR]))
+                        ->map(fn(Type $type) => [
+                            "label" => $type->getLabel(),
+                            "value" => $type->getId(),
+                        ])
+                        ->toArray();
+
+                    $types[0]["checked"] = true;
+
+                    return [
+                        "types" => $types,
+                    ];
+                },
             ],
             self::CATEGORY_DATA => [
                 self::MENU_IMPORTS => fn() => [

@@ -172,3 +172,24 @@ export function initializeStockMovementsFreeFields($container, canEdit) {
     $container.on(`change`, `[name=type]`, defaultValueTypeChange);
     $container.on(`keyup`, `[name=elements]`, onElementsChange);
 }
+
+export function initializeIotFreeFields($container, canEdit) {
+    createManagementPage($container, {
+        name: `freeFields`,
+        edit: canEdit,
+        header: {
+            route: (type, edit) => Routing.generate('settings_type_header', {type, edit}, true),
+        },
+        table: {
+            route: (type) => Routing.generate('settings_free_field_api', {type}, true),
+            deleteRoute: `settings_free_field_delete`,
+            columns: generateFreeFieldColumns(),
+            form: {
+                ...generateFreeFieldForm(),
+            },
+        },
+    });
+
+    $container.on(`change`, `[name=type]`, defaultValueTypeChange);
+    $container.on(`keyup`, `[name=elements]`, onElementsChange);
+}
