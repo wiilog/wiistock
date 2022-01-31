@@ -3,7 +3,6 @@
 namespace App\Service;
 
 use App\Entity\CategorieCL;
-use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
@@ -12,6 +11,8 @@ use App\Entity\InventoryFrequency;
 use App\Entity\FreeField;
 use App\Entity\MailerServer;
 use App\Entity\ParametrageGlobal;
+use App\Entity\Reception;
+use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\VisibilityGroup;
 use App\Entity\WorkFreeDay;
@@ -118,21 +119,22 @@ class SettingsService {
      */
     private function customSave(Request $request, array $settings): array {
         $saved = [];
+        $data = $request->request;
 
-        if($client = $request->request->get(ParametrageGlobal::APP_CLIENT)) {
+        if($client = $data->get(ParametrageGlobal::APP_CLIENT)) {
             $this->changeClient($client);
             $saved[] = ParametrageGlobal::APP_CLIENT;
         }
 
-        if($request->request->has("MAILER_URL")) {
+        if($data->has("MAILER_URL")) {
             $mailer = $this->manager->getRepository(MailerServer::class)->findOneBy([]);
-            $mailer->setSmtp($request->request->get("MAILER_URL"));
-            $mailer->setUser($request->request->get("MAILER_USER"));
-            $mailer->setPassword($request->request->get("MAILER_PASSWORD"));
-            $mailer->setPort($request->request->get("MAILER_PORT"));
-            $mailer->setProtocol($request->request->get("MAILER_PROTOCOL"));
-            $mailer->setSenderName($request->request->get("MAILER_SENDER_NAME"));
-            $mailer->setSenderMail($request->request->get("MAILER_SENDER_MAIL"));
+            $mailer->setSmtp($data->get("MAILER_URL"));
+            $mailer->setUser($data->get("MAILER_USER"));
+            $mailer->setPassword($data->get("MAILER_PASSWORD"));
+            $mailer->setPort($data->get("MAILER_PORT"));
+            $mailer->setProtocol($data->get("MAILER_PROTOCOL"));
+            $mailer->setSenderName($data->get("MAILER_SENDER_NAME"));
+            $mailer->setSenderMail($data->get("MAILER_SENDER_MAIL"));
 
             $saved = array_merge($saved, [
                 "MAILER_URL",
@@ -145,32 +147,46 @@ class SettingsService {
             ]);
         }
 
-        if($request->request->has(ParametrageGlobal::WEBSITE_LOGO) && $request->request->get(ParametrageGlobal::WEBSITE_LOGO) === "null") {
+        if($data->has(ParametrageGlobal::WEBSITE_LOGO) && $data->get(ParametrageGlobal::WEBSITE_LOGO) === "null") {
             $setting = $settings[ParametrageGlobal::WEBSITE_LOGO];
             $setting->setValue(ParametrageGlobal::DEFAULT_WEBSITE_LOGO_VALUE);
 
             $saved[] = ParametrageGlobal::WEBSITE_LOGO;
         }
 
-        if($request->request->has(ParametrageGlobal::MOBILE_LOGO_LOGIN) && $request->request->get(ParametrageGlobal::MOBILE_LOGO_LOGIN) === "null") {
+        if($data->has(ParametrageGlobal::MOBILE_LOGO_LOGIN) && $data->get(ParametrageGlobal::MOBILE_LOGO_LOGIN) === "null") {
             $setting = $settings[ParametrageGlobal::MOBILE_LOGO_LOGIN];
             $setting->setValue(ParametrageGlobal::DEFAULT_MOBILE_LOGO_LOGIN_VALUE);
 
             $saved[] = ParametrageGlobal::MOBILE_LOGO_LOGIN;
         }
 
-        if($request->request->has(ParametrageGlobal::EMAIL_LOGO) && $request->request->get(ParametrageGlobal::EMAIL_LOGO) === "null") {
+        if($data->has(ParametrageGlobal::EMAIL_LOGO) && $data->get(ParametrageGlobal::EMAIL_LOGO) === "null") {
             $setting = $settings[ParametrageGlobal::EMAIL_LOGO];
             $setting->setValue(ParametrageGlobal::DEFAULT_EMAIL_LOGO_VALUE);
 
             $saved[] = ParametrageGlobal::EMAIL_LOGO;
         }
 
-        if($request->request->has(ParametrageGlobal::MOBILE_LOGO_HEADER) && $request->request->get(ParametrageGlobal::MOBILE_LOGO_HEADER) === "null") {
+        if($data->has(ParametrageGlobal::MOBILE_LOGO_HEADER) && $data->get(ParametrageGlobal::MOBILE_LOGO_HEADER) === "null") {
             $setting = $settings[ParametrageGlobal::MOBILE_LOGO_HEADER];
             $setting->setValue(ParametrageGlobal::DEFAULT_MOBILE_LOGO_HEADER_VALUE);
 
             $saved[] = ParametrageGlobal::MOBILE_LOGO_HEADER;
+        }
+
+        if ($data->has("en_attente_de_réception") && $data->has("réception_partielle") && $data->has("réception_totale") && $data->has("anomalie")) {
+            $codes = [
+                Reception::STATUT_EN_ATTENTE => $data->get("en_attente_de_réception"),
+                Reception::STATUT_RECEPTION_PARTIELLE => $data->get("réception_partielle"),
+                Reception::STATUT_RECEPTION_TOTALE => $data->get("réception_totale"),
+                Reception::STATUT_ANOMALIE => $data->get("anomalie"),
+            ];
+
+            $statuses = $this->manager->getRepository(Statut::class)->findBy(["code" => array_keys($codes)]);
+            foreach ($statuses as $status) {
+                $status->setNom($codes[$status->getCode()]);
+            }
         }
 
         return $saved;

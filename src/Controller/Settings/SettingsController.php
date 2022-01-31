@@ -460,6 +460,11 @@ class SettingsController extends AbstractController {
                             ->join(""),
                     ],
                 ],
+                self::MENU_RECEPTIONS => [
+                    self::MENU_RECEPTIONS_STATUSES => fn() => [
+                        "receptionStatuses" => $statusRepository->findByCategorieName(CategorieStatut::RECEPTION, 'displayOrder')
+                    ],
+                ],
             ],
             self::CATEGORY_TRACKING => [
                 self::MENU_DISPATCHES => [
