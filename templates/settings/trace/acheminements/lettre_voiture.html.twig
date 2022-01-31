@@ -4,7 +4,8 @@
     <div class="row">
         <div class="col-12">
             {{ form.image(setting('WAYBILL_LOGO'), 'Logo sur la lettre de voiture', false, setting_value('WAYBILL_LOGO'), {
-                labelClass: 'w-100 wii-field-name'
+                labelClass: 'w-100 wii-field-name',
+                formats: 'image/png, image/jpeg, image/jpg'
             }) }}
         </div>
     </div>

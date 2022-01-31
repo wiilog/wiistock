@@ -39,13 +39,25 @@ export function initEditor(div) {
 
 function updateImagePreview(preview, upload, $title = null, $delete = null, $callback = null) {
     let $upload = $(upload)[0];
+    let formats = [];
+
+    if($(upload).is('[accept]')) {
+        const inputAcceptedFormats = $(upload).attr('accept').split(',');
+        inputAcceptedFormats.forEach((format) => {
+            format = format.split("/").pop();
+            format = format.indexOf('+') > -1 ? format.substring(0, format.indexOf('+')) : format;
+            formats.push(format);
+        });
+    } else {
+        formats = ALLOWED_IMAGE_EXTENSIONS;
+    }
 
     if ($upload.files && $upload.files[0]) {
         let fileNameWithExtension = $upload.files[0].name.split('.');
         let extension = fileNameWithExtension[fileNameWithExtension.length - 1];
 
         if ($upload.files[0].size < MAX_UPLOAD_FILE_SIZE) {
-            if (ALLOWED_IMAGE_EXTENSIONS.indexOf(extension.toLowerCase()) !== -1) {
+            if (formats.indexOf(extension.toLowerCase()) !== -1) {
                 if ($title) {
                     $title.text(fileNameWithExtension.join('.').substr(0, 5) + '...');
                     $title.attr('title', fileNameWithExtension.join('.'));
@@ -80,7 +92,7 @@ function updateImagePreview(preview, upload, $title = null, $delete = null, $cal
 
                 reader.readAsDataURL($upload.files[0]);
             } else {
-                showBSAlert(`Veuillez choisir une image valide (${ALLOWED_IMAGE_EXTENSIONS.join(`, `)})`, 'danger')
+                showBSAlert(`Veuillez choisir un format d'image valide (${formats.join(`, `)})`, 'danger')
             }
         } else {
             showBSAlert('La taille du fichier doit être inférieure à 10Mo', 'danger')
