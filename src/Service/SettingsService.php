@@ -3,7 +3,6 @@
 namespace App\Service;
 
 use App\Entity\CategorieCL;
-use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
@@ -12,6 +11,8 @@ use App\Entity\InventoryFrequency;
 use App\Entity\FreeField;
 use App\Entity\MailerServer;
 use App\Entity\ParametrageGlobal;
+use App\Entity\Reception;
+use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\VisibilityGroup;
 use App\Entity\WorkFreeDay;
@@ -118,21 +119,22 @@ class SettingsService {
      */
     private function customSave(Request $request, array $settings): array {
         $saved = [];
+        $request = $request->request;
 
-        if($client = $request->request->get(ParametrageGlobal::APP_CLIENT)) {
+        if($client = $request->get(ParametrageGlobal::APP_CLIENT)) {
             $this->changeClient($client);
             $saved[] = ParametrageGlobal::APP_CLIENT;
         }
 
-        if($request->request->has("MAILER_URL")) {
+        if($request->has("MAILER_URL")) {
             $mailer = $this->manager->getRepository(MailerServer::class)->findOneBy([]);
-            $mailer->setSmtp($request->request->get("MAILER_URL"));
-            $mailer->setUser($request->request->get("MAILER_USER"));
-            $mailer->setPassword($request->request->get("MAILER_PASSWORD"));
-            $mailer->setPort($request->request->get("MAILER_PORT"));
-            $mailer->setProtocol($request->request->get("MAILER_PROTOCOL"));
-            $mailer->setSenderName($request->request->get("MAILER_SENDER_NAME"));
-            $mailer->setSenderMail($request->request->get("MAILER_SENDER_MAIL"));
+            $mailer->setSmtp($request->get("MAILER_URL"));
+            $mailer->setUser($request->get("MAILER_USER"));
+            $mailer->setPassword($request->get("MAILER_PASSWORD"));
+            $mailer->setPort($request->get("MAILER_PORT"));
+            $mailer->setProtocol($request->get("MAILER_PROTOCOL"));
+            $mailer->setSenderName($request->get("MAILER_SENDER_NAME"));
+            $mailer->setSenderMail($request->get("MAILER_SENDER_MAIL"));
 
             $saved = array_merge($saved, [
                 "MAILER_URL",
@@ -143,6 +145,22 @@ class SettingsService {
                 "MAILER_SENDER_NAME",
                 "MAILER_SENDER_MAIL",
             ]);
+        }
+
+        if ($request->has("en_attente_de_réception")
+            && $request->has("réception_partielle")
+            && $request->has("réception_totale")
+            && $request->has("anomalie")) {
+            $codes = [
+                Reception::STATUT_EN_ATTENTE => $request->get('en_attente_de_réception'),
+                Reception::STATUT_RECEPTION_PARTIELLE => $request->get('réception_partielle'),
+                Reception::STATUT_RECEPTION_TOTALE => $request->get('réception_totale'),
+                Reception::STATUT_ANOMALIE => $request->get('anomalie'),
+            ];
+            $statuses = $this->manager->getRepository(Statut::class)->findBy(['code' => Stream::keys($codes)->toArray()]);
+            foreach ($statuses as $status) {
+                $status->setNom($codes[$status->getCode()]);
+            }
         }
 
         return $saved;

@@ -23,7 +23,8 @@
             <div class="d-flex flex-wrap">
                 {% for status in receptionStatuses %}
                     {% set classes = loop.index % 2 != 0 ? 'mb-2 w-50 pr-3' : 'mb-2 w-50' %}
-                    {{ form.input_group(status.id, status.code, false, status.nom, {
+                    {{ form.input(status.code, status.code, false, status.nom, {
+                        inline: true,
                         groupClass: classes
                     }) }}
                 {% endfor %}

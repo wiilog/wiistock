@@ -255,17 +255,3 @@
         </div>
     </label>
 {% endmacro %}
-
-{% macro input_group(name, label, required, value = '', options = {}) %}
-{% set id = random(100000, 10000000) %}
-
-    <div class="input-group {{ options.groupClass ?? '' }}">
-        <div class="input-group-prepend">
-            <span class="input-group-text {{ options.labelClass ?? '' }}" id="{{ name }}-{{ id }}">
-                {{ label }}
-            </span>
-        </div>
-        <input type="text" class="form-control" name="{{ name }}"
-               aria-describedby="{{ name }}-{{ id }}" value="{{ value }}" {{ required ? 'required' }}>
-    </div>
-{% endmacro %}
