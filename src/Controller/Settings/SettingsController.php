@@ -213,7 +213,10 @@ class SettingsController extends AbstractController {
                     "label" => "Utilisateurs",
                     "save" => false
                 ],
-                self::MENU_ROLES => ["label" => "Rôles"],
+                self::MENU_ROLES => [
+                    "label" => "Rôles",
+                    "save" => false
+                ],
             ],
         ],
         self::CATEGORY_DATA => [

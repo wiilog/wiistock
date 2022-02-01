@@ -32,8 +32,8 @@ class ReferenceArticle {
     const STATUT_INACTIF = 'inactif';
     const DRAFT_STATUS = 'brouillon';
 
-    const TYPE_QUANTITE_REFERENCE = 'reference';
-    const TYPE_QUANTITE_ARTICLE = 'article';
+    const QUANTITY_TYPE_REFERENCE = 'reference';
+    const QUANTITY_TYPE_ARTICLE = 'article';
 
     const BARCODE_PREFIX = 'REF';
 
@@ -1115,7 +1115,7 @@ class ReferenceArticle {
 
     public function getAssociatedArticles(): array
     {
-        return $this->typeQuantite === self::TYPE_QUANTITE_REFERENCE
+        return $this->typeQuantite === self::QUANTITY_TYPE_REFERENCE
             ? []
             : Stream::from($this->articlesFournisseur)
                 ->map(function(ArticleFournisseur $articleFournisseur) {

@@ -284,9 +284,12 @@ $wii-switch-height: $input-height;
 
 .wii-checkbox {
     font-weight: normal;
-
     display: flex;
     align-items: center;
+
+    label {
+        cursor: pointer;
+    }
 }
 
 label, .wii-checkbox, .wii-radio {

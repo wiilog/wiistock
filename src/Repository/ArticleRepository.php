@@ -734,7 +734,7 @@ class ArticleRepository extends EntityRepository {
             ->orderBy('article_location.label')
             ->setParameters([
                 'frequency' => $frequency,
-                'typeQuantity' => ReferenceArticle::TYPE_QUANTITE_ARTICLE,
+                'typeQuantity' => ReferenceArticle::QUANTITY_TYPE_ARTICLE,
                 'activeStatus' => Article::STATUT_ACTIF,
                 'disputeStatus' => Article::STATUT_EN_LITIGE,
                 'referenceActiveStatus' => ReferenceArticle::STATUT_ACTIF

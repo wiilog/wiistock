@@ -243,7 +243,7 @@ class ReferenceArticleRepository extends EntityRepository {
             $queryBuilder
                 ->andWhere("(reference.emplacement IS NULL OR reference.typeQuantite = :typeQuantityArticle OR reference.emplacement = :location)")
                 ->setParameter('location', $locationFilter)
-                ->setParameter('typeQuantityArticle', ReferenceArticle::TYPE_QUANTITE_ARTICLE);
+                ->setParameter('typeQuantityArticle', ReferenceArticle::QUANTITY_TYPE_ARTICLE);
         }
 
         if ($buyerFilter) {
@@ -722,7 +722,7 @@ class ReferenceArticleRepository extends EntityRepository {
             "
         )->setParameters([
             'active' => ReferenceArticle::STATUT_ACTIF,
-            'typeQuantite' => ReferenceArticle::TYPE_QUANTITE_REFERENCE
+            'typeQuantite' => ReferenceArticle::QUANTITY_TYPE_REFERENCE
         ]);
 
         return $query->getSingleScalarResult();
@@ -922,7 +922,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->setParameters([
                 'frequency' => $frequency,
                 'status' => ReferenceArticle::STATUT_ACTIF,
-                'quantityType_reference' => ReferenceArticle::TYPE_QUANTITE_REFERENCE,
+                'quantityType_reference' => ReferenceArticle::QUANTITY_TYPE_REFERENCE,
                 'startDate' => $inventoryMission->getStartPrevDate(),
                 'endDate' => $inventoryMission->getEndPrevDate()
             ]);
@@ -980,7 +980,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ORDER BY rae.label"
         )->setParameters([
             'frequency' => $frequency,
-            'typeQuantity' => ReferenceArticle::TYPE_QUANTITE_REFERENCE,
+            'typeQuantity' => ReferenceArticle::QUANTITY_TYPE_REFERENCE,
             'refActive' => ReferenceArticle::STATUT_ACTIF,
         ]);
 
@@ -1008,7 +1008,7 @@ class ReferenceArticleRepository extends EntityRepository {
 
     public function getStockQuantity(ReferenceArticle $referenceArticle): int
     {
-        if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+        if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
             $em = $this->getEntityManager();
             $query = $em->createQuery(
             /** @lang DQL */
@@ -1033,7 +1033,7 @@ class ReferenceArticleRepository extends EntityRepository {
 
     public function getReservedQuantity(ReferenceArticle $referenceArticle): int
     {
-        if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+        if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
             $referenceReservedQuantity = $this->createQueryBuilder('referenceArticle')
                 ->select('SUM(preparationLine.quantityToPick)')
                 ->join('referenceArticle.preparationOrderReferenceLines', 'preparationLine')
@@ -1128,7 +1128,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->andWhere('referenceArticle.typeQuantite = :typeQuantite')
             ->setParameter('location', $location)
             ->setParameter('barCode', $barCode)
-            ->setParameter('typeQuantite', ReferenceArticle::TYPE_QUANTITE_REFERENCE);
+            ->setParameter('typeQuantite', ReferenceArticle::QUANTITY_TYPE_REFERENCE);
 
         if ($onlyActive) {
             $queryBuilder
@@ -1153,7 +1153,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->andWhere('ra.typeQuantite = :typeQty')
             ->setParameters([
                 'id' => $id,
-                'typeQty' => ReferenceArticle::TYPE_QUANTITE_ARTICLE
+                'typeQty' => ReferenceArticle::QUANTITY_TYPE_ARTICLE
             ]);
 
         if (!empty($reference)) {

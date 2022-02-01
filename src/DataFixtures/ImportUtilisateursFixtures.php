@@ -2,6 +2,7 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\ReferenceArticle;
 use App\Entity\Role;
 use App\Entity\Utilisateur;
 use App\Service\PasswordService;
@@ -46,8 +47,7 @@ class ImportUtilisateursFixtures extends Fixture implements FixtureGroupInterfac
             $role = new Role();
             $role->setLabel("Utilisateur Safran");
             $role->setIsMailSendAccountCreation(false);
-            $role->setDashboardsVisible([]);
-            $role->setActive(true);
+            $role->setQuantityType(ReferenceArticle::QUANTITY_TYPE_REFERENCE);
 
             $manager->persist($role);
             $manager->flush();
