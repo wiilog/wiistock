@@ -166,11 +166,11 @@ class ReferenceArticleController extends AbstractController
 
             switch($data['type_quantite']) {
                 case 'article':
-                    $typeArticle = ReferenceArticle::TYPE_QUANTITE_ARTICLE;
+                    $typeArticle = ReferenceArticle::QUANTITY_TYPE_ARTICLE;
                     break;
                 case 'reference':
                 default:
-                    $typeArticle = ReferenceArticle::TYPE_QUANTITE_REFERENCE;
+                    $typeArticle = ReferenceArticle::QUANTITY_TYPE_REFERENCE;
                     break;
             }
 
@@ -216,7 +216,7 @@ class ReferenceArticleController extends AbstractController
                 $refArticle->setStatut($statut);
             }
 
-            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+            if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
                 $refArticle->setQuantiteStock($data['quantite'] ? max($data['quantite'], 0) : 0); // protection contre quantités négatives
             } else {
                 $refArticle->setQuantiteStock(0);
@@ -258,7 +258,7 @@ class ReferenceArticleController extends AbstractController
                 }
             }
 
-            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE &&
+            if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE &&
                 $refArticle->getQuantiteStock() > 0 &&
                 $refArticle->getStatut()->getCode() !== ReferenceArticle::DRAFT_STATUS) {
                 $mvtStock = $mouvementStockService->createMouvementStock(
@@ -549,7 +549,7 @@ class ReferenceArticleController extends AbstractController
         $refArticle = $referenceArticleRepository->find($refArticleId);
 
         if ($refArticle) {
-            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+            if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
                 $quantity = $refArticle->getQuantiteDisponible();
             }
         }
@@ -653,7 +653,7 @@ class ReferenceArticleController extends AbstractController
 
         $providerArticles = Stream::from($referenceArticle->getArticlesFournisseur())
             ->reduce(function(array $carry, ArticleFournisseur $providerArticle) use ($referenceArticle) {
-                $articles = $referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE
+                $articles = $referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE
                     ? $providerArticle->getArticles()->toArray()
                     : [];
                 $carry[] = [

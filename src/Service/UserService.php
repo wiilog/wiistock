@@ -11,8 +11,6 @@ use App\Entity\Livraison;
 use App\Entity\Handling;
 use App\Entity\Menu;
 use App\Entity\OrdreCollecte;
-use App\Entity\Parametre;
-use App\Entity\ParametreRole;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Reception;
 use App\Entity\TrackingMovement;
@@ -106,28 +104,6 @@ class UserService
 			'Actions' => $this->templating->render('settings/utilisateurs/utilisateurs/actions.html.twig', ['idUser' => $idUser]),
 		];
     }
-
-	/**
-	 * @return bool
-	 */
-    public function hasParamQuantityByRef()
-	{
-		$response = false;
-
-        $parametreRoleRepository = $this->entityManager->getRepository(ParametreRole::class);
-        $parametreRepository = $this->entityManager->getRepository(Parametre::class);
-
-		$role = $this->user->getRole();
-		$param = $parametreRepository->findOneBy(['label' => Parametre::LABEL_AJOUT_QUANTITE]);
-		if ($param) {
-			$paramQuantite = $parametreRoleRepository->findOneByRoleAndParam($role, $param);
-			if ($paramQuantite) {
-				$response = $paramQuantite->getValue() == Parametre::VALUE_PAR_REF;
-			}
-		}
-
-		return $response;
-	}
 
 	public function getUserOwnership(EntityManagerInterface $entityManager,
                                      Utilisateur $user): array {

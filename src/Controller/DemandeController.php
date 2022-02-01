@@ -342,9 +342,9 @@ class DemandeController extends AbstractController
                     'demande/datatableLigneArticleRow.html.twig',
                     [
                         'id' => $line->getId(),
-                        'name' => (ReferenceArticle::TYPE_QUANTITE_REFERENCE),
+                        'name' => ReferenceArticle::QUANTITY_TYPE_REFERENCE,
                         'refArticleId' => $line->getReference()->getId(),
-                        'reference' => ReferenceArticle::TYPE_QUANTITE_REFERENCE,
+                        'reference' => ReferenceArticle::QUANTITY_TYPE_REFERENCE,
                         'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
                     ]
                 )
@@ -369,8 +369,8 @@ class DemandeController extends AbstractController
                     [
                         'id' => $line->getId(),
                         'articleId' => $article->getId(),
-                        'name' => (ReferenceArticle::TYPE_QUANTITE_ARTICLE),
-                        'reference' => ReferenceArticle::TYPE_QUANTITE_REFERENCE,
+                        'name' => ReferenceArticle::QUANTITY_TYPE_ARTICLE,
+                        'reference' => ReferenceArticle::QUANTITY_TYPE_REFERENCE,
                         'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
                     ]
                 ),
@@ -429,10 +429,10 @@ class DemandeController extends AbstractController
             $referenceLineRepository = $entityManager->getRepository(DeliveryRequestReferenceLine::class);
             $articleLineRepository = $entityManager->getRepository(DeliveryRequestArticleLine::class);
 
-            if (array_key_exists(ReferenceArticle::TYPE_QUANTITE_REFERENCE, $data)) {
-                $line = $referenceLineRepository->find($data[ReferenceArticle::TYPE_QUANTITE_REFERENCE]);
-            } elseif (array_key_exists(ReferenceArticle::TYPE_QUANTITE_ARTICLE, $data)) {
-                $line = $articleLineRepository->find($data[ReferenceArticle::TYPE_QUANTITE_ARTICLE]);
+            if (array_key_exists(ReferenceArticle::QUANTITY_TYPE_REFERENCE, $data)) {
+                $line = $referenceLineRepository->find($data[ReferenceArticle::QUANTITY_TYPE_REFERENCE]);
+            } elseif (array_key_exists(ReferenceArticle::QUANTITY_TYPE_ARTICLE, $data)) {
+                $line = $articleLineRepository->find($data[ReferenceArticle::QUANTITY_TYPE_ARTICLE]);
             }
 
             if (isset($line)) {
