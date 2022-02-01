@@ -58,7 +58,6 @@ $(function() {
     updateMenu(submenu || menu, canEdit);
 
     $(`.settings-item`).on(`click`, function() {
-        console.log(editing);
         if (!editing || (editing && window.confirm("Vous avez des modifications en attente, souhaitez vous continuer ?"))) {
             const selectedMenu = $(this).data(`menu`);
 
@@ -181,8 +180,10 @@ function updateMenu(selectedMenu, canEdit) {
     const $selectedMenu = $(`.settings main > .settings-content[data-menu="${selectedMenu}"]`);
     $selectedMenu.removeClass(`d-none`);
 
-    const displaySaveButton = $selectedMenu.data('saveButton');
-    $managementButtons.toggleClass('d-none', !displaySaveButton);
+    const displaySaveButton = $selectedMenu.data('save-button');
+    const displayDiscardButton = $selectedMenu.data('discard-button');
+    $saveButton.toggleClass('d-none', !displaySaveButton);
+    $discardButton.toggleClass('d-none', !displayDiscardButton);
 
     let title;
     if(!submenu) {
@@ -224,8 +225,6 @@ function updateMenu(selectedMenu, canEdit) {
 }
 
 function initializeWorkingHours($container, canEdit) {
-    $managementButtons.addClass('d-none');
-
     const table = EditableDatatable.create(`#table-working-hours`, {
         route: Routing.generate('settings_working_hours_api', true),
         mode: canEdit ? MODE_DOUBLE_CLICK : MODE_NO_EDIT,
@@ -250,8 +249,6 @@ function initializeWorkingHours($container, canEdit) {
 function initializeOffDays($container, canEdit) {
     const $addButton = $container.find(`.add-row-button`);
     const $tableHeader = $(`.wii-page-card-header`);
-
-    $managementButtons.addClass('d-none');
 
     const table = EditableDatatable.create(`#table-off-days`, {
         route: Routing.generate(`settings_off_days_api`, true),
@@ -537,8 +534,6 @@ function appendSelectOptions(typeSelect, locationSelect, type, location) {
 }
 
 function initializeInventoryFrequenciesTable(){
-    $managementButtons.addClass('d-none');
-
     const table = EditableDatatable.create(`#frequencesTable`, {
         route: Routing.generate('settings_frequencies_api', true),
         deleteRoute: `settings_delete_frequency`,
@@ -568,7 +563,6 @@ function initializeInventoryFrequenciesTable(){
 }
 
 function initializeInventoryCategoriesTable(){
-    $managementButtons.addClass('d-none');
     const $frequencyOptions = JSON.parse($(`#frequency_options`).val());
 
     const table = EditableDatatable.create(`#categoriesTable`, {
@@ -605,8 +599,6 @@ function initializeInventoryCategoriesTable(){
 function initializeVisibilityGroup($container, canEdit) {
     const $addButton = $container.find(`.add-row-button`);
     const $tableHeader = $(`.wii-page-card-header`);
-
-    $managementButtons.addClass('d-none');
 
     const table = EditableDatatable.create(`#table-visibility-group`, {
         route: Routing.generate(`settings_visibility_group_api`, true),
