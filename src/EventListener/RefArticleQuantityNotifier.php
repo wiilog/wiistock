@@ -29,8 +29,6 @@ class RefArticleQuantityNotifier {
             $this->refArticleService->treatAlert($this->entityManager, $referenceArticle);
             $available = ($referenceArticle->getQuantiteStock() - $referenceArticle->getQuantiteReservee());
             $referenceArticle->setQuantiteDisponible($available);
-            // WIIS-6777 - Quantities override by notifier
-            $referenceArticle->setQuantiteStock($referenceArticle->getQuantiteStock());
             $this->entityManager->flush();
         }
     }

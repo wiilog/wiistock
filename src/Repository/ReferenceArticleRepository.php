@@ -138,6 +138,22 @@ class ReferenceArticleRepository extends EntityRepository {
             ->toIterable();
     }
 
+    public function updateFields(ReferenceArticle $referenceArticle, array $fields) {
+        $queryBuilder = $this
+            ->createQueryBuilder('referenceArticle')
+            ->update(ReferenceArticle::class, 'referenceArticle')
+            ->where('referenceArticle = :reference')
+            ->setParameter('reference', $referenceArticle);
+        foreach ($fields as $field => $value) {
+            $queryBuilder
+                ->set("referenceArticle.$field", ":value$field")
+                ->setParameter(":value$field", $value);
+        }
+        return $queryBuilder
+            ->getQuery()
+            ->execute();
+    }
+
     public function getByNeedsMobileSync()
     {
         $queryBuilder = $this->createQueryBuilder('referenceArticle');
