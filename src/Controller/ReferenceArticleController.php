@@ -867,45 +867,6 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
-     * @Route("/show-actif-inactif", name="reference_article_actif_inactif", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     */
-    public function displayActifOrInactif(Request $request,
-                                          EntityManagerInterface $entityManager) : Response
-    {
-        if ($data = json_decode($request->getContent(), true)){
-
-            /** @var Utilisateur $user */
-            $user = $this->getUser();
-            $statutArticle = $data['donnees'];
-
-            $filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
-
-            $filter = $filtreRefRepository->findOneByUserAndChampFixe($user, FiltreRef::FIXED_FIELD_STATUS);
-
-            $em = $this->getDoctrine()->getManager();
-
-            if($filter == null) {
-                $filter = new FiltreRef();
-                $filter
-                    ->setUtilisateur($user)
-                    ->setChampFixe(FiltreRef::FIXED_FIELD_STATUS);
-                $em->persist($filter);
-            }
-
-            $filter->setValue(ReferenceArticle::STATUT_ACTIF);
-
-            if ($statutArticle !== ReferenceArticle::STATUT_ACTIF) {
-                $entityManager->remove($filter);
-            }
-            $em->flush();
-
-            return new JsonResponse();
-        }
-
-        throw new BadRequestHttpException();
-    }
-
-    /**
      * @Route("/mouvements/lister", name="ref_mouvements_list", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function showMovements(Request $request, EntityManagerInterface $entityManager): Response
