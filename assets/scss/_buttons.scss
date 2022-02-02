@@ -163,3 +163,12 @@ $outlineButtonConfig: (
 .btn-silent {
     padding: 0 !important;
 }
+
+.btn-link {
+    color: $black;
+    text-decoration: underline;
+
+    &:hover {
+        color: $primary;
+    }
+}

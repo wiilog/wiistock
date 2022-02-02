@@ -101,6 +101,10 @@ export default class EditableDatatable {
                     });
                 }
 
+                if(config.save === SAVE_MANUALLY) {
+                    $rows.addClass(`focus-free`);
+                }
+
                 const data = datatable.table.rows().data();
                 if(config.needsPagingHide) {
                     $parent.find(`.dataTables_paginate, .dataTables_length`).toggleClass(`d-none`, !data || data.length <= 10);

@@ -50,20 +50,13 @@ class FieldsParamRepository extends EntityRepository
 		return array_column($query->execute(), 'fieldCode');
 	}
 
-	/**
-	 * @param $entity
-	 * @return FieldsParam[]
-	 */
-    function findByEntityForEntity($entity) {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT f
-            FROM App\Entity\FieldsParam f
-            WHERE f.entityCode = :entity"
-        )->setParameter('entity', $entity);
-
-        return $query->execute();
+    function findByEntityForEntity(string $entity): array {
+        return $this->createQueryBuilder("fixed_field")
+            ->where("fixed_field.entityCode = :entity")
+            ->orderBy("fixed_field.fieldLabel", "ASC")
+            ->setParameter("entity", $entity)
+            ->getQuery()
+            ->getResult();
     }
 
     public function findByEntityAndCode(string $entity, string $field): ?FieldsParam {
