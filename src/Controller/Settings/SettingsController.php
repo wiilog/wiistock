@@ -14,6 +14,7 @@ use App\Entity\FreeField;
 use App\Entity\Import;
 use App\Entity\InventoryCategory;
 use App\Entity\InventoryFrequency;
+use App\Entity\IOT\AlertTemplate;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
 use App\Entity\ParametrageGlobal;
@@ -110,13 +111,13 @@ class SettingsController extends AbstractController {
                             "label" => "Livraisons",
                             "save" => true,
                         ],
-                        self::MENU_DELIVERY_REQUEST_TEMPLATES => ["label" => "Livraisons - Modèle de demande"],
+                        self::MENU_DELIVERY_REQUEST_TEMPLATES => ["label" => "Livraisons - Modèle de demande", "wrapped" => false],
                         self::MENU_DELIVERY_TYPES_FREE_FIELDS => ["label" => "Livraisons - Types et champs libres", "wrapped" => false],
                         self::MENU_COLLECTS => [
                             "label" => "Collectes",
                             "save" => true,
                         ],
-                        self::MENU_COLLECT_REQUEST_TEMPLATES => ["label" => "Collectes - Modèle de demande"],
+                        self::MENU_COLLECT_REQUEST_TEMPLATES => ["label" => "Collectes - Modèle de demande", "wrapped" => false],
                         self::MENU_COLLECT_TYPES_FREE_FIELDS => ["label" => "Collectes - Types et champs libres", "wrapped" => false],
                         self::MENU_PURCHASE_STATUSES => ["label" => "Achats - Statut"],
                     ],
@@ -290,7 +291,7 @@ class SettingsController extends AbstractController {
                 ],
                 self::MENU_ROLES => [
                     "label" => "Rôles",
-                    "save" => false
+                    "save" => false,
                 ],
             ],
         ],
@@ -451,6 +452,24 @@ class SettingsController extends AbstractController {
         ]);
     }
 
+    private function typeGenerator(string $category) {
+        return function() use ($category) {
+            $typeRepository = $this->manager->getRepository(Type::class);
+            $types = Stream::from($typeRepository->findByCategoryLabels([$category]))
+                ->map(fn(Type $type) => [
+                    "label" => $type->getLabel(),
+                    "value" => $type->getId(),
+                ])
+                ->toArray();
+dump($category, $types);
+            $types[0]["checked"] = true;
+
+            return [
+                "types" => $types,
+            ];
+        };
+    }
+
     public function customValues(): array {
         $mailerServerRepository = $this->manager->getRepository(MailerServer::class);
         $typeRepository = $this->manager->getRepository(Type::class);
@@ -458,6 +477,7 @@ class SettingsController extends AbstractController {
         $freeFieldRepository = $this->manager->getRepository(FreeField::class);
         $frequencyRepository = $this->manager->getRepository(InventoryFrequency::class);
         $fixedFieldRepository = $this->manager->getRepository(FieldsParam::class);
+        $alertTemplateRepository = $this->manager->getRepository(AlertTemplate::class);
 
         return [
             self::CATEGORY_GLOBAL => [
@@ -500,34 +520,16 @@ class SettingsController extends AbstractController {
                     self::MENU_DELIVERIES => fn() => [
                         "deliveryTypeSettings" => json_encode($this->getDefaultDeliveryLocationsByType($this->manager)),
                     ],
-                    self::MENU_DELIVERY_TYPES_FREE_FIELDS => function() use ($typeRepository) {
-                        $types = Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]))
-                            ->map(fn(Type $type) => [
-                                "label" => $type->getLabel(),
-                                "value" => $type->getId(),
+                    self::MENU_DELIVERY_REQUEST_TEMPLATES => fn() => [
+                        "templates" => Stream::from($alertTemplateRepository->findAll())
+                            ->map(fn(AlertTemplate $template) => [
+                                "label" => $template->getName(),
+                                "value" => $template->getId(),
                             ])
-                            ->toArray();
-
-                        $types[0]["checked"] = true;
-
-                        return [
-                            "types" => $types,
-                        ];
-                    },
-                    self::MENU_COLLECT_TYPES_FREE_FIELDS => function() use ($typeRepository) {
-                        $types = Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]))
-                            ->map(fn(Type $type) => [
-                                "label" => $type->getLabel(),
-                                "value" => $type->getId(),
-                            ])
-                            ->toArray();
-
-                        $types[0]["checked"] = true;
-
-                        return [
-                            "types" => $types,
-                        ];
-                    },
+                            ->toArray(),
+                    ],
+                    self::MENU_DELIVERY_TYPES_FREE_FIELDS => $this->typeGenerator(CategoryType::DEMANDE_LIVRAISON),
+                    self::MENU_COLLECT_TYPES_FREE_FIELDS => $this->typeGenerator(CategoryType::DEMANDE_COLLECTE),
                 ],
                 self::MENU_INVENTORIES => [
                     self::MENU_CATEGORIES => fn() => [
@@ -544,7 +546,7 @@ class SettingsController extends AbstractController {
                 ],
                 self::MENU_RECEPTIONS => [
                     self::MENU_RECEPTIONS_STATUSES => fn() => [
-                        "receptionStatuses" => $statusRepository->findByCategorieName(CategorieStatut::RECEPTION, 'displayOrder')
+                        "receptionStatuses" => $statusRepository->findByCategorieName(CategorieStatut::RECEPTION, 'displayOrder'),
                     ],
                 ],
             ],
@@ -554,13 +556,13 @@ class SettingsController extends AbstractController {
                         "types" => Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]))
                             ->map(fn(Type $type) => [
                                 "value" => $type->getId(),
-                                "text" => $type->getLabel(),
+                                "label" => $type->getLabel(),
                             ])->toArray(),
                         "statuses" => Stream::from($statusRepository->findByCategorieName(CategorieStatut::DISPATCH))
                             ->filter(fn(Statut $status) => $status->getState() === Statut::NOT_TREATED)
                             ->map(fn(Statut $status) => [
                                 "value" => $status->getId(),
-                                "text" => $status->getNom(),
+                                "label" => $status->getNom(),
                             ])->toArray(),
                     ],
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
@@ -572,7 +574,7 @@ class SettingsController extends AbstractController {
                                 "field" => $emergencyField->getId(),
                                 "elements" => Stream::from($emergencyField->getElements())
                                     ->map(fn(string $element) => [
-                                        "text" => $element,
+                                        "label" => $element,
                                         "value" => $element,
                                         "selected" => true,
                                     ])
@@ -582,7 +584,7 @@ class SettingsController extends AbstractController {
                                 "field" => $businessField->getId(),
                                 "elements" => Stream::from($businessField->getElements())
                                     ->map(fn(string $element) => [
-                                        "text" => $element,
+                                        "label" => $element,
                                         "value" => $element,
                                         "selected" => true,
                                     ])
@@ -590,20 +592,7 @@ class SettingsController extends AbstractController {
                             ],
                         ];
                     },
-                    self::MENU_TYPES_FREE_FIELDS => function() use ($typeRepository) {
-                        $types = Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]))
-                            ->map(fn(Type $type) => [
-                                "label" => $type->getLabel(),
-                                "value" => $type->getId(),
-                            ])
-                            ->toArray();
-
-                        $types[0]["checked"] = true;
-
-                        return [
-                            "types" => $types,
-                        ];
-                    },
+                    self::MENU_TYPES_FREE_FIELDS => $this->typeGenerator(CategoryType::DEMANDE_DISPATCH),
                 ],
                 self::MENU_ARRIVALS => [
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
@@ -614,7 +603,7 @@ class SettingsController extends AbstractController {
                                 "field" => $field->getId(),
                                 "elements" => Stream::from($field->getElements())
                                     ->map(fn(string $element) => [
-                                        "text" => $element,
+                                        "label" => $element,
                                         "value" => $element,
                                         "selected" => true,
                                     ])
@@ -622,20 +611,7 @@ class SettingsController extends AbstractController {
                             ],
                         ];
                     },
-                    self::MENU_TYPES_FREE_FIELDS => function() use ($typeRepository) {
-                        $types = Stream::from($typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]))
-                            ->map(fn(Type $type) => [
-                                "label" => $type->getLabel(),
-                                "value" => $type->getId(),
-                            ])
-                            ->toArray();
-
-                        $types[0]["checked"] = true;
-
-                        return [
-                            "types" => $types,
-                        ];
-                    },
+                    self::MENU_TYPES_FREE_FIELDS => $this->typeGenerator(CategoryType::ARRIVAGE),
                 ],
                 self::MENU_HANDLINGS => [
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
@@ -646,7 +622,7 @@ class SettingsController extends AbstractController {
                                 "field" => $field->getId(),
                                 "elements" => Stream::from($field->getElements())
                                     ->map(fn(string $element) => [
-                                        "text" => $element,
+                                        "label" => $element,
                                         "value" => $element,
                                         "selected" => true,
                                     ])
@@ -654,20 +630,7 @@ class SettingsController extends AbstractController {
                             ],
                         ];
                     },
-                    self::MENU_TYPES_FREE_FIELDS => function() use ($typeRepository) {
-                        $types = Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]))
-                            ->map(fn(Type $type) => [
-                                "label" => $type->getLabel(),
-                                "value" => $type->getId(),
-                            ])
-                            ->toArray();
-
-                        $types[0]["checked"] = true;
-
-                        return [
-                            "types" => $types,
-                        ];
-                    },
+                    self::MENU_TYPES_FREE_FIELDS => $this->typeGenerator(CategoryType::DEMANDE_HANDLING),
                 ],
                 self::MENU_MOVEMENTS => [
                     self::MENU_FREE_FIELDS => fn() => [
@@ -915,7 +878,7 @@ class SettingsController extends AbstractController {
 
                 $data = array_merge($data, [
                     [
-                        'breakline' => true
+                        'breakline' => true,
                     ],
                     [
                         "label" => "Notifications push",
@@ -967,7 +930,7 @@ class SettingsController extends AbstractController {
 
             if(in_array($category, [CategoryType::DEMANDE_HANDLING, CategoryType::DEMANDE_DISPATCH])) {
                 $hasNotificationsEmergencies = $type->isNotificationsEnabled() && $type->getNotificationsEmergencies();
-                if ($hasNotificationsEmergencies) {
+                if($hasNotificationsEmergencies) {
                     $data[] = [
                         "breakline" => true,
                     ];

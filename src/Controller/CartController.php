@@ -92,20 +92,20 @@ class CartController extends AbstractController
             ->filter(fn(Demande $request) => $request->getType() && $request->getDestination())
             ->map(fn(Demande $request) => [
                 "value" => $request->getId(),
-                "text" => "{$request->getNumero()} - {$request->getType()->getLabel()} - {$request->getDestination()->getLabel()} - Créée le {$request->getCreatedAt()->format('d/m/Y H:i')}"
+                "label" => "{$request->getNumero()} - {$request->getType()->getLabel()} - {$request->getDestination()->getLabel()} - Créée le {$request->getCreatedAt()->format('d/m/Y H:i')}"
             ]);
 
         $collectRequests = Stream::from($manager->getRepository(Collecte::class)->getCollectRequestForSelect($currentUser))
             ->filter(fn(Collecte $request) => $request->getType() && $request->getPointCollecte())
             ->map(fn(Collecte $request) => [
                 "value" => $request->getId(),
-                "text" => "{$request->getNumero()} - {$request->getType()->getLabel()} - {$request->getPointCollecte()->getLabel()} - Créée le {$request->getDate()->format('d/m/Y H:i')}"
+                "label" => "{$request->getNumero()} - {$request->getType()->getLabel()} - {$request->getPointCollecte()->getLabel()} - Créée le {$request->getDate()->format('d/m/Y H:i')}"
             ]);
 
         $purchaseRequests = Stream::from($manager->getRepository(PurchaseRequest::class)->getPurchaseRequestForSelect($currentUser))
             ->map(fn(PurchaseRequest $request) => [
                 "value" => $request->getId(),
-                "text" => "{$request->getNumber()} - Créée le {$request->getCreationDate()->format('d/m/Y H:i')}",
+                "label" => "{$request->getNumber()} - Créée le {$request->getCreationDate()->format('d/m/Y H:i')}",
                 "number" => $request->getNumber(),
                 "requester" => $request->getRequester(),
                 "buyer" => $request->getBuyer(),

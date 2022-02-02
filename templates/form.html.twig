@@ -128,13 +128,13 @@
             {% endif %}
 
             {% for value, text in options.items ?? [] %}
-                {% if text.value is defined and text.text is defined %}
+                {% if text.value is defined and text.label is defined %}
                     <option value="{{ text.value }}"
                             {{ (text.selected ?? false) or text.value in values ? 'selected' }}
                             {% for dataKey, dataValue in text %}
                                 data-{{ dataKey }}="{{ dataValue }}"
                             {% endfor %}>
-                        {{ text.text }}
+                        {{ text.label }}
                     </option>
                 {% else %}
                     <option value="{{ value }}" {{ value in values ? 'selected' }}>{{ text }}</option>
