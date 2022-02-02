@@ -27,8 +27,8 @@ $(document).ready(() => {
                 success: data => {
                     window.location.href = Routing.generate('reference_article_show_page', {id: data.data.id});
                 },
-            }).then(data => {
-                if(data && !data.success && data.draftDefaultReference) {
+            }).then((data) => {
+                if (data && typeof data === "object" && !data.success && data.draftDefaultReference) {
                     $('input[name="reference"]').val(data.draftDefaultReference);
                 }
             });
