@@ -118,7 +118,7 @@ export default class Form {
             if($input.is(`[required]`) || $input.is(`[data-required]`) || $input.is(`.needed`)) {
                 if(([`radio`, `checkbox`].includes($input.attr(`type`)) && !$input.is(`:checked`))) {
                     errors.push({
-                        elements: [$input.closest(`.wii-radio, .wii-checkbox`)],
+                        elements: [$input.closest(`.wii-radio, .wii-checkbox, .wii-switch`)],
                         message: `Vous devez sélectionner au moins un élément`,
                     });
                 } else if($input.is(`[data-wysiwyg]`) && !$input.find(`.ql-editor`).text() || !$input.is(`[data-wysiwyg]`) && !$input.val()) {
@@ -247,6 +247,14 @@ FormData.prototype.asObject = function() {
     this.forEach((value, key) => {
         object[key] = value;
     });
+
+    return object;
+}
+
+FormData.prototype.appendAll = function(object) {
+    for(const [key, value] of Object.entries(object)) {
+        this.append(key, value);
+    }
 
     return object;
 }

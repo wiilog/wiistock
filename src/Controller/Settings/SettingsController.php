@@ -56,15 +56,25 @@ class SettingsController extends AbstractController {
             "icon" => "menu-global",
             "right" => Action::SETTINGS_GLOBAL,
             "menus" => [
-                self::MENU_SITE_APPEARANCE => ["label" => "Apparence du site"],
+                self::MENU_SITE_APPEARANCE => [
+                    "label" => "Apparence du site",
+                    "save" => true,
+                ],
                 self::MENU_CLIENT => [
                     "label" => "Client application",
+                    "save" => true,
                     "env" => ["preprod"],
                 ],
-                self::MENU_LABELS => ["label" => "Étiquettes"],
+                self::MENU_LABELS => [
+                    "label" => "Étiquettes",
+                    "save" => true,
+                ],
                 self::MENU_WORKING_HOURS => ["label" => "Heures travaillées"],
                 self::MENU_OFF_DAYS => ["label" => "Jours non travaillés"],
-                self::MENU_MAIL_SERVER => ["label" => "Serveur mail"],
+                self::MENU_MAIL_SERVER => [
+                    "label" => "Serveur mail",
+                    "save" => true,
+                ],
             ],
         ],
         self::CATEGORY_STOCK => [
@@ -72,12 +82,21 @@ class SettingsController extends AbstractController {
             "icon" => "menu-stock",
             "right" => Action::SETTINGS_STOCK,
             "menus" => [
-                self::MENU_CONFIGURATIONS => ["label" => "Configurations"],
-                self::MENU_ALERTS => ["label" => "Alertes"],
+                self::MENU_CONFIGURATIONS => [
+                    "label" => "Configurations",
+                    "save" => true,
+                ],
+                self::MENU_ALERTS => [
+                    "label" => "Alertes",
+                    "save" => true,
+                ],
                 self::MENU_ARTICLES => [
                     "label" => "Articles",
                     "menus" => [
-                        self::MENU_LABELS => ["label" => "Étiquettes"],
+                        self::MENU_LABELS => [
+                            "label" => "Étiquettes",
+                            "save" => true,
+                        ],
                         self::MENU_TYPES_FREE_FIELDS => [
                             "label" => "Types et champs libres",
                             "wrapped" => false,
@@ -87,10 +106,16 @@ class SettingsController extends AbstractController {
                 self::MENU_REQUESTS => [
                     "label" => "Demandes",
                     "menus" => [
-                        self::MENU_DELIVERIES => ["label" => "Livraisons"],
+                        self::MENU_DELIVERIES => [
+                            "label" => "Livraisons",
+                            "save" => true,
+                        ],
                         self::MENU_DELIVERY_REQUEST_TEMPLATES => ["label" => "Livraisons - Modèle de demande"],
                         self::MENU_DELIVERY_TYPES_FREE_FIELDS => ["label" => "Livraisons - Types et champs libres", "wrapped" => false],
-                        self::MENU_COLLECTS => ["label" => "Collectes"],
+                        self::MENU_COLLECTS => [
+                            "label" => "Collectes",
+                            "save" => true,
+                        ],
                         self::MENU_COLLECT_REQUEST_TEMPLATES => ["label" => "Collectes - Modèle de demande"],
                         self::MENU_COLLECT_TYPES_FREE_FIELDS => ["label" => "Collectes - Types et champs libres", "wrapped" => false],
                         self::MENU_PURCHASE_STATUSES => ["label" => "Achats - Statut"],
@@ -107,8 +132,14 @@ class SettingsController extends AbstractController {
                 self::MENU_RECEPTIONS => [
                     "label" => "Réceptions",
                     "menus" => [
-                        self::MENU_RECEPTIONS_STATUSES => ["label" => "Réceptions - Statuts"],
-                        self::MENU_RECEPTIONS_FIXED_FIELDS => ["label" => "Réceptions - Champs fixes"],
+                        self::MENU_RECEPTIONS_STATUSES => [
+                            "label" => "Réceptions - Statuts",
+                            "save" => true,
+                        ],
+                        self::MENU_RECEPTIONS_FIXED_FIELDS => [
+                            "label" => "Réceptions - Champs fixes",
+                            "save" => true,
+                        ],
                         self::MENU_RECEPTIONS_FREE_FIELDS => ["label" => "Réceptions - Champs libres"],
                         self::MENU_DISPUTE_STATUSES => ["label" => "Litiges - Statuts"],
                         self::MENU_DISPUTE_TYPES => ["label" => "Litiges - Types"],
@@ -124,21 +155,46 @@ class SettingsController extends AbstractController {
                 self::MENU_DISPATCHES => [
                     "label" => "Acheminements",
                     "menus" => [
-                        self::MENU_CONFIGURATIONS => ["label" => "Configurations"],
+                        self::MENU_CONFIGURATIONS => [
+                            "label" => "Configurations",
+                            "save" => true,
+                        ],
                         self::MENU_STATUSES => ["label" => "Statuts"],
-                        self::MENU_FIXED_FIELDS => ["label" => "Champs fixes"],
+                        self::MENU_FIXED_FIELDS => [
+                            "label" => "Champs fixes",
+                            "save" => true,
+                        ],
                         self::MENU_TYPES_FREE_FIELDS => ["label" => "Types et champs libres", "wrapped" => false],
-                        self::MENU_WAYBILL => ["label" => "Lettre de voiture"],
-                        self::MENU_OVERCONSUMPTION_BILL => ["label" => "Bon de surconsommation"],
+                        self::MENU_WAYBILL => [
+                            "label" => "Lettre de voiture",
+                            "save" => true,
+                            "discard" => true,
+                        ],
+                        self::MENU_OVERCONSUMPTION_BILL => [
+                            "label" => "Bon de surconsommation",
+                            "save" => true,
+                            "discard" => true,
+                        ],
                     ],
                 ],
                 self::MENU_ARRIVALS => [
                     "label" => "Arrivages",
                     "menus" => [
-                        self::MENU_CONFIGURATIONS => ["label" => "Configurations"],
-                        self::MENU_LABELS => ["label" => "Étiquettes"],
+                        self::MENU_CONFIGURATIONS => [
+                            "label" => "Configurations",
+                            "save" => true,
+                            "discard" => true,
+                        ],
+                        self::MENU_LABELS => [
+                            "label" => "Étiquettes",
+                            "save" => true,
+                            "discard" => true,
+                        ],
                         self::MENU_STATUSES => ["label" => "Statuts"],
-                        self::MENU_FIXED_FIELDS => ["label" => "Champs fixes"],
+                        self::MENU_FIXED_FIELDS => [
+                            "label" => "Champs fixes",
+                            "save" => true,
+                        ],
                         self::MENU_TYPES_FREE_FIELDS => ["label" => "Types et champs libres", "wrapped" => false],
                         self::MENU_DISPUTE_STATUSES => ["label" => "Litiges - Statuts"],
                     ],
@@ -153,7 +209,11 @@ class SettingsController extends AbstractController {
                     "label" => "Services",
                     "menus" => [
                         self::MENU_STATUSES => ["label" => "Statuts"],
-                        self::MENU_FIXED_FIELDS => ["label" => "Champs fixes"],
+                        self::MENU_FIXED_FIELDS => [
+                            "label" => "Champs fixes",
+                            "save" => true,
+                            "discard" => true,
+                        ],
                         self::MENU_REQUEST_TEMPLATES => ["label" => "Modèles de demande"],
                         self::MENU_TYPES_FREE_FIELDS => ["label" => "Types et champs libres", "wrapped" => false],
                     ],
@@ -165,11 +225,26 @@ class SettingsController extends AbstractController {
             "icon" => "menu-terminal-mobile",
             "right" => Action::SETTINGS_MOBILE,
             "menus" => [
-                self::MENU_DISPATCHES => ["label" => "Acheminements"],
-                self::MENU_HANDLINGS => ["label" => "Services"],
-                self::MENU_TRANSFERS => ["label" => "Transferts à traiter"],
-                self::MENU_PREPARATIONS => ["label" => "Préparations"],
-                self::MENU_VALIDATION => ["label" => "Gestion des validations"],
+                self::MENU_DISPATCHES => [
+                    "label" => "Acheminements",
+                    "save" => true,
+                ],
+                self::MENU_HANDLINGS => [
+                    "label" => "Services",
+                    "save" => true,
+                ],
+                self::MENU_TRANSFERS => [
+                    "label" => "Transferts à traiter",
+                    "save" => true,
+                ],
+                self::MENU_PREPARATIONS => [
+                    "label" => "Préparations",
+                    "save" => true,
+                ],
+                self::MENU_VALIDATION => [
+                    "label" => "Gestion des validations",
+                    "save" => true,
+                ],
             ],
         ],
         self::CATEGORY_DASHBOARDS => [
@@ -213,7 +288,10 @@ class SettingsController extends AbstractController {
                     "label" => "Utilisateurs",
                     "save" => false,
                 ],
-                self::MENU_ROLES => ["label" => "Rôles"],
+                self::MENU_ROLES => [
+                    "label" => "Rôles",
+                    "save" => false
+                ],
             ],
         ],
         self::CATEGORY_DATA => [
@@ -221,7 +299,11 @@ class SettingsController extends AbstractController {
             "icon" => "menu-donnees",
             "right" => Action::SETTINGS_DATA,
             "menus" => [
-                self::MENU_CSV_EXPORTS => ["label" => "Exports CSV"],
+                self::MENU_CSV_EXPORTS => [
+                    "label" => "Exports CSV",
+                    "save" => true,
+                    "discard" => true,
+                ],
                 self::MENU_IMPORTS => [
                     "label" => "Imports & mises à jour",
                     "save" => false,
@@ -456,8 +538,13 @@ class SettingsController extends AbstractController {
                             ])
                             ->sort(fn(array $a, array $b) => $a["label"] <=> $b["label"])
                             ->map(fn(array $n) => "<option value='{$n["id"]}'>{$n["label"]}</option>")
-                            ->prepend("<option disabled selected>Sélectionnez une nature</option>")
+                            ->prepend("<option disabled selected>Sélectionnez une fréquence</option>")
                             ->join(""),
+                    ],
+                ],
+                self::MENU_RECEPTIONS => [
+                    self::MENU_RECEPTIONS_STATUSES => fn() => [
+                        "receptionStatuses" => $statusRepository->findByCategorieName(CategorieStatut::RECEPTION, 'displayOrder')
                     ],
                 ],
             ],
@@ -828,6 +915,9 @@ class SettingsController extends AbstractController {
 
                 $data = array_merge($data, [
                     [
+                        'breakline' => true
+                    ],
+                    [
                         "label" => "Notifications push",
                         "value" => $pushNotifications,
                     ],
@@ -876,6 +966,13 @@ class SettingsController extends AbstractController {
             }
 
             if(in_array($category, [CategoryType::DEMANDE_HANDLING, CategoryType::DEMANDE_DISPATCH])) {
+                $hasNotificationsEmergencies = $type->isNotificationsEnabled() && $type->getNotificationsEmergencies();
+                if ($hasNotificationsEmergencies) {
+                    $data[] = [
+                        "breakline" => true,
+                    ];
+                }
+
                 $data[] = [
                     "label" => "Notifications push",
                     "value" => !$type->isNotificationsEnabled()
@@ -885,7 +982,7 @@ class SettingsController extends AbstractController {
                             : "Activées"),
                 ];
 
-                if($type->isNotificationsEnabled() && $type->getNotificationsEmergencies()) {
+                if($hasNotificationsEmergencies) {
                     $data[] = [
                         "label" => "Pour les valeurs",
                         "value" => join(", ", $type->getNotificationsEmergencies()),
@@ -1173,6 +1270,7 @@ class SettingsController extends AbstractController {
         if($entity->getCategories()->isEmpty()) {
             $entityManager->remove($entity);
             $entityManager->flush();
+
             return $this->json([
                 "success" => true,
                 "msg" => "La ligne a bien été supprimée",
@@ -1215,7 +1313,7 @@ class SettingsController extends AbstractController {
                         $selected = $n['label'] === $selectedFrequency ? "selected" : '';
                         return "<option value='{$n["id"]}' {$selected}>{$n["label"]}</option>";
                     })
-                    ->prepend("<option disabled {$emptySelected}>Sélectionnez une nature</option>")
+                    ->prepend("<option disabled {$emptySelected}>Sélectionnez une fréquence</option>")
                     ->join("");
 
                 $data[] = [
@@ -1264,6 +1362,18 @@ class SettingsController extends AbstractController {
      * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
      */
     public function deleteCategory(EntityManagerInterface $entityManager, InventoryCategory $entity): Response {
+        if(!$entity->getRefArticle()->isEmpty()) {
+            return $this->json([
+                "success" => false,
+                "msg" => "La catégorie est liée à des références articles",
+            ]);
+        }
+
+        if($entity->getFrequency()) {
+            $entity->getFrequency()->removeCategory($entity);
+            $entity->setFrequency(null);
+        }
+
         $entityManager->remove($entity);
         $entityManager->flush();
 

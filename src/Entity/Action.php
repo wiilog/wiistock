@@ -186,14 +186,15 @@ class Action {
     public function addRole(Role $role): self {
         if(!$this->roles->contains($role)) {
             $this->roles[] = $role;
+            $role->addAction($this);
         }
 
         return $this;
     }
 
     public function removeRole(Role $role): self {
-        if($this->roles->contains($role)) {
-            $this->roles->removeElement($role);
+        if($this->roles->removeElement($role)) {
+            $role->removeAction($this);
         }
 
         return $this;

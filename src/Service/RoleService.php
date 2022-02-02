@@ -4,11 +4,10 @@
 namespace App\Service;
 
 use App\Entity\Action;
-use App\Entity\Menu;
-use App\Entity\Parametre;
-use App\Entity\ParametreRole;
+use App\Entity\ReferenceArticle;
 use App\Entity\Role;
 use App\Entity\Utilisateur;
+use Symfony\Component\HttpFoundation\Request;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 use Doctrine\ORM\EntityManagerInterface;
@@ -27,69 +26,6 @@ class RoleService
     /** @Required  */
     public CacheService $cacheService;
 
-    /**
-     * @param Role $role
-     * @param array $data
-     * @throws NonUniqueResultException
-     */
-    public function parseParameters(Role $role, array $data) {
-        $actionRepository = $this->entityManager->getRepository(Action::class);
-
-        // on traite les actions
-        $dashboardsVisible = [];
-        foreach ($data as $menuAction => $isChecked) {
-            $menuActionArray = explode('/', $menuAction, 2);
-            if (count($menuActionArray) > 1) {
-                $menuLabel = $menuActionArray[0];
-                $actionLabel = $menuActionArray[1];
-
-                $action = $actionRepository->findOneByMenuLabelAndActionLabel($menuLabel, $actionLabel);
-                if ($action && $isChecked) {
-                    $role->addAction($action);
-                } else {
-                    $role->removeAction($action);
-                }
-            } else {
-                if ($isChecked && is_string($menuAction)) {
-                    $dashboardsVisible[] = $menuAction;
-                }
-            }
-        }
-        $role->setDashboardsVisible($dashboardsVisible);
-    }
-
-    public function createFormTemplateParameters(Role $role = null): array {
-        $parametreRepository = $this->entityManager->getRepository(Parametre::class);
-        $menuRepository = $this->entityManager->getRepository(Menu::class);
-        $parametreRoleRepository = $this->entityManager->getRepository(ParametreRole::class);
-
-        $menus = $menuRepository->findAll();
-
-        $params = array_map(
-            function (Parametre $param) use ($role, $parametreRoleRepository) {
-                $paramArray = [
-                    'id' => $param->getId(),
-                    'label' => $param->getLabel(),
-                    'typage' => $param->getTypage(),
-                    'elements' => $param->getElements(),
-                    'default' => $param->getDefaultValue()
-                ];
-
-                if (isset($role)) {
-                    $paramArray['value'] = $parametreRoleRepository->getValueByRoleAndParam($role, $param);
-                }
-
-                return $paramArray;
-            },
-            $parametreRepository->findAll()
-        );
-
-        return [
-            'menus' => $menus,
-            'params' => $params,
-        ];
-    }
-
     public function getPermissions(Utilisateur $user, $bool = false): array {
         $role = $user->getRole();
         $permissionsPrefix = self::PERMISSIONS_CACHE_PREFIX;
@@ -107,14 +43,61 @@ class RoleService
         return StringHelper::slugify($menuLabel . '_' . $actionLabel);
     }
 
-    /**
-     * @param int $roleId
-     * @throws InvalidArgumentException
-     */
     public function onRoleUpdate(int $roleId): void {
         $menuPrefix = self::MENU_CACHE_PREFIX;
         $permissionsPrefix = self::PERMISSIONS_CACHE_PREFIX;
         $this->cacheService->delete(CacheService::PERMISSIONS, "{$menuPrefix}.{$roleId}");
         $this->cacheService->delete(CacheService::PERMISSIONS, "{$permissionsPrefix}.{$roleId}");
+    }
+
+    public function updateRole(EntityManagerInterface $entityManager,
+                               Role $role,
+                               Request $request): array {
+        $actionRepository = $entityManager->getRepository(Action::class);
+        $roleRepository = $entityManager->getRepository(Role::class);
+
+        $label = $request->request->get('label', '');
+
+        if (empty($label)) {
+            return [
+                "success" => false,
+                "message" => "Le libellé est requis."
+            ];
+        }
+        else if ($label !== $role->getLabel()) {
+            $labelCount = $roleRepository->countByLabel($label);
+            if ($labelCount > 0) {
+                return [
+                    "success" => false,
+                    "message" => "Le rôle <strong>${label}</strong> existe déjà, veuillez choisir un autre libellé"
+                ];
+            }
+        }
+
+        $quantityType = $request->request->get('quantityType');
+        if (!in_array($quantityType, [ReferenceArticle::QUANTITY_TYPE_REFERENCE, ReferenceArticle::QUANTITY_TYPE_ARTICLE])) {
+            return [
+                "success" => false,
+                "message" => "La gestion de quantité sélectionnée est invalide"
+            ];
+        }
+
+        $actionIds = Stream::explode(',', $request->request->get('actions', ''))
+            ->filter()
+            ->toArray();
+        $actions = !empty($actionIds)
+            ? $actionRepository->findBy(['id' => $actionIds])
+            : [];
+
+        $role
+            ->setLabel($label)
+            ->setIsMailSendAccountCreation($request->request->getBoolean('isMailSendAccountCreation'))
+            ->setQuantityType($quantityType)
+            ->setActions($actions);
+
+        return [
+            "success" => true,
+            "message" => "Le role <strong>$label</strong> a bien été sauvegardé"
+        ];
     }
 }

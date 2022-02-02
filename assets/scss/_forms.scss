@@ -284,9 +284,12 @@ $wii-switch-height: $input-height;
 
 .wii-checkbox {
     font-weight: normal;
-
     display: flex;
     align-items: center;
+
+    label {
+        cursor: pointer;
+    }
 }
 
 label, .wii-checkbox, .wii-radio {
@@ -381,6 +384,19 @@ $wysiwyg-dropdown-button-size: 20px;
 input.no-overflow {
     text-overflow: initial !important;
     padding-right: 5px !important;
+}
+
+.input-group {
+    .input-group-text {
+        background-color: #F2F3F7;
+        border: 2px solid #E8E9EC;
+        border-right: none;
+    }
+
+    input {
+        border: 2px solid #E8E9EC;
+        border-left: none;
+    }
 }
 
 .input-group-prepend {
