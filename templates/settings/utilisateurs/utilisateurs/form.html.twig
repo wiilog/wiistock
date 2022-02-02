@@ -1,0 +1,222 @@
+<form>
+    {% if user.id %}
+        <input type="hidden" class="data" name="user" value="{{ user.id }}">
+    {% endif %}
+    <input type="text" class="d-none" title="Nom d'utilisateur" name="username">
+    <input type="password" class="d-none" title="Mot de passe" name="password">
+
+    <div class="row no-gutters">
+        <div class="col-12 col-md-6">
+            <div class="p-3 bg-light">
+                <div class="form-group row">
+                    <label class="col-12 wii-field-name">Statut*</label>
+                    <div class="col-12">
+                        <div class="wii-switch needed" data-title="Statut">
+                            <input type="radio" name="status" value="1" content="Actif" title="Actif" {{ user.id and user.status ? 'checked' }}>
+                            <input type="radio" name="status" value="0" content="Inactif"
+                                   title="Inactif" {{ user.id and not user.status ? 'checked' }}>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-12 wii-field-name">Role*</label>
+                    <div class="col-12">
+                        <select name="role"
+                                title="Role"
+                                class="form-control data needed w-100"
+                                data-s2="roles">
+                            {% if user.role %}
+                                <option value="{{ user.role.id }}" selected>{{ user.role.label }}</option>
+                            {% endif %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-12 wii-field-name">Nom d'utilisateur*</label>
+                    <div class="col-12">
+                        <input type="text"
+                               title="Nom d'utilisateur"
+                               class="form-control data needed w-100"
+                               name="username"
+                               required
+                               value="{{ user.username }}"/>
+                    </div>
+                </div>
+
+                {% set secondary_emails = (user.secondaryEmails ?? []) | filter(e => e) %}
+
+                <div class="form-group row {% if secondary_emails | length < 2 %}mb-0{% endif %}">
+                    <label class="col-12 wii-field-name">Email</label>
+                    <div class="col-12">
+                        <input type="email"
+                               title="Email"
+                               class="form-control data needed w-100"
+                               name="email"
+                               value="{{ user.email }}">
+                    </div>
+                    {% if secondary_emails | length < 2 %}
+                        <div class="col-12" style="text-align: right">
+                            <span class="btn-link add-secondary-email font-weight-bold pointer user-select-none">Ajouter un email</span>
+                        </div>
+                    {% endif %}
+                </div>
+
+                {% for email in secondary_emails %}
+                    {% set label = 'Email' ~ (loop.index + 1) %}
+                    <div class="form-group row">
+                        <label class="col-12 wii-field-name">{{ label }}</label>
+                        <div class="col-12">
+                            <input type="email"
+                                   title="{{ label }}"
+                                   class="form-control data-array w-100"
+                                   name="secondaryEmails"
+                                   value="{{ email }}">
+                        </div>
+                    </div>
+                {% endfor %}
+
+                {% for i in range(secondary_emails | length + 1, 2) %}
+                    <div class="form-group row secondary-email d-none">
+                        <label class="col-12 wii-field-name">Email {{ i }}</label>
+                        <div class="col-12">
+                            <input type="email"
+                                   title="Email {{ i }}"
+                                   class="form-control data-array w-100"
+                                   name="secondaryEmails"/>
+                        </div>
+                    </div>
+                {% endfor %}
+
+                <div class="form-group row">
+                    <label class="col-12 wii-field-name">Mot de passe</label>
+                    <div class="col-12">
+                        <input type="password"
+                               title="Mot de passe"
+                               class="form-control data optional-password w-100"
+                               name="password">
+                        <div class="password-error-msg"></div>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-12 wii-field-name">Confirmer le mot de passe</label>
+                    <div class="col-12">
+                        <input type="password"
+                               title="Confirmer le mot de passe"
+                               class="form-control data optional-password w-100"
+                               name="password2">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-12 wii-field-name">Clé de connexion nomade*</label>
+                    <div class="col-12">
+                        <input type="text"
+                               class="form-control data needed is-barcode w-100"
+                               name="mobileLoginKey"
+                               title="Clé de connexion nomade"
+                               value="{{ user.mobileLoginKey }}"/>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-12 wii-field-name">Numéro de téléphone</label>
+                    <div class="col-12">
+                        <input type="tel"
+                               title="Numéro de téléphone"
+                               class="form-control data w-100"
+                               name="phoneNumber"
+                               maxlength="10"
+                               value="{{ user.phone ?? '' }}">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-12 wii-field-name">Adresse</label>
+                    <div class="col-12">
+                        <textarea class="form-control data w-100"
+                                  title="Adresse"
+                                  name="address">
+                            {{- user.address -}}
+                        </textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <div class="p-3">
+                <div class="form-group row">
+                    <label class="col-12 wii-field-name">Types de livraison</label>
+                    <div class="col-12">
+                        <select name="deliveryTypes"
+                                class="form-control data w-100"
+                                multiple="multiple"
+                                title="Types de livraison"
+                                data-s2="deliveryType">
+                            {% for type in user.deliveryTypes %}
+                                <option value="{{ type.id }}" selected>{{ type.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-12 wii-field-name"
+                           title="type d'acheminement">
+                        {{ 'acheminement.type d\'acheminement'|trans }}
+                    </label>
+                    <div class="col-12">
+                        <select name="dispatchTypes"
+                                class="form-control data w-100"
+                                multiple="multiple"
+                                data-s2="dispatchType"
+                                title="{{ 'acheminement.type d\'acheminement'|trans }}">
+                            {% for type in user.dispatchTypes %}
+                                <option value="{{ type.id }}" selected>{{ type.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-12 wii-field-name"
+                           title="Types de service">
+                        {{ 'services.Types de service'|trans }}
+                    </label>
+                    <div class="col-12">
+                        <select name="handlingTypes"
+                                class="form-control data w-100"
+                                multiple="multiple"
+                                data-s2="handlingType"
+                                title="{{ 'services.Types de service'|trans }}">
+                            {% for type in user.handlingTypes %}
+                                <option value="{{ type.id }}" selected>{{ type.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-12 wii-field-name">Groupes de visibilité</label>
+                    <div class="col-12">
+                        <select name="visibility-group"
+                                title="Groupes de visibilité"
+                                class="form-control data w-100"
+                                data-s2="visibilityGroup"
+                                multiple>
+                            {% for visibilityGroup in user.visibilityGroups %}
+                                <option value="{{ visibilityGroup.id }}" selected>{{ visibilityGroup.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-12 wii-field-name">Dropzone</label>
+                    <div class="col-12">
+                        <select name="dropzone"
+                                title="Dropzone"
+                                class="form-control data w-100"
+                                data-s2="location">
+                            {% if user.dropzone %}
+                                <option value="{{ user.dropzone.id }}" selected>{{ user.dropzone.label }}</option>
+                            {% endif %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

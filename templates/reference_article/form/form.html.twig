@@ -47,7 +47,7 @@
 {% set partialEdit = reference.id and hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT_PARTIALLY')) %}
 {% set hasRightCreateDraft = (not reference.id or reference.statut.draft) and hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_DRAFT_REFERENCE')) %}
 {% set disabled = editable ? '' : 'disabled' %}
-{% set isReferenceManagementQuantity = reference.id and reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_REFERENCE') %}
+{% set isReferenceManagementQuantity = reference.id and reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_REFERENCE') %}
 {% set statuses = {
     'actif': {
         'status': 'active',
@@ -295,7 +295,7 @@
                                    data-title="reference"
                                    onclick="onTypeQuantityChange($(this))"
                                    {{ reference.id ? 'class="type_quantite" disabled' : 'class="type_quantite data"' }}
-                                   {{ not reference.typeQuantite or reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_REFERENCE') ? 'checked' }}>
+                                   {{ not reference.typeQuantite or reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_REFERENCE') ? 'checked' }}>
                             <input type="radio"
                                    name="type_quantite"
                                    value="article"
@@ -303,7 +303,7 @@
                                    data-title="article"
                                    onclick="onTypeQuantityChange($(this))"
                                    {{ reference.id ? 'class="type_quantite" disabled' : 'class="type_quantite data"' }}
-                                   {{ reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_ARTICLE') ? 'checked' }}>
+                                   {{ reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_ARTICLE') ? 'checked' }}>
                         </div>
                     {% endif %}
 
@@ -569,7 +569,7 @@
                                             <span class="wii-body-text">{{ supplierArticle.reference ?? '-' }}</span>
                                         </div>
                                         <div class="col-5 d-flex flex-column justify-content-center">
-                                            <span class="wii-field-name">Label</span>
+                                            <span class="wii-field-name">Libellé</span>
                                             <span class="wii-body-text">{{ supplierArticle.label ?? '-' }}</span>
                                         </div>
                                         {% if supplierArticle.articles.empty %}

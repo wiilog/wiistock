@@ -1,9 +1,3 @@
-const types = {
-    success: `Succès`,
-    danger: `Erreur`,
-    info: `Information`
-}
-
 $(function (){
     const $alertsFlashbagElement = $('#alerts-flashbag');
     const alertsFlashbagStr = $alertsFlashbagElement.val();
@@ -24,32 +18,6 @@ $(function (){
  */
 function showBSAlert(message, color, remove = true) {
     if ((typeof message === 'string') && message) {
-        const $alertContainer = $('#alerts-container');
-        const $alert = $('#alert-template')
-            .clone()
-            .removeAttr('id')
-            .addClass(`wii-alert-${color}`)
-            .removeClass('d-none');
-
-        $alert
-            .find('.content')
-            .html(message);
-
-        $alert
-            .find('.alert-content')
-            .find('.type')
-            .html('<strong>' + types[color] + '</strong>');
-
-        $alertContainer.append($alert);
-
-        if (remove) {
-            $alert.delay(5500).fadeOut(500);
-
-            setTimeout(() => {
-                if ($alert.parent().length) {
-                    $alert.remove();
-                }
-            }, 6000);
-        }
+        Flash.add(color, message, remove);
     }
 }

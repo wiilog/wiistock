@@ -1,7 +1,3 @@
-const MAX_UPLOAD_FILE_SIZE = 10000000;
-const MAX_IMAGE_PIXELS = 1000000;
-const ALLOWED_IMAGE_EXTENSIONS = ['gif', 'png', 'jpeg', 'jpg', 'svg'];
-
 const PAGE_PURCHASE_REQUEST = 'rpurchase';
 const PAGE_TRANSFER_REQUEST = 'rtransfer';
 const PAGE_TRANSFER_ORDER = 'otransfer';
@@ -43,7 +39,7 @@ const AUTO_HIDE_DEFAULT_DELAY = 2000;
 const MAX_DATETIME_HTML_INPUT = '2100-12-31T23:59';
 const MAX_DATE_HTML_INPUT = '2100-12-31';
 
-const TEAM_SIZE = 10;
+const TEAM_SIZE = 11;
 
 $(function () {
     $(document).on('hide.bs.modal', function () {
@@ -1054,59 +1050,6 @@ function onTypeChange($select) {
 
 function getBSAlertModal() {
     return $('#alert-modal');
-}
-
-function updateImagePreview(preview, upload, $title = null, $delete = null, $callback = null) {
-    let $upload = $(upload)[0];
-
-    $(upload).change(() => {
-        if ($upload.files && $upload.files[0]) {
-            let fileNameWithExtension = $upload.files[0].name.split('.');
-            let extension = fileNameWithExtension[fileNameWithExtension.length - 1];
-
-            if ($upload.files[0].size < MAX_UPLOAD_FILE_SIZE) {
-                if (ALLOWED_IMAGE_EXTENSIONS.indexOf(extension.toLowerCase()) !== -1) {
-                    if ($title) {
-                        $title.text(fileNameWithExtension.join('.').substr(0, 5) + '...');
-                        $title.attr('title', fileNameWithExtension.join('.'));
-                        if($title.siblings('input[name=titleComponentLogo]').length > 0) {
-                            $title.siblings('input[name=titleComponentLogo]').last().val($upload.files[0].name);
-                        }
-                    }
-
-                    let reader = new FileReader();
-                    reader.onload = function (e) {
-                        let image = new Image();
-
-                        image.onload = function() {
-                            const pixels = image.height * image.width;
-                            if (pixels <= MAX_IMAGE_PIXELS) {
-                                if ($callback) {
-                                    $callback($upload);
-                                }
-                                $(preview)
-                                    .attr('src', e.target.result)
-                                    .removeClass('d-none');
-                                if ($delete) {
-                                    $delete.removeClass('d-none');
-                                }
-                            } else {
-                                showBSAlert('Veuillez choisir une image ne faisant pas plus de 1000x1000.', 'danger');
-                            }
-                        };
-
-                        image.src = e.target.result;
-                    };
-
-                    reader.readAsDataURL($upload.files[0]);
-                } else {
-                    showBSAlert('Veuillez choisir une image valide (png, jpeg, jpg, svg).', 'danger')
-                }
-            } else {
-                showBSAlert('La taille du fichier est supérieure à 10 mo.', 'danger')
-            }
-        }
-    })
 }
 
 function registerEasterEgg() {

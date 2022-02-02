@@ -210,7 +210,7 @@ class TransferRequestController extends AbstractController {
                 'barCode' => $article->getBarCode(),
                 'Quantité' => $article->getQuantite(),
                 'Actions' => $this->renderView('transfer/request/article/actions.html.twig', [
-                    'name' => ReferenceArticle::TYPE_QUANTITE_ARTICLE,
+                    'name' => ReferenceArticle::QUANTITY_TYPE_ARTICLE,
                     'type' => 'article',
                     'id' => $article->getId(),
                     'transferId' => $transfer->getid(),
@@ -245,7 +245,7 @@ class TransferRequestController extends AbstractController {
             $article = null;
         }
 
-        if(isset($content->fetchOnly) && $reference->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+        if(isset($content->fetchOnly) && $reference->getTypeQuantite() == ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
             $locationLabel = $transfer->getOrigin()->getLabel();
             $articles = $this->getDoctrine()
                 ->getRepository(Article::class)
@@ -268,7 +268,7 @@ class TransferRequestController extends AbstractController {
                 ]);
             }
         }
-        if(!isset($content->fetchOnly) && $article && $reference->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+        if(!isset($content->fetchOnly) && $article && $reference->getTypeQuantite() == ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
             if($transfer->getArticles()->contains($article)) {
                 return $this->json([
                     "success" => false,
@@ -277,7 +277,7 @@ class TransferRequestController extends AbstractController {
             }
             $transfer->addArticle($article);
             $manager->flush();
-        } else if(!isset($content->fetchOnly) && $reference->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+        } else if(!isset($content->fetchOnly) && $reference->getTypeQuantite() == ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
             if($transfer->getReferences()->contains($reference)) {
                 return $this->json([
                     "success" => false,
@@ -303,11 +303,11 @@ class TransferRequestController extends AbstractController {
             $transerRepository = $manager->getRepository(TransferRequest::class);
             $transfer = $transerRepository->find($data->transfer);
 
-            if(array_key_exists(ReferenceArticle::TYPE_QUANTITE_REFERENCE, $data)) {
+            if(array_key_exists(ReferenceArticle::QUANTITY_TYPE_REFERENCE, $data)) {
                 $transfer->removeReference($manager
                     ->getRepository(ReferenceArticle::class)
                     ->find($data->reference));
-            } elseif(array_key_exists(ReferenceArticle::TYPE_QUANTITE_ARTICLE, $data)) {
+            } elseif(array_key_exists(ReferenceArticle::QUANTITY_TYPE_ARTICLE, $data)) {
                 $transfer->removeArticle($manager
                     ->getRepository(Article::class)
                     ->find($data->article));

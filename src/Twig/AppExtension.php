@@ -17,23 +17,32 @@ use Twig\Extension\AbstractExtension;
 
 class AppExtension extends AbstractExtension {
 
-    private $manager;
-    private $userService;
-    private $specificService;
-    private $fieldsParamService;
-    private $kernel;
+    /**
+     * @Required
+     */
+    public EntityManagerInterface $manager;
 
-    public function __construct(EntityManagerInterface $manager,
-                                SpecificService $specificService,
-                                FieldsParamService $fieldsParamService,
-                                UserService $userService,
-                                KernelInterface $kernel) {
-        $this->manager = $manager;
-        $this->userService = $userService;
-        $this->specificService = $specificService;
-        $this->fieldsParamService = $fieldsParamService;
-        $this->kernel = $kernel;
-    }
+    /**
+     * @Required
+     */
+    public UserService $userService;
+
+    /**
+     * @Required
+     */
+    public SpecificService $specificService;
+
+    /**
+     * @Required
+     */
+    public FieldsParamService $fieldsParamService;
+
+    /**
+     * @Required
+     */
+    public KernelInterface $kernel;
+
+    private array $settingsCache = [];
 
     public function getFunctions() {
         return [
@@ -42,6 +51,10 @@ class AppExtension extends AbstractExtension {
             new TwigFunction('displayMenu', [$this, 'displayMenuFunction']),
             new TwigFunction('logo', [$this, 'logo']),
             new TwigFunction('class', [$this, 'class']),
+            new TwigFunction('setting', [$this, 'setting']),
+            new TwigFunction('setting_value', [$this, 'settingValue']),
+            new TwigFunction('call', [$this, 'call']),
+            new TwigFunction('interleave', [$this, 'interleave']),
         ];
     }
 
@@ -138,8 +151,47 @@ class AppExtension extends AbstractExtension {
         return FormatHelper::{$formatter}($input, ...$options);
     }
 
+    public function call($function) {
+        return $function();
+    }
+
     public function class($object): string {
         return (new ReflectionClass($object))->getName();
+    }
+
+    public function setting($setting) {
+        return constant(ParametrageGlobal::class . "::" . $setting);
+    }
+
+    public function settingValue($setting, $class = null) {
+
+        if (!isset($this->settingsCache[$setting])) {
+            $repository = $this->manager->getRepository(ParametrageGlobal::class);
+            $this->settingsCache[$setting] = $repository->getOneParamByLabel($this->setting($setting));
+            if ($class && $this->settingsCache[$setting]) {
+                $this->settingsCache[$setting] = $this->manager->find($class, $this->settingsCache[$setting]);
+            } else if ($class) {
+                return null;
+            }
+        }
+        return $this->settingsCache[$setting];
+    }
+
+    public function interleave(array $array1, array $array2): array {
+        $results = [];
+        $array1Keys = array_keys($array1);
+        $array2Keys = array_keys($array2);
+
+        for ($i = 0; $i < count(max($array1, $array2)); $i++) {
+            if(isset($array1Keys[$i])) {
+                $results[$array1Keys[$i]] = $array1[$array1Keys[$i]];
+            }
+            if(isset($array2Keys[$i])) {
+                $results[$array2Keys[$i]] = $array2[$array2Keys[$i]];
+            }
+        }
+
+        return $results;
     }
 
 }

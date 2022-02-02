@@ -15,7 +15,8 @@ class SpecificService
 	const CLIENT_EMERSON = 'emerson';
 	const CLIENT_ARCELOR = 'arcelor';
 	const CLIENT_ARKEMA_SERQUIGNY = 'arkema-serquigny';
-	const CLIENT_WIILOG = 'wiilog';
+    const CLIENT_WIILOG = 'wiilog';
+    const CLIENT_INEO_LAV = 'ineos-lav';
 
 	const CLIENTS = [
         self::CLIENT_COLLINS_VERNON => 'Collins Vernon',
@@ -29,6 +30,7 @@ class SpecificService
         self::CLIENT_ARCELOR => 'Arcelor',
         self::CLIENT_ARKEMA_SERQUIGNY => 'Arkema Serquigny',
         self::CLIENT_WIILOG => 'Wiilog',
+        self::CLIENT_INEO_LAV => 'Ineos Lavera',
     ];
 
 	const ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE = 'CHARIOT COLIS';
@@ -47,9 +49,7 @@ class SpecificService
 	}
 
 	public function getAppClient(): string {
-		return isset($_SERVER['APP_CLIENT'])
-			? $_SERVER['APP_CLIENT']
-			: '';
+		return $_SERVER['APP_CLIENT'] ?? '';
 	}
 
 }

@@ -120,7 +120,7 @@ function displayNewFilter(data) {
     $printTag.tooltip('dispose');
 }
 
-function removeFilter($button, filterId) {
+function removeFilter($button, filterId, triggersUncheck) {
     $.ajax({
         url: Routing.generate('filter_ref_delete', true),
         type: 'DELETE',
@@ -133,6 +133,9 @@ function removeFilter($button, filterId) {
                 const $filter = $button.closest('.filter');
                 $filter.tooltip('dispose');
                 $filter.parent().remove();
+                if (triggersUncheck) {
+                    $('#toggleActivOrInactiv').attr('checked', false);
+                }
                 if ($('#filters').find('.filter').length <= 0) {
                     $('#noFilters').removeClass('d-none');
                     if ($('#tableRefArticle_id_filter input').val() === '') {
@@ -246,9 +249,12 @@ function displayActifOrInactif(select, onInit) {
 
         let params = {donnees: donnees};
         let path = Routing.generate('reference_article_actif_inactif');
-        $.post(path, JSON.stringify(params), function () {
-            if (!onInit) pageTables.ajax.reload();
-        });
+        if (!onInit) {
+            $.post(path, JSON.stringify(params), function () {
+                updateFilters();
+                pageTables.ajax.reload();
+            });
+        }
     }
 }
 
@@ -311,6 +317,7 @@ function updateQuantity(referenceArticleId) {
 }
 
 function updateFilters() {
+    $('#filters .filter-parent[data-removable="1"]').remove();
     $.get(Routing.generate('update_filters'))
         .then(({templates}) => {
             if (templates.length === 0) {

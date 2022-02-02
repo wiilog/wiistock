@@ -1,0 +1,62 @@
+{% import 'form.html.twig' as form %}
+
+<div class="sub-content">
+    <div class="row">
+        <div class="col-12">
+            {{ form.image(setting('WAYBILL_LOGO'), 'Logo sur la lettre de voiture', false, setting_value('WAYBILL_LOGO'), {
+                labelClass: 'w-100 wii-field-name',
+                formats: 'image/png, image/jpeg, image/jpg'
+            }) }}
+        </div>
+    </div>
+</div>
+
+<div class="subtitle">Expéditeur & Destinataire</div>
+
+<div class="sub-content">
+    <div class="row">
+        <div class="col-md-4 col-12">
+            {{ form.textarea(setting('DISPATCH_WAYBILL_CONSIGNER'), 'Expéditeur par défaut', false, setting_value('DISPATCH_WAYBILL_CONSIGNER'), {
+                labelClass: 'w-100 wii-field-name'
+            }) }}
+        </div>
+        <div class="col-md-4 col-12">
+            {{ form.input(setting('DISPATCH_WAYBILL_CONTACT_NAME'), 'Nom', false, setting_value('DISPATCH_WAYBILL_CONTACT_NAME'), {
+                labelClass: 'w-100 wii-field-name'
+            }) }}
+        </div>
+        <div class="col-md-4 col-12">
+            {{ form.input(setting('DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL'), 'Téléphone/Mail', false, setting_value('DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL'), {
+                labelClass: 'w-100 wii-field-name'
+            }) }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4 col-12">
+            {{ form.textarea(setting('DISPATCH_WAYBILL_RECEIVER'), 'Destinataire par défaut', false, setting_value('DISPATCH_WAYBILL_RECEIVER'), {
+                labelClass: 'w-100 wii-field-name'
+            }) }}
+        </div>
+        <div class="col-md-4 col-12">
+            {{ form.input(setting('DISPATCH_WAYBILL_LOCATION_FROM'), 'Lieu de chargement', false, setting_value('DISPATCH_WAYBILL_LOCATION_FROM'), {
+                labelClass: 'w-100 wii-field-name'
+            }) }}
+        </div>
+        <div class="col-md-4 col-12">
+            {{ form.input(setting('DISPATCH_WAYBILL_LOCATION_TO'), 'Lieu de déchargement', false, setting_value('DISPATCH_WAYBILL_LOCATION_TO'), {
+                labelClass: 'w-100 wii-field-name'
+            }) }}
+        </div>
+    </div>
+</div>
+
+<div class="subtitle">Transport</div>
+<div class="sub-content">
+    <div class="row">
+        <div class="col-md-4 col-12">
+            {{ form.textarea(setting('DISPATCH_WAYBILL_CARRIER'), 'Transporteur par défaut', false, setting_value('DISPATCH_WAYBILL_CARRIER'), {
+                labelClass: 'w-100 wii-field-name'
+            }) }}
+        </div>
+    </div>
+</div>

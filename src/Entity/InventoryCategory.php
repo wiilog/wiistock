@@ -40,7 +40,6 @@ class InventoryCategory
 
     public function __construct()
     {
-        $this->frequency = new ArrayCollection();
         $this->refArticle = new ArrayCollection();
     }
 
@@ -64,7 +63,7 @@ class InventoryCategory
     /**
      * @return InventoryFrequency
      */
-    public function getFrequency(): InventoryFrequency
+    public function getFrequency(): ?InventoryFrequency
     {
         return $this->frequency;
     }

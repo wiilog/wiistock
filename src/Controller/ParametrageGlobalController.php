@@ -9,7 +9,6 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
 use App\Entity\DaysWorked;
-use App\Entity\DimensionsEtiquettes;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
 use App\Entity\PrefixeNomDemande;
@@ -40,11 +39,12 @@ use Symfony\Component\Routing\Annotation\Route;
 
 /**
  * @Route("/parametrage-global")
+ * @deprecated Use SettingsController instead
  */
 class ParametrageGlobalController extends AbstractController
 {
 
-    private $engDayToFr = [
+    private array $engDayToFr = [
         'monday' => 'Lundi',
         'tuesday' => 'Mardi',
         'wednesday' => 'Mercredi',
@@ -56,7 +56,7 @@ class ParametrageGlobalController extends AbstractController
 
     /**
      * @Route("/", name="global_param_index")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB})
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_GLOBAL})
      */
     public function index(GlobalParamService $globalParamService,
                           EntityManagerInterface $entityManager,
@@ -65,7 +65,6 @@ class ParametrageGlobalController extends AbstractController
         $statusRepository = $entityManager->getRepository(Statut::class);
         $mailerServerRepository = $entityManager->getRepository(MailerServer::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-        $dimensionsEtiquettesRepository = $entityManager->getRepository(DimensionsEtiquettes::class);
         $champsLibreRepository = $entityManager->getRepository(FreeField::class);
         $categoryCLRepository = $entityManager->getRepository(CategorieCL::class);
         $translationRepository = $entityManager->getRepository(Translation::class);
@@ -102,7 +101,6 @@ class ParametrageGlobalController extends AbstractController
                 'customIcon' => ($customIcon && file_exists(getcwd() . "/uploads/attachements/" . $customIcon) ? $customIcon : null),
                 'titleEmergencyLabel' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::EMERGENCY_TEXT_LABEL),
                 'titleCustomLabel' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CUSTOM_TEXT_LABEL),
-                'dimensions_etiquettes' => $dimensionsEtiquettesRepository->findOneDimension(),
                 'documentSettings' => [
                     'deliveryNoteLogo' => ($deliveryNoteLogo && file_exists(getcwd() . "/uploads/attachements/" . $deliveryNoteLogo) ? $deliveryNoteLogo : null),
                     'waybillLogo' => ($waybillLogo && file_exists(getcwd() . "/uploads/attachements/" . $waybillLogo) ? $waybillLogo : null),
@@ -114,7 +112,7 @@ class ParametrageGlobalController extends AbstractController
                 'deliverySettings' => [
                     'prepaAfterDl' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CREATE_PREPA_AFTER_DL),
                     'DLAfterRecep' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CREATE_DL_AFTER_RECEPTION),
-                    'paramDemandeurLivraison' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEMANDEUR_DANS_DL),
+                    'paramDemandeurLivraison' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REQUESTER_IN_DELIVERY),
                     'displayPickingLocation' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION),
                     'deliveryRequestTypes' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]),
                     'deliveryTypeSettings' => json_encode($deliveryTypeSettings),
@@ -179,7 +177,7 @@ class ParametrageGlobalController extends AbstractController
                         'before' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_EXPECTED_DATE_COLOR_BEFORE)
                     ]
                 ],
-                'mailerServer' => $mailerServerRepository->findOneMailerServer(),
+                'mailerServer' => $mailerServerRepository->findOneBy([]),
                 'wantsBL' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL),
                 'wantsQTT' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_QTT_IN_LABEL),
                 'blChosen' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CL_USED_IN_LABELS),
@@ -220,24 +218,14 @@ class ParametrageGlobalController extends AbstractController
 
     /**
      * @Route("/ajax-etiquettes", name="ajax_dimensions_etiquettes",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_GLOBAL}, mode=HasPermission::IN_JSON)
      */
     public function ajaxDimensionEtiquetteServer(Request $request,
                                                  AttachmentService $attachmentService,
                                                  EntityManagerInterface $entityManager): Response {
 
         $data = $request->request->all();
-        $dimensionsEtiquettesRepository = $entityManager->getRepository(DimensionsEtiquettes::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-
-        $dimensions = $dimensionsEtiquettesRepository->findOneDimension();
-        if(!$dimensions) {
-            $dimensions = new DimensionsEtiquettes();
-            $entityManager->persist($dimensions);
-        }
-        $dimensions
-            ->setHeight(intval($data['height']))
-            ->setWidth(intval($data['width']));
 
         $parametrageGlobalQtt = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::INCLUDE_QTT_IN_LABEL]);
 
@@ -466,7 +454,7 @@ class ParametrageGlobalController extends AbstractController
 
     /**
      * @Route("/ajax-documents", name="ajax_documents",  options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_GLOBAL}, mode=HasPermission::IN_JSON)
      */
     public function ajaxDocuments(Request $request,
                                   UserService $userService,
@@ -580,7 +568,7 @@ class ParametrageGlobalController extends AbstractController
 
     /**
      * @Route("/api", name="days_param_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_GLOBAL}, mode=HasPermission::IN_JSON)
      */
     public function api(EntityManagerInterface $entityManager): Response {
 
@@ -594,7 +582,7 @@ class ParametrageGlobalController extends AbstractController
             $rows[] =
                 [
                     'Day' => $this->engDayToFr[$day->getDay()],
-                    'Worked' => $day->getWorked() ? 'oui' : 'non',
+                    'Worked' => $day->isWorked() ? 'oui' : 'non',
                     'Times' => $day->getTimes() ?? '',
                     'Order' => $day->getDisplayOrder(),
                     'Actions' => $this->renderView('parametrage_global/datatableDaysRow.html.twig', [
@@ -644,7 +632,7 @@ class ParametrageGlobalController extends AbstractController
             $day->setWorked($data['worked']);
 
             if(isset($data['times'])) {
-                if($day->getWorked()) {
+                if($day->isWorked()) {
                     $matchHours = '((0[0-9])|(1[0-9])|(2[0-3]))';
                     $matchMinutes = '([0-5][0-9])';
                     $matchHoursMinutes = "$matchHours:$matchMinutes";
@@ -681,14 +669,14 @@ class ParametrageGlobalController extends AbstractController
 
     /**
      * @Route("/ajax-mail-server", name="ajax_mailer_server", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_GLOB}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::PARAM, Action::SETTINGS_GLOBAL}, mode=HasPermission::IN_JSON)
      */
     public function ajaxMailerServer(Request $request,
                                      EntityManagerInterface $entityManager): Response {
         if($data = json_decode($request->getContent(), true)) {
 
             $mailerServerRepository = $entityManager->getRepository(MailerServer::class);
-            $mailerServer = $mailerServerRepository->findOneMailerServer();
+            $mailerServer = $mailerServerRepository->findOneBy([]);
             if(!$mailerServer) {
                 $mailerServer = new MailerServer();
                 $entityManager->persist($mailerServer);

@@ -30,7 +30,6 @@ class NatureController extends AbstractController
 
     /**
      * @Route("/", name="nature_param_index")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_NATU_COLI})
      */
     public function index()
     {
@@ -39,7 +38,6 @@ class NatureController extends AbstractController
 
     /**
      * @Route("/api", name="nature_param_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_NATU_COLI}, mode=HasPermission::IN_JSON)
      */
     public function api(EntityManagerInterface $entityManager): Response
     {

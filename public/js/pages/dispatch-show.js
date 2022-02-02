@@ -256,7 +256,9 @@ function initializePacksTable(dispatchId, isEdit) {
 
             $rows.each(function() {
                 const $row = $(this);
-                const data = Form.process($row, null, null, true);
+                const data = Form.process($row, {
+                    ignoreErrors: true,
+                });
 
                 $row.data(`data`, JSON.stringify(data instanceof FormData ? data.asObject() : data));
             })

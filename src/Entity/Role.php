@@ -9,60 +9,48 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\RoleRepository")
  */
-class Role
-{
-    const NO_ACCESS_USER = 'aucun accès';
-    const SUPER_ADMIN = 'super admin';
-    const CLIENT_UTIL = 'Client utilisation';
+class Role {
+
+    public const NO_ACCESS_USER = 'aucun accès';
+    public const SUPER_ADMIN = 'super admin';
+    public const CLIENT_UTIL = 'Client utilisation';
 
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="string", length=64, unique=true)
      */
-    private $label;
+    private ?string $label = null;
+
+    /**
+     * @ORM\Column(type="string", nullable=false)
+     */
+    private ?string $quantityType = null;
 
     /**
      * @ORM\ManyToMany(targetEntity="Action", mappedBy="roles")
      */
-    private $actions;
-
-    /**
-     * @ORM\Column(type="boolean")
-     */
-    private $active;
+    private Collection $actions;
 
     /**
      * @ORM\OneToMany(targetEntity="Utilisateur", mappedBy="role")
      */
-    private $users;
-
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\ParametreRole", mappedBy="role")
-     */
-    private $parametreRoles;
-
-    /**
-     * @ORM\Column(type="json", nullable=false)
-     */
-    private $dashboardsVisible;
+    private Collection $users;
 
     /**
      * @ORM\Column(type="boolean")
      */
-    private $isMailSendAccountCreation;
+    private ?bool $isMailSendAccountCreation = false;
 
     public function __construct()
     {
         $this->actions = new ArrayCollection();
         $this->users = new ArrayCollection();
-        $this->parametreRoles = new ArrayCollection();
-        $this->dashboardsVisible = [];
     }
 
     public function getId(): ?int
@@ -82,28 +70,14 @@ class Role
         return $this;
     }
 
-    public function getActive(): ?bool
-    {
-        return $this->active;
-    }
-
-    public function setActive(bool $active): self
-    {
-        $this->active = $active;
-
-        return $this;
-    }
-
     /**
      * @return Collection|Action[]
      */
-    public function getActions(): Collection
-    {
+    public function getActions(): Collection {
         return $this->actions;
     }
 
-    public function addAction(Action $action): self
-    {
+    public function addAction(Action $action): self {
         if (!$this->actions->contains($action)) {
             $this->actions[] = $action;
             $action->addRole($this);
@@ -112,11 +86,26 @@ class Role
         return $this;
     }
 
-    public function removeAction(?Action $action): self
-    {
-        if ($action && $this->actions->contains($action)) {
-            $this->actions->removeElement($action);
+    public function removeAction(Action $action): self {
+        if ($this->actions->removeElement($action)) {
             $action->removeRole($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param Action[] $actions
+     */
+    public function setActions(array $actions): self {
+        foreach($this->getActions()->toArray() as $action) {
+            $this->removeAction($action);
+        }
+
+        $this->actions = new ArrayCollection();
+
+        foreach($actions as $action) {
+            $this->addAction($action);
         }
 
         return $this;
@@ -153,49 +142,6 @@ class Role
         return $this;
     }
 
-    /**
-     * @return Collection|ParametreRole[]
-     */
-    public function getParametreRoles(): Collection
-    {
-        return $this->parametreRoles;
-    }
-
-    public function addParametreRole(ParametreRole $parametreRole): self
-    {
-        if (!$this->parametreRoles->contains($parametreRole)) {
-            $this->parametreRoles[] = $parametreRole;
-            $parametreRole->setRole($this);
-        }
-
-        return $this;
-    }
-
-    public function removeParametreRole(ParametreRole $parametreRole): self
-    {
-        if ($this->parametreRoles->contains($parametreRole)) {
-            $this->parametreRoles->removeElement($parametreRole);
-            // set the owning side to null (unless already changed)
-            if ($parametreRole->getRole() === $this) {
-                $parametreRole->setRole(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function getDashboardsVisible(): ?array
-    {
-        return $this->dashboardsVisible;
-    }
-
-    public function setDashboardsVisible(?array $dashboardsVisible): self
-    {
-        $this->dashboardsVisible = $dashboardsVisible;
-
-        return $this;
-    }
-
     public function getIsMailSendAccountCreation(): ?bool
     {
         return $this->isMailSendAccountCreation;
@@ -205,6 +151,15 @@ class Role
     {
         $this->isMailSendAccountCreation = $isMailSendAccountCreation;
 
+        return $this;
+    }
+
+    public function getQuantityType(): ?string {
+        return $this->quantityType;
+    }
+
+    public function setQuantityType(?string $quantityType): self {
+        $this->quantityType = $quantityType;
         return $this;
     }
 }

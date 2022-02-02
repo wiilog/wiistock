@@ -52,8 +52,8 @@ function extendsDateSort(name) {
 }
 
 function initActionOnRow(row) {
+    $(row).addClass('pointer');
     if ($(row).find('.action-on-click').get(0)) {
-        $(row).addClass('pointer');
         $(row).on('mouseup', 'td:not(.noVis)', function (event) {
             const highlightedText = window.getSelection
                 ? window.getSelection().toString()
@@ -124,7 +124,7 @@ function toggleInputRadioOnRow(tr) {
 function createDatatableDomFooter({information, length, pagination}) {
     return (information || length || pagination)
         ? (
-            `<"row mt-2 align-items-center"
+            `<"row mt-2 align-items-center datatable-paging"
                 ${length ? '<"col-auto"l>' : ''}
                 ${information ? '<"col-auto"i>' : ''}
                 ${pagination ? '<"col"p>' : ''}
@@ -193,9 +193,11 @@ function overrideSearch($input, table, callback = null) {
     $input.attr('placeholder', 'Entrée pour valider');
 }
 
-function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, needsColumnShow, needsResize, needsEmplacementSearchOverride, callback, table, $table, hidePagingIfEmpty}) {
+function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, needsColumnShow, needsResize, needsEmplacementSearchOverride, callback, table, $table, needsPagingHide, needsSearchHide}) {
     let $searchInputContainer = $table.parents('.dataTables_wrapper ').find('.dataTables_filter');
     let $searchInput = $searchInputContainer.find('input');
+
+    const data = table.rows().data();
 
     if (needsSearchOverride && $searchInput.length > 0) {
         overrideSearch($searchInput, table);
@@ -210,10 +212,14 @@ function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, 
         overrideSearchSpecifEmplacement($searchInput);
     }
 
-    if(hidePagingIfEmpty) {
-        const data = table.rows().data();
+    if(needsPagingHide) {
         $table.parents('.dataTables_wrapper').find(`.dataTables_paginate, .dataTables_length`).toggleClass(`d-none`, !data || data.length <= 10);
     }
+
+    if(needsSearchHide) {
+        $('.dataTables_filter').toggleClass(`d-none`, !data || data.length <= 10);
+    }
+
     if (callback) {
         callback();
     }
@@ -221,7 +227,7 @@ function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, 
 }
 
 function moveSearchInputToHeader($searchInputContainer) {
-    const $datatableCard = $searchInputContainer.parents('.wii-page-card');
+    const $datatableCard = $searchInputContainer.parents('.wii-page-card, .wii-box');
     const $searchInput = $searchInputContainer.find('input');
     const $searchInputContainerCol = $searchInputContainer.parent();
 

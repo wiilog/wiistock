@@ -27,7 +27,6 @@ class NotificationTemplateController extends AbstractController
 
     /**
      * @Route("/liste", name="notification_template_index")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_NOTIFICATIONS})
      */
     public function index(): Response
     {
@@ -38,7 +37,6 @@ class NotificationTemplateController extends AbstractController
 
     /**
      * @Route("/api", name="notification_template_api", options={"expose"=true}, methods={"POST|GET"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_NOTIFICATIONS})
      */
     public function api(Request $request, EntityManagerInterface $manager): Response
     {

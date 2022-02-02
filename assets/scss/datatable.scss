@@ -203,3 +203,41 @@ th.hideOrder {
     width: 15px;
     border-radius: 50%;
 }
+
+.checkbox-container {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+
+    input[type=checkbox] {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+.small-column {
+    max-width: 130px !important;
+    overflow: initial !important;
+    text-overflow: initial !important;
+    white-space: initial !important;
+}
+
+thead th.datatable-main-header, tbody th.datatable-main-header {
+    color: $primary;
+    font-size: 1.2rem;
+        border-bottom: none !important;
+}
+
+table.no-border-top th {
+    border-top: none !important;
+}
+
+thead th.datatable-main-header, tbody th.datatable-main-header {
+    color: $primary;
+    font-size: 1.2rem;
+        border-bottom: none !important;
+}
+
+table.no-border-top th {
+    border-top: none !important;
+}

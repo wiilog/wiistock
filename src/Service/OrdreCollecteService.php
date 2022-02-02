@@ -156,7 +156,7 @@ class OrdreCollecteService
                 ];
             } else {
                 $quantity = $mouvmentByBarcode[$barCode]['quantity'];
-                if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE && $quantity > 0) {
+                if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE && $quantity > 0) {
                     $articleData = [];
                     $articleData['quantity-to-pick'] = $mouvmentByBarcode[$barCode]['quantity'];
                     $insertedArticle = $this->demandeCollecteService->persistArticleInDemand($articleData, $refArticle, $demandeCollecte);

@@ -1,0 +1,16 @@
+<div class="sub-content">
+    <div class="row wii-page-card-header">
+        <div class="col-auto ml-auto">
+            <a href="{{ path('settings_role_new_form') }}" class="btn btn-primary">
+                <span class="fa fa-plus mr-2"></span>Nouveau rôle
+            </a>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <table id="tableRoles" class="table w-100">
+            </table>
+        </div>
+    </div>
+</div>
+{% include 'settings/utilisateurs/roles/delete.html.twig' %}

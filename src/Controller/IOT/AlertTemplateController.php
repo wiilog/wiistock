@@ -27,7 +27,6 @@ class AlertTemplateController extends AbstractController
 
     /**
      * @Route("/api", name="alert_template_api", options={"expose"=true}, methods={"POST|GET"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_NOTIFICATIONS})
      */
     public function api(Request $request,
                         AlertTemplateService $alertTemplateService): Response {

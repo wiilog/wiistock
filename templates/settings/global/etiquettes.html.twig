@@ -1,0 +1,33 @@
+{% import 'form.html.twig' as form %}
+
+{% set label_logo = setting_value('LABEL_LOGO') %}
+
+<div class="sub-content">
+    <div class="row">
+        <div class="col-12">
+            {% set qr = constant('App\\Entity\\ParametrageGlobal::QR_CODE') %}
+            {% set ean = constant('App\\Entity\\ParametrageGlobal::CODE_128') %}
+            {{ form.switch(setting('BARCODE_TYPE_IS_128'), "Type d'étiquette", true, [
+                {label: {text: ean['label']}, value: ean['value'] ? 1 : 0, checked: setting_value('BARCODE_TYPE_IS_128') == ean['value'] },
+                {label: {text: qr['label']}, value: qr['value'] ? 1 : 0, checked: setting_value('BARCODE_TYPE_IS_128') == qr['value'] },
+            ], {labelClass: "wii-field-name"}) }}
+        </div>
+
+        <div class="col-12 d-flex mt-3">
+            {{ form.input(setting('LABEL_HEIGHT'), 'Hauteur (mm)', true, setting_value('LABEL_HEIGHT'), {
+                labelClass: 'wii-field-name mr-2'
+            }) }}
+
+            {{ form.input(setting('LABEL_WIDTH'), 'Largeur (mm)', true, setting_value('LABEL_WIDTH'), {
+                labelClass: 'wii-field-name'
+            }) }}
+        </div>
+
+        <div class="form-group d-flex flex-column col-12 mt-3">
+            {{ form.image(setting('LABEL_LOGO'), 'Logo sur étiquette', false, setting_value('LABEL_LOGO'), {
+                labelClass: 'w-100 wii-field-name',
+                formats: 'image/png, image/jpeg, image/jpg'
+            }) }}
+        </div>
+    </div>
+</div>

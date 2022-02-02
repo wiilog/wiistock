@@ -1,0 +1,28 @@
+{% import 'form.html.twig' as form %}
+
+<div class="sub-content">
+    <div class="row">
+        {% set values = setting_value("DISPATCH_OVERCONSUMPTION_BILL_TYPE_AND_STATUS")|split(';') %}
+        <div class="col-12">
+            <span>Génération bon de surconsommation pour type</span>
+            {{ form.select("overconsumptionBillType", null, false, {
+                items: types,
+                value: values[0] ?? ''
+            }) }}
+            <span>passe {{ 'acheminement.acheminement'|trans }} au statut</span>
+            {{ form.select("overconsumptionBillStatut", null, false, {
+                items: statuses,
+                value: values[1] ?? ''
+            }) }}
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-12">
+            {{ form.image(setting('OVERCONSUMPTION_LOGO'), 'Logo du bon de surconsommation', false, setting_value('OVERCONSUMPTION_LOGO'), {
+                labelClass: 'w-100 wii-field-name',
+                formats: 'image/png, image/jpeg, image/jpg'
+            }) }}
+        </div>
+    </div>
+</div>

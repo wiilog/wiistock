@@ -5,6 +5,7 @@ const ROUTES = {
     handlingType: `ajax_select_handling_type`,
     deliveryType: `ajax_select_delivery_type`,
     collectType: `ajax_select_collect_type`,
+    dispatchType: `ajax_select_dispatch_type`,
     status: `ajax_select_status`,
     location: `ajax_select_locations`,
     pack: `ajax_select_packs`,
@@ -21,6 +22,7 @@ const ROUTES = {
     triggerSensorCodeWithoutPairing: `ajax_select_trigger_sensors_code_without_pairing`,
     visibilityGroup: `ajax_select_visibility_group`,
     user: `ajax_select_user`,
+    roles: `ajax_select_roles`,
     supplierCode: `ajax_select_supplier_code`,
     supplierLabel: `ajax_select_supplier_label`,
     collectableArticles: `ajax_select_collectable_articles`,
@@ -32,6 +34,7 @@ const INSTANT_SELECT_TYPES = {
     handlingType: true,
     deliveryType: true,
     collectType: true,
+    dispatchType: true,
     status: true,
     sensorWithoutPairing: true,
     sensorCodeWithoutPairing: true,
@@ -85,6 +88,7 @@ export default class Select2 {
                                 };
                             } else {
                                 $search.removeClass(`is-invalid`);
+                                $element.attr("data-length", data.results.length);
                                 return data;
                             }
                         }
@@ -96,12 +100,9 @@ export default class Select2 {
                 }
 
                 const allowClear = !($element.is(`[multiple]`) || $element.is(`[data-no-empty-option]`));
-                if (!config.placeholder) {
-                    config.placeholder = '';
-                }
 
                 $element.select2({
-                    placeholder: $element.data(`placeholder`),
+                    placeholder: $element.data(`placeholder`) || '',
                     tags: $element.is('[data-editable]'),
                     allowClear,
                     dropdownParent,
@@ -115,11 +116,10 @@ export default class Select2 {
                         if (data.highlighted) {
                             $(container).attr(`data-highlighted`, true);
                         }
-
                         return data.html || data.text;
                     },
                     templateSelection: function (data, container) {
-                        return data.html || data.text;
+                        return data.html || data.text || undefined;
                     },
                     ...config,
                 });
@@ -182,8 +182,8 @@ export default class Select2 {
                     const $prefixContainer = $dropdown.find('.select2-search');
                     $prefixContainer.addClass(`d-flex`);
                     $prefixContainer.prepend(`
-                    <input class="search-prefix" name="searchPrefix" size=${searchPrefixDisplayed.length} value="${searchPrefixDisplayed}" disabled/>
-                `);
+                        <input class="search-prefix" name="searchPrefix" size=${searchPrefixDisplayed.length} value="${searchPrefixDisplayed}" disabled/>
+                    `);
                 }
             }
         });

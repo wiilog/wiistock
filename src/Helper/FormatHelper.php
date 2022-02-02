@@ -12,6 +12,7 @@ use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;
 use App\Entity\Nature;
 use App\Entity\Pack;
+use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -57,6 +58,11 @@ class FormatHelper {
         12 => "Décembre",
     ];
 
+    private const QUANTITY_TYPE_LABELS = [
+        ReferenceArticle::QUANTITY_TYPE_REFERENCE => 'Référence',
+        ReferenceArticle::QUANTITY_TYPE_ARTICLE => 'Article',
+    ];
+
     public static function parseDatetime(?string $date, array $expectedFormats = ["Y-m-d H:i:s", "d/m/Y H:i:s", "Y-m-d H:i", "d/m/Y H:i"]): ?DateTimeInterface {
         if (empty($date)) {
             return null;
@@ -73,6 +79,10 @@ class FormatHelper {
 
     public static function type(?Type $type, $else = "") {
         return $type ? $type->getLabel() : $else;
+    }
+
+    public static function quantityTypeLabel(?string $quantityType, string $else = ""): string {
+        return self::QUANTITY_TYPE_LABELS[$quantityType] ?? $else;
     }
 
     public static function handlingRequester(Handling $handling, $else = ""): string {
@@ -113,8 +123,8 @@ class FormatHelper {
         return $pack ? $pack->getCode() : $else;
     }
 
-    public static function provider(?Fournisseur $provider, $else = "") {
-        return $provider ? $provider->getNom() : $else;
+    public static function supplier(?Fournisseur $supplier, $else = "") {
+        return $supplier ? $supplier->getNom() : $else;
     }
 
     public static function location(?Emplacement $location, $else = "") {
@@ -171,8 +181,8 @@ class FormatHelper {
     public static function longDate(?DateTimeInterface $date, bool $short = false, bool $time = false, $else = "-"): ?string {
         return $date
             ? (($short
-                ? substr(self::WEEK_DAYS[$date->format("w")], 0, 3)
-                : self::WEEK_DAYS[$date->format("w")])
+                ? substr(self::WEEK_DAYS[$date->format("N")], 0, 3)
+                : self::WEEK_DAYS[$date->format("N")])
                     . " "
                     . $date->format("d")
                     . " "

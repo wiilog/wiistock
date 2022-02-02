@@ -3,7 +3,6 @@
 
 namespace App\Service;
 
-use App\Entity\DimensionsEtiquettes;
 use App\Entity\Emplacement;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Type;
@@ -24,27 +23,14 @@ Class GlobalParamService
     public EntityManagerInterface $entityManager;
 
 	public function getDimensionAndTypeBarcodeArray(bool $includeNullDimensions = true) {
-        $dimensionsEtiquettesRepository = $this->entityManager->getRepository(DimensionsEtiquettes::class);
         $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
 
-		$dimension = $dimensionsEtiquettesRepository->findOneDimension();
-		$response = [];
-		$response['logo'] = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::LABEL_LOGO);
-		if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth()))
-		{
-			$response['height'] = $dimension->getHeight();
-			$response['width'] = $dimension->getWidth();
-			$response['exists'] = true;
-		} else {
-			if($includeNullDimensions) {
-				$response['height'] = 0;
-				$response['width'] = 0;
-			}
-			$response['exists'] = false;
-		}
-		$typeBarcode = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128);
-		$response['isCode128'] = $typeBarcode === '1';
-		return $response;
+		return [
+            "logo" => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::LABEL_LOGO),
+            "height" => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::LABEL_HEIGHT) ?? 0,
+            "width" => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::LABEL_WIDTH) ?? 0,
+            "isCode128" => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128),
+        ];
 	}
 
 	public function getParamLocation(string $label) {

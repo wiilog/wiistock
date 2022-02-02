@@ -35,7 +35,6 @@ class RequestTemplateController extends AbstractController
 
     /**
      * @Route("/", name="request_template_index")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE})
      */
     public function index(EntityManagerInterface $manager): Response
     {
@@ -83,7 +82,6 @@ class RequestTemplateController extends AbstractController
 
     /**
      * @Route("/api", name="request_template_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
      */
     public function api(Request $request, EntityManagerInterface $manager): Response
     {
@@ -113,7 +111,6 @@ class RequestTemplateController extends AbstractController
 
     /**
      * @Route("/creer", name="request_template_new", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request, EntityManagerInterface $manager, RequestTemplateService $service): Response
     {
@@ -150,7 +147,6 @@ class RequestTemplateController extends AbstractController
 
     /**
      * @Route("/api-modifier", name="request_template_edit_api", options={"expose"=true}, methods="GET|POST")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
      */
     public function editApi(Request $request, EntityManagerInterface $manager): Response
     {
@@ -173,7 +169,6 @@ class RequestTemplateController extends AbstractController
 
     /**
      * @Route("/modifier", name="request_template_edit", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
      */
     public function edit(Request $request, EntityManagerInterface $manager, RequestTemplateService $service): Response
     {
@@ -199,7 +194,6 @@ class RequestTemplateController extends AbstractController
 
     /**
      * @Route("/api-supprimer", name="request_template_delete_api", options={"expose"=true}, methods="GET|POST")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
      */
     public function deleteApi(Request $request, EntityManagerInterface $manager): Response
     {
@@ -217,7 +211,6 @@ class RequestTemplateController extends AbstractController
 
     /**
      * @Route("/supprimer", name="request_template_delete", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
      */
     public function delete(Request $request, EntityManagerInterface $manager): Response
     {
@@ -251,7 +244,6 @@ class RequestTemplateController extends AbstractController
 
     /**
      * @Route("/voir/{requestTemplate}", name="request_template_show")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE})
      */
     public function show(RequestTemplateService $service, RequestTemplate $requestTemplate): Response
     {
@@ -270,7 +262,6 @@ class RequestTemplateController extends AbstractController
 
     /**
      * @Route("/ligne/api/{requestTemplate}", name="request_template_article_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
      */
     public function articleApi(Request $request, EntityManagerInterface $manager, RequestTemplate $requestTemplate): Response
     {
@@ -300,7 +291,6 @@ class RequestTemplateController extends AbstractController
 
     /**
      * @Route("/ligne/{requestTemplate}/creer", name="request_template_line_new", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
      */
     public function newLine(Request $request, EntityManagerInterface $manager,
                             RequestTemplateService $service, RequestTemplate $requestTemplate): Response
@@ -325,7 +315,6 @@ class RequestTemplateController extends AbstractController
 
     /**
      * @Route("/ligne/api-modifier", name="request_template_line_edit_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
      */
     public function editLineApi(Request $request, EntityManagerInterface $manager): Response
     {
@@ -344,7 +333,6 @@ class RequestTemplateController extends AbstractController
 
     /**
      * @Route("/ligne/edit", name="request_template_line_edit", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
      */
     public function editLine(Request $request, EntityManagerInterface $manager, RequestTemplateService $service): Response
     {
@@ -370,7 +358,6 @@ class RequestTemplateController extends AbstractController
 
     /**
      * @Route("/line/supprimer/{line}", name="request_template_line_remove", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_REQUEST_TEMPLATE}, mode=HasPermission::IN_JSON)
      */
     public function deleteLine(EntityManagerInterface $manager, RequestTemplateLine $line): Response
     {

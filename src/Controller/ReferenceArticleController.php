@@ -166,11 +166,11 @@ class ReferenceArticleController extends AbstractController
 
             switch($data['type_quantite']) {
                 case 'article':
-                    $typeArticle = ReferenceArticle::TYPE_QUANTITE_ARTICLE;
+                    $typeArticle = ReferenceArticle::QUANTITY_TYPE_ARTICLE;
                     break;
                 case 'reference':
                 default:
-                    $typeArticle = ReferenceArticle::TYPE_QUANTITE_REFERENCE;
+                    $typeArticle = ReferenceArticle::QUANTITY_TYPE_REFERENCE;
                     break;
             }
 
@@ -216,7 +216,7 @@ class ReferenceArticleController extends AbstractController
                 $refArticle->setStatut($statut);
             }
 
-            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+            if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
                 $refArticle->setQuantiteStock($data['quantite'] ? max($data['quantite'], 0) : 0); // protection contre quantités négatives
             } else {
                 $refArticle->setQuantiteStock(0);
@@ -258,7 +258,7 @@ class ReferenceArticleController extends AbstractController
                 }
             }
 
-            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE &&
+            if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE &&
                 $refArticle->getQuantiteStock() > 0 &&
                 $refArticle->getStatut()->getCode() !== ReferenceArticle::DRAFT_STATUS) {
                 $mvtStock = $mouvementStockService->createMouvementStock(
@@ -355,11 +355,10 @@ class ReferenceArticleController extends AbstractController
             $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
         }
 
-        $filter = $filtreRefRepository->findOneByUserAndChampFixe($user, FiltreRef::FIXED_FIELD_ACTIVE_ONLY);
+        $filter = $filtreRefRepository->findOneByUserAndChampFixe($user, FiltreRef::FIXED_FIELD_STATUS);
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
-
         return $this->render('reference_article/index.html.twig', [
             "fields" => $fields,
             "searches" => $user->getRecherche(),
@@ -370,7 +369,7 @@ class ReferenceArticleController extends AbstractController
             'types' => $types,
             'typeQuantite' => $typeQuantite,
             'categories' => $inventoryCategories,
-            'wantInactif' => !empty($filter) && $filter->getValue() === Article::STATUT_INACTIF,
+            'wantActive' => !empty($filter) && $filter->getValue() === ReferenceArticle::STATUT_ACTIF,
             'stockManagement' => [
                 ReferenceArticle::STOCK_MANAGEMENT_FEFO,
                 ReferenceArticle::STOCK_MANAGEMENT_FIFO
@@ -529,7 +528,7 @@ class ReferenceArticleController extends AbstractController
         $refArticle = $referenceArticleRepository->find($refArticleId);
 
         if ($refArticle) {
-            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+            if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
                 $quantity = $refArticle->getQuantiteDisponible();
             }
         }
@@ -633,7 +632,7 @@ class ReferenceArticleController extends AbstractController
 
         $providerArticles = Stream::from($referenceArticle->getArticlesFournisseur())
             ->reduce(function(array $carry, ArticleFournisseur $providerArticle) use ($referenceArticle) {
-                $articles = $referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE
+                $articles = $referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE
                     ? $providerArticle->getArticles()->toArray()
                     : [];
                 $carry[] = [
@@ -657,111 +656,7 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
-     * @Route("/exporter-refs", name="export_all_refs", options={"expose"=true}, methods="GET|POST")
-     */
-    public function exportAllRefs(EntityManagerInterface $manager,
-                                  CSVExportService       $csvService,
-                                  FreeFieldService       $freeFieldService): Response {
-        $freeFieldsConfig = $freeFieldService->createExportArrayConfig($manager, [CategorieCL::REFERENCE_ARTICLE], [CategoryType::ARTICLE]);
-
-        $header = array_merge([
-            'reference',
-            'libellé',
-            'quantité',
-            'type',
-            'acheteur',
-            'type quantité',
-            'statut',
-            'commentaire',
-            'emplacement',
-            'seuil sécurite',
-            'seuil alerte',
-            'prix unitaire',
-            'code barre',
-            'catégorie inventaire',
-            'date dernier inventaire',
-            'synchronisation nomade',
-            'gestion de stock',
-            'gestionnaire(s)',
-            'Labels Fournisseurs',
-            'Codes Fournisseurs',
-            'Groupe de visibilité',
-            'date de création',
-            'crée par',
-            'date de dérniere modification',
-            'modifié par',
-            "date dernier mouvement d'entrée",
-            "date dernier mouvement de sortie",
-        ], $freeFieldsConfig['freeFieldsHeader']);
-
-        $today = new DateTime();
-        $today = $today->format("d-m-Y H:i:s");
-        $user = $this->userService->getUser();
-
-        return $csvService->streamResponse(function($output) use ($manager, $csvService, $user, $freeFieldsConfig) {
-            $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
-            $managersByReference = $manager
-                ->getRepository(Utilisateur::class)
-                ->getUsernameManagersGroupByReference();
-
-            $suppliersByReference = $manager
-                ->getRepository(Fournisseur::class)
-                ->getCodesAndLabelsGroupedByReference();
-
-            $references = $referenceArticleRepository->iterateAll($user);
-            foreach($references as $reference) {
-                $this->putReferenceLine($output, $csvService, $managersByReference, $reference, $suppliersByReference, $freeFieldsConfig);
-            }
-        }, "export-references-$today.csv", $header);
-    }
-
-    private function putReferenceLine(                 $handle,
-                                      CSVExportService $csvService,
-                                      array            $managersByReference,
-                                      array            $reference,
-                                      array            $suppliersByReference,
-                                      array            $freeFieldsConfig) {
-        $id = (int)$reference["id"];
-        $line = [
-            $reference["reference"],
-            $reference["libelle"],
-            $reference["quantiteStock"],
-            $reference["type"],
-            $reference["buyer"],
-            $reference["typeQuantite"],
-            $reference["statut"],
-            $reference["commentaire"] ? strip_tags($reference["commentaire"]) : "",
-            $reference["emplacement"],
-            $reference["limitSecurity"],
-            $reference["limitWarning"],
-            $reference["prixUnitaire"],
-            $reference["barCode"],
-            $reference["category"],
-            $reference["dateLastInventory"] ? $reference["dateLastInventory"]->format("d/m/Y H:i:s") : "",
-            $reference["needsMobileSync"],
-            $reference["stockManagement"],
-            $managersByReference[$id] ?? "",
-            $suppliersByReference[$id]["supplierLabels"] ?? "",
-            $suppliersByReference[$id]["supplierCodes"] ?? "",
-            $reference["visibilityGroup"],
-            $reference["createdAt"] ? $reference["createdAt"]->format("d/m/Y H:i:s") : "",
-            $reference["createdBy"] ?? "-",
-            $reference["editedAt"] ? $reference["editedAt"]->format("d/m/Y H:i:s") : "",
-            $reference["editedBy"] ?? "",
-            $reference["lastStockEntry"] ? $reference["lastStockEntry"]->format("d/m/Y H:i:s") : "",
-            $reference["lastStockExit"] ? $reference["lastStockExit"]->format("d/m/Y H:i:s") : "",
-        ];
-
-        foreach($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
-            $line[] = FormatHelper::freeField($reference['freeFields'][$freeFieldId] ?? '', $freeField);
-        }
-
-        $csvService->putLine($handle, $line);
-    }
-
-    /**
      * @Route("/export-donnees", name="exports_params")
-     * @HasPermission({Menu::PARAM, Action::DISPLAY_EXPO})
      */
     public function renderParams()
     {
@@ -860,20 +755,22 @@ class ReferenceArticleController extends AbstractController
 
             $filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
 
-            $filter = $filtreRefRepository->findOneByUserAndChampFixe($user, FiltreRef::FIXED_FIELD_ACTIVE_ONLY);
+            $filter = $filtreRefRepository->findOneByUserAndChampFixe($user, FiltreRef::FIXED_FIELD_STATUS);
 
             $em = $this->getDoctrine()->getManager();
+
             if($filter == null) {
                 $filter = new FiltreRef();
                 $filter
                     ->setUtilisateur($user)
-                    ->setChampFixe(FiltreRef::FIXED_FIELD_ACTIVE_ONLY)
-                    ->setValue(ReferenceArticle::STATUT_ACTIF);
+                    ->setChampFixe(FiltreRef::FIXED_FIELD_STATUS);
                 $em->persist($filter);
             }
 
-            if ($filter->getValue() != $statutArticle) {
-                $filter->setValue($statutArticle);
+            $filter->setValue(ReferenceArticle::STATUT_ACTIF);
+
+            if ($statutArticle !== ReferenceArticle::STATUT_ACTIF) {
+                $entityManager->remove($filter);
             }
             $em->flush();
 
@@ -916,8 +813,8 @@ class ReferenceArticleController extends AbstractController
             function(MouvementStock $mouvement) use ($mouvementStockService) {
                 $fromColumnConfig = $mouvementStockService->getFromColumnConfig($mouvement);
                 $from = $fromColumnConfig['from'];
-                $orderPath = $fromColumnConfig['orderPath'];
-                $orderId = $fromColumnConfig['orderId'];
+                $fromPath = $fromColumnConfig['path'];
+                $fromPathParams = $fromColumnConfig['pathParams'];
 
                 return [
                     'Date' => $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : 'aucune',
@@ -929,8 +826,8 @@ class ReferenceArticleController extends AbstractController
                     'from' => $this->templating->render('mouvement_stock/datatableMvtStockRowFrom.html.twig', [
                         'from' => $from,
                         'mvt' => $mouvement,
-                        'orderPath' => $orderPath,
-                        'orderId' => $orderId
+                        'path' => $fromPath,
+                        'pathParams' => $fromPathParams
                     ]),
                     'ArticleCode' => $mouvement->getArticle() ? $mouvement->getArticle()->getBarCode() : $mouvement->getRefArticle()->getBarCode()
                 ];

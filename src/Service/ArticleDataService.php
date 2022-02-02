@@ -13,8 +13,6 @@ use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\ParametrageGlobal;
-use App\Entity\Parametre;
-use App\Entity\ParametreRole;
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
@@ -45,6 +43,9 @@ class ArticleDataService
 	private $typeCLOnLabel;
 
     /** @Required */
+    public CSVExportService $CSVExportService;
+
+    /** @Required */
     public FreeFieldService $freeFieldService;
 
     private $visibleColumnService;
@@ -67,35 +68,17 @@ class ArticleDataService
 
     public function getCollecteArticleOrNoByRefArticle($refArticle, Utilisateur $user)
     {
-        $parametreRoleRepository = $this->entityManager->getRepository(ParametreRole::class);
-
         $role = $user->getRole();
 
-        $parametreRepository = $this->entityManager->getRepository(Parametre::class);
-        $param = $parametreRepository->findOneBy(['label' => Parametre::LABEL_AJOUT_QUANTITE]);
-
-        $paramQuantite = $parametreRoleRepository->findOneByRoleAndParam($role, $param);
-
-        // si le paramétrage n'existe pas pour ce rôle, on le crée (valeur par défaut)
-        if (!$paramQuantite) {
-            $paramQuantite = new ParametreRole();
-            $paramQuantite
-                ->setValue($param->getDefaultValue())
-                ->setRole($role)
-                ->setParametre($param);
-            $this->entityManager->persist($paramQuantite);
-            $this->entityManager->flush();
-        }
-        $byRef = $paramQuantite->getValue() == Parametre::VALUE_PAR_REF;
-        if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+        if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
             $data = [
                 'modif' => $this->refArticleDataService->getViewEditRefArticle($refArticle, true),
                 'selection' => $this->templating->render('collecte/newRefArticleByQuantiteRefContent.html.twig'),
             ];
-        } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+        } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
             $data = [
                 'selection' => $this->templating->render('collecte/newRefArticleByQuantiteRefContentTemp.html.twig', [
-                    'roleIsHandlingArticles' => !$byRef
+                    'roleIsHandlingArticles' => $role->getQuantityType() === ReferenceArticle::QUANTITY_TYPE_ARTICLE
                 ]),
             ];
         } else {
@@ -107,38 +90,21 @@ class ArticleDataService
 
     public function getLivraisonArticlesByRefArticle(ReferenceArticle $refArticle, Demande $request, Utilisateur $user)
     {
-        if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+        if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
             $data = [
                 'modif' => $this->refArticleDataService->getViewEditRefArticle($refArticle, true),
                 'selection' => $this->templating->render('demande/newRefArticleByQuantiteRefContent.html.twig', [
                     'maximum' => $refArticle->getQuantiteDisponible()
                 ]),
             ];
-        } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+        } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
             $articleRepository = $this->entityManager->getRepository(Article::class);
-            $parametreRoleRepository = $this->entityManager->getRepository(ParametreRole::class);
 
             $articles = $articleRepository->findActiveArticles($refArticle);
             $role = $user->getRole();
 
-            $parametreRepository = $this->entityManager->getRepository(Parametre::class);
-            $param = $parametreRepository->findOneBy(['label' => Parametre::LABEL_AJOUT_QUANTITE]);
-
-            $paramQuantite = $parametreRoleRepository->findOneByRoleAndParam($role, $param);
-
-            // si le paramétrage n'existe pas pour ce rôle, on le crée (valeur par défaut)
-            if (!$paramQuantite) {
-                $paramQuantite = new ParametreRole();
-                $paramQuantite
-                    ->setValue($param->getDefaultValue())
-                    ->setRole($role)
-                    ->setParametre($param);
-                $this->entityManager->persist($paramQuantite);
-                $this->entityManager->flush();
-            }
             $availableQuantity = $refArticle->getQuantiteDisponible();
-            $byRef = $paramQuantite->getValue() == Parametre::VALUE_PAR_REF;
-            if ($byRef) {
+            if ($role->getQuantityType() == ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
                 $data = [
                     'selection' => $this->templating->render('demande/choiceContent.html.twig', [
                         'maximum' => $availableQuantity,
@@ -598,5 +564,31 @@ class ArticleDataService
         ];
 
         return $this->visibleColumnService->getArrayConfig($fieldConfig, $freeFields, $currentUser->getVisibleColumns()['article']);
+    }
+
+    public function putArticleLine($handle,
+                                    array $article,
+                                    array $freeFieldsConfig) {
+        $line = [
+            $article['reference'],
+            $article['label'],
+            $article['quantite'],
+            $article['typeLabel'],
+            $article['statutName'],
+            $article['commentaire'] ? strip_tags($article['commentaire']) : '',
+            $article['empLabel'],
+            $article['barCode'],
+            $article['dateLastInventory'] ? $article['dateLastInventory']->format('d/m/Y H:i:s') : '',
+            $article['batch'],
+            $article['stockEntryDate'] ? $article['stockEntryDate']->format('d/m/Y H:i:s') : '',
+            $article['expiryDate'] ? $article['expiryDate']->format('d/m/Y') : '',
+            $article['visibilityGroup'],
+        ];
+
+        foreach($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
+            $line[] = FormatHelper::freeField($article['freeFields'][$freeFieldId] ?? '', $freeField);
+        }
+
+        $this->CSVExportService->putLine($handle, $line);
     }
 }

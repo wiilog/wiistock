@@ -47,18 +47,6 @@ class ReceptionReferenceArticleRepository extends EntityRepository
         return $query->getSingleScalarResult();;
     }
 
-	public function countByFournisseurId($fournisseurId)
-	{
-		$em = $this->getEntityManager();
-		$query = $em->createQuery(
-			"SELECT COUNT(rra)
-			FROM App\Entity\ReceptionReferenceArticle rra
-			WHERE rra.fournisseur = :fournisseurId"
-		)->setParameter('fournisseurId', $fournisseurId);
-
-		return $query->getSingleScalarResult();
-	}
-
 	public function countByReceptionId($receptionId)
 	{
 		$entityManager = $this->getEntityManager();

@@ -128,7 +128,7 @@
                     <div class="content">
                         <div class="d-flex">
                             <div class="col-auto d-flex">
-                                {% set isReferenceManagementQuantity = referenceArticle.typeQuantite == constant('App\\Entity\\ReferenceArticle::TYPE_QUANTITE_REFERENCE') %}
+                                {% set isReferenceManagementQuantity = referenceArticle.typeQuantite == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_REFERENCE') %}
                                 <img src="{{ asset('svg/reference_article/' ~ (isReferenceManagementQuantity ? 'pack.svg' : 'article.svg')) }}"
                                      alt="Icône colis" width="20px">
                                 <span class="wii-field-name ml-3">

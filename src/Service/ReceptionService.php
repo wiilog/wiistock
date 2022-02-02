@@ -252,7 +252,7 @@ class ReceptionService
             "Date" => FormatHelper::datetime($reception->getDate()),
             "dateAttendue" => FormatHelper::date($reception->getDateAttendue()),
             "DateFin" => FormatHelper::datetime($reception->getDateFinReception()),
-            "Fournisseur" => FormatHelper::provider($reception->getFournisseur()),
+            "Fournisseur" => FormatHelper::supplier($reception->getFournisseur()),
             "Commentaire" => $reception->getCommentaire() ?: '',
             "receiver" => implode(', ', array_unique(
                 $reception->getDemandes()

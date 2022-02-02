@@ -1,0 +1,35 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Paramétrage{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('settings-index') }}
+{% endblock %}
+
+{% block page_content %}
+    <div class="row settings-menu">
+        {% for category_key, category in settings %}
+            {% set settings_length = category.menus | length %}
+            {% set batched_settings = category.menus | batch(settings_length/2) %}
+            {% set ordered_settings = interleave(batched_settings[0], batched_settings[1] ?? []) %}
+
+            {% if category.right is not defined or hasRight(constant('App\\Entity\\Menu::PARAM'), category.right) %}
+                <div class="col-md-4 col-12 p-3">
+                    <div class="wii-box settings-category p-3 h-100">
+                        <span class="wii-icon wii-icon-{{ category.icon }}"></span>
+                        <div class="settings-menus">
+                            <div class="title">{{ category.label }}</div>
+                            {% for menu, label in ordered_settings %}
+                                <a href="{{ path(label.route is defined ? label.route : 'settings_item', label.route is not defined ? {category: category_key, menu, submenu: submenu ?? null} : []) }}"
+                                   class="settings-item pb-1 {{ category.menus | length <= 4 ? 'full-size' }}">
+                                    {{ label is iterable ? label.label : label }}
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endblock %}

@@ -43,6 +43,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use App\Helper\FormatHelper;
+use WiiCommon\Helper\Stream;
 
 /**
  * @Route("/article")
@@ -319,6 +320,20 @@ class ArticleController extends AbstractController
                 }
                 $entityManager->flush();
 
+                /** @var DeliveryRequestArticleLine[] $line */
+                $lines = $article->getDeliveryRequestLines()->toArray();
+
+                $requests = Stream::from($lines)
+                    ->map(fn(DeliveryRequestArticleLine $line) => $line->getRequest())
+                    ->filter()
+                    ->unique()
+                    ->values();
+
+                /** @var Request $request */
+                foreach ($requests as $request) {
+                    $entityManager->remove($request);
+                }
+
                 /** @var DeliveryRequestArticleLine $line */
                 foreach ($article->getDeliveryRequestLines()->toArray() as $line) {
                     $line->setRequest(null);
@@ -593,7 +608,7 @@ class ArticleController extends AbstractController
         if ($data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $refArticle = $referenceArticleRepository->find($data['refArticle']);
-            if ($refArticle && $refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+            if ($refArticle && $refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
                 $articleFournisseurs = $refArticle->getArticlesFournisseur();
                 $fournisseurs = [];
                 foreach ($articleFournisseurs as $articleFournisseur) {
@@ -609,72 +624,6 @@ class ArticleController extends AbstractController
             return new JsonResponse($json);
         }
         throw new BadRequestHttpException();
-    }
-
-    /**
-     * @Route("/exporter-articles", name="export_all_arts", options={"expose"=true}, methods="GET|POST")
-     */
-    public function exportAllArticles(EntityManagerInterface $entityManager,
-                                      FreeFieldService $freeFieldService,
-                                      CSVExportService $csvService): Response
-    {
-        $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARTICLE], [CategoryType::ARTICLE]);
-        $header = array_merge([
-            'reference',
-            'libelle',
-            'quantité',
-            'type',
-            'statut',
-            'commentaire',
-            'emplacement',
-            'code barre',
-            'date dernier inventaire',
-            'lot',
-            'date d\'entrée en stock',
-            'date de péremption',
-            'groupe de visibilité'
-        ], $freeFieldsConfig['freeFieldsHeader']);
-
-        $today = new DateTime();
-        $today = $today->format("d-m-Y H:i:s");
-        $user = $this->userService->getUser();
-
-        return $csvService->streamResponse(function($output) use ($freeFieldsConfig, $entityManager, $csvService, $freeFieldService, $user) {
-            $articleRepository = $entityManager->getRepository(Article::class);
-
-            $articles = $articleRepository->iterateAll($user);
-            foreach($articles as $article) {
-                $this->putArticleLine($output, $csvService, $article, $freeFieldsConfig);
-            }
-        }, "export-articles-$today.csv", $header);
-    }
-
-
-    private function putArticleLine(                 $handle,
-                                    CSVExportService $csvService,
-                                    array            $article,
-                                    array            $freeFieldsConfig) {
-        $line = [
-            $article['reference'],
-            $article['label'],
-            $article['quantite'],
-            $article['typeLabel'],
-            $article['statutName'],
-            $article['commentaire'] ? strip_tags($article['commentaire']) : '',
-            $article['empLabel'],
-            $article['barCode'],
-            $article['dateLastInventory'] ? $article['dateLastInventory']->format('d/m/Y H:i:s') : '',
-            $article['batch'],
-            $article['stockEntryDate'] ? $article['stockEntryDate']->format('d/m/Y H:i:s') : '',
-            $article['expiryDate'] ? $article['expiryDate']->format('d/m/Y') : '',
-            $article['visibilityGroup'],
-        ];
-
-        foreach($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
-            $line[] = FormatHelper::freeField($article['freeFields'][$freeFieldId] ?? '', $freeField);
-        }
-
-        $csvService->putLine($handle, $line);
     }
 
     /**

@@ -86,6 +86,9 @@ class RefArticleDataService {
     /** @Required */
     public UserService $userService;
 
+    /** @Required */
+    public CSVExportService $CSVExportService;
+
     /**
      * @var object|string
      */
@@ -170,7 +173,7 @@ class RefArticleDataService {
         return $data = [
             'listArticlesFournisseur' => array_reduce($articleRef->getArticlesFournisseur()->toArray(),
                 function(array $carry, ArticleFournisseur $articleFournisseur) use ($articleRef) {
-                    $articles = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE
+                    $articles = $articleRef->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE
                         ? $articleFournisseur->getArticles()->toArray()
                         : [];
                     $carry[] = [
@@ -296,7 +299,9 @@ class RefArticleDataService {
             $supplierReferenceLines = json_decode($data['frl'], true);
             foreach ($supplierReferenceLines as $supplierReferenceLine) {
                 $referenceArticleFournisseur = $supplierReferenceLine['referenceFournisseur'];
-                $existingSupplierArticle = $entityManager->getRepository(ArticleFournisseur::class)->findOneBy(['reference' => $referenceArticleFournisseur]);
+                $existingSupplierArticle = $entityManager->getRepository(ArticleFournisseur::class)->findOneBy([
+                    'reference' => $referenceArticleFournisseur
+                ]);
 
                 if (!isset($existingSupplierArticle)) {
                     try {
@@ -311,13 +316,24 @@ class RefArticleDataService {
                         $entityManager->persist($supplierArticle);
                     } catch (Exception $exception) {
                         if ($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
-                            $response['success'] = false;
-                            $response['msg'] = "La référence '$referenceArticleFournisseur' existe déjà pour un article fournisseur.";
-                            return $response;
+                            return [
+                                'success' => false,
+                                'msg' => "La référence <strong>$referenceArticleFournisseur</strong> existe déjà pour un article fournisseur."
+                            ];
                         }
                     }
+                } else if($existingSupplierArticle->getReferenceArticle()) {
+                    $supplierArticleName = $existingSupplierArticle->getReference();
+                    $referenceName = $existingSupplierArticle->getReferenceArticle()->getReference();
+
+                    return [
+                        'success' => false,
+                        'msg' => "L'article fournisseur <strong>$supplierArticleName</strong> est déjà lié à la référence <strong>$referenceName</strong>, vous ne pouvez pas l'ajouter."
+                    ];
                 } else {
-                    $existingSupplierArticle->setVisible($isVisible);
+                    $existingSupplierArticle
+                        ->setVisible($isVisible)
+                        ->setReferenceArticle($refArticle);
                 }
             }
         }
@@ -387,7 +403,7 @@ class RefArticleDataService {
         }
 
 
-        if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE &&
+        if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE &&
             $refArticle->getQuantiteStock() > 0 &&
             $wasDraft && $refArticle->getStatut()->getCode() === ReferenceArticle::STATUT_ACTIF) {
             $mvtStock = $mouvementStockService->createMouvementStock(
@@ -453,7 +469,7 @@ class RefArticleDataService {
             ->toArray();
 
         $providerLabels = Stream::from($refArticle->getArticlesFournisseur())
-            ->map(fn(ArticleFournisseur $articleFournisseur) => FormatHelper::provider($articleFournisseur->getFournisseur()))
+            ->map(fn(ArticleFournisseur $articleFournisseur) => FormatHelper::supplier($articleFournisseur->getFournisseur()))
             ->unique()
             ->toArray();
 
@@ -541,8 +557,11 @@ class RefArticleDataService {
             ? $entityManager->find(Emplacement::class, $data['target-location-picking'])
             : null;
 
+        $loggedUser = $this->userService->getUser();
+        $loggedUserRole = $loggedUser->getRole();
+
         // cas gestion quantité par référence
-        if($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+        if($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
             if($fromNomade || $referenceLineRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                 $line = new DeliveryRequestReferenceLine();
                 $line
@@ -560,8 +579,8 @@ class RefArticleDataService {
             if(!$fromNomade && $editRef) {
                 $this->editRefArticle($referenceArticle, $data, $user, $champLibreService, $this->mouvementStockService);
             }
-        } else if($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-            if($fromNomade || $this->userService->hasParamQuantityByRef() || $fromCart) {
+        } else if($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
+            if($fromNomade || $loggedUserRole->getQuantityType() === ReferenceArticle::QUANTITY_TYPE_REFERENCE || $fromCart) {
                 if($fromNomade || $referenceLineRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                     $line = new DeliveryRequestReferenceLine();
                     $line
@@ -726,7 +745,7 @@ class RefArticleDataService {
     private function updateStockQuantity(EntityManagerInterface $entityManager, ReferenceArticle $referenceArticle): void {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
-        if($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+        if($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
             $referenceArticle->setQuantiteStock($referenceArticleRepository->getStockQuantity($referenceArticle));
         }
     }
@@ -736,7 +755,7 @@ class RefArticleDataService {
                                             bool $fromCommand = false): void {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
-        if($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+        if($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
             $referenceArticle->setQuantiteReservee($referenceArticleRepository->getReservedQuantity($referenceArticle));
         } else {
             $totalReservedQuantity = 0;
@@ -900,6 +919,49 @@ class RefArticleDataService {
         $prefix = "A DEFINIR";
         $referenceCount = $referenceArticleRepository->countByReference($prefix, null, "LIKE");
         return $prefix . ($referenceCount + 1);
+    }
+
+    public function putReferenceLine($handle,
+                                     array $managersByReference,
+                                     array $reference,
+                                     array $suppliersByReference,
+                                     array $freeFieldsConfig) {
+        $id = (int)$reference["id"];
+        $line = [
+            $reference["reference"],
+            $reference["libelle"],
+            $reference["quantiteStock"],
+            $reference["type"],
+            $reference["buyer"],
+            $reference["typeQuantite"],
+            $reference["statut"],
+            $reference["commentaire"] ? strip_tags($reference["commentaire"]) : "",
+            $reference["emplacement"],
+            $reference["limitSecurity"],
+            $reference["limitWarning"],
+            $reference["prixUnitaire"],
+            $reference["barCode"],
+            $reference["category"],
+            $reference["dateLastInventory"] ? $reference["dateLastInventory"]->format("d/m/Y H:i:s") : "",
+            $reference["needsMobileSync"],
+            $reference["stockManagement"],
+            $managersByReference[$id] ?? "",
+            $suppliersByReference[$id]["supplierLabels"] ?? "",
+            $suppliersByReference[$id]["supplierCodes"] ?? "",
+            $reference["visibilityGroup"],
+            $reference["createdAt"] ? $reference["createdAt"]->format("d/m/Y H:i:s") : "",
+            $reference["createdBy"] ?? "-",
+            $reference["editedAt"] ? $reference["editedAt"]->format("d/m/Y H:i:s") : "",
+            $reference["editedBy"] ?? "",
+            $reference["lastStockEntry"] ? $reference["lastStockEntry"]->format("d/m/Y H:i:s") : "",
+            $reference["lastStockExit"] ? $reference["lastStockExit"]->format("d/m/Y H:i:s") : "",
+        ];
+
+        foreach ($freeFieldsConfig['freeFields'] as $freeFieldId => $freeField) {
+            $line[] = FormatHelper::freeField($reference['freeFields'][$freeFieldId] ?? '', $freeField);
+        }
+
+        $this->CSVExportService->putLine($handle, $line);
     }
 
 }

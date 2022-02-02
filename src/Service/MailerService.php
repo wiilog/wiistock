@@ -40,7 +40,7 @@ class MailerService
         }
 
         $mailerServerRepository = $this->entityManager->getRepository(MailerServer::class);
-        $mailerServer = $mailerServerRepository->findOneMailerServer();
+        $mailerServer = $mailerServerRepository->findOneBy([]);
 
         if ($mailerServer) {
             $user = $mailerServer->getUser() ?? '';

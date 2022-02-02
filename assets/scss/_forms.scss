@@ -50,6 +50,8 @@ $wii-switch-height: $input-height;
     border: 1px solid $grey;
     height: $wii-switch-height;
     border-radius: 4px;
+    color: $black;
+    background-color: $white;
 
     input, input + label {
         display: flex;
@@ -73,7 +75,7 @@ $wii-switch-height: $input-height;
         }
 
         .wii-icon {
-            display:inline-block;
+            display: inline-block;
             background-color: $black;
             width: 15px;
             height: 15px;
@@ -148,6 +150,73 @@ $wii-switch-height: $input-height;
     }
 }
 
+.wii-expanded-switch {
+    display: inline-flex;
+    flex-wrap: wrap;
+    padding: 0;
+
+    input, input + label {
+        display: flex;
+        appearance: none;
+        -moz-appearance: none;
+        outline: 0;
+        padding: 0 15px;
+        border-radius: 4px;
+        border: 1px solid #CBCBCB;
+        height: $wii-switch-height;
+        line-height: $wii-switch-height;
+        font-weight: normal;
+        transition: all 200ms linear;
+        font-size: 1rem;
+        background: white;
+        color: #666666;
+    }
+
+    input + label {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 5px;
+    }
+
+    input:not([content]) {
+        display: none;
+    }
+
+    input:not(:disabled), input:not(:disabled) + label {
+        cursor: pointer;
+
+        &:hover:not(:checked) {
+            color: lighten(#666666, 5%);
+            border-color: lighten(#CBCBCB, 5%);
+        }
+    }
+
+    input:checked, input:checked + label {
+        background: #F2F3F7;
+        color: #3353D7;
+        border-color: #3353D7;
+
+        &:hover {
+            background: lighten(#F2F3F7, 5%) !important;
+            color: lighten(#3353D7, 5%) !important;
+            border-color: lighten(#3353D7, 5%) !important;
+        }
+    }
+
+    input:before, input + label:before {
+        content: attr(content);
+        height: $wii-switch-height;
+        line-height: $wii-switch-height;
+        text-align: center;
+        padding: 0;
+    }
+
+    &:first-child {
+        margin-top: 0 !important;
+    }
+}
+
 .form-control, .select2-search__field, .select2-selection__placeholder {
     border-radius: 5px;
     padding: 5px 15px;
@@ -171,7 +240,7 @@ $wii-switch-height: $input-height;
     padding: 0 5px;
 }
 
-.wii-switch-no-style{
+.wii-switch-no-style {
     label {
         color: #495057;
     }
@@ -214,76 +283,12 @@ $wii-switch-height: $input-height;
 }
 
 .wii-checkbox {
-    width: 100%;
-    margin: 15px auto;
-    position: relative;
-    display: block;
+    font-weight: normal;
+    display: flex;
+    align-items: center;
 
     label {
-        position: relative;
-        min-height: 20px;
-        display: block;
-        padding-left: 25px;
-        margin-bottom: 0;
-        font-weight: normal;
         cursor: pointer;
-
-        span {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-
-        &:before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            margin: 2px 4px 4px;
-            width: 15px;
-            height: 15px;
-            transition: transform 0.28s ease;
-            border-radius: 3px;
-            border: 2px solid $primary;
-        }
-
-        &:after {
-            content: '';
-            display: block;
-            width: 6px;
-            height: 7px;
-            border-bottom: 2px solid white;
-            border-left: 2px solid white;
-            transform: rotate(-45deg) scale(0);
-            transition: transform ease 0.25s;
-            position: absolute;
-            border-radius: 2px;
-            top: 5px;
-            left: 8px;
-        }
-    }
-
-    input[type="checkbox"] {
-        width: auto;
-        opacity: 0.00000001;
-        position: absolute;
-        left: 0;
-        margin-left: -20px;
-
-        &:checked ~ label{
-            &:before {
-                border: 2px solid $primary;
-                background: $primary;
-            }
-
-            &:after {
-                transform: rotate(45deg) scaleX(-1);
-            }
-        }
-
-        &:focus + label::before {
-            outline: 0;
-        }
     }
 }
 
@@ -352,6 +357,7 @@ $wysiwyg-dropdown-button-size: 20px;
             border-color: $input-focus-border-color;
             outline: 0;
         }
+
         .dropdown-button i {
             background-color: $primary;
         }
@@ -380,13 +386,57 @@ input.no-overflow {
     padding-right: 5px !important;
 }
 
+.input-group {
+    .input-group-text {
+        background-color: #F2F3F7;
+        border: 2px solid #E8E9EC;
+        border-right: none;
+    }
+
+    input {
+        border: 2px solid #E8E9EC;
+        border-left: none;
+    }
+}
+
 .input-group-prepend {
     height: 35.59px;
+}
+
+.labelled-field label, label.labelled-field {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #CDCDCD;
+    background: #f2f3f7;
+    border-radius: 5px;
+    margin: 10px 5px 0;
+    height: 40px;
+    padding-left: 12px;
+    color: black;
+    font-size: 1rem;
+
+    input {
+        flex: 1 1 auto;
+        border: none;
+        margin: 0 0 0 12px;
+        height: 38px;
+        border-radius: 0 5px 5px 0;
+    }
+
+    .input-tooltip {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
 }
 
 input[type="checkbox"] {
     height: 20px;
     width: 20px;
+    min-height: 20px;
+    min-width: 20px;
     vertical-align: middle;
     margin-right: 0.4em;
     border: 2px solid $primary;
@@ -394,6 +444,10 @@ input[type="checkbox"] {
     -webkit-appearance: none;
     -webkit-transition: box-shadow 200ms;
     cursor: pointer;
+
+    &:disabled {
+        border-color: $grey;
+    }
 
     &:not(:disabled):hover {
         border-color: $primary;
@@ -420,5 +474,25 @@ input[type="checkbox"] {
         -webkit-mask: url('../../public/svg/check.svg') no-repeat center;
         mask: url('../../public/svg/check.svg') no-repeat center;
         background-color: white;
+    }
+}
+
+.wii-color-picker {
+    width: 80px;
+    padding-top: 7px;
+
+    option {
+        border-radius: 50px;
+    }
+
+    &::-webkit-color-swatch {
+        border: none;
+        border-radius: 50%;
+    }
+
+    &::-webkit-color-swatch-wrapper {
+        padding: 0;
+        width: 18px;
+        height: 18px;
     }
 }

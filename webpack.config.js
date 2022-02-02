@@ -15,6 +15,10 @@ Encore
     .addEntry('reference-article-form', './assets/js/pages/reference-article/form.js')
     .addEntry('reference-article-index', './assets/js/pages/reference-article/index.js')
     .addEntry('cart', './assets/js/pages/cart.js')
+    .addEntry('settings-index', './assets/js/pages/settings/index.js')
+    .addEntry('settings-data-imports', './assets/js/pages/settings/data/imports.js')
+    .addEntry('settings-data-inventories-imports', './assets/js/pages/settings/data/inventories-imports.js')
+    .addEntry('settings-users-roles-form', './assets/js/pages/settings/users/roles/form.js')
     .autoProvidejQuery()
 
     // When enabled, Webpack "splits" your files into smaller pieces for greater optimization.
@@ -63,4 +67,5 @@ Encore
             }
         ]
     }));
+
 module.exports = Encore.getWebpackConfig();
