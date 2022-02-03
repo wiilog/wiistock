@@ -1,0 +1,76 @@
+{% import 'form.html.twig' as form %}
+
+<div class="subtitle">Création d'un arrivage</div>
+<div class="sub-content">
+    <div class="row">
+        <div class="col-6">
+            {{ form.checkbox(setting('REDIRECT_AFTER_NEW_ARRIVAL'), "Redirection vers l'arrivage créé", false, setting_value('REDIRECT_AFTER_NEW_ARRIVAL')) }}
+        </div>
+        <div class="col-6">
+            {{ form.checkbox(setting('SEND_MAIL_AFTER_NEW_ARRIVAL'), "Envoyer un mail après nouvel arrivage", false, setting_value('SEND_MAIL_AFTER_NEW_ARRIVAL')) }}
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-6">
+            {{ form.checkbox(setting('AUTO_PRINT_COLIS'), "Impressions cochées par défaut", false, setting_value('AUTO_PRINT_COLIS')) }}
+        </div>
+        <div class="col-6">
+            {{ form.checkbox(setting('PRINT_TWICE_CUSTOMS'), 'Impression en double de l\'étiquette de colis d\'arrivage si champ "Douane" coché', false, setting_value('PRINT_TWICE_CUSTOMS')) }}
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-6">
+            {% set location = setting_value('MVT_DEPOSE_DESTINATION', 'App\\Entity\\Emplacement') %}
+
+            {{ form.select(setting('MVT_DEPOSE_DESTINATION'), "Emplacement de destination des arrivages", false, {
+                labelClass: 'wii-field-name',
+                value: location.id,
+                items: [{
+                    value: location.id,
+                    text: location.label,
+                }],
+                type: 'location'
+            }) }}
+        </div>
+
+        <div class="col-6">
+            {% set location = setting_value('DROP_OFF_LOCATION_IF_CUSTOMS', 'App\\Entity\\Emplacement') %}
+
+            {{ form.select(setting('DROP_OFF_LOCATION_IF_CUSTOMS'), 'Emplacement de dépose des arrivages si champ "douane" coché', false, {
+                labelClass: 'wii-field-name',
+                value: location.id,
+                items: [{
+                    value: location.id,
+                    text: location.label,
+                }],
+                type: 'location'
+            }) }}
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-6">
+            {{ form.select('', "Champs déclenchant une urgence", false, {
+                labelClass: 'wii-field-name w-100',
+                value: setting_value('ARRIVAL_EMERGENCY_TRIGGERING_FIELDS')|json_decode,
+                items: constant('App\\Entity\\Urgence::ARRIVAL_EMERGENCY_TRIGGERING_FIELDS'),
+                multiple: true,
+                type: null,
+            }) }}
+        </div>
+
+        <div class="col-6">
+            {% set location = setting_value('DROP_OFF_LOCATION_IF_EMERGENCY', 'App\\Entity\\Emplacement') %}
+
+            {{ form.select(setting('DROP_OFF_LOCATION_IF_EMERGENCY'), 'Emplacement de dépose des arrivages si urgence détectée', false, {
+                labelClass: 'wii-field-name',
+                value: location.id,
+                items: [{
+                    value: location.id,
+                    text: location.label,
+                }],
+                type: 'location'
+            }) }}
+        </div>
+    </div>
+</div>

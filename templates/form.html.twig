@@ -242,11 +242,7 @@
                      class="image {{ not image ? 'd-none' }}"/>
             </div>
             <button class="btn btn-primary d-flex p-1 align-items-center justify-content-center" onclick="$('#upload-{{ name }}').click();">
-                {% if not image %}
-                    Choisir une image
-                {% else %}
-                    <i class='wii-icon wii-icon-pencil w-px-20 h-px-20 bg-white'></i>
-                {% endif %}
+                <i class='wii-icon wii-icon-pencil w-px-20 h-px-20 bg-white'></i>
             </button>
 
             {% if options.defaultValue is defined and options.defaultValue %}
