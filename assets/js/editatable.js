@@ -275,6 +275,10 @@ function initEditatableDatatable(datatable, callback = null) {
                     });
             }
 
+            if(config.save === SAVE_MANUALLY) {
+                $rows.addClass(`focus-free`);
+            }
+
             const data = datatable.table.rows().data();
             $parent.find(`.dataTables_paginate, .dataTables_length`).toggleClass(`d-none`, !data || data.length <= 10);
             $('.dataTables_filter').toggleClass(`d-none`, !data || data.length <= 10);

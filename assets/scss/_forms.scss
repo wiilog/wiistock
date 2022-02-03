@@ -459,11 +459,14 @@ input[type="checkbox"] {
 
     &:focus {
         outline: none;
+        border-color: $primary;
     }
 
     &:checked {
-        border-color: $primary;
         background-color: $primary;
+        box-shadow: none;
+        border: none;
+        padding: 2px;
     }
 
     &:checked:before {

@@ -174,7 +174,7 @@ div.DTCR_pointer {
     border-bottom: 1px solid $grey !important;
 }
 
-.focus-shadow .dataTables_scrollBody tbody tr {
+.focus-shadow .dataTables_scrollBody tbody tr:not(.focus-free) {
     position: relative;
     transition: box-shadow 150ms ease-in-out;
 
