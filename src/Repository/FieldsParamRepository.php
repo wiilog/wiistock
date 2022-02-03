@@ -77,18 +77,16 @@ class FieldsParamRepository extends EntityRepository
     }
 
     public function getElements(string $entity, string $field): ?array {
-        $queryBuilder = $this->createQueryBuilder("f")
+        $result = $this->createQueryBuilder("f")
             ->select("f.elements")
             ->where("f.entityCode = :entity")
             ->andWhere("f.fieldCode = :field")
             ->setParameter("entity", $entity)
-            ->setParameter("field", $field);
-
-        $res = $queryBuilder
+            ->setParameter("field", $field)
             ->getQuery()
             ->getResult();
 
-        return $res[0]["elements"] ?? [];
+        return $result[0]["elements"] ?? [];
     }
 
 }

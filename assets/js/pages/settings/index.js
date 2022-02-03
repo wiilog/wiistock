@@ -258,7 +258,7 @@ function initializeOffDays($container, canEdit) {
         mode: canEdit ? MODE_ADD_ONLY : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         search: true,
-        paginate: true,
+        paging: true,
         needsPagingHide: true,
         needsSearchHide: true,
         onInit: () => {
@@ -321,7 +321,7 @@ function initializeReceptionFixedFields($container, canEdit) {
         mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         ordering: false,
-        paginate: false,
+        paging: false,
         onEditStart: () => {
             $managementButtons.removeClass('d-none');
         },
@@ -345,7 +345,7 @@ function initializeDispatchFixedFields($container, canEdit) {
         mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         ordering: false,
-        paginate: false,
+        paging: false,
         onEditStart: () => {
             $managementButtons.removeClass('d-none');
         },
@@ -369,7 +369,7 @@ function initializeArrivalFixedFields($container, canEdit) {
         mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         ordering: false,
-        paginate: false,
+        paging: false,
         onEditStart: () => {
             $managementButtons.removeClass('d-none');
         },
@@ -393,7 +393,7 @@ function initializeHandlingFixedFields($container, canEdit) {
         mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         ordering: false,
-        paginate: false,
+        paging: false,
         onEditStart: () => {
             $managementButtons.removeClass('d-none');
         },
@@ -542,7 +542,7 @@ function initializeInventoryFrequenciesTable(){
         mode: MODE_EDIT_AND_ADD,
         save: SAVE_MANUALLY,
         search: false,
-        paginate: false,
+        paging: false,
         scrollY: false,
         scrollX: false,
         onEditStart: () => {

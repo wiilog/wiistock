@@ -1,4 +1,4 @@
-import EditableDatatable, {MODE_MANUAL, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING} from "../../editatable";
+import EditableDatatable, {MODE_MANUAL, MODE_NO_EDIT, SAVE_MANUALLY, STATE_EDIT, STATE_VIEWING} from "../../editatable";
 
 const $managementButtons = $(`.save-settings,.discard-settings`);
 
@@ -7,6 +7,7 @@ export function createManagementPage($container, config) {
 
     const $table = $container.find(`.subentities-table`);
     const $editButton = $container.find(`.edit-button`);
+    const $addButton = $container.find(`.add-entity`);
 
     $managementButtons.addClass('d-none');
     $editButton.removeClass('d-none');
@@ -21,6 +22,7 @@ export function createManagementPage($container, config) {
         route: config.table.route(selectedEntity),
         deleteRoute: config.table.deleteRoute,
         form: config.table.form,
+        ordering: true,
         columns: config.table.columns,
         onEditStart: () => {
             $editButton.addClass('d-none');
@@ -31,7 +33,13 @@ export function createManagementPage($container, config) {
         onEditStop: () => {
             $managementButtons.addClass('d-none');
             $editButton.removeClass('d-none');
-            loadItems($container, config, selectedEntity, false)
+            $addButton.removeClass(`d-none`);
+
+            if(selectedEntity === null) {
+                window.location.reload();
+            } else {
+                loadItems($container, config, selectedEntity, false);
+            }
         },
     });
 
@@ -42,18 +50,47 @@ export function createManagementPage($container, config) {
         table.setURL(config.table.route(selectedEntity))
     });
 
+    $addButton.on(`click`, function() {
+        const id = `entity-${Math.floor(Math.random() * 1000000)}`;
+        selectedEntity = null;
+
+        $addButton.addClass(`d-none`);
+        $container.find(`[name=entity] + label:last`).after(`
+            <input type="radio" id="${id}" name="entity" class="data">
+            <label for="${id}">
+                <span class="d-inline-flex align-items-center field-label nowrap">Nouveau type</span>
+            </label>
+        `);
+
+        $container.find(`#${id}`).prop(`checked`, true);
+
+        table.setURL(config.table.route(selectedEntity))
+        table.toggleEdit(STATE_EDIT, true);
+    });
+
     $editButton.on(`click`, function() {
         table.toggleEdit(undefined, true);
     });
+
+    $container.on(`keyup`, `.main-entity-content-item [name=label]`, function() {
+        $container.find(`[name=entity]:checked + label`).text($(this).val() || `Nouveau type`);
+    })
 }
 
 function loadItems($container, config, type, edit) {
     const route = config.header.route(type, edit);
+    const params = {
+        types: $(`[name=entity]`).map((_, a) => $(a).attr(`value`)).toArray(),
+    };
 
-    $.post(route, function(data) {
+    $.post(route, params, function(data) {
         if(data.success) {
             const $itemContainer = $container.find(`.main-entity-content`);
             $itemContainer.empty();
+
+            if(type === null) {
+                $container.find(`input[name="entity"]:checked`).attr(`value`, data.category);
+            }
 
             for(const item of data.data) {
                 if(item.breakline) {
