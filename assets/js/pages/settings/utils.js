@@ -23,6 +23,8 @@ export function createManagementPage($container, config) {
         deleteRoute: config.table.deleteRoute,
         form: config.table.form,
         ordering: true,
+        search: true,
+        paging: true,
         columns: config.table.columns,
         onEditStart: () => {
             $editButton.addClass('d-none');
@@ -64,7 +66,7 @@ export function createManagementPage($container, config) {
 
         $container.find(`#${id}`).prop(`checked`, true);
 
-        table.setURL(config.table.route(selectedEntity))
+        table.setURL(config.table.route(selectedEntity), false);
         table.toggleEdit(STATE_EDIT, true);
     });
 

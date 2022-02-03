@@ -221,6 +221,10 @@ $wii-switch-height: $input-height;
     border-radius: 5px;
     padding: 5px 15px;
     font-size: 0.9rem !important;
+
+    &:focus {
+        outline: none;
+    }
 }
 
 .select2-selection__placeholder {
@@ -384,19 +388,6 @@ $wysiwyg-dropdown-button-size: 20px;
 input.no-overflow {
     text-overflow: initial !important;
     padding-right: 5px !important;
-}
-
-.input-group {
-    .input-group-text {
-        background-color: #F2F3F7;
-        border: 2px solid #E8E9EC;
-        border-right: none;
-    }
-
-    input {
-        border: 2px solid #E8E9EC;
-        border-left: none;
-    }
 }
 
 .input-group-prepend {

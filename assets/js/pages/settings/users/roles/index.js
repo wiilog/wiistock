@@ -5,10 +5,6 @@ export function initializeRolesPage() {
             "url": Routing.generate('settings_role_api', true),
             "type": "POST"
         },
-        domConfig: { // without search
-            needsFullDomOverride: false,
-            needsPartialDomOverride: true
-        },
         columns:[
             { data: 'actions', title : '', className: 'noVis', orderable: false, width: '10px'},
             { data: 'name', title: 'Nom'},
@@ -17,7 +13,12 @@ export function initializeRolesPage() {
         ],
         rowConfig: {
             needsRowClickAction: true
-        }
+        },
+        drawConfig: {
+            needsSearchHide: true,
+            needsPagingHide: true,
+            needsSearchOverride: true,
+        },
     });
 
     let $modalDeleteRole = $("#modalDeleteRole");

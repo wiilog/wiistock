@@ -4,10 +4,6 @@ export function initUserPage($container) {
     const tableUser = initDataTable('table-users', {
         processing: true,
         serverSide: true,
-        domConfig: {
-            needsFullDomOverride: false,
-            needsPartialDomOverride: true
-        },
         ajax: {
             "url": Routing.generate('user_api', true),
             "type": "POST"
@@ -24,6 +20,11 @@ export function initUserPage($container) {
         ],
         rowConfig: {
             needsRowClickAction: true
+        },
+        drawConfig: {
+            needsSearchHide: true,
+            needsPagingHide: true,
+            needsSearchOverride: true,
         },
         order: [['username', 'asc']]
     });

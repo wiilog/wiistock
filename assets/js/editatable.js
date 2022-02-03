@@ -124,8 +124,11 @@ export default class EditableDatatable {
         this.table.draw();
     }
 
-    setURL(url) {
-        this.table.ajax.url(url).load();
+    setURL(url, load = true) {
+        const ajaxUrl = this.table.ajax.url(url);
+        if (load) {
+            ajaxUrl.load();
+        }
     }
 
     toggleEdit(state = this.state === STATE_VIEWING ? STATE_EDIT : STATE_VIEWING, reload = false) {
@@ -197,15 +200,21 @@ function initEditatableDatatable(datatable, callback = null) {
     const id = $element.attr('id');
     const $parent = $element.parent();
 
+    let url;
     if ($.fn.DataTable.isDataTable($element)) {
-        $element.DataTable().clear().destroy();
+        const datatable = $element.DataTable();
+        url = datatable.ajax.url();
+        datatable.clear().destroy();
+    }
+    else {
+        url = config.route;
     }
 
     return initDataTable($element, {
         serverSide: false,
         ajax: {
             type: `GET`,
-            url: config.route,
+            url,
             data: data => {
                 data.edit = state !== STATE_VIEWING;
                 if (callback) {
@@ -219,10 +228,13 @@ function initEditatableDatatable(datatable, callback = null) {
         domConfig: {
             removeInfo: true,
         },
+        drawConfig: {
+            needsSearchOverride: true,
+        },
         // replace undefined by false
         ordering: config.ordering && datatable.state === STATE_VIEWING || false,
         paging: config.paging && datatable.state === STATE_VIEWING || false,
-        searching: config.search || false,
+        searching: config.search && datatable.state === STATE_VIEWING || false,
         scrollY: false,
         scrollX: true,
         drawCallback: () => {
@@ -274,14 +286,22 @@ function initEditatableDatatable(datatable, callback = null) {
                         datatable.save($row);
                     });
             }
-
-            if(config.save === SAVE_MANUALLY) {
+            else if(config.save === SAVE_MANUALLY) {
                 $rows.addClass(`focus-free`);
             }
 
+            // add .form-control on search input
+            datatable.element
+                .parents('.dataTables_wrapper ')
+                .find('.dataTables_filter input')
+                .addClass('form-control');
+
             const data = datatable.table.rows().data();
-            $parent.find(`.dataTables_paginate, .dataTables_length`).toggleClass(`d-none`, !data || data.length <= 10);
-            $('.dataTables_filter').toggleClass(`d-none`, !data || data.length <= 10);
+            $parent.find(`.dataTables_paginate, .dataTables_length`)
+                .parent()
+                .toggleClass(`d-none`, !data || data.length <= 10);
+            $('.dataTables_filter')
+                .toggleClass(`d-none`, !data || data.length <= 10);
         },
         initComplete: () => {
             let $searchInputContainer = $element.parents('.dataTables_wrapper').find('.dataTables_filter');

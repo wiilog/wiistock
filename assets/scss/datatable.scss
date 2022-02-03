@@ -83,17 +83,12 @@ table.wii-table {
     padding: $spacer;
     background-color: white;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+}
 
-    .wii-page-card-header {
-        margin-bottom: 0.75rem;
-        align-items: center;
-
-        .search-input {
-            margin-left: 0.5em;
-            display: inline-block;
-            width: auto;
-        }
-    }
+.wii-page-card .wii-page-card-header,
+.wii-box .wii-box-header {
+    margin-bottom: 0.75rem;
+    align-items: center;
 }
 
 .paginate_button {
@@ -214,6 +209,17 @@ th.hideOrder {
         height: 20px;
     }
 }
+
+.dataTables_filter {
+    font-size: 13px !important;
+    input {
+        @extend .form-control;
+        display: inline-block;
+        width: initial !important;
+        margin-left: 4px;
+    }
+}
+
 
 .small-column {
     max-width: 130px !important;
