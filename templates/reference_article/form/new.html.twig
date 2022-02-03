@@ -5,7 +5,7 @@
 
 {% block stylesheets %}
     {{ parent() }}
-    {{ encore_entry_link_tags('reference-article') }}
+    {{ encore_entry_link_tags('reference-article-form') }}
 {% endblock %}
 
 {% block page_content %}
@@ -18,8 +18,7 @@
 
 {% block javascripts %}
     {{ parent() }}
-    {{ encore_entry_script_tags('reference-article') }}
+    {{ encore_entry_script_tags('reference-article-form') }}
 
     <script src="{{ asset('js/pages/form-reference-article.js') }}?v={{ web_version }}"></script>
-    <script src="{{ asset('js/pages/referenceArticle.js') }}?v={{ web_version }}"></script>
 {% endblock %}
