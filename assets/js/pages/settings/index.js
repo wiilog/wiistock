@@ -4,6 +4,7 @@ import Flash, {INFO} from '../../flash';
 import {LOADING_CLASS} from "../../loading";
 import {initUserPage} from "./users/users";
 import {initializeImports} from "./data/imports.js";
+import {initializeStatutsLitigeArrivages, initializeStatutsLitigeReceptions} from "./statuts_litiges";
 import {initializeStockArticlesTypesFreeFields, createFreeFieldsPage, initializeStockMovementsFreeFields,} from "./free-fields";
 
 const index = JSON.parse($(`input#settings`).val());
@@ -41,6 +42,8 @@ const initializers = {
     stock_inventaires_categories: initializeInventoryCategoriesTable,
     stock_groupes_visibilite: initializeVisibilityGroup,
     utilisateurs_utilisateurs: initUserPage,
+    trace_arrivages_statuts_litiges: initializeStatutsLitigeArrivages,
+    stock_receptions_statuts_litiges: initializeStatutsLitigeReceptions,
 };
 
 const slowOperations = [

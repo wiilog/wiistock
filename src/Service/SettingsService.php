@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\CategorieCL;
+use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
@@ -12,6 +13,7 @@ use App\Entity\InventoryFrequency;
 use App\Entity\FreeField;
 use App\Entity\MailerServer;
 use App\Entity\ParametrageGlobal;
+use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\VisibilityGroup;
 use App\Entity\WorkFreeDay;
@@ -328,6 +330,57 @@ class SettingsService {
 
                 $this->manager->persist($visibilityGroup);
             }
+        }
+
+        if(isset($tables["statutsLitigeArrivage"])){
+            foreach(array_filter($tables["statutsLitigeArrivage"]) as $statutLitigeArrivageData){
+                $statutRepository = $this->manager->getRepository(Statut::class);
+                $categoryRepository = $this->manager->getRepository(CategorieStatut::class);
+                $state = $statutLitigeArrivageData['state'] === 'Traité' ? 2 : 1;
+                $statut = "";
+                if (isset($statutLitigeArrivageData['statutLitigeArrivageId'])){
+                    $statut = $statutRepository->find($statutLitigeArrivageData['statutLitigeArrivageId']);
+                } else {
+                    $statut = new Statut();
+                    $statut->setCategorie($categoryRepository->findOneBy(['nom' => CategorieStatut::DISPUTE_ARR]));
+                }
+                $statut->setNom($statutLitigeArrivageData['label']);
+                $statut->setState($state);
+                $statut->setComment($statutLitigeArrivageData['comment']);
+                $statut->setDefaultForCategory($statutLitigeArrivageData['defaultStatut']);
+                $statut->setSendNotifToBuyer($statutLitigeArrivageData['sendMailBuyers']);
+                $statut->setSendNotifToDeclarant($statutLitigeArrivageData['sendMailRequesters']);
+                $statut->setSendNotifToRecipient($statutLitigeArrivageData['sendMailDest']);
+                $statut->setDisplayOrder($statutLitigeArrivageData['order']);
+
+                $this->manager->persist($statut);
+            }
+        }
+
+        if(isset($tables["statutsLitigeReception"])){
+            foreach(array_filter($tables["statutsLitigeReception"]) as $statutLitigeReceptionData){
+                $statutRepository = $this->manager->getRepository(Statut::class);
+                $categoryRepository = $this->manager->getRepository(CategorieStatut::class);
+                $state = $statutLitigeReceptionData['state'] === 'Traité' ? 2 : 1;
+                $statut = "";
+                if (isset($statutLitigeReceptionData['statutLitigeReceptionId'])){
+                    $statut = $statutRepository->find($statutLitigeReceptionData['statutLitigeReceptionId']);
+                } else {
+                    $statut = new Statut();
+                    $statut->setCategorie($categoryRepository->findOneBy(['nom' => CategorieStatut::LITIGE_RECEPT]));
+                }
+                $statut->setNom($statutLitigeReceptionData['label']);
+                $statut->setState($state);
+                $statut->setComment($statutLitigeReceptionData['comment']);
+                $statut->setDefaultForCategory($statutLitigeReceptionData['defaultStatut']);
+                $statut->setSendNotifToBuyer($statutLitigeReceptionData['sendMailBuyers']);
+                $statut->setSendNotifToDeclarant($statutLitigeReceptionData['sendMailRequesters']);
+                $statut->setSendNotifToRecipient($statutLitigeReceptionData['sendMailDest']);
+                $statut->setDisplayOrder($statutLitigeReceptionData['order']);
+
+                $this->manager->persist($statut);
+            }
+
         }
     }
 
