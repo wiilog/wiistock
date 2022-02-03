@@ -3,13 +3,14 @@
 <div class="w-100">
     <div class="wii-box mt-15px">
         <div class="header wii-title">{% block title %}{% endblock %}</div>
-        <div class="sub-content focus-shadow d-flex">
-            <div class="col-auto">{% block filters %}{% endblock %}</div>
-            <div class="col"></div>
-            <div class="col-auto">
-                <button class="btn btn-primary mt-1 add-entity">
-                    <i class="fa fa-plus mr-2"></i> Ajouter un type
-                </button>
+        <div class="col-12 focus-shadow py-3">
+            <div class="row">
+                <div class="col">{% block filters %}{% endblock %}</div>
+                <div class="ml-auto col-auto">
+                    <button class="btn btn-primary mt-1 add-entity">
+                        <i class="fa fa-plus mr-2"></i> Ajouter un type
+                    </button>
+                </div>
             </div>
         </div>
     </div>

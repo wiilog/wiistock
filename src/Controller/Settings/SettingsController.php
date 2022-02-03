@@ -812,7 +812,7 @@ class SettingsController extends AbstractController {
 
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
         $category = $typeRepository->getEntities($request->request->get("types"));
-        dump($category);
+
         if(count($category) !== 1) {
             return $this->json([
                 "success" => false,
@@ -1012,7 +1012,8 @@ class SettingsController extends AbstractController {
             ->join("");
 
         $rows = [];
-        foreach($type ? $type->getChampsLibres() : [] as $freeField) {
+        $freeFields = $type ? $type->getChampsLibres() : [];
+        foreach($freeFields as $freeField) {
             if($freeField->getTypage() === FreeField::TYPE_BOOL) {
                 $typageCLFr = "Oui/Non";
             } else if($freeField->getTypage() === FreeField::TYPE_NUMBER) {

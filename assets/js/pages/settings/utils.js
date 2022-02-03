@@ -1,4 +1,4 @@
-import EditableDatatable, {MODE_MANUAL, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING} from "../../editatable";
+import EditableDatatable, {MODE_MANUAL, MODE_NO_EDIT, SAVE_MANUALLY, STATE_EDIT, STATE_VIEWING} from "../../editatable";
 
 const $managementButtons = $(`.save-settings,.discard-settings`);
 
@@ -65,7 +65,7 @@ export function createManagementPage($container, config) {
         $container.find(`#${id}`).prop(`checked`, true);
 
         table.setURL(config.table.route(selectedEntity))
-        table.toggleEdit(false, true);
+        table.toggleEdit(STATE_EDIT, true);
     });
 
     $editButton.on(`click`, function() {

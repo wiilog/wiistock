@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\CategorieCL;
+use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
@@ -31,19 +32,13 @@ use WiiCommon\Helper\Stream;
 
 class SettingsService {
 
-    /**
-     * @Required
-     */
+    /**  @Required */
     public EntityManagerInterface $manager;
 
-    /**
-     * @Required
-     */
+    /** @Required */
     public KernelInterface $kernel;
 
-    /**
-     * @Required
-     */
+    /** @Required */
     public AttachmentService $attachmentService;
 
     public function createSetting(string $setting): ParametrageGlobal {
