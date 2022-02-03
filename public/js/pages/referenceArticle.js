@@ -23,7 +23,6 @@ $(function () {
     initTableRefArticle().then((table) => {
         initPageModals(table);
     });
-    displayActifOrInactif($('#toggleActivOrInactiv'), true);
     registerNumberInputProtection($('#modalNewRefArticle').find('input[type="number"]'));
     onTypeQuantityChange($('input[name="type_quantite"]:checked'));
     $('input[name="urgence"]:checked').trigger('change');
@@ -138,7 +137,7 @@ function displayNewFilter(data) {
     $printTag.tooltip('dispose');
 }
 
-function removeFilter($button, filterId, triggersUncheck) {
+function removeFilter($button, filterId) {
     $.ajax({
         url: Routing.generate('filter_ref_delete', true),
         type: 'DELETE',
@@ -151,9 +150,7 @@ function removeFilter($button, filterId, triggersUncheck) {
                 const $filter = $button.closest('.filter');
                 $filter.tooltip('dispose');
                 $filter.parent().remove();
-                if (triggersUncheck) {
-                    $('#toggleActivOrInactiv').attr('checked', false);
-                }
+
                 if ($('#filters').find('.filter').length <= 0) {
                     $('#noFilters').removeClass('d-none');
                     if ($('#tableRefArticle_id_filter input').val() === '') {
@@ -320,26 +317,6 @@ function printReferenceArticleBarCode($button, event) {
         }
     } else {
         event.stopPropagation();
-    }
-}
-
-function displayActifOrInactif(select, onInit) {
-    if (select.length) {
-        let donnees;
-        if (select.is(':checked')) {
-            donnees = 'actif';
-        } else {
-            donnees = 'consommé';
-        }
-
-        let params = {donnees: donnees};
-        let path = Routing.generate('reference_article_actif_inactif');
-        if (!onInit) {
-            $.post(path, JSON.stringify(params), function () {
-                updateFilters();
-                pageTables.ajax.reload();
-            });
-        }
     }
 }
 
