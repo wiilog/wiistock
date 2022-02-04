@@ -54,13 +54,11 @@ class FiltreRefRepository extends EntityRepository
             ->getOneOrNullResult();
     }
 
-    public function findByUserExceptFixedField(Utilisateur $user, string $fixedField) {
+    public function findByUser(Utilisateur $user) {
 
         return $this->createQueryBuilder('reference_filter')
             ->where('reference_filter.utilisateur = :user')
-            ->andWhere('reference_filter.champFixe != :fixed_field OR reference_filter.champFixe IS NULL')
             ->setParameter('user', $user)
-            ->setParameter('fixed_field', $fixedField)
             ->getQuery()
             ->execute();
     }

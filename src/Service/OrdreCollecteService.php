@@ -110,6 +110,7 @@ class OrdreCollecteService
 		$statutRepository = $em->getRepository(Statut::class);
 		$ordreCollecteReferenceRepository = $em->getRepository(OrdreCollecteReference::class);
         $emplacementRepository = $em->getRepository(Emplacement::class);
+        $referenceArticleRepository = $em->getRepository(ReferenceArticle::class);
 
         $statusActiveReference = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF);
 
@@ -214,7 +215,11 @@ class OrdreCollecteService
 				$refArticle = $collecteReference->getReferenceArticle();
 
                 if (!$fromNomade) {
-                    $refArticle->setQuantiteStock(($refArticle->getQuantiteStock() ?? 0) + $collecteReference->getQuantite());
+                    $stockQuantity = ($refArticle->getQuantiteStock() ?? 0) + $collecteReference->getQuantite();
+                    $referenceArticleRepository->updateFields($refArticle, [
+                        'quantiteStock' => $stockQuantity
+                    ]);
+                    $refArticle->setQuantiteStock($stockQuantity);
                 }
 
                 $this->persistMouvementsFromStock(

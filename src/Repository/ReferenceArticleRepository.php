@@ -138,6 +138,22 @@ class ReferenceArticleRepository extends EntityRepository {
             ->toIterable();
     }
 
+    public function updateFields(ReferenceArticle $referenceArticle, array $fields) {
+        $queryBuilder = $this
+            ->createQueryBuilder('referenceArticle')
+            ->update(ReferenceArticle::class, 'referenceArticle')
+            ->where('referenceArticle = :reference')
+            ->setParameter('reference', $referenceArticle);
+        foreach ($fields as $field => $value) {
+            $queryBuilder
+                ->set("referenceArticle.$field", ":value$field")
+                ->setParameter(":value$field", $value);
+        }
+        return $queryBuilder
+            ->getQuery()
+            ->execute();
+    }
+
     public function getByNeedsMobileSync()
     {
         $queryBuilder = $this->createQueryBuilder('referenceArticle');
@@ -299,12 +315,7 @@ class ReferenceArticleRepository extends EntityRepository {
 
         foreach ($filters as $filter) {
             $index++;
-            if ($filter['champFixe'] === FiltreRef::FIXED_FIELD_ACTIVE_ONLY) {
-                if ($filter['value'] === ReferenceArticle::STATUT_ACTIF) {
-                    $queryBuilder->leftJoin('ra.statut', 'filter_sra');
-                    $queryBuilder->andWhere('filter_sra.nom LIKE \'' . $filter['value'] . '\'');
-                }
-            } else if ($filter['champFixe'] === FiltreRef::FIXED_FIELD_VISIBILITY_GROUP) {
+            if ($filter['champFixe'] === FiltreRef::FIXED_FIELD_VISIBILITY_GROUP) {
                 $value = explode(',', $filter['value']);
                 $queryBuilder->leftJoin('ra.visibilityGroup', 'filter_visibility_group')
                     ->andWhere('filter_visibility_group.label IN (:filter_visibility_group)')

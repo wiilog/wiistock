@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\CategorieCL;
+use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
@@ -31,19 +32,13 @@ use WiiCommon\Helper\Stream;
 
 class SettingsService {
 
-    /**
-     * @Required
-     */
+    /**  @Required */
     public EntityManagerInterface $manager;
 
-    /**
-     * @Required
-     */
+    /** @Required */
     public KernelInterface $kernel;
 
-    /**
-     * @Required
-     */
+    /** @Required */
     public AttachmentService $attachmentService;
 
     public function createSetting(string $setting): ParametrageGlobal {
@@ -267,7 +262,7 @@ class SettingsService {
             $ids = array_map(fn($freeField) => $freeField["id"] ?? null, $tables["freeFields"]);
 
             if(isset($data["entity"])) {
-                if(is_string($data["entity"])) {
+                if(!is_numeric($data["entity"]) && in_array($data["entity"], CategoryType::ALL)) {
                     $categoryRepository = $this->manager->getRepository(CategoryType::class);
 
                     $type = new Type();
@@ -276,6 +271,10 @@ class SettingsService {
                     $this->manager->persist($type);
                 } else {
                     $type = $this->manager->find(Type::class, $data["entity"]);
+                }
+
+                if (!isset($type)) {
+                    throw new RuntimeException("Le type est introuvable");
                 }
 
                 $type->setLabel($data["label"] ?? $type->getLabel())

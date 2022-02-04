@@ -378,27 +378,6 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
-     * @Route("/api-modifier", name="reference_article_edit_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
-    public function editApi(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        if ($data = json_decode($request->getContent(), true)) {
-            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-
-            $refArticle = $referenceArticleRepository->find((int)$data['id']);
-
-            if ($refArticle) {
-                $json = $this->refArticleDataService->getViewEditRefArticle($refArticle, $data['isADemand'], true, true);
-            } else {
-                $json = false;
-            }
-            return new JsonResponse($json);
-        }
-        throw new BadRequestHttpException();
-    }
-
-    /**
      * @Route("/modifier", name="reference_article_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function edit(Request $request,
@@ -760,45 +739,6 @@ class ReferenceArticleController extends AbstractController
             $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
             $fileName
         );
-    }
-
-    /**
-     * @Route("/show-actif-inactif", name="reference_article_actif_inactif", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     */
-    public function displayActifOrInactif(Request $request,
-                                          EntityManagerInterface $entityManager) : Response
-    {
-        if ($data = json_decode($request->getContent(), true)){
-
-            /** @var Utilisateur $user */
-            $user = $this->getUser();
-            $statutArticle = $data['donnees'];
-
-            $filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
-
-            $filter = $filtreRefRepository->findOneByUserAndChampFixe($user, FiltreRef::FIXED_FIELD_STATUS);
-
-            $em = $this->getDoctrine()->getManager();
-
-            if($filter == null) {
-                $filter = new FiltreRef();
-                $filter
-                    ->setUtilisateur($user)
-                    ->setChampFixe(FiltreRef::FIXED_FIELD_STATUS);
-                $em->persist($filter);
-            }
-
-            $filter->setValue(ReferenceArticle::STATUT_ACTIF);
-
-            if ($statutArticle !== ReferenceArticle::STATUT_ACTIF) {
-                $entityManager->remove($filter);
-            }
-            $em->flush();
-
-            return new JsonResponse();
-        }
-
-        throw new BadRequestHttpException();
     }
 
     /**

@@ -3,11 +3,12 @@
 <div class="w-100">
     <div class="wii-box mt-15px">
         <div class="header wii-title">{% block title %}{% endblock %}</div>
-        <div class="sub-content focus-shadow d-flex">
-            <div class="col-auto">{% block filters %}{% endblock %}</div>
-            <div class="col"></div>
-            <div class="col-auto">
-                {% block button %}{% endblock %}
+        <div class="focus-shadow p-3">
+            <div class="row">
+                <div class="col">{% block filters %}{% endblock %}</div>
+                <div class="ml-auto col-auto">
+                    {% block button %}{% endblock %}
+                </div>
             </div>
         </div>
     </div>

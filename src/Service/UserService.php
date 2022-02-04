@@ -73,18 +73,17 @@ class UserService
     public function getDataForDatatable(InputBag $params)
     {
         $utilisateurRepository = $this->entityManager->getRepository(Utilisateur::class);
-        $utilisateurs = $utilisateurRepository->findByParams($params);
+        $result = $utilisateurRepository->findByParams($params);
 
         $rows = [];
-        foreach ($utilisateurs as $utilisateur) {
+        foreach ($result['data'] as $utilisateur) {
             $rows[] = $this->dataRowUser($utilisateur);
         }
-        $countAll = (int) $utilisateurRepository->countAll();
 
         return [
             'data' => $rows,
-            'recordsTotal' => $countAll,
-            'recordsFiltered' => $countAll,
+            'recordsTotal' => $result['total'],
+            'recordsFiltered' => $result['filtered'],
         ];
     }
 

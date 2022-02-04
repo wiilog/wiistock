@@ -221,6 +221,10 @@ $wii-switch-height: $input-height;
     border-radius: 5px;
     padding: 5px 15px;
     font-size: 0.9rem !important;
+
+    &:focus {
+        outline: none;
+    }
 }
 
 .select2-selection__placeholder {
@@ -386,19 +390,6 @@ input.no-overflow {
     padding-right: 5px !important;
 }
 
-.input-group {
-    .input-group-text {
-        background-color: #F2F3F7;
-        border: 2px solid #E8E9EC;
-        border-right: none;
-    }
-
-    input {
-        border: 2px solid #E8E9EC;
-        border-left: none;
-    }
-}
-
 .input-group-prepend {
     height: 35.59px;
 }
@@ -459,11 +450,14 @@ input[type="checkbox"] {
 
     &:focus {
         outline: none;
+        border-color: $primary;
     }
 
     &:checked {
-        border-color: $primary;
         background-color: $primary;
+        box-shadow: none;
+        border: none;
+        padding: 2px;
     }
 
     &:checked:before {

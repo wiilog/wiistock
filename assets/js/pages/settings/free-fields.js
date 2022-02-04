@@ -158,7 +158,7 @@ export function initializeStockMovementsFreeFields($container, canEdit) {
         mode: canEdit ? MODE_EDIT_AND_ADD : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         search: false,
-        paginate: false,
+        paging: false,
         onEditStart: () => {
             $saveButton.removeClass('d-none');
         },

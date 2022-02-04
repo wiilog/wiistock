@@ -1,6 +1,13 @@
 let $printTag;
 let pageTables;
 
+window.removeFilter = removeFilter;
+window.displayFilterValue = displayFilterValue;
+window.showRowMouvements = showRowMouvements;
+window.printReferenceArticleBarCode = printReferenceArticleBarCode;
+window.displayActifOrInactif = displayActifOrInactif;
+window.updateQuantity = updateQuantity;
+
 $(function () {
     $('#modalNewFilter').on('hide.bs.modal', function(e) {
         const $modal = $(e.currentTarget);
@@ -24,34 +31,13 @@ $(function () {
         initPageModals(table);
     });
     displayActifOrInactif($('#toggleActivOrInactiv'), true);
-    registerNumberInputProtection($('#modalNewRefArticle').find('input[type="number"]'));
-    onTypeQuantityChange($('input[name="type_quantite"]:checked'));
-    $('input[name="urgence"]:checked').trigger('change');
 });
 
-function redirectPaperclipClick(button) {
-    const $actionOnClick = button.closest('.referenceRow').find('.action-on-click')
-    $actionOnClick.trigger('click');
-}
-
 function initPageModals(table) {
-    let modalRefArticleNew = $("#modalNewRefArticle");
-    let submitNewRefArticle = $("#submitNewRefArticle");
-    let urlRefArticleNew = Routing.generate('reference_article_new', true);
-    InitModal(modalRefArticleNew, submitNewRefArticle, urlRefArticleNew, {tables: [table]});
-    Select2Old.user(modalRefArticleNew.find('.ajax-autocomplete-user[name=managers]'));
-    Select2Old.user(modalRefArticleNew.find('.ajax-autocomplete-user[name=buyer]'));
-
     let modalDeleteRefArticle = $("#modalDeleteRefArticle");
     let SubmitDeleteRefArticle = $("#submitDeleteRefArticle");
     let urlDeleteRefArticle = Routing.generate('reference_article_delete', true);
     InitModal(modalDeleteRefArticle, SubmitDeleteRefArticle, urlDeleteRefArticle, {tables: [table], clearOnClose: true});
-
-    let modalModifyRefArticle = $('#modalEditRefArticle');
-    let submitModifyRefArticle = $('#submitEditRefArticle');
-    let urlModifyRefArticle = Routing.generate('reference_article_edit', true);
-    InitModal(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle, {tables: [table], clearOnClose: true});
-    Select2Old.user(modalModifyRefArticle.find('.ajax-autocomplete-user-edit'));
 
     let modalNewFilter = $('#modalNewFilter');
     let submitNewFilter = $('#submitNewFilter');
@@ -61,10 +47,6 @@ function initPageModals(table) {
         clearOnClose: true,
         success: displayNewFilter
     });
-}
-
-function afterLoadingEditModal($button) {
-    initRequiredChampsFixes($button);
 }
 
 function initTableRefArticle() {
@@ -138,7 +120,7 @@ function displayNewFilter(data) {
     $printTag.tooltip('dispose');
 }
 
-function removeFilter($button, filterId, triggersUncheck) {
+function removeFilter($button, filterId) {
     $.ajax({
         url: Routing.generate('filter_ref_delete', true),
         type: 'DELETE',
@@ -151,9 +133,7 @@ function removeFilter($button, filterId, triggersUncheck) {
                 const $filter = $button.closest('.filter');
                 $filter.tooltip('dispose');
                 $filter.parent().remove();
-                if (triggersUncheck) {
-                    $('#toggleActivOrInactiv').attr('checked', false);
-                }
+
                 if ($('#filters').find('.filter').length <= 0) {
                     $('#noFilters').removeClass('d-none');
                     if ($('#tableRefArticle_id_filter input').val() === '') {
@@ -235,73 +215,6 @@ function displayFilterValue(elem) {
     elem.closest('.modal-body').find('.valueLabel').text(label);
 }
 
-let ajaxEditArticle = function ($select) {
-    const selectVal = $select.val();
-    if (selectVal) {
-        let modalFooter = $select.closest('.modal').find('.modal-footer');
-        let path = Routing.generate('article_show', true);
-        let params = {id: $select.val(), isADemand: 1};
-
-        $.post(path, JSON.stringify(params), function (data) {
-            if (data) {
-                const $editChampLibre = $('.editChampLibre');
-                $editChampLibre.html(data);
-                Select2Old.location($('.ajax-autocomplete-location-edit'));
-                toggleRequiredChampsLibres($select.closest('.modal').find('#type'), 'edit');
-                $('#quantityToTake').removeClass('d-none');
-                modalFooter.removeClass('d-none');
-                $editChampLibre.find('#quantite').attr('name', 'quantite');
-                setMaxQuantityByArtRef($('#livraisonShow').find('#quantity-to-deliver'));
-            }
-        }, 'json');
-        modalFooter.addClass('d-none');
-    }
-}
-
-function deleteArticleFournisseur(button) {
-    let sendArray = {};
-    sendArray['articleF'] = $(button).data('value');
-    sendArray['articleRef'] = $(button).data('title');
-
-    let path = Routing.generate('ajax_render_remove_fournisseur', true);
-    let params = JSON.stringify(sendArray);
-    $.post(path, params).then((data) => {
-        $('#articleFournisseursEdit').html(data);
-    });
-}
-
-function passArgsToModal(button) {
-    let path = Routing.generate('article_fournisseur_can_delete', true);
-    let params = JSON.stringify({articleFournisseur: $(button).data('value')});
-    $.post(path, params, function (response) {
-        const $modalDeleteSupplier = $('#modalDeleteFournisseur');
-        const $submitDeleteSupplier = $("#submitDeleteFournisseur");
-        if (response) {
-            $modalDeleteSupplier.find('.modal-body').html('Voulez-vous réellement supprimer le lien entre ce<br> fournisseur et cet article ? ');
-            $submitDeleteSupplier.data('value', $(button).data('value'));
-            $submitDeleteSupplier.data('title', $(button).data('title'));
-            $modalDeleteSupplier.find('#submitDeleteFournisseur').removeClass('d-none');
-        } else {
-            $modalDeleteSupplier.find('.modal-body').html('Cet article fournisseur est lié à des articles<br> il est impossible de le supprimer');
-            $modalDeleteSupplier.find('#submitDeleteFournisseur').addClass('d-none');
-        }
-    }, 'json');
-}
-
-function setMaxQuantityByArtRef(input) {
-    let val = 0;
-    val = $('#quantite').val();
-    input.attr('max', val);
-}
-
-function initRequiredChampsFixes(button) {
-    let params = {id: button.data('id')};
-    let path = Routing.generate('get_quantity_type');
-
-    $.post(path, JSON.stringify(params), function (data) {
-        displayRequiredChampsFixesByTypeQuantiteReferenceArticle(data, button)
-    }, 'json');
-}
 
 function printReferenceArticleBarCode($button, event) {
     if (!$button.hasClass('disabled')) {
@@ -320,26 +233,6 @@ function printReferenceArticleBarCode($button, event) {
         }
     } else {
         event.stopPropagation();
-    }
-}
-
-function displayActifOrInactif(select, onInit) {
-    if (select.length) {
-        let donnees;
-        if (select.is(':checked')) {
-            donnees = 'actif';
-        } else {
-            donnees = 'consommé';
-        }
-
-        let params = {donnees: donnees};
-        let path = Routing.generate('reference_article_actif_inactif');
-        if (!onInit) {
-            $.post(path, JSON.stringify(params), function () {
-                updateFilters();
-                pageTables.ajax.reload();
-            });
-        }
     }
 }
 
@@ -373,7 +266,6 @@ function initDatatableMovements(referenceArticleId) {
 }
 
 function showRowMouvements(button) {
-
     let id = button.data('id');
     let params = JSON.stringify(id);
     let path = Routing.generate('ref_mouvements_list', true);
@@ -383,16 +275,6 @@ function showRowMouvements(button) {
         modal.find('.modal-body').html(data);
         initDatatableMovements(id);
     }, 'json');
-}
-
-function toggleEmergency($switch) {
-    const $emergencyComment = $('.emergency-comment');
-    if ($switch.is(':checked')) {
-        $emergencyComment.removeClass('d-none');
-    } else {
-        $emergencyComment.addClass('d-none');
-        $emergencyComment.val('');
-    }
 }
 
 function updateQuantity(referenceArticleId) {
@@ -424,58 +306,4 @@ function updateFilters() {
                 });
             }
         });
-}
-
-function changeNewReferenceStatus($select){
-    if ($select.exists()) {
-        const draftStatusName = $(`input[name="draft-status-name"]`).val();
-        const draftSelected = $select.val() === draftStatusName;
-
-        const $reference = $(`input[name="reference"]`);
-        const $quantite = $(`input[name="quantite"]`);
-        const $location = $(`select[name="emplacement"]`);
-
-        $quantite.prop(`disabled`, draftSelected);
-        $reference.prop(`disabled`, draftSelected);
-        $location.prop('disabled', draftSelected);
-
-        if ($location.exists()) {
-            $location.prop(`disabled`, draftSelected);
-        }
-
-        if (draftSelected) {
-            const defaultDraftReference = $reference.data('draft-default');
-
-            if (defaultDraftReference) {
-                $reference.val(defaultDraftReference);
-                $quantite.val(0);
-            }
-
-            $location.exists()
-
-            if ($location.exists()) {
-                const optionValue = $location.data('draft-default-value');
-                const optionText = $location.data('draft-default-text');
-                if (optionValue && optionText) {
-                    const existing = $location.find(`option[value="${optionValue}"]`).exists();
-                    if (existing) {
-                        $location
-                            .val(optionValue)
-                            .trigger('change');
-                    } else {
-                        $location
-                            .append(new Option(optionText, optionValue, true, true))
-                            .trigger('change');
-                    }
-                }
-            }
-        }
-    }
-
-}
-
-function onTypeQuantityChange($input) {
-    toggleRequiredChampsFixes($input, '.wii-form');
-    updateQuantityDisplay($input, '.wii-form');
-    changeNewReferenceStatus($('[name=statut]:checked'));
 }
