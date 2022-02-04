@@ -44,7 +44,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class ParametrageGlobalController extends AbstractController
 {
 
-    private $engDayToFr = [
+    private array $engDayToFr = [
         'monday' => 'Lundi',
         'tuesday' => 'Mardi',
         'wednesday' => 'Mercredi',

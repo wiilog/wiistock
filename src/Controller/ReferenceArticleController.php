@@ -166,11 +166,11 @@ class ReferenceArticleController extends AbstractController
 
             switch($data['type_quantite']) {
                 case 'article':
-                    $typeArticle = ReferenceArticle::TYPE_QUANTITE_ARTICLE;
+                    $typeArticle = ReferenceArticle::QUANTITY_TYPE_ARTICLE;
                     break;
                 case 'reference':
                 default:
-                    $typeArticle = ReferenceArticle::TYPE_QUANTITE_REFERENCE;
+                    $typeArticle = ReferenceArticle::QUANTITY_TYPE_REFERENCE;
                     break;
             }
 
@@ -216,7 +216,7 @@ class ReferenceArticleController extends AbstractController
                 $refArticle->setStatut($statut);
             }
 
-            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+            if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
                 $refArticle->setQuantiteStock($data['quantite'] ? max($data['quantite'], 0) : 0); // protection contre quantités négatives
             } else {
                 $refArticle->setQuantiteStock(0);
@@ -258,7 +258,7 @@ class ReferenceArticleController extends AbstractController
                 }
             }
 
-            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE &&
+            if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE &&
                 $refArticle->getQuantiteStock() > 0 &&
                 $refArticle->getStatut()->getCode() !== ReferenceArticle::DRAFT_STATUS) {
                 $mvtStock = $mouvementStockService->createMouvementStock(
@@ -375,27 +375,6 @@ class ReferenceArticleController extends AbstractController
                 ReferenceArticle::STOCK_MANAGEMENT_FIFO
             ],
         ]);
-    }
-
-    /**
-     * @Route("/api-modifier", name="reference_article_edit_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
-    public function editApi(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        if ($data = json_decode($request->getContent(), true)) {
-            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-
-            $refArticle = $referenceArticleRepository->find((int)$data['id']);
-
-            if ($refArticle) {
-                $json = $this->refArticleDataService->getViewEditRefArticle($refArticle, $data['isADemand'], true, true);
-            } else {
-                $json = false;
-            }
-            return new JsonResponse($json);
-        }
-        throw new BadRequestHttpException();
     }
 
     /**
@@ -549,7 +528,7 @@ class ReferenceArticleController extends AbstractController
         $refArticle = $referenceArticleRepository->find($refArticleId);
 
         if ($refArticle) {
-            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+            if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
                 $quantity = $refArticle->getQuantiteDisponible();
             }
         }
@@ -653,7 +632,7 @@ class ReferenceArticleController extends AbstractController
 
         $providerArticles = Stream::from($referenceArticle->getArticlesFournisseur())
             ->reduce(function(array $carry, ArticleFournisseur $providerArticle) use ($referenceArticle) {
-                $articles = $referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE
+                $articles = $referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE
                     ? $providerArticle->getArticles()->toArray()
                     : [];
                 $carry[] = [
@@ -760,45 +739,6 @@ class ReferenceArticleController extends AbstractController
             $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
             $fileName
         );
-    }
-
-    /**
-     * @Route("/show-actif-inactif", name="reference_article_actif_inactif", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     */
-    public function displayActifOrInactif(Request $request,
-                                          EntityManagerInterface $entityManager) : Response
-    {
-        if ($data = json_decode($request->getContent(), true)){
-
-            /** @var Utilisateur $user */
-            $user = $this->getUser();
-            $statutArticle = $data['donnees'];
-
-            $filtreRefRepository = $entityManager->getRepository(FiltreRef::class);
-
-            $filter = $filtreRefRepository->findOneByUserAndChampFixe($user, FiltreRef::FIXED_FIELD_STATUS);
-
-            $em = $this->getDoctrine()->getManager();
-
-            if($filter == null) {
-                $filter = new FiltreRef();
-                $filter
-                    ->setUtilisateur($user)
-                    ->setChampFixe(FiltreRef::FIXED_FIELD_STATUS);
-                $em->persist($filter);
-            }
-
-            $filter->setValue(ReferenceArticle::STATUT_ACTIF);
-
-            if ($statutArticle !== ReferenceArticle::STATUT_ACTIF) {
-                $entityManager->remove($filter);
-            }
-            $em->flush();
-
-            return new JsonResponse();
-        }
-
-        throw new BadRequestHttpException();
     }
 
     /**

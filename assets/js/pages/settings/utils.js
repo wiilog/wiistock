@@ -1,4 +1,4 @@
-import EditableDatatable, {MODE_MANUAL, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING} from "../../editatable";
+import EditableDatatable, {MODE_MANUAL, MODE_NO_EDIT, SAVE_MANUALLY, STATE_EDIT, STATE_VIEWING} from "../../editatable";
 import Flash from "../../flash";
 
 const $managementButtons = $(`.save-settings,.discard-settings`);
@@ -10,6 +10,7 @@ export function createManagementPage($container, config) {
 
     const $table = $container.find(`.subentities-table`);
     const $editButton = $container.find(`.edit-button`);
+    const $addButton = $container.find(`.add-entity`);
 
     $managementButtons.addClass('d-none');
     $editButton.removeClass('d-none');
@@ -24,6 +25,9 @@ export function createManagementPage($container, config) {
         route: config.table.route(selectedEntity),
         deleteRoute: config.table.deleteRoute,
         form: config.table.form,
+        ordering: true,
+        search: true,
+        paging: true,
         columns: config.table.columns,
         onEditStart: () => {
             $editButton.addClass('d-none');
@@ -34,7 +38,13 @@ export function createManagementPage($container, config) {
         onEditStop: () => {
             $managementButtons.addClass('d-none');
             $editButton.removeClass('d-none');
-            loadItems($container, config, selectedEntity, false)
+            $addButton.removeClass(`d-none`);
+
+            if(selectedEntity === null) {
+                window.location.reload();
+            } else {
+                loadItems($container, config, selectedEntity, false);
+            }
         },
     });
 
@@ -45,9 +55,31 @@ export function createManagementPage($container, config) {
         table.setURL(config.table.route(selectedEntity))
     });
 
+    $addButton.on(`click`, function() {
+        const id = `entity-${Math.floor(Math.random() * 1000000)}`;
+        selectedEntity = null;
+
+        $addButton.addClass(`d-none`);
+        $container.find(`[name=entity] + label:last`).after(`
+            <input type="radio" id="${id}" name="entity" class="data">
+            <label for="${id}">
+                <span class="d-inline-flex align-items-center field-label nowrap">Nouveau type</span>
+            </label>
+        `);
+
+        $container.find(`#${id}`).prop(`checked`, true);
+
+        table.setURL(config.table.route(selectedEntity), false);
+        table.toggleEdit(STATE_EDIT, true);
+    });
+
     $editButton.on(`click`, function() {
         table.toggleEdit(undefined, true);
     });
+
+    $container.on(`keyup`, `.main-entity-content-item [name=label]`, function() {
+        $container.find(`[name=entity]:checked + label`).text($(this).val() || `Nouveau type`);
+    })
 
     if (config.header.delete) {
         fireRemoveMainEntityButton($container, config.header.delete);
@@ -56,25 +88,37 @@ export function createManagementPage($container, config) {
 
 function loadItems($container, config, type, edit) {
     const route = config.header.route(type, edit);
+    const params = {
+        types: $(`[name=entity]`).map((_, a) => $(a).attr(`value`)).toArray(),
+    };
 
-    $.post(route, function(data) {
+    $.post(route, params, function(data) {
         if(data.success) {
             const $itemContainer = $container.find(`.main-entity-content`);
             $itemContainer.empty();
 
+            if(type === null) {
+                $container.find(`input[name="entity"]:checked`).attr(`value`, data.category);
+            }
+
             for(const item of data.data) {
-                const value = item.value === undefined || item.value === null ? '' : item.value;
-                $itemContainer.append(`
-                    <div class="col-auto ml-3 ${item.hidden ? `d-none` : ``}">
-                        <div class="d-flex justify-content-center align-items-center py-2">
-                            ${item.icon ? `<img src="/svg/reference_article/${item.icon}.svg" alt="Icône" width="20px">` : ``}
-                            <div class="d-grid">
-                                <span class="wii-field-name">${item.label}</span>
-                                <span class="wii-body-text">${value}</span>
+                if(item.breakline) {
+                    $itemContainer.append(`<div class="w-100"></div>`);
+                }
+                else {
+                    const value = item.value === undefined || item.value === null ? '' : item.value;
+                    $itemContainer.append(`
+                        <div class="main-entity-content-item col-md-3 col-12 ${item.hidden ? `d-none` : ``}">
+                            <div class="d-flex align-items-center py-2">
+                                ${item.icon ? `<img src="/svg/reference_article/${item.icon}.svg" alt="Icône" width="20px">` : ``}
+                                <div class="d-grid w-100">
+                                    <span class="wii-field-name">${item.label}</span>
+                                    <span class="wii-body-text">${value}</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `);
+                    `);
+                }
             }
         }
     });

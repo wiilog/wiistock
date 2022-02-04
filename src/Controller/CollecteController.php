@@ -165,7 +165,7 @@ class CollecteController extends AbstractController
                 'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
                     'type' => 'reference',
                     'id' => $referenceCollecte->getId(),
-                    'name' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getTypeQuantite() : ReferenceArticle::TYPE_QUANTITE_REFERENCE),
+                    'name' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getTypeQuantite() : ReferenceArticle::QUANTITY_TYPE_REFERENCE),
                     'refArticleId' => $referenceCollecte->getReferenceArticle()->getId(),
                     'collecteId' => $collecte->getid(),
                     'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUT_BROUILLON),
@@ -180,7 +180,7 @@ class CollecteController extends AbstractController
                 'Emplacement' => ($collecte->getPointCollecte() ? $collecte->getPointCollecte()->getLabel() : ''),
                 'Quantité' => $article->getQuantite(),
                 'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
-                    'name' => ReferenceArticle::TYPE_QUANTITE_ARTICLE,
+                    'name' => ReferenceArticle::QUANTITY_TYPE_ARTICLE,
                     'type' => 'article',
                     'id' => $article->getId(),
                     'collecteId' => $collecte->getid(),
@@ -273,7 +273,7 @@ class CollecteController extends AbstractController
                     "msg" => "Vous devez sélectionner un article ou la quantité doit être superieure à zero"
                 ]);
             }
-            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE || empty($data['roleIsHandlingArticles'])) {
+            if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE || empty($data['roleIsHandlingArticles'])) {
                 if ($collecteReferenceRepository->countByCollecteAndRA($collecte, $refArticle) > 0) {
                     $collecteReference = $collecteReferenceRepository->getByCollecteAndRA($collecte, $refArticle);
                     $collecteReference->setQuantite(intval($collecteReference->getQuantite()) + max(intval($data['quantity-to-pick']), 0)); // protection contre quantités négatives
@@ -290,10 +290,10 @@ class CollecteController extends AbstractController
                 if (!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE)) {
                     return $this->redirectToRoute('access_denied');
                 }
-                if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
                     $this->refArticleDataService->editRefArticle($refArticle, $data, $this->getUser(), $champLibreService, $mouvementStockService);
                 }
-            } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+            } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
                 $demandeCollecteService->persistArticleInDemand($data, $refArticle, $collecte);
             }
 
@@ -360,11 +360,11 @@ class CollecteController extends AbstractController
             $collecteRepository = $entityManager->getRepository(Collecte::class);
             $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
 
-            if (array_key_exists(ReferenceArticle::TYPE_QUANTITE_REFERENCE, $data)) {
-                $collecteReference = $collecteReferenceRepository->find($data[ReferenceArticle::TYPE_QUANTITE_REFERENCE]);
+            if (array_key_exists(ReferenceArticle::QUANTITY_TYPE_REFERENCE, $data)) {
+                $collecteReference = $collecteReferenceRepository->find($data[ReferenceArticle::QUANTITY_TYPE_REFERENCE]);
                 $entityManager->remove($collecteReference);
-            } elseif (array_key_exists(ReferenceArticle::TYPE_QUANTITE_ARTICLE, $data)) {
-                $article = $articleRepository->find($data[ReferenceArticle::TYPE_QUANTITE_ARTICLE]);
+            } elseif (array_key_exists(ReferenceArticle::QUANTITY_TYPE_ARTICLE, $data)) {
+                $article = $articleRepository->find($data[ReferenceArticle::QUANTITY_TYPE_ARTICLE]);
                 $collecte = $collecteRepository->find($data['collecte']);
                 $collecte->removeArticle($article);
             }

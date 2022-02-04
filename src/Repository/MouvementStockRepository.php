@@ -290,10 +290,10 @@ class MouvementStockRepository extends EntityRepository
     {
         $queryBuilder = $this->createQueryBuilder('mouvementStock');
 
-        if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+        if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
             $queryBuilder->andWhere('mouvementStock.refArticle = :refArticle');
         }
-        else if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+        else if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
             $queryBuilder
                 ->join('mouvementStock.article', 'article')
                 ->join('article.articleFournisseur', 'articleFournisseur')

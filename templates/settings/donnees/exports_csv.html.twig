@@ -1,9 +1,7 @@
 {% import 'form.html.twig' as form %}
 
-<div class="management-title">Type d'encodage des fichiers d'export</div>
 <div class="sub-content">
     <div class="row">
-        <p class="ml-3 mb-2"></p>
         <div class="col-12">
             {{ form.select(setting('USES_UTF8'), " Encodage des exports CSV", false, {
                 labelClass: "wii-field-name",
@@ -14,25 +12,24 @@
     </div>
 </div>
 
-<div class="management-title">Export Stock</div>
+<div class="subtitle">Export Stock</div>
 
 <div class="sub-content">
-    <p class="do-not-click-me-several-times">
-        <i class="fas fa-exclamation-circle mr-2 user-select-none"></i>
-        Les références et articles exportés sont seulement ceux avec le groupe de visibilité rattaché à l'utilisateur
+    <p>
+        Les <span class="do-not-click-me-several-times user-select-none">références</span> et articles exportés sont seulement ceux avec le groupe de visibilité rattaché à l'utilisateur.
     </p>
 
     <div class="d-flex">
-        <p class="mt-4 bold col-2">Références</p>
-        <div class="btn btn-primary mt-3 ml-5"
+        <p class="mt-4 bold col-2 px-0">Références</p>
+        <div class="btn btn-primary mt-3"
              onclick="saveExportFile('export_references', false)">
             <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
         </div>
     </div>
 
     <div class="d-flex">
-        <p class="mt-4 bold col-2">Articles</p>
-        <div class="btn btn-primary mt-3 ml-5"
+        <p class="mt-4 bold col-2 px-0">Articles</p>
+        <div class="btn btn-primary mt-3"
              onclick="saveExportFile('export_articles', false)">
             <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
         </div>

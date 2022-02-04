@@ -24,7 +24,7 @@ final class Version20211213082657 extends AbstractMigration
         $query = $this->connection->executeQuery("SELECT id FROM filtre_ref WHERE champ_fixe = 'status'")->fetchAllAssociative();
         $ids = Stream::from($query)->flatten()->toArray();
         foreach ($ids as $id) {
-            $this->addSql("UPDATE filtre_ref SET champ_fixe = '" . FiltreRef::FIXED_FIELD_ACTIVE_ONLY . "' WHERE id = $id");
+            $this->addSql("UPDATE filtre_ref SET champ_fixe = 'active_only' WHERE id = $id");
         }
     }
 

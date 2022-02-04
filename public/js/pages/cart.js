@@ -112,7 +112,7 @@ $(document).ready(() => {
             $(`.header-icon.cart`).find(`.icon-figure`).text(response.count)[response.count ? `addClass` : `removeClass`](`d-none`);
             showBSAlert(response.msg, `success`);
         });
-    })
+    });
 
     Form.create(`.wii-form`).onSubmit(data => {
         const url = Routing.generate('cart_validate', true);
@@ -148,7 +148,7 @@ function initializePurchaseRequestInfos($purchaseInfos, id) {
         ordering: false,
         info: false,
         drawConfig: {
-            hidePagingIfEmpty: true,
+            needsPagingHide: true,
         },
     });
 }
@@ -206,7 +206,7 @@ function onDeliveryChanged($select) {
             ordering: false,
             info: false,
             drawConfig: {
-                hidePagingIfEmpty: true,
+                needsPagingHide: true,
             },
         }
         let tableDeliveryReferences = initDataTable('tableDeliveryReferences', tableDeliveryReferencesConfig);
@@ -249,7 +249,7 @@ function onCollectChanged($select) {
             ordering: false,
             info: false,
             drawConfig: {
-                hidePagingIfEmpty: true,
+                needsPagingHide: true,
             },
         }
         let tableCollectReferences = initDataTable('tableCollectReferences', tableCollectReferencesConfig);

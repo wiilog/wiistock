@@ -1,7 +1,7 @@
 {% import 'form.html.twig' as form %}
 {% set defaultLocation = setting_value('DEFAULT_LOCATION_REFERENCE','App\\Entity\\Emplacement') %}
+<div class="subtitle">Références</div>
 <div class="sub-content">
-    <section>Références</section>
     <div class="row">
         <div class="col-md-6 col-12">
             {{ form.select(setting('DEFAULT_LOCATION_REFERENCE'), 'Emplacement par défaut pour les Références en gestion quantité par référence à la création en Brouillon', false, {

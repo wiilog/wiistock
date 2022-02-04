@@ -221,6 +221,10 @@ $wii-switch-height: $input-height;
     border-radius: 5px;
     padding: 5px 15px;
     font-size: 0.9rem !important;
+
+    &:focus {
+        outline: none;
+    }
 }
 
 .select2-selection__placeholder {
@@ -283,12 +287,13 @@ $wii-switch-height: $input-height;
 }
 
 .wii-checkbox {
-    margin-top: 15px;
-    margin-bottom: 15px;
     font-weight: normal;
-
     display: flex;
     align-items: center;
+
+    label {
+        cursor: pointer;
+    }
 }
 
 label, .wii-checkbox, .wii-radio {
@@ -445,11 +450,14 @@ input[type="checkbox"] {
 
     &:focus {
         outline: none;
+        border-color: $primary;
     }
 
     &:checked {
-        border-color: $primary;
         background-color: $primary;
+        box-shadow: none;
+        border: none;
+        padding: 2px;
     }
 
     &:checked:before {

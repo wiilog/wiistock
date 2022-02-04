@@ -124,8 +124,10 @@ export function createFreeFieldsPage($container, canEdit) {
     $container.on(`keyup`, `[name=elements]`, onElementsChange);
     $container.on(`change`, `[type=radio][name=pushNotifications]`, function() {
         const $radio = $(this);
-
-        $container.find(`[name=notificationEmergencies]`).closest(`.col-auto`).toggleClass(`d-none`, $radio.val());
+        const val = Number($radio.val());
+        $container.find(`[name=notificationEmergencies]`)
+            .closest(`.main-entity-content-item`)
+            .toggleClass(`d-none`, val !== 2);
     });
 }
 
@@ -168,7 +170,7 @@ export function initializeStockMovementsFreeFields($container, canEdit) {
         mode: canEdit ? MODE_EDIT_AND_ADD : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         search: false,
-        paginate: false,
+        paging: false,
         onEditStart: () => {
             $saveButton.removeClass('d-none');
         },

@@ -179,7 +179,7 @@ class PreparationController extends AbstractController
             /** @var PreparationOrderReferenceLine $referenceLine */
             foreach ($preparation->getReferenceLines() as $referenceLine) {
                 $articleRef = $referenceLine->getReference();
-                $isRefByArt = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE;
+                $isRefByArt = $articleRef->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE;
                 if ($referenceLine->getPickedQuantity() > 0 ||
                     ($preparationStatut !== Preparation::STATUT_PREPARE && $preparationStatut !== Preparation::STATUT_INCOMPLETE)) {
                     $rows[] = [
@@ -613,7 +613,7 @@ class PreparationController extends AbstractController
         /** @var PreparationOrderReferenceLine $ligne */
         foreach ($lignesArticle as $ligne) {
             $reference = $ligne->getReference();
-            if ($reference->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+            if ($reference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
                 $referenceArticles[] = $reference;
             }
         }

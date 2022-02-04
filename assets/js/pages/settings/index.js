@@ -5,6 +5,7 @@ import {LOADING_CLASS} from "../../loading";
 import {initUserPage} from "./users/users";
 import {initializeImports} from "./data/imports.js";
 import {initializeStockArticlesTypesFreeFields, createFreeFieldsPage, initializeStockMovementsFreeFields,} from "./free-fields";
+import {initializeRolesPage} from "./users/roles";
 
 const index = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();
@@ -41,6 +42,7 @@ const initializers = {
     stock_inventaires_categories: initializeInventoryCategoriesTable,
     stock_groupes_visibilite: initializeVisibilityGroup,
     utilisateurs_utilisateurs: initUserPage,
+    utilisateurs_roles: initializeRolesPage,
 };
 
 const slowOperations = [
@@ -58,13 +60,11 @@ $(function() {
     updateMenu(submenu || menu, canEdit);
 
     $(`.settings-item`).on(`click`, function() {
-        console.log(editing);
         if (!editing || (editing && window.confirm("Vous avez des modifications en attente, souhaitez vous continuer ?"))) {
             const selectedMenu = $(this).data(`menu`);
 
             $(`.settings-item.selected`).removeClass(`selected`);
             $(this).addClass(`selected`);
-            console.log('coucou');
             updateMenu(selectedMenu, canEdit);
             editing = false;
         }
@@ -182,8 +182,10 @@ function updateMenu(selectedMenu, canEdit) {
     const $selectedMenu = $(`.settings main > .settings-content[data-menu="${selectedMenu}"]`);
     $selectedMenu.removeClass(`d-none`);
 
-    const displaySaveButton = $selectedMenu.data('saveButton');
-    $managementButtons.toggleClass('d-none', !displaySaveButton);
+    const displaySaveButton = $selectedMenu.data('save-button');
+    const displayDiscardButton = $selectedMenu.data('discard-button');
+    $saveButton.toggleClass('d-none', !displaySaveButton);
+    $discardButton.toggleClass('d-none', !displayDiscardButton);
 
     let title;
     if(!submenu) {
@@ -191,7 +193,10 @@ function updateMenu(selectedMenu, canEdit) {
         title = `${getCategoryLabel()} | <span class="bold">${getMenuLabel()}</span>`;
     } else {
         submenu = selectedMenu;
-        title = `${getCategoryLabel()} | ${getMenuLabel()} | <span class="bold">${getSubmenuLabel()}</span>`;
+
+        const route = Routing.generate(`settings_item`, {category});
+        const categoryLabel = category !== `trace` ? `<a href="${route}">${getCategoryLabel()}</a>` : getCategoryLabel();
+        title = `${categoryLabel} | ${getMenuLabel()} | <span class="bold">${getSubmenuLabel()}</span>`;
     }
 
     const path = `${category}_${menu}` + (submenu ? `_` + submenu : ``);
@@ -203,7 +208,7 @@ function updateMenu(selectedMenu, canEdit) {
             ...(initializers[path] ? initializers[path]($element, canEdit) : []),
         };
 
-        console.log(initializers[path] ? `Initializiing ${path}` : `No initializer for ${path}`);
+        console.log(initializers[path] ? `Initializing ${path}` : `No initializer for ${path}`);
     }
     currentForm = path;
 
@@ -222,12 +227,11 @@ function updateMenu(selectedMenu, canEdit) {
 }
 
 function initializeWorkingHours($container, canEdit) {
-    $managementButtons.addClass('d-none');
-
     const table = EditableDatatable.create(`#table-working-hours`, {
         route: Routing.generate('settings_working_hours_api', true),
         mode: canEdit ? MODE_DOUBLE_CLICK : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
+        needsPagingHide: true,
         onEditStart: () => {
             editing = true;
             $managementButtons.removeClass('d-none')
@@ -248,15 +252,15 @@ function initializeOffDays($container, canEdit) {
     const $addButton = $container.find(`.add-row-button`);
     const $tableHeader = $(`.wii-page-card-header`);
 
-    $managementButtons.addClass('d-none');
-
     const table = EditableDatatable.create(`#table-off-days`, {
         route: Routing.generate(`settings_off_days_api`, true),
         deleteRoute: `settings_off_days_delete`,
         mode: canEdit ? MODE_ADD_ONLY : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         search: true,
-        paginate: true,
+        paging: true,
+        needsPagingHide: true,
+        needsSearchHide: true,
         onInit: () => {
             $addButton.removeClass(`d-none`);
         },
@@ -317,7 +321,7 @@ function initializeReceptionFixedFields($container, canEdit) {
         mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         ordering: false,
-        paginate: false,
+        paging: false,
         onEditStart: () => {
             $managementButtons.removeClass('d-none');
         },
@@ -341,7 +345,7 @@ function initializeDispatchFixedFields($container, canEdit) {
         mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         ordering: false,
-        paginate: false,
+        paging: false,
         onEditStart: () => {
             $managementButtons.removeClass('d-none');
         },
@@ -365,7 +369,7 @@ function initializeArrivalFixedFields($container, canEdit) {
         mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         ordering: false,
-        paginate: false,
+        paging: false,
         onEditStart: () => {
             $managementButtons.removeClass('d-none');
         },
@@ -389,7 +393,7 @@ function initializeHandlingFixedFields($container, canEdit) {
         mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         ordering: false,
-        paginate: false,
+        paging: false,
         onEditStart: () => {
             $managementButtons.removeClass('d-none');
         },
@@ -532,15 +536,13 @@ function appendSelectOptions(typeSelect, locationSelect, type, location) {
 }
 
 function initializeInventoryFrequenciesTable(){
-    $managementButtons.addClass('d-none');
-
     const table = EditableDatatable.create(`#frequencesTable`, {
         route: Routing.generate('settings_frequencies_api', true),
         deleteRoute: `settings_delete_frequency`,
         mode: MODE_EDIT_AND_ADD,
         save: SAVE_MANUALLY,
         search: false,
-        paginate: false,
+        paging: false,
         scrollY: false,
         scrollX: false,
         onEditStart: () => {
@@ -563,7 +565,6 @@ function initializeInventoryFrequenciesTable(){
 }
 
 function initializeInventoryCategoriesTable(){
-    $managementButtons.addClass('d-none');
     const $frequencyOptions = JSON.parse($(`#frequency_options`).val());
 
     const table = EditableDatatable.create(`#categoriesTable`, {
@@ -590,7 +591,7 @@ function initializeInventoryCategoriesTable(){
         form: {
             actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
             label: `<input type='text' name='label' class='form-control data needed'  data-global-error="Libellé"/>`,
-            frequency: `<select name='frequency' class='form-control data needed' data-global-error="Fréquence>`+$frequencyOptions+`</select>`,
+            frequency: `<select name='frequency' class='form-control data needed' data-global-error="Fréquence">`+$frequencyOptions+`</select>`,
             permanent: `<div class='checkbox-container'><input type='checkbox' name='permanent' class='form-control data'/></div>`,
         },
     });
@@ -600,8 +601,6 @@ function initializeInventoryCategoriesTable(){
 function initializeVisibilityGroup($container, canEdit) {
     const $addButton = $container.find(`.add-row-button`);
     const $tableHeader = $(`.wii-page-card-header`);
-
-    $managementButtons.addClass('d-none');
 
     const table = EditableDatatable.create(`#table-visibility-group`, {
         route: Routing.generate(`settings_visibility_group_api`, true),

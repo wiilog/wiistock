@@ -22,7 +22,6 @@ export default class EditableDatatable {
 
     static create(id, config) {
         const $element = $(id);
-        const $parent = $element.parent();
 
         if(config.name) {
             $element.attr(`data-table-processing`, config.name)
@@ -33,98 +32,7 @@ export default class EditableDatatable {
         datatable.config = config;
         datatable.mode = config.mode;
         datatable.state = config.mode === MODE_EDIT ? STATE_EDIT : STATE_VIEWING;
-        datatable.table = initDataTable(datatable.element, {
-            serverSide: false,
-            ajax: {
-                type: `GET`,
-                url: config.route,
-                data: data => {
-                    data.edit = datatable.state !== STATE_VIEWING;
-                },
-            },
-            rowConfig: {
-                needsRowClickAction: true,
-            },
-            domConfig: {
-                removeInfo: true,
-            },
-            ordering: config.ordering !== undefined ? config.ordering : datatable.state !== STATE_VIEWING,
-            paging: config.paginate,
-            searching: config.search ?? false,
-            scrollY: false,
-            scrollX: true,
-            drawCallback: () => {
-                $parent.find(`.dataTables_wrapper`).css(`overflow-x`, `scroll`);
-                $parent.find(`.dataTables_scrollBody, .dataTables_scrollHead`)
-                    .css(`overflow`, `visible`)
-                    .css(`overflow-y`, `visible`);
-
-                const $rows = $(datatable.table.rows().nodes());
-                $rows.each(function() {
-                    const $row = $(this);
-                    const data = Form.process($row, {
-                        ignoreErrors: true,
-                    });
-
-                    $row.data(`data`, JSON.stringify(data instanceof FormData ? data.asObject() : data));
-
-                    if ($row.find(`.add-row`).exists()) {
-                        $row.addClass('pointer');
-                    }
-                });
-
-                if(config.mode === MODE_DOUBLE_CLICK || config.mode === MODE_EDIT_AND_ADD) {
-                    $rows.off(`click.${id}.startEdit`).on(`click.${id}.startEdit`, function() {
-                        if(datatable.state === STATE_VIEWING) {
-                            datatable.toggleEdit(STATE_EDIT, true);
-                        }
-                    });
-                }
-
-                if(config.save === SAVE_FOCUS_OUT) {
-                    $rows.off(`focusout.${id}.keyboardNavigation`).on(`focusout.${id}.keyboardNavigation`, function(event) {
-                        const $row = $(this);
-                        const $target = $(event.target);
-                        const $relatedTarget = $(event.relatedTarget);
-
-                        //TODO: refacto ça lo
-                        const wasPackSelect = $target.closest(`td`).find(`select[name="pack"]`).exists();
-                        if((event.relatedTarget && $.contains(this, event.relatedTarget))
-                            || $relatedTarget.is(`button.delete-pack-row`)
-                            || wasPackSelect) {
-                            return;
-                        }
-
-                        config.state = STATE_VIEWING;
-                        config.onEditStop();
-                        datatable.save($row);
-                    });
-                }
-            },
-            initComplete: () => {
-                let $searchInputContainer = $element.parents('.dataTables_wrapper').find('.dataTables_filter');
-                moveSearchInputToHeader($searchInputContainer);
-
-                if(config.onInit) {
-                    config.onInit();
-                }
-            },
-            createdRow: (row, data) => {
-                // we display only + td on this line
-                if(data && data.createRow) {
-                    const $row = $(row);
-                    const $tds = $row.children();
-                    const $tdAction = $tds.first();
-                    const $tdOther = $tds.slice(1);
-
-                    $tdOther.addClass('d-none');
-                    $tdAction.attr('colspan', $tds.length)
-                        .addClass('add-pack-row');
-                }
-            },
-            columnDefs: config.columnDefs,
-            columns: config.columns,
-        });
+        datatable.table = initEditatableDatatable(datatable);
 
         if(datatable.state !== STATE_VIEWING) {
             datatable.toggleEdit(STATE_EDIT);
@@ -216,20 +124,21 @@ export default class EditableDatatable {
         this.table.draw();
     }
 
-    setURL(url) {
-        this.table.ajax.url(url).load();
+    setURL(url, load = true) {
+        const ajaxUrl = this.table.ajax.url(url);
+        if (load) {
+            ajaxUrl.load();
+        }
     }
 
     toggleEdit(state = this.state === STATE_VIEWING ? STATE_EDIT : STATE_VIEWING, reload = false) {
         this.state = state;
 
         if(reload) {
-            this.table.clear();
-            this.table.draw();
             return new Promise((resolve) => {
-                this.table.ajax.reload(() => {
+                this.table = initEditatableDatatable(this, () => {
                     applyState(this, state);
-                    resolve()
+                    resolve();
                 });
             });
         }
@@ -284,4 +193,139 @@ function createNewForm(datatable) {
     table.row.add(Object.assign({}, config.form));
     table.row.add(data);
     table.draw();
+}
+
+function initEditatableDatatable(datatable, callback = null) {
+    const {config, state, element: $element} = datatable;
+    const id = $element.attr('id');
+    const $parent = $element.parent();
+
+    let url;
+    if ($.fn.DataTable.isDataTable($element)) {
+        const datatable = $element.DataTable();
+        url = datatable.ajax.url();
+        datatable.clear().destroy();
+    }
+    else {
+        url = config.route;
+    }
+
+    return initDataTable($element, {
+        serverSide: false,
+        ajax: {
+            type: `GET`,
+            url,
+            data: data => {
+                data.edit = state !== STATE_VIEWING;
+                if (callback) {
+                    callback();
+                }
+            },
+        },
+        rowConfig: {
+            needsRowClickAction: true,
+        },
+        domConfig: {
+            removeInfo: true,
+        },
+        drawConfig: {
+            needsSearchOverride: true,
+        },
+        // replace undefined by false
+        ordering: config.ordering && datatable.state === STATE_VIEWING || false,
+        paging: config.paging && datatable.state === STATE_VIEWING || false,
+        searching: config.search && datatable.state === STATE_VIEWING || false,
+        scrollY: false,
+        scrollX: true,
+        drawCallback: () => {
+            $parent.find(`.dataTables_wrapper`).css(`overflow-x`, `scroll`);
+            $parent.find(`.dataTables_scrollBody, .dataTables_scrollHead`)
+                .css(`overflow`, `visible`)
+                .css(`overflow-y`, `visible`);
+
+            const $rows = $(datatable.table.rows().nodes());
+            $rows.each(function() {
+                const $row = $(this);
+                const data = Form.process($row, {
+                    ignoreErrors: true,
+                });
+
+                $row.data(`data`, JSON.stringify(data instanceof FormData ? data.asObject() : data));
+
+                if ($row.find(`.add-row`).exists()) {
+                    $row.addClass('pointer');
+                }
+            });
+
+            if(config.mode === MODE_DOUBLE_CLICK || config.mode === MODE_EDIT_AND_ADD) {
+                $rows.off(`click.${id}.startEdit`).on(`click.${id}.startEdit`, function() {
+                    if(datatable.state === STATE_VIEWING) {
+                        datatable.toggleEdit(STATE_EDIT, true);
+                    }
+                });
+            }
+
+            if(config.save === SAVE_FOCUS_OUT) {
+                $rows
+                    .off(`focusout.${id}.keyboardNavigation`)
+                    .on(`focusout.${id}.keyboardNavigation`, function(event) {
+                        const $row = $(this);
+                        const $target = $(event.target);
+                        const $relatedTarget = $(event.relatedTarget);
+
+                        //TODO: refacto ça lo
+                        const wasPackSelect = $target.closest(`td`).find(`select[name="pack"]`).exists();
+                        if((event.relatedTarget && $.contains(this, event.relatedTarget))
+                            || $relatedTarget.is(`button.delete-pack-row`)
+                            || wasPackSelect) {
+                            return;
+                        }
+
+                        config.state = STATE_VIEWING;
+                        config.onEditStop();
+                        datatable.save($row);
+                    });
+            }
+            else if(config.save === SAVE_MANUALLY) {
+                $rows.addClass(`focus-free`);
+            }
+
+            // add .form-control on search input
+            datatable.element
+                .parents('.dataTables_wrapper ')
+                .find('.dataTables_filter input')
+                .addClass('form-control');
+
+            const data = datatable.table.rows().data();
+            $parent.find(`.dataTables_paginate, .dataTables_length`)
+                .parent()
+                .toggleClass(`d-none`, !data || data.length <= 10);
+            $('.dataTables_filter')
+                .toggleClass(`d-none`, !data || data.length <= 10);
+        },
+        initComplete: () => {
+            let $searchInputContainer = $element.parents('.dataTables_wrapper').find('.dataTables_filter');
+            moveSearchInputToHeader($searchInputContainer);
+
+            if(config.onInit) {
+                config.onInit();
+            }
+        },
+        createdRow: (row, data) => {
+            // we display only + td on this line
+            if(data && data.createRow) {
+                const $row = $(row);
+                const $tds = $row.children();
+                const $tdAction = $tds.first();
+                const $tdOther = $tds.slice(1);
+
+                $tdOther.addClass('d-none');
+                $tdAction
+                    .attr('colspan', $tds.length)
+                    .addClass('add-pack-row');
+            }
+        },
+        columnDefs: config.columnDefs,
+        columns: config.columns,
+    });
 }

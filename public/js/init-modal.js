@@ -127,17 +127,17 @@ function processSubmitAction($modal,
 
         $submit.pushLoader('white');
         if (waitForUserAction) {
-            waitForUserAction()
+            return waitForUserAction()
                 .then((doSubmit) => {
                     if (doSubmit) {
-                        postForm(path, smartData, $submit, $modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable, success);
+                        return postForm(path, smartData, $submit, $modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable, success);
                     } else {
                         $submit.popLoader();
                     }
                 })
                 .catch(() => {});
         } else {
-            postForm(path, smartData, $submit, $modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable, success);
+            return postForm(path, smartData, $submit, $modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable, success);
         }
     }
     else {
