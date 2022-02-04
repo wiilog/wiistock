@@ -29,6 +29,7 @@ const initializers = {
     stock_inventaires_frequences: initializeFrequencesTable,
     stock_inventaires_categories: initializeCategoriesTable,
     stock_receptions_types_litiges : initializeTypesLitige,
+    trace_arrivages_types_litiges : initializeTypesLitige,
 };
 
 const slowOperations = [

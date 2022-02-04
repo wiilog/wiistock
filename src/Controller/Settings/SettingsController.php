@@ -126,6 +126,7 @@ class SettingsController extends AbstractController {
                         self::MENU_FIXED_FIELDS => ["label" => "Champs fixes"],
                         self::MENU_TYPES_FREE_FIELDS => ["label" => "Types et champs libres"],
                         self::MENU_DISPUTE_STATUSES => ["label" => "Litiges - Statuts"],
+                        self::MENU_DISPUTE_TYPES => ["label" => "Litiges - Types"],
                     ],
                 ],
                 self::MENU_MOVEMENTS => [
