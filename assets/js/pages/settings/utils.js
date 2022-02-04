@@ -53,18 +53,23 @@ export function createManagementPage($container, config) {
     });
 
     $addButton.on(`click`, function() {
-        const id = `entity-${Math.floor(Math.random() * 1000000)}`;
         selectedEntity = null;
 
         $addButton.addClass(`d-none`);
-        $container.find(`[name=entity] + label:last`).after(`
-            <input type="radio" id="${id}" name="entity" class="data">
-            <label for="${id}">
-                <span class="d-inline-flex align-items-center field-label nowrap">Nouveau type</span>
-            </label>
-        `);
+        if($container.find(`select[name=entity]`).exists()) {
+            $container.find(`select[name=entity]`).append(new Option(config.header.new, ``, true, true));
+        } else {
+            const id = `entity-${Math.floor(Math.random() * 1000000)}`;
 
-        $container.find(`#${id}`).prop(`checked`, true);
+            $container.find(`[name=entity] + label:last`).after(`
+                <input type="radio" id="${id}" name="entity" class="data">
+                <label for="${id}">
+                    <span class="d-inline-flex align-items-center field-label nowrap">${config.header.new}</span>
+                </label>
+            `);
+
+            $container.find(`#${id}`).prop(`checked`, true);
+        }
 
         table.setURL(config.table.route(selectedEntity), false);
         table.toggleEdit(STATE_EDIT, true);
@@ -74,15 +79,22 @@ export function createManagementPage($container, config) {
         table.toggleEdit(undefined, true);
     });
 
-    $container.on(`keyup`, `.main-entity-content-item [name=label]`, function() {
-        $container.find(`[name=entity]:checked + label`).text($(this).val() || `Nouveau type`);
-    })
+    $container.on(`keyup`, `.main-entity-content-item [name=label], .main-entity-content-item [name=name]`, function() {
+        if($container.find(`select[name=entity]`).exists()) {
+            const $select = $container.find(`select[name=entity]`);
+            $select.find(`option:selected`).text($(this).val() || config.header.new);
+        } else {
+            $container.find(`[name=entity]:checked + label`).text($(this).val() || config.header.new);
+        }
+    });
+
+    return table;
 }
 
 function loadItems($container, config, type, edit) {
     const route = config.header.route(type, edit);
     const params = {
-        types: $(`[name=entity]`).map((_, a) => $(a).attr(`value`)).toArray(),
+        types: $container.find(`[name=entity]`).map((_, a) => $(a).attr(`value`)).toArray(),
     };
 
     $.post(route, params, function(data) {
@@ -91,7 +103,7 @@ function loadItems($container, config, type, edit) {
             $itemContainer.empty();
 
             if(type === null) {
-                $container.find(`input[name="entity"]:checked`).attr(`value`, data.category);
+                $container.find(`input[name="entity"]:checked, select[name="entity"] option:selected`).attr(`value`, data.category || config.category);
             }
 
             for(const item of data.data) {
@@ -100,8 +112,12 @@ function loadItems($container, config, type, edit) {
                 }
                 else {
                     const value = item.value === undefined || item.value === null ? '' : item.value;
+                    const data = Object.entries(item.data || {})
+                        .map(([key, value]) => `data-${key}="${value}"`)
+                        .join(` `);
+
                     $itemContainer.append(`
-                        <div class="main-entity-content-item col-md-3 col-12 ${item.hidden ? `d-none` : ``}">
+                        <div class="main-entity-content-item col-md-3 col-12 ${item.hidden ? `d-none` : ``}" ${data}>
                             <div class="d-flex align-items-center py-2">
                                 ${item.icon ? `<img src="/svg/reference_article/${item.icon}.svg" alt="Icône" width="20px">` : ``}
                                 <div class="d-grid w-100">

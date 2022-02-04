@@ -5,7 +5,11 @@
 {% block title %}Livraisons - Modèles de demande{% endblock %}
 
 {% block filters %}
-    {{ form.select('entity', null, false, {items: templates}) }}
+    {{ form.select('entity', null, false, {
+        items: templates,
+        inputClass: 'minw-300px',
+    }) }}
+    <input type="hidden" id="delivery-template-type" value="{{ type }}"/>
 {% endblock %}
 
 {% block button %}

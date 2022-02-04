@@ -9,17 +9,18 @@
                 ? freeFieldValues[freeField.id]
                 : ( freeField.defaultValue is defined
                 ? freeField.defaultValue
-                : '')
-            %}
+                : '') %}
             {% if (actionType == 'new' and freeField.displayedCreate) or actionType == 'edit' %}
-                <div class="{{ colType is defined ? colType }} my-2">
+                <div class="{{ colType is defined ? colType }} {% if showLabels ?? true %}my-2{% endif %}">
                     <div class="row form-group free-field">
-                        <div class="col-12">
-                            <label class="{{ fieldNameClass }}">
-                                {{ freeField.label }}
-                                <span class="is-required-label {{ not needed ? 'd-none' }}">*</span>
-                            </label>
-                        </div>
+                        {% if showLabels ?? true %}
+                            <div class="col-12">
+                                <label class="{{ fieldNameClass }}">
+                                    {{ freeField.label }}
+                                    <span class="is-required-label {{ not needed ? 'd-none' }}">*</span>
+                                </label>
+                            </div>
+                        {% endif %}
                         <div class="col-12 d-flex">
                             {% if freeField.typage == constant('App\\Entity\\FreeField::TYPE_BOOL') %}
                                 <div class="wii-switch {{ needed ? 'needed' }}" data-title="{{ freeField.label }}">
@@ -31,8 +32,10 @@
                                         {% set entityValue = 0 %}
                                     {% endif %}
 
-                                    <input type="radio" name="{{ freeField.id }}" value="1" content="Oui" {{ entityValue == 1 ? 'data-init="checked" checked' }}>
-                                    <input type="radio" name="{{ freeField.id }}" value="0" content="Non" {{ entityValue is not same as (null) and entityValue == 0 ? 'data-init="checked" checked' }}>
+                                    <input type="radio" name="{{ freeField.id }}" value="1"
+                                           content="Oui" {{ entityValue == 1 ? 'data-init="checked" checked' }}>
+                                    <input type="radio" name="{{ freeField.id }}" value="0"
+                                           content="Non" {{ entityValue is not same as (null) and entityValue == 0 ? 'data-init="checked" checked' }}>
                                 </div>
                             {% elseif  freeField.typage == constant('App\\Entity\\FreeField::TYPE_NUMBER') %}
                                 <input type="number"

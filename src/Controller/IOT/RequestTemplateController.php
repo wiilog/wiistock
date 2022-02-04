@@ -28,7 +28,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * @Route("/parametrage/modele-demande")
+ * @Route("/ancien-parametrage/modele-demande")
  */
 class RequestTemplateController extends AbstractController
 {

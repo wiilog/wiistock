@@ -105,6 +105,7 @@ export function createFreeFieldsPage($container, canEdit) {
         edit: canEdit,
         header: {
             route: (type, edit) => Routing.generate('settings_type_header', {type, edit}, true),
+            new: `Nouveau type`,
         },
         table: {
             route: (type) => Routing.generate('settings_free_field_api', {type}, true),
@@ -131,6 +132,7 @@ export function initializeStockArticlesTypesFreeFields($container, canEdit) {
         edit: canEdit,
         header: {
             route: (type, edit) => Routing.generate('settings_type_header', {type, edit}, true),
+            new: `Nouveau type`,
         },
         table: {
             route: (type) => Routing.generate('settings_free_field_api', {type}, true),

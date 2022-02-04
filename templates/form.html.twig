@@ -103,8 +103,8 @@
     {% set values = value is iterable ? value : [value] %}
 
     <label class="{{ not options.search ?? true ? 'no-search' }}">
-        <span class="{{ options.labelClass ?? '' }}">{{ _self.label(label, required) }}</span>
-        <select class="form-control w-100 data"
+        {% if label %}<span class="{{ options.labelClass ?? '' }}">{{ _self.label(label, required) }}</span>{% endif %}
+        <select class="form-control w-100 data {{ options.inputClass }}"
             {{ required ? 'required' }}
             {{ options.multiple ?? false ? 'multiple' }}
             {% if options.type is defined %}
@@ -131,6 +131,7 @@
                 {% if text.value is defined and text.label is defined %}
                     <option value="{{ text.value }}"
                             {{ (text.selected ?? false) or text.value in values ? 'selected' }}
+                            {{ text.disabled ?? false ? 'disabled' }}
                             {% for dataKey, dataValue in text %}
                                 data-{{ dataKey }}="{{ dataValue }}"
                             {% endfor %}>
