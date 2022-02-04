@@ -268,4 +268,22 @@ class TypeRepository extends EntityRepository
 
         return $qb->getQuery()->getResult();
     }
+
+    public function getEntities($types): array {
+        if(!is_array($types)) {
+            $types = [$types];
+        }
+
+        $result = $this->createQueryBuilder("type")
+            ->select("category.label")
+            ->join("type.category", "category")
+            ->andWhere("type.id IN (:types)")
+            ->groupBy("category.label")
+            ->setParameter("types", $types)
+            ->getQuery()
+            ->getResult();
+
+        return array_map(fn(array $item) => $item["label"], $result);
+    }
+
 }

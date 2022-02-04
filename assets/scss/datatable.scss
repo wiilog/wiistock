@@ -1,27 +1,23 @@
 @import "variables";
 
-.dataTables_wrapper {
-    overflow-x: auto !important;
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    @extend .btn;
+    @extend .btn-sm;
 
-    .dataTables_paginate .paginate_button {
-        @extend .btn;
-        @extend .btn-sm;
+    &.current {
+        background: $primary !important;
+        border-color: $primary !important;
+        color: $white !important;
 
-        &.current {
-            background: $primary !important;
-            border-color: $primary !important;
+        &:hover {
             color: $white !important;
-
-            &:hover {
-                color: $white !important;
-            }
         }
+    }
 
-        &:hover, &:active {
-            color: $white !important;
-            background: $darkenPrimary !important;
-            border: 1px solid $darkenPrimary !important;
-        }
+    &:hover,&:active {
+        color: $white !important;
+        background: $darkenPrimary !important;
+        border: 1px solid $darkenPrimary !important;
     }
 }
 
@@ -87,17 +83,12 @@ table.wii-table {
     padding: $spacer;
     background-color: white;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+}
 
-    .wii-page-card-header {
-        margin-bottom: 0.75rem;
-        align-items: center;
-
-        .search-input {
-            margin-left: 0.5em;
-            display: inline-block;
-            width: auto;
-        }
-    }
+.wii-page-card .wii-page-card-header,
+.wii-box .wii-box-header {
+    margin-bottom: 0.75rem;
+    align-items: center;
 }
 
 .paginate_button {
@@ -178,7 +169,7 @@ div.DTCR_pointer {
     border-bottom: 1px solid $grey !important;
 }
 
-.focus-shadow .dataTables_scrollBody tbody tr {
+.focus-shadow .dataTables_scrollBody tbody tr:not(.focus-free) {
     position: relative;
     transition: box-shadow 150ms ease-in-out;
 
@@ -218,6 +209,17 @@ th.hideOrder {
         height: 20px;
     }
 }
+
+.dataTables_filter {
+    font-size: 13px !important;
+    input {
+        @extend .form-control;
+        display: inline-block;
+        width: initial !important;
+        margin-left: 4px;
+    }
+}
+
 
 .small-column {
     max-width: 130px !important;

@@ -1,8 +1,8 @@
 {% set nbAttachmentsPlural = attachmentsLength > 1 ? 's' %}
-<button class="link-like d-flex ml-3 has-tooltip " title="{{ attachmentsLength }} piece{{ nbAttachmentsPlural }} jointe{{ nbAttachmentsPlural }}"
+<a class="link-like d-flex ml-3 has-tooltip "
+   title="{{ attachmentsLength }} piece{{ nbAttachmentsPlural }} jointe{{ nbAttachmentsPlural }}"
     {% if reference is defined %}
-        data-reference="{{ reference }}"
-        onclick="redirectPaperclipClick($(this))"
+        href="{{ path('reference_article_show_page', {id: reference}) }}"
     {% endif %}
     {% if mvt is defined %}
         data-id='{{ mvt }}'
@@ -14,4 +14,4 @@
     <div>
         <img class="mt-1" src="{{ asset('svg/paperclip.svg') }}" alt="Paperclip" height="16px" width="16px" border="0"/>
     </div>
-</button>
+</a>

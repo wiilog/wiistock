@@ -1310,7 +1310,7 @@ class ImportService
         }
         if ($isNewEntity) {
             if (empty($data['typeQuantite'])
-                || !in_array($data['typeQuantite'], [ReferenceArticle::TYPE_QUANTITE_REFERENCE, ReferenceArticle::TYPE_QUANTITE_ARTICLE])) {
+                || !in_array($data['typeQuantite'], [ReferenceArticle::QUANTITY_TYPE_REFERENCE, ReferenceArticle::QUANTITY_TYPE_ARTICLE])) {
                 $this->throwError('Le type de gestion de la référence est invalide (autorisé : "article" ou "reference")');
             }
 
@@ -1374,7 +1374,7 @@ class ImportService
         $refArt->setType($type);
 
         // liaison emplacement
-        if ($refArt->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+        if ($refArt->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
             $this->checkAndCreateEmplacement($data, $refArt);
         }
 
@@ -1411,7 +1411,7 @@ class ImportService
             } else if ($data['quantiteStock'] < 0) {
                 $message = 'La quantité doit être positive.';
                 $this->throwError($message);
-            } else if ($refArt->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+            } else if ($refArt->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
                 if (isset($data['quantiteStock']) && $data['quantiteStock'] < $refArt->getQuantiteReservee()) {
                     $message = 'La quantité doit être supérieure à la quantité réservée (' . $refArt->getQuantiteReservee() . ').';
                     $this->throwError($message);
@@ -1793,7 +1793,7 @@ class ImportService
         if (!$articleReference || $articleReference->getStatut()->getNom() === ReferenceArticle::STATUT_INACTIF) {
             $this->throwError('Article de référence inconnu ou inactif.');
         } else {
-            if ($article && $articleReference->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+            if ($article && $articleReference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
                 $article = $articles->findOneBy(['barCode' => $article]);
                 if ($article) {
                     if ($article->getQuantite() >= intval($quantityDelivery)) {
@@ -1850,7 +1850,7 @@ class ImportService
                             ->setReference($articleReference)
                             ->setTargetLocationPicking($targetLocationPicking);
                         $this->em->persist($lignesArticlePreparation);
-                        if ($articleReference->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                        if ($articleReference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
                             $articleReference->setQuantiteReservee(($articleReference->getQuantiteReservee() ?? 0) + $line->getQuantityToPick());
                         } else {
                             $refsToUpdate[] = $articleReference;

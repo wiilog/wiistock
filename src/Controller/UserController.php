@@ -31,37 +31,11 @@ use WiiCommon\Helper\Stream;
 
 
 /**
+ * TODO WIIS-6693 delete
  * @Route("/admin/utilisateur")
  */
 class UserController extends AbstractController
 {
-
-    /**
-     * @Route("/modifier-role", name="user_edit_role",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
-    public function editRole(Request $request,
-                             EntityManagerInterface $entityManager)
-    {
-        if ($data = json_decode($request->getContent(), true)) {
-            $roleRepository = $entityManager->getRepository(Role::class);
-            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-
-            $role = $roleRepository->find((int)$data['role']);
-            $user = $utilisateurRepository->find($data['userId']);
-
-            if ($user) {
-                $user->setRole($role);
-                $em = $this->getDoctrine()->getManager();
-                $em->flush();
-
-                return new JsonResponse(true);
-            } else {
-                return new JsonResponse(false); //TODO gérer erreur
-            }
-        }
-        throw new BadRequestHttpException();
-    }
 
     /**
      * @Route("/autocomplete", name="get_user", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")

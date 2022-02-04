@@ -828,3 +828,11 @@ function resetDefaultArticleFournisseur(show = false) {
     }
 }
 
+function initRequiredChampsFixes(button) {
+    let params = {id: button.data('id')};
+    let path = Routing.generate('get_quantity_type');
+
+    $.post(path, JSON.stringify(params), function (data) {
+        displayRequiredChampsFixesByTypeQuantiteReferenceArticle(data, button)
+    }, 'json');
+}

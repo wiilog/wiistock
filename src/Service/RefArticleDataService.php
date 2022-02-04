@@ -173,7 +173,7 @@ class RefArticleDataService {
         return $data = [
             'listArticlesFournisseur' => array_reduce($articleRef->getArticlesFournisseur()->toArray(),
                 function(array $carry, ArticleFournisseur $articleFournisseur) use ($articleRef) {
-                    $articles = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE
+                    $articles = $articleRef->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE
                         ? $articleFournisseur->getArticles()->toArray()
                         : [];
                     $carry[] = [
@@ -403,7 +403,7 @@ class RefArticleDataService {
         }
 
 
-        if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE &&
+        if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE &&
             $refArticle->getQuantiteStock() > 0 &&
             $wasDraft && $refArticle->getStatut()->getCode() === ReferenceArticle::STATUT_ACTIF) {
             $mvtStock = $mouvementStockService->createMouvementStock(
@@ -557,8 +557,11 @@ class RefArticleDataService {
             ? $entityManager->find(Emplacement::class, $data['target-location-picking'])
             : null;
 
+        $loggedUser = $this->userService->getUser();
+        $loggedUserRole = $loggedUser->getRole();
+
         // cas gestion quantité par référence
-        if($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+        if($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
             if($fromNomade || $referenceLineRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                 $line = new DeliveryRequestReferenceLine();
                 $line
@@ -576,8 +579,8 @@ class RefArticleDataService {
             if(!$fromNomade && $editRef) {
                 $this->editRefArticle($referenceArticle, $data, $user, $champLibreService, $this->mouvementStockService);
             }
-        } else if($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-            if($fromNomade || $this->userService->hasParamQuantityByRef() || $fromCart) {
+        } else if($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
+            if($fromNomade || $loggedUserRole->getQuantityType() === ReferenceArticle::QUANTITY_TYPE_REFERENCE || $fromCart) {
                 if($fromNomade || $referenceLineRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                     $line = new DeliveryRequestReferenceLine();
                     $line
@@ -742,7 +745,7 @@ class RefArticleDataService {
     private function updateStockQuantity(EntityManagerInterface $entityManager, ReferenceArticle $referenceArticle): void {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
-        if($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+        if($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
             $referenceArticle->setQuantiteStock($referenceArticleRepository->getStockQuantity($referenceArticle));
         }
     }
@@ -752,7 +755,7 @@ class RefArticleDataService {
                                             bool $fromCommand = false): void {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
-        if($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+        if($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
             $referenceArticle->setQuantiteReservee($referenceArticleRepository->getReservedQuantity($referenceArticle));
         } else {
             $totalReservedQuantity = 0;

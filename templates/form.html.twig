@@ -32,21 +32,24 @@
 {% endmacro %}
 
 {% macro switch(name, label, required, switches, options = {}) %}
-    {# TODO: add support for required #}
-
-    <div class="d-flex flex-column align-items-start">
+    <label class="d-flex flex-column align-items-start">
         {% if label %}<label class="{{ options.labelClass ?? '' }}">{{ _self.label(label, required) }}</label>{% endif %}
-        <div class="{{ options.expanded ?? false ? 'wii-expanded-switch' : 'wii-switch' }} text-truncate mt-1"
+        <div class="{{ options.expanded ?? false ? 'wii-expanded-switch' : 'wii-switch' }} text-truncate"
              data-title="{{ label | striptags }}{{ required ? '*' }}">
             {% for switch in switches %}
                 {% set id = random(100000, 10000000) %}
 
-                <input type="radio" id="{{ name }}-{{ id }}" name="{{ name }}" class="data"
-                       value="{{ switch.value ?? '' }}" {{ switch.checked ?? false ? 'checked' }}>
+                <input type="radio"
+                       id="{{ name }}-{{ id }}"
+                       name="{{ name }}"
+                       class="data"
+                       value="{{ switch.value ?? '' }}"
+                       {{ required ? 'required' }}
+                       {{ switch.checked ?? false ? 'checked' }}>
                 <label for="{{ name }}-{{ id }}">{{ _self.label(switch.label, false) }}</label>
             {% endfor %}
         </div>
-    </div>
+    </label>
 {% endmacro %}
 
 {% macro slider(name, label, required, checked = false, options = {}) %}
@@ -65,11 +68,13 @@
 {% macro checkbox(name, label, required, value = true, options = {}) %}
     {% set id = options.id ?? ('checkbox-' ~ random(100000, 10000000)) %}
     <div class="wii-checkbox">
-        <input type="checkbox" id="{{ id }}" class="data"
-            {{ required ? 'required' }}
-            {{ _self.common_attributes(name, options) }}
-            {{ _self.multiple_key(options) }}
-            {{ {on: 1, off: 0}[value] ?? value ? 'checked' }}>
+        <input type="checkbox"
+               id="{{ id }}"
+               class="data"
+              {{ required ? 'required' }}
+              {{ _self.common_attributes(name, options) }}
+              {{ _self.multiple_key(options) }}
+              {{ {on: 1, off: 0}[value] ?? value ? 'checked' }}>
         <label class="{{ options.labelClass ?? '' }}" for="{{ id }}">
             <span>{{ _self.label(label, required, true) }}</span>
         </label>
@@ -151,11 +156,13 @@
                  title="{{ options.tooltip.text ?? options.tooltip ?? '' }}">
         </sup>
         {% endif %}
-        <input type="{{ options.type ?? 'text' }}" class="form-control w-100 data" value="{{ value }}"
+        <input type="{{ options.type ?? 'text' }}"
+               class="form-control w-100 data"
+               value="{{ value }}"
                placeholder="{{ options.placeholder ?? '' }}"
-            {{ required ? 'required' }}
-            {{ _self.common_attributes(name, options) }}
-            {{ _self.multiple_key(options) }}>
+               {{ required ? 'required' }}
+               {{ _self.common_attributes(name, options) }}
+               {{ _self.multiple_key(options) }}>
     </label>
 {% endmacro %}
 

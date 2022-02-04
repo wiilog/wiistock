@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\CategorieCL;
+use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
@@ -31,19 +32,13 @@ use WiiCommon\Helper\Stream;
 
 class SettingsService {
 
-    /**
-     * @Required
-     */
+    /**  @Required */
     public EntityManagerInterface $manager;
 
-    /**
-     * @Required
-     */
+    /** @Required */
     public KernelInterface $kernel;
 
-    /**
-     * @Required
-     */
+    /** @Required */
     public AttachmentService $attachmentService;
 
     public function createSetting(string $setting): ParametrageGlobal {
@@ -267,13 +262,28 @@ class SettingsService {
             $ids = array_map(fn($freeField) => $freeField["id"] ?? null, $tables["freeFields"]);
 
             if(isset($data["entity"])) {
-                $type = $this->manager->find(Type::class, $data["entity"]);
+                if(!is_numeric($data["entity"]) && in_array($data["entity"], CategoryType::ALL)) {
+                    $categoryRepository = $this->manager->getRepository(CategoryType::class);
+
+                    $type = new Type();
+                    $type->setCategory($categoryRepository->findOneBy(["label" => $data["entity"]]));
+
+                    $this->manager->persist($type);
+                } else {
+                    $type = $this->manager->find(Type::class, $data["entity"]);
+                }
+
+                if (!isset($type)) {
+                    throw new RuntimeException("Le type est introuvable");
+                }
+
                 $type->setLabel($data["label"] ?? $type->getLabel())
                     ->setDescription($data["description"] ?? null)
                     ->setPickLocation(isset($data["pickLocation"]) ? $this->manager->find(Emplacement::class, $data["pickLocation"]) : null)
                     ->setDropLocation(isset($data["dropLocation"]) ? $this->manager->find(Emplacement::class, $data["dropLocation"]) : null)
                     ->setNotificationsEnabled($data["pushNotifications"] ?? false)
                     ->setNotificationsEmergencies(isset($data["notificationEmergencies"]) ? explode(",", $data["notificationEmergencies"]) : null)
+                    ->setSendMail($data["mailRequester"] ?? false)
                     ->setColor($data["color"] ?? null);
             } else {
                 $type = $this->manager->getRepository(Type::class)->findOneByLabel(Type::LABEL_MVT_TRACA);

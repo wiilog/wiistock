@@ -8,33 +8,8 @@
 
 <div class="sub-content">
     <table id="table-arrival-fixed-fields" class="table no-border-top w-100" data-table-processing="fixedFields">
-        <thead>
-        <tr style="border-bottom: none">
-            <th class="datatable-main-header"></th>
-            <th class="datatable-main-header" colspan="2">
-                <div class="d-flex align-items-center">
-                    <img src="{{ asset('svg/form-new.svg') }}" width="17px" class="mr-2" alt="Formulaire création">Formulaire de création
-                </div>
-            </th>
-            <th class="datatable-main-header" colspan="2">
-                <div class="d-flex align-items-center">
-                    <img src="{{ asset('svg/form-new.svg') }}" width="17px" class="mr-2" alt="Formulaire édition">Formulaire d'édition
-                </div>
-            </th>
-            <th class="datatable-main-header" colspan="2">
-                <div class="d-flex align-items-center">
-                    <img src="{{ asset('svg/filter-solid.svg') }}" width="17px" class="mr-2" alt="Filtres">Sur les filtres
-                </div>
-            </th>
-        </tr>
-        <tr>
-            <th></th>
-            <th></th>
-            <th></th>
-            <th></th>
-            <th></th>
-            <th></th>
-        </tr>
-        </thead>
+        {% include 'datatable/main-header.html.twig' with {
+            cells: 6
+        } %}
     </table>
 </div>

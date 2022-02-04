@@ -41,7 +41,8 @@
                     <div class="{{ wrapped ? 'wii-box' }} {{ key != selected ? 'd-none' }} settings-content"
                          data-path="{{ category }}_{{ submenu ? menu : key }}{{ submenu ? '_' ~ key : '' }}"
                          data-menu="{{ key }}"
-                         data-save-button="{{ (item.save is not defined or item.save) ? 1 : 0 }}">
+                         data-save-button="{{ (item.save is defined and item.save) ? 1 : 0 }}"
+                         data-discard-button="{{ (item.discard is defined and item.discard) ? 1 : 0 }}">
                         {% if wrapped %}
                             <div class="header wii-title">{{ item.label }}</div>
                             <div class="focus-shadow">

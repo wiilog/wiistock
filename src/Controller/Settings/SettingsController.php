@@ -23,8 +23,8 @@ use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\WorkFreeDay;
 use App\Helper\FormatHelper;
-use App\Service\SpecificService;
 use App\Service\SettingsService;
+use App\Service\SpecificService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -56,15 +56,25 @@ class SettingsController extends AbstractController {
             "icon" => "menu-global",
             "right" => Action::SETTINGS_GLOBAL,
             "menus" => [
-                self::MENU_SITE_APPEARANCE => ["label" => "Apparence du site"],
+                self::MENU_SITE_APPEARANCE => [
+                    "label" => "Apparence du site",
+                    "save" => true,
+                ],
                 self::MENU_CLIENT => [
                     "label" => "Client application",
+                    "save" => true,
                     "env" => ["preprod"],
                 ],
-                self::MENU_LABELS => ["label" => "Étiquettes"],
+                self::MENU_LABELS => [
+                    "label" => "Étiquettes",
+                    "save" => true,
+                ],
                 self::MENU_WORKING_HOURS => ["label" => "Heures travaillées"],
                 self::MENU_OFF_DAYS => ["label" => "Jours non travaillés"],
-                self::MENU_MAIL_SERVER => ["label" => "Serveur mail"],
+                self::MENU_MAIL_SERVER => [
+                    "label" => "Serveur mail",
+                    "save" => true,
+                ],
             ],
         ],
         self::CATEGORY_STOCK => [
@@ -72,12 +82,21 @@ class SettingsController extends AbstractController {
             "icon" => "menu-stock",
             "right" => Action::SETTINGS_STOCK,
             "menus" => [
-                self::MENU_CONFIGURATIONS => ["label" => "Configurations"],
-                self::MENU_ALERTS => ["label" => "Alertes"],
+                self::MENU_CONFIGURATIONS => [
+                    "label" => "Configurations",
+                    "save" => true,
+                ],
+                self::MENU_ALERTS => [
+                    "label" => "Alertes",
+                    "save" => true,
+                ],
                 self::MENU_ARTICLES => [
                     "label" => "Articles",
                     "menus" => [
-                        self::MENU_LABELS => ["label" => "Étiquettes"],
+                        self::MENU_LABELS => [
+                            "label" => "Étiquettes",
+                            "save" => true,
+                        ],
                         self::MENU_TYPES_FREE_FIELDS => [
                             "label" => "Types et champs libres",
                             "wrapped" => false,
@@ -87,10 +106,16 @@ class SettingsController extends AbstractController {
                 self::MENU_REQUESTS => [
                     "label" => "Demandes",
                     "menus" => [
-                        self::MENU_DELIVERIES => ["label" => "Livraisons"],
+                        self::MENU_DELIVERIES => [
+                            "label" => "Livraisons",
+                            "save" => true,
+                        ],
                         self::MENU_DELIVERY_REQUEST_TEMPLATES => ["label" => "Livraisons - Modèle de demande"],
                         self::MENU_DELIVERY_TYPES_FREE_FIELDS => ["label" => "Livraisons - Types et champs libres", "wrapped" => false],
-                        self::MENU_COLLECTS => ["label" => "Collectes"],
+                        self::MENU_COLLECTS => [
+                            "label" => "Collectes",
+                            "save" => true,
+                        ],
                         self::MENU_COLLECT_REQUEST_TEMPLATES => ["label" => "Collectes - Modèle de demande"],
                         self::MENU_COLLECT_TYPES_FREE_FIELDS => ["label" => "Collectes - Types et champs libres", "wrapped" => false],
                         self::MENU_PURCHASE_STATUSES => ["label" => "Achats - Statut"],
@@ -107,8 +132,14 @@ class SettingsController extends AbstractController {
                 self::MENU_RECEPTIONS => [
                     "label" => "Réceptions",
                     "menus" => [
-                        self::MENU_RECEPTIONS_STATUSES => ["label" => "Réceptions - Statuts"],
-                        self::MENU_RECEPTIONS_FIXED_FIELDS => ["label" => "Réceptions - Champs fixes"],
+                        self::MENU_RECEPTIONS_STATUSES => [
+                            "label" => "Réceptions - Statuts",
+                            "save" => true,
+                        ],
+                        self::MENU_RECEPTIONS_FIXED_FIELDS => [
+                            "label" => "Réceptions - Champs fixes",
+                            "save" => true,
+                        ],
                         self::MENU_RECEPTIONS_FREE_FIELDS => ["label" => "Réceptions - Champs libres"],
                         self::MENU_DISPUTE_STATUSES => ["label" => "Litiges - Statuts"],
                         self::MENU_DISPUTE_TYPES => ["label" => "Litiges - Types"],
@@ -124,21 +155,46 @@ class SettingsController extends AbstractController {
                 self::MENU_DISPATCHES => [
                     "label" => "Acheminements",
                     "menus" => [
-                        self::MENU_CONFIGURATIONS => ["label" => "Configurations"],
+                        self::MENU_CONFIGURATIONS => [
+                            "label" => "Configurations",
+                            "save" => true,
+                        ],
                         self::MENU_STATUSES => ["label" => "Statuts"],
-                        self::MENU_FIXED_FIELDS => ["label" => "Champs fixes"],
+                        self::MENU_FIXED_FIELDS => [
+                            "label" => "Champs fixes",
+                            "save" => true,
+                        ],
                         self::MENU_TYPES_FREE_FIELDS => ["label" => "Types et champs libres", "wrapped" => false],
-                        self::MENU_WAYBILL => ["label" => "Lettre de voiture"],
-                        self::MENU_OVERCONSUMPTION_BILL => ["label" => "Bon de surconsommation"],
+                        self::MENU_WAYBILL => [
+                            "label" => "Lettre de voiture",
+                            "save" => true,
+                            "discard" => true,
+                        ],
+                        self::MENU_OVERCONSUMPTION_BILL => [
+                            "label" => "Bon de surconsommation",
+                            "save" => true,
+                            "discard" => true,
+                        ],
                     ],
                 ],
                 self::MENU_ARRIVALS => [
                     "label" => "Arrivages",
                     "menus" => [
-                        self::MENU_CONFIGURATIONS => ["label" => "Configurations"],
-                        self::MENU_LABELS => ["label" => "Étiquettes"],
+                        self::MENU_CONFIGURATIONS => [
+                            "label" => "Configurations",
+                            "save" => true,
+                            "discard" => true,
+                        ],
+                        self::MENU_LABELS => [
+                            "label" => "Étiquettes",
+                            "save" => true,
+                            "discard" => true,
+                        ],
                         self::MENU_STATUSES => ["label" => "Statuts"],
-                        self::MENU_FIXED_FIELDS => ["label" => "Champs fixes"],
+                        self::MENU_FIXED_FIELDS => [
+                            "label" => "Champs fixes",
+                            "save" => true,
+                        ],
                         self::MENU_TYPES_FREE_FIELDS => ["label" => "Types et champs libres", "wrapped" => false],
                         self::MENU_DISPUTE_STATUSES => ["label" => "Litiges - Statuts"],
                     ],
@@ -153,7 +209,11 @@ class SettingsController extends AbstractController {
                     "label" => "Services",
                     "menus" => [
                         self::MENU_STATUSES => ["label" => "Statuts"],
-                        self::MENU_FIXED_FIELDS => ["label" => "Champs fixes"],
+                        self::MENU_FIXED_FIELDS => [
+                            "label" => "Champs fixes",
+                            "save" => true,
+                            "discard" => true,
+                        ],
                         self::MENU_REQUEST_TEMPLATES => ["label" => "Modèles de demande"],
                         self::MENU_TYPES_FREE_FIELDS => ["label" => "Types et champs libres", "wrapped" => false],
                     ],
@@ -165,11 +225,26 @@ class SettingsController extends AbstractController {
             "icon" => "menu-terminal-mobile",
             "right" => Action::SETTINGS_MOBILE,
             "menus" => [
-                self::MENU_DISPATCHES => ["label" => "Acheminements"],
-                self::MENU_HANDLINGS => ["label" => "Services"],
-                self::MENU_TRANSFERS => ["label" => "Transferts à traiter"],
-                self::MENU_PREPARATIONS => ["label" => "Préparations"],
-                self::MENU_VALIDATION => ["label" => "Gestion des validations"],
+                self::MENU_DISPATCHES => [
+                    "label" => "Acheminements",
+                    "save" => true,
+                ],
+                self::MENU_HANDLINGS => [
+                    "label" => "Services",
+                    "save" => true,
+                ],
+                self::MENU_TRANSFERS => [
+                    "label" => "Transferts à traiter",
+                    "save" => true,
+                ],
+                self::MENU_PREPARATIONS => [
+                    "label" => "Préparations",
+                    "save" => true,
+                ],
+                self::MENU_VALIDATION => [
+                    "label" => "Gestion des validations",
+                    "save" => true,
+                ],
             ],
         ],
         self::CATEGORY_DASHBOARDS => [
@@ -211,9 +286,12 @@ class SettingsController extends AbstractController {
                 ],
                 self::MENU_USERS => [
                     "label" => "Utilisateurs",
+                    "save" => false,
+                ],
+                self::MENU_ROLES => [
+                    "label" => "Rôles",
                     "save" => false
                 ],
-                self::MENU_ROLES => ["label" => "Rôles"],
             ],
         ],
         self::CATEGORY_DATA => [
@@ -221,7 +299,11 @@ class SettingsController extends AbstractController {
             "icon" => "menu-donnees",
             "right" => Action::SETTINGS_DATA,
             "menus" => [
-                self::MENU_CSV_EXPORTS => ["label" => "Exports CSV"],
+                self::MENU_CSV_EXPORTS => [
+                    "label" => "Exports CSV",
+                    "save" => true,
+                    "discard" => true,
+                ],
                 self::MENU_IMPORTS => [
                     "label" => "Imports & mises à jour",
                     "save" => false,
@@ -590,8 +672,8 @@ class SettingsController extends AbstractController {
                 self::MENU_MOVEMENTS => [
                     self::MENU_FREE_FIELDS => fn() => [
                         "type" => $typeRepository->findOneByLabel(Type::LABEL_MVT_TRACA),
-                    ]
-                ]
+                    ],
+                ],
             ],
             self::CATEGORY_IOT => [
                 self::MENU_TYPES_FREE_FIELDS => function() use ($typeRepository) {
@@ -619,9 +701,9 @@ class SettingsController extends AbstractController {
             ],
             self::CATEGORY_USERS => [
                 self::MENU_USERS => fn() => [
-                    "newUser" => new Utilisateur()
-                ]
-            ]
+                    "newUser" => new Utilisateur(),
+                ],
+            ],
         ];
     }
 
@@ -739,32 +821,46 @@ class SettingsController extends AbstractController {
     }
 
     /**
-     * @Route("/champs-libes/{type}/header", name="settings_type_header", options={"expose"=true})
+     * @Route("/champs-libes/header/{type}", name="settings_type_header", options={"expose"=true})
      */
-    public function typeHeader(Request $request, Type $type): Response {
+    public function typeHeader(Request $request, ?Type $type = null): Response {
+        $typeRepository = $this->manager->getRepository(Type::class);
+
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
-        $category = $type->getCategory()->getLabel();
+        $category = $typeRepository->getEntities($request->request->get("types"));
+
+        if(count($category) !== 1) {
+            return $this->json([
+                "success" => false,
+                "msg" => "Configuration invalide, les types ne peuvent pas être récupérés",
+            ]);
+        } else {
+            $category = $category[0];
+        }
 
         if($edit) {
             $fixedFieldRepository = $this->manager->getRepository(FieldsParam::class);
 
-            $data = [
-                [
-                    "label" => "Libellé*",
-                    "value" => "<input name='label' class='data form-control' required value='{$type->getLabel()}'>",
-                ],
-                [
-                    "label" => "Description",
-                    "value" => "<input name='description' class='data form-control' value='{$type->getDescription()}'>",
-                ]
-            ];
+            $label = $type ? $type->getLabel() : null;
+            $description = $type ? $type->getDescription() : null;
+            $color = $type ? $type->getColor() : "#000000";
+
+            $data = [[
+                "label" => "Libellé*",
+                "value" => "<input name='label' class='data form-control' required value='$label'>",
+            ], [
+                "label" => "Description",
+                "value" => "<input name='description' class='data form-control' value='$description'>",
+            ]];
 
             if($category === CategoryType::ARTICLE) {
+                $inputId = rand(0, 1000000);
+
                 $data[] = [
                     "label" => "Couleur",
                     "value" => "
-                    <input type='color' class='form-control wii-color-picker data' name='color' value='{$type->getColor()}' list='type-color-{$type->getId()}'/>
-                    <datalist id='type-color-{$type->getId()}'>
+                    <input type='color' class='form-control wii-color-picker data' name='color' value='$color' list='type-color-$inputId'/>
+                    <datalist id='type-color-$inputId'>
                         <option>#D76433</option>
                         <option>#D7B633</option>
                         <option>#A5D733</option>
@@ -778,7 +874,7 @@ class SettingsController extends AbstractController {
             }
 
             if(in_array($category, [CategoryType::DEMANDE_LIVRAISON, CategoryType::DEMANDE_COLLECTE])) {
-                $notificationsEnabled = $type->isNotificationsEnabled() ? "checked" : "";
+                $notificationsEnabled = $type && $type->isNotificationsEnabled() ? "checked" : "";
 
                 $data[] = [
                     "label" => "Notifications push",
@@ -786,20 +882,26 @@ class SettingsController extends AbstractController {
                 ];
             }
 
-            if($category === CategoryType::DEMANDE_DISPATCH) {
-                $pickLocationOption = $type->getPickLocation() ? "<option value='{$type->getPickLocation()->getId()}'>{$type->getPickLocation()->getLabel()}</option>" : "";
-                $dropLocationOption = $type->getDropLocation() ? "<option value='{$type->getDropLocation()->getId()}'>{$type->getDropLocation()->getLabel()}</option>" : "";
+            if($category === CategoryType::DEMANDE_LIVRAISON) {
+                $mailsEnabled = $type && $type->getSendMail() ? "checked" : "";
 
-                $data = array_merge($data, [
-                    [
-                        "label" => "Emplacement de prise par défaut",
-                        "value" => "<select name='pickLocation' data-s2='location' class='data form-control'>$pickLocationOption</select>",
-                    ],
-                    [
-                        "label" => "Emplacement de dépose par défaut",
-                        "value" => "<select name='dropLocation' data-s2='location' class='data form-control'>$dropLocationOption</select>",
-                    ]
-                ]);
+                $data[] = [
+                    "label" => "Envoi de mail au demandeur",
+                    "value" => "<input name='pushNotifications' type='checkbox' class='data form-control mt-1' $mailsEnabled>",
+                ];
+            }
+
+            if($category === CategoryType::DEMANDE_DISPATCH) {
+                $pickLocationOption = $type && $type->getPickLocation() ? "<option value='{$type->getPickLocation()->getId()}'>{$type->getPickLocation()->getLabel()}</option>" : "";
+                $dropLocationOption = $type && $type->getDropLocation() ? "<option value='{$type->getDropLocation()->getId()}'>{$type->getDropLocation()->getLabel()}</option>" : "";
+
+                $data = array_merge($data, [[
+                    "label" => "Emplacement de prise par défaut",
+                    "value" => "<select name='pickLocation' data-s2='location' class='data form-control'>$pickLocationOption</select>",
+                ], [
+                    "label" => "Emplacement de dépose par défaut",
+                    "value" => "<select name='dropLocation' data-s2='location' class='data form-control'>$dropLocationOption</select>",
+                ]]);
             }
 
             if(in_array($category, [CategoryType::DEMANDE_HANDLING, CategoryType::DEMANDE_DISPATCH])) {
@@ -810,9 +912,9 @@ class SettingsController extends AbstractController {
                         "Notifications push",
                         false,
                         [
-                            ["label" => "Désactiver", "value" => 0, "checked" => !$type->isNotificationsEnabled()],
-                            ["label" => "Activer", "value" => 1, "checked" => $type->isNotificationsEnabled() && !$type->getNotificationsEmergencies()],
-                            ["label" => "Activer seulement si urgence", "value" => 2, "checked" => $type->isNotificationsEnabled() && $type->getNotificationsEmergencies()],
+                            ["label" => "Désactiver", "value" => 0, "checked" => !$type || !$type->isNotificationsEnabled()],
+                            ["label" => "Activer", "value" => 1, "checked" => $type && $type->isNotificationsEnabled() && !$type->getNotificationsEmergencies()],
+                            ["label" => "Activer seulement si urgence", "value" => 2, "checked" => $type && $type->isNotificationsEnabled() && $type->getNotificationsEmergencies()],
                         ],
                     ],
                 ]);
@@ -824,7 +926,7 @@ class SettingsController extends AbstractController {
 
                 $emergencies = $fixedFieldRepository->getElements($entity[$category], FieldsParam::FIELD_CODE_EMERGENCY);
                 $emergencyValues = Stream::from($emergencies)
-                    ->map(fn(string $emergency) => "<option value='$emergency' " . (in_array($emergency, $type->getNotificationsEmergencies() ?? []) ? "selected" : "") . ">$emergency</option>")
+                    ->map(fn(string $emergency) => "<option value='$emergency' " . ($type && in_array($emergency, $type->getNotificationsEmergencies() ?? []) ? "selected" : "") . ">$emergency</option>")
                     ->join("");
 
                 $data = array_merge($data, [
@@ -838,8 +940,8 @@ class SettingsController extends AbstractController {
                     [
                         "label" => "Pour les valeurs",
                         "value" => "<select name='notificationEmergencies' data-s2 data-no-empty-option multiple class='data form-control w-100'>$emergencyValues</select>",
-                        "hidden" => !$type->isNotificationsEnabled() || !$type->getNotificationsEmergencies(),
-                    ]
+                        "hidden" => !$type || !$type->isNotificationsEnabled() || !$type->getNotificationsEmergencies(),
+                    ],
                 ]);
             }
         } else {
@@ -859,6 +961,13 @@ class SettingsController extends AbstractController {
                 $data[] = [
                     "label" => "Notifications push",
                     "value" => $type->isNotificationsEnabled() ? "Activées" : "Désactivées",
+                ];
+            }
+
+            if($category === CategoryType::DEMANDE_LIVRAISON) {
+                $data[] = [
+                    "label" => "Envoi de mail au demandeur",
+                    "value" => $type->getSendMail() ? "Activées" : "Désactivées",
                 ];
             }
 
@@ -901,13 +1010,14 @@ class SettingsController extends AbstractController {
         return $this->json([
             "success" => true,
             "data" => $data,
+            "category" => $category,
         ]);
     }
 
     /**
      * @Route("/champs-libres/api/{type}", name="settings_free_field_api", options={"expose"=true})
      */
-    public function freeFieldApi(Request $request, EntityManagerInterface $manager, Type $type): Response {
+    public function freeFieldApi(Request $request, EntityManagerInterface $manager, ?Type $type = null): Response {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
 
         $class = "form-control data";
@@ -918,7 +1028,8 @@ class SettingsController extends AbstractController {
             ->join("");
 
         $rows = [];
-        foreach($type->getChampsLibres() as $freeField) {
+        $freeFields = $type ? $type->getChampsLibres() : [];
+        foreach($freeFields as $freeField) {
             if($freeField->getTypage() === FreeField::TYPE_BOOL) {
                 $typageCLFr = "Oui/Non";
             } else if($freeField->getTypage() === FreeField::TYPE_NUMBER) {
@@ -1026,7 +1137,7 @@ class SettingsController extends AbstractController {
             }
         }
 
-        if($edit || $type->getCategory()->getLabel() === CategoryType::MOUVEMENT_TRACA) {
+        if($edit || $type && $type->getCategory()->getLabel() === CategoryType::MOUVEMENT_TRACA) {
             $rows[] = [
                 "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
                 "label" => "",
@@ -1058,7 +1169,6 @@ class SettingsController extends AbstractController {
             "msg" => "Le champ libre a été supprimé",
         ]);
     }
-
 
     /**
      * @Route("/champ-fixe/{entity}", name="settings_fixed_field_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
@@ -1374,7 +1484,7 @@ class SettingsController extends AbstractController {
      */
     public function deleteVisibilityGroup(EntityManagerInterface $manager, VisibilityGroup $entity) {
         $visibilityGroup = $manager->getRepository(VisibilityGroup::class)->find($entity);
-        if ($visibilityGroup->getArticleReferences()->isEmpty()){
+        if($visibilityGroup->getArticleReferences()->isEmpty()) {
             $manager->remove($entity);
             $manager->flush();
         } else {
@@ -1388,4 +1498,5 @@ class SettingsController extends AbstractController {
             "msg" => "Le groupe de visibilité a été supprimé",
         ]);
     }
+
 }
