@@ -31,17 +31,20 @@ class RoleController extends AbstractController {
         $roleRepository = $entityManager->getRepository(Role::class);
 
         $roles = $roleRepository->findAllExceptNoAccess();
-        $data['data'] = Stream::from($roles)
-            ->map(fn(Role $role) => [
-                'name' => $role->getLabel() ?: "Non défini",
-                'quantityType' => FormatHelper::quantityTypeLabel($role->getQuantityType()),
-                'isMailSendAccountCreation' => FormatHelper::bool($role->getIsMailSendAccountCreation()),
-                'actions' => $this->renderView('settings/utilisateurs/roles/actions.html.twig', [
-                    'role' => $role
-                ]),
-            ])
-            ->toArray();
-        return $this->json($data);
+
+        return $this->json([
+            'data' => Stream::from($roles)
+                ->map(fn(Role $role) => [
+                    'name' => $role->getLabel() ?: "Non défini",
+                    'quantityType' => FormatHelper::quantityTypeLabel($role->getQuantityType()),
+                    'isMailSendAccountCreation' => FormatHelper::bool($role->getIsMailSendAccountCreation()),
+                    'actions' => $this->renderView('settings/utilisateurs/roles/actions.html.twig', [
+                        'role' => $role
+                    ]),
+                ])
+                ->toArray(),
+            'recordsTotal' => count($roles),
+        ]);
     }
 
     /**

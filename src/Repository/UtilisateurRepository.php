@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Action;
 use App\Entity\Utilisateur;
+use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -114,15 +115,7 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
 
     public function findByParams(InputBag $params)
     {
-        $em = $this->getEntityManager();
-        $qb = $em->createQueryBuilder();
-
-        $qb
-            ->select('a')
-            ->from('App\Entity\Utilisateur', 'a');
-
-        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
-        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
+        $qb = $this->createQueryBuilder('user');
 
         if (!empty($params->get('order'))) {
             $order = $params->get('order')[0]['dir'];
@@ -133,23 +126,23 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
                 switch ($column) {
                     case 'Dropzone':
                         $qb
-                            ->leftJoin('a.dropzone', 'd_order')
+                            ->leftJoin('user.dropzone', 'd_order')
                             ->orderBy('d_order.label', $order);
                         break;
                     case 'role':
                         $qb
-                            ->leftJoin('a.role', 'a_order')
+                            ->leftJoin('user.role', 'a_order')
                             ->orderBy('a_order.label', $order);
                         break;
                     case 'visibilityGroup':
                         $qb
-                            ->leftJoin('a.visibilityGroups', 'order_visibility_group')
+                            ->leftJoin('user.visibilityGroups', 'order_visibility_group')
                             ->orderBy('order_visibility_group.label', $order);
                         break;
                     default:
                         $dbColumn = self::DtToDbLabels[$column] ?? $column;
                         if (property_exists(Utilisateur::class, $dbColumn)) {
-                            $qb->orderBy("a.$dbColumn", $order);
+                            $qb->orderBy("user.$dbColumn", $order);
                         }
                         break;
                 }
@@ -160,11 +153,11 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
             $search = $params->get('search')['value'];
             if (!empty($search)) {
                 $qb
-                    ->leftJoin('a.dropzone', 'd_search')
-                    ->leftJoin('a.visibilityGroups', 'search_visibility_group')
+                    ->leftJoin('user.dropzone', 'd_search')
+                    ->leftJoin('user.visibilityGroups', 'search_visibility_group')
                     ->andWhere(
-                        'a.username LIKE :value'
-                        . ' OR a.email LIKE :value'
+                        'user.username LIKE :value'
+                        . ' OR user.email LIKE :value'
                         . ' OR d_search.label LIKE :value'
                         . ' OR search_visibility_group.label LIKE :value'
                     )
@@ -172,22 +165,16 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
             }
         }
 
-        $query = $qb->getQuery();
+        $filtered = QueryCounter::count($qb, 'user');
 
-        return $query->getResult();
-    }
+        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
-    public function countAll()
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(a)
-            FROM App\Entity\Utilisateur a
-           "
-        );
-
-        return $query->getSingleScalarResult();
+        return [
+            'data' => $qb->getQuery()->getResult(),
+            'total' => $this->count([]),
+            'filtered' => $filtered,
+        ];
     }
 
     public function getUsernameBuyersGroupByArrival()

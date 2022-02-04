@@ -24,6 +24,20 @@ class CategoryType
     const SENSOR = 'capteur';
     const REQUEST_TEMPLATE = 'modèle demande';
 
+    public const ALL = [
+        self::RECEPTION,
+        self::ARTICLE,
+        self::DISPUTE,
+        self::DEMANDE_LIVRAISON,
+        self::DEMANDE_COLLECTE,
+        self::DEMANDE_DISPATCH,
+        self::DEMANDE_HANDLING,
+        self::ARRIVAGE,
+        self::MOUVEMENT_TRACA,
+        self::TRANSFER_REQUEST,
+        self::SENSOR,
+        self::REQUEST_TEMPLATE,
+    ];
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

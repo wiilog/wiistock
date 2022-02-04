@@ -112,7 +112,7 @@ $(document).ready(() => {
             $(`.header-icon.cart`).find(`.icon-figure`).text(response.count)[response.count ? `addClass` : `removeClass`](`d-none`);
             showBSAlert(response.msg, `success`);
         });
-    })
+    });
 
     Form.create(`.wii-form`).onSubmit(data => {
         const url = Routing.generate('cart_validate', true);
