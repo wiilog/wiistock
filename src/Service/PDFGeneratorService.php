@@ -83,7 +83,7 @@ class PDFGeneratorService {
             ];
         }, $barcodeConfigs);
 
-        $logo = ($barcodeConfig['logo'] && file_exists(getcwd() . "/uploads/attachements/" . $barcodeConfig['logo'])
+        $logo = ($barcodeConfig['logo'] && file_exists(getcwd() . "/" . $barcodeConfig['logo'])
             ? $barcodeConfig['logo']
             : null);
 

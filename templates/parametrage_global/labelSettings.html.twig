@@ -1,3 +1,4 @@
+{# TODO WIIS-6693 #}
 <a data-toggle="collapse" href="#labelSettings" role="button" aria-expanded="false"
    aria-controls="labelSettings" class="col-12 mb-4">
     <h1 class="btn btn-primary m-0 w-100 border-radius-light">Configuration des étiquettes<i
@@ -79,7 +80,7 @@
                            value="{{ titleEmergencyLabel ? titleEmergencyLabel : '' }}">
                 </div>
                 <div class="form-group d-flex">
-                    <img src="{{ emergencyIcon ? app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ emergencyIcon : '' }}"
+                    <img src="{{ emergencyIcon ? app.request.scheme ~'://'~ app.request.httpHost ~ "/" ~ emergencyIcon : '' }}"
                          id="preview-emergency-icon" alt="Logo douane" height="50px" class="{{ emergencyIcon ? '' : 'd-none' }}"/>
 
                     <button class="btn btn-primary" onclick="$('#upload-emergency-icon').click();">{{ emergencyIcon ? "<i class='fas fa-pencil-alt'></i> ": ' Choisir un icône' }}</button>
@@ -100,7 +101,7 @@
                            value="{{ titleCustomLabel ? titleCustomLabel : '' }}">
                 </div>
                 <div class="form-group d-flex">
-                    <img src="{{ customIcon ? app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ customIcon : '' }}"
+                    <img src="{{ customIcon ? app.request.scheme ~'://'~ app.request.httpHost ~ "/" ~ customIcon : '' }}"
                          id="preview-custom-icon" alt="Logo urgence" height="50px" class="{{ customIcon ? '' : 'd-none' }}"/>
 
                     <button class="btn btn-primary" onclick="$('#upload-custom-icon').click();">{{ customIcon ? "<i class='fas fa-pencil-alt'></i> ": ' Choisir un icône' }}</button>

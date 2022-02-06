@@ -65,7 +65,6 @@ class AppExtension extends AbstractExtension {
             new TwigFilter('wordwrap', [$this, 'wordwrap']),
             new TwigFilter('ellipsis', [$this, 'ellipsis']),
             new TwigFilter("format_helper", [$this, "formatHelper"]),
-            new TwigFilter("json_decode", [$this, "jsonDecode"]),
         ];
     }
 
@@ -194,9 +193,4 @@ class AppExtension extends AbstractExtension {
 
         return $results;
     }
-
-    public function jsonDecode(string $string, bool $associative = true) {
-        return json_decode($string, $associative);
-    }
-
 }

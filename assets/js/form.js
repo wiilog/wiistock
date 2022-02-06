@@ -121,12 +121,20 @@ export default class Form {
                         elements: [$input.closest(`.wii-radio, .wii-checkbox, .wii-switch`)],
                         message: `Vous devez sélectionner au moins un élément`,
                     });
-                } else if($input.is(`[data-wysiwyg]`) && !$input.find(`.ql-editor`).text() || !$input.is(`[data-wysiwyg]`) && !$input.val()) {
-                    if(!$input.is(`[type="file"]`) || form instanceof Form && !form.uploads[$input.attr(`name`)]) {
-                        errors.push({
-                            elements: [$input],
-                            message: `Ce champ est requis`,
-                        });
+                } else {
+                    const valueIsEmpty = (
+                        $input.is(`[data-wysiwyg]`) ? !$input.find(`.ql-editor`).text() :  // for wysuwyg fields
+                        ($input.is(`select[multiple]`) && Array.isArray($input.val())) ? $input.val().length === 0 : // for select2 multiple
+                        !$input.val() // other fiels
+                    );
+
+                    if(valueIsEmpty) {
+                        if(!$input.is(`[type="file"]`) || form instanceof Form && !form.uploads[$input.attr(`name`)]) {
+                            errors.push({
+                                elements: [$input],
+                                message: `Ce champ est requis`,
+                            });
+                        }
                     }
                 }
             }
@@ -149,20 +157,18 @@ export default class Form {
                     value = value.trim();
                 }
 
-                if(value !== null || $input.is('[data-nullable]')) {
-                    const $multipleKey = $input.closest(`[data-multiple-key]`);
-                    if($multipleKey.exists()) {
-                        const multipleKey = JSON.parse(data.get($multipleKey.data(`multiple-key`)) || `{}`);
-                        if(!multipleKey[$multipleKey.data(`multiple-object-index`)]) {
-                            multipleKey[$multipleKey.data(`multiple-object-index`)] = {};
-                        }
-
-                        const multipleObject = multipleKey[$multipleKey.data(`multiple-object-index`)];
-                        multipleObject[$input.attr(`name`) || $input.attr(`data-wysiwyg`)] = value;
-                        data.set($multipleKey.data(`multiple-key`), JSON.stringify(multipleKey));
-                    } else {
-                        data.set($input.attr(`name`) || $input.attr(`data-wysiwyg`), value);
+                const $multipleKey = $input.closest(`[data-multiple-key]`);
+                if($multipleKey.exists()) {
+                    const multipleKey = JSON.parse(data.get($multipleKey.data(`multiple-key`)) || `{}`);
+                    if(!multipleKey[$multipleKey.data(`multiple-object-index`)]) {
+                        multipleKey[$multipleKey.data(`multiple-object-index`)] = {};
                     }
+
+                    const multipleObject = multipleKey[$multipleKey.data(`multiple-object-index`)];
+                    multipleObject[$input.attr(`name`) || $input.attr(`data-wysiwyg`)] = value;
+                    data.set($multipleKey.data(`multiple-key`), JSON.stringify(multipleKey));
+                } else {
+                    data.set($input.attr(`name`) || $input.attr(`data-wysiwyg`), value);
                 }
             }
         }

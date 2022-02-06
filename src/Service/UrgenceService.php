@@ -115,9 +115,10 @@ class UrgenceService
         $urgenceRepository = $this->entityManager->getRepository(Urgence::class);
 
         if(!isset($this->__arrival_emergency_fields)) {
-            $this->__arrival_emergency_fields = json_decode($this->entityManager
+            $arrivalEmergencyFields = $this->entityManager
                 ->getRepository(ParametrageGlobal::class)
-                ->getOneParamByLabel(ParametrageGlobal::ARRIVAL_EMERGENCY_TRIGGERING_FIELDS));
+                ->getOneParamByLabel(ParametrageGlobal::ARRIVAL_EMERGENCY_TRIGGERING_FIELDS);
+            $this->__arrival_emergency_fields = $arrivalEmergencyFields ? explode(',', $arrivalEmergencyFields) : [];
         }
 
         return $urgenceRepository->findUrgencesMatching(

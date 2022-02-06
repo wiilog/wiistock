@@ -13,27 +13,32 @@
     {% endif %}
 {% endmacro %}
 
-{% macro label(label, required, wrap = false) %}
-    <span class="d-inline-flex align-items-center field-label {{ not wrap ? 'nowrap' }}">
-        {% if label is iterable %}
-            {% if label.wiiIcon is defined %}
-                <span class="mr-2 wii-icon wii-icon-{{ label.wiiIcon }}"></span>
-            {% elseif label.faIcon is defined %}
-                <i class="mr-2 {{ label.faIcon }}"></i>
-            {% elseif label.url is defined %}
-                <img src="{{ label.url }}" alt="{{ label.alt ?? '' }}" width="15px" class="mr-2">
-            {% endif %}
+{% macro label(label, required, options = {}) %}
+    {% set removeIfEmpty = options.removeIfEmpty ?? false %}
 
-            {{ label.text | raw }}{{ required ? '*' }}
-        {% else %}
-            {{ label | raw }}{{ required ? '*' }}
-        {% endif %}
-    </span>
+    {% if label or not removeIfEmpty %}
+        <span class="d-inline-flex align-items-center field-label">
+            {% if label is iterable %}
+                {% if label.wiiIcon is defined %}
+                    <span class="mr-2 wii-icon wii-icon-{{ label.wiiIcon }}"></span>
+                {% elseif label.faIcon is defined %}
+                    <i class="mr-2 {{ label.faIcon }}"></i>
+                {% elseif label.url is defined %}
+                    <img src="{{ label.url }}" alt="{{ label.alt ?? '' }}" width="15px" class="mr-2">
+                {% endif %}
+
+                {{ label.text | raw }}{{ required ? '*' }}
+            {% else %}
+                {{ label | raw }}{{ required ? '*' }}
+            {% endif %}
+        </span>
+    {% endif %}
 {% endmacro %}
 
 {% macro switch(name, label, required, switches, options = {}) %}
     <label class="d-flex flex-column align-items-start">
-        {% if label %}<label class="{{ options.labelClass ?? '' }}">{{ _self.label(label, required) }}</label>{% endif %}
+        {% set labelOptions = options.labelOptions ?? {} %}
+        {% if label %}<label class="{{ options.labelClass ?? '' }}">{{ _self.label(label, required, labelOptions) }}</label>{% endif %}
         <div class="{{ options.expanded ?? false ? 'wii-expanded-switch' : 'wii-switch' }} text-truncate"
              data-title="{{ label | striptags }}{{ required ? '*' }}">
             {% for switch in switches %}
@@ -53,7 +58,8 @@
 {% endmacro %}
 
 {% macro slider(name, label, required, checked = false, options = {}) %}
-    <label class="{{ options.labelClass ?? '' }}">{{ _self.label(label, required) }}</label>
+    {% set labelOptions = options.labelOptions ?? {} %}
+    <label class="{{ options.labelClass ?? '' }}">{{ _self.label(label, required, labelOptions) }}</label>
     <label class="switch">
         <input class="checkbox data"
                type="checkbox"
@@ -66,6 +72,7 @@
 {% endmacro %}
 
 {% macro checkbox(name, label, required, value = true, options = {}) %}
+    {% set labelOptions = options.labelOptions ?? {} %}
     {% set id = options.id ?? ('checkbox-' ~ random(100000, 10000000)) %}
     <div class="wii-checkbox">
         <input type="checkbox"
@@ -76,12 +83,13 @@
               {{ _self.multiple_key(options) }}
               {{ {on: 1, off: 0}[value] ?? value ? 'checked' }}>
         <label class="{{ options.labelClass ?? '' }}" for="{{ id }}">
-            <span>{{ _self.label(label, required, true) }}</span>
+            <span>{{ _self.label(label, required, labelOptions) }}</span>
         </label>
     </div>
 {% endmacro %}
 
 {% macro radio(name, label, required, items, options = {}) %}
+    {% set labelOptions = options.labelOptions ?? {} %}
     <div class="wii-radio-container">
         {% for item in items %}
             {% set id = random(100000, 10000000) %}
@@ -92,31 +100,29 @@
                     {{ _self.common_attributes(name, options) }}
                     {{ _self.multiple_key(options) }}
                     {{ (item.checked ?? false) ? 'checked' }} />
-                <label class="{{ options.labelClass ?? '' }} pointer" for="radio-{{ id }}">{{ _self.label(item.label, false) }}</label>
+                <label class="{{ options.labelClass ?? '' }} pointer" for="radio-{{ id }}">{{ _self.label(item.label, false, labelOptions) }}</label>
             </div>
         {% endfor %}
     </div>
 {% endmacro %}
 
 {% macro select(name, label, required, options = {}) %}
-    {% set value = options.value ?? [] %}
-    {% set values = value is iterable ? value : [value] %}
-
-    <label class="{{ not options.search ?? true ? 'no-search' }}">
-        <span class="{{ options.labelClass ?? '' }}">{{ _self.label(label, required) }}</span>
+    {% set labelOptions = options.labelOptions ?? {} %}
+    {% set value = options.value ?? null %}
+    {% set values = value
+        ? (value is iterable ? value : [value])
+        : [] %}
+    <label class="w-100 {{ not options.search ?? true ? 'no-search' }}">
+        <span class="w-100 {{ options.labelClass ?? '' }}">{{ _self.label(label, required, labelOptions) }}</span>
         <select class="form-control w-100 data"
             {{ required ? 'required' }}
             {{ options.multiple ?? false ? 'multiple' }}
             {% if options.type is defined %}
                 data-s2="{{ options.type }}"
                 {% if options.editable ?? false %}data-editable{% endif %}
+                {% if options.noEmptyOption ?? false %}data-no-empty-option{% endif %}
                 {% if options.placeholder is defined %}data-placeholder="{{ options.placeholder }}"{% endif %}
                 {% if options.includeParams is defined %}data-include-params="{{ options.includeParams }}"{% endif %}
-            {% endif %}
-            {% if options.dataAttributes is defined %}
-                {% for key, attribute in options.dataAttributes %}
-                    data-{{ key }}="{{ attribute }}"
-                {% endfor %}
             {% endif %}
             {{ _self.common_attributes(name, options) }}
             {{ _self.multiple_key(options) }}>
@@ -145,16 +151,17 @@
 {% endmacro %}
 
 {% macro input(name, label, required, value = '', options = {}) %}
-    <label class="{{ options.labelClass ?? '' }} {{ (options.inline ?? false) ? 'labelled-field' }}">
-        <span>{{ _self.label(label, required) }}</span>
+    {% set labelOptions = options.labelOptions ?? {} %}
+    <label class="w-100 {{ options.labelClass ?? '' }} {{ (options.inline ?? false) ? 'labelled-field' }}">
+        <span class="w-100">{{ _self.label(label, required, labelOptions) }}</span>
         {% if options.tooltip is defined %}
-        <sup class="input-tooltip">
-            <img src="{{ asset('svg/reference_article/information.svg') }}"
-                 alt="Icône information"
-                 width="{{ (options.inline ?? false) ? '15px' : '10px' }}"
-                 class="has-tooltip"
-                 title="{{ options.tooltip.text ?? options.tooltip ?? '' }}">
-        </sup>
+            <sup class="input-tooltip">
+                <img src="{{ asset('svg/reference_article/information.svg') }}"
+                     alt="Icône information"
+                     width="{{ (options.inline ?? false) ? '15px' : '10px' }}"
+                     class="has-tooltip"
+                     title="{{ options.tooltip.text ?? options.tooltip ?? '' }}">
+            </sup>
         {% endif %}
         <input type="{{ options.type ?? 'text' }}"
                class="form-control w-100 data"
@@ -168,9 +175,10 @@
 
 {% macro color(name, label, required, value = '', options = {}) %}
     {% set id = random(100000, 10000000) %}
+    {% set labelOptions = options.labelOptions ?? {} %}
 
     <label class="{{ options.labelClass ?? '' }} {{ (options.inline ?? false) ? 'labelled-field' }}">
-        {% if label %}<span>{{ _self.label(label, required) }}</span>{% endif %}
+        {% if label %}<span>{{ _self.label(label, required, labelOptions) }}</span>{% endif %}
 
         <input type="color" list="color-input-{{ id }}"
                class="data form-control wii-color-picker"
@@ -192,9 +200,10 @@
 {% endmacro %}
 
 {% macro number(name, label, required, value = '', options = {}) %}
+    {% set labelOptions = options.labelOptions ?? {} %}
     {% set disabled = options.disabled is defined and options.disabled ? 'disabled' %}
     <label class="{{ options.labelClass ?? '' }}">
-        <span>{{ _self.label(label, required and not disabled) }}</span>
+        <span>{{ _self.label(label, required and not disabled, labelOptions) }}</span>
         <span class="increase-decrease-field" style="min-width: 120px;">
             <button class="decrease" {{ disabled }}></button>
             <input type="number" data-no-arrow class="form-control w-50 p-0 text-center {{ not disabled ? 'data' }}"
@@ -212,8 +221,9 @@
 {% endmacro %}
 
 {% macro textarea(name, label, required, value = '', options = {}) %}
+    {% set labelOptions = options.labelOptions ?? {} %}
     <label class="{{ options.labelClass ?? '' }}">
-        <span>{{ _self.label(label, required) }}</span>
+        <span>{{ _self.label(label, required, labelOptions) }}</span>
         <textarea class="form-control w-100 data"
                   {{ _self.common_attributes(name, options) }}
                   rows="{{ options.rows ?? 3 }}" style="resize: vertical"
@@ -225,15 +235,17 @@
 
 {% macro wysiwyg(name, label, required, value = '', options = {}) %}
     {% set id = random(100000, 10000000) %}
+    {% set labelOptions = options.labelOptions ?? {} %}
 
-    <label class="wii-subtitle">{{ _self.label(label, required) }}</label>
+    <label class="wii-subtitle">{{ _self.label(label, required, labelOptions) }}</label>
     <div class="data" data-wysiwyg="{{ name }}" {{ required ? 'data-required' }}>{{- value | raw -}}</div>
 {% endmacro %}
 
 {% macro image(name, label, required, image = '', options = {}) %}
+    {% set labelOptions = options.labelOptions ?? {} %}
     <label class="{{ options.labelClass ?? '' }}">
-        <span>{{ _self.label(label, required) }}</span>
-        <div class="form-group d-flex">
+        <span>{{ _self.label(label, required, labelOptions) }}</span>
+        <div class="form-group d-flex m-0">
             <div class="preview-container stripped-background d-flex p-1 mr-1">
                 <img src="{{ image ? (app.request.scheme ~ '://' ~ app.request.httpHost ~ "/" ~ image) : '' }}"
                      id="preview-{{ name }}"
@@ -255,10 +267,11 @@
                 </button>
             {% endif %}
 
-            <input type="file" id="upload-{{ name }}"
+            <input type="file"
+                   id="upload-{{ name }}"
                    name="{{ name }}"
                    accept="{{ options.formats ?? 'image/png, image/jpeg, image/jpg, image/svg+xml, image/gif' }}"
-                   class="data force-data" {{ options.defaultImage ?? false ? 'data-nullable' }}
+                   class="data force-data"
                    onchange="updateImagePreview('#preview-{{ name }}', '#upload-{{ name }}')"
                    hidden {{ required ? 'required' }}>
         </div>
