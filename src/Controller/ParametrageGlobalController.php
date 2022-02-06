@@ -1,5 +1,5 @@
 <?php
-
+// TODO WIIS-6693
 namespace App\Controller;
 
 use App\Annotation\HasPermission;
@@ -94,11 +94,14 @@ class ParametrageGlobalController extends AbstractController
             $workFreeDaysRepository->findAll()
         );
 
+        $arrivalEmergencyTriggeringFields = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::ARRIVAL_EMERGENCY_TRIGGERING_FIELDS);
+        $arrivalEmergencyTriggeringFieldsValue = $arrivalEmergencyTriggeringFields ? explode(',', $arrivalEmergencyTriggeringFields) : null;
+
         return $this->render('parametrage_global/index.html.twig',
             [
                 'logo' => ($labelLogo && file_exists(getcwd() . "/uploads/attachements/" . $labelLogo) ? $labelLogo : null),
-                'emergencyIcon' => ($emergencyIcon && file_exists(getcwd() . "/uploads/attachements/" . $emergencyIcon) ? $emergencyIcon : null),
-                'customIcon' => ($customIcon && file_exists(getcwd() . "/uploads/attachements/" . $customIcon) ? $customIcon : null),
+                'emergencyIcon' => ($emergencyIcon && file_exists(getcwd() . "/" . $emergencyIcon) ? $emergencyIcon : null),
+                'customIcon' => ($customIcon && file_exists(getcwd() . "/" . $customIcon) ? $customIcon : null),
                 'titleEmergencyLabel' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::EMERGENCY_TEXT_LABEL),
                 'titleCustomLabel' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CUSTOM_TEXT_LABEL),
                 'documentSettings' => [
@@ -137,7 +140,7 @@ class ParametrageGlobalController extends AbstractController
                     'defaultArrivalsLocation' => $globalParamService->getParamLocation(ParametrageGlobal::MVT_DEPOSE_DESTINATION),
                     'customsArrivalsLocation' => $globalParamService->getParamLocation(ParametrageGlobal::DROP_OFF_LOCATION_IF_CUSTOMS),
                     'emergenciesArrivalsLocation' => $globalParamService->getParamLocation(ParametrageGlobal::DROP_OFF_LOCATION_IF_EMERGENCY),
-                    'emergencyTriggeringFields' => json_decode($parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::ARRIVAL_EMERGENCY_TRIGGERING_FIELDS)),
+                    'emergencyTriggeringFields' => $arrivalEmergencyTriggeringFieldsValue,
                     'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
                     'sendMail' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL),
                     'printTwice' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::PRINT_TWICE_CUSTOMS),
@@ -432,7 +435,7 @@ class ParametrageGlobalController extends AbstractController
                     ->setLabel(ParametrageGlobal::CUSTOM_ICON);
                 $entityManager->persist($customIconGlobalSettings);
             }
-            $customIconGlobalSettings->setValue($fileName[array_key_first($fileName)]);
+            $customIconGlobalSettings->setValue('uploads/attachements/' . $fileName[array_key_first($fileName)]);
         }
 
         $emergencyIconGlobalSettings = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::EMERGENCY_ICON]);
@@ -445,7 +448,7 @@ class ParametrageGlobalController extends AbstractController
                     ->setLabel(ParametrageGlobal::EMERGENCY_ICON);
                 $entityManager->persist($emergencyIconGlobalSettings);
             }
-            $emergencyIconGlobalSettings->setValue($fileName[array_key_first($fileName)]);
+            $emergencyIconGlobalSettings->setValue('uploads/attachements/' . $fileName[array_key_first($fileName)]);
         }
         $entityManager->flush();
 

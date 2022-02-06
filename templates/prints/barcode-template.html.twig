@@ -152,7 +152,7 @@
             <div class="header-wrapper">
                 <div class="header">
                     {% if logo %}
-                        <img class="logo" src="{{ 'https://'~ app.request.httpHost ~ "/uploads/attachements/" ~ logo }}" alt="logo">
+                        <img class="logo" src="{{ 'https://'~ app.request.httpHost ~ "/" ~ logo }}" alt="logo">
                     {% endif %}
 
                     {% if firstCustomIconIsDefined or secondCustomIconIsDefined %}
@@ -161,7 +161,7 @@
                                 {% if firstCustomIconIsDefined %}
                                     <div class="custom-icon first-custom-icon">
                                         <img class="icon"
-                                             src="{{ firstCustomIconIsDefined ? ('https://' ~ app.request.httpHost ~ "/uploads/attachements/" ~ config.firstCustomIcon.icon) }}"
+                                             src="{{ firstCustomIconIsDefined ? ('https://' ~ app.request.httpHost ~ "/" ~ config.firstCustomIcon.icon) }}"
                                              alt="icone">
                                         <div class="text">{{ config.firstCustomIcon.text }}</div>
                                     </div>
@@ -170,7 +170,7 @@
                                 {% if secondCustomIconIsDefined %}
                                     <div class="custom-icon second-custom-icon">
                                         <img class="icon"
-                                             src="{{ secondCustomIconIsDefined ? ('https://' ~ app.request.httpHost ~ "/uploads/attachements/" ~ config.secondCustomIcon.icon) }}"
+                                             src="{{ secondCustomIconIsDefined ? ('https://' ~ app.request.httpHost ~ "/" ~ config.secondCustomIcon.icon) }}"
                                              alt="icone">
                                         <div class="text">{{ config.secondCustomIcon.text }}</div>
                                     </div>

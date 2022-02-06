@@ -13,11 +13,13 @@
             ], {labelClass: "wii-field-name"}) }}
         </div>
 
-        <div class="col-12 d-flex mt-3">
+        <div class="col-md-6 col-12 d-flex mt-3">
             {{ form.input(setting('LABEL_HEIGHT'), 'Hauteur (mm)', true, setting_value('LABEL_HEIGHT'), {
                 labelClass: 'wii-field-name mr-2'
             }) }}
+        </div>
 
+        <div class="col-md-6 col-12 d-flex mt-3">
             {{ form.input(setting('LABEL_WIDTH'), 'Largeur (mm)', true, setting_value('LABEL_WIDTH'), {
                 labelClass: 'wii-field-name'
             }) }}
