@@ -102,6 +102,7 @@ function initTableArrival() {
                     tableFilter: 'arrivalsTable'
                 },
                 lengthMenu: [10, 25, 50, 100],
+                page: 'arrival',
                 initCompleteCallback: updateArrivalPageLength
             };
 
