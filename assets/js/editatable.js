@@ -181,9 +181,6 @@ function initEditatableDatatable(datatable, callback = null) {
             url,
             data: data => {
                 data.edit = state !== STATE_VIEWING;
-                if (callback) {
-                    callback();
-                }
             },
         },
         rowConfig: {
@@ -254,6 +251,10 @@ function initEditatableDatatable(datatable, callback = null) {
                         deleteRow();
                     }
                 });
+
+                if (callback) {
+                    callback();
+                }
             });
 
             if(config.mode === MODE_DOUBLE_CLICK || config.mode === MODE_EDIT_AND_ADD) {
