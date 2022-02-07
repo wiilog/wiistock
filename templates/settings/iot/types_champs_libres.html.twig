@@ -8,3 +8,9 @@
 <div class="sub-content">
     <table class="table subentities-table w-100"></table>
 </div>
+
+<input type="hidden" name="default-value-template" value="{{ form.switch('defaultValue', null, false, [
+    {label: 'Oui', value: '1'},
+    {label: 'Non', value: '0'},
+    {label: 'Aucune', value: null, checked: true},
+]) | json_encode }}">

@@ -38,42 +38,6 @@ export default class EditableDatatable {
             datatable.toggleEdit(STATE_EDIT);
         }
 
-        $element.on(`click`, `tr`, function() {
-            const $row = $(this);
-            if(!$row.find(`.add-row`).exists()) {
-                return;
-            }
-
-            if(datatable.mode === MODE_EDIT_AND_ADD && datatable.state !== STATE_EDIT){
-                datatable
-                    .toggleEdit(STATE_EDIT, true)
-                    .then(() => {
-                        createNewForm(datatable);
-                    });
-            }
-            else {
-                createNewForm(datatable);
-            }
-        });
-
-        $element.on(`click`, `.delete-row`, function() {
-            const $button = $(this);
-            const $row = $button.closest(`tr`);
-
-            function deleteRow() {
-                datatable.table.row($row).remove();
-                datatable.table.draw();
-            }
-
-            if($button.is(`[data-id]`) && config.deleteRoute) {
-                AJAX.route(`POST`, config.deleteRoute, {entity: $button.data(`id`)})
-                    .json()
-                    .then(result => result.success ? deleteRow() : null);
-            } else {
-                deleteRow();
-            }
-        })
-
         $(window).on(`beforeunload.${id}`, () => {
             const $focus = $(`tr :focus`);
             if($focus.exists()) {
@@ -255,6 +219,41 @@ function initEditatableDatatable(datatable, callback = null) {
                 if ($row.find(`.add-row`).exists()) {
                     $row.addClass('pointer');
                 }
+
+                $row.on(`click`, function() {
+                    const $row = $(this);
+                    if(!$row.find(`.add-row`).exists()) {
+                        return;
+                    }
+                    if((datatable.mode === MODE_DOUBLE_CLICK || datatable.mode === MODE_EDIT_AND_ADD) && datatable.state !== STATE_EDIT){
+                        datatable
+                            .toggleEdit(STATE_EDIT, true)
+                            .then(() => {
+                                createNewForm(datatable);
+                            });
+                    }
+                    else {
+                        createNewForm(datatable);
+                    }
+                });
+
+                $row.on(`click`, `.delete-row`, function() {
+                    const $button = $(this);
+                    const $row = $button.closest(`tr`);
+
+                    function deleteRow() {
+                        datatable.table.row($row).remove();
+                        datatable.table.draw();
+                    }
+
+                    if($button.is(`[data-id]`) && config.deleteRoute) {
+                        AJAX.route(`POST`, config.deleteRoute, {entity: $button.data(`id`)})
+                            .json()
+                            .then(result => result.success ? deleteRow() : null);
+                    } else {
+                        deleteRow();
+                    }
+                });
             });
 
             if(config.mode === MODE_DOUBLE_CLICK || config.mode === MODE_EDIT_AND_ADD) {

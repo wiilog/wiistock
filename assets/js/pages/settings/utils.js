@@ -17,7 +17,7 @@ export function createManagementPage($container, config) {
 
     const table = EditableDatatable.create(`#${$table.attr(`id`)}`, {
         name: config.name,
-        edit: config.edit ? MODE_MANUAL : MODE_NO_EDIT,
+        mode: typeof config.edit === 'boolean' ? (config.edit ? MODE_MANUAL : MODE_NO_EDIT) : config.edit,
         save: SAVE_MANUALLY,
         route: config.table.route(selectedEntity),
         deleteRoute: config.table.deleteRoute,

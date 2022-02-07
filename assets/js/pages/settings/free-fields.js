@@ -1,5 +1,5 @@
 import {createManagementPage} from './utils';
-import EditableDatatable, {MODE_EDIT_AND_ADD, MODE_NO_EDIT, SAVE_MANUALLY} from "../../editatable";
+import EditableDatatable, {MODE_DOUBLE_CLICK, MODE_EDIT_AND_ADD, MODE_NO_EDIT, SAVE_MANUALLY} from "../../editatable";
 
 const $saveButton = $(`.save-settings`);
 
@@ -176,7 +176,7 @@ export function initializeStockMovementsFreeFields($container, canEdit) {
 export function initializeIotFreeFields($container, canEdit) {
     createManagementPage($container, {
         name: `freeFields`,
-        edit: canEdit,
+        edit: canEdit ? MODE_DOUBLE_CLICK : MODE_NO_EDIT,
         header: {
             route: (type, edit) => Routing.generate('settings_type_header', {type, edit}, true),
         },

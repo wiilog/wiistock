@@ -1137,7 +1137,7 @@ class SettingsController extends AbstractController {
             }
         }
 
-        if($edit || $type && $type->getCategory()->getLabel() === CategoryType::MOUVEMENT_TRACA) {
+        if($edit || ($type && $type->getCategory()->getLabel() === CategoryType::MOUVEMENT_TRACA) || ($type && $type->getCategory()->getLabel() === CategoryType::SENSOR)) {
             $rows[] = [
                 "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
                 "label" => "",
