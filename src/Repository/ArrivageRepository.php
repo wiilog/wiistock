@@ -3,17 +3,17 @@
 namespace App\Repository;
 
 use App\Entity\Arrivage;
+use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use App\Service\VisibleColumnService;
 use DateTime;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\Mapping;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\HttpFoundation\InputBag;
+use WiiCommon\Helper\Stream;
 
 /**
  * @method Arrivage|null find($id, $lockMode = null, $lockVersion = null)
@@ -272,6 +272,14 @@ class ArrivageRepository extends EntityRepository
                             ->andWhere('arrival.frozen = :value')
                             ->setParameter('value', $filter['value']);
                     }
+                    break;
+                case FiltreSup::FIELD_BUSINESS_UNIT:
+                    $values = Stream::explode(",", $filter['value'])
+                        ->map(fn(string $value) => strtok($value, ':'))
+                        ->toArray();
+                    $qb
+                        ->andWhere("arrival.businessUnit IN (:values)")
+                        ->setParameter('values', $values);
                     break;
                 case 'numArrivage':
                     $qb

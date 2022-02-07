@@ -1,0 +1,15 @@
+{% set page = page is defined and page ? page : constant('App\\Entity\\FieldsParam::ENTITY_CODE_ARRIVAGE') %}
+
+<div class="col-auto m-1 select-filter pr-0">
+    <div class="select2-overflow">
+        <div class="input-group w-100 cursor-default">
+            <select class="form-control data filter-select2" name="businessUnit"
+                    data-s2="businessUnit" data-include-params="input[name=page]"
+                    data-include-params-parent=".select-filter" data-placeholder="Business unit"
+                    multiple>
+            </select>
+        </div>
+    </div>
+    <input type="hidden" name="page" value="{{ page }}">
+</div>
+

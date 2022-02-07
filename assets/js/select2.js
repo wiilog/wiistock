@@ -26,6 +26,7 @@ const ROUTES = {
     collectableArticles: `ajax_select_collectable_articles`,
     purchaseRequest: `ajax_select_references_by_buyer`,
     keyboardPacks: `ajax_select_keyboard_pack`,
+    businessUnit: `ajax_select_business_unit`,
 }
 
 const INSTANT_SELECT_TYPES = {
