@@ -655,6 +655,9 @@ class ArrivageController extends AbstractController {
         }
 
         $arrivals = $arrivageRepository->iterateBetween($from, $to);
+        $packsTotalWeight = Stream::from($arrivageRepository->getPacksTotalWeight())
+            ->keymap(fn(array $arrival) => [$arrival['id'], $arrival['totalWeight']])
+            ->toArray();
 
         $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARRIVAGE]);
 
@@ -665,6 +668,7 @@ class ArrivageController extends AbstractController {
 
         $baseHeader = [
             "n° arrivage",
+            "poids total",
             "destinataire",
             "fournisseur",
             "transporteur",
@@ -681,7 +685,6 @@ class ArrivageController extends AbstractController {
             "utilisateur",
             "numéro de projet",
             "business unit",
-
         ];
 
         if ($fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedCreate')
@@ -692,9 +695,9 @@ class ArrivageController extends AbstractController {
         $header = array_merge($baseHeader, $natureLabels, $freeFieldsConfig["freeFieldsHeader"]);
         $today = new DateTime();
         $today = $today->format("d-m-Y H:i:s");
-        return $csvService->streamResponse(function($output) use ($arrivageDataService, $csvService, $fieldsParam, $freeFieldService, $freeFieldsConfig, $arrivals, $buyersByArrival, $natureLabels, $packs) {
+        return $csvService->streamResponse(function($output) use ($arrivageDataService, $csvService, $fieldsParam, $freeFieldService, $freeFieldsConfig, $arrivals, $buyersByArrival, $natureLabels, $packs, $packsTotalWeight) {
             foreach($arrivals as $arrival) {
-                $arrivageDataService->putArrivalLine($output, $csvService, $freeFieldsConfig, $arrival, $buyersByArrival, $natureLabels, $packs, $fieldsParam);
+                $arrivageDataService->putArrivalLine($output, $csvService, $freeFieldsConfig, $arrival, $buyersByArrival, $natureLabels, $packs, $fieldsParam, $packsTotalWeight);
             }
         }, "export-arrivages-$today.csv", $header);
     }

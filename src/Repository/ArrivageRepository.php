@@ -9,9 +9,7 @@ use App\Entity\Utilisateur;
 use App\Helper\QueryCounter;
 use App\Service\VisibleColumnService;
 use DateTime;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\Mapping;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\HttpFoundation\InputBag;
 
@@ -146,19 +144,6 @@ class ArrivageRepository extends EntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function countColisByArrivage($arrivage)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(c)
-			FROM App\Entity\Pack c
-			WHERE c.arrivage = :arrivage"
-        )->setParameter('arrivage', $arrivage->getId());
-
-        return $query->getSingleScalarResult();
-    }
-
     public function countUnsolvedDisputesByArrivage($arrivage)
     {
         return $this->createQueryBuilder('arrival')
@@ -194,7 +179,11 @@ class ArrivageRepository extends EntityRepository
 
     public function findByParamsAndFilters(InputBag $params, $filters, ?int $userIdArrivalFilter, Utilisateur $user, VisibleColumnService $visibleColumnService): array
     {
-        $qb = $this->createQueryBuilder("arrival");
+        $qb = $this->createQueryBuilder("arrival")
+            ->addSelect('SUM(main_packs.weight) AS totalWeight')
+            ->addSelect('COUNT(main_packs.id) AS packsCount')
+            ->leftJoin('arrival.packs', 'main_packs')
+            ->groupBy('arrival');
 
         // filtre arrivages de l'utilisateur
         if ($userIdArrivalFilter) {
@@ -362,11 +351,9 @@ class ArrivageRepository extends EntityRepository
                             ->leftJoin('arrival.utilisateur', 'u2')
                             ->orderBy('u2.username', $order);
                     } else if ($column === 'nbUm') {
-                        $qb
-                            ->addSelect('count(col2.id) as hidden nbum')
-                            ->leftJoin('arrival.packs', 'col2')
-                            ->orderBy('nbum', $order)
-                            ->groupBy('col2.arrivage, arrival');
+                        $qb->orderBy('packsCount', $order);
+                    } else if ($column === 'totalWeight') {
+                        $qb->orderBy('totalWeight', $order);
                     } else if ($column === 'status') {
                         $qb
                             ->leftJoin('arrival.statut', 'order_status')
@@ -418,4 +405,13 @@ class ArrivageRepository extends EntityRepository
         return $query->getSingleScalarResult();
     }
 
+    public function getPacksTotalWeight(): ?array {
+        return $this->createQueryBuilder("arrival")
+            ->select("arrival.id AS id")
+            ->addSelect("SUM(packs.weight) AS totalWeight")
+            ->leftJoin("arrival.packs", "packs")
+            ->groupBy("arrival")
+            ->getQuery()
+            ->getResult();
+    }
 }
