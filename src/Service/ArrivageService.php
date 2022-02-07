@@ -533,7 +533,7 @@ class ArrivageService {
 
         $line = [
             $arrival['numeroArrivage'] ?: '',
-            $packsTotalWeight[$id],
+            $packsTotalWeight[$id] ?? '',
             $arrival['recipientUsername'] ?: '',
             $arrival['fournisseurName'] ?: '',
             $arrival['transporteurLabel'] ?: '',

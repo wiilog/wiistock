@@ -655,9 +655,7 @@ class ArrivageController extends AbstractController {
         }
 
         $arrivals = $arrivageRepository->iterateBetween($from, $to);
-        $packsTotalWeight = Stream::from($arrivageRepository->getPacksTotalWeight())
-            ->keymap(fn(array $arrival) => [$arrival['id'], $arrival['totalWeight']])
-            ->toArray();
+        $packsTotalWeight = $arrivageRepository->getTotalWeightByArrivals($from, $to);
 
         $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARRIVAGE]);
 

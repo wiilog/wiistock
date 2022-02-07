@@ -12,6 +12,7 @@ use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\HttpFoundation\InputBag;
+use WiiCommon\Helper\Stream;
 
 /**
  * @method Arrivage|null find($id, $lockMode = null, $lockVersion = null)
@@ -405,13 +406,23 @@ class ArrivageRepository extends EntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function getPacksTotalWeight(): ?array {
-        return $this->createQueryBuilder("arrival")
+    public function getTotalWeightByArrivals(DateTime $from, DateTime $to): ?array {
+        $queryBuilder = $this->createQueryBuilder("arrival");
+        $expr = $queryBuilder->expr();
+
+        $result = $queryBuilder
             ->select("arrival.id AS id")
             ->addSelect("SUM(packs.weight) AS totalWeight")
             ->leftJoin("arrival.packs", "packs")
+            ->andWhere($expr->between('arrival.date', ':dateFrom', ':dateTo'))
             ->groupBy("arrival")
+            ->setParameter('dateFrom', $from)
+            ->setParameter('dateTo', $to)
             ->getQuery()
             ->getResult();
+
+        return Stream::from($result)
+            ->keymap(fn(array $arrival) => [$arrival['id'], $arrival['totalWeight']])
+            ->toArray();
     }
 }
