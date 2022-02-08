@@ -40,18 +40,24 @@ class LocationGroupController extends AbstractController {
         $locationRepository = $manager->getRepository(Emplacement::class);
         $locationGroupRepository = $manager->getRepository(LocationGroup::class);
 
-        $sameName = $locationGroupRepository->findOneBy(["name" => $data["name"]]);
+        $sameName = $locationGroupRepository->findOneBy(["label" => $data["name"]]);
+        $sameLocationName = $locationRepository->findOneBy(["label" => $data["name"]]);
         if ($sameName) {
             return $this->json([
                 "success" => false,
                 "msg" => "Un groupe d'emplacement avec le même nom existe déjà",
+            ]);
+        } elseif ($sameLocationName) {
+            return $this->json([
+                "success" => false,
+                "msg" => "Un emplacement avec le même nom existe déjà",
             ]);
         }
 
         $locations = $locationRepository->findBy(["id" => $data["locations"]]);
 
         $group = (new LocationGroup())
-            ->setName($data["name"])
+            ->setLabel($data["name"])
             ->setDescription($data["description"] ?? null)
             ->setActive($data["active"])
             ->setLocations($locations);
@@ -61,7 +67,7 @@ class LocationGroupController extends AbstractController {
 
         return $this->json([
             "success" => true,
-            "msg" => "Le groupe d'emplacements {$group->getName()} a bien été créé",
+            "msg" => "Le groupe d'emplacements {$group->getLabel()} a bien été créé",
         ]);
     }
 
@@ -96,7 +102,7 @@ class LocationGroupController extends AbstractController {
         if ($group) {
             $locations = $locationRepository->findBy(["id" => $data["locations"]]);
 
-            $group->setName($data["name"])
+            $group->setLabel($data["name"])
                 ->setDescription($data["description"] ?? null)
                 ->setActive($data["active"])
                 ->setLocations($locations);
@@ -105,7 +111,7 @@ class LocationGroupController extends AbstractController {
 
             return $this->json([
                 "success" => true,
-                "msg" => "Le groupe d'emplacements {$group->getName()} a bien été modifié",
+                "msg" => "Le groupe d'emplacements {$group->getLabel()} a bien été modifié",
             ]);
         }
 

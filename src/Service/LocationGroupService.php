@@ -70,7 +70,7 @@ class LocationGroupService {
                 'sensorCode' => $sensorCode,
                 'hasPairing' => $hasPairing
             ]),
-            "name" => $group->getName(),
+            "name" => $group->getLabel(),
             "description" => $group->getDescription(),
             "active" => $group->isActive() ? "Actif" : "Inactif",
             "locations" => $group->getLocations()->count(),

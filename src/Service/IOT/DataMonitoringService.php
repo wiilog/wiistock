@@ -146,7 +146,7 @@ class DataMonitoringService
         $config["left_pane"][] = [
             "type" => "entity",
             "icon" => "iot-location",
-            "title" => $location->getName(),
+            "title" => $location->getLabel(),
             "header" => $header,
             "hideActions" => $header,
             "entity_info" => [

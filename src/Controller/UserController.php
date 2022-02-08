@@ -7,6 +7,7 @@ use App\Entity\Action;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
+use App\Entity\LocationGroup;
 use App\Entity\Menu;
 use App\Entity\Role;
 use App\Entity\Type;
@@ -146,10 +147,16 @@ class UserController extends AbstractController
                 ->setSecondaryEmails($secondaryEmails)
                 ->setPhone($data['phoneNumber'])
                 ->setRole($role)
-                ->setDropzone($data['dropzone'] ? $emplacementRepository->find(intval($data['dropzone'])) : null)
                 ->setStatus(true)
                 ->setAddress($data['address'])
                 ->setMobileLoginKey($uniqueMobileKey);
+
+            $dropzone = explode(":", $data['dropzone']);
+            if($dropzone[0] === 'location') {
+                $utilisateur->setDropzone($entityManager->find(Emplacement::class, $dropzone[1]));
+            } elseif($dropzone[0] === 'locationGroup') {
+                $utilisateur->setDropzone($entityManager->find(LocationGroup::class, $dropzone[1]));
+            }
 
             if ($password !== '') {
 				$password = $encoder->hashPassword($utilisateur, $data['password']);
@@ -254,7 +261,6 @@ class UserController extends AbstractController
             $loggedUser = $this->getUser();
 
             $typeRepository = $entityManager->getRepository(Type::class);
-            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $roleRepository = $entityManager->getRepository(Role::class);
@@ -327,9 +333,15 @@ class UserController extends AbstractController
                 ->setStatus($data['status'])
                 ->setUsername($data['username'])
                 ->setAddress($data['address'])
-                ->setDropzone($data['dropzone'] ? $emplacementRepository->find(intval($data['dropzone'])) : null)
                 ->setEmail($data['email'])
                 ->setPhone($data['phoneNumber'] ?? '');
+
+            $dropzone = explode(":", $data['dropzone']);
+            if($dropzone[0] === 'location') {
+                $user->setDropzone($entityManager->find(Emplacement::class, $dropzone[1]));
+            } elseif($dropzone[0] === 'locationGroup') {
+                $user->setDropzone($entityManager->find(LocationGroup::class, $dropzone[1]));
+            }
 
             $visibilityGroupsIds = is_string($data["visibility-group"]) ? explode(',', $data['visibility-group']) : $data["visibility-group"];
             if ($visibilityGroupsIds) {
@@ -535,19 +547,6 @@ class UserController extends AbstractController
             }
 		}
         throw new BadRequestHttpException();
-    }
-
-    /**
-     * @Route("/autocomplete", name="get_user", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
-    public function getUserAutoComplete(Request $request,
-                                        EntityManagerInterface $entityManager): Response
-    {
-        $search = $request->query->get('term');
-
-        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-        $results = $utilisateurRepository->getIdAndLibelleBySearch($search);
-        return new JsonResponse(['results' => $results]);
     }
 
     /**

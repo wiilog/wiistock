@@ -919,7 +919,7 @@ function saveExportFile(routeName, needsDateFilters = true, routeParam = {}) {
 }
 
 function fillDemandeurField($modal) {
-    const $operatorSelect = $modal.find('.select2-declarant');
+    const $operatorSelect = $modal.find('select[name=disputeReporter]');
     const $loggedUserInput = $modal.find('input[hidden][name="logged-user"]');
     const userId = $loggedUserInput.data('id');
     const $operatorSelect2 = $operatorSelect
