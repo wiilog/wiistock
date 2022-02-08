@@ -18,7 +18,8 @@ let droppedFiles = [];
  *      success: undefined|function,
  *      clearOnClose: undefined|boolean,
  *      validator: undefined|function,
- *      waitDatatable: undefined|boolean
+ *      waitDatatable: undefined|boolean,
+ *      keepLoading: undefined|boolean
  * }} options Object containing some option.
  *   - tables is an array of datatable
  *   - keepForm is an array of datatable
@@ -28,6 +29,7 @@ let droppedFiles = [];
  *   - validator function which calculate custom form validation
  *   - confirmMessage Function which return promise throwing when form can be submitted
  *   - waitDatatable if true returned a Promise resolve whe Datatable is reloaded
+ *   - keepLoading Keep loader on submit button after receiving ajax response
  */
 function InitModal($modal, submit, path, options = {}) {
     if(options.clearOnClose) {
@@ -69,7 +71,8 @@ function InitModal($modal, submit, path, options = {}) {
  *      success: function,
  *      keepForm: undefined|boolean,
  *      validator: function|undefined,
- *      waitDatatable: undefined|boolean
+ *      waitDatatable: undefined|boolean,
+ *      keepLoading: undefined|boolean
  * }} options Object containing some options.
  *   - tables is an array of datatable
  *   - keepForm true if we do not clear form
@@ -77,7 +80,8 @@ function InitModal($modal, submit, path, options = {}) {
  *   - validator function which calculate custom form validation
  *   - confirmMessage Function which return promise throwing when form can be submitted
  *   - success called on success
- *   - waitDatatable if true returned a Promise resolve whe Datatable is reloaded
+ *   - waitDatatable if true returned a Promise resolve whe Datatable is reloaded,
+ *   - keepLoading Keep loader on submit button after receiving ajax response
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery} $submit jQuery element of the submit button
  * @param {string} path
@@ -102,13 +106,14 @@ function SubmitAction($modal,
 
 /**
  *
- * @param {{tables: undefined|Array<jQuery>, waitDatatable: undefined|boolean, keepModal: undefined|boolean, success: function, keepForm: undefined|boolean, validator: function|undefined}} options Object containing some options.
+ * @param {{tables: undefined|Array<jQuery>, waitDatatable: undefined|boolean, keepLoading: undefined|boolean, keepModal: undefined|boolean, success: function, keepForm: undefined|boolean, validator: function|undefined}} options Object containing some options.
  *   - tables is an array of datatable
  *   - keepForm true if we do not clear form
  *   - keepModal true if we do not close form
  *   - validator function which calculate custom form validation
  *   - success called on success
  *   - waitDatatable if true returned a Promise resolve whe Datatable is reloaded
+ *   - keepLoading Keep loader on submit button after receiving ajax response
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery} $submit jQuery element of the submit button
  * @param {string} path
@@ -116,7 +121,7 @@ function SubmitAction($modal,
 function processSubmitAction($modal,
                              $submit,
                              path,
-                             {tables, keepModal, keepForm, validator, success, headerCallback, waitDatatable} = {}) {
+                             {tables, keepModal, keepLoading, keepForm, validator, success, headerCallback, waitDatatable} = {}) {
     const isAttachmentForm = $modal.find('input[name="isAttachmentForm"]').val() === '1';
     const {success: formValidation, errorMessages, $isInvalidElements, data} = ProcessForm($modal, isAttachmentForm, validator);
     if (formValidation) {
@@ -137,7 +142,9 @@ function processSubmitAction($modal,
                 dataType: 'json',
             })
             .then((data) => {
-                $submit.popLoader();
+                if (!keepLoading) {
+                    $submit.popLoader();
+                }
 
                 if (data.success === false) {
                     const errorMessage = data.msg || data.message;

@@ -17,15 +17,16 @@ $(function () {
         arrivalsTable = returnedArrivalsTable;
 
         let $modalNewArrivage = $("#modalNewArrivage");
-        let submitNewArrivage = $("#submitNewArrivage");
+        let $submitNewArrivage = $("#submitNewArrivage");
         let urlNewArrivage = Routing.generate('arrivage_new', true);
         InitModal(
             $modalNewArrivage,
-            submitNewArrivage,
+            $submitNewArrivage,
             urlNewArrivage,
             {
                 keepForm: true,
                 keepModal: true,
+                keepLoading: true,
                 success: (res) => {
                     res = res || {};
                     arrivalCallback(
@@ -35,6 +36,8 @@ $(function () {
                             success: () => {
                                 let isPrintColisChecked = $modalNewArrivage.find('#printColisChecked').val();
                                 $modalNewArrivage.find('#printColis').prop('checked', isPrintColisChecked);
+
+                                $submitNewArrivage.popLoader();
 
                                 clearModal($modalNewArrivage);
                             }
