@@ -836,11 +836,11 @@ class DispatchController extends AbstractController {
                         ($dispatch->getType()->isNotificationsEnabled() || $dispatch->getType()->isNotificationsEmergency($dispatch->getEmergency()))) {
                         $notificationService->toTreat($dispatch);
                     }
-                    $dispatchService->sendEmailsAccordingToStatus($dispatch, true);
                     $dispatch
                         ->setStatut($untreatedStatus)
                         ->setValidationDate(new DateTime('now'));
                     $entityManager->flush();
+                    $dispatchService->sendEmailsAccordingToStatus($dispatch, true);
                 } catch (Exception $e) {
                     return new JsonResponse([
                         'success' => false,
