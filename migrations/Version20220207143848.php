@@ -24,7 +24,7 @@ final class Version20220207143848 extends AbstractMigration
             $this->addSql("ALTER TABLE utilisateur RENAME COLUMN dropzone_id TO location_dropzone_id");
         }
 
-        if(!$schema->getTable("utilisateur")->hasColumn("label")) {
+        if(!$schema->getTable("location_group")->hasColumn("label")) {
             $this->addSql("ALTER TABLE location_group RENAME COLUMN name TO label");
         }
     }

@@ -1,5 +1,6 @@
 import 'select2';
 import {GROUP_WHEN_NEEDED} from "./app";
+import {indexOf} from "core-js/internals/array-includes";
 
 const ROUTES = {
     handlingType: `ajax_select_handling_type`,
@@ -70,7 +71,7 @@ export default class Select2 {
                         url: Routing.generate(ROUTES[type]),
                         dataType: `json`,
                         data: params => Select2.includeParams($element, params),
-                        processResults: (data, params) => {
+                        processResults: (data) => {
                             const $search = $element.parent().find(`.select2-search__field`);
 
                             if (data.error) {
@@ -190,6 +191,22 @@ export default class Select2 {
     }
 
     static includeParams($element, params) {
+        if ($element.is('[data-other-params]')) {
+            const attributes = $element.attr();
+            const otherParams = Object.keys(attributes)
+                .reduce((carry, key) => {
+                    const [_, keyWithoutPrefix] = key.match(/other-params-(.+)/) || [];
+                    if (keyWithoutPrefix) {
+                        carry[keyWithoutPrefix] = attributes[key];
+                    }
+                    return carry;
+                }, {});
+            params = {
+                ...params,
+                ...otherParams,
+            };
+        }
+
         if ($element.is('[data-search-prefix]')) {
             const searchPrefix = $element.data('search-prefix');
             params = {

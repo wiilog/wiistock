@@ -96,9 +96,11 @@
     </div>
     <div class="col-12 form-group w-100">
         <label for="dropzone">Dropzone</label>
-        <select name="dropzone" class="form-control data"
-                data-s2="location" data-include-params="input[name=locationPrefix]"
-                data-include-params-parent=".modal-body">
+        <select name="dropzone"
+                class="form-control data"
+                data-s2="location"
+                data-other-params
+                data-other-params-add-group="1">
             {% if user.locationDropzone %}
                 <option value="location:{{ user.locationDropzone.id }}" selected>{{ user.locationDropzone.label }}</option>
             {% elseif user.locationGroupDropzone %}
@@ -123,6 +125,4 @@
             <input type="radio" name="status" value="0" content="Inactif" {{ not user.status ? 'checked' }}>
         </div>
     </div>
-
-    <input type="hidden" name="locationPrefix" value="location:">
 </form>

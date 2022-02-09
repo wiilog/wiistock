@@ -39,7 +39,7 @@ const groupsTableConfig = {
     processing: true,
     serverSide: true,
     lengthMenu: [10, 25, 50, 100, 1000],
-    order: [['name', 'desc']],
+    order: [['label', 'desc']],
     ajax: {
         url: Routing.generate("location_group_api", true),
         type: "POST",
@@ -51,12 +51,12 @@ const groupsTableConfig = {
         needsSearchOverride: true,
     },
     columns: [
-        {data: 'actions', name: 'actions', title: '', className: 'noVis', orderable: false},
-        {data: 'pairing', name: 'pairing', title: '', className: 'pairing-row'},
-        {data: 'name', name: 'name', title: 'Nom'},
-        {data: 'description', name: 'description', title: 'Description'},
-        {data: 'active', name: 'active', title: 'Actif / Inactif'},
-        {data: 'locations', name: 'locations', title: 'Nombre emplacements', orderable: false},
+        {data: 'actions', title: '', className: 'noVis', orderable: false},
+        {data: 'pairing', title: '', className: 'pairing-row'},
+        {data: 'label', title: 'Nom'},
+        {data: 'description', title: 'Description'},
+        {data: 'active', title: 'Actif / Inactif'},
+        {data: 'locations', title: 'Nombre emplacements', orderable: false},
     ]
 };
 

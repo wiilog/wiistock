@@ -34,19 +34,19 @@ class SelectController extends AbstractController {
         $deliveryType = $request->query->get("deliveryType") ?? null;
         $collectType = $request->query->get("collectType") ?? null;
         $term = $request->query->get("term");
-        $locationPrefix = $request->query->get("locationPrefix") ?? '';
+        $addGroup = $request->query->get("add-group") ?? '';
 
         $locations = $manager->getRepository(Emplacement::class)->getForSelect(
             $term,
             [
                 'deliveryType' => $deliveryType,
                 'collectType' => $collectType,
-                'idPrefix' => $locationPrefix
+                'idPrefix' => $addGroup ? 'location:' : ''
             ]
         );
 
         $results = $locations;
-        if($locationPrefix) {
+        if($addGroup) {
             $locationGroups = $manager->getRepository(LocationGroup::class)->getForSelect($term);
             $results = array_merge($locations, $locationGroups);
             usort($results, fn($a, $b) => strtolower($a['text']) <=> strtolower($b['text']));
@@ -166,7 +166,7 @@ class SelectController extends AbstractController {
      * @Route("/select/utilisateur", name="ajax_select_user", options={"expose"=true})
      */
     public function user(Request $request, EntityManagerInterface $manager): Response {
-        $addDropzone = $request->query->getBoolean("addDropzone") ?? false;
+        $addDropzone = $request->query->getBoolean("add-dropzone") ?? false;
 
         $results = $manager->getRepository(Utilisateur::class)->getForSelect(
             $request->query->get("term"),

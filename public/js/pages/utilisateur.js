@@ -7,14 +7,14 @@ let tableUserConfig = {
         "type": "POST"
     },
     columns: [
-        {data: `Actions`, title: ``, orderable: false, className: `noVis`},
-        {data: `username`, title: `Nom d'utilisateur`},
-        {data: `email`, title: `Email`},
-        {data: `dropzone`, title: `Drop zone`},
-        {data: `lastLogin`, title: `Dernière connexion`},
-        {data: `role`, title: `Rôle`},
-        {data: `visibilityGroup`, title: `Groupes de visibilité`},
-        {data: `status`, title: `Actif`},
+        {data: 'Actions', title: '', orderable: false, className: 'noVis'},
+        {data: 'username', title: 'Nom d\'utilisateur'},
+        {data: 'email', title: 'Email'},
+        {data: 'dropzone', title: 'Drop zone'},
+        {data: 'lastLogin', title: 'Dernière connexion'},
+        {data: 'role', title: 'Rôle'},
+        {data: 'visibilityGroup', title: 'Groupes de visibilité'},
+        {data: 'status', title: 'Actif'},
     ],
     rowConfig: {
         needsRowClickAction: true

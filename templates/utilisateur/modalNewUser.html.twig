@@ -91,9 +91,11 @@
                 </div>
                 <div class="col-12 form-group w-100">
                     <label for="dropzone">Dropzone</label>
-                    <select name="dropzone" class="form-control data"
-                            data-s2="location" data-include-params="input[name=locationPrefix]"
-                            data-include-params-parent=".modal-content">
+                    <select name="dropzone"
+                            class="form-control data"
+                            data-s2="location"
+                            data-other-params
+                            data-other-params-add-group="1">
                     </select>
                 </div>
                 <div class="col-12 form-group w-100">
@@ -108,8 +110,6 @@
                 <div class="btn btn-outline-secondary" data-dismiss="modal">Annuler</div>
                 <div id="submitNewUser" class="btn btn-success data" name='id' value=''>Enregistrer</div>
             </div>
-
-            <input type="hidden" name="locationPrefix" value="location:">
         </div>
     </div>
 </form>

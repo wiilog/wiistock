@@ -549,7 +549,8 @@ function demandeurChanged($select) {
 
     if (resultSelected) {
         let {locationId, locationLabel} = resultSelected;
-        if (locationId && locationLabel) {
+
+        if (locationId && locationLabel && locationId.indexOf('location:') === 0) {
             locationId = locationId.split(":").pop();
             locationLabel = locationLabel.split(":").pop();
             const $value = $('<div/>');

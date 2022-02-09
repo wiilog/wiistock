@@ -40,14 +40,14 @@ class LocationGroupController extends AbstractController {
         $locationRepository = $manager->getRepository(Emplacement::class);
         $locationGroupRepository = $manager->getRepository(LocationGroup::class);
 
-        $sameName = $locationGroupRepository->findOneBy(["label" => $data["name"]]);
-        $sameLocationName = $locationRepository->findOneBy(["label" => $data["name"]]);
-        if ($sameName) {
+        $sameLabel = $locationGroupRepository->findOneBy(["label" => $data["label"]]);
+        $sameLocationLabel = $locationRepository->findOneBy(["label" => $data["label"]]);
+        if ($sameLabel) {
             return $this->json([
                 "success" => false,
                 "msg" => "Un groupe d'emplacement avec le même nom existe déjà",
             ]);
-        } elseif ($sameLocationName) {
+        } elseif ($sameLocationLabel) {
             return $this->json([
                 "success" => false,
                 "msg" => "Un emplacement avec le même nom existe déjà",
@@ -57,7 +57,7 @@ class LocationGroupController extends AbstractController {
         $locations = $locationRepository->findBy(["id" => $data["locations"]]);
 
         $group = (new LocationGroup())
-            ->setLabel($data["name"])
+            ->setLabel($data["label"])
             ->setDescription($data["description"] ?? null)
             ->setActive($data["active"])
             ->setLocations($locations);
@@ -102,7 +102,7 @@ class LocationGroupController extends AbstractController {
         if ($group) {
             $locations = $locationRepository->findBy(["id" => $data["locations"]]);
 
-            $group->setLabel($data["name"])
+            $group->setLabel($data["label"])
                 ->setDescription($data["description"] ?? null)
                 ->setActive($data["active"])
                 ->setLocations($locations);

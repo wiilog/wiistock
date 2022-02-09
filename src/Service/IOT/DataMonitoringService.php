@@ -141,17 +141,17 @@ class DataMonitoringService
         ];
     }
 
-    private function fillLocationGroupConfig(array &$config, LocationGroup $location, bool $header)
+    private function fillLocationGroupConfig(array &$config, LocationGroup $locationGroup, bool $header)
     {
         $config["left_pane"][] = [
             "type" => "entity",
             "icon" => "iot-location",
-            "title" => $location->getLabel(),
+            "title" => $locationGroup->getLabel(),
             "header" => $header,
             "hideActions" => $header,
             "entity_info" => [
-                "id" => $location->getId(),
-                "type" => IOTService::getEntityCodeFromEntity($location),
+                "id" => $locationGroup->getId(),
+                "type" => IOTService::getEntityCodeFromEntity($locationGroup),
             ],
         ];
     }
