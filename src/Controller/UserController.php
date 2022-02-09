@@ -7,6 +7,7 @@ use App\Entity\Action;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
+use App\Entity\LocationGroup;
 use App\Entity\Menu;
 use App\Entity\Role;
 use App\Entity\Type;
@@ -36,19 +37,6 @@ use WiiCommon\Helper\Stream;
  */
 class UserController extends AbstractController
 {
-
-    /**
-     * @Route("/autocomplete", name="get_user", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
-    public function getUserAutoComplete(Request $request,
-                                        EntityManagerInterface $entityManager): Response
-    {
-        $search = $request->query->get('term');
-
-        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-        $results = $utilisateurRepository->getIdAndLibelleBySearch($search);
-        return new JsonResponse(['results' => $results]);
-    }
 
     /**
      * @Route("/recherches", name="update_user_searches", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")

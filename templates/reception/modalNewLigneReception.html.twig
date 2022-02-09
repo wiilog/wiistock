@@ -31,8 +31,13 @@
                         <div class="col-4 form-group">
                             <label for="demandeur">Demandeur*</label>
                             <div class="w-100">
-                                <select class="select2-user data needed" {{ not createDL ? 'disabled' }} name="demandeur" id="demandeurDL" onchange="demandeurChanged($(this))">
-                                    <option></option>
+                                <select class="data needed"
+                                        {{ not createDL ? 'disabled' }}
+                                        name="demandeur"
+                                        data-s2="user"
+                                        data-other-params
+                                        data-other-params-add-dropzone="1"
+                                        onchange="demandeurChanged($(this))">
                                 </select>
                             </div>
                         </div>

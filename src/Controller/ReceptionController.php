@@ -847,7 +847,6 @@ class ReceptionController extends AbstractController {
             'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
             'disputeStatuses' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, 'displayOrder'),
             'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
-            'utilisateurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
             'typeChampsLibres' => $typeChampLibreDL,
             'createDL' => $createDL ? $createDL->getValue() : false,
             'defaultDeliveryLocations' => $globalParamService->getDefaultDeliveryLocationsByTypeId($entityManager),
@@ -1200,7 +1199,6 @@ class ReceptionController extends AbstractController {
                 'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
                 'disputeStatuses' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, 'displayOrder'),
                 'attachments' => $attachmentRepository->findBy(['dispute' => $dispute]),
-                'utilisateurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
             ]);
 
             return new JsonResponse(['html' => $html, 'colis' => $colisCode, 'acheteurs' => $acheteursCode]);

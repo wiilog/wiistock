@@ -79,7 +79,7 @@ class ArrivageService {
 
         $rows = [];
         foreach ($arrivals as $arrival) {
-            $rows[] = $this->dataRowArrivage(is_array($arrival) ? $arrival[0] : $arrival);
+            $rows[] = $this->dataRowArrivage($arrival[0], $arrival['totalWeight'], $arrival['packsCount']);
         }
 
         return [
@@ -89,12 +89,11 @@ class ArrivageService {
         ];
     }
 
-    public function dataRowArrivage(Arrivage $arrival)
+    public function dataRowArrivage(Arrivage $arrival, ?float $totalWeight, ?int $packsCount): array
     {
         $url = $this->router->generate('arrivage_show', [
             'id' => $arrival->getId(),
         ]);
-        $arrivalRepository = $this->entityManager->getRepository(Arrivage::class);
 
         if (!isset($this->freeFieldsConfig)) {
             $this->freeFieldsConfig = $this->freeFieldService->getListFreeFieldConfig($this->entityManager, CategorieCL::ARRIVAGE, CategoryType::ARRIVAGE);
@@ -109,11 +108,12 @@ class ArrivageService {
             'id' => $arrival->getId(),
             'arrivalNumber' => $arrival->getNumeroArrivage() ?? '',
             'carrier' => $arrival->getTransporteur() ? $arrival->getTransporteur()->getLabel() : '',
+            'totalWeight' => $totalWeight,
             'driver' => $arrival->getChauffeur() ? $arrival->getChauffeur()->getPrenomNom() : '',
             'trackingCarrierNumber' => $arrival->getNoTracking() ?? '',
             'orderNumber' => implode(',', $arrival->getNumeroCommandeList()),
             'type' => $arrival->getType() ? $arrival->getType()->getLabel() : '',
-            'nbUm' => $arrivalRepository->countColisByArrivage($arrival),
+            'nbUm' => $packsCount,
             'customs' => $arrival->getCustoms() ? 'oui' : 'non',
             'frozen' => $arrival->getFrozen() ? 'oui' : 'non',
             'provider' => $arrival->getFournisseur() ? $arrival->getFournisseur()->getNom() : '',
@@ -461,6 +461,7 @@ class ArrivageService {
             ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
             ['title' => 'Date de création', 'name' => 'creationDate'],
             ['title' => 'arrivage.n° d\'arrivage',  'name' => 'arrivalNumber', 'translated' => true],
+            ['title' => 'Poids total (kg)', 'name' => 'totalWeight'],
             ['title' => 'Transporteur', 'name' => 'carrier'],
             ['title' => 'Chauffeur', 'name' => 'driver'],
             ['title' => 'N° tracking transporteur', 'name' => 'trackingCarrierNumber'],
@@ -518,18 +519,21 @@ class ArrivageService {
         return $location;
     }
 
-    public function putArrivalLine(                 $handle,
+    public function putArrivalLine($handle,
                                    CSVExportService $csvService,
-                                   array            $freeFieldsConfig,
-                                   array            $arrival,
-                                   array            $buyersByArrival,
-                                   array            $natureLabels,
-                                   array            $packs,
-                                   array            $fieldsParam) {
+                                   array $freeFieldsConfig,
+                                   array $arrival,
+                                   array $buyersByArrival,
+                                   array $natureLabels,
+                                   array $packs,
+                                   array $fieldsParam,
+                                   array $packsTotalWeight)
+    {
         $id = (int)$arrival['id'];
 
         $line = [
             $arrival['numeroArrivage'] ?: '',
+            $packsTotalWeight[$id] ?? '',
             $arrival['recipientUsername'] ?: '',
             $arrival['fournisseurName'] ?: '',
             $arrival['transporteurLabel'] ?: '',

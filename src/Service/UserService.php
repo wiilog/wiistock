@@ -87,20 +87,18 @@ class UserService
         ];
     }
 
-    public function dataRowUser(Utilisateur $user): array
-    {
-        $idUser = $user->getId();
+    public function dataRowUser(Utilisateur $user): array {
 
 		return [
 			'id' => $user->getId() ?? '',
-			"username" => $user->getUsername() ?? '',
+			'username' => $user->getUsername() ?? '',
 			'email' => $user->getEmail() ?? '',
 			'dropzone' => $user->getDropzone() ? $user->getDropzone()->getLabel() : '',
-			'lastLogin' => $user->getLastLogin() ? $user->getLastLogin()->format('d/m/Y') : '',
+			'lastLogin' => FormatHelper::date($user->getLastLogin()),
             'role' => $user->getRole() ? $user->getRole()->getLabel() : '',
             'visibilityGroup' => FormatHelper::entity($user->getVisibilityGroups()->toArray(), "label", ' / '),
             'status' => $user->getStatus() ? 'Actif' : "Inactif",
-			'Actions' => $this->templating->render('settings/utilisateurs/utilisateurs/actions.html.twig', ['idUser' => $idUser]),
+			'Actions' => $this->templating->render('settings/utilisateurs/utilisateurs/actions.html.twig', ['idUser' => $user->getId()]),
 		];
     }
 

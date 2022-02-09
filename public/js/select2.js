@@ -179,7 +179,7 @@ class Select2Old {
             $select = $('.ajax-autocomplete-user');
         }
 
-        this.init($select, placeholder, 1, {route: 'get_user'});
+        this.init($select, placeholder, 1, {route: 'ajax_select_user'});
     }
 
     static dispatch(select, placeholder = '') {

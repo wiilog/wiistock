@@ -70,6 +70,22 @@ function importJquery() {
     jQuery.fn.exists = function() {
         return this.length !== 0;
     }
+
+    const oldAttr = jQuery.fn.attr;
+    jQuery.fn.attr = function () {
+        const [name] = arguments;
+
+        // check to see if it's the special case you're looking for
+        if (!name) {
+            const result = {};
+            for(const {name, value} of this[0].attributes) {
+                result[name] = value;
+            }
+            return result;
+        } else {
+            return oldAttr.apply(this, arguments);
+        }
+    };
 }
 
 function importIntlTelInput() {

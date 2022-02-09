@@ -207,11 +207,14 @@
                     <label class="col-12 wii-field-name">Dropzone</label>
                     <div class="col-12">
                         <select name="dropzone"
-                                title="Dropzone"
-                                class="form-control data w-100"
-                                data-s2="location">
-                            {% if user.dropzone %}
-                                <option value="{{ user.dropzone.id }}" selected>{{ user.dropzone.label }}</option>
+                                class="form-control data"
+                                data-s2="location"
+                                data-other-params
+                                data-other-params-add-group="1">
+                            {% if user.locationDropzone %}
+                                <option value="location:{{ user.locationDropzone.id }}" selected>{{ user.locationDropzone.label }}</option>
+                            {% elseif user.locationGroupDropzone %}
+                                <option value="locationGroup:{{ user.locationGroupDropzone.id }}" selected>{{ user.locationGroupDropzone.label }}</option>
                             {% endif %}
                         </select>
                     </div>

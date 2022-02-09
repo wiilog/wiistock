@@ -655,6 +655,7 @@ class ArrivageController extends AbstractController {
         }
 
         $arrivals = $arrivageRepository->iterateBetween($from, $to);
+        $packsTotalWeight = $arrivageRepository->getTotalWeightByArrivals($from, $to);
 
         $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::ARRIVAGE]);
 
@@ -665,6 +666,7 @@ class ArrivageController extends AbstractController {
 
         $baseHeader = [
             "n° arrivage",
+            "poids total",
             "destinataire",
             "fournisseur",
             "transporteur",
@@ -681,7 +683,6 @@ class ArrivageController extends AbstractController {
             "utilisateur",
             "numéro de projet",
             "business unit",
-
         ];
 
         if ($fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedCreate')
@@ -692,9 +693,9 @@ class ArrivageController extends AbstractController {
         $header = array_merge($baseHeader, $natureLabels, $freeFieldsConfig["freeFieldsHeader"]);
         $today = new DateTime();
         $today = $today->format("d-m-Y H:i:s");
-        return $csvService->streamResponse(function($output) use ($arrivageDataService, $csvService, $fieldsParam, $freeFieldService, $freeFieldsConfig, $arrivals, $buyersByArrival, $natureLabels, $packs) {
+        return $csvService->streamResponse(function($output) use ($arrivageDataService, $csvService, $fieldsParam, $freeFieldService, $freeFieldsConfig, $arrivals, $buyersByArrival, $natureLabels, $packs, $packsTotalWeight) {
             foreach($arrivals as $arrival) {
-                $arrivageDataService->putArrivalLine($output, $csvService, $freeFieldsConfig, $arrival, $buyersByArrival, $natureLabels, $packs, $fieldsParam);
+                $arrivageDataService->putArrivalLine($output, $csvService, $freeFieldsConfig, $arrival, $buyersByArrival, $natureLabels, $packs, $fieldsParam, $packsTotalWeight);
             }
         }, "export-arrivages-$today.csv", $header);
     }
@@ -744,7 +745,6 @@ class ArrivageController extends AbstractController {
             ]),
             'printColis' => $printColis,
             'printArrivage' => $printArrivage,
-            'utilisateurs' => $usersRepository->getIdAndLibelleBySearch(''),
             'canBeDeleted' => $arrivageRepository->countUnsolvedDisputesByArrivage($arrivage) == 0,
             'fieldsParam' => $fieldsParam,
             'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage),
@@ -970,7 +970,6 @@ class ArrivageController extends AbstractController {
             $html = $this->renderView('arrivage/modalEditLitigeContent.html.twig', [
                 'dispute' => $dispute,
                 'hasRightToTreatLitige' => $hasRightToTreatLitige,
-                'utilisateurs' => $usersRepository->getIdAndLibelleBySearch(''),
                 'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
                 'disputeStatuses' => $statutRepository->findByCategorieName(CategorieStatut::DISPUTE_ARR, 'displayOrder'),
                 'attachments' => $attachmentRepository->findBy(['dispute' => $dispute]),

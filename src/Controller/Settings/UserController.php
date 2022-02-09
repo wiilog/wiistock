@@ -4,6 +4,7 @@ namespace App\Controller\Settings;
 
 use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
+use App\Entity\LocationGroup;
 use App\Entity\Role;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -29,7 +30,6 @@ use App\Entity\Action;
  * @Route("/parametrage/users")
  */
 class UserController extends AbstractController {
-
 
     /**
      * @Route("/api-modifier", name="user_api_edit", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
@@ -382,7 +382,6 @@ class UserController extends AbstractController {
                         EntityManagerInterface $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $visibilityGroupRepository = $entityManager->getRepository(VisibilityGroup::class);
             $typeRepository = $entityManager->getRepository(Type::class);
             $roleRepository = $entityManager->getRepository(Role::class);
@@ -449,10 +448,16 @@ class UserController extends AbstractController {
                 ->setSecondaryEmails($secondaryEmails)
                 ->setPhone($data['phoneNumber'])
                 ->setRole($role)
-                ->setDropzone($data['dropzone'] ? $emplacementRepository->find(intval($data['dropzone'])) : null)
                 ->setStatus(true)
                 ->setAddress($data['address'])
                 ->setMobileLoginKey($uniqueMobileKey);
+
+            $dropzone = explode(":", $data['dropzone']);
+            if($dropzone[0] === 'location') {
+                $utilisateur->setDropzone($entityManager->find(Emplacement::class, $dropzone[1]));
+            } elseif($dropzone[0] === 'locationGroup') {
+                $utilisateur->setDropzone($entityManager->find(LocationGroup::class, $dropzone[1]));
+            }
 
             if ($password !== '') {
                 $password = $encoder->hashPassword($utilisateur, $data['password']);
