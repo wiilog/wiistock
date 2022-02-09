@@ -546,12 +546,15 @@ function demandeurChanged($select) {
     const $container = $select.closest('.demande-form');
     const $locationSelect = $container.find('[name="destination"]');
     const [resultSelected] = $select.select2('data');
+
     if (resultSelected) {
-        let {idEmp, textEmp} = resultSelected;
-        if (idEmp && textEmp) {
+        let {locationId, locationLabel} = resultSelected;
+        if (locationId && locationLabel) {
+            locationId = locationId.split(":").pop();
+            locationLabel = locationLabel.split(":").pop();
             const $value = $('<div/>');
-            $value.data('id', idEmp)
-            $value.data('text', textEmp)
+            $value.data('id', locationId)
+            $value.data('text', locationLabel)
             Select2Old.initValues($locationSelect, $value, true);
         }
     }

@@ -29,7 +29,12 @@ class EmplacementRepository extends EntityRepository
         'pairing' => 'pairing',
     ];
 
-    public function getForSelect(?string $term, $deliveryType = null, $collectType = null) {
+    public function getForSelect(?string $term, array $options = []) {
+
+        $idPrefix = $options['idPrefix'] ?? '';
+        $deliveryType = $options['deliveryType'] ?? '';
+        $collectType = $options['collectType'] ?? '';
+
         $query = $this->createQueryBuilder("location");
 
         if($deliveryType) {
@@ -44,7 +49,7 @@ class EmplacementRepository extends EntityRepository
                 ->setParameter("type", $collectType);
         }
 
-        return $query->select("location.id AS id, location.label AS text")
+        return $query->select("CONCAT('$idPrefix', location.id) AS id, location.label AS text")
             ->andWhere("location.label LIKE :term")
             ->setParameter("term", "%$term%")
             ->getQuery()

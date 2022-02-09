@@ -29,7 +29,7 @@ class LocationGroup implements PairedEntity
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private ?string $name;
+    private ?string $label;
 
     /**
      * @ORM\Column(type="text", nullable=true)
@@ -51,10 +51,16 @@ class LocationGroup implements PairedEntity
      */
     private Collection $pairings;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Utilisateur", mappedBy="locationGroupDropzone")
+     */
+    private Collection $users;
+
     public function __construct()
     {
         $this->locations = new ArrayCollection();
         $this->sensorMessages = new ArrayCollection();
+        $this->users = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -62,14 +68,14 @@ class LocationGroup implements PairedEntity
         return $this->id;
     }
 
-    public function getName(): ?string
+    public function getLabel(): ?string
     {
-        return $this->name;
+        return $this->label;
     }
 
-    public function setName(string $name): self
+    public function setLabel(string $label): self
     {
-        $this->name = $name;
+        $this->label = $label;
 
         return $this;
     }
@@ -194,8 +200,45 @@ class LocationGroup implements PairedEntity
 
     public function __toString(): string
     {
-        return $this->getName();
+        return $this->getLabel();
     }
 
+    /**
+     * @return Collection|Utilisateur[]
+     */
+    public function getUsers(): Collection {
+        return $this->users;
+    }
 
+    public function addUser(Utilisateur $user): self {
+        if (!$this->users->contains($user)) {
+            $this->users[] = $user;
+            $user->setLocationGroupDropzone($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUser(Utilisateur $user): self {
+        if ($this->users->removeElement($user)) {
+            if ($user->getLocationGroupDropzone() === $this) {
+                $user->setLocationGroupDropzone(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setUsers(?array $users): self {
+        foreach($this->getUsers()->toArray() as $user) {
+            $this->removeUser($user);
+        }
+
+        $this->users = new ArrayCollection();
+        foreach($users as $user) {
+            $this->addUser($user);
+        }
+
+        return $this;
+    }
 }

@@ -7,19 +7,19 @@ let tableUserConfig = {
         "type": "POST"
     },
     columns: [
-        { "data": 'Actions', 'title': '', orderable: false, className: 'noVis' },
-        { "data": "Nom d'utilisateur", 'title': "Nom d'utilisateur" },
-        { "data": "Email", 'title': 'Email' },
-        { "data": "Dropzone", 'title': 'Drop zone' },
-        { "data": "Dernière connexion", 'title': 'Dernière connexion' },
-        { "data": "role", 'title': 'Rôle' },
-        { "data": "visibilityGroup", 'title': 'Groupes de visibilité' },
-        { "data": "status", 'title': 'Actif' },
+        {data: `Actions`, title: ``, orderable: false, className: `noVis`},
+        {data: `username`, title: `Nom d'utilisateur`},
+        {data: `email`, title: `Email`},
+        {data: `dropzone`, title: `Drop zone`},
+        {data: `lastLogin`, title: `Dernière connexion`},
+        {data: `role`, title: `Rôle`},
+        {data: `visibilityGroup`, title: `Groupes de visibilité`},
+        {data: `status`, title: `Actif`},
     ],
     rowConfig: {
         needsRowClickAction: true
     },
-    order: [['Nom d\'utilisateur', 'asc']]
+    order: [['username', 'ASC']]
 };
 let tableUser = initDataTable('tableUser_id', tableUserConfig);
 

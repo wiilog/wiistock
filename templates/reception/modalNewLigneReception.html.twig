@@ -31,10 +31,12 @@
                         <div class="col-4 form-group">
                             <label for="demandeur">Demandeur*</label>
                             <div class="w-100">
-                                <select class="select2-user data needed" {{ not createDL ? 'disabled' }} name="demandeur" id="demandeurDL" onchange="demandeurChanged($(this))">
-                                    <option></option>
+                                <select class="data needed" {{ not createDL ? 'disabled' }} name="demandeur"
+                                        data-s2="user" data-include-params="input[name=addDropzone]"
+                                        onchange="demandeurChanged($(this))">
                                 </select>
                             </div>
+                            <input type="hidden" name="addDropzone" value="1">
                         </div>
                         <input type="hidden"
                                id="currentUser"
