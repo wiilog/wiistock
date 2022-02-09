@@ -520,6 +520,7 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('join_article_location.label AS location')
             ->addSelect('article.quantite AS quantity')
             ->addSelect('referenceArticle.reference AS reference_article')
+            ->addSelect('referenceArticle.barCode AS reference_barCode')
             ->addSelect('article.barCode AS barCode')
             ->addSelect('referenceArticle.stockManagement AS management')
             ->addSelect("
