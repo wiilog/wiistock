@@ -79,13 +79,13 @@ $(function() {
         const config = {ignored: `[data-table-processing]`,};
 
         const data = Form.process(form.element, config);
-        const fieldNames = Form.getFieldNames(form.element, config);
-
-        data.set('__form_fieldNames', JSON.stringify(fieldNames));
 
         let hasErrors = false;
 
         if(data) {
+            const fieldNames = Form.getFieldNames(form.element, config);
+            data.set('__form_fieldNames', JSON.stringify(fieldNames));
+
             const tables = {};
             form.element.find(`[data-table-processing]`).each(function() {
                 const datatable = EditableDatatable.of(this);
