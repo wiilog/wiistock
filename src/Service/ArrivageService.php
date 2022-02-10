@@ -589,6 +589,7 @@ class ArrivageService {
                         'mails/contents/mailDeposeTraca.html.twig',
                         [
                             'title' => 'Votre colis a été livré.',
+                            'orderNumber' => implode(', ', $arrivage->getNumeroCommandeList()),
                             'colis' => $pack->getCode(),
                             'emplacement' => $location,
                             'fournisseur' => $fournisseur ? $fournisseur->getNom() : '',
