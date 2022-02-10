@@ -52,10 +52,19 @@ class SettingsService {
 
     public function save(Request $request) {
         $settingRepository = $this->manager->getRepository(ParametrageGlobal::class);
-        $settings = $settingRepository->findByLabel(array_merge(
+
+        $settingNames = array_merge(
             array_keys($request->request->all()),
             array_keys($request->files->all()),
-        ));
+        );
+
+        $allFormSettingNames = json_decode($request->request->get('__form_fieldNames', '[]'), true);
+        $settingNamesToClear = array_diff($allFormSettingNames, $settingNames);
+        $settingToClear = !empty($settingNamesToClear) ? $settingRepository->findByLabel($settingNamesToClear) : [];
+
+        $this->clearSettings($settingToClear);
+
+        $settings = $settingRepository->findByLabel($settingNames);
 
         if($request->request->has("datatables")) {
             $this->saveDatatables(json_decode($request->request->get("datatables"), true), $request->request->all());
@@ -355,19 +364,19 @@ class SettingsService {
                 $this->manager->persist($visibilityGroup);
             }
         }
+
         if(isset($tables["typesLitigeTable"])){
             foreach(array_filter($tables["typesLitigeTable"]) as $typeLitigeData) {
                 $typeLitigeRepository = $this->manager->getRepository(Type::class);
                 $categoryLitige = $this->manager->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::DISPUTE]);
-                $typeLitige = "";
+
                 if (isset($typeLitigeData['typeLitigeId'])){
                     $typeLitige = $typeLitigeRepository->find($typeLitigeData['typeLitigeId']);
                 } else {
                     $typeLitige = new Type();
-                    dump($categoryLitige);
                     $typeLitige->setCategory($categoryLitige);
                 }
-                dump($typeLitigeData);
+
                 $typeLitige->setLabel($typeLitigeData['label']);
                 $typeLitige->setDescription(isset($typeLitigeData['description']) ? $typeLitigeData['description'] : "");
 
@@ -457,6 +466,15 @@ class SettingsService {
 
         $output = new BufferedOutput();
         $application->run($input, $output);
+    }
+
+    /**
+     * @param ParametrageGlobal[] $settings
+     */
+    private function clearSettings(array $settings): void {
+        foreach ($settings as $setting) {
+            $setting->setValue(null);
+        }
     }
 
 }

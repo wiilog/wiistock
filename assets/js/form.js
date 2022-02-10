@@ -35,132 +35,38 @@ export default class Form {
         return this;
     }
 
+    static getFieldNames(form, config = {}) {
+        const fieldNames = [];
+        config.classes = config.classes || {data: `data`, array: `data-array`};
+
+        eachInputs(form, config, ($input) => {
+            const $multipleKey = $input.closest(`[data-multiple-key]`);
+            if ($multipleKey.exists()) {
+                fieldNames.push($multipleKey.data(`multiple-key`));
+            } else {
+                fieldNames.push($input.attr(`name`) || $input.attr(`data-wysiwyg`));
+            }
+        });
+
+        return fieldNames;
+    }
+
     static process(form, config = {}) {
-        const classes = config.classes || {data: `data`, array: `data-array`};
-
-        let $form;
-        if(form instanceof Form)  {
-            $form = form.element;
-        } else {
-            $form = form;
-        }
-
         const errors = [];
         const data = new FormData();
-        const $inputs = $form.find(`select.${classes.data}, input.${classes.data}, input[data-repeat], textarea.${classes.data}, .data[data-wysiwyg]`);
 
-        //clear previous errors
-        $form.find(`.is-invalid`).removeClass(`is-invalid`);
-        $form.find(`.invalid-feedback`).remove();
+        config.classes = config.classes || {data: `data`, array: `data-array`};
 
-        for(const input of $inputs) {
-            let $input = $(input);
+        clearFormError(form);
 
-            if($input.is(`:not(.force-data, [type="hidden"]):hidden`) && !$input.closest(`.wii-switch, .wii-expanded-switch`).is(`:visible`) ||
-                (config.ignored && ($input.is(config.ignored) || $input.closest(config.ignored).exists()))) {
-                continue;
-            }
+        eachInputs(form, config, ($input, value) => {
+            treatInputError($input, errors, form);
 
-            if($input.attr(`type`) === `radio`) {
-                const $checked = $form.find(`input[type="radio"][name="${input.name}"]:checked`);
-                if($checked.exists()) {
-                    $input = $checked;
-                } else {
-                    $input = $form.find(`input[type="radio"][name="${input.name}"]`);
-                }
-            }
-            else if($input.attr(`type`) === `number`) {
-                let val = parseInt($input.val());
-                let min = parseInt($input.attr('min'));
-                let max = parseInt($input.attr('max'));
-
-                if(!isNaN(val) && (val > max || val < min)) {
-                    let message = `La valeur `;
-                    if(!isNaN(min) && !isNaN(max)) {
-                        message += min > max
-                            ? `doit être inférieure à ${max}.`
-                            : `doit être comprise entre ${min} et ${max}.`;
-                    } else if(!isNaN(max)) {
-                        message += `doit être inférieure à ${max}.`;
-                    } else if(!isNaN(min)) {
-                        message += `doit être supérieure à ${min}.`;
-                    } else {
-                        message += `est invalide`;
-                    }
-
-                    errors.push({
-                        elements: [$input],
-                        message,
-                    });
-                }
-            }
-            else if($input.attr(`type`) === `tel`) {
-                const regex = /^(?:(?:\+|00)33[\s.-]{0,3}(?:\(0\)[\s.-]{0,3})?|0)[1-9](?:(?:[\s.-]?\d{2}){4}|\d{2}(?:[\s.-]?\d{3}){2})$/;
-                if($input.val() && !$input.val().match(regex)) {
-                    errors.push({
-                        elements: [$input],
-                        message: `Le numéro de téléphone n'est pas valide`,
-                    });
-                }
-            }
-
-            if($input.data(`repeat`)) {
-                const $toRepeat = $form.find(`input[name="${$input.data(`repeat`)}"`);
-
-                if($input.val() !== $toRepeat.val()) {
-                    errors.push({
-                        elements: [$input, $toRepeat],
-                        message: `Les champs ne sont pas identiques`,
-                    });
-                }
-            }
-
-            if($input.is(`[required]`) || $input.is(`[data-required]`) || $input.is(`.needed`)) {
-                if(([`radio`, `checkbox`].includes($input.attr(`type`)) && !$input.is(`:checked`))) {
-                    errors.push({
-                        elements: [$input.closest(`.wii-radio, .wii-checkbox, .wii-switch`)],
-                        message: `Vous devez sélectionner au moins un élément`,
-                    });
-                } else {
-                    const valueIsEmpty = (
-                        $input.is(`[data-wysiwyg]`) ? !$input.find(`.ql-editor`).text() :  // for wysuwyg fields
-                        ($input.is(`select[multiple]`) && Array.isArray($input.val())) ? $input.val().length === 0 : // for select2 multiple
-                        !$input.val() // other fiels
-                    );
-
-                    if(valueIsEmpty) {
-                        if(!$input.is(`[type="file"]`) || form instanceof Form && !form.uploads[$input.attr(`name`)]) {
-                            errors.push({
-                                elements: [$input],
-                                message: `Ce champ est requis`,
-                            });
-                        }
-                    }
-                }
-            }
-
-            if($input.attr(`name`) || $input.attr(`data-wysiwyg`)) {
-                let value;
-                if($input.is(`[data-wysiwyg]`)) {
-                    const $qlEditor = $input.find(`.ql-editor`);
-                    const $wrapper = $qlEditor.exists() ? $qlEditor : $input;
-                    value = $wrapper.html();
-                } else if($input.attr(`type`) === `checkbox`) {
-                    value = $input.is(`:checked`) ? `1` : `0`;
-                } else if($input.attr(`type`) === `file`) {
-                    value = $input[0].files[0] ?? null;
-                } else {
-                    value = $input.val() || null;
-                }
-
-                if(typeof value === `string`) {
-                    value = value.trim();
-                }
-
+            if (value !== null) {
                 const $multipleKey = $input.closest(`[data-multiple-key]`);
-                if($multipleKey.exists()) {
+                if ($multipleKey.exists()) {
                     const multipleKey = JSON.parse(data.get($multipleKey.data(`multiple-key`)) || `{}`);
-                    if(!multipleKey[$multipleKey.data(`multiple-object-index`)]) {
+                    if (!multipleKey[$multipleKey.data(`multiple-object-index`)]) {
                         multipleKey[$multipleKey.data(`multiple-object-index`)] = {};
                     }
 
@@ -171,9 +77,10 @@ export default class Form {
                     data.set($input.attr(`name`) || $input.attr(`data-wysiwyg`), value);
                 }
             }
-        }
+        });
 
-        Form.addDataArray($form, data, classes);
+        const $form = getFormElement(form);
+        Form.addDataArray($form, data, config.classes);
 
         if(config.button && config.button.attr(`name`)) {
             data.append(config.button.attr(`name`), config.button.val());
@@ -273,3 +180,141 @@ FormData.fromObject = function(object) {
 
     return data;
 }
+
+function ignoreInput($input, config) {
+    return $input.is(`:not(.force-data, [type="hidden"]):hidden`) && !$input.closest(`.wii-switch, .wii-expanded-switch`).is(`:visible`)
+    || (
+        config.ignored
+        && ($input.is(config.ignored) || $input.closest(config.ignored).exists())
+    )
+    || !$input.attr(`name`) && !$input.attr(`data-wysiwyg`);
+}
+
+function eachInputs(form, config, callback) {
+    const classes = config.classes;
+    const $form = getFormElement(form);
+    const $inputs = $form.find(`select.${classes.data}, input.${classes.data}, input[data-repeat], textarea.${classes.data}, .data[data-wysiwyg]`);
+
+    for(const input of $inputs) {
+        let $input = $(input);
+
+        if (ignoreInput($input, config)) {
+            continue;
+        }
+
+        if($input.attr(`type`) === `radio`) {
+            const $checked = $form.find(`input[type="radio"][name="${input.name}"]:checked`);
+            if($checked.exists()) {
+                $input = $checked;
+            } else {
+                $input = $form.find(`input[type="radio"][name="${input.name}"]`);
+            }
+        }
+
+        callback($input, formatInputValue($input));
+    }
+}
+
+function treatInputError($input, errors, form) {
+    if ($input.attr(`type`) !== `radio`) {
+        if ($input.attr(`type`) === `number`) {
+            let val = parseInt($input.val());
+            let min = parseInt($input.attr('min'));
+            let max = parseInt($input.attr('max'));
+
+            if (!isNaN(val) && (val > max || val < min)) {
+                let message = `La valeur `;
+                if (!isNaN(min) && !isNaN(max)) {
+                    message += min > max
+                        ? `doit être inférieure à ${max}.`
+                        : `doit être comprise entre ${min} et ${max}.`;
+                } else if (!isNaN(max)) {
+                    message += `doit être inférieure à ${max}.`;
+                } else if (!isNaN(min)) {
+                    message += `doit être supérieure à ${min}.`;
+                } else {
+                    message += `est invalide`;
+                }
+
+                errors.push({
+                    elements: [$input],
+                    message,
+                });
+            }
+        } else if ($input.attr(`type`) === `tel`) {
+            const regex = /^(?:(?:\+|00)33[\s.-]{0,3}(?:\(0\)[\s.-]{0,3})?|0)[1-9](?:(?:[\s.-]?\d{2}){4}|\d{2}(?:[\s.-]?\d{3}){2})$/;
+            if ($input.val() && !$input.val().match(regex)) {
+                errors.push({
+                    elements: [$input],
+                    message: `Le numéro de téléphone n'est pas valide`,
+                });
+            }
+        }
+
+        if ($input.data(`repeat`)) {
+            const $toRepeat = $form.find(`input[name="${$input.data(`repeat`)}"`);
+
+            if ($input.val() !== $toRepeat.val()) {
+                errors.push({
+                    elements: [$input, $toRepeat],
+                    message: `Les champs ne sont pas identiques`,
+                });
+            }
+        }
+
+        if ($input.is(`[required]`) || $input.is(`[data-required]`) || $input.is(`.needed`)) {
+            if (([`radio`, `checkbox`].includes($input.attr(`type`)) && !$input.is(`:checked`))) {
+                errors.push({
+                    elements: [$input.closest(`.wii-radio, .wii-checkbox, .wii-switch`)],
+                    message: `Vous devez sélectionner au moins un élément`,
+                });
+            } else {
+                const valueIsEmpty = (
+                    $input.is(`[data-wysiwyg]`) ? !$input.find(`.ql-editor`).text() :  // for wysuwyg fields
+                        ($input.is(`select[multiple]`) && Array.isArray($input.val())) ? $input.val().length === 0 : // for select2 multiple
+                            !$input.val() // other fiels
+                );
+
+                if (valueIsEmpty) {
+                    if (!$input.is(`[type="file"]`) || form instanceof Form && !form.uploads[$input.attr(`name`)]) {
+                        errors.push({
+                            elements: [$input],
+                            message: `Ce champ est requis`,
+                        });
+                    }
+                }
+            }
+        }
+    }
+}
+
+function formatInputValue($input) {
+    let value;
+    if ($input.is(`[data-wysiwyg]`)) {
+        const $qlEditor = $input.find(`.ql-editor`);
+        const $wrapper = $qlEditor.exists() ? $qlEditor : $input;
+        value = $wrapper.html();
+    } else if ($input.attr(`type`) === `checkbox`) {
+        value = $input.is(`:checked`) ? `1` : `0`;
+    } else if ($input.attr(`type`) === `file`) {
+        value = $input[0].files[0] ?? null;
+    } else {
+        value = $input.val() || null;
+    }
+
+    if (typeof value === `string`) {
+        value = value.trim();
+    }
+    return value;
+}
+
+function getFormElement(form) {
+    return form instanceof Form ? form.element : form;
+}
+
+function clearFormError(form) {
+    const $form = getFormElement(form);
+    $form.find(`.is-invalid`).removeClass(`is-invalid`);
+    $form.find(`.invalid-feedback`).remove();
+}
+

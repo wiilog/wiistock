@@ -44,8 +44,6 @@ const initializers = {
     stock_groupes_visibilite: initializeVisibilityGroup,
     utilisateurs_utilisateurs: initUserPage,
     utilisateurs_roles: initializeRolesPage,
-    stock_inventaires_frequences: initializeFrequencesTable,
-    stock_inventaires_categories: initializeCategoriesTable,
     stock_receptions_types_litiges : initializeTypesLitige,
     trace_arrivages_types_litiges : initializeTypesLitige,
 };
@@ -78,9 +76,12 @@ $(function() {
     $saveButton.on(`click`, async function() {
         const form = forms[currentForm];
         const tablesToReload = [];
-        let data = Form.process(form.element, {
-            ignored: `[data-table-processing]`,
-        });
+        const config = {ignored: `[data-table-processing]`,};
+
+        const data = Form.process(form.element, config);
+        const fieldNames = Form.getFieldNames(form.element, config);
+
+        data.set('__form_fieldNames', JSON.stringify(fieldNames));
 
         let hasErrors = false;
 
