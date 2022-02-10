@@ -33,6 +33,8 @@ class Action {
     const EDIT_ARRI = 'modifier arrivage';
     const DELETE_ARRI = 'supprimer arrivage';
     const EMPTY_ROUND = 'autoriser la sélection du Passage à vide';
+    const CREATE_ARRIVAL = 'créer arrivage';
+    const CREATE_EMERGENCY = 'créer urgence';
 
     // menu qualité
     const DISPLAY_LITI = 'afficher litiges';
