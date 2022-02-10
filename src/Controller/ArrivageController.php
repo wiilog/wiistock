@@ -742,7 +742,6 @@ class ArrivageController extends AbstractController {
             ]),
             'printColis' => $printColis,
             'printArrivage' => $printArrivage,
-            'utilisateurs' => $usersRepository->getIdAndLibelleBySearch(''),
             'canBeDeleted' => $arrivageRepository->countUnsolvedDisputesByArrivage($arrivage) == 0,
             'fieldsParam' => $fieldsParam,
             'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage),
@@ -968,7 +967,6 @@ class ArrivageController extends AbstractController {
             $html = $this->renderView('arrivage/modalEditLitigeContent.html.twig', [
                 'dispute' => $dispute,
                 'hasRightToTreatLitige' => $hasRightToTreatLitige,
-                'utilisateurs' => $usersRepository->getIdAndLibelleBySearch(''),
                 'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
                 'disputeStatuses' => $statutRepository->findByCategorieName(CategorieStatut::DISPUTE_ARR, 'displayOrder'),
                 'attachments' => $attachmentRepository->findBy(['dispute' => $dispute]),

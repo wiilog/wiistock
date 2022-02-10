@@ -89,9 +89,13 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-12 form-group">
+                <div class="col-12 form-group w-100">
                     <label for="dropzone">Dropzone</label>
-                    <select name="dropzone" class="form-control data ajax-autocomplete-location-edit w-100 select2-old">
+                    <select name="dropzone"
+                            class="form-control data"
+                            data-s2="location"
+                            data-other-params
+                            data-other-params-add-group="1">
                     </select>
                 </div>
                 <div class="col-12 form-group w-100">

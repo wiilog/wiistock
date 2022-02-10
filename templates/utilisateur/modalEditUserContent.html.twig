@@ -96,7 +96,16 @@
     </div>
     <div class="col-12 form-group w-100">
         <label for="dropzone">Dropzone</label>
-        <select name="dropzone" class="form-control data ajax-autocomplete-location-edit" id="dropzone">
+        <select name="dropzone"
+                class="form-control data"
+                data-s2="location"
+                data-other-params
+                data-other-params-add-group="1">
+            {% if user.locationDropzone %}
+                <option value="location:{{ user.locationDropzone.id }}" selected>{{ user.locationDropzone.label }}</option>
+            {% elseif user.locationGroupDropzone %}
+                <option value="locationGroup:{{ user.locationGroupDropzone.id }}" selected>{{ user.locationGroupDropzone.label }}</option>
+            {% endif %}
         </select>
     </div>
     <div class="col-12 form-group w-100">
