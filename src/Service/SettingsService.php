@@ -5,13 +5,17 @@ namespace App\Service;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
+use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
 use App\Entity\InventoryCategory;
 use App\Entity\InventoryFrequency;
 use App\Entity\FreeField;
 use App\Entity\MailerServer;
 use App\Entity\ParametrageGlobal;
+use App\Entity\Reception;
+use App\Entity\Statut;
 use App\Entity\Type;
+use App\Entity\VisibilityGroup;
 use App\Entity\WorkFreeDay;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -28,19 +32,13 @@ use WiiCommon\Helper\Stream;
 
 class SettingsService {
 
-    /**
-     * @Required
-     */
+    /**  @Required */
     public EntityManagerInterface $manager;
 
-    /**
-     * @Required
-     */
+    /** @Required */
     public KernelInterface $kernel;
 
-    /**
-     * @Required
-     */
+    /** @Required */
     public AttachmentService $attachmentService;
 
     public function createSetting(string $setting): ParametrageGlobal {
@@ -116,21 +114,22 @@ class SettingsService {
      */
     private function customSave(Request $request, array $settings): array {
         $saved = [];
+        $data = $request->request;
 
-        if($client = $request->request->get(ParametrageGlobal::APP_CLIENT)) {
+        if($client = $data->get(ParametrageGlobal::APP_CLIENT)) {
             $this->changeClient($client);
             $saved[] = ParametrageGlobal::APP_CLIENT;
         }
 
-        if($request->request->has("MAILER_URL")) {
+        if($data->has("MAILER_URL")) {
             $mailer = $this->manager->getRepository(MailerServer::class)->findOneBy([]);
-            $mailer->setSmtp($request->request->get("MAILER_URL"));
-            $mailer->setUser($request->request->get("MAILER_USER"));
-            $mailer->setPassword($request->request->get("MAILER_PASSWORD"));
-            $mailer->setPort($request->request->get("MAILER_PORT"));
-            $mailer->setProtocol($request->request->get("MAILER_PROTOCOL"));
-            $mailer->setSenderName($request->request->get("MAILER_SENDER_NAME"));
-            $mailer->setSenderMail($request->request->get("MAILER_SENDER_MAIL"));
+            $mailer->setSmtp($data->get("MAILER_URL"));
+            $mailer->setUser($data->get("MAILER_USER"));
+            $mailer->setPassword($data->get("MAILER_PASSWORD"));
+            $mailer->setPort($data->get("MAILER_PORT"));
+            $mailer->setProtocol($data->get("MAILER_PROTOCOL"));
+            $mailer->setSenderName($data->get("MAILER_SENDER_NAME"));
+            $mailer->setSenderMail($data->get("MAILER_SENDER_MAIL"));
 
             $saved = array_merge($saved, [
                 "MAILER_URL",
@@ -141,6 +140,48 @@ class SettingsService {
                 "MAILER_SENDER_NAME",
                 "MAILER_SENDER_MAIL",
             ]);
+        }
+
+        if($data->has(ParametrageGlobal::WEBSITE_LOGO) && $data->get(ParametrageGlobal::WEBSITE_LOGO) === "null") {
+            $setting = $settings[ParametrageGlobal::WEBSITE_LOGO];
+            $setting->setValue(ParametrageGlobal::DEFAULT_WEBSITE_LOGO_VALUE);
+
+            $saved[] = ParametrageGlobal::WEBSITE_LOGO;
+        }
+
+        if($data->has(ParametrageGlobal::MOBILE_LOGO_LOGIN) && $data->get(ParametrageGlobal::MOBILE_LOGO_LOGIN) === "null") {
+            $setting = $settings[ParametrageGlobal::MOBILE_LOGO_LOGIN];
+            $setting->setValue(ParametrageGlobal::DEFAULT_MOBILE_LOGO_LOGIN_VALUE);
+
+            $saved[] = ParametrageGlobal::MOBILE_LOGO_LOGIN;
+        }
+
+        if($data->has(ParametrageGlobal::EMAIL_LOGO) && $data->get(ParametrageGlobal::EMAIL_LOGO) === "null") {
+            $setting = $settings[ParametrageGlobal::EMAIL_LOGO];
+            $setting->setValue(ParametrageGlobal::DEFAULT_EMAIL_LOGO_VALUE);
+
+            $saved[] = ParametrageGlobal::EMAIL_LOGO;
+        }
+
+        if($data->has(ParametrageGlobal::MOBILE_LOGO_HEADER) && $data->get(ParametrageGlobal::MOBILE_LOGO_HEADER) === "null") {
+            $setting = $settings[ParametrageGlobal::MOBILE_LOGO_HEADER];
+            $setting->setValue(ParametrageGlobal::DEFAULT_MOBILE_LOGO_HEADER_VALUE);
+
+            $saved[] = ParametrageGlobal::MOBILE_LOGO_HEADER;
+        }
+
+        if ($data->has("en_attente_de_réception") && $data->has("réception_partielle") && $data->has("réception_totale") && $data->has("anomalie")) {
+            $codes = [
+                Reception::STATUT_EN_ATTENTE => $data->get("en_attente_de_réception"),
+                Reception::STATUT_RECEPTION_PARTIELLE => $data->get("réception_partielle"),
+                Reception::STATUT_RECEPTION_TOTALE => $data->get("réception_totale"),
+                Reception::STATUT_ANOMALIE => $data->get("anomalie"),
+            ];
+
+            $statuses = $this->manager->getRepository(Statut::class)->findBy(["code" => array_keys($codes)]);
+            foreach ($statuses as $status) {
+                $status->setNom($codes[$status->getCode()]);
+            }
         }
 
         return $saved;
@@ -217,26 +258,55 @@ class SettingsService {
             }
         }
 
-        if(isset($tables["articlesFreeFields"])) {
-            $ids = array_map(fn($freeField) => $freeField["id"] ?? null, $tables["articlesFreeFields"]);
+        if(isset($tables["freeFields"])) {
+            $ids = array_map(fn($freeField) => $freeField["id"] ?? null, $tables["freeFields"]);
 
-            $type = $this->manager->find(Type::class, $data["entity"]);
-            $type->setDescription($data["description"] ?? null)
-                ->setColor($data["color"] ?? null);
+            if(isset($data["entity"])) {
+                if(!is_numeric($data["entity"]) && in_array($data["entity"], CategoryType::ALL)) {
+                    $categoryRepository = $this->manager->getRepository(CategoryType::class);
+
+                    $type = new Type();
+                    $type->setCategory($categoryRepository->findOneBy(["label" => $data["entity"]]));
+
+                    $this->manager->persist($type);
+                } else {
+                    $type = $this->manager->find(Type::class, $data["entity"]);
+                }
+
+                if (!isset($type)) {
+                    throw new RuntimeException("Le type est introuvable");
+                }
+
+                $type->setLabel($data["label"] ?? $type->getLabel())
+                    ->setDescription($data["description"] ?? null)
+                    ->setPickLocation(isset($data["pickLocation"]) ? $this->manager->find(Emplacement::class, $data["pickLocation"]) : null)
+                    ->setDropLocation(isset($data["dropLocation"]) ? $this->manager->find(Emplacement::class, $data["dropLocation"]) : null)
+                    ->setNotificationsEnabled($data["pushNotifications"] ?? false)
+                    ->setNotificationsEmergencies(isset($data["notificationEmergencies"]) ? explode(",", $data["notificationEmergencies"]) : null)
+                    ->setSendMail($data["mailRequester"] ?? false)
+                    ->setColor($data["color"] ?? null);
+            } else {
+                $type = $this->manager->getRepository(Type::class)->findOneByLabel(Type::LABEL_MVT_TRACA);
+            }
 
             $freeFieldRepository = $this->manager->getRepository(FreeField::class);
             $freeFields = Stream::from($freeFieldRepository->findBy(["id" => $ids]))
                 ->keymap(fn($day) => [$day->getId(), $day])
                 ->toArray();
 
-            foreach(array_filter($tables["articlesFreeFields"]) as $item) {
+            foreach(array_filter($tables["freeFields"]) as $item) {
                 /** @var FreeField $freeField */
                 $freeField = isset($item["id"]) ? $freeFields[$item["id"]] : new FreeField();
+
+                $existing = $freeFieldRepository->findOneBy(["label" => $item["label"]]);
+                if($existing && $existing->getId() != $freeField->getId()) {
+                    throw new RuntimeException("Un champ libre existe déjà avec le libellé {$item["label"]}");
+                }
 
                 $freeField->setLabel($item["label"])
                     ->setType($type)
                     ->setTypage($item["type"] ?? $freeField->getTypage())
-                    ->setCategorieCL($this->manager->find(CategorieCL::class, $item["category"]))
+                    ->setCategorieCL(isset($item["category"]) ? $this->manager->find(CategorieCL::class, $item["category"]) : null)
                     ->setDefaultValue($item["defaultValue"] ?? null)
                     ->setElements(isset($item["elements"]) ? explode(";", $item["elements"]) : null)
                     ->setDisplayedCreate($item["displayedCreate"])
@@ -266,6 +336,23 @@ class SettingsService {
                         ->setRequiredEdit($item["requiredEdit"])
                         ->setDisplayedFilters($item["displayedFilters"] ?? null);
                 }
+            }
+        }
+
+        if(isset($tables["visibilityGroup"])){
+            foreach(array_filter($tables["visibilityGroup"]) as $visibilityGroupData) {
+                $visibilityGroupRepository = $this->manager->getRepository(VisibilityGroup::class);
+                $visibilityGroup = "";
+                if (isset($visibilityGroupData['visibilityGroupId'])){
+                    $visibilityGroup = $visibilityGroupRepository->find($visibilityGroupData['visibilityGroupId']);
+                } else {
+                    $visibilityGroup = new VisibilityGroup();
+                }
+                $visibilityGroup->setLabel($visibilityGroupData['label']);
+                $visibilityGroup->setDescription($visibilityGroupData['description']);
+                $visibilityGroup->setActive($visibilityGroupData['actif']);
+
+                $this->manager->persist($visibilityGroup);
             }
         }
         if(isset($tables["typesLitigeTable"])){

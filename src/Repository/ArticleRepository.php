@@ -520,6 +520,7 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('join_article_location.label AS location')
             ->addSelect('article.quantite AS quantity')
             ->addSelect('referenceArticle.reference AS reference_article')
+            ->addSelect('referenceArticle.barCode AS reference_barCode')
             ->addSelect('article.barCode AS barCode')
             ->addSelect('referenceArticle.stockManagement AS management')
             ->addSelect("
@@ -734,7 +735,7 @@ class ArticleRepository extends EntityRepository {
             ->orderBy('article_location.label')
             ->setParameters([
                 'frequency' => $frequency,
-                'typeQuantity' => ReferenceArticle::TYPE_QUANTITE_ARTICLE,
+                'typeQuantity' => ReferenceArticle::QUANTITY_TYPE_ARTICLE,
                 'activeStatus' => Article::STATUT_ACTIF,
                 'disputeStatus' => Article::STATUT_EN_LITIGE,
                 'referenceActiveStatus' => ReferenceArticle::STATUT_ACTIF

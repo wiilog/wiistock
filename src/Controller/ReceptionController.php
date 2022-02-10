@@ -330,19 +330,19 @@ class ReceptionController extends AbstractController {
             if(!$hasBarCodeToPrint && isset($referenceArticle)) {
                 $articles = $ligneArticle->getArticles();
                 $hasBarCodeToPrint = (
-                    ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) ||
+                    ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) ||
                     ($articles->count() > 0)
                 );
             }
 
             $isReferenceTypeLinked = (
                 isset($referenceArticle)
-                && ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE)
+                && ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE)
             );
 
             $isArticleTypeLinked = (
                 isset($referenceArticle)
-                && ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE)
+                && ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE)
             );
 
             $rows[] = [
@@ -524,7 +524,7 @@ class ReceptionController extends AbstractController {
             ]);
 
             $reference = $ligneArticle->getReferenceArticle();
-            if($reference->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+            if($reference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
                 $newRefQuantity = $reference->getQuantiteStock() - $ligneArticle->getQuantite();
                 $newRefAvailableQuantity = $newRefQuantity - $reference->getQuantiteReservee();
                 if($newRefAvailableQuantity < 0) {
@@ -673,7 +673,7 @@ class ReceptionController extends AbstractController {
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
 
             $ligneArticle = $receptionReferenceArticleRepository->find($data['id']);
-            $canUpdateQuantity = $ligneArticle->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE;
+            $canUpdateQuantity = $ligneArticle->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE;
 
             $json = $this->renderView(
                 'reception/modalEditLigneArticleContent.html.twig',
@@ -720,7 +720,7 @@ class ReceptionController extends AbstractController {
 
             $typeQuantite = $receptionReferenceArticle->getReferenceArticle()->getTypeQuantite();
             $referenceArticle = $receptionReferenceArticle->getReferenceArticle();
-            if($typeQuantite === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+            if($typeQuantite === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
                 $oldReceivedQuantity = $receptionReferenceArticle->getQuantite() ?? 0;
                 $newReceivedQuantity = max((int)$quantite, 0);
                 $diffReceivedQuantity = $newReceivedQuantity - $oldReceivedQuantity;
@@ -847,7 +847,6 @@ class ReceptionController extends AbstractController {
             'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
             'disputeStatuses' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, 'displayOrder'),
             'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
-            'utilisateurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
             'typeChampsLibres' => $typeChampLibreDL,
             'createDL' => $createDL ? $createDL->getValue() : false,
             'defaultDeliveryLocations' => $globalParamService->getDefaultDeliveryLocationsByTypeId($entityManager),
@@ -1200,7 +1199,6 @@ class ReceptionController extends AbstractController {
                 'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
                 'disputeStatuses' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, 'displayOrder'),
                 'attachments' => $attachmentRepository->findBy(['dispute' => $dispute]),
-                'utilisateurs' => $utilisateurRepository->getIdAndLibelleBySearch(''),
             ]);
 
             return new JsonResponse(['html' => $html, 'colis' => $colisCode, 'acheteurs' => $acheteursCode]);
@@ -1394,7 +1392,7 @@ class ReceptionController extends AbstractController {
             $reference = $ligneArticle->getReferenceArticle();
             $newRefQuantity = $reference->getQuantiteStock() - $ligneArticle->getQuantite();
             $newRefAvailableQuantity = $newRefQuantity - $reference->getQuantiteReservee();
-            if(intval($nbArticles) === 0 && ($newRefAvailableQuantity >= 0 || $reference->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE)) {
+            if(intval($nbArticles) === 0 && ($newRefAvailableQuantity >= 0 || $reference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE)) {
                 $delete = true;
                 $html = $this->renderView('reception/modalDeleteLigneArticleRight.html.twig');
             } else {
@@ -1429,7 +1427,7 @@ class ReceptionController extends AbstractController {
             function(array $carry, ReceptionReferenceArticle $recepRef) use ($refArticleDataService, $articleDataService, $reception): array {
                 $referenceArticle = $recepRef->getReferenceArticle();
 
-                if($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                if($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
                     $carry[] = $refArticleDataService->getBarcodeConfig($referenceArticle);
                 } else {
                     $articlesReception = $recepRef->getArticles()->toArray();

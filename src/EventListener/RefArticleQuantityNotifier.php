@@ -27,8 +27,6 @@ class RefArticleQuantityNotifier {
     private function handleReference(ReferenceArticle $referenceArticle) {
         if ($this->entityManager->isOpen()) {
             $this->refArticleService->treatAlert($this->entityManager, $referenceArticle);
-            $this->entityManager->flush();
-
             $available = ($referenceArticle->getQuantiteStock() - $referenceArticle->getQuantiteReservee());
             $referenceArticle->setQuantiteDisponible($available);
             $this->entityManager->flush();

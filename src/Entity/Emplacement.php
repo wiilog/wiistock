@@ -78,12 +78,12 @@ class Emplacement implements PairedEntity
     /**
      * @ORM\Column(type="boolean", nullable=false, options={"default":false})
      */
-    private ?bool $isOngoingVisibleOnMobile = null;
+    private ?bool $isOngoingVisibleOnMobile;
 
 	/**
 	 * @ORM\Column(type="boolean", nullable=false, options={"default": true})
 	 */
-    private ?bool $isActive = null;
+    private ?bool $isActive;
 
     /**
      * @ORM\Column(type="string", nullable=true)
@@ -91,7 +91,7 @@ class Emplacement implements PairedEntity
     private ?string $dateMaxTime = null;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Utilisateur", mappedBy="dropzone")
+     * @ORM\OneToMany(targetEntity="App\Entity\Utilisateur", mappedBy="locationDropzone")
      */
     private Collection $utilisateurs;
 
@@ -195,8 +195,6 @@ class Emplacement implements PairedEntity
         $this->demandes = new ArrayCollection();
         $this->collectes = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
-        $this->isOngoingVisibleOnMobile = false;
-        $this->isActive = true;
         $this->utilisateurs = new ArrayCollection();
         $this->allowedNatures = new ArrayCollection();
         $this->dispatchesFrom = new ArrayCollection();
@@ -214,6 +212,9 @@ class Emplacement implements PairedEntity
         $this->deliveryRequestReferenceLines = new ArrayCollection();
         $this->preparationOrderArticleLines = new ArrayCollection();
         $this->transferOrders = new ArrayCollection();
+
+        $this->isOngoingVisibleOnMobile = false;
+        $this->isActive = true;
     }
 
     public function getId(): ? int
@@ -463,7 +464,7 @@ class Emplacement implements PairedEntity
     {
         if (!$this->utilisateurs->contains($utilisateur)) {
             $this->utilisateurs[] = $utilisateur;
-            $utilisateur->setDropzone($this);
+            $utilisateur->setLocationDropzone($this);
         }
 
         return $this;
@@ -474,8 +475,8 @@ class Emplacement implements PairedEntity
         if ($this->utilisateurs->contains($utilisateur)) {
             $this->utilisateurs->removeElement($utilisateur);
             // set the owning side to null (unless already changed)
-            if ($utilisateur->getDropzone() === $this) {
-                $utilisateur->setDropzone(null);
+            if ($utilisateur->getLocationDropzone() === $this) {
+                $utilisateur->setLocationDropzone(null);
             }
         }
 

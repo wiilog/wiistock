@@ -52,7 +52,8 @@ function initPage() {
                 hideColumnConfig: {
                     columns,
                     tableFilter: 'tableDispatches'
-                }
+                },
+                page: 'dispatch'
             };
 
             tableDispatches = initDataTable('tableDispatches', tableDispatchesConfig);

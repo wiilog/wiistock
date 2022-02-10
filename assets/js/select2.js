@@ -1,10 +1,12 @@
 import 'select2';
 import {GROUP_WHEN_NEEDED} from "./app";
+import {indexOf} from "core-js/internals/array-includes";
 
 const ROUTES = {
     handlingType: `ajax_select_handling_type`,
     deliveryType: `ajax_select_delivery_type`,
     collectType: `ajax_select_collect_type`,
+    dispatchType: `ajax_select_dispatch_type`,
     status: `ajax_select_status`,
     location: `ajax_select_locations`,
     pack: `ajax_select_packs`,
@@ -21,6 +23,7 @@ const ROUTES = {
     triggerSensorCodeWithoutPairing: `ajax_select_trigger_sensors_code_without_pairing`,
     visibilityGroup: `ajax_select_visibility_group`,
     user: `ajax_select_user`,
+    roles: `ajax_select_roles`,
     supplierCode: `ajax_select_supplier_code`,
     supplierLabel: `ajax_select_supplier_label`,
     collectableArticles: `ajax_select_collectable_articles`,
@@ -32,6 +35,7 @@ const INSTANT_SELECT_TYPES = {
     handlingType: true,
     deliveryType: true,
     collectType: true,
+    dispatchType: true,
     status: true,
     sensorWithoutPairing: true,
     sensorCodeWithoutPairing: true,
@@ -70,7 +74,7 @@ export default class Select2 {
                         url: Routing.generate(ROUTES[type]),
                         dataType: `json`,
                         data: params => Select2.includeParams($element, params),
-                        processResults: (data, params) => {
+                        processResults: (data) => {
                             const $search = $element.parent().find(`.select2-search__field`);
 
                             if (data.error) {
@@ -85,6 +89,7 @@ export default class Select2 {
                                 };
                             } else {
                                 $search.removeClass(`is-invalid`);
+                                $element.attr("data-length", data.results.length);
                                 return data;
                             }
                         }
@@ -112,7 +117,6 @@ export default class Select2 {
                         if (data.highlighted) {
                             $(container).attr(`data-highlighted`, true);
                         }
-
                         return data.html || data.text;
                     },
                     templateSelection: function (data, container) {
@@ -187,6 +191,22 @@ export default class Select2 {
     }
 
     static includeParams($element, params) {
+        if ($element.is('[data-other-params]')) {
+            const attributes = $element.attr();
+            const otherParams = Object.keys(attributes)
+                .reduce((carry, key) => {
+                    const [_, keyWithoutPrefix] = key.match(/other-params-(.+)/) || [];
+                    if (keyWithoutPrefix) {
+                        carry[keyWithoutPrefix] = attributes[key];
+                    }
+                    return carry;
+                }, {});
+            params = {
+                ...params,
+                ...otherParams,
+            };
+        }
+
         if ($element.is('[data-search-prefix]')) {
             const searchPrefix = $element.data('search-prefix');
             params = {

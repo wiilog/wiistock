@@ -546,12 +546,16 @@ function demandeurChanged($select) {
     const $container = $select.closest('.demande-form');
     const $locationSelect = $container.find('[name="destination"]');
     const [resultSelected] = $select.select2('data');
+
     if (resultSelected) {
-        let {idEmp, textEmp} = resultSelected;
-        if (idEmp && textEmp) {
+        let {locationId, locationLabel} = resultSelected;
+
+        if (locationId && locationLabel && locationId.indexOf('location:') === 0) {
+            locationId = locationId.split(":").pop();
+            locationLabel = locationLabel.split(":").pop();
             const $value = $('<div/>');
-            $value.data('id', idEmp)
-            $value.data('text', textEmp)
+            $value.data('id', locationId)
+            $value.data('text', locationLabel)
             Select2Old.initValues($locationSelect, $value, true);
         }
     }
@@ -828,3 +832,11 @@ function resetDefaultArticleFournisseur(show = false) {
     }
 }
 
+function initRequiredChampsFixes(button) {
+    let params = {id: button.data('id')};
+    let path = Routing.generate('get_quantity_type');
+
+    $.post(path, JSON.stringify(params), function (data) {
+        displayRequiredChampsFixesByTypeQuantiteReferenceArticle(data, button)
+    }, 'json');
+}

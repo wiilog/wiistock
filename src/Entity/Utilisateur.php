@@ -281,7 +281,12 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="utilisateurs")
      */
-    private ?Emplacement $dropzone = null;
+    private ?Emplacement $locationDropzone = null;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\LocationGroup", inversedBy="users")
+     */
+    private ?LocationGroup $locationGroupDropzone = null;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\ReferenceArticle", mappedBy="userThatTriggeredEmergency")
@@ -1433,16 +1438,65 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
-    public function getDropzone(): ?Emplacement
+    public function getLocationDropzone(): ?Emplacement
     {
-        return $this->dropzone;
+        return $this->locationDropzone;
     }
 
-    public function setDropzone(?Emplacement $dropzone): self
+    public function setLocationDropzone(?Emplacement $locationDropzone): self
     {
-        $this->dropzone = $dropzone;
+        if($this->locationDropzone && $this->locationDropzone !== $locationDropzone) {
+            $this->locationDropzone->removeUtilisateur($this);
+        }
+        $this->locationDropzone = $locationDropzone;
+        if($locationDropzone) {
+            $locationDropzone->addUtilisateur($this);
+        }
 
         return $this;
+    }
+
+    public function getLocationGroupDropzone(): ?LocationGroup
+    {
+        return $this->locationGroupDropzone;
+    }
+
+    public function setLocationGroupDropzone(?LocationGroup $locationGroupDropzone): self
+    {
+        if($this->locationGroupDropzone && $this->locationGroupDropzone !== $locationGroupDropzone) {
+            $this->locationGroupDropzone->removeUser($this);
+        }
+        $this->locationGroupDropzone = $locationGroupDropzone;
+        if($locationGroupDropzone) {
+            $locationGroupDropzone->addUser($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param LocationGroup|Emplacement|null $dropzone
+     */
+    public function setDropzone($dropzone): void {
+        $locationGroup = null;
+        $location = null;
+
+        if($dropzone instanceof LocationGroup) {
+            $locationGroup = $dropzone;
+        } elseif($dropzone instanceof Emplacement) {
+            $location = $dropzone;
+        }
+
+        $this
+            ->setLocationGroupDropzone($locationGroup)
+            ->setLocationDropzone($location);
+    }
+
+    /**
+     * @return Emplacement|LocationGroup
+     */
+    public function getDropzone() {
+        return $this->locationDropzone ?? $this->locationGroupDropzone;
     }
 
     /**
@@ -1519,18 +1573,11 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getMobileLoginKey(): string {
+    public function getMobileLoginKey(): ?string {
         return $this->mobileLoginKey;
     }
 
-    /**
-     * @param string $mobileLoginKey
-     * @return Utilisateur
-     */
-    public function setMobileLoginKey(string $mobileLoginKey): self {
+    public function setMobileLoginKey(?string $mobileLoginKey): self {
         $this->mobileLoginKey = $mobileLoginKey;
         return $this;
     }

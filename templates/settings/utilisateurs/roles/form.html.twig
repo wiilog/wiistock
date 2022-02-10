@@ -1,0 +1,111 @@
+{% extends 'layout.html.twig' %}
+
+{% import 'form.html.twig' as form %}
+
+{% macro actionCheckbox(role, action) %}
+    <div class="col-md-4 col-12 d-flex align-items-center my-1">
+        {{ form.checkbox('action-' ~ action.id, action.label, false, action in role.actions) }}
+    </div>
+{% endmacro %}
+
+{% block title %}<a href="{{ path('settings_index') }}">Paramétrage</a> | Utilisateurs | Rôles{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('settings-index') }}
+{% endblock %}
+
+{% block page_content %}
+    <div class="settings row">
+        <aside class="col-xl-3 col-4 d-flex">
+            <div class="wii-box flex-fill">
+                {% for menu in menus %}
+                    <div class="settings-item text-capitalize"
+                         title="{{ menu.translation ? menu.label }}"
+                         onclick="onSettingsItemSelected($(this))"
+                         data-menu="{{ menu.id }}">
+                        {{ menu.translation
+                            ? (menu.translation | trans)
+                            : menu.label }}
+                    </div>
+                {% endfor %}
+            </div>
+        </aside>
+        <main class="col-xl-9 col-8">
+            <div class="wii-box">
+                <div class="sub-content role-header">
+                    <div class="row">
+                        <div class="col-md-4 col-12">
+                            {{ form.input('label', 'Libellé', true, role.label, {labelClass: 'wii-field-name'}) }}
+                        </div>
+                        <div class="col-md-4 col-12">
+                            {% set quantityTypeValues = [
+                                constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_REFERENCE'),
+                                constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_ARTICLE')
+                            ] %}
+                            {{ form.switch(
+                                'quantityType',
+                                'Ajout quantité',
+                                true,
+                                quantityTypeValues | map((value) => {label: value | format_helper('quantityTypeLabel'), value: value, checked: value == role.quantityType}),
+                                {labelClass: 'wii-field-name'}
+                            ) }}
+                        </div>
+                        <div class="col-md-4 col-12 mt-md-4">
+                            {{ form.checkbox('isMailSendAccountCreation', 'Réception mail création nouveau compte', false, role.isMailSendAccountCreation) }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% for menu in menus %}
+                <div class="wii-box settings-content d-none"
+                     title="{{ menu.translation ? menu.label }}"
+                     data-menu="{{ menu.id }}">
+                    <div class="header wii-title text-capitalize">
+                        {{ menu.translation
+                            ? (menu.translation | trans)
+                            : menu.label }}
+                    </div>
+                    {% set actions = menu.actions | filter(a => not a.subMenu) %}
+                    {% if actions is not empty %}
+                        <div class="sub-content">
+                            <div class="row">
+                                {% for action in actions | sort((a, b) => a.displayOrder <=> b.displayOrder) %}
+                                    {{ _self.actionCheckbox(role, action) }}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    {% for subMenu in menu.subMenus %}
+                        <div class="subtitle toggle-collapsible">{{ subMenu.label | capitalize }}</div>
+                        <div class="sub-content collapsible">
+                            <div class="row">
+                                {% for action in subMenu.actions | sort((a, b) => a.displayOrder <=> b.displayOrder) %}
+                                    {{ _self.actionCheckbox(role, action) }}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
+            <div class="save d-none">
+                <button class="btn btn-outline-secondary discard-settings"
+                        onclick="discardChanges()">
+                    Annuler
+                </button>
+                <button class="btn btn-success save-settings ml-2"
+                        onclick="saveSettings($(this))"
+                        data-role-id="{{ role.id }}">
+                    Enregistrer
+                </button>
+            </div>
+        </main>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('settings-users-roles-form') }}
+{% endblock %}

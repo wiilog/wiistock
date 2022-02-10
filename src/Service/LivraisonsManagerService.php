@@ -156,7 +156,7 @@ class LivraisonsManagerService
                 $pickedQuantity = $referenceLine->getPickedQuantity();
                 $reference = $referenceLine->getReference();
 
-                if ($reference->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE
+                if ($reference->getTypeQuantite() == ReferenceArticle::QUANTITY_TYPE_REFERENCE
                     && !empty($pickedQuantity)) {
                     $newQuantiteStock = (($reference->getQuantiteStock() ?? 0) - $pickedQuantity);
                     $newQuantiteReservee = (($reference->getQuantiteReservee() ?? 0) - $pickedQuantity);

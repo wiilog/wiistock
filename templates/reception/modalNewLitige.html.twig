@@ -47,19 +47,14 @@
                     </div>
                     <div class="form-group w-100 col-12">
                         <label for="acheteursLitige">Acheteur(s)</label>
-                        <select class="form-control data select2" name="acheteursLitige" id="acheteursLitige"
-                                multiple="multiple">
-                            {% for utilisateur in utilisateurs %}
-                                <option value="{{ utilisateur.id }}">{{ utilisateur.text }}</option>
-                            {% endfor %}
+                        <select class="form-control data" name="acheteursLitige" data-s2="user"
+                                multiple>
                         </select>
                     </div>
                     <div class="form-group w-100 col-12">
                         <label for="disputeReporter">Déclarant*</label>
-                        <select class="form-control data select2-declarant needed" name="disputeReporter" id="disputeReporter">
-                            {% for utilisateur in utilisateurs %}
-                                <option value="{{ utilisateur.id }}">{{ utilisateur.text }}</option>
-                            {% endfor %}
+                        <select class="form-control data needed" name="disputeReporter"
+                                data-s2="user">
                         </select>
                         <input hidden
                                name="logged-user"

@@ -33,7 +33,7 @@ class LocationGroupRepository extends EntityRepository
                 if (!empty($search)) {
                     $queryBuilder
                         ->andWhere($queryBuilder->expr()->orX(
-                            "location_group.name LIKE :value",
+                            "location_group.label LIKE :value",
                             "location_group.description LIKE :value",
                         ))
                         ->setParameter('value', '%' . $search . '%');
@@ -66,10 +66,10 @@ class LocationGroupRepository extends EntityRepository
     {
         return $this->createQueryBuilder('location_group')
             ->select("CONCAT('locationGroup:', location_group.id) AS id")
-            ->addSelect('location_group.name AS text')
+            ->addSelect('location_group.label AS text')
             ->leftJoin('location_group.pairings', 'pairings')
             ->where('pairings.locationGroup IS NULL OR pairings.active = 0')
-            ->andWhere("location_group.name LIKE :term")
+            ->andWhere("location_group.label LIKE :term")
             ->setParameter("term", "%$term%")
             ->getQuery()
             ->getResult();
@@ -85,7 +85,7 @@ class LocationGroupRepository extends EntityRepository
                 ->select('pairing.id AS pairingId')
                 ->addSelect('sensorWrapper.name AS name')
                 ->addSelect('(CASE WHEN sensorWrapper.deleted = false AND pairing.active = true AND (pairing.end IS NULL OR pairing.end > NOW()) THEN 1 ELSE 0 END) AS active')
-                ->addSelect('locationGroup.name AS entity')
+                ->addSelect('locationGroup.label AS entity')
                 ->join('locationGroup.pairings', 'pairing')
                 ->join('pairing.sensorWrapper', 'sensorWrapper')
                 ->where('locationGroup = :locationGroup');
@@ -273,6 +273,16 @@ class LocationGroupRepository extends EntityRepository
         ");
         $res = $unionQuery->fetchAllAssociative();
         return $res[0]['count'] ?? 0;
+    }
+
+    public function getForSelect(?string $term) {
+        return $this->createQueryBuilder("location_group")
+            ->select("CONCAT('locationGroup:',location_group.id) AS id, location_group.label AS text")
+            ->where("location_group.label LIKE :term")
+            ->andWhere("location_group.active = 1")
+            ->setParameter("term", "%$term%")
+            ->getQuery()
+            ->getArrayResult();
     }
 
 }

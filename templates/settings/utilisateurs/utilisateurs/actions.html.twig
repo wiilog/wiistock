@@ -1,0 +1,15 @@
+<div class="d-none action-on-click"
+     data-id="{{ idUser }}"
+     data-toggle="modal"
+     data-target="#modalEditUser"
+     onclick="editRowUser($(this))">
+</div>
+
+<div onclick="checkAndDeleteRow($(this), '#modalDeleteUser', 'user_check_delete', '#submitDeleteUser')"
+     data-id="{{ idUser }}"
+     data-target="#modalDeleteUser"
+     data-toggle="modal"
+     class="pointer">
+    <i class="wii-icon wii-icon-trash"></i>
+</div>
+

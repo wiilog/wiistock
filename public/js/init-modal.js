@@ -19,7 +19,8 @@ let droppedFiles = [];
  *      success: undefined|function,
  *      clearOnClose: undefined|boolean,
  *      validator: undefined|function,
- *      waitDatatable: undefined|boolean
+ *      waitDatatable: undefined|boolean,
+ *      keepLoading: undefined|boolean
  * }} options Object containing some option.
  *   - tables is an array of datatable
  *   - keepForm is an array of datatable
@@ -29,6 +30,7 @@ let droppedFiles = [];
  *   - validator function which calculate custom form validation
  *   - confirmMessage Function which return promise throwing when form can be submitted
  *   - waitDatatable if true returned a Promise resolve whe Datatable is reloaded
+ *   - keepLoading Keep loader on submit button after receiving ajax response
  */
 function InitModal($modal, submit, path, options= {}) {
     if(options.clearOnClose) {
@@ -70,7 +72,8 @@ function InitModal($modal, submit, path, options= {}) {
  *      success: function,
  *      keepForm: undefined|boolean,
  *      validator: function|undefined,
- *      waitDatatable: undefined|boolean
+ *      waitDatatable: undefined|boolean,
+ *      keepLoading: undefined|boolean
  * }} options Object containing some options.
  *   - tables is an array of datatable
  *   - keepForm true if we do not clear form
@@ -78,7 +81,8 @@ function InitModal($modal, submit, path, options= {}) {
  *   - validator function which calculate custom form validation
  *   - confirmMessage Function which return promise throwing when form can be submitted
  *   - success called on success
- *   - waitDatatable if true returned a Promise resolve whe Datatable is reloaded
+ *   - waitDatatable if true returned a Promise resolve whe Datatable is reloaded,
+ *   - keepLoading Keep loader on submit button after receiving ajax response
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery} $submit jQuery element of the submit button
  * @param {string} path
@@ -109,6 +113,7 @@ function SubmitAction($modal,
  * @param {function} success called on success
  * @param {function} waitForUserAction wait for user modal action
  * @param {function} headerCallback header callback
+ * @param {function|undefined} keepLoading Keep loader on submit button after receiving ajax response
  * @param {function|undefined} validator function which calculate custom form validation
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery} $submit jQuery element of the submit button
@@ -117,7 +122,7 @@ function SubmitAction($modal,
 function processSubmitAction($modal,
                              $submit,
                              path,
-                             {tables, keepModal, keepForm, validator, success, headerCallback, waitDatatable, waitForUserAction} = {}) {
+                             {tables, keepModal, keepForm, validator, success, headerCallback, keepLoading, waitDatatable, waitForUserAction} = {}) {
     const isAttachmentForm = $modal.find('input[name="isAttachmentForm"]').val() === '1';
     const {success: formValidation, errorMessages, $isInvalidElements, data} = ProcessForm($modal, isAttachmentForm, validator);
     if (formValidation) {
@@ -127,17 +132,17 @@ function processSubmitAction($modal,
 
         $submit.pushLoader('white');
         if (waitForUserAction) {
-            waitForUserAction()
+            return waitForUserAction()
                 .then((doSubmit) => {
                     if (doSubmit) {
-                        postForm(path, smartData, $submit, $modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable, success);
+                        return postForm(path, smartData, $submit, $modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable, success, keepLoading);
                     } else {
                         $submit.popLoader();
                     }
                 })
                 .catch(() => {});
         } else {
-            postForm(path, smartData, $submit, $modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable, success);
+            return postForm(path, smartData, $submit, $modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable, success, keepLoading);
         }
     }
     else {
@@ -152,7 +157,7 @@ function processSubmitAction($modal,
     }
 }
 
-function postForm(path, smartData, $submit, $modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable, success) {
+function postForm(path, smartData, $submit, $modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable, success, keepLoading) {
     return $
         .ajax({
             url: path,
@@ -164,7 +169,9 @@ function postForm(path, smartData, $submit, $modal, data, tables, keepModal, kee
             dataType: 'json',
         })
         .then((data) => {
-            $submit.popLoader();
+            if (!keepLoading) {
+                $submit.popLoader();
+            }
 
             if (data.success === false) {
                 const errorMessage = data.msg || data.message;
@@ -423,7 +430,10 @@ function processInputsForm($modal, data, isAttachmentForm) {
         else if ($input.hasClass('is-barcode')
             && !isBarcodeValid($input)) {
             errorMessages.push(`Le champ ${label} doit contenir au maximum 21 caractères, lettres ou chiffres uniquement, pas d’accent.`);
-            $isInvalidElements.push($input, $input.parent());
+            $isInvalidElements.push($input);
+            if ($input.is(':not(input)')) {
+                $isInvalidElements.push($input.parent());
+            }
         }
         // validation valeur des inputs de type password
         else if ($input.attr('type') === 'password' && $input.attr('name') === 'password') {

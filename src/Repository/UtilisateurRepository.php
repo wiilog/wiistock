@@ -4,9 +4,9 @@ namespace App\Repository;
 
 use App\Entity\Action;
 use App\Entity\Utilisateur;
+use App\Helper\QueryCounter;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
 use Symfony\Component\HttpFoundation\InputBag;
 
@@ -18,39 +18,30 @@ use Symfony\Component\HttpFoundation\InputBag;
  */
 class UtilisateurRepository extends EntityRepository implements UserLoaderInterface
 {
-    private const DtToDbLabels = [
-        'Nom d\'utilisateur' => 'username',
-        'Email' => 'email',
-        'Dropzone' => 'dropzone',
-        'Dernière connexion' => 'lastLogin',
-        'Rôle' => 'role',
-        'Actif' => 'status',
-    ];
 
-    public function getForSelect(?string $term) {
-        return $this->createQueryBuilder("user")
-            ->select("user.id AS id, user.username AS text")
+    public function getForSelect(?string $term, array $options = []) {
+        $qb = $this->createQueryBuilder("user")
+            ->select("user.id AS id")
+            ->addSelect("user.username AS text");
+
+        if (isset($options['addDropzone']) && $options['addDropzone']) {
+            $qb->addSelect("IF(location_dropzone.id IS NOT NULL, CONCAT('location:', location_dropzone.label),
+                                    IF(locationGroup_dropzone.id IS NOT NULL, CONCAT('locationGroup:', locationGroup_dropzone.label), NULL)) AS locationLabel"
+                )
+                ->addSelect("IF(location_dropzone.id IS NOT NULL, CONCAT('location:', location_dropzone.id),
+                                    IF(locationGroup_dropzone.id IS NOT NULL, CONCAT('locationGroup:', locationGroup_dropzone.id), NULL)) AS locationId"
+                )
+                ->leftJoin('user.locationDropzone', 'location_dropzone')
+                ->leftJoin('user.locationGroupDropzone', 'locationGroup_dropzone');
+        }
+
+        return $qb
             ->andWhere("user.username LIKE :term")
-            ->andWhere('user.status = true')
+            ->andWhere('user.status = 1')
             ->setParameter("term", "%$term%")
+            ->orderBy('user.username','ASC')
             ->getQuery()
             ->getArrayResult();
-    }
-
-    public function getIdAndLibelleBySearch($search)
-    {
-        return $this->createQueryBuilder('u')
-            ->select('u.id')
-            ->addSelect('u.username as text')
-            ->addSelect('d.id as idEmp')
-            ->addSelect('d.label as textEmp')
-            ->leftJoin('u.dropzone', 'd')
-            ->where('u.username LIKE :search')
-            ->andWhere('u.status = true')
-            ->setParameter('search', '%' . $search . '%')
-            ->orderBy('u.username','ASC')
-            ->getQuery()
-            ->execute();
     }
 
     public function removeFromSearch(string $searchField, string $fieldToRemove) {
@@ -64,23 +55,15 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
             ->execute();
     }
 
-    /**
-     * @param $roleId
-     * @return int
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
-    public function countByRoleId($roleId)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(u)
-            FROM App\Entity\Utilisateur u
-            JOIN u.role r
-            WHERE r.id = :roleId"
-        )->setParameter('roleId', $roleId);
-        return $query->getSingleScalarResult();
+    public function countByRoleId(int $roleId): int {
+
+        return $this->createQueryBuilder("user")
+            ->select("COUNT(user)")
+            ->join("user.role", "role")
+            ->where("role.id = :roleId")
+            ->setParameter("roleId", $roleId)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     /**
@@ -102,27 +85,9 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         return $query->getOneOrNullResult();
     }
 
-    public function findByFieldNotNull(string $field) {
-        $qb = $this->createQueryBuilder('u');
-        return $qb
-            ->where(
-                $qb->expr()->isNotNull("u.$field")
-            )
-            ->getQuery()
-            ->execute();
-    }
-
-    public function findByParams(InputBag $params)
+    public function findByParams(InputBag $params): array
     {
-        $em = $this->getEntityManager();
-        $qb = $em->createQueryBuilder();
-
-        $qb
-            ->select('a')
-            ->from('App\Entity\Utilisateur', 'a');
-
-        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
-        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
+        $qb = $this->createQueryBuilder('user');
 
         if (!empty($params->get('order'))) {
             $order = $params->get('order')[0]['dir'];
@@ -131,25 +96,26 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
                 $column = $params->get('columns')[$params->get('order')[0]['column']]['data'];
 
                 switch ($column) {
-                    case 'Dropzone':
+                    case 'dropzone':
                         $qb
-                            ->leftJoin('a.dropzone', 'd_order')
-                            ->orderBy('d_order.label', $order);
+                            ->leftJoin('user.locationDropzone', 'order_locationDropzone')
+                            ->leftJoin('user.locationGroupDropzone', 'order_locationGroupDropzone')
+                            ->orderBy('order_locationDropzone.label', $order)
+                            ->addOrderBy('order_locationGroupDropzone.label', $order);
                         break;
                     case 'role':
                         $qb
-                            ->leftJoin('a.role', 'a_order')
-                            ->orderBy('a_order.label', $order);
+                            ->leftJoin('user.role', 'order_role')
+                            ->orderBy('order_role.label', $order);
                         break;
                     case 'visibilityGroup':
                         $qb
-                            ->leftJoin('a.visibilityGroups', 'order_visibility_group')
+                            ->leftJoin('user.visibilityGroups', 'order_visibility_group')
                             ->orderBy('order_visibility_group.label', $order);
                         break;
                     default:
-                        $dbColumn = self::DtToDbLabels[$column] ?? $column;
-                        if (property_exists(Utilisateur::class, $dbColumn)) {
-                            $qb->orderBy("a.$dbColumn", $order);
+                        if (property_exists(Utilisateur::class, $column)) {
+                            $qb->orderBy("user.$column", $order);
                         }
                         break;
                 }
@@ -159,35 +125,33 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         if (!empty($params->get('search'))) {
             $search = $params->get('search')['value'];
             if (!empty($search)) {
+                $exprBuilder = $qb->expr();
                 $qb
-                    ->leftJoin('a.dropzone', 'd_search')
-                    ->leftJoin('a.visibilityGroups', 'search_visibility_group')
-                    ->andWhere(
-                        'a.username LIKE :value'
-                        . ' OR a.email LIKE :value'
-                        . ' OR d_search.label LIKE :value'
-                        . ' OR search_visibility_group.label LIKE :value'
-                    )
-                    ->setParameter('value', '%' . $search . '%');
+                    ->leftJoin('user.locationDropzone', 'search_locationDropzone')
+                    ->leftJoin('user.locationGroupDropzone', 'search_locationGroupDropzone')
+                    ->leftJoin('user.visibilityGroups', 'search_visibility_group')
+                    ->andWhere($exprBuilder
+                        ->orX(
+                            'user.username LIKE :value',
+                            'user.email LIKE :value',
+                            'search_locationDropzone.label LIKE :value',
+                            'search_locationGroupDropzone.label LIKE :value',
+                            'search_visibility_group.label LIKE :value'
+                        )
+                    )->setParameter('value', '%' . $search . '%');
             }
         }
 
-        $query = $qb->getQuery();
+        $filtered = QueryCounter::count($qb, 'user');
 
-        return $query->getResult();
-    }
+        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
+        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
-    public function countAll()
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(a)
-            FROM App\Entity\Utilisateur a
-           "
-        );
-
-        return $query->getSingleScalarResult();
+        return [
+            'data' => $qb->getQuery()->getResult(),
+            'total' => $this->count([]),
+            'filtered' => $filtered,
+        ];
     }
 
     public function getUsernameBuyersGroupByArrival()

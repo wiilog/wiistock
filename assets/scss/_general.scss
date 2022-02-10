@@ -689,7 +689,7 @@ label.required:after {
     }
 
     .header {
-        padding: 16px 20px;
+        padding: 16px #{$grid-gutter-width};
         border-bottom: 1px solid $grey;
     }
 
@@ -793,6 +793,7 @@ label.required:after {
 .wii-small-text {
     color: #666666;
     font-size: 12px;
+    font-weight: normal;
 }
 
 .wii-medium-text {

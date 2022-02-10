@@ -56,7 +56,7 @@ export default class Form {
         for(const input of $inputs) {
             let $input = $(input);
 
-            if($input.is(`:not(.force-data, [type="hidden"]):hidden`) ||
+            if($input.is(`:not(.force-data, [type="hidden"]):hidden`) && !$input.closest(`.wii-switch, .wii-expanded-switch`).is(`:visible`) ||
                 (config.ignored && ($input.is(config.ignored) || $input.closest(config.ignored).exists()))) {
                 continue;
             }
@@ -118,15 +118,23 @@ export default class Form {
             if($input.is(`[required]`) || $input.is(`[data-required]`) || $input.is(`.needed`)) {
                 if(([`radio`, `checkbox`].includes($input.attr(`type`)) && !$input.is(`:checked`))) {
                     errors.push({
-                        elements: [$input.closest(`.wii-radio, .wii-checkbox`)],
+                        elements: [$input.closest(`.wii-radio, .wii-checkbox, .wii-switch`)],
                         message: `Vous devez sélectionner au moins un élément`,
                     });
-                } else if($input.is(`[data-wysiwyg]`) && !$input.find(`.ql-editor`).text() || !$input.is(`[data-wysiwyg]`) && !$input.val()) {
-                    if(!$input.is(`[type="file"]`) || form instanceof Form && !form.uploads[$input.attr(`name`)]) {
-                        errors.push({
-                            elements: [$input],
-                            message: `Ce champ est requis`,
-                        });
+                } else {
+                    const valueIsEmpty = (
+                        $input.is(`[data-wysiwyg]`) ? !$input.find(`.ql-editor`).text() :  // for wysuwyg fields
+                        ($input.is(`select[multiple]`) && Array.isArray($input.val())) ? $input.val().length === 0 : // for select2 multiple
+                        !$input.val() // other fiels
+                    );
+
+                    if(valueIsEmpty) {
+                        if(!$input.is(`[type="file"]`) || form instanceof Form && !form.uploads[$input.attr(`name`)]) {
+                            errors.push({
+                                elements: [$input],
+                                message: `Ce champ est requis`,
+                            });
+                        }
                     }
                 }
             }
@@ -149,20 +157,18 @@ export default class Form {
                     value = value.trim();
                 }
 
-                if(value !== null) {
-                    const $multipleKey = $input.closest(`[data-multiple-key]`);
-                    if($multipleKey.exists()) {
-                        const multipleKey = JSON.parse(data.get($multipleKey.data(`multiple-key`)) || `{}`);
-                        if(!multipleKey[$multipleKey.data(`multiple-object-index`)]) {
-                            multipleKey[$multipleKey.data(`multiple-object-index`)] = {};
-                        }
-
-                        const multipleObject = multipleKey[$multipleKey.data(`multiple-object-index`)];
-                        multipleObject[$input.attr(`name`) || $input.attr(`data-wysiwyg`)] = value;
-                        data.set($multipleKey.data(`multiple-key`), JSON.stringify(multipleKey));
-                    } else {
-                        data.set($input.attr(`name`) || $input.attr(`data-wysiwyg`), value);
+                const $multipleKey = $input.closest(`[data-multiple-key]`);
+                if($multipleKey.exists()) {
+                    const multipleKey = JSON.parse(data.get($multipleKey.data(`multiple-key`)) || `{}`);
+                    if(!multipleKey[$multipleKey.data(`multiple-object-index`)]) {
+                        multipleKey[$multipleKey.data(`multiple-object-index`)] = {};
                     }
+
+                    const multipleObject = multipleKey[$multipleKey.data(`multiple-object-index`)];
+                    multipleObject[$input.attr(`name`) || $input.attr(`data-wysiwyg`)] = value;
+                    data.set($multipleKey.data(`multiple-key`), JSON.stringify(multipleKey));
+                } else {
+                    data.set($input.attr(`name`) || $input.attr(`data-wysiwyg`), value);
                 }
             }
         }
@@ -247,6 +253,14 @@ FormData.prototype.asObject = function() {
     this.forEach((value, key) => {
         object[key] = value;
     });
+
+    return object;
+}
+
+FormData.prototype.appendAll = function(object) {
+    for(const [key, value] of Object.entries(object)) {
+        this.append(key, value);
+    }
 
     return object;
 }

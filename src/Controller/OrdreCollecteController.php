@@ -166,7 +166,7 @@ class OrdreCollecteController extends AbstractController
                         ? ($ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER)
                         : false,
                     'location' => $location,
-                    'byArticle' => $referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE
+                    'byArticle' => $referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE
                 ])
             ];
         }

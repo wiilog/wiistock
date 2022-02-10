@@ -1,3 +1,5 @@
+// TODO WIIS-6693
+
 let pathDays = Routing.generate('days_param_api', true);
 let disabledDates = [];
 let tableDaysConfig = {
@@ -544,7 +546,7 @@ function saveEmergencyTriggeringFields() {
 
 function editMultipleSelect($select, paramName) {
     const val = $select.val() || [];
-    const valStr = JSON.stringify(val);
+    const valStr = Array.isArray(val) ? val.filter(Boolean).join(',') : val;
     $.post(Routing.generate('toggle_params'), JSON.stringify({param: paramName, val: valStr})).then((resp) => {
         if (resp) {
             showBSAlert("La valeur a bien été mise à jour", "success");

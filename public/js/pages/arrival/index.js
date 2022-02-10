@@ -16,15 +16,16 @@ $(function () {
         arrivalsTable = returnedArrivalsTable;
 
         let $modalNewArrivage = $("#modalNewArrivage");
-        let submitNewArrivage = $("#submitNewArrivage");
+        let $submitNewArrivage = $("#submitNewArrivage");
         let urlNewArrivage = Routing.generate('arrivage_new', true);
         InitModal(
             $modalNewArrivage,
-            submitNewArrivage,
+            $submitNewArrivage,
             urlNewArrivage,
             {
                 keepForm: true,
                 keepModal: true,
+                keepLoading: true,
                 waitForUserAction: () => {
                     return checkPossibleCustoms($modalNewArrivage);
                 },
@@ -37,6 +38,8 @@ $(function () {
                             success: () => {
                                 let isPrintColisChecked = $modalNewArrivage.find('#printColisChecked').val();
                                 $modalNewArrivage.find('#printColis').prop('checked', isPrintColisChecked);
+
+                                $submitNewArrivage.popLoader();
 
                                 clearModal($modalNewArrivage);
                             }
@@ -101,6 +104,7 @@ function initTableArrival() {
                     tableFilter: 'arrivalsTable'
                 },
                 lengthMenu: [10, 25, 50, 100],
+                page: 'arrival',
                 initCompleteCallback: updateArrivalPageLength
             };
 

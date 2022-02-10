@@ -68,13 +68,23 @@ class TypeRepository extends EntityRepository
             : [];
     }
 
-    public function getForSelect(?string $category, ?string $term) {
-        return $this->createQueryBuilder("type")
-            ->select("type.id AS id, type.label AS text")
+    public function getForSelect(?string $category, ?string $term, array $alreadyDefinedTypes = [])
+    {
+        $qb = $this->createQueryBuilder("type");
+
+        $qb->select("type.id AS id, type.label AS text")
             ->join("type.category", "category")
             ->where("type.label LIKE :term")
             ->andWhere("category.label = '$category'")
-            ->setParameter("term", "%$term%")
+            ->setParameter("term", "%$term%");
+
+        if (!empty($alreadyDefinedTypes)) {
+            $qb->andWhere("type.id NOT IN (:alreadyDefinedTypes)")
+                ->setParameter("alreadyDefinedTypes", $alreadyDefinedTypes);
+        }
+
+
+        return $qb
             ->getQuery()
             ->getArrayResult();
     }
@@ -258,4 +268,22 @@ class TypeRepository extends EntityRepository
 
         return $qb->getQuery()->getResult();
     }
+
+    public function getEntities($types): array {
+        if(!is_array($types)) {
+            $types = [$types];
+        }
+
+        $result = $this->createQueryBuilder("type")
+            ->select("category.label")
+            ->join("type.category", "category")
+            ->andWhere("type.id IN (:types)")
+            ->groupBy("category.label")
+            ->setParameter("types", $types)
+            ->getQuery()
+            ->getResult();
+
+        return array_map(fn(array $item) => $item["label"], $result);
+    }
+
 }

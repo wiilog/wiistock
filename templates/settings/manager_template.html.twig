@@ -3,8 +3,15 @@
 <div class="w-100">
     <div class="wii-box mt-15px">
         <div class="header wii-title">{% block title %}{% endblock %}</div>
-        <div class="content focus-shadow">
-            {% block filters %}{% endblock %}
+        <div class="col-12 focus-shadow py-3">
+            <div class="row">
+                <div class="col">{% block filters %}{% endblock %}</div>
+                <div class="ml-auto col-auto">
+                    <button class="btn btn-primary mt-1 add-entity">
+                        <i class="fa fa-plus mr-2"></i> Ajouter un type
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -25,7 +32,7 @@
             </div>
         </div>
 
-        <div class="management-title">{% block subtitle %}{% endblock %}</div>
+        <div class="subtitle">{% block subtitle %}{% endblock %}</div>
 
         <div class="p-3">
             <div class="row">
@@ -36,6 +43,13 @@
         </div>
 
         {% block footer %}{% endblock %}
+        {% include 'settings/common/delete-type.html.twig' %}
+
+        <input type="hidden" name="default-value-template" value="{{ form.switch('defaultValue', null, false, [
+            {label: 'Oui', value: '1'},
+            {label: 'Non', value: '0'},
+            {label: 'Aucune', value: null, checked: true},
+        ]) | json_encode }}">
     </div>
 </div>
 

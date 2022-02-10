@@ -52,8 +52,8 @@ function extendsDateSort(name) {
 }
 
 function initActionOnRow(row) {
+    $(row).addClass('pointer');
     if ($(row).find('.action-on-click').get(0)) {
-        $(row).addClass('pointer');
         $(row).on('mouseup', 'td:not(.noVis)', function (event) {
             const highlightedText = window.getSelection
                 ? window.getSelection().toString()
@@ -190,10 +190,9 @@ function overrideSearch($input, table, callback = null) {
     });
 
     $input.addClass('form-control');
-    $input.attr('placeholder', 'Entrée pour valider');
 }
 
-function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, needsColumnShow, needsResize, needsEmplacementSearchOverride, callback, table, $table, hidePagingIfEmpty}) {
+function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, needsColumnShow, needsEmplacementSearchOverride, callback, table, $table, needsPagingHide, needsSearchHide}) {
     let $searchInputContainer = $table.parents('.dataTables_wrapper ').find('.dataTables_filter');
     let $searchInput = $searchInputContainer.find('input');
 
@@ -210,13 +209,24 @@ function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, 
         overrideSearchSpecifEmplacement($searchInput);
     }
 
-    if(hidePagingIfEmpty) {
-        const data = table.rows().data();
-        $table.parents('.dataTables_wrapper').find(`.dataTables_paginate, .dataTables_length`).toggleClass(`d-none`, !data || data.length <= 10);
+    const recordsDisplay = response.fnRecordsDisplay();
+    if(needsPagingHide && recordsDisplay !== undefined) {
+        $table.parents('.dataTables_wrapper')
+            .find(`.dataTables_paginate, .dataTables_length`)
+            .parent()
+            .toggleClass(`d-none`, recordsDisplay <= 10);
     }
+
+    const recordsTotal = response.fnRecordsTotal();
+    if(needsSearchHide && recordsTotal !== undefined) {
+        $('.dataTables_filter')
+            .toggleClass(`d-none`, recordsTotal <= 10);
+    }
+
     if (callback) {
         callback();
     }
+
     renderDtInfo($(table.table().container()));
 }
 
@@ -226,12 +236,11 @@ function moveSearchInputToHeader($searchInputContainer) {
     const $searchInputContainerCol = $searchInputContainer.parent();
 
     if ($datatableCard.length > 0) {
-        let $datatableCardHeader = $datatableCard.find('.wii-page-card-header');
+        let $datatableCardHeader = $datatableCard.find('.wii-page-card-header, .wii-box-header');
         $datatableCardHeader = ($datatableCardHeader.length > 1)
             ? $searchInputContainer.parents('.dt-parent').find('.wii-page-card-header')
             : $datatableCardHeader;
         if ($datatableCardHeader.length > 0) {
-            $searchInput.addClass('search-input');
             $datatableCardHeader.prepend($searchInputContainerCol);
             $searchInputContainerCol.removeClass('d-none');
         } else {
@@ -388,7 +397,6 @@ function overrideSearchSpecifEmplacement($input) {
     });
 
     $input.addClass('form-control');
-    $input.attr('placeholder', 'entrée pour valider');
 }
 
 function toggleActiveButton($button, table) {

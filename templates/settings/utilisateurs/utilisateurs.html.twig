@@ -1,0 +1,45 @@
+<input type="hidden"
+       data-id=""
+       data-target='#modalEditUser'
+       data-toggle='modal'
+       onclick="editRowUser($(this))"
+       class="d-none open-modal-edit"/>
+
+<div class="sub-content">
+    <div class="row wii-box-header">
+        <div class="col-auto ml-auto">
+            <div class="btn-group">
+                <div data-toggle="modal"
+                     data-target="#modalNewUser"
+                     class="btn btn-primary">
+                    <span class="fa fa-plus mr-2"></span>Nouvel utilisateur
+                </div>
+
+                <button type="button"
+                        class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
+                        data-toggle="dropdown"
+                        aria-haspopup="true"
+                        aria-expanded="false">
+                    <span class="fa fa-angle-down"></span>
+                </button>
+                <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
+                    <a class="dropdown-item pointer"
+                       href="{{ path('export_csv_user') }}">
+                        <i class="fa fa-file-csv mr-2"></i>
+                        Exporter au format CSV
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <table id="table-users" class="table w-100">
+            </table>
+        </div>
+    </div>
+</div>
+
+{% include 'settings/utilisateurs/utilisateurs/new.html.twig' with {newUser: newUser} %}
+{% include 'settings/utilisateurs/utilisateurs/edit.html.twig' %}
+{% include 'settings/utilisateurs/utilisateurs/delete.html.twig' %}

@@ -1,0 +1,34 @@
+{% import 'form.html.twig' as form %}
+
+<div class="sub-content">
+    <div class="row">
+        <div class="col-12">
+            {% set location = setting_value('DEFAULT_LOCATION_RECEPTION', 'App\\Entity\\Emplacement') %}
+
+            {{ form.select(setting('DEFAULT_LOCATION_RECEPTION'), "Emplacement de réception par défaut", false, {
+                labelClass: 'wii-field-name',
+                value: location.id,
+                items: [{
+                    value: location.id,
+                    text: location.label,
+                }],
+                type: 'location'
+            }) }}
+        </div>
+    </div>
+
+    <div class="row my-3">
+        <div class="col-12">
+            <label class="wii-field-name">Renommer les statuts de réception</label>
+            <div class="row">
+                {% for status in receptionStatuses %}
+                    <div class="col-md-6 col-12">
+                        {{ form.input(status.code, status.code, false, status.nom, {
+                            inline: true,
+                        }) }}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>

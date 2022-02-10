@@ -50,6 +50,8 @@ $wii-switch-height: $input-height;
     border: 1px solid $grey;
     height: $wii-switch-height;
     border-radius: 4px;
+    color: $black;
+    background-color: $white;
 
     input, input + label {
         display: flex;
@@ -219,6 +221,10 @@ $wii-switch-height: $input-height;
     border-radius: 5px;
     padding: 5px 15px;
     font-size: 0.9rem !important;
+
+    &:focus {
+        outline: none;
+    }
 }
 
 .select2-selection__placeholder {
@@ -281,12 +287,13 @@ $wii-switch-height: $input-height;
 }
 
 .wii-checkbox {
-    margin-top: 15px;
-    margin-bottom: 15px;
     font-weight: normal;
-
     display: flex;
     align-items: center;
+
+    label {
+        cursor: pointer;
+    }
 }
 
 label, .wii-checkbox, .wii-radio {
@@ -443,11 +450,14 @@ input[type="checkbox"] {
 
     &:focus {
         outline: none;
+        border-color: $primary;
     }
 
     &:checked {
-        border-color: $primary;
         background-color: $primary;
+        box-shadow: none;
+        border: none;
+        padding: 2px;
     }
 
     &:checked:before {
@@ -462,14 +472,21 @@ input[type="checkbox"] {
 }
 
 .wii-color-picker {
-    width: 80px !important;
-
-    &::-webkit-color-swatch {
-        border-radius: 50px;
-        border: none;
-    }
+    width: 80px;
+    padding-top: 7px;
 
     option {
         border-radius: 50px;
+    }
+
+    &::-webkit-color-swatch {
+        border: none;
+        border-radius: 50%;
+    }
+
+    &::-webkit-color-swatch-wrapper {
+        padding: 0;
+        width: 18px;
+        height: 18px;
     }
 }

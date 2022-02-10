@@ -39,7 +39,7 @@ const AUTO_HIDE_DEFAULT_DELAY = 2000;
 const MAX_DATETIME_HTML_INPUT = '2100-12-31T23:59';
 const MAX_DATE_HTML_INPUT = '2100-12-31';
 
-const TEAM_SIZE = 10;
+const TEAM_SIZE = 11;
 
 $(function () {
     $(document).on('hide.bs.modal', function () {
@@ -915,7 +915,7 @@ function saveExportFile(routeName, needsDateFilters = true, routeParam = {}) {
 }
 
 function fillDemandeurField($modal) {
-    const $operatorSelect = $modal.find('.select2-declarant');
+    const $operatorSelect = $modal.find('select[name=disputeReporter]');
     const $loggedUserInput = $modal.find('input[hidden][name="logged-user"]');
     const userId = $loggedUserInput.data('id');
     const $operatorSelect2 = $operatorSelect

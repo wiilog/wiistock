@@ -95,11 +95,7 @@
                     {% endif %}
                     <div class="form-group w-100 col-4">
                         <label for="disputeReporter">Déclarant*</label>
-                        <select class="form-control data select2-declarant needed" name="disputeReporter" id="disputeReporter">
-                            {% for utilisateur in utilisateurs %}
-                                <option value="{{ utilisateur.id }}">{{ utilisateur.text }}</option>
-                            {% endfor %}
-                        </select>
+                        <select class="form-control data needed" name="disputeReporter" data-s2="user"></select>
                         <input hidden
                                name="logged-user"
                                data-username="{{ app.user.username }}"

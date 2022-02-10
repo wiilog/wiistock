@@ -10,7 +10,6 @@ use Doctrine\ORM\Mapping as ORM;
 class FiltreRef
 {
     const FIXED_FIELD_REF_ART_FOURN = 'référence article fournisseur';
-    const FIXED_FIELD_ACTIVE_ONLY = 'active_only';
     const FIXED_FIELD_STATUS = 'Statut';
     const FIXED_FIELD_MANAGERS = 'Gestionnaire(s)';
     const FIXED_FIELD_VISIBILITY_GROUP = 'Groupe de visibilité';

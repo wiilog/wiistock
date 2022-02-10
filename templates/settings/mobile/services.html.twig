@@ -1,0 +1,30 @@
+{% import 'form.html.twig' as form %}
+
+<div class="sub-content">
+    <table>
+        <tr>
+            <td class="p-2" style="vertical-align: middle"><span class="wii-field-name mr-5">Date attendue +1 jour</span></td>
+            <td class="p-2">
+                {{ form.color(setting('HANDLING_EXPECTED_DATE_COLOR_AFTER'), null, false, setting_value('HANDLING_EXPECTED_DATE_COLOR_AFTER'), {
+                    labelClass: 'wii-field-name',
+                }) }}
+            </td>
+        </tr>
+        <tr>
+            <td class="p-2" style="vertical-align: middle"><span class="wii-field-name mr-5">Date attendue jour J</span></td>
+            <td class="p-2">
+                {{ form.color(setting('HANDLING_EXPECTED_DATE_COLOR_D_DAY'), null, false, setting_value('HANDLING_EXPECTED_DATE_COLOR_D_DAY'), {
+                    labelClass: 'wii-field-name',
+                }) }}
+            </td>
+        </tr>
+        <tr>
+            <td class="p-2" style="vertical-align: middle"><span class="wii-field-name mr-5">Date attendue -1 jour</span></td>
+            <td class="p-2">
+                {{ form.color(setting('HANDLING_EXPECTED_DATE_COLOR_BEFORE'), null, false, setting_value('HANDLING_EXPECTED_DATE_COLOR_BEFORE'), {
+                    labelClass: 'wii-field-name',
+                }) }}
+            </td>
+        </tr>
+    </table>
+</div>
