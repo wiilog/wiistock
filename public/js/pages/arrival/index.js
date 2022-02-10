@@ -58,19 +58,63 @@ $(function () {
     pageLength = Number($('#pageLengthForArrivage').val());
     Select2Old.user($('.filters .ajax-autocomplete-user'), 'Destinataires');
     Select2Old.provider($('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
+
+    const $arrivalsTable = $(`#arrivalsTable`);
+    const $dispatchModeContainer = $(`.dispatch-mode-container`);
+    const $arrivalModeContainer = $(`.arrival-mode-container`);
+    const $filtersInputs = $(`.filters-container`).find(`select, input, button`);
+    $(`.dispatch-button`).on(`click`, () => {
+        arrivalsTable.destroy();
+        initTableArrival(true).then((returnedArrivalsTable) => {
+            arrivalsTable = returnedArrivalsTable;
+            $(`.dataTables_filter`).parent().remove();
+            $dispatchModeContainer.removeClass(`d-none`);
+            $arrivalModeContainer.addClass(`d-none`);
+            $filtersInputs.prop(`disabled`, true);
+        });
+    });
+
+    $dispatchModeContainer.find(`.cancel`).on(`click`, () => {
+        arrivalsTable.destroy();
+        initTableArrival(false).then((returnedArrivalsTable) => {
+            arrivalsTable = returnedArrivalsTable;
+            $arrivalModeContainer.removeClass(`d-none`);
+            $dispatchModeContainer.addClass(`d-none`);
+            $filtersInputs.prop(`disabled`, false);
+        });
+    });
+
+    $(document).arrive(`.check-all`, function () {
+        $(this).on(`click`, function() {
+            $arrivalsTable.find(`.dispatch-checkbox`).prop(`checked`, $(this).is(`:checked`));
+            toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer);
+        });
+    });
+
+    $(document).arrive(`.dispatch-checkbox`, function () {
+        $(this).on(`click`, function() {
+            $(this).prop(`checked`, !$(this).is(`:checked`));
+            toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer);
+        });
+
+        $(this).closest(`tr`).on(`click`, () => {
+            $(this).prop(`checked`, !$(this).is(`:checked`));
+            toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer);
+        });
+    });
 });
 
-function initTableArrival() {
-    let pathArrivage = Routing.generate('arrivage_api', true);
+function initTableArrival(dispatchMode = false) {
+    let pathArrivage = Routing.generate('arrivage_api', {dispatchMode}, true);
 
     return $
-        .post(Routing.generate('arrival_api_columns'))
+        .post(Routing.generate('arrival_api_columns', {dispatchMode}))
         .then((columns) => {
             let tableArrivageConfig = {
-                serverSide: true,
+                serverSide: !dispatchMode,
                 processing: true,
                 pageLength: Number($('#pageLengthForArrivage').val()),
-                order: [[1, "desc"]],
+                order: [[dispatchMode ? 2 : 1, "desc"]],
                 ajax: {
                     "url": pathArrivage,
                     "type": "POST",
@@ -82,6 +126,7 @@ function initTableArrival() {
                 drawConfig: {
                     needsResize: true,
                     needsSearchOverride: true,
+                    hidePaging: dispatchMode,
                 },
                 rowConfig: {
                     needsColor: true,
@@ -95,14 +140,13 @@ function initTableArrival() {
                         columns: ':not(.noVis)',
                         className: 'd-none'
                     },
-
                 ],
                 hideColumnConfig: {
                     columns,
                     tableFilter: 'arrivalsTable'
                 },
                 lengthMenu: [10, 25, 50, 100],
-                page: 'arrival',
+                page: !dispatchMode ? 'arrival' : undefined,
                 initCompleteCallback: updateArrivalPageLength
             };
 
@@ -112,9 +156,6 @@ function initTableArrival() {
             });
             return arrivalsTable;
         });
-}
-
-function resizeTable(arrivalsTable) {
 }
 
 function listColis(elem) {
@@ -160,4 +201,12 @@ function updateArrivalPageLength() {
             pageLength = newValue;
         }
     });
+}
+
+function toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer) {
+    const $allDispatchCheckboxes = $(`.dispatch-checkbox`);
+    const atLeastOneChecked = $arrivalsTable.find(`.dispatch-checkbox`).toArray().some((element) => $(element).is(`:checked`));
+
+    $dispatchModeContainer.find(`.validate`).prop(`disabled`, !atLeastOneChecked);
+    $(`.check-all`).prop(`checked`, ($allDispatchCheckboxes.filter(`:checked`).length) === $allDispatchCheckboxes.length);
 }

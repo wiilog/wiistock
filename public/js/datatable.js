@@ -193,7 +193,7 @@ function overrideSearch($input, table, callback = null) {
     $input.attr('placeholder', 'Entrée pour valider');
 }
 
-function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, needsColumnShow, needsResize, needsEmplacementSearchOverride, callback, table, $table, hidePagingIfEmpty}) {
+function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, needsColumnShow, needsResize, needsEmplacementSearchOverride, callback, table, $table, hidePagingIfEmpty, hidePaging, hideSearch}) {
     let $searchInputContainer = $table.parents('.dataTables_wrapper ').find('.dataTables_filter');
     let $searchInput = $searchInputContainer.find('input');
 
@@ -214,6 +214,11 @@ function datatableDrawCallback({response, needsSearchOverride, needsColumnHide, 
         const data = table.rows().data();
         $table.parents('.dataTables_wrapper').find(`.dataTables_paginate, .dataTables_length`).toggleClass(`d-none`, !data || data.length <= 10);
     }
+
+    if(hidePaging) {
+        $table.parents('.dataTables_wrapper').find(`.dataTables_paginate`).addClass(`d-none`);
+    }
+
     if (callback) {
         callback();
     }
@@ -329,7 +334,7 @@ function initDataTable($table, options) {
             },
             initComplete: () => {
                 let $searchInputContainer = $table.parents('.dataTables_wrapper').find('.dataTables_filter');
-                moveSearchInputToHeader($searchInputContainer);
+                moveSearchInputToHeader($searchInputContainer, config.drawConfig.hideSearch);
                 tableCallback(hideColumnConfig || {}, datatableToReturn);
                 if (initCompleteCallback) {
                     initCompleteCallback();

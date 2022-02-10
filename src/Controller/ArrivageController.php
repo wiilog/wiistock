@@ -135,10 +135,7 @@ class ArrivageController extends AbstractController {
             $userId = $this->getUser()->getId();
         }
 
-        return $this->json($arrivageService->getDataForDatatable(
-            $request->request,
-            $userId,
-        ));
+        return $this->json($arrivageService->getDataForDatatable($request, $userId));
     }
 
     /**
@@ -1407,11 +1404,14 @@ class ArrivageController extends AbstractController {
      * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI}, mode=HasPermission::IN_JSON)
      */
     public function apiColumns(ArrivageService        $arrivageDataService,
-                               EntityManagerInterface $entityManager): Response
+                               EntityManagerInterface $entityManager,
+                               Request $request): Response
     {
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
-        $columns = $arrivageDataService->getColumnVisibleConfig($entityManager, $currentUser);
+        $dispatchMode = $request->query->getBoolean('dispatchMode');
+
+        $columns = $arrivageDataService->getColumnVisibleConfig($entityManager, $currentUser, $dispatchMode);
         return new JsonResponse($columns);
     }
 }
