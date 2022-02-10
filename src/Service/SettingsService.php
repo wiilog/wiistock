@@ -378,7 +378,7 @@ class SettingsService {
                 }
 
                 $typeLitige->setLabel($typeLitigeData['label']);
-                $typeLitige->setDescription(isset($typeLitigeData['description']) ? $typeLitigeData['description'] : "");
+                $typeLitige->setDescription($typeLitigeData['description'] ?? "");
 
                 $this->manager->persist($typeLitige);
             }
