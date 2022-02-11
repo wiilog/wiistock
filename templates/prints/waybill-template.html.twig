@@ -82,6 +82,17 @@
             max-height: 100px;
             max-width: 100px;
         }
+
+        .qr {
+            display: inline-block;
+            height: 2cm;
+            width: 2cm;
+        }
+
+        .dispatch-main-details {
+            display: inline-block;
+            margin-right: 10px;"
+        }
     </style>
 </head>
 <body>
@@ -95,14 +106,24 @@
             {% endif %}
         </div>
         <div>
-            <div class="header">
-                Lettre de voiture N°{{ dispatch.number }}<br>
-            </div>
+            <div class="dispatch-main-details">
+                <div class="header">
+                    Lettre de voiture N°{{ dispatch.number }}<br>
+                </div>
 
-            Date d'acheminement {{ dispatch.waybillData.dispatchDate }}
+                Date d'acheminement {{ dispatch.waybillData.dispatchDate }}
+            </div>
+            <div class="qr">
+                {{ printBarcode({
+                    code: dispatch.number,
+                    type: 'qrcode',
+                    format: 'svg',
+                    height: 100,
+                    width: 100
+                }) | raw }}
+            </div>
         </div>
     </div>
-
 
     <div class="split">
         <div>
