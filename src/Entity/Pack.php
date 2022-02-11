@@ -138,6 +138,11 @@ class Pack implements PairedEntity {
      */
     private Collection $pairings;
 
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private bool $deliveryDone = false;
+
     public function __construct() {
         $this->disputes = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
@@ -608,8 +613,7 @@ class Pack implements PairedEntity {
         return $this;
     }
 
-    public function removePairing(Pairing $pairing): self
-    {
+    public function removePairing(Pairing $pairing): self {
         if ($this->pairings->removeElement($pairing)) {
             // set the owning side to null (unless already changed)
             if ($pairing->getPack() === $this) {
@@ -620,8 +624,16 @@ class Pack implements PairedEntity {
         return $this;
     }
 
-    public function __toString()
-    {
+    public function __toString() {
         return $this->getCode();
+    }
+
+    public function isDeliveryDone(): bool {
+        return $this->deliveryDone;
+    }
+
+    public function setIsDeliveryDone(bool $deliveryDone): self {
+        $this->deliveryDone = $deliveryDone;
+        return $this;
     }
 }

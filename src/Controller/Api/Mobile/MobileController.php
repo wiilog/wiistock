@@ -328,7 +328,7 @@ class MobileController extends AbstractFOSRestController
                         }
 
                         // envoi de mail si c'est une dépose + le colis existe + l'emplacement est un point de livraison
-                        $arrivageDataService->sendMailForDeliveredPack($entityManager, $location, $associatedPack, $nomadUser, $type->getNom(), $date);
+                        $arrivageDataService->sendMailForDeliveredPack($location, $associatedPack, $nomadUser, $type->getNom(), $date);
 
                         if ($type->getNom() === TrackingMovement::TYPE_DEPOSE) {
                             $finishMouvementTraca[] = $mvt['ref_article'];

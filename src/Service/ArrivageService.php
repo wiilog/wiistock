@@ -16,6 +16,7 @@ use App\Entity\TrackingMovement;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use DateTime;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
@@ -569,35 +570,32 @@ class ArrivageService {
         $csvService->putLine($handle, $line);
     }
 
-    public function sendMailForDeliveredPack(EntityManagerInterface $entityManager,
-                                             Emplacement $location,
-                                             Pack $pack,
-                                             Utilisateur $nomadUser,
-                                             string $trackingType,
-                                             $date): void {
-        if ($trackingType === TrackingMovement::TYPE_DEPOSE
-            && $pack->getArrivage()
-            && $location->getIsDeliveryPoint()) {
-            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-            $fournisseur = $fournisseurRepository->findOneByColis($pack);
+    public function sendMailForDeliveredPack(Emplacement            $location,
+                                             Pack                   $pack,
+                                             Utilisateur            $user,
+                                             string                 $trackingType,
+                                             DateTime               $date): void {
+        if ($location->getIsDeliveryPoint()
+            && $trackingType === TrackingMovement::TYPE_DEPOSE
+            && $pack->getArrivage()) {
             $arrivage = $pack->getArrivage();
-            $destinataire = $arrivage->getDestinataire();
-            if ($destinataire) {
+            $receiver = $arrivage->getDestinataire();
+            if ($receiver) {
                 $this->mailerService->sendMail(
                     'FOLLOW GT // Dépose effectuée',
                     $this->templating->render(
                         'mails/contents/mailDeposeTraca.html.twig',
                         [
                             'title' => 'Votre colis a été livré.',
-                            'colis' => $pack->getCode(),
+                            'colis' => FormatHelper::pack($pack),
                             'emplacement' => $location,
-                            'fournisseur' => $fournisseur ? $fournisseur->getNom() : '',
+                            'fournisseur' => FormatHelper::supplier($arrivage->getFournisseur()),
                             'date' => $date,
-                            'operateur' => $nomadUser->getUsername(),
+                            'operateur' => FormatHelper::user($user),
                             'pjs' => $arrivage->getAttachments()
                         ]
                     ),
-                    $destinataire
+                    $receiver
                 );
             }
         }

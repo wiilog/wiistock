@@ -163,19 +163,6 @@ class FournisseurRepository extends EntityRepository
         ];
     }
 
-    public function findOneByColis($pack)
-    {
-        $qb = $this->createQueryBuilder('supplier');
-
-        $qb->select('supplier')
-            ->join('supplier.arrivages', 'arrivals')
-            ->join('arrivals.packs', 'packs')
-            ->where('packs = :pack')
-            ->setParameter('pack', $pack);
-
-        return $qb->getQuery()->getOneOrNullResult();
-    }
-
     public function getForExport(): iterable {
         return $this->createQueryBuilder("supplier")
             ->getQuery()
