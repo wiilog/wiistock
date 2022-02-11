@@ -50,7 +50,7 @@ class SettingsService {
         return $newSetting;
     }
 
-    public function save(Request $request) {
+    public function save(Request $request): array {
         $settingRepository = $this->manager->getRepository(ParametrageGlobal::class);
 
         $settingNames = array_merge(
@@ -67,7 +67,7 @@ class SettingsService {
         $settings = $settingRepository->findByLabel($settingNames);
 
         if($request->request->has("datatables")) {
-            $this->saveDatatables(json_decode($request->request->get("datatables"), true), $request->request->all());
+            $result = $this->saveDatatables(json_decode($request->request->get("datatables"), true), $request->request->all());
             $request->request->remove("datatables");
         }
 
@@ -112,6 +112,17 @@ class SettingsService {
         $this->manager->flush();
 
         $this->postSaveTreatment($updated);
+
+        $result = $result ?? [];
+        if (isset($result['type'])) {
+            /** @var Type $type */
+            $type = $result['type'];
+            $result['type'] = [
+                'id' => $type->getId(),
+                'label' => $type->getLabel()
+            ];
+        }
+        return $result;
     }
 
     /**
@@ -196,7 +207,8 @@ class SettingsService {
         return $saved;
     }
 
-    private function saveDatatables(array $tables, array $data) {
+    private function saveDatatables(array $tables, array $data): array {
+        $result = [];
         if(isset($tables["workingHours"])) {
             $ids = array_map(fn($day) => $day["id"], $tables["workingHours"]);
 
@@ -253,12 +265,9 @@ class SettingsService {
                 $frequenceRepository = $this->manager->getRepository(InventoryFrequency::class);
                 $categoryRepository = $this->manager->getRepository(InventoryCategory::class);
                 $frequence = $frequenceRepository->find($categoryData['frequency']);
-                $category = "";
-                if (isset($categoryData['categoryId'])){
-                    $category = $categoryRepository->find($categoryData['categoryId']);
-                } else {
-                    $category = new InventoryCategory();
-                }
+                $category = isset($categoryData['categoryId'])
+                    ? $categoryRepository->find($categoryData['categoryId'])
+                    : new InventoryCategory();
                 $category->setLabel($categoryData['label']);
                 $category->setFrequency($frequence);
                 $category->setPermanent($categoryData['permanent']);
@@ -268,16 +277,33 @@ class SettingsService {
         }
 
         if(isset($tables["freeFields"])) {
+            $typeRepository = $this->manager->getRepository(Type::class);
+            $categoryTypeRepository = $this->manager->getRepository(CategoryType::class);
+
             $ids = array_map(fn($freeField) => $freeField["id"] ?? null, $tables["freeFields"]);
 
             if(isset($data["entity"])) {
+                if (empty($data["label"])) {
+                    throw new RuntimeException("Vous devez saisir un libellé pour le type");
+                }
+
                 if(!is_numeric($data["entity"]) && in_array($data["entity"], CategoryType::ALL)) {
-                    $categoryRepository = $this->manager->getRepository(CategoryType::class);
+                    $category = $categoryTypeRepository->findOneBy(["label" => $data["entity"]]);
+
+                    $alreadyCreatedType = $typeRepository->count([
+                        'label' => $data["label"],
+                        'category' => $category
+                    ]);
+
+                    if ($alreadyCreatedType > 0) {
+                        throw new RuntimeException("Le type existe déjà pour cette categorie");
+                    }
 
                     $type = new Type();
-                    $type->setCategory($categoryRepository->findOneBy(["label" => $data["entity"]]));
-
+                    $type->setCategory($category);
                     $this->manager->persist($type);
+
+                    $result['type'] = $type;
                 } else {
                     $type = $this->manager->find(Type::class, $data["entity"]);
                 }
@@ -295,7 +321,11 @@ class SettingsService {
                     ->setSendMail($data["mailRequester"] ?? false)
                     ->setColor($data["color"] ?? null);
             } else {
-                $type = $this->manager->getRepository(Type::class)->findOneByLabel(Type::LABEL_MVT_TRACA);
+                $category = $categoryTypeRepository->findOneBy(["label" => CategoryType::MOUVEMENT_TRACA]);
+                $type = $typeRepository->findOneBy([
+                    'label' => Type::LABEL_MVT_TRACA,
+                    'category' => $category
+                ]);
             }
 
             $freeFieldRepository = $this->manager->getRepository(FreeField::class);
@@ -383,6 +413,7 @@ class SettingsService {
                 $this->manager->persist($typeLitige);
             }
         }
+        return $result;
     }
 
     /**

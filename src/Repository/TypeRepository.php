@@ -146,20 +146,16 @@ class TypeRepository extends EntityRepository
         return $query->getSingleScalarResult();
     }
 
+//    TODO WIIS-6693
     public function countByLabelAndCategory($label, $category)
     {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT COUNT(t)
-            FROM App\Entity\Type t
-            WHERE LOWER(t.label) = :label AND t.category = :category
-           "
-        )->setParameters([
-            'label' => $label,
-            'category' => $category
-        ]);
-
-        return $query->getSingleScalarResult();
+        return $this->createQueryBuilder('type')
+            ->select('COUNT(type)')
+            ->andWhere('LOWER(t.label) = :label AND t.category = :category')
+            ->setParameter('label', $label)
+            ->setParameter('category', $category)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function isTypeUsed($typeId): bool

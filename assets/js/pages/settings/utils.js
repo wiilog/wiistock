@@ -11,6 +11,8 @@ export function createManagementPage($container, config) {
     const $table = $container.find(`.subentities-table`);
     const $editButton = $container.find(`.edit-button`);
     const $addButton = $container.find(`.add-entity`);
+    const $pageHeader = $container.find(`.management-header`);
+    const $pageBody = $container.find(`.management-body`);
 
     $managementButtons.addClass('d-none');
     $editButton.removeClass('d-none');
@@ -33,18 +35,36 @@ export function createManagementPage($container, config) {
             $editButton.addClass('d-none');
             $managementButtons.removeClass('d-none');
 
-            loadItems($container, config, selectedEntity, true);
+            const $itemContainer = $container.find(`.main-entity-content`);
+            if (!$itemContainer.hasClass('main-entity-content-form')) {
+                loadItems($container, config, selectedEntity, true);
+            }
         },
-        onEditStop: () => {
+        onEditStop: (apiResult) => {
             $managementButtons.addClass('d-none');
             $editButton.removeClass('d-none');
             $addButton.removeClass(`d-none`);
 
-            if(selectedEntity === null) {
-                window.location.reload();
-            } else {
-                loadItems($container, config, selectedEntity, false);
+            $pageHeader.removeClass('d-none');
+            $pageBody.find('.header').remove();
+
+            if (apiResult) {
+                const {id, label} = apiResult.type;
+                if (selectedEntity !== id) {
+                    selectedEntity = id;
+
+                    $container.find(`[name=entity] + label:last`).after(`
+                        <input type="radio" id="${id}" name="entity" class="data">
+                        <label for="${id}">
+                            <span class="d-inline-flex align-items-center field-label nowrap">${label}</span>
+                        </label>
+                    `);
+
+                    $container.find(`#${id}`).prop(`checked`, true);
+                }
             }
+
+            loadItems($container, config, selectedEntity, false);
         },
     });
 
@@ -56,30 +76,18 @@ export function createManagementPage($container, config) {
     });
 
     $addButton.on(`click`, function() {
-        const id = `entity-${Math.floor(Math.random() * 1000000)}`;
         selectedEntity = null;
 
-        $addButton.addClass(`d-none`);
-        $container.find(`[name=entity] + label:last`).after(`
-            <input type="radio" id="${id}" name="entity" class="data">
-            <label for="${id}">
-                <span class="d-inline-flex align-items-center field-label nowrap">Nouveau type</span>
-            </label>
-        `);
-
-        $container.find(`#${id}`).prop(`checked`, true);
+        $pageHeader.addClass('d-none');
+        $pageBody.prepend(`<div class="header wii-title">Ajouter un type et des champs libres</div>`);
 
         table.setURL(config.table.route(selectedEntity), false);
         table.toggleEdit(STATE_EDIT, true);
     });
 
     $editButton.on(`click`, function() {
-        table.toggleEdit(undefined, true);
+        table.toggleEdit(STATE_EDIT, true);
     });
-
-    $container.on(`keyup`, `.main-entity-content-item [name=label]`, function() {
-        $container.find(`[name=entity]:checked + label`).text($(this).val() || `Nouveau type`);
-    })
 
     if (config.header.delete) {
         fireRemoveMainEntityButton($container, config.header.delete);
@@ -87,7 +95,7 @@ export function createManagementPage($container, config) {
 }
 
 function loadItems($container, config, type, edit) {
-    const route = config.header.route(type, edit);
+    const route = config.header.route(type, Number(edit));
     const params = {
         types: $(`[name=entity]`).map((_, a) => $(a).attr(`value`)).toArray(),
     };
@@ -95,15 +103,15 @@ function loadItems($container, config, type, edit) {
     $.post(route, params, function(data) {
         if(data.success) {
             const $itemContainer = $container.find(`.main-entity-content`);
+            $itemContainer.toggleClass('main-entity-content-form', Boolean(edit))
             $itemContainer.empty();
-
-            if(type === null) {
-                $container.find(`input[name="entity"]:checked`).attr(`value`, data.category);
-            }
 
             for(const item of data.data) {
                 if(item.breakline) {
                     $itemContainer.append(`<div class="w-100"></div>`);
+                }
+                else if(item.type === 'hidden') {
+                    $itemContainer.append(`<input type="hidden" class="data" name="${item.name}" value="${item.value}"/>`);
                 }
                 else {
                     const value = item.value === undefined || item.value === null ? '' : item.value;

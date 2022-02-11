@@ -714,7 +714,7 @@ class SettingsController extends AbstractController {
      */
     public function save(Request $request): Response {
         try {
-            $this->service->save($request);
+            $result = $this->service->save($request);
         } catch(RuntimeException $exception) {
             return $this->json([
                 "success" => false,
@@ -722,10 +722,13 @@ class SettingsController extends AbstractController {
             ]);
         }
 
-        return $this->json([
-            "success" => true,
-            "msg" => "Les nouveaux paramétrages ont été enregistrés",
-        ]);
+        return $this->json(array_merge(
+            [
+                "success" => true,
+                "msg" => "Les nouveaux paramétrages ont été enregistrés",
+            ],
+            $result ?? [],
+        ));
     }
 
     /**
@@ -846,13 +849,21 @@ class SettingsController extends AbstractController {
             $description = $type ? $type->getDescription() : null;
             $color = $type ? $type->getColor() : "#000000";
 
-            $data = [[
-                "label" => "Libellé*",
-                "value" => "<input name='label' class='data form-control' required value='$label'>",
-            ], [
-                "label" => "Description",
-                "value" => "<input name='description' class='data form-control' value='$description'>",
-            ]];
+            $data = [
+                [
+                    "type" => "hidden",
+                    "name" => "entity",
+                    "value" => $category,
+                ],
+                [
+                    "label" => "Libellé*",
+                    "value" => "<input name='label' class='data form-control' required value='$label'>",
+                ],
+                [
+                    "label" => "Description",
+                    "value" => "<input name='description' class='data form-control' value='$description'>",
+                ]
+            ];
 
             if($category === CategoryType::ARTICLE) {
                 $inputId = rand(0, 1000000);
@@ -1011,7 +1022,6 @@ class SettingsController extends AbstractController {
         return $this->json([
             "success" => true,
             "data" => $data,
-            "category" => $category,
         ]);
     }
 
@@ -1110,7 +1120,7 @@ class SettingsController extends AbstractController {
                 $rows[] = [
                     "id" => $freeField->getId(),
                     "actions" => "<input type='hidden' class='$class' name='id' value='{$freeField->getId()}'>
-                        <button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>",
+                        <button class='btn btn-silent delete-row' data-id='{$freeField->getId()}'><i class='wii-icon wii-icon-trash text-primary'></i></button>",
                     "label" => "<input type='text' name='label' class='$class' value='{$freeField->getLabel()}' required/>",
                     "appliesTo" => "<select name='category' class='$class' required>$categories</select>",
                     "type" => $typageCLFr,
@@ -1122,10 +1132,11 @@ class SettingsController extends AbstractController {
                         ? "<input type='text' name='elements' required class='$class' value='$elements'/>"
                         : "",
                 ];
-            } else {
+            }
+            else {
                 $rows[] = [
                     "id" => $freeField->getId(),
-                    "actions" => "<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>",
+                    "actions" => "<button class='btn btn-silent delete-row' data-id='{$freeField->getId()}'><i class='wii-icon wii-icon-trash text-primary'></i></button>",
                     "label" => $freeField->getLabel() ?: 'Non défini',
                     "appliesTo" => $freeField->getCategorieCL() ? ucfirst($freeField->getCategorieCL()->getLabel()) : "",
                     "type" => $typageCLFr,

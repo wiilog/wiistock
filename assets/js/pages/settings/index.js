@@ -126,7 +126,7 @@ $(function() {
                 if(result.success) {
                     for(const table of tablesToReload) {
                         if(table.mode !== MODE_EDIT) {
-                            table.toggleEdit(STATE_VIEWING, true);
+                            table.toggleEdit(STATE_VIEWING, true, {type: result.type});
                         }
                     }
                 }

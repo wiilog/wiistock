@@ -78,7 +78,6 @@ class RoleController extends AbstractController {
         return $this->render('/settings/utilisateurs/roles/form.html.twig', [
             'role' => new Role(),
             'menus' => $menuRepository->findAll(),
-
         ]);
     }
 

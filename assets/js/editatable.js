@@ -95,19 +95,19 @@ export default class EditableDatatable {
         }
     }
 
-    toggleEdit(state = this.state === STATE_VIEWING ? STATE_EDIT : STATE_VIEWING, reload = false) {
+    toggleEdit(state = this.state === STATE_VIEWING ? STATE_EDIT : STATE_VIEWING, reload = false, params = undefined) {
         this.state = state;
 
         if(reload) {
             return new Promise((resolve) => {
                 this.table = initEditatableDatatable(this, () => {
-                    applyState(this, state);
+                    applyState(this, state, params);
                     resolve();
                 });
             });
         }
         else {
-            applyState(this, state);
+            applyState(this, state, params);
             return new Promise((resolve) => resolve());
         }
     }
@@ -130,7 +130,7 @@ export default class EditableDatatable {
     }
 }
 
-function applyState(datatable, state) {
+function applyState(datatable, state, params) {
     const {config, element: $element} = datatable;
     if (state !== STATE_VIEWING) {
         if (config.onEditStart) {
@@ -140,7 +140,7 @@ function applyState(datatable, state) {
         $element.closest(`.dataTables_wrapper`).find(`.datatable-paging`).hide();
     } else {
         if (config.onEditStop) {
-            config.onEditStop();
+            config.onEditStop(params);
         }
 
         $element.closest(`.dataTables_wrapper`).find(`.datatable-paging`).show();
@@ -251,10 +251,6 @@ function initEditatableDatatable(datatable, callback = null) {
                         deleteRow();
                     }
                 });
-
-                if (callback) {
-                    callback();
-                }
             });
 
             if(config.mode === MODE_DOUBLE_CLICK || config.mode === MODE_EDIT_AND_ADD) {
@@ -302,6 +298,10 @@ function initEditatableDatatable(datatable, callback = null) {
                 .toggleClass(`d-none`, !data || data.length <= 10);
             $('.dataTables_filter')
                 .toggleClass(`d-none`, !data || data.length <= 10);
+
+            if (callback) {
+                callback();
+            }
         },
         initComplete: () => {
             let $searchInputContainer = $element.parents('.dataTables_wrapper').find('.dataTables_filter');
