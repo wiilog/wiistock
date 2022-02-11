@@ -21,36 +21,45 @@ final class Version20220210140239 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $trackingMenuLabel = Menu::TRACA;
-        $createActionLabel = Action::CREATE;
-
-        $createArrivalActionLabel = Action::CREATE_ARRIVAL;
-        $createEmergencyActionLabel = Action::CREATE_EMERGENCY;
-
         $trackingMenuId = $this->connection
-            ->executeQuery("SELECT id FROM menu WHERE label = '$trackingMenuLabel';")
+            ->executeQuery("SELECT id FROM menu WHERE label = :label", ["label" => Menu::TRACA])
             ->fetchOne();
 
-        $createTrackingActionId = $this->connection
-            ->executeQuery("SELECT id FROM action WHERE label = '$createActionLabel' AND menu_id = $trackingMenuId;")
-            ->fetchOne();
-
-        $createArrivalActionId = $this->connection
-            ->executeQuery("SELECT id FROM action WHERE label = '$createArrivalActionLabel' AND menu_id = $trackingMenuId;")
-            ->fetchOne();
-
-        $createEmergencyActionId = $this->connection
-            ->executeQuery("SELECT id FROM action WHERE label = '$createEmergencyActionLabel' AND menu_id = $trackingMenuId;")
-            ->fetchOne();
+        $this->addSql('INSERT INTO action (label, menu_id) VALUES (:action, :menu_id)', [
+            'action' => Action::CREATE_ARRIVAL,
+            'menu_id' => $trackingMenuId,
+        ]);
+        $this->addSql('INSERT INTO action (label, menu_id) VALUES (:action, :menu_id)', [
+            'action' => Action::CREATE_EMERGENCY,
+            'menu_id' => $trackingMenuId,
+        ]);
 
         $rolesWithCreateActionAndTrackingMenu = $this->connection
-            ->executeQuery("SELECT role_id AS id FROM action_role WHERE action_id = $createTrackingActionId;")
+            ->executeQuery("
+                SELECT role_id AS id
+                FROM action_role
+                    INNER JOIN action ON action_role.action_id = action.id
+                WHERE action.label = :action
+                  AND action.menu_id = :menu_id
+            ", ["action" => Action::CREATE, 'menu_id' => $trackingMenuId])
             ->fetchAllAssociative();
 
         foreach ($rolesWithCreateActionAndTrackingMenu as $role) {
-            $roleId = $role['id'];
-            $this->addSql("INSERT INTO action_role(action_id, role_id) VALUES ($createArrivalActionId, $roleId);");
-            $this->addSql("INSERT INTO action_role(action_id, role_id) VALUES ($createEmergencyActionId, $roleId);");
+            $actionQuery = '(
+                SELECT id
+                FROM action
+                WHERE action.label = :action AND menu_id = :menu_id
+            )';
+            $this->addSql("INSERT INTO action_role(action_id, role_id) VALUES ({$actionQuery}, :role_id);", [
+                'menu_id' => $trackingMenuId,
+                'action' => Action::CREATE_ARRIVAL,
+                'role_id' => $role['id']
+            ]);
+            $this->addSql("INSERT INTO action_role(action_id, role_id) VALUES ({$actionQuery}, :role_id);", [
+                'menu_id' => $trackingMenuId,
+                'action' => Action::CREATE_EMERGENCY,
+                'role_id' => $role['id']
+            ]);
         }
     }
 
