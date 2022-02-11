@@ -577,9 +577,11 @@ class ArrivageService {
                                              DateTime               $date): void {
         if ($location->getIsDeliveryPoint()
             && $trackingType === TrackingMovement::TYPE_DEPOSE
+            && !$pack->isDeliveryDone()
             && $pack->getArrivage()) {
             $arrivage = $pack->getArrivage();
             $receiver = $arrivage->getDestinataire();
+            $pack->setIsDeliveryDone(true);
             if ($receiver) {
                 $this->mailerService->sendMail(
                     'FOLLOW GT // Dépose effectuée',
