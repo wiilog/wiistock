@@ -1,8 +1,10 @@
 {% extends 'mails/template.html.twig' %}
 
 {% block content %}
-
     <div>Fournisseur : {{ fournisseur }}</div>
+    {% if orderNumber is defined and orderNumber %}
+        <div>Numéro(s) de commande : {{ orderNumbers }}</div>
+    {% endif %}
     <div>Colis : {{ colis }}</div>
     <div>Date de dépose : {{ date|date("d/m/Y") }} à {{ date|date("H:i:s") }}</div>
     <div>Emplacement : {{ emplacement.label }}{% if emplacement.description is not empty %} : {{ emplacement.description }}{% endif %}</div>
@@ -16,5 +18,4 @@
             <br>
         {% endfor %}
     {% endif %}
-
 {% endblock %}
