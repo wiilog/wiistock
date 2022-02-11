@@ -19,15 +19,15 @@ use App\Entity\DispatchPack;
 use App\Entity\ParametrageGlobal;
 use App\Entity\Attachment;
 use App\Entity\Statut;
+use App\Entity\TrackingMovement;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
 use App\Helper\FormatHelper;
+use App\Service\ArrivageService;
 use App\Service\NotificationService;
 use App\Service\VisibleColumnService;
-use GuzzleHttp\Exception\ConnectException;
-use Symfony\Bundle\MakerBundle\Str;
 use WiiCommon\Helper\Stream;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
@@ -877,7 +877,8 @@ class DispatchController extends AbstractController {
                                          EntityManagerInterface $entityManager,
                                          DispatchService $dispatchService,
                                          TranslatorInterface $translator,
-                                         Dispatch $dispatch): Response {
+                                         Dispatch $dispatch,
+                                         ArrivageService $arrivalService): Response {
         $status = $dispatch->getStatut();
 
         if(!$status || $status->isNotTreated() || $status->isPartial()) {
@@ -894,6 +895,15 @@ class DispatchController extends AbstractController {
                 /** @var Utilisateur $loggedUser */
                 $loggedUser = $this->getUser();
                 $dispatchService->treatDispatchRequest($entityManager, $dispatch, $treatedStatus, $loggedUser);
+
+                $packs = Stream::from($dispatch->getDispatchPacks())->map(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack())->toArray();
+                $now = new DateTime('now');
+
+                foreach ($packs as $pack) {
+                    $arrivalService->sendMailForDeliveredPack($dispatch->getLocationTo(), $pack, $loggedUser, TrackingMovement::TYPE_DEPOSE, $now);
+                }
+
+                $entityManager->flush();
             } else {
                 return new JsonResponse([
                     'success' => false,
