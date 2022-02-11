@@ -1,7 +1,6 @@
 {% extends 'mails/template.html.twig' %}
 
 {% block content %}
-
     <div>Fournisseur : {{ fournisseur }}</div>
     {% if orderNumber is defined and orderNumber %}
         <div>Numéro(s) de commande : {{ orderNumbers }}</div>
@@ -19,5 +18,4 @@
             <br>
         {% endfor %}
     {% endif %}
-
 {% endblock %}
