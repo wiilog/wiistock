@@ -215,7 +215,7 @@ class FiltreRefController extends AbstractController
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
 
-        $filters = $manager->getRepository(FiltreRef::class)->findByUserExceptFixedField($loggedUser, FiltreRef::FIXED_FIELD_ACTIVE_ONLY);
+        $filters = $manager->getRepository(FiltreRef::class)->findByUser($loggedUser);
         $filters = Stream::from($filters)->map(fn(FiltreRef $filter) => [
             'id' => $filter->getId(),
             'freeField' => $filter->getChampLibre(),
