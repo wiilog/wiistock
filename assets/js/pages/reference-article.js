@@ -41,6 +41,7 @@ $(document).ready(() => {
         const $imageContainer = $('.image-container');
         const $defaultImage = $('#default-image');
 
+        $('input[name=deletedImage]').val(1);
         $('#upload-article-reference-image').val(null);
         $imageContainer.css('background-image', "url(" + $defaultImage.val() + ")");
         $imageContainer.css('background-color', '#F5F5F7');
