@@ -14,7 +14,7 @@ use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use WiiCommon\Helper\Stream;
 
-class ActionsFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface {
+class ActionsFixtures extends Fixture implements FixtureGroupInterface {
 
     private ConsoleOutput $output;
 
@@ -431,10 +431,6 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
                 $this->output->writeln("Suppression du droit :  $menuLabelToLower / $subMenuLabelToLower / $actionLabelToLower");
             }
         }
-    }
-
-    public function getDependencies() {
-        return [MenusFixtures::class];
     }
 
     public static function getGroups(): array {
