@@ -438,10 +438,12 @@ class RefArticleDataService {
                 $refArticle->setImage($attachments[0]);
                 $request->files->remove('image');
             } elseif ($request->request->has('deletedImage') && $request->request->getBoolean('deletedImage')) {
-                $attachment = $refArticle->getImage();
-                $this->attachmentService->deleteAttachment($attachment);
-                $refArticle->setImage(null);
-                $entityManager->remove($attachment);
+                $image = $refArticle->getImage();
+                if ($image) {
+                    $this->attachmentService->deleteAttachment($image);
+                    $refArticle->setImage(null);
+                    $entityManager->remove($image);
+                }
             }
             $this->attachmentService->manageAttachments($entityManager, $refArticle, $request->files);
         }

@@ -35,9 +35,13 @@ $(document).ready(() => {
         }
     });
 
-    $('.edit-image').click(() => $('#upload-article-reference-image').click());
+    const $deleteImage = $('.delete-image');
+    $('.edit-image').on('click', () => {
+        $('#upload-article-reference-image').trigger('click');
+    });
 
-    $('.delete-image').click(() => {
+    $deleteImage.on('click', () => {
+        $deleteImage.addClass('d-none');
         const $imageContainer = $('.image-container');
         const $defaultImage = $('#default-image');
 
@@ -48,9 +52,10 @@ $(document).ready(() => {
         $imageContainer.css('background-size', '100px');
     });
 
-    $('#upload-article-reference-image').change(() => {
+    $('#upload-article-reference-image').on('change', () => {
         const $uploadArticleReferenceImage = $('#upload-article-reference-image')[0];
         if ($uploadArticleReferenceImage.files && $uploadArticleReferenceImage.files.length > 0) {
+            $deleteImage.removeClass('d-none');
             if($uploadArticleReferenceImage.files[0].size > MAX_UPLOAD_FILE_SIZE) {
                 showBSAlert(`La taille de l'image ne peut excéder 10mo`, `danger`);
             } else {
