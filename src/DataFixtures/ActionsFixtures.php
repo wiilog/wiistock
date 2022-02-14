@@ -14,7 +14,7 @@ use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use WiiCommon\Helper\Stream;
 
-class ActionsFixtures extends Fixture implements FixtureGroupInterface {
+class ActionsFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface {
 
     private ConsoleOutput $output;
 
@@ -308,8 +308,14 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface {
         foreach($menus as $menuCode => $actionLabels) {
             $counter = 0;
             foreach($actionLabels as $index => $actionLabel) {
-                if(is_array($actionLabel)) {
+                if(is_array($actionLabel)) { // has sub menu
                     $subMenu = $subMenuRepository->findByLabel($menuCode, $index);
+
+                    if (empty($subMenu)) {
+                        $subMenu = new SubMenu();
+                        $subMenu->setLabel($menuCode);
+                        $manager->persist($subMenu);
+                    }
 
                     foreach($actionLabel as $value) {
                         $action = $actionRepository->findOneByParams($menuCode, $value, $subMenu);
@@ -431,6 +437,10 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface {
                 $this->output->writeln("Suppression du droit :  $menuLabelToLower / $subMenuLabelToLower / $actionLabelToLower");
             }
         }
+    }
+
+    public function getDependencies() {
+        return [MenusFixtures::class];
     }
 
     public static function getGroups(): array {
