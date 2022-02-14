@@ -8,6 +8,7 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Dispatch;
 use App\Entity\Emplacement;
 use App\Entity\FreeField;
 use App\Entity\Chauffeur;
@@ -747,7 +748,7 @@ class ArrivageController extends AbstractController {
             'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage),
             'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
             'modalNewDispatchConfig' => $dispatchService->getNewDispatchConfig($statutRepository,
-                $champLibreRepository, $fieldsParamRepository, $parametrageGlobalRepository, $types, $arrivage)
+                $champLibreRepository, $fieldsParamRepository, $parametrageGlobalRepository, $types, $arrivage, true)
         ]);
     }
 

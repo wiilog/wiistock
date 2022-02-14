@@ -45,6 +45,8 @@ const MAX_DATE_HTML_INPUT = '2100-12-31';
 
 const TEAM_SIZE = 10;
 
+const SELECT2_TRIGGER_CHANGE = 'change.select2';
+
 $(function () {
     $(document).on('hide.bs.modal', function () {
         $('.select2-container.select2-container--open').remove();

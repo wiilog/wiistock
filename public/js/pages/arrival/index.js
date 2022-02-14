@@ -77,6 +77,26 @@ $(function () {
         });
     });
 
+    $dispatchModeContainer.find(`.validate`).on(`click`, function() {
+        const $checkedCheckboxes = $arrivalsTable.find(`input[type=checkbox]:checked`).not(`.check-all`);
+        const arrivalsToDispatch = $checkedCheckboxes.toArray().map((element) => $(element).val());
+        if(arrivalsToDispatch.length > 0) {
+            $(this).pushLoader(`white`);
+            $.post(Routing.generate(`create_from_arrival_template`, {arrivals: arrivalsToDispatch}, true))
+                .then(({content}) => {
+                    $(this).popLoader();
+                    $(`body`).append(content);
+
+                    let $modalNewDispatch = $("#modalNewDispatch");
+                    $modalNewDispatch.modal(`show`);
+
+                    let $submitNewDispatch = $("#submitNewDispatch");
+                    let urlDispatchNew = Routing.generate('dispatch_new', true);
+                    InitModal($modalNewDispatch, $submitNewDispatch, urlDispatchNew);
+                });
+        }
+    });
+
     $dispatchModeContainer.find(`.cancel`).on(`click`, () => {
         arrivalsTable.destroy();
         initTableArrival(false).then((returnedArrivalsTable) => {

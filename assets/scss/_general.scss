@@ -754,13 +754,13 @@ label.required:after {
 }
 
 .wii-field-name {
-    color: #000000;
+    color: #000000 !important;
     font-size: 14px;
     font-weight: bold;
 }
 
 .wii-field-text {
-    color: #000000;
+    color: #000000 !important;
     font-size: 16px;
     font-weight: normal;
 }
@@ -821,4 +821,14 @@ label.required:after {
 
 .font-weight-regular {
     font-weight: 400 !important;
+}
+
+.modal-body .subtitle {
+    color: black;
+    background-color: #F2F3F7;
+    padding: 5px #{$modal-inner-padding};
+    font-weight: 600;
+    display: block;
+    margin-left: -$modal-inner-padding;
+    margin-right: -$modal-inner-padding;
 }

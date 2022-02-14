@@ -1,4 +1,39 @@
 let arrivageUrgentLoading = false;
+let newDispatchNeededFields = {};
+
+$(function () {
+    $(document).arrive(`input[name=existingOrNot]`, function () {
+        const $newDispatch = $(`.new-dispatch`);
+        const $existingDispatch = $(`.existing-dispatch`);
+        const $existingDispatchSelect = $existingDispatch.find(`select[name=existingDispatch`);
+
+        $(this).on(`change`, function() {
+            const value = parseInt($(this).val());
+            if(value === 0) {
+                $(`.dispatch-details`).empty();
+                $(`select[name=existingDispatch]`).val(null).trigger(SELECT2_TRIGGER_CHANGE);
+                $newDispatch.removeClass(`d-none`);
+                $existingDispatch.addClass(`d-none`);
+                newDispatchNeededFields.addClass(`needed data`);
+                $existingDispatchSelect.removeClass(`needed data`);
+            } else {
+                $existingDispatch.removeClass(`d-none`);
+                $newDispatch.addClass(`d-none`);
+                newDispatchNeededFields = $newDispatch.find(`.needed data`);
+                $newDispatch.find(`.needed`).removeClass(`needed data`);
+                $existingDispatchSelect.addClass(`needed data`);
+            }
+        });
+    });
+
+    $(document).arrive(`select[name=existingDispatch]`, function() {
+       $(this).on(`change`, function () {
+           $.get(Routing.generate(`get_dispatch_details`, {id: $(this).val()}, true)).then(({content}) => {
+               $(`.dispatch-details`).empty().append(content);
+           });
+       });
+    });
+});
 
 function arrivalCallback(isCreation, {success, alertConfigs = [], ...response}, arrivalsDatatable = null) {
     if (alertConfigs.length > 0) {
