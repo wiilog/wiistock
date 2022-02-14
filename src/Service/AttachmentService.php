@@ -85,13 +85,7 @@ class AttachmentService {
         $attachmentRepository = $this->em->getRepository(Attachment::class);
         $pieceJointeAlreadyInDB = $attachmentRepository->findOneByFileName($attachment->getFileName());
         if (count($pieceJointeAlreadyInDB) === 1) {
-            $path = $this->getServerPath($attachment);
-            try {
-                unlink($path);
-            }
-            catch(Throwable $ignored) {
-                // ignored
-            }
+            $this->deleteAttachment($attachment);
         }
 
         $this->em->remove($attachment);
@@ -151,5 +145,10 @@ class AttachmentService {
             ->setOriginalName($fileName)
             ->setFullPath($fullPath)
             ->setFileName($fileName);
+    }
+
+    public function deleteAttachment(Attachment $attachment) {
+        $path = $this->getServerPath($attachment);
+        unlink($path);
     }
 }

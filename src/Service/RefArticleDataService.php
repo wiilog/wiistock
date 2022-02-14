@@ -6,6 +6,7 @@ use App\Entity\Action;
 use App\Entity\Alert;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
+use App\Entity\Attachment;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
@@ -37,6 +38,7 @@ use Exception;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Twig\Environment as Twig_Environment;
@@ -259,7 +261,7 @@ class RefArticleDataService {
                                    Utilisateur $user,
                                    FreeFieldService $champLibreService,
                                    MouvementStockService $mouvementStockService,
-                                   $request = null) {
+                                   ?Request $request = null) {
         $typeRepository = $this->entityManager->getRepository(Type::class);
         $statutRepository = $this->entityManager->getRepository(Statut::class);
         $inventoryCategoryRepository = $this->entityManager->getRepository(InventoryCategory::class);
@@ -435,6 +437,13 @@ class RefArticleDataService {
 
                 $refArticle->setImage($attachments[0]);
                 $request->files->remove('image');
+            } elseif ($request->request->has('deletedImage') && $request->request->getBoolean('deletedImage')) {
+                $image = $refArticle->getImage();
+                if ($image) {
+                    $this->attachmentService->deleteAttachment($image);
+                    $refArticle->setImage(null);
+                    $entityManager->remove($image);
+                }
             }
             $this->attachmentService->manageAttachments($entityManager, $refArticle, $request->files);
         }
