@@ -16,7 +16,6 @@ use App\Entity\TrackingMovement;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
-use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
@@ -81,10 +80,12 @@ class ArrivageService {
 
         $rows = [];
         foreach ($arrivals as $arrival) {
+            $packsInDispatchCount = $arrivalRepository->countArrivalPacksInDispatch($arrival[0]->getId());
             $rows[] = $this->dataRowArrivage($arrival[0], [
                 'totalWeight' => $arrival['totalWeight'],
                 'packsCount' => $arrival['packsCount'],
-                'dispatchMode' => $dispatchMode
+                'dispatchMode' => $dispatchMode,
+                'packsInDispatchCount' => $packsInDispatchCount
             ]);
         }
 
@@ -113,6 +114,7 @@ class ArrivageService {
 
         $row = [
             'id' => $arrivalId,
+            'packsInDispatch' => $options['packsInDispatchCount'] > 0 ? "<td><i class='fas fa-exchange-alt mr-2' title='Colis acheminé(s)'></i></td>" : '',
             'arrivalNumber' => $arrival->getNumeroArrivage() ?? '',
             'carrier' => $arrival->getTransporteur() ? $arrival->getTransporteur()->getLabel() : '',
             'totalWeight' => $options['totalWeight'] ?? '',
@@ -137,8 +139,8 @@ class ArrivageService {
         ];
 
         if(isset($options['dispatchMode']) && $options['dispatchMode']) {
-            unset($row['actions']);
-            $row['dispatchCheckbox'] = "<td><input type='checkbox' class='checkbox dispatch-checkbox' value='$arrivalId'></td>";
+            $disabled = $options['packsInDispatchCount'] == $arrival->getPacks()->count() ? 'disabled' : '';
+            $row['dispatchCheckbox'] = "<td><input type='checkbox' class='checkbox dispatch-checkbox' value='$arrivalId' $disabled></td>";
         } else {
             $row['actions'] = $this->templating->render('arrivage/datatableArrivageRow.html.twig', ['url' => $url, 'arrivage' => $arrival]);
         }
@@ -469,6 +471,7 @@ class ArrivageService {
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARRIVAGE, $categorieCL);
 
         $columns = [
+            ['name' => 'packsInDispatch', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
             ['title' => 'Date de création', 'name' => 'creationDate'],
             ['title' => 'arrivage.n° d\'arrivage',  'name' => 'arrivalNumber', 'translated' => true],
             ['title' => 'Poids total (kg)', 'name' => 'totalWeight'],

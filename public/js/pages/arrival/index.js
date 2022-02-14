@@ -109,20 +109,22 @@ $(function () {
 
     $(document).arrive(`.check-all`, function () {
         $(this).on(`click`, function() {
-            $arrivalsTable.find(`.dispatch-checkbox`).prop(`checked`, $(this).is(`:checked`));
+            $arrivalsTable.find(`.dispatch-checkbox`).not(`:disabled`).prop(`checked`, $(this).is(`:checked`));
             toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer);
         });
     });
 
-    $(document).arrive(`.dispatch-checkbox`, function () {
+    $(document).arrive(`.dispatch-checkbox:not(:disabled)`, function () {
         $(this).on(`click`, function() {
             $(this).prop(`checked`, !$(this).is(`:checked`));
             toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer);
         });
 
         $(this).closest(`tr`).on(`click`, () => {
-            $(this).prop(`checked`, !$(this).is(`:checked`));
-            toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer);
+            if(!$(this).is(`:disabled`)) {
+                $(this).prop(`checked`, !$(this).is(`:checked`));
+                toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer);
+            }
         });
     });
 });
@@ -137,7 +139,7 @@ function initTableArrival(dispatchMode = false) {
                 serverSide: !dispatchMode,
                 processing: true,
                 pageLength: Number($('#pageLengthForArrivage').val()),
-                order: [[dispatchMode ? 2 : 1, "desc"]],
+                order: [['creationDate', "desc"]],
                 ajax: {
                     "url": pathArrivage,
                     "type": "POST",
@@ -227,8 +229,8 @@ function updateArrivalPageLength() {
 }
 
 function toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer) {
-    const $allDispatchCheckboxes = $(`.dispatch-checkbox`);
-    const atLeastOneChecked = $arrivalsTable.find(`.dispatch-checkbox`).toArray().some((element) => $(element).is(`:checked`));
+    const $allDispatchCheckboxes = $(`.dispatch-checkbox`).not(`:disabled`);
+    const atLeastOneChecked = $allDispatchCheckboxes.toArray().some((element) => $(element).is(`:checked`));
 
     $dispatchModeContainer.find(`.validate`).prop(`disabled`, !atLeastOneChecked);
     $(`.check-all`).prop(`checked`, ($allDispatchCheckboxes.filter(`:checked`).length) === $allDispatchCheckboxes.length);

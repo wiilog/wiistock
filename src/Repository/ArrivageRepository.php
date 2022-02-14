@@ -425,4 +425,15 @@ class ArrivageRepository extends EntityRepository
             ->keymap(fn(array $arrival) => [$arrival['id'], $arrival['totalWeight']])
             ->toArray();
     }
+
+    public function countArrivalPacksInDispatch(int $arrivalId) {
+        return $this->createQueryBuilder('arrival')
+            ->select("COUNT(dispatch_packs)")
+            ->leftJoin('arrival.packs', 'packs')
+            ->leftJoin('packs.dispatchPacks', 'dispatch_packs')
+            ->where('arrival.id = :arrivalId')
+            ->setParameter('arrivalId', $arrivalId)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }
