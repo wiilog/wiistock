@@ -401,7 +401,7 @@ class ArrivageService {
                 'show' => [ 'fieldName' => 'projectNumber' ]
             ],
             [
-                'label' => 'Business unit',
+                'label' => $this->translator->trans('acheminement.Business unit'),
                 'value' => $arrivage->getBusinessUnit(),
                 'show' => [ 'fieldName' => 'businessUnit' ]
             ],
@@ -478,7 +478,7 @@ class ArrivageService {
             ['title' => 'Utilisateur', 'name' => 'user'],
             ['title' => 'Urgent', 'name' => 'emergency'],
             ['title' => 'Numéro de projet', 'name' => 'projectNumber'],
-            ['title' => 'Business Unit', 'name' => 'businessUnit'],
+            ['title' => 'acheminement.Business unit', 'name' => 'businessUnit', 'translated' => true],
         ];
 
         $arrivalFieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);

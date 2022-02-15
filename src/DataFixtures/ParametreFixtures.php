@@ -182,7 +182,7 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface {
             ParametrageGlobal::DEFAULT_LOCATION_RECEPTION => [],
             ParametrageGlobal::DEFAULT_LOCATION_REFERENCE => [],
             ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON => [
-                'default' => null,
+                'default' => [],
             ],
             ParametrageGlobal::MVT_DEPOSE_DESTINATION => [],
             ParametrageGlobal::DROP_OFF_LOCATION_IF_CUSTOMS => [],
@@ -229,9 +229,11 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface {
 
             if (empty($globalParam)) {
                 $appClient = $this->specificService->getAppClient();
-                $value = isset($values[$appClient])
-                    ? $values[$appClient]
-                    : ($values['default'] ?? null);
+                $value = $values[$appClient] ?? ($values['default'] ?? null);
+
+                $value = is_array($value)
+                    ? json_encode($value)
+                    : $value;
 
                 $globalParam = new ParametrageGlobal();
                 $globalParam

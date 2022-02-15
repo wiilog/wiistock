@@ -364,7 +364,7 @@
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-4">
-                            <label for="chauffeur">Business Unit{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}</label>
+                            <label>{{ 'acheminement.Business unit'|trans }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}</label>
                             <select
                                 class="needs-default form-control input-sm data {{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? 'needed' : '' }}"
                                 name="businessUnit">

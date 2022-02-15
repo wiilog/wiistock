@@ -422,7 +422,8 @@ class SelectController extends AbstractController {
             ->map(fn(string $value) => [
                 'id' => $value,
                 'text' => $value
-            ])->toArray();
+            ])
+            ->toArray();
 
         return $this->json([
             'results' => $results

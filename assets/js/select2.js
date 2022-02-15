@@ -39,6 +39,7 @@ const INSTANT_SELECT_TYPES = {
     sensorCodeWithoutPairing: true,
     triggerSensorWithoutPairing: true,
     triggerSensorCodeWithoutPairing: true,
+    businessUnit: true,
 }
 
 export default class Select2 {

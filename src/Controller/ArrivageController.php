@@ -65,7 +65,6 @@ class ArrivageController extends AbstractController {
     /** @Required */
     public AttachmentService $attachmentService;
 
-
     /**
      * @Route("/", name="arrivage_index")
      * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI})
@@ -631,6 +630,7 @@ class ArrivageController extends AbstractController {
      * @Route("/csv", name="get_arrivages_csv", options={"expose"=true}, methods={"GET"})
      */
     public function exportArrivals(Request                $request,
+                                   TranslatorInterface    $translator,
                                    EntityManagerInterface $entityManager,
                                    CSVExportService       $csvService,
                                    FieldsParamService     $fieldsParamService,
@@ -682,7 +682,7 @@ class ArrivageController extends AbstractController {
             "date",
             "utilisateur",
             "numéro de projet",
-            "business unit",
+            $translator->trans('acheminement.Business unit'),
         ];
 
         if ($fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedCreate')
