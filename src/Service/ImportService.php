@@ -1281,7 +1281,7 @@ class ImportService
         if (isset($data['managers'])) {
             $usernames = Stream::explode([";", ","], $data["managers"])
                 ->unique()
-                ->map("trim")
+                ->map(fn(string $username) => trim($username))
                 ->toArray();
 
             $managers = $userRepository->findByUsernames($usernames);
@@ -1698,7 +1698,7 @@ class ImportService
         if (isset($data['visibilityGroup'])) {
             $visibilityGroups = Stream::explode([";", ","], $data["visibilityGroup"])
                 ->unique()
-                ->map("trim")
+                ->map(fn(string $visibilityGroup) => trim($visibilityGroup))
                 ->map(function($label) use ($visibilityGroupRepository) {
                     $visibilityGroup = $visibilityGroupRepository->findOneBy(['label' => ltrim($label)]);
                     if (!$visibilityGroup) {
