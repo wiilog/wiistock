@@ -149,7 +149,7 @@ class DispatchService {
                                          array $types,
                                          ?Arrivage $arrival = null,
                                          bool $fromArrival = false,
-                                         array $mergedPacks = []) {
+                                         array $packs = []) {
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
 
         $dispatchBusinessUnits = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_BUSINESS_UNIT);
@@ -181,7 +181,7 @@ class DispatchService {
                 ];
             }, $types),
             'notTreatedStatus' => $statutRepository->findStatusByType(CategorieStatut::DISPATCH, null, [Statut::DRAFT]),
-            'packs' => $mergedPacks ?? ($arrival ? $arrival->getPacks() : []),
+            'packs' => $packs,
             'fromArrival' => $fromArrival,
             'arrival' => $arrival,
             'existingDispatches' => Stream::from($existingDispatches)->map(fn(Dispatch $dispatch) => [

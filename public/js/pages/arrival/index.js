@@ -66,7 +66,8 @@ $(function () {
     const $dispatchModeContainer = $(`.dispatch-mode-container`);
     const $arrivalModeContainer = $(`.arrival-mode-container`);
     const $filtersInputs = $(`.filters-container`).find(`select, input, button`);
-    $(`.dispatch-button`).on(`click`, () => {
+    $(`.dispatch-mode-button`).on(`click`, function() {
+        $(this).pushLoader(`black`);
         arrivalsTable.destroy();
         initTableArrival(true).then((returnedArrivalsTable) => {
             arrivalsTable = returnedArrivalsTable;
@@ -74,6 +75,7 @@ $(function () {
             $dispatchModeContainer.removeClass(`d-none`);
             $arrivalModeContainer.addClass(`d-none`);
             $filtersInputs.prop(`disabled`, true);
+            $(this).popLoader();
         });
     });
 
@@ -97,13 +99,15 @@ $(function () {
         }
     });
 
-    $dispatchModeContainer.find(`.cancel`).on(`click`, () => {
+    $dispatchModeContainer.find(`.cancel`).on(`click`, function() {
+        $(this).pushLoader(`primary`);
         arrivalsTable.destroy();
         initTableArrival(false).then((returnedArrivalsTable) => {
             arrivalsTable = returnedArrivalsTable;
             $arrivalModeContainer.removeClass(`d-none`);
             $dispatchModeContainer.addClass(`d-none`);
             $filtersInputs.prop(`disabled`, false);
+            $(this).popLoader();
         });
     });
 
@@ -171,9 +175,13 @@ function initTableArrival(dispatchMode = false) {
                     tableFilter: 'arrivalsTable'
                 },
                 lengthMenu: [10, 25, 50, 100],
-                page: !dispatchMode ? 'arrival' : undefined,
+                ...(!dispatchMode ? {page: 'arrival'} : {}),
                 initCompleteCallback: updateArrivalPageLength
             };
+
+            if (dispatchMode) {
+                extendsDateSort('customDate');
+            }
 
             const arrivalsTable = initDataTable('arrivalsTable', tableArrivageConfig);
             arrivalsTable.on('responsive-resize', function () {

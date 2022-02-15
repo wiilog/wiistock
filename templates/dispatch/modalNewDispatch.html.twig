@@ -82,7 +82,7 @@
                                 <label class="wii-field-name"
                                        title="Emplacement prise">{{ 'acheminement.Emplacement prise'|trans }}{{ required ? '*' }}</label>
                                 <select name="prise"
-                                        class="form-control data ajax-autocomplete-location d-block {{ required ? 'needed' }} location-prise w-100">
+                                        class="form-control data d-block {{ required ? 'needed' }} location-prise w-100" data-s2="location">
                                 </select>
                             </div>
                         {% endif %}
@@ -95,9 +95,9 @@
                                 <div class="form-group">
                                     <label class="wii-field-name"
                                            title="Transporteur">{{ 'acheminement.Transporteur'|trans }}{{ required ? '*' }}</label>
-                                    <select class="form-control data ajax-autocomplete-transporteur w-100 {{ required ? 'needed' }}"
+                                    <select class="form-control data w-100 {{ required ? 'needed' }}"
                                             title="Transporteur"
-                                            name="carrier">
+                                            name="carrier" data-s2="carrier">
                                     </select>
                                 </div>
                             {% endif %}
@@ -144,7 +144,7 @@
                                 <label class="wii-field-name"
                                        title="Emplacement dépose">{{ 'acheminement.Emplacement dépose'|trans }}{{ required ? '*' }}</label>
                                 <select name="depose"
-                                        class="form-control data ajax-autocomplete-location d-block {{ required ? 'needed' }} location-depose">
+                                        class="form-control data d-block {{ required ? 'needed' }} location-depose" data-s2="location">
                                 </select>
                             </div>
                         {% endif %}
@@ -179,7 +179,7 @@
                     <div class="col-md-4 col-12">
                         <div class="form-group">
                             <label class="wii-field-name">Demandeur*</label>
-                            <select class="demandeur form-control data needed ajax-autocomplete-user w-100" name="requester"></select>
+                            <select class="demandeur form-control data needed w-100" name="requester" data-s2="user"></select>
                             <input hidden
                                    name="logged-user"
                                    data-username="{{ app.user.username }}"

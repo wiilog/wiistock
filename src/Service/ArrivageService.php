@@ -139,8 +139,8 @@ class ArrivageService {
         ];
 
         if(isset($options['dispatchMode']) && $options['dispatchMode']) {
-            $disabled = $options['packsInDispatchCount'] == $arrival->getPacks()->count() ? 'disabled' : '';
-            $row['dispatchCheckbox'] = "<td><input type='checkbox' class='checkbox dispatch-checkbox' value='$arrivalId' $disabled></td>";
+            $disabled = $options['packsInDispatchCount'] >= $arrival->getPacks()->count() ? 'disabled' : '';
+            $row['actions'] = "<td><input type='checkbox' class='checkbox dispatch-checkbox' value='$arrivalId' $disabled></td>";
         } else {
             $row['actions'] = $this->templating->render('arrivage/datatableArrivageRow.html.twig', ['url' => $url, 'arrivage' => $arrival]);
         }
@@ -472,7 +472,7 @@ class ArrivageService {
 
         $columns = [
             ['name' => 'packsInDispatch', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
-            ['title' => 'Date de création', 'name' => 'creationDate'],
+            ['title' => 'Date de création', 'name' => 'creationDate', 'type' => ($dispatchMode ? 'customDate' : '')],
             ['title' => 'arrivage.n° d\'arrivage',  'name' => 'arrivalNumber', 'translated' => true],
             ['title' => 'Poids total (kg)', 'name' => 'totalWeight'],
             ['title' => 'Transporteur', 'name' => 'carrier'],
@@ -494,7 +494,7 @@ class ArrivageService {
         ];
 
         if($dispatchMode) {
-            $dispatchCheckboxLine = ['title' => "<input type='checkbox' class='checkbox check-all'>", 'name' => 'dispatchCheckbox', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'];
+            $dispatchCheckboxLine = ['title' => "<input type='checkbox' class='checkbox check-all'>", 'name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'];
             array_unshift($columns, $dispatchCheckboxLine);
         } else {
             array_unshift($columns, ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis actions']);
@@ -506,6 +506,7 @@ class ArrivageService {
             || $this->fieldsParamService->isFieldRequired($arrivalFieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedEdit')) {
             $columns[] = ['title' => 'Emplacement de dépose', 'name' => 'dropLocation'];
         }
+
         return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }
 

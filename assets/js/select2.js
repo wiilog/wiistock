@@ -1,6 +1,5 @@
 import 'select2';
 import {GROUP_WHEN_NEEDED} from "./app";
-import {indexOf} from "core-js/internals/array-includes";
 
 const ROUTES = {
     handlingType: `ajax_select_handling_type`,
@@ -27,6 +26,7 @@ const ROUTES = {
     collectableArticles: `ajax_select_collectable_articles`,
     purchaseRequest: `ajax_select_references_by_buyer`,
     keyboardPacks: `ajax_select_keyboard_pack`,
+    carrier: 'ajax_select_carrier'
 }
 
 const INSTANT_SELECT_TYPES = {

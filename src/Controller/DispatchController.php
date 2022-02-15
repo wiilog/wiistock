@@ -185,7 +185,18 @@ class DispatchController extends AbstractController {
         }
 
         $post = $request->request;
-        $packs = $post->has('packs') ? json_decode($post->get('packs'), true) : [];
+
+        $packs = [];
+        if($post->has('packs')) {
+            $packs = json_decode($post->get('packs'), true);
+
+            if(empty($packs)) {
+                return $this->json([
+                    'success' => false,
+                    'msg' => "Un colis minimum est nécessaire pour procéder à l'acheminement"
+                ]);
+            }
+        }
 
         if($post->has('existingOrNot') && ($post->getInt('existingOrNot') === 1)) {
             $existingDispatch = $entityManager->find(Dispatch::class, $post->getInt('existingDispatch'));
@@ -1545,19 +1556,30 @@ class DispatchController extends AbstractController {
         $fixedFieldRepository = $manager->getRepository(FieldsParam::class);
         $globalSettingsRepository = $manager->getRepository(ParametrageGlobal::class);
 
-        $arrivalsIds= (array) $request->query->get('arrivals');
-        $arrivals = $manager->getRepository(Arrivage::class)->findBy(['id' => $arrivalsIds]);
+        $arrivals = [];
+        $arrival = null;
+        if($request->query->has('arrivals')) {
+            $arrivalsIds = (array) $request->query->get('arrivals');
+            $arrivals = $manager->getRepository(Arrivage::class)->findBy(['id' => $arrivalsIds]);
+        } else {
+            $arrival = $manager->find(Arrivage::class, $request->query->get('arrival'));
+        }
+
         $types = $manager->getRepository(Type::class)->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
 
         $packs = [];
-        foreach ($arrivals as $arrival) {
-            $packs = array_merge(Stream::from($arrival->getPacks())->toArray(), $packs);
+        if(!empty($arrivals)) {
+            foreach ($arrivals as $arrival) {
+                $packs = array_merge(Stream::from($arrival->getPacks())->toArray(), $packs);
+            }
+        } else {
+            $packs = $arrival->getPacks()->toArray();
         }
 
         return $this->json([
             'success' => true,
             'content' => $this->renderView('dispatch/modalNewDispatch.html.twig',
-                $dispatchService->getNewDispatchConfig($statusRepository, $freeFieldRepository, $fixedFieldRepository, $globalSettingsRepository, $types, null, true, $packs)
+                $dispatchService->getNewDispatchConfig($statusRepository, $freeFieldRepository, $fixedFieldRepository, $globalSettingsRepository, $types, $arrival, true, $packs)
             )
         ]);
     }

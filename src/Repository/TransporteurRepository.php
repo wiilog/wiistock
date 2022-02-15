@@ -117,4 +117,13 @@ class TransporteurRepository extends EntityRepository
 
 		return $query->getSingleScalarResult();
 	}
+
+    public function getForSelect(?string $term) {
+        return $this->createQueryBuilder("carrier")
+            ->select("carrier.id AS id, carrier.label AS text")
+            ->where("type.label LIKE :term")
+            ->setParameter("term", "%$term%")
+            ->getQuery()
+            ->getArrayResult();
+    }
 }

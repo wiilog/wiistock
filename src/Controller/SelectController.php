@@ -15,6 +15,7 @@ use App\Entity\ParametrageGlobal;
 use App\Entity\PurchaseRequest;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -404,6 +405,19 @@ class SelectController extends AbstractController {
         return $this->json([
             "results" => $results ?? null,
             "error" => $error ?? null,
+        ]);
+    }
+
+    /**
+     * @Route("/select/carrier", name="ajax_select_carrier", options={"expose"=true})
+     */
+    public function carrier(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $search = $request->query->get('term');
+        $carriers = $entityManager->getRepository(Transporteur::class)->getForSelect($search);
+
+        return $this->json([
+            "results" => $carriers
         ]);
     }
 }

@@ -543,7 +543,8 @@ class ArrivageController extends AbstractController {
             'entete' => $this->renderView('arrivage/arrivage-show-header.html.twig', [
                 'arrivage' => $arrivage,
                 'canBeDeleted' => $arrivageRepository->countUnsolvedDisputesByArrivage($arrivage) == 0,
-                'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage)
+                'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage),
+                'allPacksAlreadyInDispatch' => $arrivage->getPacks()->count() >= $arrivageRepository->countArrivalPacksInDispatch($arrivage->getId())
             ]),
             'alertConfigs' => $alertConfig
         ];
@@ -747,8 +748,6 @@ class ArrivageController extends AbstractController {
             'fieldsParam' => $fieldsParam,
             'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage),
             'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
-            'modalNewDispatchConfig' => $dispatchService->getNewDispatchConfig($statutRepository,
-                $champLibreRepository, $fieldsParamRepository, $parametrageGlobalRepository, $types, $arrivage, true)
         ]);
     }
 
