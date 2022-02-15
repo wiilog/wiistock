@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Arrivage;
+use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
@@ -262,6 +263,14 @@ class ArrivageRepository extends EntityRepository
                             ->andWhere('arrival.frozen = :value')
                             ->setParameter('value', $filter['value']);
                     }
+                    break;
+                case FiltreSup::FIELD_BUSINESS_UNIT:
+                    $values = Stream::explode(",", $filter['value'])
+                        ->map(fn(string $value) => strtok($value, ':'))
+                        ->toArray();
+                    $qb
+                        ->andWhere("arrival.businessUnit IN (:values)")
+                        ->setParameter('values', $values);
                     break;
                 case 'numArrivage':
                     $qb

@@ -22,7 +22,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class FieldsParamController extends AbstractController
 {
 
-    private $filteredFields = [
+    private array $filteredFields = [
         // Arrivages
         FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE,
         FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE,
@@ -30,6 +30,7 @@ class FieldsParamController extends AbstractController
         FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE,
         FieldsParam::FIELD_CODE_TRANSPORTEUR,
         FieldsParam::FIELD_CODE_TARGET_ARRIVAGE,
+        FieldsParam::FIELD_CODE_BUSINESS_UNIT,
 
         // Acheminements
         FieldsParam::FIELD_CODE_EMERGENCY,

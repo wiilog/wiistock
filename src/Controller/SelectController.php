@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Article;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
+use App\Entity\FieldsParam;
 use App\Entity\Fournisseur;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
@@ -404,6 +405,27 @@ class SelectController extends AbstractController {
         return $this->json([
             "results" => $results ?? null,
             "error" => $error ?? null,
+        ]);
+    }
+
+    /**
+     * @Route("/select/business-unit", name="ajax_select_business_unit", options={"expose"=true})
+     */
+    public function businessUnit(Request $request, EntityManagerInterface $manager): Response {
+        $page = $request->query->get('page');
+
+        $businessUnitValues = $manager
+            ->getRepository(FieldsParam::class)
+            ->getElements($page, FieldsParam::FIELD_CODE_BUSINESS_UNIT);
+
+        $results = Stream::from($businessUnitValues)
+            ->map(fn(string $value) => [
+                'id' => $value,
+                'text' => $value
+            ])->toArray();
+
+        return $this->json([
+            'results' => $results
         ]);
     }
 }
