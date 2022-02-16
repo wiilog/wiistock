@@ -221,7 +221,11 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface {
             ParametrageGlobal::HANDLING_EXPECTED_DATE_COLOR_BEFORE => [
                 'default' => null,
                 SpecificService::CLIENT_ARKEMA_SERQUIGNY => '#cf2a27'
-            ]
+            ],
+            ParametrageGlobal::SEND_PACK_DELIVERY_REMIND => [
+                'default' => 0,
+                SpecificService::CLIENT_INEO_LAV => 1
+            ],
         ];
 
         foreach ($globalParameterLabels as $globalParameterLabel => $values) {

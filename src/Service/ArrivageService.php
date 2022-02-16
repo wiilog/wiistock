@@ -607,7 +607,7 @@ class ArrivageService {
                 $this->mailerService->sendMail(
                     'FOLLOW GT // Dépose effectuée',
                     $this->templating->render(
-                        'mails/contents/mailDeposeTraca.html.twig',
+                        'mails/contents/mail-pack-delivery-done.html.twig',
                         [
                             'title' => 'Votre colis a été livré.',
                             'orderNumber' => implode(', ', $arrivage->getNumeroCommandeList()),

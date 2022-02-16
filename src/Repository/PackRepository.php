@@ -553,4 +553,59 @@ class PackRepository extends EntityRepository
 
         return $qb->getQuery()->getResult();
     }
+
+    /**
+     * @return Pack[]
+     */
+    public function findOngoingOnDeliveryPoint(): array {
+        return $this->createQueryBuilder('pack')
+            ->join('pack.lastDrop', 'lastDrop')
+            ->join('pack.arrivage', 'arrival')
+            ->join('lastDrop.emplacement', 'dropLocation')
+            ->andWhere('arrival IS NOT NULL')
+            ->andWhere('arrival.destinataire IS NOT NULL')
+            ->andWhere('dropLocation.isDeliveryPoint = true')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Returns the delay (DateInterval) since the given pack is on its location group.
+     * If the current pack location has no group we take the delay since the pack is on the location.
+     */
+    public function getFirstDropForCurrentOngoing(Pack $pack): ?DateTime {
+        $lastDrop = $pack->getLastDrop();
+
+        if ($lastDrop) {
+            $location = $lastDrop->getEmplacement();
+            $locationGroup = $location ? $location->getLocationGroup() : null;
+
+            if ($locationGroup) {
+                $result = $this->createQueryBuilder('pack')
+                    ->select('MIN(movement.datetime) AS date')
+                    ->join('pack.trackingMovements', 'movement')
+                    ->join('movement.emplacement', 'location')
+                    ->join('location.locationGroup', 'locationGroup')
+                    ->andWhere('pack = :pack')
+                    ->andWhere('location.locationGroup = :locationGroup')
+                    ->setParameter('pack', $pack)
+                    ->setParameter('locationGroup', $locationGroup)
+                    ->setMaxResults(1)
+                    ->getQuery()
+                    ->getSingleScalarResult();
+
+                $arrivalDateOnGroup = $result
+                    ? new DateTime($result)
+                    : null;
+            }
+            else {
+                $arrivalDateOnGroup = $lastDrop->getDatetime();
+            }
+        }
+        else {
+            $arrivalDateOnGroup = null;
+        }
+
+        return $arrivalDateOnGroup;
+    }
 }
