@@ -51,7 +51,8 @@
                        onchange="updateToggledParam($(this))">
                 <span class="slider round"></span>
             </label>
-            <label class="pl-1" for="param-print-twice-customs">Impression en double de l'étiquette de colis d'arrivage si champ "Douane" coché</label>
+            <label class="pl-1" for="param-print-twice-customs">Impression en double de l'étiquette de colis d'arrivage si champ "Douane"
+                coché</label>
         </div>
     </div>
     <div class="row mt-2">
@@ -63,7 +64,8 @@
                        onchange="updateToggledParam($(this))">
                 <span class="slider round"></span>
             </label>
-            <label class="pl-1" for="param-send-pack-delivery-remind">Déclencher un mail de relance si les colis restent plus de 15 jours sur un point de livraison</label>
+            <label class="pl-1" for="param-send-pack-delivery-remind">Déclencher un mail de relance si les colis restent plus de 15 jours sur un point
+                de livraison</label>
         </div>
     </div>
     <div class="row mt-2">
@@ -120,4 +122,12 @@
             <button class="btn btn-success d-block" onclick="saveEmergencyTriggeringFields()"><i class='fas fa-check'></i></button>
         </div>
     </div>
+
+    {% if sendReminderEmails is defined and sendReminderEmails %}
+        <div class="row my-2">
+            <div class="col-12">
+                <button class="btn btn-outline-primary" onclick="triggerReminderEmails($(this))">Déclencher les mails de relance</button>
+            </div>
+        </div>
+    {% endif %}
 </div>
