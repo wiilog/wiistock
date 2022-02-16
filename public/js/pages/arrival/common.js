@@ -1,4 +1,31 @@
 let arrivageUrgentLoading = false;
+let newDispatchNeededFields = {};
+
+$(function () {
+    $(document).on(`change`, `input[name=existingOrNot]`, function () {
+        const value = parseInt($(this).val());
+        if(value === 0) {
+            $(`.dispatch-details`).empty();
+            $(`select[name=existingDispatch]`).val(null).trigger(SELECT2_TRIGGER_CHANGE);
+            $(`.new-dispatch`).removeClass(`d-none`);
+            $(`.existing-dispatch`).addClass(`d-none`);
+            newDispatchNeededFields.addClass(`needed data`);
+            $(`.existing-dispatch`).find(`select[name=existingDispatch]`).removeClass(`needed data`);
+        } else {
+            $(`.existing-dispatch`).removeClass(`d-none`);
+            $(`.new-dispatch`).addClass(`d-none`);
+            newDispatchNeededFields = $(`.new-dispatch`).find(`.needed .data`);
+            $(`.new-dispatch`).find(`.needed`).removeClass(`needed data`);
+            $(`.existing-dispatch`).find(`select[name=existingDispatch]`).addClass(`needed data`);
+        }
+    });
+
+    $(document).on(`change`, `select[name=existingDispatch]`, function() {
+       $.get(Routing.generate(`get_dispatch_details`, {id: $(this).val()}, true)).then(({content}) => {
+           $(`.dispatch-details`).empty().append(content);
+       });
+    });
+});
 
 function arrivalCallback(isCreation, {success, alertConfigs = [], ...response}, arrivalsDatatable = null) {
     if (alertConfigs.length > 0) {
@@ -254,4 +281,10 @@ function checkPossibleCustoms($modal) {
         }
     });
 
+}
+
+function removePackInDispatchModal($button) {
+    $button
+        .closest('[data-multiple-key]')
+        .remove();
 }

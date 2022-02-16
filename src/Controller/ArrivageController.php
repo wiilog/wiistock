@@ -8,6 +8,7 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Dispatch;
 use App\Entity\Emplacement;
 use App\Entity\FreeField;
 use App\Entity\Chauffeur;
@@ -134,10 +135,7 @@ class ArrivageController extends AbstractController {
             $userId = $this->getUser()->getId();
         }
 
-        return $this->json($arrivageService->getDataForDatatable(
-            $request->request,
-            $userId,
-        ));
+        return $this->json($arrivageService->getDataForDatatable($request, $userId));
     }
 
     /**
@@ -544,7 +542,8 @@ class ArrivageController extends AbstractController {
             'entete' => $this->renderView('arrivage/arrivage-show-header.html.twig', [
                 'arrivage' => $arrivage,
                 'canBeDeleted' => $arrivageRepository->countUnsolvedDisputesByArrivage($arrivage) == 0,
-                'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage)
+                'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage),
+                'allPacksAlreadyInDispatch' => $arrivage->getPacks()->count() >= $arrivageRepository->countArrivalPacksInDispatch($arrivage->getId())
             ]),
             'alertConfigs' => $alertConfig
         ];
@@ -749,8 +748,6 @@ class ArrivageController extends AbstractController {
             'fieldsParam' => $fieldsParam,
             'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage),
             'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
-            'modalNewDispatchConfig' => $dispatchService->getNewDispatchConfig($statutRepository,
-                $champLibreRepository, $fieldsParamRepository, $parametrageGlobalRepository, $types, $arrivage)
         ]);
     }
 
@@ -1405,11 +1402,14 @@ class ArrivageController extends AbstractController {
      * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI}, mode=HasPermission::IN_JSON)
      */
     public function apiColumns(ArrivageService        $arrivageDataService,
-                               EntityManagerInterface $entityManager): Response
+                               EntityManagerInterface $entityManager,
+                               Request $request): Response
     {
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
-        $columns = $arrivageDataService->getColumnVisibleConfig($entityManager, $currentUser);
+        $dispatchMode = $request->query->getBoolean('dispatchMode');
+
+        $columns = $arrivageDataService->getColumnVisibleConfig($entityManager, $currentUser, $dispatchMode);
         return new JsonResponse($columns);
     }
 }

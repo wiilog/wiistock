@@ -295,6 +295,7 @@ function ProcessForm($modal, isAttachmentForm = undefined, validator = undefined
     const dataArrayForm = processDataArrayForm($modal, data);
     const dataInputsForm = processInputsForm($modal, data, isAttachmentForm);
     const dataCheckboxesForm = processCheckboxesForm($modal, data, isAttachmentForm);
+    const dataRadioButtonsForm = processRadioButtonsForm($modal, data, isAttachmentForm);
     const dataSwitchesForm = processSwitchesForm($modal, data, isAttachmentForm);
     const dataFilesForm = processFilesForm($modal, data);
     const dataValidator = validator
@@ -305,6 +306,7 @@ function ProcessForm($modal, isAttachmentForm = undefined, validator = undefined
             dataArrayForm.success
             && dataInputsForm.success
             && dataCheckboxesForm.success
+            && dataRadioButtonsForm.success
             && dataSwitchesForm.success
             && dataFilesForm.success
             && dataValidator.success
@@ -313,6 +315,7 @@ function ProcessForm($modal, isAttachmentForm = undefined, validator = undefined
             ...dataArrayForm.errorMessages,
             ...dataInputsForm.errorMessages,
             ...dataCheckboxesForm.errorMessages,
+            ...dataRadioButtonsForm.errorMessages,
             ...dataFilesForm.errorMessages,
             ...dataSwitchesForm.errorMessages,
             ...(dataValidator.errorMessages || [])
@@ -321,6 +324,7 @@ function ProcessForm($modal, isAttachmentForm = undefined, validator = undefined
             ...dataArrayForm.$isInvalidElements,
             ...dataInputsForm.$isInvalidElements,
             ...dataCheckboxesForm.$isInvalidElements,
+            ...dataRadioButtonsForm.$isInvalidElements,
             ...dataFilesForm.$isInvalidElements,
             ...dataSwitchesForm.$isInvalidElements,
             ...(dataValidator.$isInvalidElements || [])
@@ -555,6 +559,30 @@ function processCheckboxesForm($modal, data, isAttachmentForm) {
         const $input = $(this);
         if (!$input.hasClass("no-data")) {
             saveData($input, data, $input.attr("name"), $input.is(':checked'), isAttachmentForm);
+        }
+    });
+
+    return {
+        success: true,
+        errorMessages: [],
+        $isInvalidElements: []
+    };
+}
+
+/**
+ *
+ * @param $modal jQuery modal
+ * @param {Object.<*,*>} data
+ * @param {boolean} isAttachmentForm
+ * @return {{errorMessages: Array<string>, success: boolean, $isInvalidElements: Array<*>}}
+ */
+function processRadioButtonsForm($modal, data, isAttachmentForm) {
+    const $radioButtons = $modal.find('input[type=radio]:checked');
+
+    $radioButtons.each(function () {
+        const $radio = $(this);
+        if (!$radio.hasClass("no-data")) {
+            saveData($radio, data, $radio.attr("name"), $radio.val(), isAttachmentForm);
         }
     });
 

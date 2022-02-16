@@ -61,19 +61,89 @@ $(function () {
     pageLength = Number($('#pageLengthForArrivage').val());
     Select2Old.user($('.filters .ajax-autocomplete-user'), 'Destinataires');
     Select2Old.provider($('.ajax-autocomplete-fournisseur'), 'Fournisseurs');
+
+    const $arrivalsTable = $(`#arrivalsTable`);
+    const $dispatchModeContainer = $(`.dispatch-mode-container`);
+    const $arrivalModeContainer = $(`.arrival-mode-container`);
+    const $filtersInputs = $(`.filters-container`).find(`select, input, button`);
+    $(`.dispatch-mode-button`).on(`click`, function() {
+        $(this).pushLoader(`black`);
+        arrivalsTable.destroy();
+        initTableArrival(true).then((returnedArrivalsTable) => {
+            arrivalsTable = returnedArrivalsTable;
+            $(`.dataTables_filter`).parent().remove();
+            $dispatchModeContainer.removeClass(`d-none`);
+            $arrivalModeContainer.addClass(`d-none`);
+            $filtersInputs.prop(`disabled`, true);
+            $(this).popLoader();
+        });
+    });
+
+    $dispatchModeContainer.find(`.validate`).on(`click`, function() {
+        const $checkedCheckboxes = $arrivalsTable.find(`input[type=checkbox]:checked`).not(`.check-all`);
+        const arrivalsToDispatch = $checkedCheckboxes.toArray().map((element) => $(element).val());
+        if(arrivalsToDispatch.length > 0) {
+            $(this).pushLoader(`white`);
+            $.post(Routing.generate(`create_from_arrival_template`, {arrivals: arrivalsToDispatch}, true))
+                .then(({content}) => {
+                    $(this).popLoader();
+                    $(`body`).append(content);
+
+                    let $modalNewDispatch = $("#modalNewDispatch");
+                    $modalNewDispatch.modal(`show`);
+
+                    let $submitNewDispatch = $("#submitNewDispatch");
+                    let urlDispatchNew = Routing.generate('dispatch_new', true);
+                    InitModal($modalNewDispatch, $submitNewDispatch, urlDispatchNew);
+                });
+        }
+    });
+
+    $dispatchModeContainer.find(`.cancel`).on(`click`, function() {
+        $(this).pushLoader(`primary`);
+        arrivalsTable.destroy();
+        initTableArrival(false).then((returnedArrivalsTable) => {
+            arrivalsTable = returnedArrivalsTable;
+            $arrivalModeContainer.removeClass(`d-none`);
+            $dispatchModeContainer.addClass(`d-none`);
+            $filtersInputs.prop(`disabled`, false);
+            $(this).popLoader();
+        });
+    });
+
+    $(document).arrive(`.check-all`, function () {
+        $(this).on(`click`, function() {
+            $arrivalsTable.find(`.dispatch-checkbox`).not(`:disabled`).prop(`checked`, $(this).is(`:checked`));
+            toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer);
+        });
+    });
+
+    $(document).arrive(`.dispatch-checkbox:not(:disabled)`, function () {
+        $(this).on(`click`, function() {
+            $(this).prop(`checked`, !$(this).is(`:checked`));
+            toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer);
+        });
+
+        $(this).closest(`tr`).on(`click`, () => {
+            if(!$(this).is(`:disabled`)) {
+                $(this).prop(`checked`, !$(this).is(`:checked`));
+                toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer);
+            }
+        });
+    });
 });
 
-function initTableArrival() {
-    let pathArrivage = Routing.generate('arrivage_api', true);
+function initTableArrival(dispatchMode = false) {
+    let pathArrivage = Routing.generate('arrivage_api', {dispatchMode}, true);
 
     return $
-        .post(Routing.generate('arrival_api_columns'))
+        .post(Routing.generate('arrival_api_columns', {dispatchMode}))
         .then((columns) => {
             let tableArrivageConfig = {
-                serverSide: true,
+                serverSide: !dispatchMode,
                 processing: true,
                 pageLength: Number($('#pageLengthForArrivage').val()),
-                order: [[1, "desc"]],
+                order: [['creationDate', "desc"]],
                 ajax: {
                     "url": pathArrivage,
                     "type": "POST",
@@ -85,6 +155,7 @@ function initTableArrival() {
                 drawConfig: {
                     needsResize: true,
                     needsSearchOverride: true,
+                    hidePaging: dispatchMode,
                 },
                 rowConfig: {
                     needsColor: true,
@@ -98,16 +169,19 @@ function initTableArrival() {
                         columns: ':not(.noVis)',
                         className: 'd-none'
                     },
-
                 ],
                 hideColumnConfig: {
                     columns,
                     tableFilter: 'arrivalsTable'
                 },
                 lengthMenu: [10, 25, 50, 100],
-                page: 'arrival',
+                ...(!dispatchMode ? {page: 'arrival'} : {}),
                 initCompleteCallback: updateArrivalPageLength
             };
+
+            if (dispatchMode) {
+                extendsDateSort('customDate');
+            }
 
             const arrivalsTable = initDataTable('arrivalsTable', tableArrivageConfig);
             arrivalsTable.on('responsive-resize', function () {
@@ -115,9 +189,6 @@ function initTableArrival() {
             });
             return arrivalsTable;
         });
-}
-
-function resizeTable(arrivalsTable) {
 }
 
 function listColis(elem) {
@@ -163,4 +234,12 @@ function updateArrivalPageLength() {
             pageLength = newValue;
         }
     });
+}
+
+function toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer) {
+    const $allDispatchCheckboxes = $(`.dispatch-checkbox`).not(`:disabled`);
+    const atLeastOneChecked = $allDispatchCheckboxes.toArray().some((element) => $(element).is(`:checked`));
+
+    $dispatchModeContainer.find(`.validate`).prop(`disabled`, !atLeastOneChecked);
+    $(`.check-all`).prop(`checked`, ($allDispatchCheckboxes.filter(`:checked`).length) === $allDispatchCheckboxes.length);
 }

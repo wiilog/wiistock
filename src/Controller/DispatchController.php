@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Annotation\HasPermission;
+use App\Entity\Arrivage;
 use App\Entity\CategorieCL;
 use App\Entity\Dispatch;
 use App\Entity\Action;
@@ -102,8 +103,7 @@ class DispatchController extends AbstractController {
             'types' => $types,
             'fieldsParam' => $fieldsParam,
             'fields' => $fields,
-            'modalNewConfig' => $service->getNewDispatchConfig($statutRepository, $champLibreRepository, $fieldsParamRepository,
-                $parametrageGlobalRepository, $types)
+            'modalNewConfig' => $service->getNewDispatchConfig($statutRepository, $champLibreRepository, $fieldsParamRepository, $parametrageGlobalRepository, $types)
         ]);
     }
 
@@ -170,7 +170,6 @@ class DispatchController extends AbstractController {
 
     /**
      * @Route("/creer", name="dispatch_new", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
-     * @throws Exception
      */
     public function new(Request $request,
                         FreeFieldService $freeFieldService,
@@ -186,12 +185,38 @@ class DispatchController extends AbstractController {
         }
 
         $post = $request->request;
+
+        $packs = [];
+        if($post->has('packs')) {
+            $packs = json_decode($post->get('packs'), true);
+
+            if(empty($packs)) {
+                return $this->json([
+                    'success' => false,
+                    'msg' => "Un colis minimum est nécessaire pour procéder à l'acheminement"
+                ]);
+            }
+        }
+
+        if($post->has('existingOrNot') && ($post->getInt('existingOrNot') === 1)) {
+            $existingDispatch = $entityManager->find(Dispatch::class, $post->getInt('existingDispatch'));
+            $this->manageDispatchPacks($existingDispatch, $packs, $entityManager);
+
+            $entityManager->flush();
+
+            $number = $existingDispatch->getNumber();
+            return $this->json([
+                'success' => true,
+                'redirect' => $redirectService->generateUrl("dispatch_show", ['id' => $existingDispatch->getId()]),
+                'msg' => "Les colis de l'arrivage ont bien été ajoutés dans l'acheminement <strong>$number</strong>"
+            ]);
+        }
+
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $transporterRepository = $entityManager->getRepository(Transporteur::class);
-        $packRepository = $entityManager->getRepository(Pack::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $preFill = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::PREFILL_DUE_DATE_TODAY);
         $printDeliveryNote = $request->query->get('printDeliveryNote');
@@ -222,7 +247,6 @@ class DispatchController extends AbstractController {
         $emergency = $post->get('emergency');
         $projectNumber = $post->get('projectNumber');
         $businessUnit = $post->get('businessUnit');
-        $packs = $post->get('packs');
 
         if(!$locationTake || !$locationDrop) {
             return new JsonResponse([
@@ -322,23 +346,8 @@ class DispatchController extends AbstractController {
             }
         }
 
-        if($packs) {
-            $packs = json_decode($packs, true);
-            foreach($packs as $pack) {
-                $comment = $pack['packComment'];
-                $packId = $pack['packId'];
-                $packQuantity = (int)$pack['packQuantity'];
-                $pack = $packRepository->find($packId);
-                $pack
-                    ->setComment($comment);
-                $packDispatch = new DispatchPack();
-                $packDispatch
-                    ->setPack($pack)
-                    ->setTreated(false)
-                    ->setQuantity($packQuantity)
-                    ->setDispatch($dispatch);
-                $entityManager->persist($packDispatch);
-            }
+        if(!empty($packs)) {
+            $this->manageDispatchPacks($dispatch, $packs, $entityManager);
         }
 
         $entityManager->persist($dispatch);
@@ -1546,5 +1555,87 @@ class DispatchController extends AbstractController {
             $pdfService->generatePDFOverconsumption($dispatch, $appLogo, $overconsumptionLogo, $additionalField),
             "{$dispatch->getNumber()}-bon-surconsommation.pdf"
         );
+    }
+
+    /**
+     * @Route("/create-form-arrival-template", name="create_from_arrival_template", options={"expose"=true}, methods="POST")
+     */
+    public function createFromArrivalTemplate(Request $request, EntityManagerInterface $manager, DispatchService $dispatchService) {
+        $statusRepository = $manager->getRepository(Statut::class);
+        $freeFieldRepository = $manager->getRepository(FreeField::class);
+        $fixedFieldRepository = $manager->getRepository(FieldsParam::class);
+        $globalSettingsRepository = $manager->getRepository(ParametrageGlobal::class);
+
+        $arrivals = [];
+        $arrival = null;
+        if($request->query->has('arrivals')) {
+            $arrivalsIds = (array) $request->query->get('arrivals');
+            $arrivals = $manager->getRepository(Arrivage::class)->findBy(['id' => $arrivalsIds]);
+        } else {
+            $arrival = $manager->find(Arrivage::class, $request->query->get('arrival'));
+        }
+
+        $types = $manager->getRepository(Type::class)->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
+
+        $packs = [];
+        if(!empty($arrivals)) {
+            foreach ($arrivals as $arrival) {
+                $packs = array_merge(Stream::from($arrival->getPacks())->toArray(), $packs);
+            }
+        } else {
+            $packs = $arrival->getPacks()->toArray();
+        }
+
+        return $this->json([
+            'success' => true,
+            'content' => $this->renderView('dispatch/modalNewDispatch.html.twig',
+                $dispatchService->getNewDispatchConfig($statusRepository, $freeFieldRepository, $fixedFieldRepository, $globalSettingsRepository, $types, $arrival, true, $packs)
+            )
+        ]);
+    }
+
+    /**
+     * @Route("/get-dispatch-details", name="get_dispatch_details", options={"expose"=true}, methods="GET")
+     */
+    public function getDispatchDetails(Request $request, EntityManagerInterface $manager) {
+        $id = $request->query->get('id');
+        $dispatch = $manager->find(Dispatch::class, $id);
+
+        if(!$dispatch) {
+            return $this->json([
+                'success' => true,
+                'content' => '<div class="col-12"><i class="fas fa-exclamation-triangle mr-2"></i>Sélectionner un acheminement pour visualiser ses détails</div>',
+            ]);
+        }
+
+        $freeFields = $manager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($dispatch->getType(), CategorieCL::DEMANDE_DISPATCH);
+
+        return $this->json([
+            'success' => true,
+            'content' => $this->renderView('dispatch/details.html.twig', [
+                'selectedDispatch' => $dispatch,
+                'freeFields' => $freeFields
+            ]),
+        ]);
+    }
+
+    public function manageDispatchPacks(Dispatch $dispatch, array $packs, EntityManagerInterface $entityManager) {
+        $packRepository = $entityManager->getRepository(Pack::class);
+
+        foreach($packs as $pack) {
+            $comment = $pack['packComment'];
+            $packId = $pack['packId'];
+            $packQuantity = (int)$pack['packQuantity'];
+            $pack = $packRepository->find($packId);
+            $pack
+                ->setComment($comment);
+            $packDispatch = new DispatchPack();
+            $packDispatch
+                ->setPack($pack)
+                ->setTreated(false)
+                ->setQuantity($packQuantity)
+                ->setDispatch($dispatch);
+            $entityManager->persist($packDispatch);
+        }
     }
 }

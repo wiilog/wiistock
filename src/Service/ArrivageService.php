@@ -18,6 +18,7 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
 use Symfony\Component\HttpFoundation\InputBag;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -65,22 +66,29 @@ class ArrivageService {
 
     private ?array $freeFieldsConfig = null;
 
-    public function getDataForDatatable(InputBag $params, ?int $userIdArrivalFilter)
+    public function getDataForDatatable(Request $request, ?int $userIdArrivalFilter)
     {
         $arrivalRepository = $this->entityManager->getRepository(Arrivage::class);
         $supFilterRepository = $this->entityManager->getRepository(FiltreSup::class);
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->security->getUser();
+        $dispatchMode = $request->query->getBoolean('dispatchMode');
 
         $filters = $supFilterRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ARRIVAGE, $currentUser);
-        $queryResult = $arrivalRepository->findByParamsAndFilters($params, $filters, $userIdArrivalFilter, $this->security->getUser(), $this->visibleColumnService);
+        $queryResult = $arrivalRepository->findByParamsAndFilters($request->request, $filters, $userIdArrivalFilter, $this->security->getUser(), $this->visibleColumnService);
 
         $arrivals = $queryResult['data'];
 
         $rows = [];
         foreach ($arrivals as $arrival) {
-            $rows[] = $this->dataRowArrivage($arrival[0], $arrival['totalWeight'], $arrival['packsCount']);
+            $packsInDispatchCount = $arrivalRepository->countArrivalPacksInDispatch($arrival[0]->getId());
+            $rows[] = $this->dataRowArrivage($arrival[0], [
+                'totalWeight' => $arrival['totalWeight'],
+                'packsCount' => $arrival['packsCount'],
+                'dispatchMode' => $dispatchMode,
+                'packsInDispatchCount' => $packsInDispatchCount
+            ]);
         }
 
         return [
@@ -90,10 +98,11 @@ class ArrivageService {
         ];
     }
 
-    public function dataRowArrivage(Arrivage $arrival, ?float $totalWeight, ?int $packsCount): array
+    public function dataRowArrivage(Arrivage $arrival, array $options = []): array
     {
+        $arrivalId = $arrival->getId();
         $url = $this->router->generate('arrivage_show', [
-            'id' => $arrival->getId(),
+            'id' => $arrivalId,
         ]);
 
         if (!isset($this->freeFieldsConfig)) {
@@ -106,15 +115,16 @@ class ArrivageService {
         }
 
         $row = [
-            'id' => $arrival->getId(),
+            'id' => $arrivalId,
+            'packsInDispatch' => $options['packsInDispatchCount'] > 0 ? "<td><i class='fas fa-exchange-alt mr-2' title='Colis acheminé(s)'></i></td>" : '',
             'arrivalNumber' => $arrival->getNumeroArrivage() ?? '',
             'carrier' => $arrival->getTransporteur() ? $arrival->getTransporteur()->getLabel() : '',
-            'totalWeight' => $totalWeight,
+            'totalWeight' => $options['totalWeight'] ?? '',
             'driver' => $arrival->getChauffeur() ? $arrival->getChauffeur()->getPrenomNom() : '',
             'trackingCarrierNumber' => $arrival->getNoTracking() ?? '',
             'orderNumber' => implode(',', $arrival->getNumeroCommandeList()),
             'type' => $arrival->getType() ? $arrival->getType()->getLabel() : '',
-            'nbUm' => $packsCount,
+            'nbUm' => $options['packsCount'] ?? '',
             'customs' => $arrival->getCustoms() ? 'oui' : 'non',
             'frozen' => $arrival->getFrozen() ? 'oui' : 'non',
             'provider' => $arrival->getFournisseur() ? $arrival->getFournisseur()->getNom() : '',
@@ -128,11 +138,14 @@ class ArrivageService {
             'businessUnit' => $arrival->getBusinessUnit() ?? '',
             'dropLocation' => FormatHelper::location($arrival->getDropLocation()),
             'url' => $url,
-            'actions' => $this->templating->render(
-                'arrivage/datatableArrivageRow.html.twig',
-                ['url' => $url, 'arrivage' => $arrival]
-            )
         ];
+
+        if(isset($options['dispatchMode']) && $options['dispatchMode']) {
+            $disabled = $options['packsInDispatchCount'] >= $arrival->getPacks()->count() ? 'disabled' : '';
+            $row['actions'] = "<td><input type='checkbox' class='checkbox dispatch-checkbox' value='$arrivalId' $disabled></td>";
+        } else {
+            $row['actions'] = $this->templating->render('arrivage/datatableArrivageRow.html.twig', ['url' => $url, 'arrivage' => $arrival]);
+        }
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
             $freeFieldName = $this->visibleColumnService->getFreeFieldName($freeFieldId);
@@ -448,7 +461,8 @@ class ArrivageService {
     }
 
     public function getColumnVisibleConfig(EntityManagerInterface $entityManager,
-                                           Utilisateur $currentUser): array {
+                                           Utilisateur $currentUser,
+                                           bool $dispatchMode = false): array {
 
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $categorieCLRepository = $entityManager->getRepository(CategorieCL::class);
@@ -459,8 +473,8 @@ class ArrivageService {
         $freeFields = $champLibreRepository->getByCategoryTypeAndCategoryCL(CategoryType::ARRIVAGE, $categorieCL);
 
         $columns = [
-            ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
-            ['title' => 'Date de création', 'name' => 'creationDate'],
+            ['name' => 'packsInDispatch', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
+            ['title' => 'Date de création', 'name' => 'creationDate', 'type' => ($dispatchMode ? 'customDate' : '')],
             ['title' => 'arrivage.n° d\'arrivage',  'name' => 'arrivalNumber', 'translated' => true],
             ['title' => 'Poids total (kg)', 'name' => 'totalWeight'],
             ['title' => 'Transporteur', 'name' => 'carrier'],
@@ -481,12 +495,20 @@ class ArrivageService {
             ['title' => 'acheminement.Business unit', 'name' => 'businessUnit', 'translated' => true],
         ];
 
+        if($dispatchMode) {
+            $dispatchCheckboxLine = ['title' => "<input type='checkbox' class='checkbox check-all'>", 'name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'];
+            array_unshift($columns, $dispatchCheckboxLine);
+        } else {
+            array_unshift($columns, ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis actions']);
+        }
+
         $arrivalFieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
 
         if ($this->fieldsParamService->isFieldRequired($arrivalFieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedCreate')
             || $this->fieldsParamService->isFieldRequired($arrivalFieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedEdit')) {
             $columns[] = ['title' => 'Emplacement de dépose', 'name' => 'dropLocation'];
         }
+
         return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }
 

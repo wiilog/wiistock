@@ -3,7 +3,7 @@ export const LOADING_CLASS = 'wii-loading';
 
 /**
  * Add a loader on the element
- * @param {"white"|"black"} color
+ * @param {"white"|"black"|"primary"} color
  * @param {"small"|"normal"} size
  * @returns {jQuery}
  */

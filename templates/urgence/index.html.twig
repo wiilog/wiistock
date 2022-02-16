@@ -11,32 +11,47 @@
 {% endblock %}
 
 {% block page_content %}
+    {% set hasRightToCreate = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE'))
+        and hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE_EMERGENCY')) %}
+    {% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
+
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
                 <div class="btn-group">
-                    <button data-toggle="modal"
-                            data-target="#modalNewUrgence"
-                            class="btn btn-primary split-button">
-                        <span class="fa fa-plus mr-2"></span>
-                        <span title="nouvelle urgence">{{ 'urgences.nouvelle urgence'|trans }}</span>
-                    </button>
-
-                    <button type="button"
-                            class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                            data-toggle="dropdown"
-                            aria-haspopup="true"
-                            aria-expanded="false">
-                        <span class="fa fa-angle-down"></span>
-                    </button>
-                    <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right"
-                         onclick="saveExportFile('get_emergencies_csv')">
-                        <div class="dropdown-item pointer"
-                             title="exportCsvUrgence">
-                            <i class="fa fa-file-csv"></i>
+                    {% if hasRightToCreate %}
+                        <button data-toggle="modal"
+                                data-target="#modalNewUrgence"
+                                class="btn btn-primary split-button">
+                            <span class="fa fa-plus mr-2"></span>
+                            <span title="nouvelle urgence">{{ 'urgences.nouvelle urgence'|trans }}</span>
+                        </button>
+                    {% elseif hasRightToExport %}
+                        <button type="button"
+                                class="btn btn-primary"
+                                onclick="saveExportFile('get_emergencies_csv')">
+                            <span class="fa fa-file-csv mr-2" style="padding: 0 2px"></span>
                             Exporter au format CSV
+                        </button>
+                    {% endif %}
+
+                    {% if hasRightToCreate and hasRightToExport %}
+                        <button type="button"
+                                class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
+                                data-toggle="dropdown"
+                                aria-haspopup="true"
+                                aria-expanded="false">
+                            <span class="fa fa-angle-down"></span>
+                        </button>
+                        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
+                            <div class="dropdown-item pointer"
+                                 title="exportCsvUrgence"
+                                 onclick="saveExportFile('get_emergencies_csv')">
+                                <i class="fa fa-file-csv"></i>
+                                Exporter au format CSV
+                            </div>
                         </div>
-                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

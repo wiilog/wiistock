@@ -42,6 +42,22 @@ $(function () {
         Wiistock.download(Routing.generate('print_arrivage_bar_codes', params, true));
     }
 
+    $(`.dispatch-button`).on(`click`, function () {
+        $(this).pushLoader(`black`);
+        $.post(Routing.generate(`create_from_arrival_template`, {arrival: $(this).data(`id`)}, true))
+            .then(({content}) => {
+                $(this).popLoader();
+                $(`body`).append(content);
+
+                let $modalNewDispatch = $("#modalNewDispatch");
+                $modalNewDispatch.modal(`show`);
+
+                let $submitNewDispatch = $("#submitNewDispatch");
+                let urlDispatchNew = Routing.generate('dispatch_new', true);
+                InitModal($modalNewDispatch, $submitNewDispatch, urlDispatchNew);
+            });
+    });
+
     //édition de colis
     const $modalEditPack = $('#modalEditPack');
     const $submitEditPack = $('#submitEditPack');
@@ -268,10 +284,4 @@ function getCommentAndAddHisto()
         tableHistoLitige.ajax.reload();
         commentLitige.val('');
     });
-}
-
-function removePackInDispatchModal($button) {
-    $button
-        .closest('[data-multiple-key]')
-        .remove();
 }

@@ -13,6 +13,9 @@
 {% block showSubtitle (arrivage.numeroArrivage) %}
 
 {% block showActions %}
+
+{% set allPacksAlreadyInDispatch = allPacksAlreadyInDispatch is defined and allPacksAlreadyInDispatch %}
+
     <div class="btn-group">
         {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT_ARRI')) %}
             <button type="button"
@@ -39,12 +42,11 @@
                 <i class='fas fa-print pointer mr-2'></i>
                 Imprimer <span title="arrivage">{{ 'arrivage.arrivage'|trans }}</span>
             </a>
-            {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_ACHE')) %}
-                <a href="" data-target='#modalNewDispatch' data-toggle='modal'
-                   class="dropdown-item" title="Acheminer" onclick="initNewDispatchEditor('#modalNewDispatch')">
+            {% if not allPacksAlreadyInDispatch and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_ACHE')) %}
+                <button class="dropdown-item dispatch-button" data-id="{{ arrivage.id }}">
                     <i class="fas fa-exchange-alt mr-2"></i>
                     {{ 'arrivage.Acheminer'|trans }}
-                </a>
+                </button>
             {% endif %}
             {% if canBeDeleted %}
                 {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DELETE_ARRI')) %}
