@@ -4,7 +4,7 @@
 
 namespace App\Command\Emails;
 
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Service\PackService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
@@ -27,8 +27,8 @@ class RemindPackDeliveriesCommand extends Command
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int {
-        $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
-        $sendEmail = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_PACK_DELIVERY_REMIND);
+        $settingRepository = $this->entityManager->getRepository(Setting::class);
+        $sendEmail = $settingRepository->getOneParamByLabel(Setting::SEND_PACK_DELIVERY_REMIND);
 
         if ($sendEmail) {
             $this->packService->launchPackDeliveryReminder($this->entityManager);

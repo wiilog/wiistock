@@ -18,7 +18,7 @@
                            class="checkbox col-3"
                            {{ checked }}
                            name="param-security-threshold"
-                           data-param="{{ constant('App\\Entity\\ParametrageGlobal::SEND_MAIL_MANAGER_SECURITY_THRESHOLD') }}">
+                           data-param="{{ constant('App\\Entity\\Setting::SEND_MAIL_MANAGER_SECURITY_THRESHOLD') }}">
                     <span class="slider round"></span>
                 </label>
                 <label class="pl-1" for="param-security-threshold">Envoi de mail au gestionnaire de la référence si seuil de sécurité atteint</label>
@@ -33,7 +33,7 @@
                        class="checkbox col-3"
                        {{ checked }}
                        name="param-alert-threshold"
-                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::SEND_MAIL_MANAGER_WARNING_THRESHOLD') }}">
+                       data-param="{{ constant('App\\Entity\\Setting::SEND_MAIL_MANAGER_WARNING_THRESHOLD') }}">
                 <span class="slider round"></span>
             </label>
             <label class="pl-1" for="param-alert-threshold">Envoi de mail au gestionnaire de la référence si seuil d'alerte atteint</label>
@@ -59,7 +59,7 @@
             <input hidden id="defaultLocationValue"
                    data-id="{{ defaultLocation ? defaultLocation.id }}"
                    data-text="{{ defaultLocation ? defaultLocation.text }}"
-                   data-label="{{ constant('App\\Entity\\ParametrageGlobal::DEFAULT_LOCATION_REFERENCE') }}">
+                   data-label="{{ constant('App\\Entity\\Setting::DEFAULT_LOCATION_REFERENCE') }}">
         </div>
     </div>
 </div>

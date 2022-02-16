@@ -1,7 +1,7 @@
 {% import 'form.html.twig' as form %}
 
 
-<div class="sub-content">
+<div class="wii-section">
     <label class="wii-field-name">{{ form.label("Sur l'étiquette article", false) }}</label>
     <div class="row">
         <div class="col-md-6 col-12 my-1">
@@ -30,7 +30,7 @@
     </div>
 </div>
 
-<div class="sub-content">
+<div class="wii-section">
     <div class="form-group">
         {{ form.select(setting('CL_USED_IN_LABELS'), 'Champ libre présent sur les étiquettes', false, {
             items: free_fields,

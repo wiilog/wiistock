@@ -11,7 +11,7 @@ use App\Entity\InventoryCategory;
 use App\Entity\InventoryFrequency;
 use App\Entity\FreeField;
 use App\Entity\MailerServer;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Entity\Reception;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -41,8 +41,8 @@ class SettingsService {
     /** @Required */
     public AttachmentService $attachmentService;
 
-    public function createSetting(string $setting): ParametrageGlobal {
-        $newSetting = new ParametrageGlobal();
+    public function createSetting(string $setting): Setting {
+        $newSetting = new Setting();
         $newSetting->setLabel($setting);
 
         $this->manager->persist($newSetting);
@@ -51,7 +51,7 @@ class SettingsService {
     }
 
     public function save(Request $request): array {
-        $settingRepository = $this->manager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $this->manager->getRepository(Setting::class);
 
         $settingNames = array_merge(
             array_keys($request->request->all()),
@@ -129,16 +129,16 @@ class SettingsService {
      * Saves custom settings
      *
      * @param Request $request The request
-     * @param ParametrageGlobal[] $settings Existing settings
+     * @param Setting[] $settings Existing settings
      * @return array Settings that were processed
      */
     private function customSave(Request $request, array $settings): array {
         $saved = [];
         $data = $request->request;
 
-        if($client = $data->get(ParametrageGlobal::APP_CLIENT)) {
+        if($client = $data->get(Setting::APP_CLIENT)) {
             $this->changeClient($client);
-            $saved[] = ParametrageGlobal::APP_CLIENT;
+            $saved[] = Setting::APP_CLIENT;
         }
 
         if($data->has("MAILER_URL")) {
@@ -162,32 +162,32 @@ class SettingsService {
             ]);
         }
 
-        if($data->has(ParametrageGlobal::WEBSITE_LOGO) && $data->get(ParametrageGlobal::WEBSITE_LOGO) === "null") {
-            $setting = $settings[ParametrageGlobal::WEBSITE_LOGO];
-            $setting->setValue(ParametrageGlobal::DEFAULT_WEBSITE_LOGO_VALUE);
+        if($data->has(Setting::WEBSITE_LOGO) && $data->get(Setting::WEBSITE_LOGO) === "null") {
+            $setting = $settings[Setting::WEBSITE_LOGO];
+            $setting->setValue(Setting::DEFAULT_WEBSITE_LOGO_VALUE);
 
-            $saved[] = ParametrageGlobal::WEBSITE_LOGO;
+            $saved[] = Setting::WEBSITE_LOGO;
         }
 
-        if($data->has(ParametrageGlobal::MOBILE_LOGO_LOGIN) && $data->get(ParametrageGlobal::MOBILE_LOGO_LOGIN) === "null") {
-            $setting = $settings[ParametrageGlobal::MOBILE_LOGO_LOGIN];
-            $setting->setValue(ParametrageGlobal::DEFAULT_MOBILE_LOGO_LOGIN_VALUE);
+        if($data->has(Setting::MOBILE_LOGO_LOGIN) && $data->get(Setting::MOBILE_LOGO_LOGIN) === "null") {
+            $setting = $settings[Setting::MOBILE_LOGO_LOGIN];
+            $setting->setValue(Setting::DEFAULT_MOBILE_LOGO_LOGIN_VALUE);
 
-            $saved[] = ParametrageGlobal::MOBILE_LOGO_LOGIN;
+            $saved[] = Setting::MOBILE_LOGO_LOGIN;
         }
 
-        if($data->has(ParametrageGlobal::EMAIL_LOGO) && $data->get(ParametrageGlobal::EMAIL_LOGO) === "null") {
-            $setting = $settings[ParametrageGlobal::EMAIL_LOGO];
-            $setting->setValue(ParametrageGlobal::DEFAULT_EMAIL_LOGO_VALUE);
+        if($data->has(Setting::EMAIL_LOGO) && $data->get(Setting::EMAIL_LOGO) === "null") {
+            $setting = $settings[Setting::EMAIL_LOGO];
+            $setting->setValue(Setting::DEFAULT_EMAIL_LOGO_VALUE);
 
-            $saved[] = ParametrageGlobal::EMAIL_LOGO;
+            $saved[] = Setting::EMAIL_LOGO;
         }
 
-        if($data->has(ParametrageGlobal::MOBILE_LOGO_HEADER) && $data->get(ParametrageGlobal::MOBILE_LOGO_HEADER) === "null") {
-            $setting = $settings[ParametrageGlobal::MOBILE_LOGO_HEADER];
-            $setting->setValue(ParametrageGlobal::DEFAULT_MOBILE_LOGO_HEADER_VALUE);
+        if($data->has(Setting::MOBILE_LOGO_HEADER) && $data->get(Setting::MOBILE_LOGO_HEADER) === "null") {
+            $setting = $settings[Setting::MOBILE_LOGO_HEADER];
+            $setting->setValue(Setting::DEFAULT_MOBILE_LOGO_HEADER_VALUE);
 
-            $saved[] = ParametrageGlobal::MOBILE_LOGO_HEADER;
+            $saved[] = Setting::MOBILE_LOGO_HEADER;
         }
 
         if ($data->has("en_attente_de_réception") && $data->has("réception_partielle") && $data->has("réception_totale") && $data->has("anomalie")) {
@@ -421,12 +421,12 @@ class SettingsService {
      * such as cache clearing translation updates or webpack build
      */
     private function postSaveTreatment(array $updatedSettings) {
-        if(array_intersect($updatedSettings, [ParametrageGlobal::FONT_FAMILY])) {
+        if(array_intersect($updatedSettings, [Setting::FONT_FAMILY])) {
             $this->generateFontSCSS();
             $this->yarnBuild();
         }
 
-        if(array_intersect($updatedSettings, [ParametrageGlobal::MAX_SESSION_TIME])) {
+        if(array_intersect($updatedSettings, [Setting::MAX_SESSION_TIME])) {
             $this->generateSessionConfig();
             $this->cacheClear();
         }
@@ -459,15 +459,15 @@ class SettingsService {
     public function generateFontSCSS() {
         $path = "{$this->kernel->getProjectDir()}/assets/scss/_customFont.scss";
 
-        $font = $this->manager->getRepository(ParametrageGlobal::class)
-                ->getOneParamByLabel(ParametrageGlobal::FONT_FAMILY) ?? ParametrageGlobal::DEFAULT_FONT_FAMILY;
+        $font = $this->manager->getRepository(Setting::class)
+                ->getOneParamByLabel(Setting::FONT_FAMILY) ?? Setting::DEFAULT_FONT_FAMILY;
 
         file_put_contents($path, "\$mainFont: \"$font\";");
     }
 
     public function generateSessionConfig() {
-        $sessionLifetime = $this->manager->getRepository(ParametrageGlobal::class)
-            ->getOneParamByLabel(ParametrageGlobal::MAX_SESSION_TIME);
+        $sessionLifetime = $this->manager->getRepository(Setting::class)
+            ->getOneParamByLabel(Setting::MAX_SESSION_TIME);
 
         $generated = "{$this->kernel->getProjectDir()}/config/generated.yaml";
         $config = [
@@ -500,7 +500,7 @@ class SettingsService {
     }
 
     /**
-     * @param ParametrageGlobal[] $settings
+     * @param Setting[] $settings
      */
     private function clearSettings(array $settings): void {
         foreach ($settings as $setting) {

@@ -5,9 +5,9 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\ParametrageGlobalRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\SettingRepository")
  */
-class ParametrageGlobal {
+class Setting {
 
     const DEFAULT_IMAGE = '/img/followGTwhite.svg';
 
@@ -79,9 +79,9 @@ class ParametrageGlobal {
     const FONT_MYRIAD = 'Myriad';
 
     const FONTS = [
-        ParametrageGlobal::FONT_MONTSERRAT => ParametrageGlobal::FONT_MONTSERRAT,
-        ParametrageGlobal::FONT_TAHOMA => ParametrageGlobal::FONT_TAHOMA,
-        ParametrageGlobal::FONT_MYRIAD => ParametrageGlobal::FONT_MYRIAD
+        Setting::FONT_MONTSERRAT => Setting::FONT_MONTSERRAT,
+        Setting::FONT_TAHOMA => Setting::FONT_TAHOMA,
+        Setting::FONT_MYRIAD => Setting::FONT_MYRIAD
     ];
 
     // dispatches

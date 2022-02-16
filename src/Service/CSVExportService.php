@@ -3,7 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Interfaces\Serializable;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\HeaderUtils;
@@ -21,8 +21,8 @@ class CSVExportService {
     public function __construct(EntityManagerInterface $entityManager) {
         $this->entityManager = $entityManager;
 
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-        $this->wantsUTF8 = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::USES_UTF8) ?? true;
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $this->wantsUTF8 = $settingRepository->getOneParamByLabel(Setting::USES_UTF8) ?? true;
     }
 
     /**

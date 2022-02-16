@@ -155,7 +155,7 @@
             {% set checked = preFill ? 'checked' %}
             <label class="switch">
                 <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-dispatch-pack-modal"
-                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::PREFILL_DUE_DATE_TODAY') }}"
+                       data-param="{{ constant('App\\Entity\\Setting::PREFILL_DUE_DATE_TODAY') }}"
                        onchange="updateToggledParam($(this))">
                 <span class="slider round"></span>
             </label>
@@ -165,7 +165,7 @@
             {% set checked = prefixPackCodeWithDispatchNumber ? 'checked' %}
             <label class="switch">
                 <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-dispatch-prefix-pack-code-with-dispatch-number"
-                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER') }}"
+                       data-param="{{ constant('App\\Entity\\Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER') }}"
                        onchange="updateToggledParam($(this))">
                 <span class="slider round"></span>
             </label>
@@ -178,7 +178,7 @@
             {% set checked = packMustBeNew ? 'checked' %}
             <label class="switch">
                 <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-dispatch-pack-must-be-new"
-                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::PACK_MUST_BE_NEW') }}"
+                       data-param="{{ constant('App\\Entity\\Setting::PACK_MUST_BE_NEW') }}"
                        onchange="updateToggledParam($(this))">
                 <span class="slider round"></span>
             </label>

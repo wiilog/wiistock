@@ -13,7 +13,7 @@ use App\Entity\Emplacement;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\Livraison;
 use App\Entity\Menu;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
@@ -77,7 +77,7 @@ class DemandeController extends AbstractController
             $typeRepository = $entityManager->getRepository(Type::class);
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $demandeRepository = $entityManager->getRepository(Demande::class);
-            $globalSettingsRepository = $entityManager->getRepository(ParametrageGlobal::class);
+            $settingRepository = $entityManager->getRepository(Setting::class);
 
             $demande = $demandeRepository->find($data['id']);
 
@@ -102,7 +102,7 @@ class DemandeController extends AbstractController
                 'typeChampsLibres' => $typeChampLibre,
                 'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
                 'defaultDeliveryLocations' => $globalParamService->getDefaultDeliveryLocationsByTypeId($entityManager),
-                'restrictedLocations' => $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST),
+                'restrictedLocations' => $settingRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST),
             ]));
         }
         throw new BadRequestHttpException();
@@ -221,7 +221,7 @@ class DemandeController extends AbstractController
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
-        $globalSettingsRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
         $fields = $deliveryRequestService->getVisibleColumnsConfig($entityManager, $this->getUser());
@@ -245,7 +245,7 @@ class DemandeController extends AbstractController
             'filterStatus' => $filter,
             'receptionFilter' => $reception,
             'defaultDeliveryLocations' => $globalParamService->getDefaultDeliveryLocationsByTypeId($entityManager),
-            'restrictedLocations' => $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST),
+            'restrictedLocations' => $settingRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST),
         ]);
     }
 
@@ -316,7 +316,7 @@ class DemandeController extends AbstractController
             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
             'finished' => ($demande->getStatut()->getNom() === Demande::STATUT_A_TRAITER),
             'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande),
-            'showTargetLocationPicking' => $manager->getRepository(ParametrageGlobal::class)->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION)
+            'showTargetLocationPicking' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION)
         ]);
     }
 
@@ -487,7 +487,7 @@ class DemandeController extends AbstractController
             $json = $this->renderView('demande/modalEditArticleContent.html.twig', [
                 'line' => $referenceLine,
                 'maximum' => $maximumQuantity,
-                "showTargetLocationPicking" => $entityManager->getRepository(ParametrageGlobal::class)->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION)
+                "showTargetLocationPicking" => $entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION)
             ]);
 
             return new JsonResponse($json);

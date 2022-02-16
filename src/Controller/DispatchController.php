@@ -17,7 +17,7 @@ use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\DispatchPack;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Entity\Attachment;
 use App\Entity\Statut;
 use App\Entity\TrackingMovement;
@@ -218,8 +218,8 @@ class DispatchController extends AbstractController {
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $transporterRepository = $entityManager->getRepository(Transporteur::class);
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-        $preFill = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::PREFILL_DUE_DATE_TODAY);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $preFill = $settingRepository->getOneParamByLabel(Setting::PREFILL_DUE_DATE_TODAY);
         $printDeliveryNote = $request->query->get('printDeliveryNote');
 
         $dispatch = new Dispatch();
@@ -395,7 +395,7 @@ class DispatchController extends AbstractController {
                          bool $printBL) {
         $extra = $redirectService->load();
 
-        $paramRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $paramRepository = $entityManager->getRepository(Setting::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
 
@@ -415,7 +415,7 @@ class DispatchController extends AbstractController {
                 'treatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::TREATED])
             ],
             'printBL' => $printBL,
-            'prefixPackCodeWithDispatchNumber' => $paramRepository->getOneParamByLabel(ParametrageGlobal::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER),
+            'prefixPackCodeWithDispatchNumber' => $paramRepository->getOneParamByLabel(Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER),
             'newPackRow' => $dispatchService->packRow($dispatch, null, true, true),
         ]);
     }
@@ -730,9 +730,9 @@ class DispatchController extends AbstractController {
         $weight = (floatval(str_replace(',', '.', $data["weight"] ?? "")) ?: null);
         $volume = (floatval(str_replace(',', '.', $data["volume"] ?? "")) ?: null);
 
-        $globalSettingsRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
-        $prefixPackCodeWithDispatchNumber = $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
+        $prefixPackCodeWithDispatchNumber = $settingRepository->getOneParamByLabel(Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
         if($prefixPackCodeWithDispatchNumber && !str_starts_with($noPrefixPackCode, $dispatch->getNumber())) {
             $packCode = "{$dispatch->getNumber()}-$noPrefixPackCode";
         } else {
@@ -749,7 +749,7 @@ class DispatchController extends AbstractController {
                 ->firstOr(fn() => $packRepository->findOneBy(["code" => $packCode]));
         }
 
-        $packMustBeNew = $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::PACK_MUST_BE_NEW);
+        $packMustBeNew = $settingRepository->getOneParamByLabel(Setting::PACK_MUST_BE_NEW);
         if($packMustBeNew && isset($pack)) {
             $isNotInDispatch = $dispatch->getDispatchPacks()
                 ->filter(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack() === $pack)
@@ -1200,8 +1200,8 @@ class DispatchController extends AbstractController {
 
         $entityManager->flush();
 
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-        $logo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DELIVERY_NOTE_LOGO);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $logo = $settingRepository->getOneParamByLabel(Setting::DELIVERY_NOTE_LOGO);
 
         $nowDate = new DateTime('now');
         $client = SpecificService::CLIENTS[$specificService->getAppClient()];
@@ -1312,7 +1312,7 @@ class DispatchController extends AbstractController {
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
 
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $userSavedData = $loggedUser->getSavedDispatchWaybillData();
         $dispatchSavedData = $dispatch->getWaybillData();
@@ -1321,23 +1321,23 @@ class DispatchController extends AbstractController {
 
         $isEmerson = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_EMERSON);
 
-        $consignorUsername = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CONTACT_NAME);
+        $consignorUsername = $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONTACT_NAME);
         $consignorUsername = $consignorUsername !== null && $consignorUsername !== ''
             ? $consignorUsername
             : ($isEmerson ? $loggedUser->getUsername() : null);
 
-        $consignorEmail = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL);
+        $consignorEmail = $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL);
         $consignorEmail = $consignorEmail !== null && $consignorEmail !== ''
             ? $consignorEmail
             : ($isEmerson ? $loggedUser->getEmail() : null);
 
         $defaultData = [
-            'carrier' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CARRIER),
+            'carrier' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CARRIER),
             'dispatchDate' => $now->format('Y-m-d'),
-            'consignor' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_CONSIGNER),
-            'receiver' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_RECEIVER),
-            'locationFrom' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_LOCATION_FROM),
-            'locationTo' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_WAYBILL_LOCATION_TO),
+            'consignor' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONSIGNER),
+            'receiver' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_RECEIVER),
+            'locationFrom' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_LOCATION_FROM),
+            'locationTo' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_LOCATION_TO),
             'consignorUsername' => $consignorUsername,
             'consignorEmail' => $consignorEmail,
             'receiverUsername' => $isEmerson ? $loggedUser->getUsername() : null,
@@ -1415,8 +1415,8 @@ class DispatchController extends AbstractController {
             $success = true;
         }
 
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-        $logo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::WAYBILL_LOGO);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $logo = $settingRepository->getOneParamByLabel(Setting::WAYBILL_LOGO);
 
         $nowDate = new DateTime('now');
 
@@ -1479,10 +1479,10 @@ class DispatchController extends AbstractController {
      */
     public function updateOverconsumption(DispatchService $dispatchService, UserService $userService, Dispatch $dispatch): Response {
         $entityManager = $this->getDoctrine()->getManager();
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
 
-        $overConsumptionBill = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPATCH_OVERCONSUMPTION_BILL_TYPE_AND_STATUS);
+        $overConsumptionBill = $settingRepository->getOneParamByLabel(Setting::DISPATCH_OVERCONSUMPTION_BILL_TYPE_AND_STATUS);
         if($overConsumptionBill) {
             $typeAndStatus = explode(';', $overConsumptionBill);
             $typeId = intval($typeAndStatus[0]);
@@ -1522,11 +1522,11 @@ class DispatchController extends AbstractController {
                                              PDFGeneratorService $pdfService,
                                              SpecificService $specificService,
                                              EntityManagerInterface $entityManager): Response {
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
 
-        $appLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::LABEL_LOGO);
-        $overconsumptionLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::OVERCONSUMPTION_LOGO);
+        $appLogo = $settingRepository->getOneParamByLabel(Setting::LABEL_LOGO);
+        $overconsumptionLogo = $settingRepository->getOneParamByLabel(Setting::OVERCONSUMPTION_LOGO);
 
         $additionalField = [];
         if ($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS_VERNON)) {

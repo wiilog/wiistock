@@ -12,7 +12,7 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
@@ -108,7 +108,7 @@ class ArticleDataService
                 $data = [
                     'selection' => $this->templating->render('demande/choiceContent.html.twig', [
                         'maximum' => $availableQuantity,
-                        'showTargetLocationPicking' => $this->entityManager->getRepository(ParametrageGlobal::class)->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION)
+                        'showTargetLocationPicking' => $this->entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION)
                     ])];
             } else {
                 $management = $refArticle->getStockManagement();
@@ -415,7 +415,7 @@ class ArticleDataService
 	}
 
     public function getBarcodeConfig(Article $article, Reception $reception = null): array {
-        $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $this->entityManager->getRepository(Setting::class);
         $deliveryRequestRepository = $this->entityManager->getRepository(Demande::class);
 
         if (!isset($this->wantCLOnLabel)
@@ -424,8 +424,8 @@ class ArticleDataService
 
             $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
             $categoryCLRepository = $this->entityManager->getRepository(CategorieCL::class);
-            $this->clWantedOnLabel = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CL_USED_IN_LABELS);
-            $this->wantCLOnLabel = (bool) $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_BL_IN_LABEL);
+            $this->clWantedOnLabel = $settingRepository->getOneParamByLabel(Setting::CL_USED_IN_LABELS);
+            $this->wantCLOnLabel = (bool) $settingRepository->getOneParamByLabel(Setting::INCLUDE_BL_IN_LABEL);
 
             if (isset($this->clWantedOnLabel)) {
                 $champLibre = $champLibreRepository->findOneBy([
@@ -449,9 +449,9 @@ class ArticleDataService
         $batchArticle = $article->getBatch() ?? '';
         $expirationDateArticle = $article->getExpiryDate() ? $article->getExpiryDate()->format('d/m/Y') : '';
 
-        $wantsRecipient = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_ARTICLE_LABEL);
-        $wantsRecipientDropzone = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL);
-        $wantDestinationLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL);
+        $wantsRecipient = $settingRepository->getOneParamByLabel(Setting::INCLUDE_RECIPIENT_IN_ARTICLE_LABEL);
+        $wantsRecipientDropzone = $settingRepository->getOneParamByLabel(Setting::INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL);
+        $wantDestinationLocation = $settingRepository->getOneParamByLabel(Setting::INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL);
 
         // Récupération du username & dropzone de l'utilisateur
         $articleReception = $article->getReceptionReferenceArticle() ? $article->getReceptionReferenceArticle()->getReception() : '';
@@ -503,9 +503,9 @@ class ArticleDataService
             (!empty($this->typeCLOnLabel) && !empty($champLibreValue)) ? ($champLibreValue) : '',
         ];
 
-        $wantsQTT = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_QTT_IN_LABEL);
-        $wantsBatchArticle = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL);
-        $wantsExpirationDateArticle = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL);
+        $wantsQTT = $settingRepository->getOneParamByLabel(Setting::INCLUDE_QTT_IN_LABEL);
+        $wantsBatchArticle = $settingRepository->getOneParamByLabel(Setting::INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL);
+        $wantsExpirationDateArticle = $settingRepository->getOneParamByLabel(Setting::INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL);
 
         if ($wantsBatchArticle) {
             $labels[] = !empty($batchArticle) ? ('N° lot : '. $batchArticle) : '';

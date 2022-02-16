@@ -89,12 +89,13 @@
 }
 
 .checkbox-filter {
-    border-radius: 3px;
     background-color: white;
     padding: 6.5px;
     width: 260px !important;
     border: 1px solid #ced4da;
     color: $darkGrey !important;
+    font-size: 0.9rem;
+    border-radius: 5px;
 }
 
 .w-50px {

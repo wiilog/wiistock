@@ -1,8 +1,8 @@
 {% import 'form.html.twig' as form %}
 
-<div class="subtitle">Création livraison</div>
+<div class="wii-section-title">Création livraison</div>
 
-<div class="row sub-content">
+<div class="row wii-section">
     <div class="col-md-6 col-12 my-1">
         {{ form.checkbox(setting('CREATE_DL_AFTER_RECEPTION'), 'Créer une demande de livraison après réception', false, setting_value('CREATE_DL_AFTER_RECEPTION')) }}
     </div>
@@ -17,17 +17,17 @@
     </div>
 </div>
 
-<div class="subtitle">Ajout référence</div>
+<div class="wii-section-title">Ajout référence</div>
 
-<div class="row sub-content">
+<div class="row wii-section">
     <div class="col-12">
         {{ form.checkbox(setting('DISPLAY_PICKING_LOCATION'), "Faire apparaitre l'emplacement cible de picking à l'ajout d'une référence et dans son traitement", false, setting_value('DISPLAY_PICKING_LOCATION')) }}
     </div>
 </div>
 
-<div class="subtitle">Emplacements de livraison par défaut</div>
+<div class="wii-section-title">Emplacements de livraison par défaut</div>
 
-<div class="sub-content mt-2">
+<div class="wii-section mt-2">
     <div class="row justify-content-end">
         <div class="col-auto">
             <button class="btn btn-sm btn-primary new-type-association-button" disabled>

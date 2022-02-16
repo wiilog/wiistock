@@ -11,7 +11,7 @@ use App\Entity\FreeField;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Pack;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Entity\TrackingMovement;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
@@ -261,7 +261,7 @@ class ArrivageService {
             $numeroCommande = null;
             $postNb = null;
         }
-        $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $this->entityManager->getRepository(Setting::class);
 
         return [
             'autoHide' => (!$askQuestion && !$isArrivalUrgent),
@@ -272,7 +272,7 @@ class ArrivageService {
                 : 'Arrivage enregistré avec succès.'),
             'iconType' => $isArrivalUrgent ? 'warning' : 'success',
             'modalType' => ($askQuestion && $isArrivalUrgent) ? 'yes-no-question' : 'info',
-            'autoPrint' => !$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL),
+            'autoPrint' => !$settingRepository->getOneParamByLabel(Setting::REDIRECT_AFTER_NEW_ARRIVAL),
             'emergencyAlert' => $isArrivalUrgent,
             'numeroCommande' => $numeroCommande,
             'postNb' => $postNb,
@@ -284,14 +284,14 @@ class ArrivageService {
         $supplier = $arrival->getFournisseur();
         $supplierName = $supplier ? $supplier->getNom() : null;
         $isArrivalUrgent = ($supplier && $supplier->isUrgent() && $supplierName);
-        $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $this->entityManager->getRepository(Setting::class);
         return $isArrivalUrgent
             ? [
                 'autoHide' => false,
                 'message' => "Attention, les colis $supplierName doivent être traités en urgence",
                 'iconType' => 'warning',
                 'modalType' => 'info',
-                'autoPrint' => !$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL),
+                'autoPrint' => !$settingRepository->getOneParamByLabel(Setting::REDIRECT_AFTER_NEW_ARRIVAL),
                 'arrivalId' => $arrival->getId() ?: $arrival->getNumeroArrivage()
             ]
             : null;
@@ -520,13 +520,13 @@ class ArrivageService {
     public function getLocationForTracking(EntityManagerInterface $entityManager,
                                            Arrivage $arrivage): ?Emplacement {
 
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
-        if($arrivage->getCustoms() && $customsArrivalsLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DROP_OFF_LOCATION_IF_CUSTOMS)) {
+        if($arrivage->getCustoms() && $customsArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_CUSTOMS)) {
             $location = $emplacementRepository->find($customsArrivalsLocation);
         }
-        else if($arrivage->getIsUrgent() && $emergenciesArrivalsLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DROP_OFF_LOCATION_IF_EMERGENCY)) {
+        else if($arrivage->getIsUrgent() && $emergenciesArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_EMERGENCY)) {
             $location = $emplacementRepository->find($emergenciesArrivalsLocation);
         }
         else if (
@@ -537,7 +537,7 @@ class ArrivageService {
             $location = $emplacementRepository->findOneBy(['label' => SpecificService::ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE]);
         } else if ($arrivage->getDropLocation()) {
             $location = $arrivage->getDropLocation();
-        } else if($defaultArrivalsLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION)) {
+        } else if($defaultArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::MVT_DEPOSE_DESTINATION)) {
             $location = $emplacementRepository->find($defaultArrivalsLocation);
         }
         else {

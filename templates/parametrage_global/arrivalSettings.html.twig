@@ -11,7 +11,7 @@
             {% set checked = (redirect ? 'checked' : '') %}
             <label class="switch">
                 <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-redirect-arrival"
-                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL') }}"
+                       data-param="{{ constant('App\\Entity\\Setting::REDIRECT_AFTER_NEW_ARRIVAL') }}"
                        onchange="updateToggledParam($(this))">
                 <span class="slider round"></span>
             </label>
@@ -23,7 +23,7 @@
             {% set checked = (autoPrint ? 'checked' : '') %}
             <label class="switch">
                 <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-print"
-                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::AUTO_PRINT_COLIS') }}"
+                       data-param="{{ constant('App\\Entity\\Setting::AUTO_PRINT_COLIS') }}"
                        onchange="updateToggledParam($(this))">
                 <span class="slider round"></span>
             </label>
@@ -35,7 +35,7 @@
             {% set checked = (sendMail ? 'checked' : '') %}
             <label class="switch">
                 <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-mail-after-arrivage"
-                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL') }}"
+                       data-param="{{ constant('App\\Entity\\Setting::SEND_MAIL_AFTER_NEW_ARRIVAL') }}"
                        onchange="updateToggledParam($(this))">
                 <span class="slider round"></span>
             </label>
@@ -47,7 +47,7 @@
             {% set checked = (printTwice ? 'checked' : '') %}
             <label class="switch">
                 <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-customs-print"
-                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::PRINT_TWICE_CUSTOMS') }}"
+                       data-param="{{ constant('App\\Entity\\Setting::PRINT_TWICE_CUSTOMS') }}"
                        onchange="updateToggledParam($(this))">
                 <span class="slider round"></span>
             </label>
@@ -60,7 +60,7 @@
             {% set checked = (sendPackDeliveryRemind ? 'checked' : '') %}
             <label class="switch">
                 <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-send-pack-delivery-remind"
-                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::SEND_PACK_DELIVERY_REMIND') }}"
+                       data-param="{{ constant('App\\Entity\\Setting::SEND_PACK_DELIVERY_REMIND') }}"
                        onchange="updateToggledParam($(this))">
                 <span class="slider round"></span>
             </label>
@@ -78,7 +78,7 @@
                    id="locationArrivageDestValue"
                    data-id="{{ defaultArrivalsLocation ? defaultArrivalsLocation.id }}"
                    data-text="{{ defaultArrivalsLocation ? defaultArrivalsLocation.text }}"
-                   data-label="{{ constant('App\\Entity\\ParametrageGlobal::MVT_DEPOSE_DESTINATION') }}"/>
+                   data-label="{{ constant('App\\Entity\\Setting::MVT_DEPOSE_DESTINATION') }}"/>
         </div>
     </div>
 
@@ -91,7 +91,7 @@
                    id="customsArrivalsLocation"
                    data-id="{{ customsArrivalsLocation ? customsArrivalsLocation.id }}"
                    data-text="{{ customsArrivalsLocation ? customsArrivalsLocation.text }}"
-                   data-label="{{ constant('App\\Entity\\ParametrageGlobal::DROP_OFF_LOCATION_IF_CUSTOMS') }}"/>
+                   data-label="{{ constant('App\\Entity\\Setting::DROP_OFF_LOCATION_IF_CUSTOMS') }}"/>
         </div>
     </div>
 
@@ -104,7 +104,7 @@
                    id="emergenciesArrivalsLocation"
                    data-id="{{ emergenciesArrivalsLocation ? emergenciesArrivalsLocation.id }}"
                    data-text="{{ emergenciesArrivalsLocation ? emergenciesArrivalsLocation.text }}"
-                   data-label="{{ constant('App\\Entity\\ParametrageGlobal::DROP_OFF_LOCATION_IF_EMERGENCY') }}"/>
+                   data-label="{{ constant('App\\Entity\\Setting::DROP_OFF_LOCATION_IF_EMERGENCY') }}"/>
         </div>
     </div>
 

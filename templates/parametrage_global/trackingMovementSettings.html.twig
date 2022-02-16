@@ -13,7 +13,7 @@
                    class="checkbox col-3"
                    {{ checked }}
                    name="param-create-demande-livraison"
-                   data-param="{{ constant('App\\Entity\\ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT') }}"
+                   data-param="{{ constant('App\\Entity\\Setting::CLOSE_AND_CLEAR_AFTER_NEW_MVT') }}"
                    onchange="updateToggledParam($(this))">
             <span class="slider round"></span>
         </label>

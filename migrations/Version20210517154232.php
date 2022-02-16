@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
@@ -23,7 +23,7 @@ final class Version20210517154232 extends AbstractMigration
         $currentDefaultDeliveryLocation = $this->connection->executeQuery("
             SELECT value
             FROM parametrage_global
-            WHERE label = '" . ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON . "'
+            WHERE label = '" . Setting::DEFAULT_LOCATION_LIVRAISON . "'
         ")->fetchOne();
 
         $defaultDeliveryLocation = json_encode(['all' => $currentDefaultDeliveryLocation]);
@@ -31,7 +31,7 @@ final class Version20210517154232 extends AbstractMigration
         $this->addSql("
             UPDATE parametrage_global
             SET value = '". $defaultDeliveryLocation ."'
-            WHERE label = '" . ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON . "'");
+            WHERE label = '" . Setting::DEFAULT_LOCATION_LIVRAISON . "'");
     }
 
     public function down(Schema $schema) : void

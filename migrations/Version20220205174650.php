@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
@@ -30,9 +30,9 @@ final class Version20220205174650 extends AbstractMigration
         }
 
         $icons = [
-            ParametrageGlobal::EMERGENCY_ICON,
-            ParametrageGlobal::CUSTOM_ICON,
-            ParametrageGlobal::LABEL_LOGO,
+            Setting::EMERGENCY_ICON,
+            Setting::CUSTOM_ICON,
+            Setting::LABEL_LOGO,
         ];
 
         foreach ($icons as $icon) {

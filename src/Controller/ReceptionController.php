@@ -19,7 +19,7 @@ use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PurchaseRequest;
 use App\Entity\PurchaseRequestLine;
 use App\Entity\TrackingMovement;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Entity\Attachment;
 use App\Entity\Statut;
 use App\Entity\TransferOrder;
@@ -413,7 +413,7 @@ class ReceptionController extends AbstractController {
             'typeChampLibres' => $typeChampLibre,
             'fieldsParam' => $fieldsParam,
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::RECEPTION),
-            'receptionLocation' => $globalParamService->getParamLocation(ParametrageGlobal::DEFAULT_LOCATION_RECEPTION),
+            'receptionLocation' => $globalParamService->getParamLocation(Setting::DEFAULT_LOCATION_RECEPTION),
             'purchaseRequestFilter' => $purchaseRequest ? implode(',', $purchaseRequestLinesOrderNumbers) : 0,
             'purchaseRequest' => $purchaseRequest ? $purchaseRequest->getId() : '',
             'fields' => $fields,
@@ -823,7 +823,7 @@ class ReceptionController extends AbstractController {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $listTypesDL = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
         $typeChampLibreDL = [];
@@ -838,8 +838,8 @@ class ReceptionController extends AbstractController {
             ];
         }
 
-        $createDL = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::CREATE_DL_AFTER_RECEPTION]);
-        $needsCurrentUser = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REQUESTER_IN_DELIVERY);
+        $createDL = $settingRepository->findOneBy(['label' => Setting::CREATE_DL_AFTER_RECEPTION]);
+        $needsCurrentUser = $settingRepository->getOneParamByLabel(Setting::REQUESTER_IN_DELIVERY);
 
         $defaultDisputeStatus = $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::LITIGE_RECEPT);
         return $this->render("reception/show.html.twig", [
@@ -1656,7 +1656,7 @@ class ReceptionController extends AbstractController {
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-            $paramGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+            $paramGlobalRepository = $entityManager->getRepository(Setting::class);
 
             $totalQuantities = [];
             foreach($articles as $article) {
@@ -1709,7 +1709,7 @@ class ReceptionController extends AbstractController {
 
             if($needCreateLivraison) {
                 // optionnel : crée l'ordre de prépa
-                $paramCreatePrepa = $paramGlobalRepository->findOneBy(['label' => ParametrageGlobal::CREATE_PREPA_AFTER_DL]);
+                $paramCreatePrepa = $paramGlobalRepository->findOneBy(['label' => Setting::CREATE_PREPA_AFTER_DL]);
                 $needCreatePrepa = $paramCreatePrepa ? $paramCreatePrepa->getValue() : false;
                 $data['needPrepa'] = $needCreatePrepa && !$createDirectDelivery;
 

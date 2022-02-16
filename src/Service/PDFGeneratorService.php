@@ -3,7 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Dispatch;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Twig\Environment as Twig_Environment;
@@ -174,8 +174,8 @@ class PDFGeneratorService {
     }
 
     public function generatePDFDispatchNote(Dispatch $dispatch): string {
-        $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
-        $appLogo = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::LABEL_LOGO);
+        $settingRepository = $this->entityManager->getRepository(Setting::class);
+        $appLogo = $settingRepository->getOneParamByLabel(Setting::LABEL_LOGO);
 
         $content = $this->templating->render("prints/dispatch-note-template.html.twig", [
             "app_logo" => $appLogo ?? "",

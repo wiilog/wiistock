@@ -13,7 +13,7 @@ use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\Pack;
 use App\Entity\TrackingMovement;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Entity\Attachment;
 
 use App\Entity\Statut;
@@ -54,7 +54,7 @@ class TrackingMovementController extends AbstractController
                           TrackingMovementService $trackingMovementService) {
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
         $packFilter = $request->query->get('colis');
@@ -72,7 +72,7 @@ class TrackingMovementController extends AbstractController
         $currentUser = $this->getUser();
         $fields = $trackingMovementService->getVisibleColumnsConfig($entityManager, $currentUser);
 
-        $redirectAfterTrackingMovementCreation = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::CLOSE_AND_CLEAR_AFTER_NEW_MVT]);
+        $redirectAfterTrackingMovementCreation = $settingRepository->findOneBy(['label' => Setting::CLOSE_AND_CLEAR_AFTER_NEW_MVT]);
 
         return $this->render('mouvement_traca/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),

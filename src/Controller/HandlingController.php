@@ -13,7 +13,7 @@ use App\Entity\Menu;
 use App\Entity\Handling;
 
 use App\Entity\Attachment;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -76,7 +76,7 @@ class HandlingController extends AbstractController
         $typeRepository = $entityManager->getRepository(Type::class);
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
@@ -88,7 +88,7 @@ class HandlingController extends AbstractController
 			'filterStatus' => $filterStatus,
             'types' => $types,
             'fieldsParam' => $fieldsParam,
-            'removeHourInDatetime' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME),
+            'removeHourInDatetime' => $settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME),
             'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY),
             'modalNewConfig' => [
                 'defaultStatuses' => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::HANDLING),
@@ -123,7 +123,7 @@ class HandlingController extends AbstractController
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $post = $request->request;
 
@@ -214,7 +214,7 @@ class HandlingController extends AbstractController
                 ]);
             }
         }
-        $viewHoursOnExpectedDate = !$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME);
+        $viewHoursOnExpectedDate = !$settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME);
         $handlingService->sendEmailsAccordingToStatus($entityManager, $handling, $viewHoursOnExpectedDate, !$status->isTreated());
 
         return new JsonResponse([
@@ -238,7 +238,7 @@ class HandlingController extends AbstractController
             $handlingRepository = $entityManager->getRepository(Handling::class);
             $attachmentsRepository = $entityManager->getRepository(Attachment::class);
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-            $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+            $settingRepository = $entityManager->getRepository(Setting::class);
 
             $handling = $handlingRepository->find($data['id']);
             $status = $handling->getStatus();
@@ -251,7 +251,7 @@ class HandlingController extends AbstractController
 
             $json = $this->renderView('handling/modalEditHandlingContent.html.twig', [
                 'handling' => $handling,
-                'removeHourInDatetime' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME),
+                'removeHourInDatetime' => $settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME),
                 'treatmentDelay' => $treatmentDelayStr,
                 'handlingStatus' => !$statusTreated
                     ? $statutRepository->findStatusByType(CategorieStatut::HANDLING, $handling->getType())
@@ -292,7 +292,7 @@ class HandlingController extends AbstractController
         $statutRepository = $entityManager->getRepository(Statut::class);
         $handlingRepository = $entityManager->getRepository(Handling::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
         $post = $request->request;
 
         $handling = $handlingRepository->find($post->get('id'));
@@ -383,7 +383,7 @@ class HandlingController extends AbstractController
                 && $newStatus
                 && ($oldStatus->getId() !== $newStatus->getId())
             )) {
-            $viewHoursOnExpectedDate = !$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME);
+            $viewHoursOnExpectedDate = !$settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME);
             $handlingService->sendEmailsAccordingToStatus($entityManager, $handling, $viewHoursOnExpectedDate);
         }
 
@@ -477,11 +477,11 @@ class HandlingController extends AbstractController
 
         if (!empty($dateTimeMin) && !empty($dateTimeMax)) {
             $handlingsRepository = $entityManager->getRepository(Handling::class);
-            $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+            $settingRepository = $entityManager->getRepository(Setting::class);
             $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_HANDLING]);
-            $includeDesiredTime = !$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME);
+            $includeDesiredTime = !$settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME);
 
             $handlingParameters = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
             $receiversParameters = $handlingParameters[FieldsParam::FIELD_CODE_RECEIVERS_HANDLING];

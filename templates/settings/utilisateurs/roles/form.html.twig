@@ -33,7 +33,7 @@
         </aside>
         <main class="col-xl-9 col-8">
             <div class="wii-box">
-                <div class="sub-content role-header">
+                <div class="wii-section role-header">
                     <div class="row">
                         <div class="col-md-4 col-12">
                             {{ form.input('label', 'Libellé', true, role.label, {labelClass: 'wii-field-name'}) }}
@@ -68,7 +68,7 @@
                     </div>
                     {% set actions = menu.actions | filter(a => not a.subMenu) %}
                     {% if actions is not empty %}
-                        <div class="sub-content">
+                        <div class="wii-section">
                             <div class="row">
                                 {% for action in actions | sort((a, b) => a.displayOrder <=> b.displayOrder) %}
                                     {{ _self.actionCheckbox(role, action) }}
@@ -78,8 +78,8 @@
                     {% endif %}
 
                     {% for subMenu in menu.subMenus %}
-                        <div class="subtitle toggle-collapsible">{{ subMenu.label | capitalize }}</div>
-                        <div class="sub-content collapsible">
+                        <div class="wii-section-title toggle-collapsible">{{ subMenu.label | capitalize }}</div>
+                        <div class="wii-section collapsible">
                             <div class="row">
                                 {% for action in subMenu.actions | sort((a, b) => a.displayOrder <=> b.displayOrder) %}
                                     {{ _self.actionCheckbox(role, action) }}

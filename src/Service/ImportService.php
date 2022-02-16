@@ -19,7 +19,7 @@ use App\Entity\InventoryCategory;
 use App\Entity\LocationGroup;
 use App\Entity\MouvementStock;
 use App\Entity\Nature;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Reception;
@@ -934,8 +934,8 @@ class ImportService
     }
 
     private function getLogFileMapper(): Closure {
-        $parametrageGlobalRepository = $this->em->getRepository(ParametrageGlobal::class);
-        $wantsUFT8 = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::USES_UTF8) ?? true;
+        $settingRepository = $this->em->getRepository(Setting::class);
+        $wantsUFT8 = $settingRepository->getOneParamByLabel(Setting::USES_UTF8) ?? true;
 
         return function ($row) use ($wantsUFT8) {
             return !$wantsUFT8
@@ -1749,7 +1749,7 @@ class ImportService
         $article = $data['articleCode'] ?? null;
         $quantityDelivery = $data['quantityDelivery'] ?? null;
 
-        $showTargetLocationPicking = $this->em->getRepository(ParametrageGlobal::class)->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION);
+        $showTargetLocationPicking = $this->em->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION);
         $targetLocationPicking = null;
         if($showTargetLocationPicking) {
             if(isset($data['targetLocationPicking'])) {
@@ -2314,12 +2314,12 @@ class ImportService
     public function getFieldsToAssociate(EntityManagerInterface $entityManager,
                                          string $entityCode): array {
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $fieldsToAssociate = Stream::from(self::FIELDS_TO_ASSOCIATE[$entityCode] ?? []);
 
         if ($entityCode === Import::ENTITY_DELIVERY) {
-            $showTargetLocationPicking = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION);
+            $showTargetLocationPicking = $settingRepository->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION);
             if (!$showTargetLocationPicking) {
                 $fieldsToAssociate = $fieldsToAssociate->filter(fn(string $key) => ($key !== "targetLocationPicking"));
             }

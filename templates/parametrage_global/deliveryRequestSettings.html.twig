@@ -12,7 +12,7 @@
             {% set checked = (DLAfterRecep == 1) ? 'checked' : '' %}
             <label class="switch">
                 <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-create-demande-livraison"
-                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::CREATE_DL_AFTER_RECEPTION') }}"
+                       data-param="{{ constant('App\\Entity\\Setting::CREATE_DL_AFTER_RECEPTION') }}"
                        onchange="updateToggledParam($(this))">
                 <span class="slider round"></span>
             </label>
@@ -25,7 +25,7 @@
             {% set checked = (prepaAfterDl == 1) ? 'checked' : '' %}
             <label class="switch">
                 <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-create-prepa"
-                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::CREATE_PREPA_AFTER_DL') }}"
+                       data-param="{{ constant('App\\Entity\\Setting::CREATE_PREPA_AFTER_DL') }}"
                        onchange="updateToggledParam($(this))">
                 <span class="slider round"></span>
             </label>
@@ -37,7 +37,7 @@
             {% set checked = (paramDemandeurLivraison == 1) ? 'checked' : '' %}
             <label class="switch">
                 <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-demandeur-livraison"
-                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::REQUESTER_IN_DELIVERY') }}"
+                       data-param="{{ constant('App\\Entity\\Setting::REQUESTER_IN_DELIVERY') }}"
                        onchange="updateToggledParam($(this))">
                 <span class="slider round"></span>
             </label>
@@ -49,7 +49,7 @@
             {% set checked = (deliveryLocationDropdown == 1) ? 'checked' : '' %}
             <label class="switch">
                 <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-location-by-type-demande-livraison"
-                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST') }}"
+                       data-param="{{ constant('App\\Entity\\Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST') }}"
                        onchange="updateToggledParam($(this))">
                 <span class="slider round"></span>
             </label>
@@ -63,7 +63,7 @@
             {% set checked = (displayPickingLocation == 1) ? 'checked' : '' %}
             <label class="switch">
                 <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-display-picking-location"
-                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::DISPLAY_PICKING_LOCATION') }}"
+                       data-param="{{ constant('App\\Entity\\Setting::DISPLAY_PICKING_LOCATION') }}"
                        onchange="updateToggledParam($(this))">
                 <span class="slider round"></span>
             </label>

@@ -13,7 +13,7 @@ use App\Entity\FiltreRef;
 use App\Entity\InventoryCategory;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -364,7 +364,7 @@ class ReferenceArticleController extends AbstractController
             "searches" => $user->getRecherche(),
             'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
             'columnsVisibles' => $currentUser->getVisibleColumns()['reference'],
-            'defaultLocation' => $globalParamService->getParamLocation(ParametrageGlobal::DEFAULT_LOCATION_REFERENCE),
+            'defaultLocation' => $globalParamService->getParamLocation(Setting::DEFAULT_LOCATION_REFERENCE),
             'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
             'typeQuantite' => $typeQuantite,
@@ -843,7 +843,7 @@ class ReferenceArticleController extends AbstractController
             "new_reference" => new ReferenceArticle(),
             "submit_url" => $this->generateUrl("reference_article_new"),
             "types" => $types,
-            'defaultLocation' => $globalParamService->getParamLocation(ParametrageGlobal::DEFAULT_LOCATION_REFERENCE),
+            'defaultLocation' => $globalParamService->getParamLocation(Setting::DEFAULT_LOCATION_REFERENCE),
             'draftDefaultReference' => $refArticleDataService->getDraftDefaultReference($entityManager),
             "stockManagement" => [
                 ReferenceArticle::STOCK_MANAGEMENT_FEFO,

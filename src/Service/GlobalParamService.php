@@ -4,7 +4,7 @@
 namespace App\Service;
 
 use App\Entity\Emplacement;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Entity\Type;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
@@ -12,6 +12,7 @@ use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Yaml\Yaml;
+// TODO WIIS-6693
 
 Class GlobalParamService
 {
@@ -23,21 +24,21 @@ Class GlobalParamService
     public EntityManagerInterface $entityManager;
 
 	public function getDimensionAndTypeBarcodeArray(bool $includeNullDimensions = true) {
-        $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $this->entityManager->getRepository(Setting::class);
 
 		return [
-            "logo" => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::LABEL_LOGO),
-            "height" => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::LABEL_HEIGHT) ?? 0,
-            "width" => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::LABEL_WIDTH) ?? 0,
-            "isCode128" => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::BARCODE_TYPE_IS_128),
+            "logo" => $settingRepository->getOneParamByLabel(Setting::LABEL_LOGO),
+            "height" => $settingRepository->getOneParamByLabel(Setting::LABEL_HEIGHT) ?? 0,
+            "width" => $settingRepository->getOneParamByLabel(Setting::LABEL_WIDTH) ?? 0,
+            "isCode128" => $settingRepository->getOneParamByLabel(Setting::BARCODE_TYPE_IS_128),
         ];
 	}
 
 	public function getParamLocation(string $label) {
-        $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $this->entityManager->getRepository(Setting::class);
         $emplacementRepository = $this->entityManager->getRepository(Emplacement::class);
 
-        $locationId = $parametrageGlobalRepository->getOneParamByLabel($label);
+        $locationId = $settingRepository->getOneParamByLabel($label);
 
         if ($locationId) {
             $location = $emplacementRepository->find($locationId);
@@ -53,14 +54,14 @@ Class GlobalParamService
         return $resp ?? null;
     }
 
-    public function generateScssFile(?ParametrageGlobal $font = null) {
+    public function generateScssFile(?Setting $font = null) {
         $projectDir = $this->kernel->getProjectDir();
         $scssFile = $projectDir . '/assets/scss/_customFont.scss';
 
         if(!$font) {
-            $parametrageGlobalRepository = $this->entityManager->getRepository(ParametrageGlobal::class);
-            $param = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::FONT_FAMILY]);
-            $font = $param ? $param->getValue() : ParametrageGlobal::DEFAULT_FONT_FAMILY;
+            $settingRepository = $this->entityManager->getRepository(Setting::class);
+            $param = $settingRepository->findOneBy(['label' => Setting::FONT_FAMILY]);
+            $font = $param ? $param->getValue() : Setting::DEFAULT_FONT_FAMILY;
         } else {
             $font = $font->getValue();
         }
@@ -70,8 +71,8 @@ Class GlobalParamService
 
     public function generateSessionConfig(int $sessionLifetime = null) {
         if(!$sessionLifetime) {
-            $sessionLifetime = $this->entityManager->getRepository(ParametrageGlobal::class)
-                ->getOneParamByLabel(ParametrageGlobal::MAX_SESSION_TIME);
+            $sessionLifetime = $this->entityManager->getRepository(Setting::class)
+                ->getOneParamByLabel(Setting::MAX_SESSION_TIME);
         }
 
         $generated = "{$this->kernel->getProjectDir()}/config/generated.yaml";
@@ -102,9 +103,9 @@ Class GlobalParamService
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
-        $defaultDeliveryLocationsParam = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON);
+        $defaultDeliveryLocationsParam = $settingRepository->getOneParamByLabel(Setting::DEFAULT_LOCATION_LIVRAISON);
         $defaultDeliveryLocationsIds = json_decode($defaultDeliveryLocationsParam, true) ?: [];
 
         $defaultDeliveryLocations = [];
@@ -137,9 +138,9 @@ Class GlobalParamService
 	public function getDefaultDeliveryLocationsByTypeId(?EntityManagerInterface $entityManager = null): array {
         $entityManager = $entityManager ?? $this->entityManager;
         $locationRepository = $entityManager->getRepository(Emplacement::class);
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
-        $defaultDeliveryLocationsParam = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON);
+        $defaultDeliveryLocationsParam = $settingRepository->getOneParamByLabel(Setting::DEFAULT_LOCATION_LIVRAISON);
         $defaultDeliveryLocationsIds = json_decode($defaultDeliveryLocationsParam, true) ?: [];
 
         $defaultDeliveryLocations = [];

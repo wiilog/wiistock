@@ -15,7 +15,7 @@ use App\Entity\Livraison;
 use App\Entity\Menu;
 
 use App\Entity\MouvementStock;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Entity\TrackingMovement;
 use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
@@ -400,8 +400,8 @@ class LocationController extends AbstractController {
         $type = $request->query->get('type');
 
         $locationRepository = $entityManager->getRepository(Emplacement::class);
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-        $restrictResults = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $restrictResults = $settingRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST);
         $locations = $locationRepository->getLocationsByType($type, $search, $restrictResults);
         return $this->json([
             'results' => $locations

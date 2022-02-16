@@ -616,18 +616,6 @@ label.required:after {
             width: 100%;
         }
 
-        input[type="checkbox"] {
-            margin-right: 7px;
-            width: 20px;
-            height: 20px;
-            border-radius: 5px;
-
-            &:disabled {
-                cursor: not-allowed;
-                border-color: $grey;
-            }
-        }
-
         input, .select2.select2-container {
             margin-top: 5px;
 
@@ -832,14 +820,18 @@ label.required:after {
     font-weight: 400 !important;
 }
 
-.modal-body .subtitle {
+.wii-section-title {
     color: black;
     background-color: #F2F3F7;
-    padding: 5px #{$modal-inner-padding};
+    padding: 5px #{$grid-gutter-width};
     font-weight: 600;
     display: block;
-    margin-left: -$modal-inner-padding;
-    margin-right: -$modal-inner-padding;
+
+    .modal-body & {
+        padding: 5px #{$modal-inner-padding};
+        margin-left: -$modal-inner-padding;
+        margin-right: -$modal-inner-padding;
+    }
 }
 
 .text-regular {

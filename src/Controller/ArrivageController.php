@@ -18,7 +18,7 @@ use App\Entity\Fournisseur;
 use App\Entity\Dispute;
 use App\Entity\Menu;
 use App\Entity\Nature;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Entity\Attachment;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
@@ -73,7 +73,7 @@ class ArrivageController extends AbstractController {
     public function index(EntityManagerInterface $entityManager, ArrivageService $arrivageDataService)
     {
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
@@ -90,10 +90,10 @@ class ArrivageController extends AbstractController {
         $fields = $arrivageDataService->getColumnVisibleConfig($entityManager, $user);
 
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
-        $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL]);
+        $paramGlobalRedirectAfterNewArrivage = $settingRepository->findOneBy(['label' => Setting::REDIRECT_AFTER_NEW_ARRIVAL]);
 
         $statuses = $statutRepository->findStatusByType(CategorieStatut::ARRIVAGE);
-        $defaultLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::MVT_DEPOSE_DESTINATION);
+        $defaultLocation = $settingRepository->getOneParamByLabel(Setting::MVT_DEPOSE_DESTINATION);
         $defaultLocation = $defaultLocation ? $emplacementRepository->find($defaultLocation) : null;
         return $this->render('arrivage/index.html.twig', [
             'carriers' => $transporteurRepository->findAllSorted(),
@@ -110,7 +110,7 @@ class ArrivageController extends AbstractController {
             'redirect' => $paramGlobalRedirectAfterNewArrivage ? $paramGlobalRedirectAfterNewArrivage->getValue() : true,
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]),
             'pageLengthForArrivage' => $user->getPageLengthForArrivage() ?: 10,
-            'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
+            'autoPrint' => $settingRepository->getOneParamByLabel(Setting::AUTO_PRINT_COLIS),
             'fields' => $fields,
             'defaultLocation' => $defaultLocation,
             'businessUnits' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUSINESS_UNIT),
@@ -151,7 +151,7 @@ class ArrivageController extends AbstractController {
                         TranslatorInterface    $translator): Response
     {
         $data = $request->request->all();
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
@@ -160,7 +160,7 @@ class ArrivageController extends AbstractController {
         $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $typeRepository = $entityManager->getRepository(Type::class);
-        $sendMail = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL);
+        $sendMail = $settingRepository->getOneParamByLabel(Setting::SEND_MAIL_AFTER_NEW_ARRIVAL);
 
         $date = new DateTime('now');
         $counter = $arrivageRepository->countByDate($date) + 1;
@@ -294,7 +294,7 @@ class ArrivageController extends AbstractController {
         }
 
         $entityManager->flush();
-        $paramGlobalRedirectAfterNewArrivage = $parametrageGlobalRepository->findOneBy(['label' => ParametrageGlobal::REDIRECT_AFTER_NEW_ARRIVAL]);
+        $paramGlobalRedirectAfterNewArrivage = $settingRepository->findOneBy(['label' => Setting::REDIRECT_AFTER_NEW_ARRIVAL]);
 
         return new JsonResponse([
             'success' => true,
@@ -441,7 +441,7 @@ class ArrivageController extends AbstractController {
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
@@ -467,7 +467,7 @@ class ArrivageController extends AbstractController {
         $numeroCommadeListStr = $post->get('numeroCommandeList');
         $dropLocation = $dropLocationId ? $emplacementRepository->find($dropLocationId) : null;
 
-        $sendMail = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL);
+        $sendMail = $settingRepository->getOneParamByLabel(Setting::SEND_MAIL_AFTER_NEW_ARRIVAL);
 
         $oldSupplierId = $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getId() : null;
 
@@ -1113,18 +1113,18 @@ class ArrivageController extends AbstractController {
                                                array $packIdsFilter = []): Response
     {
         $barcodeConfigs = [];
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-        $usernameParamIsDefined = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_RECIPIENT_IN_LABEL);
-        $dropzoneParamIsDefined = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_DZ_LOCATION_IN_LABEL);
-        $typeArrivalParamIsDefined = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_ARRIVAL_TYPE_IN_LABEL);
-        $packCountParamIsDefined = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_PACK_COUNT_IN_LABEL);
-        $commandAndProjectNumberIsDefined = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL);
-        $printTwiceIfCustoms = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::PRINT_TWICE_CUSTOMS);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $usernameParamIsDefined = $settingRepository->getOneParamByLabel(Setting::INCLUDE_RECIPIENT_IN_LABEL);
+        $dropzoneParamIsDefined = $settingRepository->getOneParamByLabel(Setting::INCLUDE_DZ_LOCATION_IN_LABEL);
+        $typeArrivalParamIsDefined = $settingRepository->getOneParamByLabel(Setting::INCLUDE_ARRIVAL_TYPE_IN_LABEL);
+        $packCountParamIsDefined = $settingRepository->getOneParamByLabel(Setting::INCLUDE_PACK_COUNT_IN_LABEL);
+        $commandAndProjectNumberIsDefined = $settingRepository->getOneParamByLabel(Setting::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL);
+        $printTwiceIfCustoms = $settingRepository->getOneParamByLabel(Setting::PRINT_TWICE_CUSTOMS);
 
 
-        $firstCustomIconInclude = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_CUSTOMS_IN_LABEL);
-        $firstCustomIconName = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CUSTOM_ICON);
-        $firstCustomIconText = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::CUSTOM_TEXT_LABEL);
+        $firstCustomIconInclude = $settingRepository->getOneParamByLabel(Setting::INCLUDE_CUSTOMS_IN_LABEL);
+        $firstCustomIconName = $settingRepository->getOneParamByLabel(Setting::CUSTOM_ICON);
+        $firstCustomIconText = $settingRepository->getOneParamByLabel(Setting::CUSTOM_TEXT_LABEL);
 
         $firstCustomIconConfig = ($firstCustomIconInclude && $firstCustomIconName && $firstCustomIconText)
             ? [
@@ -1133,9 +1133,9 @@ class ArrivageController extends AbstractController {
             ]
             : null;
 
-        $firstCustomIconInclude = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_EMERGENCY_IN_LABEL);
-        $secondCustomIconName = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::EMERGENCY_ICON);;
-        $secondCustomIconText = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::EMERGENCY_TEXT_LABEL);
+        $firstCustomIconInclude = $settingRepository->getOneParamByLabel(Setting::INCLUDE_EMERGENCY_IN_LABEL);
+        $secondCustomIconName = $settingRepository->getOneParamByLabel(Setting::EMERGENCY_ICON);;
+        $secondCustomIconText = $settingRepository->getOneParamByLabel(Setting::EMERGENCY_TEXT_LABEL);
 
         $secondCustomIconConfig = ($firstCustomIconInclude && $secondCustomIconName && $secondCustomIconText)
             ? [

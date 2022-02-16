@@ -1,6 +1,6 @@
 {% import 'form.html.twig' as form %}
 
-<div class="sub-content">
+<div class="wii-section">
     <div class="row">
         <div class="col-12">
             {{ form.select(setting('USES_UTF8'), " Encodage des exports CSV", false, {
@@ -12,9 +12,9 @@
     </div>
 </div>
 
-<div class="subtitle">Export Stock</div>
+<div class="wii-section-title">Export Stock</div>
 
-<div class="sub-content">
+<div class="wii-section">
     <p>
         Les <span class="do-not-click-me-several-times user-select-none">références</span> et articles exportés sont seulement ceux avec le groupe de visibilité rattaché à l'utilisateur.
     </p>

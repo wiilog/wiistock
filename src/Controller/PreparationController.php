@@ -10,7 +10,7 @@ use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorWrapper;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Menu;
@@ -263,7 +263,7 @@ class PreparationController extends AbstractController
         return $this->render('preparation/show.html.twig', [
             "sensorWrappers" => $sensorWrappers,
             'demande' => $demande,
-            'showTargetLocationPicking' => $entityManager->getRepository(ParametrageGlobal::class)->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION),
+            'showTargetLocationPicking' => $entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
             'livraison' => $preparation->getLivraison(),
             'preparation' => $preparation,
             'isPrepaEditable' => $preparationStatus === Preparation::STATUT_A_TRAITER || ($preparationStatus == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser()),
@@ -320,7 +320,7 @@ class PreparationController extends AbstractController
         if ($ligneArticleId = json_decode($request->getContent(), true)) {
             $ligneArticlePreparationRepository = $entityManager->getRepository(PreparationOrderReferenceLine::class);
             $articleRepository = $entityManager->getRepository(Article::class);
-            $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+            $settingRepository = $entityManager->getRepository(Setting::class);
 
             $ligneArticle = $ligneArticlePreparationRepository->find($ligneArticleId);
 
@@ -335,7 +335,7 @@ class PreparationController extends AbstractController
                 ->toArray();
 
 
-            $displayTargetPickingLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION);
+            $displayTargetPickingLocation = $settingRepository->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION);
             $targetLocationPicking = $ligneArticle->getTargetLocationPicking();
             $management = $refArticle->getStockManagement();
 

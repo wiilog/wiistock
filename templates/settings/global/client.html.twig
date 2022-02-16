@@ -1,9 +1,9 @@
 {% import 'form.html.twig' as form %}
 
-<div class="sub-content">
+<div class="wii-section">
     <div class="row">
         <div class="form-group w-fit-content col-12">
-            {{ form.select(constant('App\\Entity\\ParametrageGlobal::APP_CLIENT'), 'Client courant', true, {
+            {{ form.select(constant('App\\Entity\\Setting::APP_CLIENT'), 'Client courant', true, {
                 labelClass: 'wii-field-name w-50',
                 items: constant('App\\Service\\SpecificService::CLIENTS'),
                 value: current_client

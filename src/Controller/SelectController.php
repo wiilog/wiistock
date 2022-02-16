@@ -12,7 +12,7 @@ use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\LocationGroup;
 use App\Entity\Pack;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Entity\PurchaseRequest;
 use App\Entity\ReferenceArticle;
 use App\Entity\Role;
@@ -391,9 +391,9 @@ class SelectController extends AbstractController {
      */
     public function keyboardPack(Request $request, EntityManagerInterface $manager): Response
     {
-        $globalSettingsRepository = $manager->getRepository(ParametrageGlobal::class);
+        $settingsRepository = $manager->getRepository(Setting::class);
         $packRepository = $manager->getRepository(Pack::class);
-        $packMustBeNew = $globalSettingsRepository->getOneParamByLabel(ParametrageGlobal::PACK_MUST_BE_NEW);
+        $packMustBeNew = $settingsRepository->getOneParamByLabel(Setting::PACK_MUST_BE_NEW);
 
         $packCode = $request->query->get("term");
         if($request->query->has("searchPrefix")) {

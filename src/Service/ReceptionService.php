@@ -11,7 +11,7 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Entity\Reception;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
@@ -146,7 +146,7 @@ class ReceptionService
         }
 
         if ($fromImport && (!isset($data['location']) || empty($data['location']))) {
-            $defaultLocation = $this->globalParamService->getParamLocation(ParametrageGlobal::DEFAULT_LOCATION_RECEPTION);
+            $defaultLocation = $this->globalParamService->getParamLocation(Setting::DEFAULT_LOCATION_RECEPTION);
             if (isset($defaultLocation)) {
                 $location = $emplacementRepository->find(intval($defaultLocation['id']));
                 $reception

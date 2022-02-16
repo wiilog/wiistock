@@ -17,7 +17,7 @@
         {% set checked = (skipValidationsTransferToTreat == 1) ? 'checked' : '' %}
         <input class="checkbox" type="checkbox" name="param-transfer-to-treat-skip-validations"
             {{ checked }}
-               data-param="{{ constant('App\\Entity\\ParametrageGlobal::TRANSFER_TO_TREAT_SKIP_VALIDATIONS') }}"
+               data-param="{{ constant('App\\Entity\\Setting::TRANSFER_TO_TREAT_SKIP_VALIDATIONS') }}"
                onchange="updateToggledParam($(this))">
         <span class="font-size-mini pointer ml-2"
               onclick="$(this).closest('div').find('.checkbox').click();"><span class="bold">Transfert | Transfert à traiter : </span>désactiver les validations</span>
@@ -26,7 +26,7 @@
         {% set checked = (skipValidationsManualTransfer == 1) ? 'checked' : '' %}
         <input class="checkbox" type="checkbox" name="param-manual-transfer-skip-validations"
             {{ checked }}
-               data-param="{{ constant('App\\Entity\\ParametrageGlobal::MANUAL_TRANSFER_TO_TREAT_SKIP_VALIDATIONS') }}"
+               data-param="{{ constant('App\\Entity\\Setting::MANUAL_TRANSFER_TO_TREAT_SKIP_VALIDATIONS') }}"
                onchange="updateToggledParam($(this))">
         <span class="font-size-mini pointer ml-2"
               onclick="$(this).closest('div').find('.checkbox').click();"><span class="bold">Transfert | Transfert manuel : </span>désactiver les validations</span>
@@ -34,7 +34,7 @@
     <div class="row mx-2 align-items-center mb-2">
         {% set checked = (skipValidationsPreparations == 1) ? 'checked' : '' %}
         <input class="checkbox" type="checkbox" name="param-preparation-skip-validations"
-               data-param="{{ constant('App\\Entity\\ParametrageGlobal::PREPARATION_SKIP_VALIDATIONS') }}"
+               data-param="{{ constant('App\\Entity\\Setting::PREPARATION_SKIP_VALIDATIONS') }}"
                {{ checked }}
                onchange="updateToggledParam($(this))">
         <span class="font-size-mini pointer ml-2"
@@ -44,7 +44,7 @@
         {% set checked = (skipQuantitiesPreparations == 1) ? 'checked' : '' %}
         <input class="checkbox" type="checkbox" name="param-preparation-skip-quantities"
             {{ checked }}
-               data-param="{{ constant('App\\Entity\\ParametrageGlobal::PREPARATION_SKIP_QUANTITIES') }}"
+               data-param="{{ constant('App\\Entity\\Setting::PREPARATION_SKIP_QUANTITIES') }}"
                onchange="updateToggledParam($(this))">
         <span class="font-size-mini pointer ml-2"
               onclick="$(this).closest('div').find('.checkbox').click();"><span class="bold">Préparation : </span>désactiver les confirmations de quantité</span>
@@ -53,7 +53,7 @@
         {% set checked = (skipValidationsLivraisons == 1) ? 'checked' : '' %}
         <input class="checkbox" type="checkbox" name="param-livraison-skip-validations"
             {{ checked }}
-               data-param="{{ constant('App\\Entity\\ParametrageGlobal::LIVRAISON_SKIP_VALIDATIONS') }}"
+               data-param="{{ constant('App\\Entity\\Setting::LIVRAISON_SKIP_VALIDATIONS') }}"
                onchange="updateToggledParam($(this))">
         <span class="font-size-mini pointer ml-2"
               onclick="$(this).closest('div').find('.checkbox').click();"><span class="bold">Livraison : </span>désactiver les validations</span>
@@ -62,7 +62,7 @@
         {% set checked = (skipQuantitiesLivraisons == 1) ? 'checked' : '' %}
         <input class="checkbox" type="checkbox" name="param-livraison-skip-quantities"
             {{ checked }}
-               data-param="{{ constant('App\\Entity\\ParametrageGlobal::LIVRAISON_SKIP_QUANTITIES') }}"
+               data-param="{{ constant('App\\Entity\\Setting::LIVRAISON_SKIP_QUANTITIES') }}"
                onchange="updateToggledParam($(this))">
         <span class="font-size-mini pointer ml-2"
               onclick="$(this).closest('div').find('.checkbox').click();"><span class="bold">Livraison : </span>désactiver les confirmations de quantité</span>
@@ -74,7 +74,7 @@
             {% set checked = (displayReferencesInTransferCard == 1) ? 'checked' : '' %}
             <label class="switch">
                 <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-display-references-in-card"
-                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::TRANSFER_DISPLAY_REFERENCES_ON_CARDS') }}"
+                       data-param="{{ constant('App\\Entity\\Setting::TRANSFER_DISPLAY_REFERENCES_ON_CARDS') }}"
                        onchange="updateToggledParam($(this))">
                 <span class="slider round"></span>
             </label>
@@ -86,7 +86,7 @@
             {% set checked = (allowFreeDropTransfer == 1) ? 'checked' : '' %}
             <label class="switch">
                 <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-allow-free-drop"
-                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::TRANSFER_FREE_DROP') }}"
+                       data-param="{{ constant('App\\Entity\\Setting::TRANSFER_FREE_DROP') }}"
                        onchange="updateToggledParam($(this))">
                 <span class="slider round"></span>
             </label>
@@ -100,7 +100,7 @@
             {% set checked = (displayArticleSelectionWithoutManual == 1) ? 'checked' : '' %}
             <label class="switch">
                 <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-display-articles-without-manual"
-                       data-param="{{ constant('App\\Entity\\ParametrageGlobal::PREPARATION_DISPLAY_ARTICLES_WITHOUT_MANUAL') }}"
+                       data-param="{{ constant('App\\Entity\\Setting::PREPARATION_DISPLAY_ARTICLES_WITHOUT_MANUAL') }}"
                        onchange="updateToggledParam($(this))">
                 <span class="slider round"></span>
             </label>

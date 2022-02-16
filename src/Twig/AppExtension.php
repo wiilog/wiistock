@@ -2,7 +2,7 @@
 
 namespace App\Twig;
 
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Service\FieldsParamService;
 use App\Service\SpecificService;
 use App\Service\UserService;
@@ -107,14 +107,14 @@ class AppExtension extends AbstractExtension {
     }
 
     public function logo(string $platform, bool $file = false): ?string {
-        $pgr = $this->manager->getRepository(ParametrageGlobal::class);
+        $pgr = $this->manager->getRepository(Setting::class);
 
         switch($platform) {
             case "website":
-                $logo = $pgr->getOneParamByLabel(ParametrageGlobal::WEBSITE_LOGO);
+                $logo = $pgr->getOneParamByLabel(Setting::WEBSITE_LOGO);
                 break;
             case "email":
-                $logo = $pgr->getOneParamByLabel(ParametrageGlobal::EMAIL_LOGO);
+                $logo = $pgr->getOneParamByLabel(Setting::EMAIL_LOGO);
                 break;
             default:
                 break;
@@ -160,13 +160,13 @@ class AppExtension extends AbstractExtension {
     }
 
     public function setting($setting) {
-        return constant(ParametrageGlobal::class . "::" . $setting);
+        return constant(Setting::class . "::" . $setting);
     }
 
     public function settingValue($setting, $class = null) {
 
         if (!isset($this->settingsCache[$setting])) {
-            $repository = $this->manager->getRepository(ParametrageGlobal::class);
+            $repository = $this->manager->getRepository(Setting::class);
             $this->settingsCache[$setting] = $repository->getOneParamByLabel($this->setting($setting));
             if ($class && $this->settingsCache[$setting]) {
                 $this->settingsCache[$setting] = $this->manager->find($class, $this->settingsCache[$setting]);

@@ -1,6 +1,6 @@
 {% import 'form.html.twig' as form %}
 
-<div class="sub-content">
+<div class="wii-section">
     <div class="row">
         <div class="col-12">
             {{ form.image(setting('WAYBILL_LOGO'), 'Logo sur la lettre de voiture', false, setting_value('WAYBILL_LOGO'), {
@@ -11,9 +11,9 @@
     </div>
 </div>
 
-<div class="subtitle">Expéditeur & Destinataire</div>
+<div class="wii-section-title">Expéditeur & Destinataire</div>
 
-<div class="sub-content">
+<div class="wii-section">
     <div class="row">
         <div class="col-md-4 col-12">
             {{ form.textarea(setting('DISPATCH_WAYBILL_CONSIGNER'), 'Expéditeur par défaut', false, setting_value('DISPATCH_WAYBILL_CONSIGNER'), {
@@ -50,8 +50,8 @@
     </div>
 </div>
 
-<div class="subtitle">Transport</div>
-<div class="sub-content">
+<div class="wii-section-title">Transport</div>
+<div class="wii-section">
     <div class="row">
         <div class="col-md-4 col-12">
             {{ form.textarea(setting('DISPATCH_WAYBILL_CARRIER'), 'Transporteur par défaut', false, setting_value('DISPATCH_WAYBILL_CARRIER'), {

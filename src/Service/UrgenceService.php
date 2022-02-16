@@ -7,7 +7,7 @@ namespace App\Service;
 use App\Entity\Arrivage;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Entity\Transporteur;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
@@ -116,8 +116,8 @@ class UrgenceService
 
         if(!isset($this->__arrival_emergency_fields)) {
             $arrivalEmergencyFields = $this->entityManager
-                ->getRepository(ParametrageGlobal::class)
-                ->getOneParamByLabel(ParametrageGlobal::ARRIVAL_EMERGENCY_TRIGGERING_FIELDS);
+                ->getRepository(Setting::class)
+                ->getOneParamByLabel(Setting::ARRIVAL_EMERGENCY_TRIGGERING_FIELDS);
             $this->__arrival_emergency_fields = $arrivalEmergencyFields ? explode(',', $arrivalEmergencyFields) : [];
         }
 

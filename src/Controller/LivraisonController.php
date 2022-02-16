@@ -10,7 +10,7 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Livraison;
 use App\Entity\Menu;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Statut;
@@ -180,7 +180,7 @@ class LivraisonController extends AbstractController
         return $this->render('livraison/show.html.twig', [
             'demande' => $demande,
             'livraison' => $livraison,
-            'showTargetLocationPicking' => $manager->getRepository(ParametrageGlobal::class)->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION),
+            'showTargetLocationPicking' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
             'preparation' => $livraison->getPreparation(),
             'finished' => $livraison->isCompleted(),
             'headerConfig' => [

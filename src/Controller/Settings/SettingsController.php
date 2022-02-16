@@ -16,7 +16,7 @@ use App\Entity\InventoryCategory;
 use App\Entity\InventoryFrequency;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -1482,10 +1482,10 @@ class SettingsController extends AbstractController {
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
-        $defaultDeliveryLocationsParam = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON) ?? [];
-        $defaultDeliveryLocationsIds = json_decode($defaultDeliveryLocationsParam, true);
+        $defaultDeliveryLocationsParam = $settingRepository->getOneParamByLabel(Setting::DEFAULT_LOCATION_LIVRAISON);
+        $defaultDeliveryLocationsIds = json_decode($defaultDeliveryLocationsParam, true) ?: [];
 
         $defaultDeliveryLocations = [];
         foreach($defaultDeliveryLocationsIds as $typeId => $locationId) {

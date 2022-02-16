@@ -19,7 +19,7 @@ use App\Entity\Livraison;
 use App\Entity\Handling;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Entity\TrackingMovement;
 use App\Entity\OrdreCollecte;
 use App\Entity\DispatchPack;
@@ -114,7 +114,7 @@ class MobileController extends AbstractFOSRestController
     {
 
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-        $globalParametersRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $globalParametersRepository = $entityManager->getRepository(Setting::class);
         $mobileKey = $request->request->get('loginKey');
 
         $loggedUser = $utilisateurRepository->findOneBy(['mobileLoginKey' => $mobileKey, 'status' => true]);
@@ -740,8 +740,8 @@ class MobileController extends AbstractFOSRestController
         }
 
         if (!empty($insertedPrepasIds)) {
-            $globalsParametersRepository = $entityManager->getRepository(ParametrageGlobal::class);
-            $displayPickingLocation = $globalsParametersRepository->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION);
+            $globalsParametersRepository = $entityManager->getRepository(Setting::class);
+            $displayPickingLocation = $globalsParametersRepository->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION);
 
             $resData['data']['preparations'] = Stream::from($preparationRepository->getMobilePreparations($nomadUser, $insertedPrepasIds, $displayPickingLocation))
                 ->map(function ($preparationArray) {
@@ -845,7 +845,7 @@ class MobileController extends AbstractFOSRestController
 
         $handlingRepository = $entityManager->getRepository(Handling::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $data = [];
 
@@ -906,7 +906,7 @@ class MobileController extends AbstractFOSRestController
                     && $newStatus
                     && ($oldStatus->getId() !== $newStatus->getId())
                 )) {
-                $viewHoursOnExpectedDate = !$parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME);
+                $viewHoursOnExpectedDate = !$settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME);
                 $handlingService->sendEmailsAccordingToStatus($entityManager, $handling, $viewHoursOnExpectedDate);
             }
 
@@ -1535,10 +1535,10 @@ class MobileController extends AbstractFOSRestController
         $attachmentRepository = $entityManager->getRepository(Attachment::class);
         $transferOrderRepository = $entityManager->getRepository(TransferOrder::class);
         $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $rights = $userService->getMobileRights($user);
-        $parameters = $this->mobileApiService->getMobileParameters($parametrageGlobalRepository);
+        $parameters = $this->mobileApiService->getMobileParameters($settingRepository);
 
         $status = $statutRepository->getMobileStatus($rights['tracking'], $rights['demande']);
 
@@ -1577,7 +1577,7 @@ class MobileController extends AbstractFOSRestController
                 })
                 ->toArray();
 
-            $displayPickingLocation = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DISPLAY_PICKING_LOCATION);
+            $displayPickingLocation = $settingRepository->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION);
             // get article linked to a ReferenceArticle where type_quantite === 'article'
             $articlesPrepaByRefArticle = $articleRepository->getArticlePrepaForPickingByUser($user, [], $displayPickingLocation);
 
@@ -1623,13 +1623,13 @@ class MobileController extends AbstractFOSRestController
 
         if ($rights['demande']) {
             $handlingExpectedDateColors = [
-                'after' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::HANDLING_EXPECTED_DATE_COLOR_AFTER),
-                'DDay' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::HANDLING_EXPECTED_DATE_COLOR_D_DAY),
-                'before' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::HANDLING_EXPECTED_DATE_COLOR_BEFORE)
+                'after' => $settingRepository->getOneParamByLabel(Setting::HANDLING_EXPECTED_DATE_COLOR_AFTER),
+                'DDay' => $settingRepository->getOneParamByLabel(Setting::HANDLING_EXPECTED_DATE_COLOR_D_DAY),
+                'before' => $settingRepository->getOneParamByLabel(Setting::HANDLING_EXPECTED_DATE_COLOR_BEFORE)
             ];
 
             $handlings = $handlingRepository->getMobileHandlingsByUserTypes($user->getHandlingTypeIds());
-            $removeHoursDesiredDate = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME);
+            $removeHoursDesiredDate = $settingRepository->getOneParamByLabel(Setting::REMOVE_HOURS_DATETIME);
             $handlings = Stream::from($handlings)
                 ->map(function (array $handling) use ($handlingExpectedDateColors, $removeHoursDesiredDate) {
                     $handling['color'] = $this->mobileApiService->expectedDateColor($handling['desiredDate'], $handlingExpectedDateColors);
@@ -2174,12 +2174,12 @@ class MobileController extends AbstractFOSRestController
                              Request $request): Response
     {
         $logoKey = $request->get('key');
-        if (!in_array($logoKey, [ParametrageGlobal::MOBILE_LOGO_HEADER, ParametrageGlobal::MOBILE_LOGO_LOGIN])) {
+        if (!in_array($logoKey, [Setting::MOBILE_LOGO_HEADER, Setting::MOBILE_LOGO_LOGIN])) {
             throw new BadRequestHttpException('Unknown logo key');
         }
 
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-        $logo = $parametrageGlobalRepository->getOneParamByLabel($logoKey);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $logo = $settingRepository->getOneParamByLabel($logoKey);
 
         if (!$logo) {
             return $this->json([

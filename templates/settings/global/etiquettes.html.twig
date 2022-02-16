@@ -2,11 +2,11 @@
 
 {% set label_logo = setting_value('LABEL_LOGO') %}
 
-<div class="sub-content">
+<div class="wii-section">
     <div class="row">
         <div class="col-12">
-            {% set qr = constant('App\\Entity\\ParametrageGlobal::QR_CODE') %}
-            {% set ean = constant('App\\Entity\\ParametrageGlobal::CODE_128') %}
+            {% set qr = constant('App\\Entity\\Setting::QR_CODE') %}
+            {% set ean = constant('App\\Entity\\Setting::CODE_128') %}
             {{ form.switch(setting('BARCODE_TYPE_IS_128'), "Type d'étiquette", true, [
                 {label: {text: ean['label']}, value: ean['value'] ? 1 : 0, checked: setting_value('BARCODE_TYPE_IS_128') == ean['value'] },
                 {label: {text: qr['label']}, value: qr['value'] ? 1 : 0, checked: setting_value('BARCODE_TYPE_IS_128') == qr['value'] },

@@ -13,7 +13,7 @@ use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Nature;
 use App\Entity\Pack;
-use App\Entity\ParametrageGlobal;
+use App\Entity\Setting;
 use App\Entity\TrackingMovement;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -21,7 +21,7 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Repository\FreeFieldRepository;
 use App\Repository\FieldsParamRepository;
-use App\Repository\ParametrageGlobalRepository;
+use App\Repository\SettingRepository;
 use App\Repository\StatutRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -152,7 +152,7 @@ class DispatchService {
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
 
@@ -168,7 +168,7 @@ class DispatchService {
             'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
             'fieldsParam' => $fieldsParam,
             'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY),
-            'preFill' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::PREFILL_DUE_DATE_TODAY),
+            'preFill' => $settingRepository->getOneParamByLabel(Setting::PREFILL_DUE_DATE_TODAY),
             'typeChampsLibres' => array_map(function(Type $type) use ($freeFieldRepository) {
                 $champsLibres = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);
                 return [
@@ -609,7 +609,7 @@ class DispatchService {
                             bool $autofocus,
                             bool $isEdit): array {
         if(!isset($this->prefixPackCodeWithDispatchNumber, $this->natures, $this->defaultNature)) {
-            $this->prefixPackCodeWithDispatchNumber = $this->entityManager->getRepository(ParametrageGlobal::class)->getOneParamByLabel(ParametrageGlobal::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
+            $this->prefixPackCodeWithDispatchNumber = $this->entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
             $natureRepository = $this->entityManager->getRepository(Nature::class);
             $this->natures = $natureRepository->findAll();
             $this->defaultNature = $natureRepository->findOneBy(["defaultForDispatch" => true]);

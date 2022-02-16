@@ -16,12 +16,6 @@ $fa-font-path: '~@fortawesome/fontawesome-free/webfonts';
 @import '~intl-tel-input/build/css/intlTelInput.css';
 
 
-.checkbox input[type="checkbox"]:checked + label:after {
-    font-family: "Font Awesome 5 Free";
-    font-weight: 900;
-    content: $fa-var-apple;
-}
-
 .dataTables_wrapper.no-footer .dataTables_scrollBody {
     border: none;
 }
