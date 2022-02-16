@@ -86,11 +86,8 @@
                             <div class="col-auto ml-auto">
                                 {% if hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::CREATE')) %}
                                     <button type="button"
-                                            data-id='{{ arrivage.id }}'
-                                            data-target='#modalNewLitige'
-                                            data-toggle='modal'
-                                            class="btn btn-primary"
-                                            onclick="openNewLitigeModal($(this))">
+                                            data-id="{{ arrivage.id }}"
+                                            class="btn btn-primary new-dispute-modal">
                                         <i class="fa fa-plus mr-2"></i>
                                         Nouveau litige
                                     </button>

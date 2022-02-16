@@ -541,6 +541,7 @@ class ArrivageController extends AbstractController {
 
         $response = [
             'success' => true,
+            'msg' => "L'arrivage a bien été modifié",
             'entete' => $this->renderView('arrivage/arrivage-show-header.html.twig', [
                 'arrivage' => $arrivage,
                 'canBeDeleted' => $arrivageRepository->countUnsolvedDisputesByArrivage($arrivage) == 0,
@@ -1411,5 +1412,37 @@ class ArrivageController extends AbstractController {
         $currentUser = $this->getUser();
         $columns = $arrivageDataService->getColumnVisibleConfig($entityManager, $currentUser);
         return new JsonResponse($columns);
+    }
+
+    /**
+     * @Route("/new-dispute-template", name="new_dispute_template", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::QUALI, Action::CREATE}, mode=HasPermission::IN_JSON)
+     */
+    public function newDisputeTemplate(Request $request, EntityManagerInterface $manager): Response {
+        $statusRepository = $manager->getRepository(Statut::class);
+        $typeRepository = $manager->getRepository(Type::class);
+
+        $arrival = $manager->find(Arrivage::class, $request->query->get('id'));
+        $disputeStatuses = $statusRepository->findByCategorieName(CategorieStatut::DISPUTE_ARR, 'displayOrder');
+        $defaultDisputeStatus = $statusRepository->getIdDefaultsByCategoryName(CategorieStatut::DISPUTE_ARR);
+        $disputeTypes = $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]);
+        $fixedFields = $manager->getRepository(FieldsParam::class)->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+
+        $buyers = Stream::from($arrival->getAcheteurs())->map(fn(Utilisateur $buyer) => $buyer->getUsername())->join(',');
+        $orderNumers = Stream::from($arrival->getNumeroCommandeList())->join(',');
+
+        return $this->json([
+            'success' => true,
+            'content' => $this->renderView('arrivage/modalNewDisputeContent.html.twig', [
+                'arrivage' => $arrival,
+                'disputeTypes' => $disputeTypes,
+                'disputeStatuses' => $disputeStatuses,
+                'buyers' => $buyers,
+                'orderNumers' => $orderNumers,
+                'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
+                'packs' => $arrival->getPacks(),
+                'fieldsParam' => $fixedFields
+            ])
+        ]);
     }
 }
