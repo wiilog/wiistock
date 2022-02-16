@@ -122,12 +122,9 @@
             <button class="btn btn-success d-block" onclick="saveEmergencyTriggeringFields()"><i class='fas fa-check'></i></button>
         </div>
     </div>
-
-    {% if sendReminderEmails is defined and sendReminderEmails %}
-        <div class="row my-2">
-            <div class="col-12">
-                <button class="btn btn-outline-primary" onclick="triggerReminderEmails($(this))">Déclencher les mails de relance</button>
-            </div>
+    <div class="row my-2">
+        <div class="col-12">
+            <button class="btn btn-outline-primary" onclick="triggerReminderEmails($(this))">Déclencher les mails de relance</button>
         </div>
-    {% endif %}
+    </div>
 </div>

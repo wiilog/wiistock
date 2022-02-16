@@ -218,7 +218,6 @@ class ParametrageGlobalController extends AbstractController
                 'wantsPackCount' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_PACK_COUNT_IN_LABEL),
                 'currentClient' => $specificService->getAppClient(),
                 'isClientChangeAllowed' => $_SERVER["APP_ENV"] === "preprod",
-                'sendReminderEmails' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_PACK_DELIVERY_REMIND)
             ]);
     }
 
