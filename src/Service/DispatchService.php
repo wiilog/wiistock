@@ -479,7 +479,7 @@ class DispatchService {
                     $fromNomade,
                     true,
                     TrackingMovement::TYPE_PRISE,
-                    ['quantity' => $dispatchPack->getQuantity(), 'from' => $dispatch]
+                    ['quantity' => $dispatchPack->getQuantity(), 'from' => $dispatch, 'removeFromGroup' => true]
                 );
 
                 $trackingDrop = $this->trackingMovementService->createTrackingMovement(
