@@ -22,7 +22,7 @@ class RemindPackDeliveriesCommand extends Command
     public PackService $packService;
 
     protected function configure(): void {
-		$this->setDescription('This commands send emails when a pack is on a location group (or location if no group) more than 15 days.');
+		$this->setDescription('This command sends emails when a pack is on a location group (or location if no group) more than 15 days.');
         $this->setHelp('This command is supposed to be executed each day at 8 AM');
     }
 
