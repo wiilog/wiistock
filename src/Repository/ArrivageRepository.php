@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Arrivage;
+use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
@@ -183,7 +184,9 @@ class ArrivageRepository extends EntityRepository
         $qb = $this->createQueryBuilder("arrival")
             ->addSelect('SUM(main_packs.weight) AS totalWeight')
             ->addSelect('COUNT(main_packs.id) AS packsCount')
+            ->addSelect('COUNT(main_dispatch_packs.id) AS dispatchedPacksCount')
             ->leftJoin('arrival.packs', 'main_packs')
+            ->leftJoin('main_packs.dispatchPacks', 'main_dispatch_packs')
             ->groupBy('arrival');
 
         // filtre arrivages de l'utilisateur
@@ -262,6 +265,14 @@ class ArrivageRepository extends EntityRepository
                             ->andWhere('arrival.frozen = :value')
                             ->setParameter('value', $filter['value']);
                     }
+                    break;
+                case FiltreSup::FIELD_BUSINESS_UNIT:
+                    $values = Stream::explode(",", $filter['value'])
+                        ->map(fn(string $value) => strtok($value, ':'))
+                        ->toArray();
+                    $qb
+                        ->andWhere("arrival.businessUnit IN (:values)")
+                        ->setParameter('values', $values);
                     break;
                 case 'numArrivage':
                     $qb
@@ -382,8 +393,14 @@ class ArrivageRepository extends EntityRepository
         }
 
         if (!empty($params)) {
-            if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
-            if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
+            if ($params->getInt('start')) {
+                $qb->setFirstResult($params->getInt('start'));
+            }
+
+            $pageLength = $params->getInt('length') ? $params->getInt('length') : 100;
+            if ($pageLength) {
+                $qb->setMaxResults($pageLength);
+            }
         }
 
         return [
@@ -424,5 +441,17 @@ class ArrivageRepository extends EntityRepository
         return Stream::from($result)
             ->keymap(fn(array $arrival) => [$arrival['id'], $arrival['totalWeight']])
             ->toArray();
+    }
+
+    public function countArrivalPacksInDispatch(Arrivage $arrival): int {
+        return $this->createQueryBuilder('arrival')
+            ->select("COUNT(dispatch_packs)")
+            ->leftJoin('arrival.packs', 'packs')
+            ->leftJoin('packs.dispatchPacks', 'dispatch_packs')
+            ->where('arrival.id = :arrival')
+            ->setParameter('arrival', $arrival)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }

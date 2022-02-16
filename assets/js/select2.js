@@ -1,6 +1,5 @@
 import 'select2';
 import {GROUP_WHEN_NEEDED} from "./app";
-import {indexOf} from "core-js/internals/array-includes";
 
 const ROUTES = {
     handlingType: `ajax_select_handling_type`,
@@ -29,6 +28,8 @@ const ROUTES = {
     collectableArticles: `ajax_select_collectable_articles`,
     purchaseRequest: `ajax_select_references_by_buyer`,
     keyboardPacks: `ajax_select_keyboard_pack`,
+    businessUnit: `ajax_select_business_unit`,
+    carrier: 'ajax_select_carrier',
 }
 
 const INSTANT_SELECT_TYPES = {
@@ -41,6 +42,7 @@ const INSTANT_SELECT_TYPES = {
     sensorCodeWithoutPairing: true,
     triggerSensorWithoutPairing: true,
     triggerSensorCodeWithoutPairing: true,
+    businessUnit: true,
 }
 
 export default class Select2 {
@@ -57,7 +59,8 @@ export default class Select2 {
                 if (!$element.find(`option[selected]`).exists()
                     && !type
                     && !$element.is(`[data-no-empty-option]`)
-                    && !$element.is(`[data-editable]`)) {
+                    && !$element.is(`[data-editable]`)
+                    && !$element.is(`[multiple]`)) {
                     $element.prepend(`<option selected>`);
                 }
 

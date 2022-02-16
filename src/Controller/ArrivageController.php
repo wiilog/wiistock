@@ -8,6 +8,7 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Dispatch;
 use App\Entity\Emplacement;
 use App\Entity\FreeField;
 use App\Entity\Chauffeur;
@@ -64,7 +65,6 @@ class ArrivageController extends AbstractController {
 
     /** @Required */
     public AttachmentService $attachmentService;
-
 
     /**
      * @Route("/", name="arrivage_index")
@@ -135,10 +135,7 @@ class ArrivageController extends AbstractController {
             $userId = $this->getUser()->getId();
         }
 
-        return $this->json($arrivageService->getDataForDatatable(
-            $request->request,
-            $userId,
-        ));
+        return $this->json($arrivageService->getDataForDatatable($request, $userId));
     }
 
     /**
@@ -542,10 +539,12 @@ class ArrivageController extends AbstractController {
 
         $response = [
             'success' => true,
+            'msg' => "L'arrivage a bien été modifié",
             'entete' => $this->renderView('arrivage/arrivage-show-header.html.twig', [
                 'arrivage' => $arrivage,
                 'canBeDeleted' => $arrivageRepository->countUnsolvedDisputesByArrivage($arrivage) == 0,
-                'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage)
+                'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage),
+                'allPacksAlreadyInDispatch' => $arrivage->getPacks()->count() <= $arrivageRepository->countArrivalPacksInDispatch($arrivage)
             ]),
             'alertConfigs' => $alertConfig
         ];
@@ -631,6 +630,7 @@ class ArrivageController extends AbstractController {
      * @Route("/csv", name="get_arrivages_csv", options={"expose"=true}, methods={"GET"})
      */
     public function exportArrivals(Request                $request,
+                                   TranslatorInterface    $translator,
                                    EntityManagerInterface $entityManager,
                                    CSVExportService       $csvService,
                                    FieldsParamService     $fieldsParamService,
@@ -682,7 +682,7 @@ class ArrivageController extends AbstractController {
             "date",
             "utilisateur",
             "numéro de projet",
-            "business unit",
+            $translator->trans('acheminement.Business unit'),
         ];
 
         if ($fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedCreate')
@@ -706,7 +706,6 @@ class ArrivageController extends AbstractController {
     public function show(EntityManagerInterface $entityManager,
                          ArrivageService        $arrivageDataService,
                          Arrivage               $arrivage,
-                         DispatchService        $dispatchService,
                          bool                   $printColis = false,
                          bool                   $printArrivage = false): Response
     {
@@ -721,16 +720,12 @@ class ArrivageController extends AbstractController {
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
-        $usersRepository = $entityManager->getRepository(Utilisateur::class);
-        $champLibreRepository = $entityManager->getRepository(FreeField::class);
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $acheteursNames = [];
         foreach ($arrivage->getAcheteurs() as $user) {
             $acheteursNames[] = $user->getUsername();
         }
 
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
-        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
 
         $defaultDisputeStatus = $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::DISPUTE_ARR);
 
@@ -749,8 +744,6 @@ class ArrivageController extends AbstractController {
             'fieldsParam' => $fieldsParam,
             'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage),
             'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
-            'modalNewDispatchConfig' => $dispatchService->getNewDispatchConfig($statutRepository,
-                $champLibreRepository, $fieldsParamRepository, $parametrageGlobalRepository, $types, $arrivage)
         ]);
     }
 
@@ -1405,11 +1398,46 @@ class ArrivageController extends AbstractController {
      * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI}, mode=HasPermission::IN_JSON)
      */
     public function apiColumns(ArrivageService        $arrivageDataService,
-                               EntityManagerInterface $entityManager): Response
+                               EntityManagerInterface $entityManager,
+                               Request $request): Response
     {
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
-        $columns = $arrivageDataService->getColumnVisibleConfig($entityManager, $currentUser);
+        $dispatchMode = $request->query->getBoolean('dispatchMode');
+
+        $columns = $arrivageDataService->getColumnVisibleConfig($entityManager, $currentUser, $dispatchMode);
         return new JsonResponse($columns);
+    }
+
+    /**
+     * @Route("/new-dispute-template", name="new_dispute_template", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::QUALI, Action::CREATE}, mode=HasPermission::IN_JSON)
+     */
+    public function newDisputeTemplate(Request $request, EntityManagerInterface $manager): Response {
+        $statusRepository = $manager->getRepository(Statut::class);
+        $typeRepository = $manager->getRepository(Type::class);
+
+        $arrival = $manager->find(Arrivage::class, $request->query->get('id'));
+        $disputeStatuses = $statusRepository->findByCategorieName(CategorieStatut::DISPUTE_ARR, 'displayOrder');
+        $defaultDisputeStatus = $statusRepository->getIdDefaultsByCategoryName(CategorieStatut::DISPUTE_ARR);
+        $disputeTypes = $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]);
+        $fixedFields = $manager->getRepository(FieldsParam::class)->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+
+        $buyers = Stream::from($arrival->getAcheteurs())->map(fn(Utilisateur $buyer) => $buyer->getUsername())->join(',');
+        $orderNumers = Stream::from($arrival->getNumeroCommandeList())->join(',');
+
+        return $this->json([
+            'success' => true,
+            'content' => $this->renderView('arrivage/modalNewDisputeContent.html.twig', [
+                'arrivage' => $arrival,
+                'disputeTypes' => $disputeTypes,
+                'disputeStatuses' => $disputeStatuses,
+                'buyers' => $buyers,
+                'orderNumers' => $orderNumers,
+                'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
+                'packs' => $arrival->getPacks(),
+                'fieldsParam' => $fixedFields
+            ])
+        ]);
     }
 }

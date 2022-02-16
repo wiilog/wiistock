@@ -22,6 +22,7 @@ use App\Service\AlertService;
 use App\Service\AttachmentService;
 use App\Service\CacheService;
 use App\Service\GlobalParamService;
+use App\Service\PackService;
 use App\Service\SpecificService;
 use App\Service\TranslationService;
 use App\Service\UserService;
@@ -36,6 +37,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Routing\Annotation\Route;
+use Throwable;
 
 /**
  * @Route("/parametrage-global")
@@ -144,6 +146,7 @@ class ParametrageGlobalController extends AbstractController
                     'autoPrint' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::AUTO_PRINT_COLIS),
                     'sendMail' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_MAIL_AFTER_NEW_ARRIVAL),
                     'printTwice' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::PRINT_TWICE_CUSTOMS),
+                    'sendPackDeliveryRemind' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::SEND_PACK_DELIVERY_REMIND),
                 ],
                 'handlingSettings' => [
                     'removeHourInDatetime' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::REMOVE_HOURS_DATETIME),
@@ -215,7 +218,7 @@ class ParametrageGlobalController extends AbstractController
                 'wantsExpirationDateArticle' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL),
                 'wantsPackCount' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::INCLUDE_PACK_COUNT_IN_LABEL),
                 'currentClient' => $specificService->getAppClient(),
-                'isClientChangeAllowed' => $_SERVER["APP_ENV"] === "preprod"
+                'isClientChangeAllowed' => $_SERVER["APP_ENV"] === "preprod",
             ]);
     }
 
@@ -1065,5 +1068,26 @@ class ParametrageGlobalController extends AbstractController
             ]);
         }
         throw new BadRequestHttpException();
+    }
+
+    /**
+     * @Route("/trigger-reminder-emails", name="trigger_reminder_emails", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     */
+    public function triggerReminderEmails(EntityManagerInterface $manager, PackService $packService): Response
+    {
+        try {
+            $packService->launchPackDeliveryReminder($manager);
+            $response = [
+                'success' => true,
+                'msg' => "Les mails de relance ont bien été envoyés"
+            ];
+        } catch (Throwable $throwable) {
+            $response = [
+                'success' => false,
+                'msg' => "Une erreur est survenue lors de l'envoi des mails de relance"
+            ];
+        }
+
+        return $this->json($response);
     }
 }

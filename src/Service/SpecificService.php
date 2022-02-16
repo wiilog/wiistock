@@ -17,6 +17,7 @@ class SpecificService
 	const CLIENT_ARKEMA_SERQUIGNY = 'arkema-serquigny';
     const CLIENT_WIILOG = 'wiilog';
     const CLIENT_INEO_LAV = 'ineos-lav';
+    const CLIENT_BOITE_ROSE_TAVERNY = 'boite-rose-taverny';
 
 	const CLIENTS = [
         self::CLIENT_COLLINS_VERNON => 'Collins Vernon',
@@ -31,6 +32,7 @@ class SpecificService
         self::CLIENT_ARKEMA_SERQUIGNY => 'Arkema Serquigny',
         self::CLIENT_WIILOG => 'Wiilog',
         self::CLIENT_INEO_LAV => 'Ineos Lavera',
+        self::CLIENT_BOITE_ROSE_TAVERNY => 'Boîte rose Taverny',
     ];
 
 	const ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE = 'CHARIOT COLIS';

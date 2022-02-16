@@ -20,6 +20,8 @@ use WiiCommon\Helper\Stream;
 
 class PackService {
 
+    private const PACK_DELIVERIES_RIMINDER_DELAY = 15;
+
     /** @Required */
     public EntityManagerInterface $entityManager;
 
@@ -27,13 +29,16 @@ class PackService {
     public Security $security;
 
     /** @Required */
-    public Twig_Environment $template;
+    public Twig_Environment $templating;
 
     /** @Required */
     public TrackingMovementService $trackingMovementService;
 
     /** @Required */
     public ArrivageService $arrivageDataService;
+
+    /** @Required */
+    public MailerService $mailerService;
 
     public function getDataForDatatable($params = null) {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -89,11 +94,11 @@ class PackService {
         /** @var TrackingMovement $lastPackMovement */
         $lastPackMovement = $pack->getLastTracking();
         return [
-            'actions' => $this->template->render('pack/datatablePackRow.html.twig', [
+            'actions' => $this->templating->render('pack/datatablePackRow.html.twig', [
                 'pack' => $pack,
                 'hasPairing' => $hasPairing
             ]),
-            'pairing' => $this->template->render('pairing-icon.html.twig', [
+            'pairing' => $this->templating->render('pairing-icon.html.twig', [
                 'sensorCode' => $sensorCode,
                 'hasPairing' => $hasPairing
             ]),
@@ -105,7 +110,7 @@ class PackService {
                     ? $lastPackMovement->getDatetime()->format('d/m/Y \à H:i:s')
                     : '')
                 : '',
-            'packOrigin' => $this->template->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
+            'packOrigin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'packLocation' => $lastPackMovement
                 ? ($lastPackMovement->getEmplacement()
                     ? $lastPackMovement->getEmplacement()->getLabel()
@@ -250,5 +255,37 @@ class PackService {
             }
         }
         return $createdPacks;
+    }
+
+    public function launchPackDeliveryReminder(EntityManagerInterface $entityManager): void {
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $ongoingPacks = $packRepository->findOngoingOnDeliveryPoint();
+        foreach ($ongoingPacks as $pack) {
+            if ($pack->getArrivage() && $pack->getArrivage()->getDestinataire()) {
+                $arrival = $pack->getArrivage();
+                $receiver = $arrival->getDestinataire();
+                $firstDrop = $packRepository->getFirstDropForCurrentOngoing($pack);
+                if ($firstDrop) {
+                    $now = new DateTime();
+                    $ongoingDelay = $now->diff($firstDrop);
+                    if ($ongoingDelay->format('%a') > self::PACK_DELIVERIES_RIMINDER_DELAY) {
+                        $lastDrop = $pack->getLastDrop();
+                        $this->mailerService->sendMail(
+                            'Follow GT // Colis non récupéré',
+                            $this->templating->render('mails/contents/mail-pack-delivery-done.html.twig', [
+                                'title' => 'Votre colis a été livré.',
+                                'orderNumber' => implode(', ', $arrival->getNumeroCommandeList()),
+                                'colis' => FormatHelper::pack($pack),
+                                'emplacement' => $lastDrop->getEmplacement(),
+                                'date' => $lastDrop->getDatetime(),
+                                'fournisseur' => FormatHelper::supplier($arrival->getFournisseur()),
+                                'pjs' => $arrival->getAttachments()
+                            ]),
+                            $receiver
+                        );
+                    }
+                }
+            }
+        }
     }
 }

@@ -724,3 +724,11 @@ function appendSelectOptions(typeSelect, locationSelect, type, location) {
         .append(new Option(location.label, location.id, false, true))
         .trigger(`change`);
 }
+
+function triggerReminderEmails($button) {
+    $button.pushLoader(`primary`)
+    $.post(Routing.generate(`trigger_reminder_emails`), true).then(({success, msg}) => {
+        $button.popLoader()
+        showBSAlert(msg, success ? `success` : `danger`);
+    });
+}

@@ -30,6 +30,7 @@ class ParametrageGlobal {
 
     // mvt traca
     const CLOSE_AND_CLEAR_AFTER_NEW_MVT = 'CLOSE_AND_CLEAR_AFTER_NEW_MVT';
+    const SEND_PACK_DELIVERY_REMIND = 'SEND_PACK_DELIVERY_REMIND';
 
     // réceptions
     const DEFAULT_LOCATION_RECEPTION = "DEFAULT_LOCATION_RECEPTION";

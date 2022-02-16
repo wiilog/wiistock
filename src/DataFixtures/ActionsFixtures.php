@@ -305,28 +305,37 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface {
         foreach($menus as $menuCode => $actionLabels) {
             $counter = 0;
             foreach($actionLabels as $index => $actionLabel) {
-                if(is_array($actionLabel)) {
+                if(is_array($actionLabel)) { // has sub menu
                     $subMenu = $subMenuRepository->findByLabel($menuCode, $index);
+                    if (empty($subMenu)) {
+                        $subMenu = new SubMenu();
+                        $subMenu
+                            ->setLabel($index)
+                            ->setMenu($this->getReference("menu-$menuCode"));
+                        $manager->persist($subMenu);
+                    }
 
                     foreach($actionLabel as $value) {
-                        $action = $actionRepository->findOneByParams($menuCode, $value, $subMenu);
+                        $action = $actionRepository->findOneByParams($menuCode, $value);
 
                         if(empty($action)) {
                             $action = new Action();
                             $action
                                 ->setLabel($value)
-                                ->setMenu($this->getReference("menu-$menuCode"))
-                                ->setSubMenu($subMenu);
-
-                            if(array_key_exists($menuCode, $selectedByDefault) && in_array($value, $selectedByDefault[$menuCode])) {
-                                foreach($roles as $role) {
-                                    $action->addRole($role);
-                                }
-                            }
+                                ->setMenu($this->getReference("menu-$menuCode"));
 
                             $manager->persist($action);
                         }
-                        $action->setDisplayOrder($counter);
+
+                        $action
+                            ->setSubMenu($subMenu)
+                            ->setDisplayOrder($counter);
+
+                        if(array_key_exists($menuCode, $selectedByDefault) && in_array($value, $selectedByDefault[$menuCode])) {
+                            foreach($roles as $role) {
+                                $action->addRole($role);
+                            }
+                        }
                         $counter++;
                     }
                     $manager->flush();

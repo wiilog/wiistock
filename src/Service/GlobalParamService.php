@@ -104,8 +104,8 @@ Class GlobalParamService
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
-        $defaultDeliveryLocationsParam = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON) ?? [];
-        $defaultDeliveryLocationsIds = json_decode($defaultDeliveryLocationsParam, true);
+        $defaultDeliveryLocationsParam = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON);
+        $defaultDeliveryLocationsIds = json_decode($defaultDeliveryLocationsParam, true) ?: [];
 
         $defaultDeliveryLocations = [];
         foreach ($defaultDeliveryLocationsIds as $typeId => $locationId) {
@@ -140,7 +140,7 @@ Class GlobalParamService
         $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
         $defaultDeliveryLocationsParam = $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON);
-        $defaultDeliveryLocationsIds = json_decode($defaultDeliveryLocationsParam, true);
+        $defaultDeliveryLocationsIds = json_decode($defaultDeliveryLocationsParam, true) ?: [];
 
         $defaultDeliveryLocations = [];
         foreach ($defaultDeliveryLocationsIds as $typeId => $locationId) {

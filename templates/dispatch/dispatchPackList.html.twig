@@ -22,11 +22,11 @@
         <div class="form-group">
             <label for="transporter-tracking-number">Commentaire</label>
             <input class="form-control data no-clear"
-                   value="{{ pack.comment }}"
+                   value="{{ pack.comment | striptags }}"
                    name="packComment">
         </div>
     </div>
     <div class="col-auto align-self-center">
-        <a class="pointer"><i class="fa fa-trash mr-2" onclick="removePackInDispatchModal()"></i></a>
+        <a class="pointer"><i class="wii-icon wii-icon-trash bg-primary mr-2" onclick="removePackInDispatchModal($(this))"></i></a>
     </div>
 </div>
