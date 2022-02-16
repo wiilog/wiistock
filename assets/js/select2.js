@@ -56,7 +56,8 @@ export default class Select2 {
                 if (!$element.find(`option[selected]`).exists()
                     && !type
                     && !$element.is(`[data-no-empty-option]`)
-                    && !$element.is(`[data-editable]`)) {
+                    && !$element.is(`[data-editable]`)
+                    && !$element.is(`[multiple]`)) {
                     $element.prepend(`<option selected>`);
                 }
 

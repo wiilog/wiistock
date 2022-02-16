@@ -21,7 +21,7 @@
                                 <div class="row mt-2">
                                     {% for nature in natures %}
                                         <div class="form-group col-6">
-                                            <label for="nbColisForNature_{{ nature.id }}">
+                                            <label class="wii-field-name">
                                                 {{nature.label | capitalize}}
                                             </label>
                                             <input type="number"
@@ -30,7 +30,6 @@
                                                    data-init="{{ nature.defaultQuantity ? nature.defaultQuantity : 0 }}"
                                                    name="colis"
                                                    data-id="{{ nature.id }}"
-                                                   id="nbColisForNature_{{ nature.id }}"
                                                    min="0"
                                                    max="500">
                                         </div>
@@ -54,7 +53,7 @@
             <input hidden value="{{ arrivage.id }}" name="arrivageId" class="data">
 
             <div class="error-msg"></div>
-            <div class="modal-footer d-flex justify-content-between">
+            <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Annuler</button>
                 <button id="submitAddColis" type="button" class="btn btn-success">Valider</button>
             </div>
