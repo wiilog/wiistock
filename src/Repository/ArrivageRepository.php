@@ -393,8 +393,14 @@ class ArrivageRepository extends EntityRepository
         }
 
         if (!empty($params)) {
-            if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
-            if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
+            if ($params->getInt('start')) {
+                $qb->setFirstResult($params->getInt('start'));
+            }
+
+            $pageLength = $params->getInt('length') ? $params->getInt('length') : 100;
+            if ($pageLength) {
+                $qb->setMaxResults($pageLength);
+            }
         }
 
         return [

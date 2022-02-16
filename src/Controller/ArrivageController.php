@@ -706,7 +706,6 @@ class ArrivageController extends AbstractController {
     public function show(EntityManagerInterface $entityManager,
                          ArrivageService        $arrivageDataService,
                          Arrivage               $arrivage,
-                         DispatchService        $dispatchService,
                          bool                   $printColis = false,
                          bool                   $printArrivage = false): Response
     {
@@ -721,16 +720,12 @@ class ArrivageController extends AbstractController {
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
-        $usersRepository = $entityManager->getRepository(Utilisateur::class);
-        $champLibreRepository = $entityManager->getRepository(FreeField::class);
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
         $acheteursNames = [];
         foreach ($arrivage->getAcheteurs() as $user) {
             $acheteursNames[] = $user->getUsername();
         }
 
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
-        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
 
         $defaultDisputeStatus = $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::DISPUTE_ARR);
 

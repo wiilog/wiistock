@@ -76,7 +76,13 @@ class ArrivageService {
         $dispatchMode = $request->query->getBoolean('dispatchMode');
 
         $filters = $supFilterRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_ARRIVAGE, $currentUser);
-        $queryResult = $arrivalRepository->findByParamsAndFilters($request->request, $filters, $userIdArrivalFilter, $this->security->getUser(), $this->visibleColumnService);
+        $queryResult = $arrivalRepository->findByParamsAndFilters(
+            $request->request,
+            $filters,
+            $userIdArrivalFilter,
+            $this->security->getUser(),
+            $this->visibleColumnService
+        );
 
         $arrivals = $queryResult['data'];
 
