@@ -29,7 +29,7 @@
 
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
-        {% include 'filters/filter_item/filterbusinessUnit.html.twig' with {
+        {% include 'filters/filter_item/filterBusinessUnit.html.twig' with {
             page: constant('App\\Entity\\FieldsParam::ENTITY_CODE_ARRIVAGE')
         } %}
     {% endif %}
