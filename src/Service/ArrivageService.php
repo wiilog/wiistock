@@ -82,12 +82,11 @@ class ArrivageService {
 
         $rows = [];
         foreach ($arrivals as $arrival) {
-            $packsInDispatchCount = $arrivalRepository->countArrivalPacksInDispatch($arrival[0]->getId());
             $rows[] = $this->dataRowArrivage($arrival[0], [
                 'totalWeight' => $arrival['totalWeight'],
                 'packsCount' => $arrival['packsCount'],
                 'dispatchMode' => $dispatchMode,
-                'packsInDispatchCount' => $packsInDispatchCount
+                'packsInDispatchCount' => $arrival['dispatchedPacksCount']
             ]);
         }
 

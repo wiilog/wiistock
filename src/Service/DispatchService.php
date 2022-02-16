@@ -12,6 +12,7 @@ use App\Entity\CategoryType;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Nature;
+use App\Entity\Pack;
 use App\Entity\ParametrageGlobal;
 use App\Entity\TrackingMovement;
 use App\Entity\Statut;
@@ -142,30 +143,34 @@ class DispatchService {
         return $row;
     }
 
-    public function getNewDispatchConfig(StatutRepository $statutRepository,
-                                         FreeFieldRepository $champLibreRepository,
-                                         FieldsParamRepository $fieldsParamRepository,
-                                         ParametrageGlobalRepository $parametrageGlobalRepository,
+    public function getNewDispatchConfig(EntityManagerInterface $entityManager,
                                          array $types,
                                          ?Arrivage $arrival = null,
                                          bool $fromArrival = false,
                                          array $packs = []) {
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
 
         $dispatchBusinessUnits = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_BUSINESS_UNIT);
 
-        $draftStatus = $this->entityManager->getRepository(Statut::class)->findOneByCategorieNameAndStatutState(CategorieStatut::DISPATCH, Statut::DRAFT);
-        $existingDispatches = $this->entityManager->getRepository(Dispatch::class)->findBy([
+        $draftStatuses = $statusRepository->findByCategoryAndStates(CategorieStatut::DISPATCH, [Statut::DRAFT]);
+        $existingDispatches = $dispatchRepository->findBy([
             'requester' => $this->userService->getUser(),
-            'statut' => $draftStatus
+            'statut' => $draftStatuses
         ]);
+
         return [
             'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
             'fieldsParam' => $fieldsParam,
             'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY),
             'preFill' => $parametrageGlobalRepository->getOneParamByLabel(ParametrageGlobal::PREFILL_DUE_DATE_TODAY),
-            'typeChampsLibres' => array_map(function(Type $type) use ($champLibreRepository) {
-                $champsLibres = $champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);
+            'typeChampsLibres' => array_map(function(Type $type) use ($freeFieldRepository) {
+                $champsLibres = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);
                 return [
                     'typeLabel' => $type->getLabel(),
                     'typeId' => $type->getId(),
@@ -180,16 +185,18 @@ class DispatchService {
                     ]
                 ];
             }, $types),
-            'notTreatedStatus' => $statutRepository->findStatusByType(CategorieStatut::DISPATCH, null, [Statut::DRAFT]),
+            'notTreatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, null, [Statut::DRAFT]),
             'packs' => $packs,
             'fromArrival' => $fromArrival,
             'arrival' => $arrival,
-            'existingDispatches' => Stream::from($existingDispatches)->map(fn(Dispatch $dispatch) => [
-                'id' => $dispatch->getId(),
-                'number' => $dispatch->getNumber(),
-                'locationTo' => FormatHelper::location($dispatch->getLocationTo()),
-                'type' => FormatHelper::type($dispatch->getType())
-            ])->toArray()
+            'existingDispatches' => Stream::from($existingDispatches)
+                ->map(fn(Dispatch $dispatch) => [
+                    'id' => $dispatch->getId(),
+                    'number' => $dispatch->getNumber(),
+                    'locationTo' => FormatHelper::location($dispatch->getLocationTo()),
+                    'type' => FormatHelper::type($dispatch->getType())
+                ])
+                ->toArray()
         ];
     }
 
@@ -699,5 +706,27 @@ class DispatchService {
 
         return $data ?? [];
     }
+
+
+    public function manageDispatchPacks(Dispatch $dispatch, array $packs, EntityManagerInterface $entityManager) {
+        $packRepository = $entityManager->getRepository(Pack::class);
+
+        foreach($packs as $pack) {
+            $comment = $pack['packComment'];
+            $packId = $pack['packId'];
+            $packQuantity = (int)$pack['packQuantity'];
+            $pack = $packRepository->find($packId);
+            $pack
+                ->setComment($comment);
+            $packDispatch = new DispatchPack();
+            $packDispatch
+                ->setPack($pack)
+                ->setTreated(false)
+                ->setQuantity($packQuantity)
+                ->setDispatch($dispatch);
+            $entityManager->persist($packDispatch);
+        }
+    }
+
 
 }

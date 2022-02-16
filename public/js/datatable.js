@@ -306,6 +306,15 @@ function initDataTable($table, options) {
         .addClass('wii-table')
         .addClass('w-100');
 
+    const colReorderActivated = config.page
+        ? {
+            colReorder: {
+                enable: true,
+                realtime: false,
+            }
+        }
+        : {}
+
     datatableToReturn = $table
         .on('error.dt', function (e, settings, techNote, message) {
             console.log('An error has been reported by DataTables: ', message, e, $table.attr('id'));
@@ -313,10 +322,6 @@ function initDataTable($table, options) {
         .DataTable(Object.assign({
             fixedColumns: {
                 heightMatch: 'auto'
-            },
-            colReorder: {
-                enable: !!config.page,
-                realtime: false,
             },
             autoWidth: true,
             scrollX: true,
@@ -341,14 +346,13 @@ function initDataTable($table, options) {
                 }
                 attachDropdownToBodyOnDropdownOpening($table);
                 if(config.page && config.page !== '') {
-                    getAndApplyOrder(config, datatableToReturn).then(() => {
-                        datatableToReturn.on('column-reorder', function () {
-                            setOrder(config, datatableToReturn.colReorder.order());
-                        });
-                    });
+                    getAndApplyOrder(config, datatableToReturn);
+                }
+                else {
+                    datatableToReturn.off('column-reorder');
                 }
             }
-        }, config));
+        }, colReorderActivated, config));
 
     return datatableToReturn;
 }
@@ -500,16 +504,16 @@ function getAndApplyOrder(config, datatable) {
             if(result.order.length > 0) {
                 datatable.colReorder.order(result.order);
             }
+        })
+        .then(() => {
+            datatable
+                .off('column-reorder')
+                .on('column-reorder', function () {
+                    params.order = datatable.colReorder.order();
+
+                    $.post(Routing.generate('set_columns_order'), params).then(() => {
+                        showBSAlert(`Vos préférences d'ordre de colonnes ont bien été enregistrées`, `success`);
+                    });
+                });
         });
-}
-
-function setOrder(config, order) {
-    const params = {
-        page: config.page,
-        order
-    };
-
-    $.post(Routing.generate('set_columns_order'), params).then(() => {
-        showBSAlert(`Vos préférences d'ordre de colonnes ont bien été enregistrées`, `success`);
-    });
 }

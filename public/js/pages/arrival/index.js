@@ -135,10 +135,13 @@ $(function () {
 
 function initTableArrival(dispatchMode = false) {
     let pathArrivage = Routing.generate('arrivage_api', {dispatchMode}, true);
+    $('#arrivalsTable').addClass('d-none');
+    $('.wii-page-card').css('overflow', 'hidden');
 
     return $
         .post(Routing.generate('arrival_api_columns', {dispatchMode}))
         .then((columns) => {
+            $('#arrivalsTable').removeClass('d-none');
             let tableArrivageConfig = {
                 serverSide: !dispatchMode,
                 processing: true,
@@ -176,7 +179,15 @@ function initTableArrival(dispatchMode = false) {
                 },
                 lengthMenu: [10, 25, 50, 100],
                 ...(!dispatchMode ? {page: 'arrival'} : {}),
-                initCompleteCallback: updateArrivalPageLength
+                initCompleteCallback: () => {
+                    updateArrivalPageLength();
+                    $('.dispatch-mode-button').removeClass('d-none');
+                },
+                createdRow: (row) => {
+                    if (dispatchMode) {
+                        $(row).addClass('pointer user-select-none');
+                    }
+                }
             };
 
             if (dispatchMode) {

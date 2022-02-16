@@ -1,29 +1,12 @@
 let arrivageUrgentLoading = false;
-let newDispatchNeededFields = {};
 
 $(function () {
-    $(document).on(`change`, `input[name=existingOrNot]`, function () {
-        const value = parseInt($(this).val());
-        if(value === 0) {
-            $(`.dispatch-details`).empty();
-            $(`select[name=existingDispatch]`).val(null).trigger(SELECT2_TRIGGER_CHANGE);
-            $(`.new-dispatch`).removeClass(`d-none`);
-            $(`.existing-dispatch`).addClass(`d-none`);
-            newDispatchNeededFields.addClass(`needed data`);
-            $(`.existing-dispatch`).find(`select[name=existingDispatch]`).removeClass(`needed data`);
-        } else {
-            $(`.existing-dispatch`).removeClass(`d-none`);
-            $(`.new-dispatch`).addClass(`d-none`);
-            newDispatchNeededFields = $(`.new-dispatch`).find(`.needed .data`);
-            $(`.new-dispatch`).find(`.needed`).removeClass(`needed data`);
-            $(`.existing-dispatch`).find(`select[name=existingDispatch]`).addClass(`needed data`);
-        }
+    $(document).on(`change`, `#modalNewDispatch input[name=existingOrNot]`, function () {
+        onExistingOrNotChanged($(this));
     });
 
-    $(document).on(`change`, `select[name=existingDispatch]`, function() {
-       $.get(Routing.generate(`get_dispatch_details`, {id: $(this).val()}, true)).then(({content}) => {
-           $(`.dispatch-details`).empty().append(content);
-       });
+    $(document).on(`change`, `#modalNewDispatch select[name=existingDispatch]`, function() {
+        onExistingDispatchSelected($(this));
     });
 });
 
@@ -287,4 +270,42 @@ function removePackInDispatchModal($button) {
     $button
         .closest('[data-multiple-key]')
         .remove();
+}
+
+function onExistingOrNotChanged($input) {
+    const $modal = $input.closest('.modal');
+    const value = parseInt($input.val());
+    const $dispatchDetais = $modal.find(`.dispatch-details`);
+    const $existingDispatchContainer = $modal.find(`.existing-dispatch`);
+    const $newDispatchContainer = $modal.find(`.new-dispatch`);
+    const $existingDispatch = $existingDispatchContainer.find(`select[name=existingDispatch]`);
+    if(value === 0) {
+        $dispatchDetais.empty();
+        $existingDispatch
+            .val(null)
+            .trigger(SELECT2_TRIGGER_CHANGE)
+            .removeClass(`needed data`);
+        $newDispatchContainer.removeClass(`d-none`);
+        $existingDispatchContainer.addClass(`d-none`);
+        $newDispatchContainer
+            .find(`.needed-save`)
+            .addClass(`needed data`);
+    } else {
+        $existingDispatchContainer.removeClass(`d-none`);
+        $newDispatchContainer.addClass(`d-none`);
+        $newDispatchContainer
+            .find(`.needed`)
+            .removeClass(`needed data`)
+            .addClass('needed-save');
+        $existingDispatch.addClass(`needed data`);
+    }
+}
+
+function onExistingDispatchSelected($select) {
+    const $modal = $select.closest('.modal');
+    $.get(Routing.generate(`get_dispatch_details`, {id: $select.val()}, true)).then(({content}) => {
+        $modal.find(`.dispatch-details`)
+            .empty()
+            .append(content);
+    });
 }

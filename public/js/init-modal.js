@@ -577,13 +577,11 @@ function processCheckboxesForm($modal, data, isAttachmentForm) {
  * @return {{errorMessages: Array<string>, success: boolean, $isInvalidElements: Array<*>}}
  */
 function processRadioButtonsForm($modal, data, isAttachmentForm) {
-    const $radioButtons = $modal.find('input[type=radio]:checked');
+    const $radioButtons = $modal.find('input[type=radio]:checked.data');
 
     $radioButtons.each(function () {
         const $radio = $(this);
-        if (!$radio.hasClass("no-data")) {
-            saveData($radio, data, $radio.attr("name"), $radio.val(), isAttachmentForm);
-        }
+        saveData($radio, data, $radio.attr("name"), $radio.val(), isAttachmentForm);
     });
 
     return {

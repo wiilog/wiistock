@@ -543,7 +543,7 @@ class ArrivageController extends AbstractController {
                 'arrivage' => $arrivage,
                 'canBeDeleted' => $arrivageRepository->countUnsolvedDisputesByArrivage($arrivage) == 0,
                 'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage),
-                'allPacksAlreadyInDispatch' => $arrivage->getPacks()->count() >= $arrivageRepository->countArrivalPacksInDispatch($arrivage->getId())
+                'allPacksAlreadyInDispatch' => $arrivage->getPacks()->count() <= $arrivageRepository->countArrivalPacksInDispatch($arrivage)
             ]),
             'alertConfigs' => $alertConfig
         ];

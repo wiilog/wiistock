@@ -168,10 +168,16 @@ div.DTCR_pointer {
     z-index: 201
 }
 
+.dataTable thead th,
+.dataTable tbody td,
 .dataTables_scrollHead thead th,
 .dataTables_scrollBody tbody td {
     border: none;
     border-bottom: 1px solid $grey !important;
+}
+
+table.dataTable.no-footer {
+    border-bottom: none;
 }
 
 .focus-shadow .dataTables_scrollBody tbody tr {

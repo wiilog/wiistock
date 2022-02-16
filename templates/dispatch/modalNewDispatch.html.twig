@@ -14,13 +14,13 @@
                     <div class="row">
                         <div class="col-12">
                             <div class="form-group">
-                                <label class="wii-field-text">
+                                <label class="wii-field-text pointer">
                                     <input type="radio" class="no-clear data" name="existingOrNot" value="0" checked>
                                     Créer une nouvelle demande
                                 </label>
                             </div>
                             <div class="form-group">
-                                <label class="wii-field-text">
+                                <label class="wii-field-text pointer">
                                     <input type="radio" class="no-clear data" name="existingOrNot" value="1">
                                     Ajouter à une demande existante
                                 </label>
@@ -28,9 +28,9 @@
                         </div>
                     </div>
 
-                    <div class="subtitle mt-3">Ma demande d'acheminement</div>
+                    <div class="subtitle">Ma demande d'acheminement</div>
 
-                    <div class="row existing-dispatch my-3 d-none">
+                    <div class="row existing-dispatch mt-3 d-none">
                         <div class="col-12 form-group">
                             <label class="wii-field-name">Mes demandes</label>
                             <select class="w-100 data no-clear" name="existingDispatch" data-s2 data-placeholder="Sélectionnez un acheminement">
@@ -45,7 +45,7 @@
                         </div>
                     </div>
 
-                    <div class="row dispatch-details"></div>
+                    <div class="row dispatch-details mb-3"></div>
                 {% endif %}
 
                 <div class="row new-dispatch mt-3">
@@ -259,7 +259,7 @@
                                        title="Date d'échéance min"
                                        data-init="{{ preFill ? "now"|date('Y-m-d') }}"
                                        placeholder="jj/mm/aaaa"/>
-                                <div class="input-group-prepend">
+                                <div class="input-group-prepend input-group-append">
                                     <span class="input-group-text w-50px">Au</span>
                                 </div>
                                 <input type="date"
@@ -298,7 +298,7 @@
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                         <div class="form-group col">
-                            <label>Commentaire{{ required ? '*' }}</label>
+                            <label class="bold">Commentaire{{ required ? '*' }}</label>
                             <input class="commentaire form-control data {{ required ? 'needed' }}" name="commentaire" type="hidden">
                             <div class="editor-container" id="editor-container-new">
                             </div>
@@ -311,7 +311,8 @@
                         <div class="form-group col-md-4 col-12">
                             {% include 'attachment/attachment.html.twig' with {
                                 'isNew': true,
-                                'required': required
+                                'required': required,
+                                'fieldNameClass': 'bold'
                             } %}
                         </div>
                     {% else %}
@@ -320,7 +321,7 @@
                 </div>
 
                 {% if packs is defined and packs is not empty %}
-                    <div class="subtitle mt-3">Colis à acheminer</div>
+                    <div class="subtitle">Colis à acheminer</div>
                     <div class="row mt-3">
                         <div class="col-12 arrival-dispatch-packs">
                             {% for pack in packs %}

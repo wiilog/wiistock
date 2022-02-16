@@ -184,7 +184,9 @@ class ArrivageRepository extends EntityRepository
         $qb = $this->createQueryBuilder("arrival")
             ->addSelect('SUM(main_packs.weight) AS totalWeight')
             ->addSelect('COUNT(main_packs.id) AS packsCount')
+            ->addSelect('COUNT(main_dispatch_packs.id) AS dispatchedPacksCount')
             ->leftJoin('arrival.packs', 'main_packs')
+            ->leftJoin('main_packs.dispatchPacks', 'main_dispatch_packs')
             ->groupBy('arrival');
 
         // filtre arrivages de l'utilisateur
@@ -435,13 +437,14 @@ class ArrivageRepository extends EntityRepository
             ->toArray();
     }
 
-    public function countArrivalPacksInDispatch(int $arrivalId) {
+    public function countArrivalPacksInDispatch(Arrivage $arrival): int {
         return $this->createQueryBuilder('arrival')
             ->select("COUNT(dispatch_packs)")
             ->leftJoin('arrival.packs', 'packs')
             ->leftJoin('packs.dispatchPacks', 'dispatch_packs')
-            ->where('arrival.id = :arrivalId')
-            ->setParameter('arrivalId', $arrivalId)
+            ->where('arrival.id = :arrival')
+            ->setParameter('arrival', $arrival)
+            ->setMaxResults(1)
             ->getQuery()
             ->getSingleScalarResult();
     }

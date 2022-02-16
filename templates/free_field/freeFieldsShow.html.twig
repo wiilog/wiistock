@@ -1,11 +1,11 @@
-{% set containerClass = containerClass is defined and containerClass ? wrapperClass ~ 'row' %}
+{% set containerClass = containerClass is defined and containerClass ? containerClass ~ ' row' %}
 {% set wrapperClass = wrapperClass is defined and wrapperClass ? wrapperClass %}
 
 {% if values | length > 0 %}
     {% if containerClass %}<div class="{{ containerClass }}">{% endif %}
         {% for freeField in freeFields %}
             {% set value = values[freeField.id] ?? (freeField.defaultValue ?? '') %}
-            <div class="{{ wrapperClass ?? 'col-6 box-item mb-3' }}">
+            <div class="{{ wrapperClass ?: 'col-6 box-item mb-3' }}">
                 {% set displayedValue = value | format_helper('freeField', freeField) %}
                 <span class="wii-field-name">{{ freeField.label }}</span>
                 <span class="wii-body-text">{{ displayedValue != '' ? displayedValue : '-' }}</span>

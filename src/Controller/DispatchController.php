@@ -83,10 +83,8 @@ class DispatchController extends AbstractController {
     public function index(EntityManagerInterface $entityManager, DispatchService $service) {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
-        $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
-        $parametrageGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -103,7 +101,7 @@ class DispatchController extends AbstractController {
             'types' => $types,
             'fieldsParam' => $fieldsParam,
             'fields' => $fields,
-            'modalNewConfig' => $service->getNewDispatchConfig($statutRepository, $champLibreRepository, $fieldsParamRepository, $parametrageGlobalRepository, $types)
+            'modalNewConfig' => $service->getNewDispatchConfig($entityManager, $types)
         ]);
     }
 
@@ -181,7 +179,10 @@ class DispatchController extends AbstractController {
                         RedirectService $redirectService): Response {
         if(!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE) ||
             !$this->userService->hasRightFunction(Menu::DEM, Action::CREATE_ACHE)) {
-            return $this->redirectToRoute('access_denied');
+            return $this->json([
+                'success' => false,
+                'redirect' => $this->generateUrl('access_denied')
+            ]);
         }
 
         $post = $request->request;
@@ -198,9 +199,9 @@ class DispatchController extends AbstractController {
             }
         }
 
-        if($post->has('existingOrNot') && ($post->getInt('existingOrNot') === 1)) {
+        if($post->getBoolean('existingOrNot')) {
             $existingDispatch = $entityManager->find(Dispatch::class, $post->getInt('existingDispatch'));
-            $this->manageDispatchPacks($existingDispatch, $packs, $entityManager);
+            $dispatchService->manageDispatchPacks($existingDispatch, $packs, $entityManager);
 
             $entityManager->flush();
 
@@ -347,7 +348,7 @@ class DispatchController extends AbstractController {
         }
 
         if(!empty($packs)) {
-            $this->manageDispatchPacks($dispatch, $packs, $entityManager);
+            $dispatchService->manageDispatchPacks($dispatch, $packs, $entityManager);
         }
 
         $entityManager->persist($dispatch);
@@ -1560,22 +1561,20 @@ class DispatchController extends AbstractController {
     /**
      * @Route("/create-form-arrival-template", name="create_from_arrival_template", options={"expose"=true}, methods="POST")
      */
-    public function createFromArrivalTemplate(Request $request, EntityManagerInterface $manager, DispatchService $dispatchService) {
-        $statusRepository = $manager->getRepository(Statut::class);
-        $freeFieldRepository = $manager->getRepository(FreeField::class);
-        $fixedFieldRepository = $manager->getRepository(FieldsParam::class);
-        $globalSettingsRepository = $manager->getRepository(ParametrageGlobal::class);
+    public function createFromArrivalTemplate(Request $request, EntityManagerInterface $entityManager, DispatchService $dispatchService): JsonResponse {
+        $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
 
         $arrivals = [];
         $arrival = null;
         if($request->query->has('arrivals')) {
             $arrivalsIds = (array) $request->query->get('arrivals');
-            $arrivals = $manager->getRepository(Arrivage::class)->findBy(['id' => $arrivalsIds]);
+            $arrivals = $arrivageRepository->findBy(['id' => $arrivalsIds]);
         } else {
-            $arrival = $manager->find(Arrivage::class, $request->query->get('arrival'));
+            $arrival = $arrivageRepository->find($request->query->get('arrival'));
         }
 
-        $types = $manager->getRepository(Type::class)->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
+        $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
 
         $packs = [];
         if(!empty($arrivals)) {
@@ -1589,7 +1588,7 @@ class DispatchController extends AbstractController {
         return $this->json([
             'success' => true,
             'content' => $this->renderView('dispatch/modalNewDispatch.html.twig',
-                $dispatchService->getNewDispatchConfig($statusRepository, $freeFieldRepository, $fixedFieldRepository, $globalSettingsRepository, $types, $arrival, true, $packs)
+                $dispatchService->getNewDispatchConfig($entityManager, $types, $arrival, true, $packs)
             )
         ]);
     }
@@ -1597,7 +1596,7 @@ class DispatchController extends AbstractController {
     /**
      * @Route("/get-dispatch-details", name="get_dispatch_details", options={"expose"=true}, methods="GET")
      */
-    public function getDispatchDetails(Request $request, EntityManagerInterface $manager) {
+    public function getDispatchDetails(Request $request, EntityManagerInterface $manager): JsonResponse {
         $id = $request->query->get('id');
         $dispatch = $manager->find(Dispatch::class, $id);
 
@@ -1617,25 +1616,5 @@ class DispatchController extends AbstractController {
                 'freeFields' => $freeFields
             ]),
         ]);
-    }
-
-    public function manageDispatchPacks(Dispatch $dispatch, array $packs, EntityManagerInterface $entityManager) {
-        $packRepository = $entityManager->getRepository(Pack::class);
-
-        foreach($packs as $pack) {
-            $comment = $pack['packComment'];
-            $packId = $pack['packId'];
-            $packQuantity = (int)$pack['packQuantity'];
-            $pack = $packRepository->find($packId);
-            $pack
-                ->setComment($comment);
-            $packDispatch = new DispatchPack();
-            $packDispatch
-                ->setPack($pack)
-                ->setTreated(false)
-                ->setQuantity($packQuantity)
-                ->setDispatch($dispatch);
-            $entityManager->persist($packDispatch);
-        }
     }
 }
