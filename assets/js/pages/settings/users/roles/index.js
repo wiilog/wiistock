@@ -9,7 +9,7 @@ export function initializeRolesPage() {
             { data: 'actions', title : '', className: 'noVis', orderable: false, width: '10px'},
             { data: 'name', title: 'Nom'},
             { data: 'quantityType', title : 'Ajout quantité' },
-            { data: 'isMailSendAccountCreation', title : 'Réception mail création nouveau compte' },
+            { data: 'isMailSendAccountCreation', title : 'Réception email création nouveau compte' },
         ],
         rowConfig: {
             needsRowClickAction: true

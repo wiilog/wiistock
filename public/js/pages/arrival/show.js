@@ -1,5 +1,4 @@
 $('.select2').select2();
-let originalText = '';
 let tableHistoLitige;
 
 $(function () {
@@ -34,6 +33,8 @@ $(function () {
                 let $submitNewDispatch = $("#submitNewDispatch");
                 let urlDispatchNew = Routing.generate('dispatch_new', true);
                 InitModal($modalNewDispatch, $submitNewDispatch, urlDispatchNew);
+
+                initNewDispatchEditor('#modalNewDispatch');
             });
     });
 
@@ -187,20 +188,17 @@ function openTableHisto() {
     tableHistoLitige = initDataTable('tableHistoLitige', tableHistoLitigeConfig);
 }
 
-function editRowArrivage(button) {
+function editRowArrivage($button) {
     let path = Routing.generate('arrivage_edit_api', true);
     let modal = $('#modalEditArrivage');
     let submit = $('#submitEditArrivage');
-    let id = button.data('id');
+    let id = $button.data('id');
     let params = {id: id};
 
     $.post(path, JSON.stringify(params), function (data) {
         modal.find('.error-msg').html('');
         modal.find('.modal-body').html(data.html);
-        const quillEdit = initEditor('.editor-container-edit');
-        if (quillEdit) {
-            originalText = quillEdit.getText();
-        }
+
         modal.find('#acheteursEdit').val(data.acheteurs).select2();
         modal.find('.select2').select2();
         initDateTimePicker('.date-cl');
@@ -287,5 +285,14 @@ function getNewDisputeModalContent($button) {
                 $orderNumbersSelect.append(new Option(value, value, false, false));
             });
             $orderNumbersSelect.val(orderNumbersValues).select2();
+
+            const $operatorSelect = $modalNewDispute.find(`select[name=disputeReporter]`);
+            const $loggedUserInput = $modalNewDispute.find('input[hidden][name="logged-user"]');
+            let option = new Option($loggedUserInput.data('username'), $loggedUserInput.data('id'), true, true);
+            $operatorSelect
+                .val(null)
+                .trigger('change')
+                .append(option)
+                .trigger('change');
         });
 }

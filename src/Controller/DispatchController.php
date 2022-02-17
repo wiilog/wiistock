@@ -854,7 +854,7 @@ class DispatchController extends AbstractController {
                 } catch (Exception $e) {
                     return new JsonResponse([
                         'success' => false,
-                        'msg' => "L'envoi du mail ou de la notification a échoué. Veuillez rééssayer."
+                        'msg' => "L'envoi de l'email ou de la notification a échoué. Veuillez rééssayer."
                     ]);
                 }
 
@@ -905,13 +905,6 @@ class DispatchController extends AbstractController {
                 /** @var Utilisateur $loggedUser */
                 $loggedUser = $this->getUser();
                 $dispatchService->treatDispatchRequest($entityManager, $dispatch, $treatedStatus, $loggedUser);
-
-                $packs = Stream::from($dispatch->getDispatchPacks())->map(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack())->toArray();
-                $now = new DateTime('now');
-
-                foreach ($packs as $pack) {
-                    $arrivalService->sendMailForDeliveredPack($dispatch->getLocationTo(), $pack, $loggedUser, TrackingMovement::TYPE_DEPOSE, $now);
-                }
 
                 $entityManager->flush();
             } else {

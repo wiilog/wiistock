@@ -328,7 +328,7 @@ function initDataTable($table, options) {
     const colReorderActivated = config.page
         ? {
             colReorder: {
-                enable: true,
+                enable: !config.disabledRealtimeReorder,
                 realtime: false,
             }
         }
@@ -517,21 +517,24 @@ function getAndApplyOrder(config, datatable) {
         page: config.page,
     };
 
+    datatable.off('column-reorder');
+
     return $.get(Routing.generate('get_columns_order'), params)
         .then((result) => {
-            if(result.order.length > 0) {
+            if (result.order.length > 0) {
                 datatable.colReorder.order(result.order);
             }
         })
         .then(() => {
-            datatable
-                .off('column-reorder')
-                .on('column-reorder', function () {
-                    params.order = datatable.colReorder.order();
+            if (!config.disabledRealtimeReorder) {
+                datatable
+                    .on('column-reorder', function () {
+                        params.order = datatable.colReorder.order();
 
-                    $.post(Routing.generate('set_columns_order'), params).then(() => {
-                        showBSAlert(`Vos préférences d'ordre de colonnes ont bien été enregistrées`, `success`);
+                        $.post(Routing.generate('set_columns_order'), params).then(() => {
+                            showBSAlert(`Vos préférences d'ordre de colonnes ont bien été enregistrées`, `success`);
+                        });
                     });
-                });
+            }
         });
 }

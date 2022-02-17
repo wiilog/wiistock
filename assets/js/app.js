@@ -270,4 +270,6 @@ $(document).ready(() => {
             subtree: true
         });
     }
+
+    WysiwygManager.initializeWYSIWYG($(document));
 });

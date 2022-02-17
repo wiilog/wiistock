@@ -1,5 +1,3 @@
-let editorNewArticleAlreadyDone = false;
-let editorNewReferenceArticleAlreadyDone = false;
 let editorNewLivraisonAlreadyDoneForDL = false;
 let tableArticle;
 let tableLitigesReception;
@@ -317,10 +315,6 @@ function initNewArticleEditor(modal) {
     let $select2refs = $modal.find('[name="referenceArticle"]');
     Select2Old.articleReference($select2refs);
 
-    if (!editorNewArticleAlreadyDone) {
-        initEditorInModal(modal);
-        editorNewArticleAlreadyDone = true;
-    }
     clearAddRefModal();
     clearModal(modal);
 
@@ -391,10 +385,6 @@ function articleChanged($select) {
 }
 
 function initNewReferenceArticleEditor($modal) {
-    if (!editorNewReferenceArticleAlreadyDone) {
-        initEditor('.editor-container-new');
-        editorNewReferenceArticleAlreadyDone = true;
-    }
     Select2Old.provider($modal.find('.ajax-autocomplete-fournisseur'));
     Select2Old.provider($modal.find('.ajax-autocomplete-fournisseurLabel'), '', 'demande_label_by_fournisseur');
     Select2Old.location($modal.find('.ajax-autocomplete-location'));
@@ -562,10 +552,6 @@ function demandeurChanged($select) {
 }
 
 function initNewLigneReception($button) {
-    if (!editorNewLivraisonAlreadyDoneForDL) {
-        initEditorInModal(modalNewLigneReception);
-        editorNewLivraisonAlreadyDoneForDL = true;
-    }
     Select2Old.init($modalNewLigneReception.find('.ajax-autocomplete-location'), '', 1, {route: 'get_emplacement'});
     Select2Old.location($('.ajax-autocomplete-location-edit'));
     Select2Old.init($('.select2-type'));

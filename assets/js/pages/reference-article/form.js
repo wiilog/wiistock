@@ -1,13 +1,10 @@
 import '../../../scss/pages/reference-article.scss';
-import {initEditor} from '../../utils';
 
 window.onTypeQuantityChange = onTypeQuantityChange;
 window.toggleEmergency = toggleEmergency;
 window.changeNewReferenceStatus = changeNewReferenceStatus;
 
 $(document).ready(() => {
-    initEditor(`.editor-container`);
-
     $(`.add-supplier-article`).click(function() {
         $(this).siblings(`.supplier-articles`).append($(`#supplier-article-template`).html());
     });

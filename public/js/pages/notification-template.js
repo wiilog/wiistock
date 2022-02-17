@@ -197,7 +197,6 @@ function onTemplateTypeChange($select) {
 
         if(type === 'mail' || type === 'push') {
             $('#upload-mail-image').on('change', () => updateImagePreview('#preview-mail-image', '#upload-mail-image'));
-            initEditor('.editor-container');
         } else if(type === 'sms') {
             const $input = $('input[name=receivers]');
             initTelInput($input);

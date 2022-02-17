@@ -8,9 +8,8 @@
                      data-target="#modalEditAlertTemplate"
                      data-id="{{ alert_template.id }}"
                      onclick="editRow($(this), Routing.generate('alert_template_edit_api', true),
-                     $('#modalEditAlertTemplate'), $('#modalEditAlertTemplate').find('.submit-button'),
-                     true, '#modalEditAlertTemplate .editor-container', false, () => {
-                         $('#upload-mail-image').on('change', () => updateImagePreview('#preview-mail-image', '#upload-mail-image'));
+                     $('#modalEditAlertTemplate'), $('#modalEditAlertTemplate').find('.submit-button'), false, () => {
+                         updateImagePreview('#preview-mail-image', '#upload-mail-image');
                      })">
                     <i class='fas fa-edit mr-2'></i>Modifier
                 </div>

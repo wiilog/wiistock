@@ -3,11 +3,11 @@
 <div class="wii-section">
     <div class="row">
         <div class="col-12 my-1">
-            {{ form.checkbox(setting('SEND_MAIL_MANAGER_SECURITY_THRESHOLD'), 'Envoi de mail au gestionnaire de la référence si seuil de sécurité atteint', false, setting_value('SEND_MAIL_MANAGER_SECURITY_THRESHOLD')) }}
+            {{ form.checkbox(setting('SEND_MAIL_MANAGER_SECURITY_THRESHOLD'), 'Envoi d\'un email au gestionnaire de la référence si seuil de sécurité atteint', false, setting_value('SEND_MAIL_MANAGER_SECURITY_THRESHOLD')) }}
         </div>
 
         <div class="col-12 my-1">
-            {{ form.checkbox(setting('SEND_MAIL_MANAGER_WARNING_THRESHOLD'), "Envoi de mail au gestionnaire de la référence si seuil d'alerte atteint", false, setting_value('SEND_MAIL_MANAGER_WARNING_THRESHOLD')) }}
+            {{ form.checkbox(setting('SEND_MAIL_MANAGER_WARNING_THRESHOLD'), "Envoi d\'un email au gestionnaire de la référence si seuil d'alerte atteint", false, setting_value('SEND_MAIL_MANAGER_WARNING_THRESHOLD')) }}
         </div>
 
         <div class="col-12 my-1">

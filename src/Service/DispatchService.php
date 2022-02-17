@@ -66,6 +66,9 @@ class DispatchService {
     /** @Required */
     public VisibleColumnService $visibleColumnService;
 
+    /** @Required */
+    public ArrivageService $arrivalService;
+
     private ?array $freeFieldsConfig = null;
 
     public function getDataForDatatable(InputBag $params) {
@@ -502,6 +505,14 @@ class DispatchService {
         $entityManager->flush();
 
         $this->sendEmailsAccordingToStatus($dispatch, true);
+
+        $packs = Stream::from($dispatch->getDispatchPacks())
+            ->map(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack())
+            ->toArray();
+
+        foreach ($packs as $pack) {
+            $this->arrivalService->sendMailForDeliveredPack($dispatch->getLocationTo(), $pack, $loggedUser, TrackingMovement::TYPE_DEPOSE, $date);
+        }
     }
 
     public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, Utilisateur $currentUser): array {

@@ -4,7 +4,7 @@ function checkIfUserExists() {
         if (data === 'inactiv') {
             $('.error-msg').html('Votre compte est inactif, veuillez contacter l\'administrateur de votre application.');
         } else if (data === 'mailNotFound') {
-            $('.error-msg').html('Il n\'existe pas de compte associé à cette adresse mail.');
+            $('.error-msg').html('Il n\'existe pas de compte associé à cette adresse email.');
         } else {
             let $confirmMsg = $('#alert-success');
             $confirmMsg

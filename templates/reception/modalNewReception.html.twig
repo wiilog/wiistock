@@ -183,7 +183,7 @@
                             <input id='commentaire'
                                    class="form-control data {{ fieldsParam|isFieldRequired('commentaire', 'requiredCreate') ? 'needed' : '' }}"
                                    name="commentaire" type="hidden">
-                            <div class="editor-container" id='editor-container'></div>
+                            <div class="editor-container" data-wysiwyg></div>
                         </div>
                     {% endif %}
                     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_ATTACHMENTS') %}

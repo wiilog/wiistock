@@ -68,9 +68,7 @@
                         editRow($(this),
                         Routing.generate('demandeLivraison_api_edit', true),
                         $('#modalEditDemande'),
-                        $('#submitEditdemande'),
-                        true,
-                        '#modalEditDemande .editor-container-edit', false,
+                        $('#submitEditdemande'), false,
                         () => initDeliveryRequestModal()
                 );"
                    data-id='{{ demande.id }}'

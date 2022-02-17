@@ -72,7 +72,7 @@ class SettingsController extends AbstractController {
                 self::MENU_WORKING_HOURS => ["label" => "Heures travaillées"],
                 self::MENU_OFF_DAYS => ["label" => "Jours non travaillés"],
                 self::MENU_MAIL_SERVER => [
-                    "label" => "Serveur mail",
+                    "label" => "Serveur email",
                     "save" => true,
                 ],
             ],
@@ -898,7 +898,7 @@ class SettingsController extends AbstractController {
                 $mailsEnabled = $type && $type->getSendMail() ? "checked" : "";
 
                 $data[] = [
-                    "label" => "Envoi de mail au demandeur",
+                    "label" => "Envoi d'un email au demandeur",
                     "value" => "<input name='pushNotifications' type='checkbox' class='data form-control mt-1' $mailsEnabled>",
                 ];
             }
@@ -978,7 +978,7 @@ class SettingsController extends AbstractController {
 
             if($category === CategoryType::DEMANDE_LIVRAISON) {
                 $data[] = [
-                    "label" => "Envoi de mail au demandeur",
+                    "label" => "Envoi d'un email au demandeur",
                     "value" => $type->getSendMail() ? "Activées" : "Désactivées",
                 ];
             }

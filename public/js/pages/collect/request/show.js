@@ -62,7 +62,6 @@ function ajaxGetCollecteArticle(select) {
         toggleRequiredChampsLibres(select.closest('.modal').find('#type'), 'edit');
         Select2Old.location($('.ajax-autocomplete-location-edit'));
         Select2Old.user($('.ajax-autocomplete-user-edit[name=managers]'));
-        initEditor(modalNewArticle + ' .editor-container-edit');
         $('.list-multiple').select2();
     });
     $selection.html('');
@@ -103,7 +102,6 @@ function ajaxEditArticle (select) {
     $.post(path, JSON.stringify(params), function(data) {
         $('#editNewArticle').html(data);
         Select2Old.location($('.ajax-autocomplete-location-edit'));
-        initEditor('.editor-container-edit');
     }, 'json');
 }
 

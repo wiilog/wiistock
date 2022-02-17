@@ -1,5 +1,3 @@
-//initialisation editeur de texte une seule fois
-let editorNewReceptionAlreadyDone = false;
 let onFlyFormOpened = {};
 let receptionsTable;
 
@@ -42,10 +40,7 @@ function initNewReceptionEditor(modal) {
     onFlyFormOpened = {};
     onFlyFormToggle('fournisseurDisplay', 'addFournisseur', true);
     onFlyFormToggle('transporteurDisplay', 'addTransporteur', true);
-    if (!editorNewReceptionAlreadyDone) {
-        initEditorInModal(modal);
-        editorNewReceptionAlreadyDone = true;
-    }
+
     Select2Old.provider($('.ajax-autocomplete-fournisseur'));
     Select2Old.location($('.ajax-autocomplete-location'));
     Select2Old.carrier($modal.find('.ajax-autocomplete-transporteur'));
