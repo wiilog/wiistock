@@ -225,13 +225,20 @@ class UserController extends AbstractController {
                 }
             }
 
+            $dropzone = explode(":", $data['dropzone']);
+            if($dropzone[0] === 'location') {
+                $dropzone = $entityManager->find(Emplacement::class, $dropzone[1]);
+            } elseif($dropzone[0] === 'locationGroup') {
+                $dropzone = $entityManager->find(LocationGroup::class, $dropzone[1]);
+            }
+
             $user
                 ->setSecondaryEmails($secondaryEmails)
                 ->setRole($role)
                 ->setStatus($data['status'])
                 ->setUsername($data['username'])
                 ->setAddress($data['address'])
-                ->setDropzone($data['dropzone'] ? $emplacementRepository->find(intval($data['dropzone'])) : null)
+                ->setDropzone($dropzone)
                 ->setEmail($data['email'])
                 ->setPhone($data['phoneNumber'] ?? '');
 
@@ -439,6 +446,13 @@ class UserController extends AbstractController {
                 }
             }
 
+            $dropzone = explode(":", $data['dropzone']);
+            if($dropzone[0] === 'location') {
+                $dropzone = $entityManager->find(Emplacement::class, $dropzone[1]);
+            } elseif($dropzone[0] === 'locationGroup') {
+                $dropzone = $entityManager->find(LocationGroup::class, $dropzone[1]);
+            }
+
             $utilisateur = new Utilisateur();
             $uniqueMobileKey = $userService->createUniqueMobileLoginKey($entityManager);
             $role = $roleRepository->find($data['role']);
@@ -449,15 +463,9 @@ class UserController extends AbstractController {
                 ->setPhone($data['phoneNumber'])
                 ->setRole($role)
                 ->setStatus(true)
+                ->setDropzone($dropzone)
                 ->setAddress($data['address'])
                 ->setMobileLoginKey($uniqueMobileKey);
-
-            $dropzone = explode(":", $data['dropzone']);
-            if($dropzone[0] === 'location') {
-                $utilisateur->setDropzone($entityManager->find(Emplacement::class, $dropzone[1]));
-            } elseif($dropzone[0] === 'locationGroup') {
-                $utilisateur->setDropzone($entityManager->find(LocationGroup::class, $dropzone[1]));
-            }
 
             if ($password !== '') {
                 $password = $encoder->hashPassword($utilisateur, $data['password']);
