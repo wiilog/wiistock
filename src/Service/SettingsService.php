@@ -164,20 +164,17 @@ class SettingsService {
             ]);
         }
 
-        if($this->saveDefaultImage($data, $request->files, $settings, Setting::WEBSITE_LOGO, Setting::DEFAULT_WEBSITE_LOGO_VALUE)) {
-            $saved[] = Setting::WEBSITE_LOGO;
-        }
-
-        if($this->saveDefaultImage($data, $request->files, $settings, Setting::MOBILE_LOGO_LOGIN, Setting::DEFAULT_MOBILE_LOGO_LOGIN_VALUE)) {
-            $saved[] = Setting::MOBILE_LOGO_LOGIN;
-        }
-
-        if($this->saveDefaultImage($data, $request->files, $settings, Setting::EMAIL_LOGO, Setting::DEFAULT_EMAIL_LOGO_VALUE)) {
-            $saved[] = Setting::EMAIL_LOGO;
-        }
-
-        if($this->saveDefaultImage($data, $request->files, $settings, Setting::MOBILE_LOGO_HEADER, Setting::DEFAULT_MOBILE_LOGO_HEADER_VALUE)) {
-            $saved[] = Setting::MOBILE_LOGO_HEADER;
+        $logosToSave = [
+            [Setting::WEBSITE_LOGO, Setting::DEFAULT_WEBSITE_LOGO_VALUE],
+            [Setting::MOBILE_LOGO_LOGIN, Setting::DEFAULT_MOBILE_LOGO_LOGIN_VALUE],
+            [Setting::EMAIL_LOGO, Setting::DEFAULT_EMAIL_LOGO_VALUE],
+            [Setting::MOBILE_LOGO_HEADER, Setting::DEFAULT_MOBILE_LOGO_HEADER_VALUE],
+        ];
+        foreach ($logosToSave as [$setting, $default]) {
+            if (isset($settings[$setting])
+                && $this->saveDefaultImage($data, $request->files, $settings, $setting, $default)) {
+                $saved[] = $setting;
+            }
         }
 
         if ($data->has("en_attente_de_réception") && $data->has("réception_partielle") && $data->has("réception_totale") && $data->has("anomalie")) {
