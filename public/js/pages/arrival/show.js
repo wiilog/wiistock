@@ -33,6 +33,8 @@ $(function () {
                 let $submitNewDispatch = $("#submitNewDispatch");
                 let urlDispatchNew = Routing.generate('dispatch_new', true);
                 InitModal($modalNewDispatch, $submitNewDispatch, urlDispatchNew);
+
+                initNewDispatchEditor('#modalNewDispatch');
             });
     });
 
