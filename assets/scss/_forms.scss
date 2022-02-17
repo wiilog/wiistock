@@ -423,6 +423,7 @@ input[type="checkbox"] {
     }
 
     &:disabled {
+        border-color: $grey;
         cursor: not-allowed !important;
     }
 }
