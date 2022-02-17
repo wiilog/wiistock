@@ -37,7 +37,7 @@
 
 {% macro tooltip(tooltip, inline) %}
     {% if tooltip is not null %}
-        <sup class="input-tooltip">
+        <sup class="input-tooltip" onclick="event.preventDefault()">
             <img src="{{ asset('svg/reference_article/information.svg') }}"
                  alt="Icône information"
                  width="{{ inline ? '15px' : '10px' }}"
