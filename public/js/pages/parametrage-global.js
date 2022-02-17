@@ -158,7 +158,7 @@ function ajaxMailerServer() {
     let params = JSON.stringify(json);
     let path = Routing.generate('ajax_mailer_server', true);
     $.post(path, params).then(() => {
-        showBSAlert('La configuration du serveur mail a bien été mise à jour.', 'success');
+        showBSAlert('La configuration du serveur email a bien été mise à jour.', 'success');
     });
 }
 

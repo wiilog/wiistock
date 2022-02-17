@@ -854,7 +854,7 @@ class DispatchController extends AbstractController {
                 } catch (Exception $e) {
                     return new JsonResponse([
                         'success' => false,
-                        'msg' => "L'envoi du mail ou de la notification a échoué. Veuillez rééssayer."
+                        'msg' => "L'envoi de l'email ou de la notification a échoué. Veuillez rééssayer."
                     ]);
                 }
 

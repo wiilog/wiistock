@@ -101,8 +101,8 @@ class AlertTemplateController extends AbstractController
                 return $this->json([
                     'success' => false,
                     'msg' => $counter === 1
-                        ? 'Une adresse mail n\'est pas valide dans votre saisie'
-                        : 'Plusieurs adresses mail ne sont pas valides dans votre saisie'
+                        ? 'Une adresse email n\'est pas valide dans votre saisie'
+                        : 'Plusieurs adresses email ne sont pas valides dans votre saisie'
                 ]);
             }
 
@@ -210,7 +210,7 @@ class AlertTemplateController extends AbstractController
                     'success' => false,
                     'msg' => $counter === 1
                         ? 'Une adresse mail n\'est pas valide dans votre saisie'
-                        : 'Plusieurs adresses mail ne sont pas valides dans votre saisie'
+                        : 'Plusieurs adresses email ne sont pas valides dans votre saisie'
                 ]);
             }
 
