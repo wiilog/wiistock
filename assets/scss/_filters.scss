@@ -76,6 +76,10 @@
 
 .filter-input {
     width: 260px !important;
+
+    &.disabled {
+        cursor: not-allowed !important;
+    }
 }
 
 .filter-select2 {
@@ -96,6 +100,10 @@
     color: $darkGrey !important;
     font-size: 0.9rem;
     border-radius: 5px;
+
+    &.disabled {
+        cursor: not-allowed !important;
+    }
 }
 
 .w-50px {

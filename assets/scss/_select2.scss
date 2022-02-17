@@ -135,4 +135,9 @@ $select-height: subtract($input-height, 2px);
 
 .select2-container--disabled {
     cursor: not-allowed;
+    @extend .form-control:disabled;
+
+    .select2-selection {
+        background-color: transparent !important;
+    }
 }

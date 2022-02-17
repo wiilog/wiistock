@@ -64,7 +64,7 @@ $(function () {
     const $arrivalsTable = $(`#arrivalsTable`);
     const $dispatchModeContainer = $(`.dispatch-mode-container`);
     const $arrivalModeContainer = $(`.arrival-mode-container`);
-    const $filtersInputs = $(`.filters-container`).find(`select, input, button`);
+    const $filtersInputs = $(`.filters-container`).find(`select, input, button, .checkbox-filter`);
     $(`.dispatch-mode-button`).on(`click`, function() {
         $(this).pushLoader(`black`);
         arrivalsTable.destroy();
@@ -73,7 +73,7 @@ $(function () {
             $(`.dataTables_filter`).parent().remove();
             $dispatchModeContainer.removeClass(`d-none`);
             $arrivalModeContainer.addClass(`d-none`);
-            $filtersInputs.prop(`disabled`, true);
+            $filtersInputs.prop(`disabled`, true).addClass(`disabled`);
             $(this).popLoader();
         });
     });
@@ -105,7 +105,7 @@ $(function () {
             arrivalsTable = returnedArrivalsTable;
             $arrivalModeContainer.removeClass(`d-none`);
             $dispatchModeContainer.addClass(`d-none`);
-            $filtersInputs.prop(`disabled`, false);
+            $filtersInputs.prop(`disabled`, false).removeClass(`disabled`);
             $(this).popLoader();
         });
     });
