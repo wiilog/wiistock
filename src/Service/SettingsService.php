@@ -24,6 +24,8 @@ use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\HttpFoundation\FileBag;
+use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Process\Process;
@@ -57,25 +59,20 @@ class SettingsService {
             array_keys($request->request->all()),
             array_keys($request->files->all()),
         );
-
         $allFormSettingNames = json_decode($request->request->get('__form_fieldNames', '[]'), true);
-        $settingNamesToClear = array_diff($allFormSettingNames, $settingNames);
-        $settingToClear = !empty($settingNamesToClear) ? $settingRepository->findByLabel($settingNamesToClear) : [];
 
-        $this->clearSettings($settingToClear);
-
-        $settings = $settingRepository->findByLabel($settingNames);
+        $settings = $settingRepository->findByLabel(array_merge($settingNames, $allFormSettingNames));
 
         if($request->request->has("datatables")) {
             $result = $this->saveDatatables(json_decode($request->request->get("datatables"), true), $request->request->all());
             $request->request->remove("datatables");
         }
 
-        $alreadySaved = $this->customSave($request, $settings);
+        $customUpdated = $this->customSave($request, $settings);
         $updated = [];
 
         foreach($request->request->all() as $key => $value) {
-            if(in_array($key, $alreadySaved)) {
+            if(in_array($key, $customUpdated)) {
                 continue;
             }
 
@@ -95,7 +92,7 @@ class SettingsService {
         }
 
         foreach($request->files->all() as $key => $value) {
-            if(in_array($key, $alreadySaved)) {
+            if(in_array($key, $customUpdated)) {
                 continue;
             }
 
@@ -108,6 +105,11 @@ class SettingsService {
             $setting->setValue("uploads/attachements/" . $fileName[array_key_first($fileName)]);
             $updated[] = $key;
         }
+
+        $settingNamesToClear = array_diff($allFormSettingNames, $settingNames, $customUpdated, $updated);
+        $settingToClear = !empty($settingNamesToClear) ? $settingRepository->findByLabel($settingNamesToClear) : [];
+
+        $this->clearSettings($settingToClear);
 
         $this->manager->flush();
 
@@ -162,31 +164,19 @@ class SettingsService {
             ]);
         }
 
-        if($data->has(Setting::WEBSITE_LOGO) && $data->get(Setting::WEBSITE_LOGO) === "null") {
-            $setting = $settings[Setting::WEBSITE_LOGO];
-            $setting->setValue(Setting::DEFAULT_WEBSITE_LOGO_VALUE);
-
+        if($this->saveDefaultImage($data, $request->files, $settings, Setting::WEBSITE_LOGO, Setting::DEFAULT_WEBSITE_LOGO_VALUE)) {
             $saved[] = Setting::WEBSITE_LOGO;
         }
 
-        if($data->has(Setting::MOBILE_LOGO_LOGIN) && $data->get(Setting::MOBILE_LOGO_LOGIN) === "null") {
-            $setting = $settings[Setting::MOBILE_LOGO_LOGIN];
-            $setting->setValue(Setting::DEFAULT_MOBILE_LOGO_LOGIN_VALUE);
-
+        if($this->saveDefaultImage($data, $request->files, $settings, Setting::MOBILE_LOGO_LOGIN, Setting::DEFAULT_MOBILE_LOGO_LOGIN_VALUE)) {
             $saved[] = Setting::MOBILE_LOGO_LOGIN;
         }
 
-        if($data->has(Setting::EMAIL_LOGO) && $data->get(Setting::EMAIL_LOGO) === "null") {
-            $setting = $settings[Setting::EMAIL_LOGO];
-            $setting->setValue(Setting::DEFAULT_EMAIL_LOGO_VALUE);
-
+        if($this->saveDefaultImage($data, $request->files, $settings, Setting::EMAIL_LOGO, Setting::DEFAULT_EMAIL_LOGO_VALUE)) {
             $saved[] = Setting::EMAIL_LOGO;
         }
 
-        if($data->has(Setting::MOBILE_LOGO_HEADER) && $data->get(Setting::MOBILE_LOGO_HEADER) === "null") {
-            $setting = $settings[Setting::MOBILE_LOGO_HEADER];
-            $setting->setValue(Setting::DEFAULT_MOBILE_LOGO_HEADER_VALUE);
-
+        if($this->saveDefaultImage($data, $request->files, $settings, Setting::MOBILE_LOGO_HEADER, Setting::DEFAULT_MOBILE_LOGO_HEADER_VALUE)) {
             $saved[] = Setting::MOBILE_LOGO_HEADER;
         }
 
@@ -506,6 +496,22 @@ class SettingsService {
         foreach ($settings as $setting) {
             $setting->setValue(null);
         }
+    }
+
+    private function saveDefaultImage(InputBag $data,
+                                      FileBag $fileBag,
+                                      array $settings,
+                                      string $settingLabel,
+                                      string $defaultValue): bool {
+
+        $defaultImageSaved = false;
+        if(!$data->getBoolean('keep-' . $settingLabel) && !$fileBag->has($settingLabel)) {
+            $setting = $settings[$settingLabel];
+            $setting->setValue($defaultValue);
+            $defaultImageSaved = true;
+        }
+
+        return $defaultImageSaved;
     }
 
 }

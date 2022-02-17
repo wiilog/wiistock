@@ -9,8 +9,6 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Setting {
 
-    const DEFAULT_IMAGE = '/img/followGTwhite.svg';
-
     const DEFAULT_WEBSITE_LOGO_VALUE = '/img/followGTwhite.svg';
     const DEFAULT_EMAIL_LOGO_VALUE = '/img/gtlogistics.jpg';
     const DEFAULT_MOBILE_LOGO_LOGIN_VALUE = '/img/mobile_logo_login.svg';
