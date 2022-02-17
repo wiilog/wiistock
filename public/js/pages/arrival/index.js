@@ -68,7 +68,7 @@ $(function () {
     const $filtersInputs = $(`.filters-container`).find(`select, input, button, .checkbox-filter`);
     $(`.dispatch-mode-button`).on(`click`, function() {
         $(this).pushLoader(`black`);
-        arrivalsTable.destroy();
+        arrivalsTable.clear().destroy();
         initTableArrival(true).then((returnedArrivalsTable) => {
             arrivalsTable = returnedArrivalsTable;
             $(`.dataTables_filter`).parent().remove();
@@ -101,7 +101,7 @@ $(function () {
 
     $dispatchModeContainer.find(`.cancel`).on(`click`, function() {
         $(this).pushLoader(`primary`);
-        arrivalsTable.destroy();
+        arrivalsTable.clear().destroy();
         initTableArrival(false).then((returnedArrivalsTable) => {
             arrivalsTable = returnedArrivalsTable;
             $arrivalModeContainer.removeClass(`d-none`);
@@ -135,13 +135,10 @@ $(function () {
 
 function initTableArrival(dispatchMode = false) {
     let pathArrivage = Routing.generate('arrivage_api', {dispatchMode}, true);
-    $('#arrivalsTable').addClass('d-none');
-    $('.wii-page-card').css('overflow', 'hidden');
 
     return $
         .post(Routing.generate('arrival_api_columns', {dispatchMode}))
         .then((columns) => {
-            $('#arrivalsTable').removeClass('d-none');
             let tableArrivageConfig = {
                 serverSide: !dispatchMode,
                 processing: true,
