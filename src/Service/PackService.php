@@ -273,7 +273,7 @@ class PackService {
                         $this->mailerService->sendMail(
                             'Follow GT // Colis non récupéré',
                             $this->templating->render('mails/contents/mail-pack-delivery-done.html.twig', [
-                                'title' => 'Votre colis a été livré.',
+                                'title' => 'Votre colis est présent dans votre magasin depuis plus de 15 jours',
                                 'orderNumber' => implode(', ', $arrival->getNumeroCommandeList()),
                                 'colis' => FormatHelper::pack($pack),
                                 'emplacement' => $lastDrop->getEmplacement(),
