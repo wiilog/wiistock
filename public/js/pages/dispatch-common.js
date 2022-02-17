@@ -1,10 +1,4 @@
-let editorNewDispatchAlreadyDone = false;
-
 function initNewDispatchEditor(modal) {
-    if (!editorNewDispatchAlreadyDone) {
-        initEditorInModal(modal);
-        editorNewDispatchAlreadyDone = true;
-    }
     clearModal(modal);
     onDispatchTypeChange($("[name=type]"));
     Select2Old.user($(modal).find('.ajax-autocomplete-user'));

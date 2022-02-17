@@ -1,4 +1,3 @@
-let editorNewLivraisonAlreadyDone = false;
 let deliveryRequestTable = null;
 
 $(function () {
@@ -39,11 +38,6 @@ $(function () {
 });
 
 function initNewLivraisonEditor(modal) {
-    if (!editorNewLivraisonAlreadyDone) {
-        initEditorInModal(modal);
-        editorNewLivraisonAlreadyDone = true;
-    }
-
     clearModal(modal);
     Select2Old.location($('.ajax-autocomplete-location'));
     const type = ($('#modalNewDemande select[name="type"] option:selected').val());

@@ -113,7 +113,7 @@
             <input id='commentaire' class="form-control data" name="commentaire" type="hidden" value='{{ articleRef.commentaire }}'>
 
             {% set disableNomenclature = (isADemand is defined and isADemand) or disabled ? 'disabled' %}
-            <div class="form-control editor-container-edit comment {{ disableNomenclature }}">
+            <div class="form-control editor-container-edit comment {{ disableNomenclature }}" data-wysiwyg>
                 {{ articleRef.commentaire|raw }}
             </div>
 

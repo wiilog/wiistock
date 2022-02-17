@@ -49,6 +49,6 @@
 <div class="form-group">
     <label for="commentaire">Commentaire</label>
     <input id="commentaire" class="form-control data" name="commentaire" type="hidden" value="{{ demande.commentaire }}">
-    <div class="editor-container-edit" value="{{ demande.commentaire }}"> {{ demande.commentaire|raw }}
+    <div class="editor-container-edit" value="{{ demande.commentaire }}" data-wysiwyg> {{ demande.commentaire|raw }}
     </div>
 </div>

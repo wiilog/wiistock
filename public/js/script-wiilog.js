@@ -207,10 +207,6 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
             setMaxQuantityEdit($('#referenceEdit'));
         }
 
-        if (editorToInit) {
-            initEditor(editor);
-        }
-
         afterLoadingEditModal(modal);
     }, 'json');
 

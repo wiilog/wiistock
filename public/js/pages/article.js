@@ -77,10 +77,6 @@ function init() {
     InitModal($modalDeleteArticle, $submitDeleteArticle, urlDeleteArticle, { tables: [tableArticle] });
 }
 
-function initNewArticleEditor(modal) {
-    initEditor(modal + ' .editor-container-new');
-}
-
 function loadAndDisplayInfos(select) {
     if ($(select).val() !== null) {
         let path = Routing.generate('demande_reference_by_fournisseur', true);
@@ -90,7 +86,6 @@ function loadAndDisplayInfos(select) {
         $.post(path, params, function (data) {
             $('#newContent').html(data);
             $('#modalNewArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
-            initNewArticleEditor("#modalNewArticle");
             Select2Old.location($('.ajax-autocomplete-location'));
         })
     }
@@ -118,7 +113,6 @@ function getArticleFournisseur() {
                 registerNumberInputProtection($articleFourn.find('input[type="number"]'));
                 $('.error-msg').html('')
                 Select2Old.location($('.ajax-autocomplete-location'));
-                initNewArticleEditor("#modalNewArticle");
             } else if (data.error) {
                 $('.error-msg').html(data.error)
             }

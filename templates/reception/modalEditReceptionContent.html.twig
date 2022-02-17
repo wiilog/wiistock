@@ -205,7 +205,7 @@
                    name="commentaire" type="hidden"
                    value="{{ reception.commentaire }}">
             <div class="editor-container-edit" id="editor-container"
-                 value="{{ reception.commentaire }}"> {{ reception.commentaire|raw }}
+                 value="{{ reception.commentaire }}" data-wysiwyg> {{ reception.commentaire|raw }}
             </div>
         </div>
     {% endif %}

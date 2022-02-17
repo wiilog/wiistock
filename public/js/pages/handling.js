@@ -37,12 +37,7 @@ $(function() {
 
 
 //initialisation editeur de texte une seule fois
-let editorNewHandlingAlreadyDone = false;
 function initNewHandlingEditor(modal) {
-    if (!editorNewHandlingAlreadyDone) {
-        initEditor('.editor-container-new');
-        editorNewHandlingAlreadyDone = true;
-    }
     Select2Old.location($('.ajax-autocomplete-location'));
     onTypeChange($(modal).find('select[name="type"]'));
 }

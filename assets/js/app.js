@@ -18,7 +18,6 @@ import Snow from 'quill/themes/snow';
 import 'arrive';
 import firebase from "firebase/app";
 import "firebase/messaging";
-import "./utils";
 
 import BrowserSupport from './support';
 import Wiistock from './general';
@@ -264,4 +263,6 @@ $(document).ready(() => {
             subtree: true
         });
     }
+
+    WysiwygManager.initializeWYSIWYG($(document));
 });

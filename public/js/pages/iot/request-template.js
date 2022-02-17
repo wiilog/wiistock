@@ -35,10 +35,6 @@ let urlDeleteRequestTemplate = Routing.generate('request_template_delete', true)
 InitModal(modalDeleteRequestTemplate, `#submitDeleteRequestTemplate`, urlDeleteRequestTemplate, {tables: [table]});
 
 $(document).ready(() => {
-    initEditor('.handling-editor-container');
-    initEditor('.delivery-editor-container');
-    initEditor('.collect-editor-container');
-
     const $modal = $(`#modalNewRequestTemplate`);
     const $forms = {
         1: $modal.find(`.handling-form`),

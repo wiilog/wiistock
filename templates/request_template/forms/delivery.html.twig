@@ -61,7 +61,7 @@
                name="comment"
                type="hidden"
                value="{{ request_template.comment ?? '' }}">
-        <div class="delivery-editor-container{{ request_template.id ? '-edit' }}" value="{{ request_template.comment ?? '' }}">
+        <div class="delivery-editor-container{{ request_template.id ? '-edit' }}" value="{{ request_template.comment ?? '' }}" data-wysiwyg>
             {{ (request_template.comment ?? '') | raw }}
         </div>
     </div>
