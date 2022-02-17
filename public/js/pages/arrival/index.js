@@ -175,7 +175,8 @@ function initTableArrival(dispatchMode = false) {
                     tableFilter: 'arrivalsTable'
                 },
                 lengthMenu: [10, 25, 50, 100],
-                ...(!dispatchMode ? {page: 'arrival'} : {}),
+                page: 'arrival',
+                disabledRealtimeReorder: dispatchMode,
                 initCompleteCallback: () => {
                     updateArrivalPageLength();
                     $('.dispatch-mode-button').removeClass('d-none');
