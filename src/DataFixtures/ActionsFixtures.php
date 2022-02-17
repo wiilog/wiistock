@@ -14,7 +14,7 @@ use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use WiiCommon\Helper\Stream;
 
-class ActionsFixtures extends Fixture implements FixtureGroupInterface {
+class ActionsFixtures extends Fixture implements FixtureGroupInterface, DependentFixtureInterface {
 
     private ConsoleOutput $output;
 
@@ -443,4 +443,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface {
         return ["fixtures"];
     }
 
+    public function getDependencies(): array {
+        return [MenusFixtures::class];
+    }
 }
