@@ -57,10 +57,12 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
     public const MENUS = [
         Menu::TRACA => [
             Action::DISPLAY_ARRI,
+            Action::CREATE_ARRIVAL,
             Action::DISPLAY_MOUV,
             Action::DISPLAY_ASSO,
             Action::DISPLAY_ENCO,
             Action::DISPLAY_URGE,
+            Action::CREATE_EMERGENCY,
             Action::DISPLAY_PACK,
             Action::CREATE,
             Action::EDIT,
@@ -73,8 +75,6 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
             Action::EDIT_ARRI,
             Action::DELETE_ARRI,
             Action::EMPTY_ROUND,
-            Action::CREATE_ARRIVAL,
-            Action::CREATE_EMERGENCY,
         ],
         Menu::QUALI => [
             Action::DISPLAY_LITI,
