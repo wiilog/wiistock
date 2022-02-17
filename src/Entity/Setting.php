@@ -71,7 +71,7 @@ class Setting {
     const MOBILE_LOGO_LOGIN = 'MOBILE_LOGO_LOGIN';
     const MAX_SESSION_TIME = 'MAX_SESSION_TIME';
 
-    const DEFAULT_FONT_FAMILY = self::FONT_MONTSERRAT;
+    const DEFAULT_FONT_FAMILY = self::FONT_MYRIAD;
     const FONT_MONTSERRAT = 'Montserrat';
     const FONT_TAHOMA = 'Tahoma';
     const FONT_MYRIAD = 'Myriad';
