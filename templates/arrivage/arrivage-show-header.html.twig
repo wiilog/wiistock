@@ -21,10 +21,7 @@
             <button type="button"
                     data-id='{{ arrivage.id }}'
                     data-target='#modalEditArrivage'
-                    onclick="editRowArrivage(
-                            $(this), Routing.generate('arrivage_edit_api', true),
-                            $('#modalEditArrivage'),
-                            $('#submitEditArrivage'), true, '#modalEditArrivage .editor-container-edit')"
+                    onclick="editRowArrivage($(this))"
                     data-toggle='modal' class="btn btn-primary ml-auto split-button">
                 Modifier
             </button>

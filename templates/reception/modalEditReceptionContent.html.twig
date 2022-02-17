@@ -204,7 +204,7 @@
             <input id='commentaire' class="form-control data {{ fieldsParam|isFieldRequired('commentaire', 'requiredEdit') ? 'needed' : '' }}"
                    name="commentaire" type="hidden"
                    value="{{ reception.commentaire }}">
-            <div class="editor-container-edit" id="editor-container"
+            <div class="editor-container-edit"
                  value="{{ reception.commentaire }}" data-wysiwyg> {{ reception.commentaire|raw }}
             </div>
         </div>

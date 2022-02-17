@@ -186,11 +186,11 @@ function openTableHisto() {
     tableHistoLitige = initDataTable('tableHistoLitige', tableHistoLitigeConfig);
 }
 
-function editRowArrivage(button) {
+function editRowArrivage($button) {
     let path = Routing.generate('arrivage_edit_api', true);
     let modal = $('#modalEditArrivage');
     let submit = $('#submitEditArrivage');
-    let id = button.data('id');
+    let id = $button.data('id');
     let params = {id: id};
 
     $.post(path, JSON.stringify(params), function (data) {
