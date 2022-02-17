@@ -7,7 +7,7 @@
     {% endif %}
     <div>Colis : {{ colis }}</div>
     <div>Date de dépose : {{ date|date("d/m/Y") }} à {{ date|date("H:i:s") }}</div>
-    <div>Emplacement : {{ emplacement.label }}{% if emplacement.description is not empty %} : {{ emplacement.description }}{% endif %}</div>
+    <div>Emplacement : {{ emplacement.label }}</div>
     {% if operateur is defined %}
         <div>Opérateur : {{ operateur }}</div>
     {% endif %}
