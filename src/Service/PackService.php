@@ -268,7 +268,7 @@ class PackService {
                 if ($firstDrop) {
                     $now = new DateTime();
                     $ongoingDelay = $now->diff($firstDrop);
-                    if ($ongoingDelay->format('%a') > self::PACK_DELIVERIES_RIMINDER_DELAY) {
+                    if ($ongoingDelay->format('%a') >= self::PACK_DELIVERIES_RIMINDER_DELAY) {
                         $lastDrop = $pack->getLastDrop();
                         $this->mailerService->sendMail(
                             'Follow GT // Colis non récupéré',
