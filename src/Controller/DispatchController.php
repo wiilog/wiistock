@@ -906,13 +906,6 @@ class DispatchController extends AbstractController {
                 $loggedUser = $this->getUser();
                 $dispatchService->treatDispatchRequest($entityManager, $dispatch, $treatedStatus, $loggedUser);
 
-                $packs = Stream::from($dispatch->getDispatchPacks())->map(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack())->toArray();
-                $now = new DateTime('now');
-
-                foreach ($packs as $pack) {
-                    $arrivalService->sendMailForDeliveredPack($dispatch->getLocationTo(), $pack, $loggedUser, TrackingMovement::TYPE_DEPOSE, $now);
-                }
-
                 $entityManager->flush();
             } else {
                 return new JsonResponse([
