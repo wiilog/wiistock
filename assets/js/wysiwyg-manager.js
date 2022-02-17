@@ -20,7 +20,7 @@ export default class WysiwygManager {
 
     static initializeWYSIWYG(container) {
         const initializer = function() {
-            if(!$(this).is(`.ql-container`)) {
+            if(!$(this).is(`.ql-container`) && !$(this).is(`.wii-one-line-wysiwyg`)) {
                 new Quill(this, WysiwygManager.QUILL_CONFIG);
             }
         };

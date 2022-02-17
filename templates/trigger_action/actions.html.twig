@@ -8,7 +8,7 @@
             <div class="dropdown-menu dropdown-follow-gt pointer">
                 {% if hasRightEdit %}
                     <div class="dropdown-item"
-                         onclick="editRow($(this), Routing.generate('trigger_action_api_edit', true), $('#modalEditTriggerAction'), $('#modalEditTriggerAction').find('.submit-button'), false, '.editor-container-edit', false, () => initEditTriggerActionForm())"
+                         onclick="editRow($(this), Routing.generate('trigger_action_api_edit', true), $('#modalEditTriggerAction'), $('#modalEditTriggerAction').find('.submit-button'), false, () => initEditTriggerActionForm())"
                          data-target='#modalEditTriggerAction'
                          data-toggle='modal'
                          data-id='{{ triggerId }}'>

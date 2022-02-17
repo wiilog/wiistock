@@ -91,9 +91,7 @@ function openEditRequestTemplateModal($button) {
             $button,
             Routing.generate('request_template_edit_api', true),
             $('#modalEditRequestTemplate'),
-            $('#submitEditRequestTemplate'),
-            true,
-            '.delivery-editor-container-edit, .collect-editor-container-edit'
+            $('#submitEditRequestTemplate')
         );
 
         $editModal.modal(`show`);

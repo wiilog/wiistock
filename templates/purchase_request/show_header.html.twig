@@ -65,7 +65,7 @@
                         <i class="fas fa-external-link-alt mr-2"></i>Aller vers les réceptions</a>
                 {% endif %}
                 {% if hasRightEdit %}
-                    <a  onclick="editRow($(this), Routing.generate('purchase_request_api_edit', true), $('#modalEditPurchaseRequest'), $('#submitEditPurchaseRequest'), true, '#modalEditPurchaseRequest .editor-container-edit', false)"
+                    <a  onclick="editRow($(this), Routing.generate('purchase_request_api_edit', true), $('#modalEditPurchaseRequest'), $('#submitEditPurchaseRequest'), false)"
                         title="Modification"
                         data-id='{{ request.id }}'
                         data-target="#modalEditPurchaseRequest"
