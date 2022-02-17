@@ -7,11 +7,8 @@
 
             {{ form.select(setting('DEFAULT_LOCATION_RECEPTION'), "Emplacement de réception par défaut", false, {
                 labelClass: 'wii-field-name',
-                value: location.id,
-                items: [{
-                    value: location.id,
-                    text: location.label,
-                }],
+                value: defaultLocation ? defaultLocation.id : null,
+                items: defaultLocation ? {value: location.id, text: location.label} : null,
                 type: 'location'
             }) }}
         </div>
