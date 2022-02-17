@@ -56,19 +56,6 @@
         </div>
     </div>
     <div class="row mt-2">
-        <div class="col-12">
-            {% set checked = (sendPackDeliveryRemind ? 'checked' : '') %}
-            <label class="switch">
-                <input type="checkbox" class="checkbox col-3" {{ checked }} name="param-send-pack-delivery-remind"
-                       data-param="{{ constant('App\\Entity\\Setting::SEND_PACK_DELIVERY_REMIND') }}"
-                       onchange="updateToggledParam($(this))">
-                <span class="slider round"></span>
-            </label>
-            <label class="pl-1" for="param-send-pack-delivery-remind">Déclencher un mail de relance si les colis restent plus de 15 jours sur un point
-                de livraison</label>
-        </div>
-    </div>
-    <div class="row mt-2">
         <div class="form-group col-4">
             <label for="locationWaitingDock" class="d-block">Emplacement de destination des arrivages</label>
             <select class="form-control ajax-autocomplete-location d-block data w-100"
@@ -120,11 +107,6 @@
         <div class="col-4">
             <label class="text-white">Champs déclenchant une urgence</label>
             <button class="btn btn-success d-block" onclick="saveEmergencyTriggeringFields()"><i class='fas fa-check'></i></button>
-        </div>
-    </div>
-    <div class="row my-2">
-        <div class="col-12">
-            <button class="btn btn-outline-primary" onclick="triggerReminderEmails($(this))">Déclencher les mails de relance</button>
         </div>
     </div>
 </div>

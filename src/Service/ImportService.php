@@ -1682,12 +1682,12 @@ class ImportService
         }
 
         if(isset($data['dropzone'])) {
-            $location = $this->em->getRepository(Emplacement::class)->findOneBy(['label' => $data['dropzone']]);
-            $locationGroup = $this->em->getRepository(LocationGroup::class)->findOneBy(['name' => $data['dropzone']]);
-            if($location) {
-                $user->setDropzone($location);
-            } elseif ($locationGroup) {
-                $user->setDropzone($locationGroup);
+            $locationRepository = $this->em->getRepository(Emplacement::class);
+            $locationGroupRepository = $this->em->getRepository(LocationGroup::class);
+            $dropzone = $locationRepository->findOneBy(['label' => $data['dropzone']])
+                ?: $locationGroupRepository->findOneBy(['label' => $data['dropzone']]);
+            if($dropzone) {
+                $user->setDropzone($dropzone);
             } else {
                 $this->throwError("La dropzone ${data['dropzone']} n'existe pas");
             }

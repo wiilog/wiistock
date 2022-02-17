@@ -146,6 +146,8 @@ class ParametrageGlobalController extends AbstractController
                     'autoPrint' => $settingRepository->getOneParamByLabel(Setting::AUTO_PRINT_COLIS),
                     'sendMail' => $settingRepository->getOneParamByLabel(Setting::SEND_MAIL_AFTER_NEW_ARRIVAL),
                     'printTwice' => $settingRepository->getOneParamByLabel(Setting::PRINT_TWICE_CUSTOMS),
+                ],
+                'trackingMovementsSettings' => [
                     'sendPackDeliveryRemind' => $settingRepository->getOneParamByLabel(Setting::SEND_PACK_DELIVERY_REMIND),
                 ],
                 'handlingSettings' => [
