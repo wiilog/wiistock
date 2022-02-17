@@ -1477,7 +1477,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     /**
      * @param LocationGroup|Emplacement|null $dropzone
      */
-    public function setDropzone($dropzone): void {
+    public function setDropzone($dropzone): self {
         $locationGroup = null;
         $location = null;
 
@@ -1490,6 +1490,8 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this
             ->setLocationGroupDropzone($locationGroup)
             ->setLocationDropzone($location);
+
+        return $this;
     }
 
     /**
