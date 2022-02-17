@@ -160,15 +160,12 @@ function showRow(button, path, modal) {
  * @param {string} path le chemin pris pour envoyer les données.
  * @param {Document} modal la modalde modification
  * @param {Document|string} submit le bouton de validation du form pour le edit
- *
- * @param editorToInit
- * @param editor
  * @param setMaxQuantity
  * @param afterLoadingEditModal
  * @param wantsFreeFieldsRequireCheck
  */
 
-function editRow(button, path, modal, submit, editorToInit = false, editor = '.editor-container-edit', setMaxQuantity = false, afterLoadingEditModal = () => {}, wantsFreeFieldsRequireCheck = true) {
+function editRow(button, path, modal, submit, setMaxQuantity = false, afterLoadingEditModal = () => {}, wantsFreeFieldsRequireCheck = true) {
     clearFormErrors(modal);
     let id = button.data('id');
     let ref = button.data('ref');
@@ -205,10 +202,6 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
 
         if (setMaxQuantity) {
             setMaxQuantityEdit($('#referenceEdit'));
-        }
-
-        if (editorToInit) {
-            initEditor(editor);
         }
 
         afterLoadingEditModal(modal);

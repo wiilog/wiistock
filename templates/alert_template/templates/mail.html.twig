@@ -33,7 +33,7 @@
 <div class="col-12 form-group mt-3">
     <label class="mb-2">Corps du mail*</label>
     <input class="form-control input-sm data needed" name="content" type="hidden">
-    <div class="editor-container">{{ config ? config['content']|raw }}</div>
+    <div class="editor-container" data-wysiwyg>{{ config ? config['content']|raw }}</div>
 </div>
 
 <div class="col-12">

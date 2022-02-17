@@ -214,7 +214,7 @@
                    name="commentaire"
                    type="hidden"
                    value="{{ arrivage.commentaire }}">
-            <div class="editor-container-edit" value="{{ arrivage.commentaire }}">{{ arrivage.commentaire|raw }}</div>
+            <div class="editor-container-edit" value="{{ arrivage.commentaire }}" data-wysiwyg>{{ arrivage.commentaire|raw }}</div>
         </div>
     {% endif %}
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PJ_ARRIVAGE') %}

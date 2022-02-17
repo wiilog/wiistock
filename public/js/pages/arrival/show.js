@@ -1,5 +1,4 @@
 $('.select2').select2();
-let originalText = '';
 let tableHistoLitige;
 
 $(function () {
@@ -197,10 +196,7 @@ function editRowArrivage(button) {
     $.post(path, JSON.stringify(params), function (data) {
         modal.find('.error-msg').html('');
         modal.find('.modal-body').html(data.html);
-        const quillEdit = initEditor('.editor-container-edit');
-        if (quillEdit) {
-            originalText = quillEdit.getText();
-        }
+
         modal.find('#acheteursEdit').val(data.acheteurs).select2();
         modal.find('.select2').select2();
         initDateTimePicker('.date-cl');

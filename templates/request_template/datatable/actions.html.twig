@@ -9,7 +9,7 @@
                 {% endif %}
             </div>
             <div class="dropdown-item" data-target="#modalEditRequestTemplate" data-toggle="modal"
-                 onclick="editRow($(this), Routing.generate('request_template_edit_api', true), $('#modalEditRequestTemplate'), $('#submitEditRequestTemplate'), true, '.handling-editor-container-edit, .delivery-editor-container-edit, .collect-editor-container-edit')"
+                 onclick="editRow($(this), Routing.generate('request_template_edit_api', true), $('#modalEditRequestTemplate'), $('#submitEditRequestTemplate'))"
                  data-id="{{ request_template.id }}">
                 <i class="fas fa-edit mr-2"></i>Modifier
             </div>
