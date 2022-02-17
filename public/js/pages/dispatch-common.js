@@ -1,10 +1,8 @@
 function initNewDispatchEditor(modal) {
     clearModal(modal);
     onDispatchTypeChange($("[name=type]"));
-    Select2Old.user($(modal).find('.ajax-autocomplete-user'));
-    Select2Old.carrier($(modal).find('.ajax-autocomplete-transporteur'));
 
-    const $operatorSelect = $(modal).find('.ajax-autocomplete-user').first();
+    const $operatorSelect = $(modal).find(`select[name=requester]`);
     const $loggedUserInput = $(modal).find('input[hidden][name="logged-user"]');
     let option = new Option($loggedUserInput.data('username'), $loggedUserInput.data('id'), true, true);
     $operatorSelect
@@ -12,7 +10,6 @@ function initNewDispatchEditor(modal) {
         .trigger('change')
         .append(option)
         .trigger('change');
-    Select2Old.location($('.ajax-autocomplete-location[name!=""]'));
 }
 
 function onDispatchTypeChange($select) {
