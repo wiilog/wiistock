@@ -287,5 +287,14 @@ function getNewDisputeModalContent($button) {
                 $orderNumbersSelect.append(new Option(value, value, false, false));
             });
             $orderNumbersSelect.val(orderNumbersValues).select2();
+
+            const $operatorSelect = $modalNewDispute.find(`select[name=disputeReporter]`);
+            const $loggedUserInput = $modalNewDispute.find('input[hidden][name="logged-user"]');
+            let option = new Option($loggedUserInput.data('username'), $loggedUserInput.data('id'), true, true);
+            $operatorSelect
+                .val(null)
+                .trigger('change')
+                .append(option)
+                .trigger('change');
         });
 }
