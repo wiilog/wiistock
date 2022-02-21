@@ -491,7 +491,7 @@ function saveFilters(page, tableSelector, callback) {
 
 function checkAndDeleteRow(icon, modalName, route, submit, getParams = null) {
     let $modalBody = $(modalName).find('.modal-body');
-    let $submit = $(submit);
+    let $submit = submit instanceof jQuery ? submit : $(submit);
     let id = icon.data('id');
 
     let param = JSON.stringify(id);
