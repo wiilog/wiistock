@@ -96,32 +96,35 @@ export function createManagementPage($container, config) {
         table.toggleEdit(STATE_EDIT, true);
     });
 
-    if (config.header.delete) {
+    if (config.header && config.header.delete) {
         fireRemoveMainEntityButton($container, config.header.delete);
     }
 }
 
 function loadItems($container, config, type, edit = false) {
-    const route = config.header.route(type, Number(edit));
-    const params = {
-        types: $(`[name=entity]`).map((_, a) => $(a).attr(`value`)).toArray(),
-    };
+    if (config.header && config.header.route) {
+        const route = config.header.route(type, Number(edit));
+        const params = {
+            types: $container.find(`[name=entity]`)
+                .map((_, a) => $(a).attr(`value`))
+                .toArray(),
+        };
 
-    return new Promise((resolve) => {
-        $.post(route, params, function (data) {
-            if (data.success) {
-                const $itemContainer = $container.find(`.main-entity-content`);
-                $itemContainer.toggleClass('main-entity-content-form', Boolean(edit))
-                $itemContainer.empty();
+        return new Promise((resolve) => {
+            $.post(route, params, function (data) {
+                if (data.success) {
+                    const $itemContainer = $container.find(`.main-entity-content`);
+                    $itemContainer.toggleClass('main-entity-content-form', Boolean(edit))
+                    $itemContainer.empty();
 
-                for (const item of data.data) {
-                    if (item.breakline) {
-                        $itemContainer.append(`<div class="w-100"></div>`);
-                    } else if (item.type === 'hidden') {
-                        $itemContainer.append(`<input type="hidden" class="${item.class}" name="${item.name}" value="${item.value}"/>`);
-                    } else {
-                        const value = item.value === undefined || item.value === null ? '' : item.value;
-                        $itemContainer.append(`
+                    for (const item of data.data) {
+                        if (item.breakline) {
+                            $itemContainer.append(`<div class="w-100"></div>`);
+                        } else if (item.type === 'hidden') {
+                            $itemContainer.append(`<input type="hidden" class="${item.class}" name="${item.name}" value="${item.value}"/>`);
+                        } else {
+                            const value = item.value === undefined || item.value === null ? '' : item.value;
+                            $itemContainer.append(`
                         <div class="main-entity-content-item col-md-3 col-12 ${item.hidden ? `d-none` : ``}">
                             <div class="d-flex align-items-center py-2">
                                 ${item.icon ? `<img src="/svg/reference_article/${item.icon}.svg" alt="Icône" width="20px">` : ``}
@@ -132,13 +135,19 @@ function loadItems($container, config, type, edit = false) {
                             </div>
                         </div>
                     `);
+                        }
                     }
                 }
-            }
 
+                resolve();
+            });
+        });
+    }
+    else {
+        return new Promise((resolve) => {
             resolve();
         });
-    });
+    }
 }
 
 function fireRemoveMainEntityButton($container, deleteConfig) {

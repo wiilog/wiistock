@@ -21,6 +21,7 @@ function generateFreeFieldForm() {
             </select>`,
         elements: `<input type="text" name="elements" required class="form-control data d-none" data-global-error="Eléments"/>`,
         defaultValue: () => {
+            // executed each time we add a new row to calculate new id
             const $booleanDefaultValue = $(JSON.parse($(`[name=default-value-template]`).val()));
             $booleanDefaultValue.find(`[type=radio]`).each(function() {
                 const $input = $(this);
@@ -137,7 +138,7 @@ export function initializeStockArticlesTypesFreeFields($container, canEdit) {
         name: `freeFields`,
         edit: canEdit,
         header: {
-            route: (type, edit, creation) => Routing.generate('settings_type_header', {type, edit, creation}, true),
+            route: (type, edit) => Routing.generate('settings_type_header', {type, edit}, true),
             delete: {
                 modal: '#modalDeleteType',
                 checkRoute: 'settings_types_check_delete',
@@ -170,8 +171,8 @@ export function initializeTraceMovementsFreeFields($container, canEdit) {
         deleteRoute: `settings_free_field_delete`,
         mode: canEdit ? MODE_EDIT_AND_ADD : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
-        search: false,
-        paging: false,
+        search: true,
+        paging: true,
         onEditStart: () => {
             $saveButton.removeClass('d-none');
             $discardButton.removeClass('d-none');
@@ -192,9 +193,6 @@ export function initializeIotFreeFields($container, canEdit) {
     createManagementPage($container, {
         name: `freeFields`,
         edit: canEdit ? MODE_DOUBLE_CLICK : MODE_NO_EDIT,
-        header: {
-            route: (type, edit, creation) => Routing.generate('settings_type_header', {type, edit, creation}, true),
-        },
         table: {
             route: (type) => Routing.generate('settings_free_field_api', {type}, true),
             deleteRoute: `settings_free_field_delete`,

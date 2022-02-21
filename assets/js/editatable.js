@@ -147,7 +147,7 @@ function applyState(datatable, state, params) {
     }
 }
 
-function createNewForm(datatable) {
+function addNewFormRow(datatable) {
     const {config, table, element: $element} = datatable;
     const $addRow = $element.find(`.add-row`).closest('tr');
     const row = table.row($addRow);
@@ -159,9 +159,7 @@ function createNewForm(datatable) {
     table.draw();
 }
 
-function initEditatable(datatable, onRowDrawn = null) {
-    let rowAlreadyDrawn = false;
-
+function initEditatable(datatable, onDatatableInit = null) {
     const {config, state, element: $element} = datatable;
     const id = $element.attr('id');
     const $parent = $element.parent();
@@ -181,7 +179,7 @@ function initEditatable(datatable, onRowDrawn = null) {
         ajax: {
             type: `GET`,
             url,
-            data: data => {
+            data: (data) => {
                 data.edit = state !== STATE_VIEWING;
             },
         },
@@ -216,55 +214,29 @@ function initEditatable(datatable, onRowDrawn = null) {
                 $row.data(`data`, JSON.stringify(data instanceof FormData ? data.asObject() : data));
 
                 if ($row.find(`.add-row`).exists()) {
-                    $row.addClass('pointer');
+                    $row
+                        .off(`click.${id}.addRow`)
+                        .on(`click.${id}.addRow`, () => {
+                            onAddRowClicked(datatable);
+                        });
                 }
 
-                $row.on(`click`, function() {
-                    const $row = $(this);
-                    if(!$row.find(`.add-row`).exists()) {
-                        return;
-                    }
-                    if((datatable.mode === MODE_DOUBLE_CLICK || datatable.mode === MODE_EDIT_AND_ADD) && datatable.state !== STATE_EDIT){
-                        datatable
-                            .toggleEdit(STATE_EDIT, true)
-                            .then(() => {
-                                createNewForm(datatable);
-                            });
-                    }
-                    else {
-                        createNewForm(datatable);
-                    }
+                $row
+                    .off(`click.${id}.deleteRow`)
+                    .on(`click.${id}.deleteRow`, `.delete-row`, function(event) {
+                        onDeleteRowClicked(datatable, event);
+                    });
                 });
-
-                $row.on(`click`, `.delete-row`, function(event) {
-                    //don't send it up to the table so it doesn't toggle edit mode
-                    event.stopPropagation();
-
-                    const $button = $(this);
-                    const $row = $button.closest(`tr`);
-
-                    function deleteRow() {
-                        datatable.table.row($row).remove();
-                        datatable.table.draw();
-                    }
-
-                    if($button.is(`[data-id]`) && config.deleteRoute) {
-                        AJAX.route(`POST`, config.deleteRoute, {entity: $button.data(`id`)})
-                            .json()
-                            .then(result => result.success ? deleteRow() : null);
-                    } else {
-                        deleteRow();
-                    }
-                });
-            });
 
             if(config.mode === MODE_DOUBLE_CLICK || config.mode === MODE_EDIT_AND_ADD) {
-                $rows.off(`click.${id}.startEdit`).on(`click.${id}.startEdit`, function() {
-                    if(datatable.state === STATE_VIEWING) {
-                        datatable.toggleEdit(STATE_EDIT, true);
-                    }
-                });
-            }
+                $rows
+                    .off(`click.${id}.startEdit`)
+                    .on(`click.${id}.startEdit`, function() {
+                        if(datatable.state === STATE_VIEWING) {
+                            datatable.toggleEdit(STATE_EDIT, true);
+                        }
+                    });
+                }
 
             if(config.save === SAVE_FOCUS_OUT) {
                 $rows
@@ -304,14 +276,14 @@ function initEditatable(datatable, onRowDrawn = null) {
             $('.dataTables_filter')
                 .toggleClass(`d-none`, !data || data.length <= 10);
 
-            if (onRowDrawn && !rowAlreadyDrawn) {
-                onRowDrawn();
-                rowAlreadyDrawn = true;
-            }
         },
         initComplete: () => {
             let $searchInputContainer = $element.parents('.dataTables_wrapper').find('.dataTables_filter');
             moveSearchInputToHeader($searchInputContainer);
+
+            if (onDatatableInit) {
+                onDatatableInit();
+            }
 
             if(config.onInit) {
                 config.onInit();
@@ -334,4 +306,39 @@ function initEditatable(datatable, onRowDrawn = null) {
         columnDefs: config.columnDefs,
         columns: config.columns,
     });
+}
+
+function onAddRowClicked(datatable) {
+    if((datatable.mode === MODE_DOUBLE_CLICK || datatable.mode === MODE_EDIT_AND_ADD) && datatable.state !== STATE_EDIT){
+        datatable
+            .toggleEdit(STATE_EDIT, true)
+            .then(() => {
+                addNewFormRow(datatable);
+            });
+    }
+    else {
+        addNewFormRow(datatable);
+    }
+}
+
+function onDeleteRowClicked(datatable, event) {
+    const {config} = datatable;
+    //don't send it up to the table so it doesn't toggle edit mode
+    event.stopPropagation();
+
+    const $button = $(this);
+    const $row = $button.closest(`tr`);
+
+    function deleteRow() {
+        datatable.table.row($row).remove();
+        datatable.table.draw();
+    }
+
+    if($button.is(`[data-id]`) && config.deleteRoute) {
+        AJAX.route(`POST`, config.deleteRoute, {entity: $button.data(`id`)})
+            .json()
+            .then(result => result.success ? deleteRow() : null);
+    } else {
+        deleteRow();
+    }
 }
