@@ -32,7 +32,7 @@ export default class EditableDatatable {
         datatable.config = config;
         datatable.mode = config.mode;
         datatable.state = config.mode === MODE_EDIT ? STATE_EDIT : STATE_VIEWING;
-        datatable.table = initEditatableDatatable(datatable);
+        datatable.table = initEditatable(datatable);
 
         if(datatable.state !== STATE_VIEWING) {
             datatable.toggleEdit(STATE_EDIT);
@@ -100,7 +100,7 @@ export default class EditableDatatable {
 
         if(reload) {
             return new Promise((resolve) => {
-                this.table = initEditatableDatatable(this, () => {
+                this.table = initEditatable(this, () => {
                     applyState(this, state, params);
                     resolve();
                 });
@@ -159,7 +159,9 @@ function createNewForm(datatable) {
     table.draw();
 }
 
-function initEditatableDatatable(datatable, callback = null) {
+function initEditatable(datatable, onRowDrawn = null) {
+    let rowAlreadyDrawn = false;
+
     const {config, state, element: $element} = datatable;
     const id = $element.attr('id');
     const $parent = $element.parent();
@@ -302,8 +304,9 @@ function initEditatableDatatable(datatable, callback = null) {
             $('.dataTables_filter')
                 .toggleClass(`d-none`, !data || data.length <= 10);
 
-            if (callback) {
-                callback();
+            if (onRowDrawn && !rowAlreadyDrawn) {
+                onRowDrawn();
+                rowAlreadyDrawn = true;
             }
         },
         initComplete: () => {

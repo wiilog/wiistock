@@ -18,7 +18,7 @@ export function createManagementPage($container, config) {
     $editButton.removeClass('d-none');
     $table.attr(`id`, `table-${Math.floor(Math.random() * 1000000)}`);
 
-    loadItems($container, config, selectedEntity, false);
+    loadItems($container, config, selectedEntity);
 
     const table = EditableDatatable.create(`#${$table.attr(`id`)}`, {
         name: config.name,
@@ -33,11 +33,15 @@ export function createManagementPage($container, config) {
         columns: config.table.columns,
         onEditStart: () => {
             $editButton.addClass('d-none');
+            $addButton.addClass('d-none');
             $managementButtons.removeClass('d-none');
 
             const $itemContainer = $container.find(`.main-entity-content`);
+
             if (!$itemContainer.hasClass('main-entity-content-form')) {
-                loadItems($container, config, selectedEntity, true);
+                loadItems($container, config, selectedEntity, true).then(() => {
+                    toggleCreationForm($pageHeader, $itemContainer, $itemContainer.hasClass('creation-mode'));
+                });
             }
         },
         onEditStop: (apiResult) => {
@@ -45,10 +49,10 @@ export function createManagementPage($container, config) {
             $editButton.removeClass('d-none');
             $addButton.removeClass(`d-none`);
 
-            $pageHeader.removeClass('d-none');
+            toggleCreationForm($pageHeader, $container.find(`.main-entity-content`), false);
             $pageBody.find('.header').remove();
 
-            if (apiResult) {
+            if (apiResult) { // if type was created in edit mode
                 const {id, label} = apiResult.type;
                 if (selectedEntity !== id) {
                     selectedEntity = id;
@@ -61,10 +65,12 @@ export function createManagementPage($container, config) {
                     `);
 
                     $container.find(`#${id}`).prop(`checked`, true);
+
+                    table.setURL(config.table.route(selectedEntity), false);
                 }
             }
 
-            loadItems($container, config, selectedEntity, false);
+            loadItems($container, config, selectedEntity);
         },
     });
 
@@ -78,8 +84,8 @@ export function createManagementPage($container, config) {
     $addButton.on(`click`, function() {
         selectedEntity = null;
 
-        $pageHeader.addClass('d-none');
         $pageBody.prepend(`<div class="header wii-title">Ajouter un type et des champs libres</div>`);
+        $pageBody.find(`.main-entity-content`).addClass('creation-mode');
 
         table.setURL(config.table.route(selectedEntity), false);
         table.toggleEdit(STATE_EDIT, true);
@@ -94,28 +100,27 @@ export function createManagementPage($container, config) {
     }
 }
 
-function loadItems($container, config, type, edit) {
+function loadItems($container, config, type, edit = false) {
     const route = config.header.route(type, Number(edit));
     const params = {
         types: $(`[name=entity]`).map((_, a) => $(a).attr(`value`)).toArray(),
     };
 
-    $.post(route, params, function(data) {
-        if(data.success) {
-            const $itemContainer = $container.find(`.main-entity-content`);
-            $itemContainer.toggleClass('main-entity-content-form', Boolean(edit))
-            $itemContainer.empty();
+    return new Promise((resolve) => {
+        $.post(route, params, function (data) {
+            if (data.success) {
+                const $itemContainer = $container.find(`.main-entity-content`);
+                $itemContainer.toggleClass('main-entity-content-form', Boolean(edit))
+                $itemContainer.empty();
 
-            for(const item of data.data) {
-                if(item.breakline) {
-                    $itemContainer.append(`<div class="w-100"></div>`);
-                }
-                else if(item.type === 'hidden') {
-                    $itemContainer.append(`<input type="hidden" class="data" name="${item.name}" value="${item.value}"/>`);
-                }
-                else {
-                    const value = item.value === undefined || item.value === null ? '' : item.value;
-                    $itemContainer.append(`
+                for (const item of data.data) {
+                    if (item.breakline) {
+                        $itemContainer.append(`<div class="w-100"></div>`);
+                    } else if (item.type === 'hidden') {
+                        $itemContainer.append(`<input type="hidden" class="${item.class}" name="${item.name}" value="${item.value}"/>`);
+                    } else {
+                        const value = item.value === undefined || item.value === null ? '' : item.value;
+                        $itemContainer.append(`
                         <div class="main-entity-content-item col-md-3 col-12 ${item.hidden ? `d-none` : ``}">
                             <div class="d-flex align-items-center py-2">
                                 ${item.icon ? `<img src="/svg/reference_article/${item.icon}.svg" alt="Icône" width="20px">` : ``}
@@ -126,9 +131,12 @@ function loadItems($container, config, type, edit) {
                             </div>
                         </div>
                     `);
+                    }
                 }
             }
-        }
+
+            resolve();
+        });
     });
 }
 
@@ -183,4 +191,19 @@ function fireRemoveMainEntityButton($container, deleteConfig) {
                 $spinnerContainer.addClass('d-none');
             });
     });
+}
+
+function toggleCreationForm($pageHeader, $form, show) {
+    const $category = $form.find(`.category`);
+    if (show) {
+        $pageHeader.addClass('d-none');
+        $category.addClass('data');
+    }
+    else {
+        $pageHeader.removeClass('d-none');
+        $category.removeClass('data');
+    }
+
+    $form
+        .removeClass('creation-mode')
 }
