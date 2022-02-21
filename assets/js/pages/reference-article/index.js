@@ -5,7 +5,6 @@ window.removeFilter = removeFilter;
 window.displayFilterValue = displayFilterValue;
 window.showRowMouvements = showRowMouvements;
 window.printReferenceArticleBarCode = printReferenceArticleBarCode;
-window.displayActifOrInactif = displayActifOrInactif;
 window.updateQuantity = updateQuantity;
 
 $(function () {
@@ -30,7 +29,6 @@ $(function () {
     initTableRefArticle().then((table) => {
         initPageModals(table);
     });
-    displayActifOrInactif($('#toggleActivOrInactiv'), true);
 });
 
 function initPageModals(table) {
