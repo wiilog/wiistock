@@ -2,11 +2,15 @@ try {
     $(document).ready(function () {
         initImagePopovers();
 
-        let isChromium = !!window.chrome;
-        let isFirefox = navigator.userAgent.includes("Firefox");
+        //for testing purposes allow logging in if the allow GET param is set to any
+        const params = GetRequestQuery();
+        if(params.allow !== `any`) {
+            const isChromium = !!window.chrome;
+            const isFirefox = navigator.userAgent.includes("Firefox");
 
-        if (!isChromium && !isFirefox) {
-            showCompliantBrowserMessage();
+            if (!isChromium && !isFirefox) {
+                showCompliantBrowserMessage();
+            }
         }
     });
 }
