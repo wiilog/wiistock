@@ -270,10 +270,6 @@ class SettingsService {
             $ids = array_map(fn($freeField) => $freeField["id"] ?? null, $tables["freeFields"]);
 
             if(isset($data["entity"])) {
-                if (empty($data["label"])) {
-                    throw new RuntimeException("Vous devez saisir un libellé pour le type");
-                }
-
                 if(!is_numeric($data["entity"]) && in_array($data["entity"], CategoryType::ALL)) {
                     $category = $categoryTypeRepository->findOneBy(["label" => $data["entity"]]);
 
@@ -297,6 +293,10 @@ class SettingsService {
 
                 if (!isset($type)) {
                     throw new RuntimeException("Le type est introuvable");
+                }
+
+                if ($type->getCategory()->getLabel() !== CategoryType::SENSOR && empty($data["label"])) {
+                    throw new RuntimeException("Vous devez saisir un libellé pour le type");
                 }
 
                 $type->setLabel($data["label"] ?? $type->getLabel())

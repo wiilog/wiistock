@@ -128,8 +128,10 @@
         ? (value is iterable ? value : [value])
         : [] %}
     <label class="w-100 {{ not options.search ?? true ? 'no-search' }}">
-        <span class="w-100 {{ options.labelClass ?? '' }}">{{ _self.label(label, required, labelOptions) }}</span>
-        {{ _self.tooltip(options.tooltip ?? null, options.inline ?? false) }}
+        {% if label %}
+            <span class="w-100 {{ options.labelClass ?? '' }}">{{ _self.label(label, required, labelOptions) }}</span>
+            {{ _self.tooltip(options.tooltip ?? null, options.inline ?? false) }}
+        {% endif %}
         <select class="form-control w-100 data"
             {{ required ? 'required' }}
             {{ options.multiple ?? false ? 'multiple' }}
@@ -215,8 +217,10 @@
         <span>{{ _self.label(label, required and not disabled, labelOptions) }}</span>
         {{ _self.tooltip(options.tooltip ?? null, options.inline ?? false) }}
         <span class="increase-decrease-field" style="min-width: 120px;">
-            <button class="decrease" {{ disabled }}></button>
-            <input type="number" data-no-arrow class="form-control w-50 p-0 text-center {{ not disabled ? 'data' }}"
+            {% if options.buttons ?? true %}
+                <button class="decrease" {{ disabled }}></button>
+            {% endif %}
+            <input type="number" data-no-arrow class="form-control w-50 {{ not (options.buttons ?? true) ? 'text-left' : 'p-0' }} {{ not disabled ? 'data' }}"
                    placeholder="{{ options.placeholder ?? '' }}"
                    value="{{ value }}"
                    {{ required and not disabled ? 'required' }}
@@ -225,7 +229,9 @@
                    {{ _self.multiple_key(options) }}
                    {% if options.min is defined and options.min is not null %}min="{{ options.min }}"{% endif %}
                    {% if options.max is defined and options.max is not null %}max="{{ options.max }}"{% endif %}>
-            <button class="increase" {{ disabled }}></button>
+               {% if options.buttons ?? true %}
+                   <button class="increase" {{ disabled }}></button>
+               {% endif %}
         </span>
     </label>
 {% endmacro %}
