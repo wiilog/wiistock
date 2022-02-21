@@ -27,11 +27,19 @@ class TypeController extends AbstractController {
         $usedStatuses = $statusRepository->count(['type' => $type]);
 
         $success = $canDelete && $usedStatuses === 0;
-        $message = $success
-            ? 'Voulez-vous réellement supprimer ce type ?'
-            : (!$canDelete
+
+        if ($success) {
+            $message = 'Voulez-vous réellement supprimer ce type ?';
+        }
+        else if (!$canDelete) {
+            $hasNoFreeFields = $type->getChampsLibres()->isEmpty();
+            $message = $hasNoFreeFields
                 ? 'Ce type est utilisé, vous ne pouvez pas le supprimer.'
-                : 'Ce type est lié à des statuts, veuillez les supprimer avant de procéder à la suppression du type');
+                : 'Des champs libres sont liés à ce type, veuillez les supprimer avant de procéder à la suppression du type';
+        }
+        else {
+            $message = 'Ce type est lié à des statuts, veuillez les supprimer avant de procéder à la suppression du type';
+        }
 
         return new JsonResponse([
             'success' => $success,

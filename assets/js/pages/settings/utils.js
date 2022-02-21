@@ -57,9 +57,10 @@ export function createManagementPage($container, config) {
                 if (selectedEntity !== id) {
                     selectedEntity = id;
 
+                    const inputId = `entity-${Math.floor(Math.random() * 1000000)}`;
                     $container.find(`[name=entity] + label:last`).after(`
-                        <input type="radio" id="${id}" name="entity" class="data">
-                        <label for="${id}">
+                        <input type="radio" id="${inputId}" name="entity" value="${selectedEntity}" class="data" checked>
+                        <label for="${inputId}">
                             <span class="d-inline-flex align-items-center field-label nowrap">${label}</span>
                         </label>
                     `);
