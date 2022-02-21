@@ -128,8 +128,10 @@
         ? (value is iterable ? value : [value])
         : [] %}
     <label class="w-100 {{ not options.search ?? true ? 'no-search' }}">
-        <span class="w-100 {{ options.labelClass ?? '' }}">{{ _self.label(label, required, labelOptions) }}</span>
-        {{ _self.tooltip(options.tooltip ?? null, options.inline ?? false) }}
+        {% if label %}
+            <span class="w-100 {{ options.labelClass ?? '' }}">{{ _self.label(label, required, labelOptions) }}</span>
+            {{ _self.tooltip(options.tooltip ?? null, options.inline ?? false) }}
+        {% endif %}
         <select class="form-control w-100 data"
             {{ required ? 'required' }}
             {{ options.multiple ?? false ? 'multiple' }}
