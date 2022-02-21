@@ -10,12 +10,13 @@
             {{ form.checkbox(setting('SEND_MAIL_MANAGER_WARNING_THRESHOLD'), "Envoi d\'un email au gestionnaire de la référence si seuil d'alerte atteint", false, setting_value('SEND_MAIL_MANAGER_WARNING_THRESHOLD')) }}
         </div>
 
-        <div class="col-12 my-1">
-            {{ form.input(
+        <div class="col-4 mt-2">
+            {{ form.number(
                 setting('STOCK_EXPIRATION_DELAY'),
                 '<span class="wii-field-name">Délais alerte de péremption&nbsp;</span><span class="wii-medium-text">(jours)</span>',
                 false,
-                setting_value('STOCK_EXPIRATION_DELAY')
+                setting_value('STOCK_EXPIRATION_DELAY'),
+                {buttons: false}
             ) }}
         </div>
     </div>
