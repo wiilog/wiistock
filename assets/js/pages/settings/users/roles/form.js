@@ -37,7 +37,6 @@ function saveSettings($saveButton) {
         ? Routing.generate('settings_role_edit', {role})
         : Routing.generate('settings_role_new');
 
-
     $saveButton.pushLoader('white');
     const formData = createRoleFormData();
 
@@ -77,7 +76,11 @@ function discardChanges() {
         return;
     }
 
-    window.location.reload();
+    window.location.href = Routing.generate(`settings_item`, {
+        menu: 'roles',
+        submenu: null,
+        category: 'utilisateurs'
+    });
 }
 
 function createRoleFormData() {

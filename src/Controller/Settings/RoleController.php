@@ -61,7 +61,11 @@ class RoleController extends AbstractController {
 
             $roleService->onRoleUpdate($role->getId());
 
-            $res['redirect'] = $this->generateUrl('settings_role_edit_form', ['role' => $role->getId()]);
+            $res['redirect'] = $this->generateUrl('settings_item', [
+                'menu' => SettingsController::MENU_ROLES,
+                'submenu' => null,
+                'category' => SettingsController::CATEGORY_USERS
+            ]);
 
             $this->addFlash('success', $res["message"]);
         }
@@ -96,7 +100,11 @@ class RoleController extends AbstractController {
 
             $roleService->onRoleUpdate($role->getId());
 
-            $res['redirect'] = $this->generateUrl('settings_role_edit_form', ['role' => $role->getId()]);
+            $res['redirect'] = $this->generateUrl('settings_item', [
+                'menu' => SettingsController::MENU_ROLES,
+                'submenu' => null,
+                'category' => SettingsController::CATEGORY_USERS
+            ]);
 
             $this->addFlash('success', $res["message"]);
         }
