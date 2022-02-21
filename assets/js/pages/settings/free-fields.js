@@ -2,6 +2,7 @@ import {createManagementPage} from './utils';
 import EditableDatatable, {MODE_DOUBLE_CLICK, MODE_EDIT_AND_ADD, MODE_NO_EDIT, SAVE_MANUALLY} from "../../editatable";
 
 const $saveButton = $(`.save-settings`);
+const $discardButton = $(`.discard-settings`);
 
 function generateFreeFieldForm() {
     return {
@@ -136,7 +137,7 @@ export function initializeStockArticlesTypesFreeFields($container, canEdit) {
         name: `freeFields`,
         edit: canEdit,
         header: {
-            route: (type, edit) => Routing.generate('settings_type_header', {type, edit}, true),
+            route: (type, edit, creation) => Routing.generate('settings_type_header', {type, edit, creation}, true),
             delete: {
                 modal: '#modalDeleteType',
                 checkRoute: 'settings_types_check_delete',
@@ -159,7 +160,7 @@ export function initializeStockArticlesTypesFreeFields($container, canEdit) {
     $container.on(`keyup`, `[name=elements]`, onElementsChange);
 }
 
-export function initializeStockMovementsFreeFields($container, canEdit) {
+export function initializeTraceMovementsFreeFields($container, canEdit) {
     $saveButton.addClass('d-none');
 
     const table = EditableDatatable.create(`#table-movement-free-fields`, {
@@ -173,9 +174,11 @@ export function initializeStockMovementsFreeFields($container, canEdit) {
         paging: false,
         onEditStart: () => {
             $saveButton.removeClass('d-none');
+            $discardButton.removeClass('d-none');
         },
         onEditStop: () => {
             $saveButton.removeClass('d-none');
+            $discardButton.removeClass('d-none');
         },
         columns: generateFreeFieldColumns(),
         form: generateFreeFieldForm(),
@@ -190,7 +193,7 @@ export function initializeIotFreeFields($container, canEdit) {
         name: `freeFields`,
         edit: canEdit ? MODE_DOUBLE_CLICK : MODE_NO_EDIT,
         header: {
-            route: (type, edit) => Routing.generate('settings_type_header', {type, edit}, true),
+            route: (type, edit, creation) => Routing.generate('settings_type_header', {type, edit, creation}, true),
         },
         table: {
             route: (type) => Routing.generate('settings_free_field_api', {type}, true),

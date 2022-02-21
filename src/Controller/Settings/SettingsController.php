@@ -853,6 +853,7 @@ class SettingsController extends AbstractController {
                 [
                     "type" => "hidden",
                     "name" => "entity",
+                    "class" => "category",
                     "value" => $category,
                 ],
                 [
@@ -1063,7 +1064,8 @@ class SettingsController extends AbstractController {
             if($freeField->getTypage() == FreeField::TYPE_BOOL) {
                 if(!$edit) {
                     $defaultValue = ($freeField->getDefaultValue() === null || $freeField->getDefaultValue() === "")
-                        ? "" : ($freeField->getDefaultValue() ? "Oui" : "Non");
+                        ? ""
+                        : ($freeField->getDefaultValue() ? "Oui" : "Non");
                 } else {
                     if($freeField->getDefaultValue() === "") {
                         $freeField->setDefaultValue(null);

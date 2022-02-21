@@ -4,7 +4,7 @@ import Flash, {INFO} from '../../flash';
 import {LOADING_CLASS} from "../../loading";
 import {initUserPage} from "./users/users";
 import {initializeImports} from "./data/imports.js";
-import {initializeStockArticlesTypesFreeFields, createFreeFieldsPage, initializeStockMovementsFreeFields, initializeIotFreeFields} from "./free-fields";
+import {initializeStockArticlesTypesFreeFields, createFreeFieldsPage, initializeTraceMovementsFreeFields, initializeIotFreeFields} from "./free-fields";
 import {initializeRolesPage} from "./users/roles";
 
 const index = JSON.parse($(`input#settings`).val());
@@ -31,7 +31,7 @@ const initializers = {
     trace_acheminements_types_champs_libres: createFreeFieldsPage,
     trace_arrivages_types_champs_libres: createFreeFieldsPage,
     trace_services_types_champs_libres: createFreeFieldsPage,
-    trace_mouvements_champs_libres: initializeStockMovementsFreeFields,
+    trace_mouvements_champs_libres: initializeTraceMovementsFreeFields,
     iot_types_champs_libres: initializeIotFreeFields,
     donnees_imports: initializeImports,
     stock_receptions_champs_fixes_receptions: initializeReceptionFixedFields,
@@ -124,9 +124,13 @@ $(function() {
             .json(data)
             .then(result => {
                 if(result.success) {
+                    let params = undefined;
+                    if (result && result.type) {
+                        params = {type: result.type};
+                    }
                     for(const table of tablesToReload) {
                         if(table.mode !== MODE_EDIT) {
-                            table.toggleEdit(STATE_VIEWING, true, {type: result.type});
+                            table.toggleEdit(STATE_VIEWING, true, params);
                         }
                     }
                 }

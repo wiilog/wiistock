@@ -48,7 +48,8 @@ export default class Form {
             }
         });
 
-        return fieldNames;
+        // distinct
+        return fieldNames.filter((field, index, self) => self.indexOf(field) === index);
     }
 
     static process(form, config = {}) {
