@@ -96,7 +96,7 @@ class UserController extends AbstractController {
                     ->join(", ");
                 $html = "
                     <p class='error-msg'>
-                        Cet utilisateur est lié à un ou plusieurs $entities\.<br>
+                        Cet utilisateur est lié à un ou plusieurs $entities.<br>
                         Vous ne pouvez pas le supprimer.
                     </p>
                 ";
