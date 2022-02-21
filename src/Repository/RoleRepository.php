@@ -58,7 +58,6 @@ class RoleRepository extends EntityRepository
             ->select("role.id AS id")
             ->addSelect("role.label AS text")
             ->andWhere('role.label LIKE :term')
-            ->andWhere('role.active = true')
             ->setParameter("term", "%$term%")
             ->getQuery()
             ->getResult();
