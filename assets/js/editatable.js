@@ -234,7 +234,10 @@ function initEditatableDatatable(datatable, callback = null) {
                     }
                 });
 
-                $row.on(`click`, `.delete-row`, function() {
+                $row.on(`click`, `.delete-row`, function(event) {
+                    //don't send it up to the table so it doesn't toggle edit mode
+                    event.stopPropagation();
+
                     const $button = $(this);
                     const $row = $button.closest(`tr`);
 
