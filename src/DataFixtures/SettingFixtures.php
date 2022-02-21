@@ -64,6 +64,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::INCLUDE_ARRIVAL_TYPE_IN_LABEL => [
                 'default' => true,
             ],
+            setting::INCLUDE_BUSINESS_UNIT_IN_LABEL => [
+              'default' => false,
+            ],
             Setting::INCLUDE_EMERGENCY_IN_LABEL => [
                 'default' => false,
             ],

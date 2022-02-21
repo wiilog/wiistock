@@ -79,7 +79,8 @@ class PDFGeneratorService {
                 ],
                 'labels' => $labels,
                 'firstCustomIcon' => $config['firstCustomIcon'] ?? null,
-                'secondCustomIcon' => $config['secondCustomIcon'] ?? null
+                'secondCustomIcon' => $config['secondCustomIcon'] ?? null,
+                'businessUnit' => $config['businessUnit'] ?? false,
             ];
         }, $barcodeConfigs);
 

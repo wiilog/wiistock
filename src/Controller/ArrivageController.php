@@ -1120,6 +1120,7 @@ class ArrivageController extends AbstractController {
         $packCountParamIsDefined = $settingRepository->getOneParamByLabel(Setting::INCLUDE_PACK_COUNT_IN_LABEL);
         $commandAndProjectNumberIsDefined = $settingRepository->getOneParamByLabel(Setting::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL);
         $printTwiceIfCustoms = $settingRepository->getOneParamByLabel(Setting::PRINT_TWICE_CUSTOMS);
+        $businessUnitParam = $settingRepository->getOneParamByLabel(Setting::INCLUDE_BUSINESS_UNIT_IN_LABEL);
 
 
         $firstCustomIconInclude = $settingRepository->getOneParamByLabel(Setting::INCLUDE_CUSTOMS_IN_LABEL);
@@ -1158,7 +1159,8 @@ class ArrivageController extends AbstractController {
                     $commandAndProjectNumberIsDefined,
                     $firstCustomIconConfig,
                     $secondCustomIconConfig,
-                    $packIdsFilter
+                    $packIdsFilter,
+                    $businessUnitParam
                 );
             }
 
@@ -1185,7 +1187,8 @@ class ArrivageController extends AbstractController {
                 $packCountParamIsDefined,
                 $commandAndProjectNumberIsDefined,
                 $firstCustomIconConfig,
-                $secondCustomIconConfig
+                $secondCustomIconConfig,
+                $businessUnitParam
             );
         }
 
@@ -1228,7 +1231,8 @@ class ArrivageController extends AbstractController {
                                                    ?bool $commandAndProjectNumberIsDefined = false,
                                                    ?array $firstCustomIconConfig = null,
                                                    ?array $secondCustomIconConfig = null,
-                                                   array $packIdsFilter = []) {
+                                                   array $packIdsFilter = [],
+                                                   ?bool $businessUnitParam = false ) {
         $total = $arrivage->getPacks()->count();
         $packs = [];
 
@@ -1245,7 +1249,8 @@ class ArrivageController extends AbstractController {
                     $packCountParamIsDefined,
                     $commandAndProjectNumberIsDefined,
                     $firstCustomIconConfig,
-                    $secondCustomIconConfig
+                    $secondCustomIconConfig,
+                    $businessUnitParam
                 );
             }
         }
@@ -1262,10 +1267,15 @@ class ArrivageController extends AbstractController {
                                            ?bool $packCountParamIsDefined = false,
                                            ?bool $commandAndProjectNumberIsDefined = false,
                                            ?array $firstCustomIconConfig = null,
-                                           ?array $secondCustomIconConfig = null)
+                                           ?array $secondCustomIconConfig = null,
+                                           ?bool $businessUnitParam = false)
     {
 
         $arrival = $colis->getArrivage();
+
+        $businessUnit = $businessUnitParam
+            ? $arrival->getBusinessUnit()
+            : '';
 
         $arrivalType = $typeArrivalParamIsDefined
             ? $arrival->getType()->getLabel()
@@ -1328,6 +1338,10 @@ class ArrivageController extends AbstractController {
 
         if ($packLabel) {
             $labels[] = $packLabel;
+        }
+
+        if($businessUnitParam) {
+          $labels[] = $businessUnit;
         }
 
         return [
