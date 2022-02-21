@@ -1,20 +1,9 @@
-<div class="d-flex">
-    <div class="dropdown dropright">
-        {% include 'datatable/dotsRow.html.twig' %}
-        <div class="dropdown-menu dropdown-follow-gt pointer">
-                <div class="d-none">
-                    <a class="action-on-click"
-                       href="{{ path('settings_role_edit_form', {role: role.id}) }}">
-                        Modifier
-                    </a>
-                </div>
-                <div class="dropdown-item"
-                     data-id='{{ role.id }}'
-                     data-toggle='modal'
-                     data-target='#modalDeleteRole'
-                     onclick="checkAndDeleteRow($(this), '#modalDeleteRole', 'settings_role_check_delete', '#submitDeleteRole')">
-                    <i class='fas fa-trash mr-2'></i>Supprimer
-                </div>
-        </div>
-    </div>
+<div class="d-none">
+    <a class="action-on-click" href="{{ path('settings_role_edit_form', {role: role.id}) }}">
+        Modifier
+    </a>
+</div>
+<div data-toggle='modal' data-target='#modalDeleteRole' data-id='{{ role.id }}'
+     onclick="checkAndDeleteRow($(this), '#modalDeleteRole', 'settings_role_check_delete', '#submitDeleteRole')">
+    <i class="wii-icon wii-icon-trash text-primary mr-2"></i>
 </div>
