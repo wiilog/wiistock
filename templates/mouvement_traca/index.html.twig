@@ -18,12 +18,14 @@
     {% set hasRightCreate = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE')) %}
     {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
     {% set editAttachments = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
+    {% set hasRightToCreateMovement = hasRightCreate
+        and hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE_TRACKING_MOVEMENT')) %}
     <div class="m-4 wii-page-card">
         {% if hasRightCreate or hasRightExport %}
             <div class="row wii-page-card-header">
                 <div class="col-auto ml-auto">
                     <div class="btn-group">
-                        {% if hasRightCreate %}
+                        {% if hasRightToCreateMovement %}
                             <button type="button"
                                     data-toggle="modal"
                                     data-target="#modalNewMvtTraca"
