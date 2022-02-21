@@ -1210,7 +1210,8 @@ function resetColorPickersElementsToForm($modal, data) {
         }
     } else {
         if (data.chartColors) {
-            for (let key in data.chartColors) {
+            const chartColorKeys = Object.keys(data.chartColors);
+            for (const key of chartColorKeys) {
                 $chartColorPickersContainer.append(generateColorPickerElement(data, key));
             }
         }
