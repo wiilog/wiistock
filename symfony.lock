@@ -2,6 +2,9 @@
     "beberlei/doctrineextensions": {
         "version": "v1.3.0"
     },
+    "composer/package-versions-deprecated": {
+        "version": "1.11.99.4"
+    },
     "composer/semver": {
         "version": "3.2.4"
     },
@@ -198,9 +201,6 @@
     "nikic/php-parser": {
         "version": "v4.10.4"
     },
-    "nikitospush/barcode-bundle": {
-        "version": "v3.0.2"
-    },
     "ovh/ovh": {
         "version": "v3.0.0"
     },
@@ -215,9 +215,6 @@
     },
     "phar-io/version": {
         "version": "3.1.0"
-    },
-    "php": {
-        "version": "7.4"
     },
     "phpdocumentor/reflection-common": {
         "version": "2.2.0"
@@ -750,6 +747,9 @@
     },
     "webmozart/assert": {
         "version": "1.9.1"
+    },
+    "wiilog/barcode-bundle": {
+        "version": "dev-master"
     },
     "wiilog/common": {
         "version": "dev-master"

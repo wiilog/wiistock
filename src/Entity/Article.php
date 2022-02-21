@@ -246,7 +246,7 @@ class Article implements PairedEntity
         return $this;
     }
 
-    public function __toString(): ?string
+    public function __toString(): string
     {
         return $this->barCode;
     }

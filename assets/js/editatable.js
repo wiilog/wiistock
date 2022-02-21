@@ -72,8 +72,12 @@ export default class EditableDatatable {
         row[Object.keys(row)[0]] = `<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>`;
 
         if(this.state !== STATE_ADD) {
-            this.toggleEdit(STATE_ADD);
-            this.table.clear();
+            this.toggleEdit(STATE_ADD, true).then(() => {
+                setTimeout(() => {
+                    this.table.clear();
+                    this.table.draw();
+                }, 1000)
+            });
         } else {
             this.table.row(':last').remove();
         }
@@ -175,7 +179,7 @@ function initEditatable(datatable, onRowDrawn = null) {
     else {
         url = config.route;
     }
-
+console.error(config.ordering && datatable.state === STATE_VIEWING)
     return initDataTable($element, {
         serverSide: false,
         ajax: {
@@ -224,6 +228,7 @@ function initEditatable(datatable, onRowDrawn = null) {
                     if(!$row.find(`.add-row`).exists()) {
                         return;
                     }
+
                     if((datatable.mode === MODE_DOUBLE_CLICK || datatable.mode === MODE_EDIT_AND_ADD) && datatable.state !== STATE_EDIT){
                         datatable
                             .toggleEdit(STATE_EDIT, true)
