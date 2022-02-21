@@ -61,8 +61,6 @@ class InventoryParamController extends AbstractController
                 [
                     'Label' => $category->getLabel(),
                     'Frequence' => $category->getFrequency()->getLabel(),
-                    'Permanent' => $category->getPermanent() ? 'oui' : 'non',
-                    'Actions' => $category->getId(),
                     'Actions' => $this->renderView('inventaire_param/datatableCategoryRow.html.twig', [
                         'url' => $url,
                         'categoryId' => $category->getId(),
@@ -92,8 +90,7 @@ class InventoryParamController extends AbstractController
                 $category = new InventoryCategory();
                 $category
                     ->setLabel($data['label'])
-                    ->setFrequency($frequency)
-                    ->setPermanent($data['permanent']);
+                    ->setFrequency($frequency);
 
                 $entityManager->persist($category);
                 $entityManager->flush();
@@ -157,8 +154,7 @@ class InventoryParamController extends AbstractController
                 $frequency = $inventoryFrequencyRepository->find($data['frequency']);
                 $category
                     ->setLabel($data['label'])
-                    ->setFrequency($frequency)
-                    ->setPermanent($data['permanent']);
+                    ->setFrequency($frequency);
 
                 $entityManager->persist($category);
                 $entityManager->flush();
