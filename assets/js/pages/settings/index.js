@@ -48,6 +48,10 @@ const initializers = {
     trace_arrivages_types_litiges : initializeTypesLitige,
 };
 
+const saveCallbacks = {
+    global_apparence_site: () => location.reload(),
+};
+
 const slowOperations = [
     `FONT_FAMILY`,
     `MAX_SESSION_TIME`,
@@ -128,6 +132,10 @@ $(function() {
                         if(table.mode !== MODE_EDIT) {
                             table.toggleEdit(STATE_VIEWING, true, {type: result.type});
                         }
+                    }console.error(currentForm, saveCallbacks);
+
+                    if(saveCallbacks[currentForm]) {
+                        saveCallbacks[currentForm]();
                     }
                 }
 
