@@ -380,7 +380,7 @@ class SettingsController extends AbstractController {
     private const MENU_PUSH_NOTIFICATIONS = "notifications_push";
 
     private const MENU_LANGUAGES = "langues";
-    private const MENU_ROLES = "roles";
+    public const MENU_ROLES = "roles";
     public const MENU_USERS = "utilisateurs";
 
     private const MENU_CSV_EXPORTS = "exports_csv";
