@@ -2,7 +2,7 @@
 // Each day at 08:00
 // 0 8 * * *
 
-namespace App\Command\Emails;
+namespace App\Command;
 
 use App\Entity\Setting;
 use App\Service\PackService;
