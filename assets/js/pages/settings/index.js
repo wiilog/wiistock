@@ -306,7 +306,7 @@ function initializeOffDays($container, canEdit) {
     });
 
     $addButton.on(`click`, function() {
-        table.addRow();
+        table.addRow(true);
     });
 }
 
@@ -565,6 +565,7 @@ function initializeInventoryFrequenciesTable(){
         paging: false,
         scrollY: false,
         scrollX: false,
+        ordering: true,
         onEditStart: () => {
             $managementButtons.removeClass('d-none');
         },
@@ -573,8 +574,8 @@ function initializeInventoryFrequenciesTable(){
         },
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: `label`, title: `Libellé`},
-            {data: `nb_months`, title: `Nombre de mois`},
+            {data: `label`, title: `Libellé<span class="d-none required-mark">*</span>`},
+            {data: `nb_months`, title: `Nombre de mois<span class="d-none required-mark">*</span>`},
         ],
         form: {
             actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
@@ -596,6 +597,7 @@ function initializeInventoryCategoriesTable(){
         paginate: false,
         scrollY: false,
         scrollX: false,
+        ordering: true,
         onEditStart: () => {
             $managementButtons.removeClass('d-none');
         },
@@ -604,8 +606,8 @@ function initializeInventoryCategoriesTable(){
         },
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: `label`, title: `Libellé`},
-            {data: `frequency`, title: `Fréquence`},
+            {data: `label`, title: `Libellé<span class="d-none required-mark">*</span>`},
+            {data: `frequency`, title: `Fréquence<span class="d-none required-mark">*</span>`},
         ],
         form: {
             actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
@@ -684,6 +686,6 @@ function initializeVisibilityGroup($container, canEdit) {
     });
 
     $addButton.on(`click`, function() {
-        table.addRow();
+        table.addRow(true);
     });
 }

@@ -67,25 +67,32 @@ export default class EditableDatatable {
         return data;
     }
 
-    addRow() {
+    addRow(clear = false) {
         let row = this.config.columns.keymap(column => [column.data, ``]);
         row[Object.keys(row)[0]] = `<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>`;
 
-        if(this.state !== STATE_ADD) {
-            this.toggleEdit(STATE_ADD);
+        const drawNewRow = () => {
+            const form = {};
+            for(const [key, value] of Object.entries(this.config.form)) {
+                form[key] = typeof value === `function` ? value() : value;
+            }
+
+            this.table.row.add(form);
+            this.table.row.add(row);
+            this.table.draw();
+
+            const $beforeLastTableLine = $(`.add-row`).parents(`tr:first`).prev();
+            const $focusableInput = $beforeLastTableLine.find(`input:first`);
+            $focusableInput.focus();
+        }
+
+        if(clear && this.state !== STATE_ADD) {
             this.table.clear();
+            this.toggleEdit(STATE_ADD).then(() => drawNewRow());
         } else {
             this.table.row(':last').remove();
+            drawNewRow();
         }
-
-        const form = {};
-        for(const [key, value] of Object.entries(this.config.form)) {
-            form[key] = typeof value === `function` ? value() : value;
-        }
-
-        this.table.row.add(form);
-        this.table.row.add(row);
-        this.table.draw();
     }
 
     setURL(url, load = true) {
@@ -151,18 +158,6 @@ function applyState(datatable, state, params) {
         $requiredMarks.addClass('d-none');
         $datatablePaging.removeClass('d-none');
     }
-}
-
-function addNewFormRow(datatable) {
-    const {config, table, element: $element} = datatable;
-    const $addRow = $element.find(`.add-row`).closest('tr');
-    const row = table.row($addRow);
-    const data = row.data();
-
-    row.remove();
-    table.row.add(Object.assign({}, config.form));
-    table.row.add(data);
-    table.draw();
 }
 
 function initEditatable(datatable, onDatatableInit = null) {
@@ -319,11 +314,11 @@ function onAddRowClicked(datatable) {
         datatable
             .toggleEdit(STATE_EDIT, true)
             .then(() => {
-                addNewFormRow(datatable);
+                datatable.addRow();
             });
     }
     else {
-        addNewFormRow(datatable);
+        datatable.addRow();
     }
 }
 
