@@ -157,33 +157,19 @@ class RoleController extends AbstractController {
     public function delete(Request $request,
                            RoleService $roleService,
                            EntityManagerInterface $entityManager): Response {
-        if ($data = json_decode($request->getContent(), true)) {
-            $roleRepository = $entityManager->getRepository(Role::class);
-            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-            $resp = false;
+        $id = json_decode($request->getContent())->role;
+        $role = $entityManager->find(Role::class, $id);
 
-            if ($roleId = (int)$data['role']) {
-                $role = $roleRepository->find($roleId);
+        $label = $role->getLabel();
 
-                if ($role) {
-                    $nbUsers = $utilisateurRepository->countByRoleId($roleId);
+        $entityManager->remove($role);
+        $entityManager->flush();
 
-                    if ($nbUsers == 0) {
-                        $roleId = $role->getId();
-                        $entityManager->remove($role);
-                        $entityManager->flush();
+        $roleService->onRoleUpdate($id);
 
-                        $roleService->onRoleUpdate($roleId);
-
-                        $resp = [
-                            'success' => true,
-                            'msg' => 'Le rôle <strong>' . $role->getLabel() . '</strong> a bien été supprimé.'
-                        ];
-                    }
-                }
-            }
-            return new JsonResponse($resp);
-        }
-        throw new BadRequestHttpException();
+        return $this->json([
+            'success' => true,
+            'msg' => "Le rôle <strong>$label</strong> a bien été supprimé."
+        ]);
     }
 }

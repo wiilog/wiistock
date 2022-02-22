@@ -25,7 +25,6 @@ export function initializeRolesPage() {
     InitModal(
         $modalDeleteRole,
         $modalDeleteRole.find('.submit-button'),
-        Routing.generate('settings_role_delete', true),
-        {tables: [tableRoles]}
+        Routing.generate('settings_role_delete', true), {tables: [tableRoles]}
     );
 }

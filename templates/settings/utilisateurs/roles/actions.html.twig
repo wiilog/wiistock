@@ -3,7 +3,9 @@
         Modifier
     </a>
 </div>
-<div data-toggle='modal' data-target='#modalDeleteRole' data-id='{{ role.id }}'
-     onclick="checkAndDeleteRow($(this), '#modalDeleteRole', 'settings_role_check_delete', '#submitDeleteRole')">
+<div data-toggle='modal'
+     data-target='#modalDeleteRole'
+     data-id='{{ role.id }}'
+     onclick="checkAndDeleteRow($(this), '#modalDeleteRole', 'settings_role_check_delete', $('#modalDeleteRole').find('.submit-button'))">
     <i class="wii-icon wii-icon-trash text-primary mr-2"></i>
 </div>
