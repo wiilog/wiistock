@@ -1336,12 +1336,12 @@ class ArrivageController extends AbstractController {
             }
         }
 
-        if ($packLabel) {
-            $labels[] = $packLabel;
+        if($businessUnitParam) {
+            $labels[] = $businessUnit;
         }
 
-        if($businessUnitParam) {
-          $labels[] = $businessUnit;
+        if ($packLabel) {
+            $labels[] = $packLabel;
         }
 
         return [
