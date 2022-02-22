@@ -253,3 +253,7 @@ thead th.datatable-main-header, tbody th.datatable-main-header {
 table.no-border-top th {
     border-top: none !important;
 }
+
+.subentities-table {
+    table-layout:fixed;
+}
