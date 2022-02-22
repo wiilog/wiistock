@@ -551,7 +551,7 @@ class SettingsController extends AbstractController {
                         $treated = Statut::TREATED;
                         $notTreated = Statut::NOT_TREATED;
                         return [
-                            "optionsSelect" => "<option/><option id='{$treated}'>Traité</option><option id='{$notTreated}'>A traité</option>",
+                            "optionsSelect" => "<option/><option value='{$treated}'>Traité</option><option value='{$notTreated}'>A traité</option>",
                         ];
                     }
                 ]
@@ -648,7 +648,7 @@ class SettingsController extends AbstractController {
                         $treated = Statut::TREATED;
                         $notTreated = Statut::NOT_TREATED;
                         return [
-                            "optionsSelect" => "<option/><option id='{$treated}'>Traité</option><option id='{$notTreated}'>A traité</option>",
+                            "optionsSelect" => "<option/><option value='{$treated}'>Traité</option><option value='{$notTreated}'>A traité</option>",
 
                         ];
                     }
@@ -1594,170 +1594,6 @@ class SettingsController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/statuts_litiges-arrivages-api", name="settings_statuts_litiges_arrivages_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_TRACKING})
-     */
-    public function statutsLitigeApi(Request $request, EntityManagerInterface $manager) {
-        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
 
-        $data = [];
-
-        $treated = Statut::TREATED;
-        $notTreated = Statut::NOT_TREATED;
-        $statutRepository = $manager->getRepository(Statut::class);
-        $statutsLitige = $statutRepository->findByCategorieName(CategorieStatut::DISPUTE_ARR);
-
-        foreach($statutsLitige as $statut) {
-            if($edit) {
-                $checkedNotTreated = ($statut->getState() === Statut::NOT_TREATED) ? 'selected' : '';
-                $checkedTreated = ($statut->getState() === Statut::TREATED) ? 'selected' : '';
-                $optionsSelect = "<option/><option id='{$treated}' {$checkedTreated}>Traité</option><option id='{$notTreated}' {$checkedNotTreated}>A traité</option>";
-                $defaultStatut = $statut->isDefaultForCategory() == 1 ? 'checked' : "";
-                $sendMailBuyers = $statut->getSendNotifToBuyer()== 1 ? 'checked' : "";
-                $sendMailRequesters = $statut->getSendNotifToDeclarant() == 1 ? 'checked' : "";
-                $sendMailDest = $statut->getSendNotifToRecipient() == 1 ? 'checked' : "";
-                $data[] = [
-                    "actions" => $this->canDelete() ? "
-                        <button class='btn btn-silent delete-row' data-id='{$statut->getId()}'>
-                            <i class='wii-icon wii-icon-trash text-primary'></i>
-                        </button><input type='hidden' name='statutLitigeArrivageId' class='data' value='{$statut->getId()}'/>" : "",
-                    "label" => "<input type='text' name='label' value='{$statut->getNom()}' class='form-control data needed'/>",
-                    "state"=> "<select name='state' class='data form-control needed select-size'>{$optionsSelect}</select>",
-                    "comment"=> "<input type='text' name='comment' value='{$statut->getComment()}' class='form-control data needed'/>",
-                    "defaultStatut"=> "<div class='checkbox-container'><input type='checkbox' name='defaultStatut' class='form-control data' {$defaultStatut}/></div>",
-                    "sendMailBuyers"=> "<div class='checkbox-container'><input type='checkbox' name='sendMailBuyers' class='form-control data' {$sendMailBuyers}/></div>",
-                    "sendMailRequesters"=> "<div class='checkbox-container'><input type='checkbox' name='sendMailRequesters' class='form-control data' {$sendMailRequesters}/></div>",
-                    "sendMailDest"=> "<div class='checkbox-container'><input type='checkbox' name='sendMailDest' class='form-control data' {$sendMailDest}/></div>",
-                    "order"=> "<input type='number' name='order' min='1' value='{$statut->getState()}' class='form-control data needed'/>",
-                ];
-            } else {
-                $data[] = [
-                    "actions" => $this->canDelete() ? "
-                        <button class='btn btn-silent delete-row' data-id='{$statut->getId()}'>
-                            <i class='wii-icon wii-icon-trash text-primary'></i>
-                        </button><input type='hidden' name='statutLitigeArrivageId' class='data' value='{$statut->getId()}'/>" : "",
-                    "label" => $statut->getNom(),
-                    "state"=> $statut->getState() == Statut::NOT_TREATED ? 'A traité' : 'Traité',
-                    "comment"=> $statut->getComment(),
-                    "defaultStatut"=> $statut->isDefaultForCategory() ? 'Oui' : 'Non',
-                    "sendMailBuyers"=> $statut->getSendNotifToBuyer() ? 'Oui' : 'Non',
-                    "sendMailRequesters"=> $statut->getSendNotifToDeclarant() ? 'Oui' : 'Non',
-                    "sendMailDest"=> $statut->getSendNotifToRecipient() ? 'Oui' : 'Non',
-                    "order"=> $statut->getDisplayOrder(),
-                ];
-            }
-        }
-
-        return $this->json([
-            "data" => $data,
-            "recordsTotal" => count($data),
-            "recordsFiltered" => count($data),
-        ]);
-    }
-
-    /**
-     * @Route("/statuts_litiges_arrivages/supprimer/{entity}", name="settings_statuts_litiges_arrivages_delete", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::DELETE})
-     */
-    public function statutsLitigeArrivage(EntityManagerInterface $manager, Statut $entity) {
-        $statut = $manager->getRepository(Statut::class)->find($entity);
-        if ($statut->getDisputes()->isEmpty()){
-            $manager->remove($entity);
-            $manager->flush();
-        } else {
-            return $this->json([
-                "success" => false,
-                "msg" => "Impossible de supprimer le statut car il est associé à des litiges",
-            ]);
-        }
-        return $this->json([
-            "success" => true,
-            "msg" => "Le statut a été supprimé",
-        ]);
-    }
-
-    /**
-     * @Route("/statuts_litiges-receptions-api", name="settings_statuts_litiges_receptions_api", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK})
-     */
-    public function statutsReceptionApi(Request $request, EntityManagerInterface $manager) {
-        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
-
-        $data = [];
-
-        $treated = Statut::TREATED;
-        $notTreated = Statut::NOT_TREATED;
-        $statutRepository = $manager->getRepository(Statut::class);
-        $statutsLitige = $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT);
-
-        foreach($statutsLitige as $statut) {
-            if($edit) {
-                $checkedNotTreated = ($statut->getState() === Statut::NOT_TREATED) ? 'selected' : '';
-                $checkedTreated = ($statut->getState() === Statut::TREATED) ? 'selected' : '';
-                $optionsSelect = "<option/><option id='{$treated}' {$checkedTreated}>Traité</option><option id='{$notTreated}' {$checkedNotTreated}>A traité</option>";
-                $defaultStatut = $statut->isDefaultForCategory() == 1 ? 'checked' : "";
-                $sendMailBuyers = $statut->getSendNotifToBuyer()== 1 ? 'checked' : "";
-                $sendMailRequesters = $statut->getSendNotifToDeclarant() == 1 ? 'checked' : "";
-                $sendMailDest = $statut->getSendNotifToRecipient() == 1 ? 'checked' : "";
-                $data[] = [
-                    "actions" => $this->canDelete() ? "
-                        <button class='btn btn-silent delete-row' data-id='{$statut->getId()}'>
-                            <i class='wii-icon wii-icon-trash text-primary'></i>
-                        </button><input type='hidden' name='statutLitigeReceptionId' class='data' value='{$statut->getId()}'/>" : "",
-                    "label" => "<input type='text' name='label' value='{$statut->getNom()}' class='form-control data needed'/>",
-                    "state"=> "<select name='state' class='data form-control needed select-size'>{$optionsSelect}</select>",
-                    "comment"=> "<input type='text' name='comment' value='{$statut->getComment()}' class='form-control data needed'/>",
-                    "defaultStatut"=> "<div class='checkbox-container'><input type='checkbox' name='defaultStatut' class='form-control data' {$defaultStatut}/></div>",
-                    "sendMailBuyers"=> "<div class='checkbox-container'><input type='checkbox' name='sendMailBuyers' class='form-control data' {$sendMailBuyers}/></div>",
-                    "sendMailRequesters"=> "<div class='checkbox-container'><input type='checkbox' name='sendMailRequesters' class='form-control data' {$sendMailRequesters}/></div>",
-                    "sendMailDest"=> "<div class='checkbox-container'><input type='checkbox' name='sendMailDest' class='form-control data' {$sendMailDest}/></div>",
-                    "order"=> "<input type='number' name='order' min='1' value='{$statut->getState()}' class='form-control data needed'/>",
-                ];
-            } else {
-                $data[] = [
-                    "actions" => $this->canDelete() ? "
-                        <button class='btn btn-silent delete-row' data-id='{$statut->getId()}'>
-                            <i class='wii-icon wii-icon-trash text-primary'></i>
-                        </button><input type='hidden' name='statutLitigeReceptionId' class='data' value='{$statut->getId()}'/>" : "",
-                    "label" => $statut->getNom(),
-                    "state"=> $statut->getState() == Statut::NOT_TREATED ? 'A traité' : 'Traité',
-                    "comment"=> $statut->getComment(),
-                    "defaultStatut"=> $statut->isDefaultForCategory() ? 'Oui' : 'Non',
-                    "sendMailBuyers"=> $statut->getSendNotifToBuyer() ? 'Oui' : 'Non',
-                    "sendMailRequesters"=> $statut->getSendNotifToDeclarant() ? 'Oui' : 'Non',
-                    "sendMailDest"=> $statut->getSendNotifToRecipient() ? 'Oui' : 'Non',
-                    "order"=> $statut->getDisplayOrder(),
-                ];
-            }
-        }
-
-        return $this->json([
-            "data" => $data,
-            "recordsTotal" => count($data),
-            "recordsFiltered" => count($data),
-        ]);
-    }
-
-    /**
-     * @Route("/statuts_litiges_receptions/supprimer/{entity}", name="settings_statuts_litiges_receptions_delete", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::DELETE})
-     */
-    public function statutsLitigeReception(EntityManagerInterface $manager, Statut $entity) {
-        $statut = $manager->getRepository(Statut::class)->find($entity);
-        if ($statut->getDisputes()->isEmpty()){
-            $manager->remove($entity);
-            $manager->flush();
-        } else {
-            return $this->json([
-                "success" => false,
-                "msg" => "Impossible de supprimer le statut car il est associé à des litiges",
-            ]);
-        }
-        return $this->json([
-            "success" => true,
-            "msg" => "Le statut a été supprimé",
-        ]);
-    }
 
 }

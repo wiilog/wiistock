@@ -1,9 +1,9 @@
 export const MODE_NO_EDIT = 1;
 export const MODE_MANUAL = 2;
-export const MODE_DOUBLE_CLICK = 3;
+export const MODE_CLICK_EDIT = 3;
 export const MODE_ADD_ONLY = 4;
 export const MODE_EDIT = 5;
-export const MODE_EDIT_AND_ADD = 6;
+export const MODE_CLICK_EDIT_AND_ADD = 6;
 
 export const SAVE_FOCUS_OUT = 1;
 export const SAVE_MANUALLY = 2;
@@ -230,11 +230,11 @@ function initEditatable(datatable, onDatatableInit = null) {
                 $row
                     .off(`click.${id}.deleteRow`)
                     .on(`click.${id}.deleteRow`, `.delete-row`, function(event) {
-                        onDeleteRowClicked(datatable, event);
+                        onDeleteRowClicked(datatable, event, $(this));
                     });
                 });
 
-            if(config.mode === MODE_DOUBLE_CLICK || config.mode === MODE_EDIT_AND_ADD) {
+            if(config.mode === MODE_CLICK_EDIT || config.mode === MODE_CLICK_EDIT_AND_ADD) {
                 $rows
                     .off(`click.${id}.startEdit`)
                     .on(`click.${id}.startEdit`, function() {
@@ -315,7 +315,7 @@ function initEditatable(datatable, onDatatableInit = null) {
 }
 
 function onAddRowClicked(datatable) {
-    if((datatable.mode === MODE_DOUBLE_CLICK || datatable.mode === MODE_EDIT_AND_ADD) && datatable.state !== STATE_EDIT){
+    if(datatable.mode === MODE_CLICK_EDIT_AND_ADD && datatable.state !== STATE_EDIT){
         datatable
             .toggleEdit(STATE_EDIT, true)
             .then(() => {
@@ -327,12 +327,11 @@ function onAddRowClicked(datatable) {
     }
 }
 
-function onDeleteRowClicked(datatable, event) {
+function onDeleteRowClicked(datatable, event, $button) {
     const {config} = datatable;
     //don't send it up to the table so it doesn't toggle edit mode
     event.stopPropagation();
 
-    const $button = $(this);
     const $row = $button.closest(`tr`);
 
     function deleteRow() {

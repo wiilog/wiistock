@@ -1,12 +1,12 @@
 import '../../../scss/pages/settings.scss';
-import EditableDatatable, {MODE_ADD_ONLY, MODE_DOUBLE_CLICK, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING, MODE_EDIT, MODE_EDIT_AND_ADD, } from "../../editatable";
+import EditableDatatable, {MODE_ADD_ONLY, MODE_CLICK_EDIT, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING, MODE_EDIT, MODE_CLICK_EDIT_AND_ADD, } from "../../editatable";
 import Flash, {INFO} from '../../flash';
 import {LOADING_CLASS} from "../../loading";
 import {initUserPage} from "./users/users";
 import {initializeImports} from "./data/imports.js";
 import {initializeStockArticlesTypesFreeFields, createFreeFieldsPage, initializeTraceMovementsFreeFields, initializeIotFreeFields} from "./free-fields";
 import {initializeRolesPage} from "./users/roles";
-import {initializeStatutsLitigeArrivages, initializeStatutsLitigeReceptions} from "./statuts_litiges";
+import {initializeArrivalDisputeStatuses, initializeReceptionDisputeStatuses} from "./dispute-statuses";
 
 const index = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();
@@ -44,8 +44,8 @@ const initializers = {
     stock_inventaires_categories: initializeInventoryCategoriesTable,
     stock_groupes_visibilite: initializeVisibilityGroup,
     utilisateurs_utilisateurs: initUserPage,
-    trace_arrivages_statuts_litiges: initializeStatutsLitigeArrivages,
-    stock_receptions_statuts_litiges: initializeStatutsLitigeReceptions,
+    trace_arrivages_statuts_litiges: initializeArrivalDisputeStatuses,
+    stock_receptions_statuts_litiges: initializeReceptionDisputeStatuses,
     utilisateurs_roles: initializeRolesPage,
     stock_receptions_types_litiges : initializeTypesLitige,
     trace_arrivages_types_litiges : initializeTypesLitige,
@@ -249,7 +249,7 @@ function updateMenu(selectedMenu, canEdit) {
 function initializeWorkingHours($container, canEdit) {
     const table = EditableDatatable.create(`#table-working-hours`, {
         route: Routing.generate('settings_working_hours_api', true),
-        mode: canEdit ? MODE_DOUBLE_CLICK : MODE_NO_EDIT,
+        mode: canEdit ? MODE_CLICK_EDIT : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         needsPagingHide: true,
         onEditStart: () => {
@@ -559,7 +559,7 @@ function initializeInventoryFrequenciesTable(){
     const table = EditableDatatable.create(`#frequencesTable`, {
         route: Routing.generate('settings_frequencies_api', true),
         deleteRoute: `settings_delete_frequency`,
-        mode: MODE_EDIT_AND_ADD,
+        mode: MODE_CLICK_EDIT_AND_ADD,
         save: SAVE_MANUALLY,
         search: false,
         paging: false,
@@ -590,7 +590,7 @@ function initializeInventoryCategoriesTable(){
     const table = EditableDatatable.create(`#categoriesTable`, {
         route: Routing.generate('settings_categories_api', true),
         deleteRoute: `settings_delete_category`,
-        mode: MODE_EDIT_AND_ADD,
+        mode: MODE_CLICK_EDIT_AND_ADD,
         save: SAVE_MANUALLY,
         search: false,
         paginate: false,
@@ -622,7 +622,7 @@ function initializeTypesLitige(){
     const table = EditableDatatable.create(`#table-types-litige`, {
         route: Routing.generate('types_litige_api', true),
         deleteRoute: `settings_delete_type_litige`,
-        mode: MODE_EDIT_AND_ADD,
+        mode: MODE_CLICK_EDIT_AND_ADD,
         save: SAVE_MANUALLY,
         search: false,
         paginate: false,
@@ -654,7 +654,7 @@ function initializeVisibilityGroup($container, canEdit) {
     const table = EditableDatatable.create(`#table-visibility-group`, {
         route: Routing.generate(`settings_visibility_group_api`, true),
         deleteRoute: `settings_visibility_group_delete`,
-        mode: canEdit ? MODE_DOUBLE_CLICK : MODE_NO_EDIT,
+        mode: canEdit ? MODE_CLICK_EDIT : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         search: false,
         paginate: false,

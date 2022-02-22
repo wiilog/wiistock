@@ -1,5 +1,5 @@
 import {createManagementPage} from './utils';
-import EditableDatatable, {MODE_DOUBLE_CLICK, MODE_EDIT_AND_ADD, MODE_NO_EDIT, SAVE_MANUALLY} from "../../editatable";
+import EditableDatatable, {MODE_CLICK_EDIT, MODE_CLICK_EDIT_AND_ADD, MODE_NO_EDIT, SAVE_MANUALLY} from "../../editatable";
 
 const $saveButton = $(`.save-settings`);
 const $discardButton = $(`.discard-settings`);
@@ -169,7 +169,7 @@ export function initializeTraceMovementsFreeFields($container, canEdit) {
             type: $(`#table-movement-free-fields`).data(`type`),
         }),
         deleteRoute: `settings_free_field_delete`,
-        mode: canEdit ? MODE_EDIT_AND_ADD : MODE_NO_EDIT,
+        mode: canEdit ? MODE_CLICK_EDIT_AND_ADD : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         search: true,
         paging: true,
@@ -192,7 +192,7 @@ export function initializeTraceMovementsFreeFields($container, canEdit) {
 export function initializeIotFreeFields($container, canEdit) {
     createManagementPage($container, {
         name: `freeFields`,
-        edit: canEdit ? MODE_DOUBLE_CLICK : MODE_NO_EDIT,
+        edit: canEdit ? MODE_CLICK_EDIT : MODE_NO_EDIT,
         table: {
             route: (type) => Routing.generate('settings_free_field_api', {type}, true),
             deleteRoute: `settings_free_field_delete`,
