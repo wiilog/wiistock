@@ -56,8 +56,8 @@ function saveSettings($saveButton) {
                 }
                 else {
                     Flash.add('danger', message);
+                    $saveButton.popLoader();
                 }
-                $saveButton.popLoader();
             })
             .catch(() => {
                 $saveButton.popLoader();
