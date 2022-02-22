@@ -655,7 +655,8 @@ function initializeVisibilityGroup($container, canEdit) {
         mode: canEdit ? MODE_CLICK_EDIT : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         search: false,
-        paginate: false,
+        ordering: true,
+        paginate: true,
         scrollY: false,
         scrollX: false,
         onInit: () => {
@@ -671,7 +672,7 @@ function initializeVisibilityGroup($container, canEdit) {
         },
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: `label`, title: `Libelle`},
+            {data: `label`, title: `Libellé`},
             {data: `description`, title: `Description`},
             {data: `actif`, title: `Actif`},
         ],

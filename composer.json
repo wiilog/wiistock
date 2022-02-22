@@ -6,7 +6,7 @@
     "minimum-stability": "stable",
     "prefer-stable": true,
     "require": {
-        "php": "^7.4",
+        "php": "^8.0",
         "ext-ctype": "*",
         "ext-iconv": "*",
         "ext-json": "*",
@@ -24,7 +24,7 @@
         "google/apiclient": "^2.10",
         "knplabs/knp-snappy-bundle": "^1.8",
         "nelmio/cors-bundle": "^2.1",
-        "nikitospush/barcode-bundle": "^3.0",
+        "wiilog/barcode-bundle": "dev-master",
         "ovh/ovh": "^3.0",
         "phpdocumentor/reflection-docblock": "^5.2",
         "scienta/doctrine-json-functions": "^4.2",
@@ -79,7 +79,10 @@
         "preferred-install": {
             "*": "dist"
         },
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "symfony/flex": true
+        }
     },
     "autoload": {
         "psr-4": {
@@ -121,6 +124,10 @@
         {
             "type": "git",
             "url": "https://github.com/wiilog/common-php.git"
+        },
+        {
+            "type": "git",
+            "url": "https://github.com/wiilog/barcode-bundle"
         }
     ]
 }
