@@ -50,9 +50,9 @@ function generateFreeFieldForm() {
 function generateFreeFieldColumns(appliesTo = false) {
     return [
         {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-        {data: `label`, title: `Libellé`},
+        {data: `label`, title: `Libellé<span class="d-none required-mark">*</span>`},
         ...(appliesTo ? [{data: `appliesTo`, title: `S'applique à`}] : []),
-        {data: `type`, title: `Typage`},
+        {data: `type`, title: `Typage<span class="d-none required-mark">*</span>`},
         {data: `elements`, title: `Éléments<br><div class='wii-small-text'>(Séparés par des ';')</div>`},
         {data: `defaultValue`, title: `Valeur par défaut`},
         {data: `displayedCreate`, title: `<div class='small-column'>Affiché à la création</div>`},

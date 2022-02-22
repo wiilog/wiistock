@@ -132,18 +132,24 @@ export default class EditableDatatable {
 
 function applyState(datatable, state, params) {
     const {config, element: $element} = datatable;
+    const $datatableWrapper = $element.closest(`.dataTables_wrapper`);
+    const $datatablePaging = $datatableWrapper.find(`.datatable-paging`);
+    const $requiredMarks = $datatableWrapper.find('.required-mark');
+
     if (state !== STATE_VIEWING) {
         if (config.onEditStart) {
             config.onEditStart();
         }
 
-        $element.closest(`.dataTables_wrapper`).find(`.datatable-paging`).hide();
+        $requiredMarks.removeClass('d-none');
+        $datatablePaging.addClass('d-none');
     } else {
         if (config.onEditStop) {
             config.onEditStop(params);
         }
 
-        $element.closest(`.dataTables_wrapper`).find(`.datatable-paging`).show();
+        $requiredMarks.addClass('d-none');
+        $datatablePaging.removeClass('d-none');
     }
 }
 
