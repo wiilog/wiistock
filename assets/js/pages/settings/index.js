@@ -454,18 +454,50 @@ function initializeDeliveries() {
             onTypeChange($(this));
         });
     });
+
+    $saveButton.on('click', function(){
+        const $typesAndLocations = $(this).parents('main').find('input[name=typesAndLocations]');
+        const $selectTypes = $(`select[name=deliveryType]`);
+        const $selectLocations = $(`select[name=deliveryRequestLocation]`);
+
+        const types = [];
+        let filledSelectTypes = true;
+        $selectTypes.each(function() {
+            if(!$(this).val()) {
+                filledSelectTypes = false;
+            } else {
+                types.push($(this).val());
+            }
+        });
+
+        const locations = [];
+        let filledSelectLocations = true;
+        $selectLocations.each(function() {
+            if(!$(this).val()) {
+                filledSelectLocations = false;
+            } else {
+                locations.push($(this).val());
+            }
+        });
+        const value = JSON.stringify({types: types, locations: locations});
+        $typesAndLocations.val(value);
+    })
 }
 
 function initDeliveryRequestDefaultLocations() {
     const $deliveryTypeSettings = $(`input[name=deliveryTypeSettings]`);
     const deliveryTypeSettingsValues = JSON.parse($deliveryTypeSettings.val());
+    const $buttonNewTypeAssociation = $(`button.new-type-association-button`);
 
     deliveryTypeSettingsValues.forEach(item => {
-        newTypeAssociation($(`button.new-type-association-button`), item.type, item.location);
+        newTypeAssociation($buttonNewTypeAssociation, item.type, item.location, true);
+        updateAlreadyDefinedTypes();
     });
+    const $lastDeliveryTypeSelect = $('select[name=deliveryType]').last();
+    $buttonNewTypeAssociation.prop('disabled', $lastDeliveryTypeSelect.data('length') < 1);
 }
 
-function newTypeAssociation($button, type = undefined, location = undefined) {
+function newTypeAssociation($button, type = undefined, location = undefined, firstLoad = false) {
     const $settingTypeAssociation = $(`.setting-type-association`);
     const $typeTemplate = $(`#type-template`);
 
@@ -476,20 +508,12 @@ function newTypeAssociation($button, type = undefined, location = undefined) {
         }
     });
 
-    if (allFilledSelect) {
-        $button.prop(`disabled`, true);
+    if (firstLoad || allFilledSelect) {
+        $button.prop(`disabled`, false);
         $settingTypeAssociation.append($typeTemplate.html());
-
-        const $typeSelect = $settingTypeAssociation.last().find(`select[name=deliveryType]`);
-        const $locationSelect = $settingTypeAssociation.last().find(`select[name=deliveryRequestLocation]`);
-
-        if (type && location) {
-            appendSelectOptions($typeSelect, $locationSelect, type, location);
-        } else if (location) {
-            let type = {
-                id: 'all',
-                label: 'Tous les types'
-            }
+        if(firstLoad) {
+            const $typeSelect = $settingTypeAssociation.last().find(`select[name=deliveryType]`);
+            const $locationSelect = $settingTypeAssociation.last().find(`select[name=deliveryRequestLocation]`);
             appendSelectOptions($typeSelect, $locationSelect, type, location);
         }
     } else {
@@ -497,16 +521,25 @@ function newTypeAssociation($button, type = undefined, location = undefined) {
     }
 }
 
+function appendSelectOptions(typeSelect, locationSelect, type, location) {
+    typeSelect
+        .append(new Option(type.label, type.id, false, true))
+        .trigger(`change`);
+
+    locationSelect
+        .append(new Option(location.label, location.id, false, true))
+        .trigger(`change`);
+}
+
 function onTypeChange($select) {
     const $settingTypeAssociation = $select.closest('.setting-type-association');
     const $newTypeAssociationButton = $('.new-type-association-button');
     const $allTypeSelect = $settingTypeAssociation.find(`select[name=deliveryType]`);
-    const $lastDeliveryTypeSelect = $allTypeSelect.last();
 
     const $typeAssociationContainer = $select.closest('.type-association-container');
     const $associatedLocation = $typeAssociationContainer.find('select[name="deliveryRequestLocation"]');
     $associatedLocation.val(null).trigger('change');
-    setAlreadyDefinedTypes();
+    updateAlreadyDefinedTypes();
 
     let allFilledSelect = true;
     $allTypeSelect.each(function() {
@@ -515,31 +548,30 @@ function onTypeChange($select) {
         }
     });
 
-    let isAllSpecifiedTypes = false;
-    if($lastDeliveryTypeSelect === $select) {
-        isAllSpecifiedTypes = $select.data("length") <= 1;
-    }
-
-    $newTypeAssociationButton.prop(`disabled`, $select.val() === `all` || !allFilledSelect || isAllSpecifiedTypes);
+    $newTypeAssociationButton.prop(`disabled`, $select.val() === `all` || !allFilledSelect || $select.data("length") <= 1);
 }
 
 function removeAssociationLine($button) {
     const $typeAssociationContainer = $('.type-association-container');
+    const $currentDeliveryTypeSelect = $button.parent().closest('.delivery-type-container').find('select[name=deliveryType]');
 
     if($typeAssociationContainer.length === 1) {
         showBSAlert('Au moins une association type/emplacement est nécessaire', 'danger')
     } else {
         $button.parent().parent(`.type-association-container`).remove();
+        updateAlreadyDefinedTypes($currentDeliveryTypeSelect.val());
         $('.new-type-association-button').prop(`disabled`, false);
     }
 }
 
-function setAlreadyDefinedTypes() {
+function updateAlreadyDefinedTypes(withdrawedValue = undefined) {
     const $settingTypeAssociation = $('.setting-type-association');
 
     let types = [];
     $settingTypeAssociation.find(`select[name=deliveryType]`).each(function() {
-        types.push($(this).val());
+        if(withdrawedValue !== $(this).val()) {
+            types.push($(this).val());
+        }
     });
 
     $('input[name=alreadyDefinedTypes]').val(types.join(';'));
