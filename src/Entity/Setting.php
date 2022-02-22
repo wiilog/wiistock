@@ -138,6 +138,7 @@ class Setting {
     const LABEL_HEIGHT_DEFAULT = 30;
     const LABEL_WIDTH_DEFAULT = 50;
     const CL_USED_IN_LABELS = "CL_USED_IN_LABELS";
+    const INCLUDE_BUSINESS_UNIT_IN_LABEL = "INCLURE_BUSINESS_UNIT_SUR_ETIQUETTE";
 
     const QR_CODE = [
         "value" => false,
