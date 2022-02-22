@@ -35,6 +35,7 @@ class Action {
     const EMPTY_ROUND = 'autoriser la sélection du Passage à vide';
     const CREATE_ARRIVAL = 'créer arrivage';
     const CREATE_EMERGENCY = 'créer urgence';
+    const CREATE_TRACKING_MOVEMENT = 'créer mouvements';
 
     // menu qualité
     const DISPLAY_LITI = 'afficher litiges';

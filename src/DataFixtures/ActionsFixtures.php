@@ -59,6 +59,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
             Action::DISPLAY_ARRI,
             Action::CREATE_ARRIVAL,
             Action::DISPLAY_MOUV,
+            Action::CREATE_TRACKING_MOVEMENT,
             Action::DISPLAY_ASSO,
             Action::DISPLAY_ENCO,
             Action::DISPLAY_URGE,
