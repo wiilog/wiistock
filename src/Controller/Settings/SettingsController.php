@@ -1351,7 +1351,6 @@ class SettingsController extends AbstractController {
 
         foreach($inventoryCategoryRepository->findAll() as $category) {
             if($edit) {
-                $isPermament = $category->getPermanent() == 1 ? 'checked' : "";
                 $selectedFrequency = $category->getFrequency()->getLabel();
                 $emptySelected = empty($selectedFrequency) ? 'selected' : '';
                 $frequencySelectContent = Stream::from($frequencyOptions)
@@ -1373,7 +1372,6 @@ class SettingsController extends AbstractController {
                     "frequency" => "<select name='frequency' class='{$class} needed' data-global-error='Fréquences'>
                                     {$frequencySelectContent}
                                 </select>",
-                    "permanent" => "<div class='checkbox-container'><input type='checkbox' name='permanent' class='{$class}' {$isPermament}/></div>",
                 ];
             } else {
                 $data[] = [
@@ -1384,7 +1382,6 @@ class SettingsController extends AbstractController {
                         ",
                     "label" => $category->getLabel(),
                     "frequency" => $category->getFrequency()->getLabel(),
-                    "permanent" => $category->getPermanent() ? "Oui" : "Non",
                 ];
             }
         }
@@ -1393,7 +1390,6 @@ class SettingsController extends AbstractController {
             "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
             "label" => "",
             "frequency" => "",
-            "permanent" => "",
         ];
 
         return $this->json([

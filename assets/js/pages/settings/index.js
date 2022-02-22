@@ -606,13 +606,11 @@ function initializeInventoryCategoriesTable(){
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
             {data: `label`, title: `Libellé`},
             {data: `frequency`, title: `Fréquence`},
-            {data: `permanent`, title: `Permanent`},
         ],
         form: {
             actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
             label: `<input type='text' name='label' class='form-control data needed'  data-global-error="Libellé"/>`,
             frequency: `<select name='frequency' class='form-control data needed' data-global-error="Fréquence">`+$frequencyOptions+`</select>`,
-            permanent: `<div class='checkbox-container'><input type='checkbox' name='permanent' class='form-control data'/></div>`,
         },
     });
 }

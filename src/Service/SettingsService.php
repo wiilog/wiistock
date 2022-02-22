@@ -259,7 +259,6 @@ class SettingsService {
                     : new InventoryCategory();
                 $category->setLabel($categoryData['label']);
                 $category->setFrequency($frequence);
-                $category->setPermanent($categoryData['permanent']);
 
                 $this->manager->persist($category);
             }

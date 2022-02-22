@@ -16,27 +16,22 @@ class InventoryCategory
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="string", length=32)
      */
-    private $label;
+    private ?string $label = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\InventoryFrequency", inversedBy="categories")
      */
-    private $frequency;
+    private ?InventoryFrequency $frequency = null;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\ReferenceArticle", mappedBy="category")
      */
-    private $refArticle;
-
-    /**
-     * @ORM\Column(type="boolean")
-     */
-    private $permanent;
+    private Collection $refArticle;
 
     public function __construct()
     {
@@ -102,18 +97,6 @@ class InventoryCategory
                 $refArticle->setCategory(null);
             }
         }
-
-        return $this;
-    }
-
-    public function getPermanent(): ?bool
-    {
-        return $this->permanent;
-    }
-
-    public function setPermanent(bool $permanent): self
-    {
-        $this->permanent = $permanent;
 
         return $this;
     }
