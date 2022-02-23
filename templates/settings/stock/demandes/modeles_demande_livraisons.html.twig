@@ -1,0 +1,21 @@
+{% extends 'settings/manager_template.html.twig' %}
+
+{% import 'form.html.twig' as form %}
+
+{% block title %}Livraisons - Modèles de demande{% endblock %}
+
+{% block filters %}
+    {{ form.select('entity', null, false, {
+        items: templates,
+        inputClass: 'minw-300px',
+    }) }}
+    <input type="hidden" id="delivery-template-type" value="{{ type }}"/>
+{% endblock %}
+
+{% block button %}
+    <button class="btn btn-primary mt-1 add-entity">
+        <i class="fa fa-plus mr-2"></i> Ajouter un modèle de demande
+    </button>
+{% endblock %}
+
+{% block subtitle %}Liste des articles{% endblock %}

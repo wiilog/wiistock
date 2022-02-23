@@ -127,12 +127,13 @@
     {% set values = value
         ? (value is iterable ? value : [value])
         : [] %}
+
     <label class="w-100 {{ not options.search ?? true ? 'no-search' }}">
         {% if label %}
             <span class="w-100 {{ options.labelClass ?? '' }}">{{ _self.label(label, required, labelOptions) }}</span>
             {{ _self.tooltip(options.tooltip ?? null, options.inline ?? false) }}
         {% endif %}
-        <select class="form-control w-100 data"
+        <select class="form-control w-100 data {{ options.inputClass }}"
             {{ required ? 'required' }}
             {{ options.multiple ?? false ? 'multiple' }}
             {% if options.type is defined %}
@@ -152,13 +153,14 @@
             {% endif %}
 
             {% for value, text in options.items ?? [] %}
-                {% if text.value is defined and text.text is defined %}
+                {% if text.value is defined and text.label is defined %}
                     <option value="{{ text.value }}"
                             {{ (text.selected ?? false) or text.value in values ? 'selected' }}
+                            {{ text.disabled ?? false ? 'disabled' }}
                             {% for dataKey, dataValue in text %}
                                 data-{{ dataKey }}="{{ dataValue }}"
                             {% endfor %}>
-                        {{ text.text }}
+                        {{ text.label }}
                     </option>
                 {% else %}
                     <option value="{{ value }}" {{ value in values ? 'selected' }}>{{ text }}</option>

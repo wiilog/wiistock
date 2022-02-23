@@ -11,9 +11,13 @@ use App\Entity\FieldsParam;
 use App\Entity\InventoryCategory;
 use App\Entity\InventoryFrequency;
 use App\Entity\FreeField;
+use App\Entity\IOT\DeliveryRequestTemplate;
+use App\Entity\IOT\RequestTemplate;
+use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\MailerServer;
 use App\Entity\Setting;
 use App\Entity\Reception;
+use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\VisibilityGroup;
@@ -213,8 +217,8 @@ class SettingsService {
         if(isset($tables["workingHours"])) {
             $ids = array_map(fn($day) => $day["id"], $tables["workingHours"]);
 
-            $freeFieldRepository = $this->manager->getRepository(DaysWorked::class);
-            $daysWorked = Stream::from($freeFieldRepository->findBy(["id" => $ids]))
+            $requestTemplateLineRepository = $this->manager->getRepository(DaysWorked::class);
+            $daysWorked = Stream::from($requestTemplateLineRepository->findBy(["id" => $ids]))
                 ->keymap(fn($day) => [$day->getId(), $day])
                 ->toArray();
 
@@ -301,7 +305,7 @@ class SettingsService {
 
                     $result['type'] = $type;
                 } else {
-                    $type = $this->manager->find(Type::class, $data["entity"]);
+                    $template = $this->manager->find(Type::class, $data["entity"]);
                 }
 
                 if (!isset($type)) {
@@ -328,8 +332,8 @@ class SettingsService {
                 ]);
             }
 
-            $freeFieldRepository = $this->manager->getRepository(FreeField::class);
-            $freeFields = Stream::from($freeFieldRepository->findBy(["id" => $ids]))
+            $requestTemplateLineRepository = $this->manager->getRepository(FreeField::class);
+            $freeFields = Stream::from($requestTemplateLineRepository->findBy(["id" => $ids]))
                 ->keymap(fn($day) => [$day->getId(), $day])
                 ->toArray();
 
@@ -337,13 +341,13 @@ class SettingsService {
                 /** @var FreeField $freeField */
                 $freeField = isset($item["id"]) ? $freeFields[$item["id"]] : new FreeField();
 
-                $existing = $freeFieldRepository->findOneBy(["label" => $item["label"]]);
+                $existing = $requestTemplateLineRepository->findOneBy(["label" => $item["label"]]);
                 if($existing && $existing->getId() != $freeField->getId()) {
                     throw new RuntimeException("Un champ libre existe déjà avec le libellé {$item["label"]}");
                 }
 
                 $freeField->setLabel($item["label"])
-                    ->setType($type)
+                    ->setType($template)
                     ->setTypage($item["type"] ?? $freeField->getTypage())
                     ->setCategorieCL(isset($item["category"]) ? $this->manager->find(CategorieCL::class, $item["category"]) : null)
                     ->setDefaultValue($item["defaultValue"] ?? null)
@@ -378,10 +382,9 @@ class SettingsService {
             }
         }
 
-        if(isset($tables["visibilityGroup"])){
+        if(isset($tables["visibilityGroup"])) {
             foreach(array_filter($tables["visibilityGroup"]) as $visibilityGroupData) {
                 $visibilityGroupRepository = $this->manager->getRepository(VisibilityGroup::class);
-                $visibilityGroup = "";
                 if (isset($visibilityGroupData['visibilityGroupId'])){
                     $visibilityGroup = $visibilityGroupRepository->find($visibilityGroupData['visibilityGroupId']);
                 } else {
@@ -440,6 +443,42 @@ class SettingsService {
                 $statut->setDisplayOrder($statusData['order']);
 
                 $this->manager->persist($statut);
+            }
+        }
+
+        if(isset($tables["requestTemplates"])) {
+            $ids = array_map(fn($line) => $line["id"] ?? null, $tables["requestTemplates"]);
+
+            if(!is_numeric($data["entity"])) {
+                $template = new DeliveryRequestTemplate();
+                $template->setType($this->manager->getRepository(Type::class)->findOneByCategoryLabelAndLabel(CategoryType::REQUEST_TEMPLATE, $data["entity"]));
+
+                $this->manager->persist($template);
+            } else {
+                $template = $this->manager->find(RequestTemplate::class, $data["entity"]);
+            }
+
+            $template->setName($data["name"] ?? $template->getLabel())
+                ->setRequestType($this->manager->find(Type::class, $data["type"]))
+                ->setDestination(isset($data["destination"]) ? $this->manager->find(Emplacement::class, $data["destination"]) : null)
+                ->setFreeFields(Stream::from($data)
+                    ->filter(fn($_, $key) => is_numeric($key))
+                    ->toArray());
+
+            $requestTemplateLineRepository = $this->manager->getRepository(RequestTemplateLine::class);
+            $lines = Stream::from($requestTemplateLineRepository->findBy(["id" => $ids]))
+                ->keymap(fn($line) => [$line->getId(), $line])
+                ->toArray();
+
+            foreach(array_filter($tables["requestTemplates"]) as $item) {
+                /** @var FreeField $freeField */
+                $line = isset($item["id"]) ? $lines[$item["id"]] : new RequestTemplateLine();
+
+                $line->setReference($this->manager->find(ReferenceArticle::class, $item["reference"]))
+                    ->setQuantityToTake($item["quantity"])
+                    ->setRequestTemplate($template);
+
+                $this->manager->persist($line);
             }
         }
         return $result;

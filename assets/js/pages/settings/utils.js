@@ -124,17 +124,22 @@ function loadItems($container, config, type, edit = false) {
                             $itemContainer.append(`<input type="hidden" class="${item.class}" name="${item.name}" value="${item.value}"/>`);
                         } else {
                             const value = item.value === undefined || item.value === null ? '' : item.value;
+                            const data = Object.entries(item.data || {})
+                                .map(([key, value]) => `data-${key}="${value}"`)
+                                .join(` `);
+
                             $itemContainer.append(`
-                        <div class="main-entity-content-item col-md-3 col-12 ${item.hidden ? `d-none` : ``}">
-                            <div class="d-flex align-items-center py-2">
-                                ${item.icon ? `<img src="/svg/reference_article/${item.icon}.svg" alt="Icône" width="20px">` : ``}
-                                <div class="d-grid w-100">
-                                    <span class="wii-field-name">${item.label}</span>
-                                    <span class="wii-body-text">${value}</span>
+                                <div class="main-entity-content-item col-md-3 col-12 ${item.hidden ? `d-none` : ``}"
+                                     ${data}>
+                                    <div class="d-flex align-items-center py-2">
+                                        ${item.icon ? `<img src="/svg/reference_article/${item.icon}.svg" alt="Icône" width="20px">` : ``}
+                                        <div class="d-grid w-100">
+                                            <span class="wii-field-name">${item.label}</span>
+                                            <span class="wii-body-text">${value}</span>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    `);
+                            `);
                         }
                     }
                 }
