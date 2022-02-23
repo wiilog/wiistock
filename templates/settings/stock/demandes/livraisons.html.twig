@@ -44,7 +44,10 @@
         <div class="d-flex align-items-center w-100 delivery-type-container">
             <label class="w-100">
                 <span class="wii-field-name">Type</span>
-                <select name="deliveryType" class="form-control data needed" data-s2="deliveryType"
+                <select name="deliveryType"
+                        required
+                        class="form-control data-array"
+                        data-s2="deliveryType"
                         data-include-params-parent=".wii-box"
                         data-include-params="input[name=alreadyDefinedTypes],input[name=allTypesOption]">
                 </select>
@@ -53,8 +56,11 @@
         <div class="d-flex align-items-center w-100">
             <label class="w-100 ml-2">
                 <span class="wii-field-name">Emplacement</span>
-                <select name="deliveryRequestLocation" class="form-control data" data-s2="location"
-                        data-include-params-parent=".wii-box"
+                <select name="deliveryRequestLocation"
+                        required
+                        class="form-control data-array"
+                        data-s2="location"
+                        data-include-params-parent=".type-association-container"
                         data-include-params="select[name=deliveryType]">
                 </select>
             </label>
@@ -68,7 +74,7 @@
     </div>
 </template>
 <input type="hidden" value="{{ deliveryTypeSettings }}" name="deliveryTypeSettings">
-<input type="hidden" value="1" name="allTypesOption">
+<input type="hidden" value="" name="allTypesOption">
 <input type="hidden" value="" name="alreadyDefinedTypes">
-<input type="hidden" class="data" value="{{ setting_value('DEFAULT_LOCATION_LIVRAISON') }}" name="{{ setting('DEFAULT_LOCATION_LIVRAISON') }}">
-<input type="hidden" class="data" value="" name="typesAndLocations">
+<input type="hidden" value="{{ setting_value('DEFAULT_LOCATION_LIVRAISON') }}" name="{{ setting('DEFAULT_LOCATION_LIVRAISON') }}">
+

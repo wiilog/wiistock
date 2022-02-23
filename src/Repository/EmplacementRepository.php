@@ -35,7 +35,8 @@ class EmplacementRepository extends EntityRepository
         $deliveryType = $options['deliveryType'] ?? '';
         $collectType = $options['collectType'] ?? '';
 
-        $query = $this->createQueryBuilder("location");
+        $query = $this->createQueryBuilder("location")
+            ->groupBy('location');
 
         if($deliveryType && $deliveryType !== 'all') {
             $types = is_array($deliveryType) ? $deliveryType : [$deliveryType];

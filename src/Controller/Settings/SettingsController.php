@@ -1509,20 +1509,20 @@ class SettingsController extends AbstractController {
                 $location = $locationRepository->find($locationId);
             }
 
-            $defaultDeliveryLocations[] = [
-                'location' => isset($location)
-                    ? [
+            if (isset($location)) {
+                $defaultDeliveryLocations[] = [
+                    'location' => [
                         'label' => $location->getLabel(),
                         'id' => $location->getId(),
-                    ]
-                    : null,
-                'type' => isset($type)
-                    ? [
-                        'label' => $type->getLabel(),
-                        'id' => $type->getId(),
-                    ]
-                    : null,
-            ];
+                    ],
+                    'type' => isset($type)
+                        ? [
+                            'label' => $type->getLabel(),
+                            'id' => $type->getId(),
+                        ]
+                        : null,
+                ];
+            }
         }
         return $defaultDeliveryLocations;
     }

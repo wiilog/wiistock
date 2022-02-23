@@ -38,7 +38,7 @@ class SelectController extends AbstractController {
         $deliveryType = $request->query->get("deliveryType") ?? null;
         $collectType = $request->query->get("collectType") ?? null;
         $term = $request->query->get("term");
-        $addGroup = $request->query->get("add-group") ?? '';
+        $addGroup = $request->query->getBoolean("add-group");
 
         $locations = $manager->getRepository(Emplacement::class)->getForSelect(
             $term,

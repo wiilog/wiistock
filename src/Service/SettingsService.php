@@ -21,6 +21,7 @@ use App\Entity\WorkFreeDay;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use ReflectionClass;
 use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -44,13 +45,25 @@ class SettingsService {
     /** @Required */
     public AttachmentService $attachmentService;
 
-    public function createSetting(string $setting): Setting {
-        $newSetting = new Setting();
-        $newSetting->setLabel($setting);
+    private array $settingsConstants;
 
-        $this->manager->persist($newSetting);
+    public function __construct() {
+        $reflectionClass = new ReflectionClass(Setting::class);
+        $this->settingsConstants = Stream::from($reflectionClass->getConstants())
+            ->filter(fn ($settingLabel) => is_string($settingLabel))
+            ->toArray();
+    }
 
-        return $newSetting;
+    public function getSetting(array $settings, string $key): ?Setting {
+        if (!isset($settings[$key]) && in_array($key, $this->settingsConstants)) {
+            $setting = new Setting();
+            $setting->setLabel($key);
+            $settings[$key] = $setting;
+
+            $this->manager->persist($setting);
+        }
+
+        return $settings[$key] ?? null;
     }
 
     public function save(Request $request): array {
@@ -66,48 +79,14 @@ class SettingsService {
 
         if($request->request->has("datatables")) {
             $result = $this->saveDatatables(json_decode($request->request->get("datatables"), true), $request->request->all());
-            $request->request->remove("datatables");
         }
 
-        $customUpdated = $this->customSave($request, $settings);
         $updated = [];
+        $this->saveCustom($request, $settings, $updated);
+        $this->saveStandard($request, $settings, $updated);
+        $this->saveFiles($request, $settings, $updated);
 
-        foreach($request->request->all() as $key => $value) {
-            if(in_array($key, $customUpdated)) {
-                continue;
-            }
-
-            $setting = $settings[$key] ?? null;
-            if(!isset($setting)) {
-                $settings[$key] = $setting = $this->createSetting($key);
-            }
-
-            if(is_array($value)) {
-                $value = json_encode($value);
-            }
-
-            if($value !== $setting->getValue()) {
-                $setting->setValue($value);
-                $updated[] = $key;
-            }
-        }
-
-        foreach($request->files->all() as $key => $value) {
-            if(in_array($key, $customUpdated)) {
-                continue;
-            }
-
-            $setting = $settings[$key] ?? null;
-            if(!isset($setting)) {
-                $settings[$key] = $setting = $this->createSetting($key);
-            }
-
-            $fileName = $this->attachmentService->saveFile($value, $key);
-            $setting->setValue("uploads/attachements/" . $fileName[array_key_first($fileName)]);
-            $updated[] = $key;
-        }
-
-        $settingNamesToClear = array_diff($allFormSettingNames, $settingNames, $customUpdated, $updated);
+        $settingNamesToClear = array_diff($allFormSettingNames, $settingNames);
         $settingToClear = !empty($settingNamesToClear) ? $settingRepository->findByLabel($settingNamesToClear) : [];
 
         $this->clearSettings($settingToClear);
@@ -131,17 +110,14 @@ class SettingsService {
     /**
      * Saves custom settings
      *
-     * @param Request $request The request
      * @param Setting[] $settings Existing settings
-     * @return array Settings that were processed
      */
-    private function customSave(Request $request, array $settings): array {
-        $saved = [];
+    private function saveCustom(Request $request, array $settings, array &$updated): void {
         $data = $request->request;
 
         if($client = $data->get(Setting::APP_CLIENT)) {
             $this->changeClient($client);
-            $saved[] = Setting::APP_CLIENT;
+            $updated[] = Setting::APP_CLIENT;
         }
 
         if($data->has("MAILER_URL")) {
@@ -153,16 +129,6 @@ class SettingsService {
             $mailer->setProtocol($data->get("MAILER_PROTOCOL"));
             $mailer->setSenderName($data->get("MAILER_SENDER_NAME"));
             $mailer->setSenderMail($data->get("MAILER_SENDER_MAIL"));
-
-            $saved = array_merge($saved, [
-                "MAILER_URL",
-                "MAILER_USER",
-                "MAILER_PASSWORD",
-                "MAILER_PORT",
-                "MAILER_PROTOCOL",
-                "MAILER_SENDER_NAME",
-                "MAILER_SENDER_MAIL",
-            ]);
         }
 
         $logosToSave = [
@@ -171,10 +137,11 @@ class SettingsService {
             [Setting::EMAIL_LOGO, Setting::DEFAULT_EMAIL_LOGO_VALUE],
             [Setting::MOBILE_LOGO_HEADER, Setting::DEFAULT_MOBILE_LOGO_HEADER_VALUE],
         ];
-        foreach ($logosToSave as [$setting, $default]) {
-            if (isset($settings[$setting])
-                && $this->saveDefaultImage($data, $request->files, $settings, $setting, $default)) {
-                $saved[] = $setting;
+        foreach ($logosToSave as [$settingLabel, $default]) {
+            $setting = $this->getSetting($settings, $settingLabel);
+            if (isset($setting)
+                && $this->saveDefaultImage($data, $request->files, $setting, $default)) {
+                $updated[] = $settingLabel;
             }
         }
 
@@ -192,16 +159,52 @@ class SettingsService {
             }
         }
 
-        if ($request->request->has("typesAndLocations")){
-            $data = json_decode($request->request->get('typesAndLocations'), true);
-            $setting = $settings[ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON];
-            $associatedTypesAndLocations = array_combine($data['types'], $data['locations']);
+        if ($request->request->has("deliveryType")
+            && $request->request->has("deliveryRequestLocation")) {
+            $deliveryTypes = Stream::explode(',', $request->request->get("deliveryType", ''))
+                ->toArray();
+            $deliveryRequestLocations = Stream::explode(',', $request->request->get("deliveryRequestLocation", ''))
+                ->toArray();
+
+            $setting = $this->getSetting($settings, Setting::DEFAULT_LOCATION_LIVRAISON);
+            $associatedTypesAndLocations = array_combine($deliveryTypes, $deliveryRequestLocations);
             $setting->setValue(json_encode($associatedTypesAndLocations));
 
-            $saved[] = ParametrageGlobal::DEFAULT_LOCATION_LIVRAISON;
+            $updated[] = Setting::DEFAULT_LOCATION_LIVRAISON;
         }
+    }
 
-        return $saved;
+    /**
+     * @param Setting[] $settings Existing settings
+     */
+    private function saveStandard(Request $request, array $settings, array &$updated): void {
+        foreach($request->request->all() as $key => $value) {
+            $setting = $this->getSetting($settings, $key);
+            if(isset($setting) && !in_array($key, $updated)) {
+                if(is_array($value)) {
+                    $value = json_encode($value);
+                }
+
+                if($value !== $setting->getValue()) {
+                    $setting->setValue($value);
+                    $updated[] = $key;
+                }
+            }
+        }
+    }
+
+    /**
+     * @param Setting[] $settings Existing settings
+     */
+    private function saveFiles(Request $request, array $settings, array &$updated): void {
+        foreach($request->files->all() as $key => $value) {
+            $setting = $this->getSetting($settings, $key);
+            if(isset($setting)) {
+                $fileName = $this->attachmentService->saveFile($value, $key);
+                $setting->setValue("uploads/attachements/" . $fileName[array_key_first($fileName)]);
+                $updated[] = $key;
+            }
+        }
     }
 
 //    TODO WIIS-6693 mettre dans des services different ?
@@ -445,14 +448,16 @@ class SettingsService {
     /**
      * Runs utilities when needed after settings have been saved
      * such as cache clearing translation updates or webpack build
+     *
+     * @param string[] $updated
      */
-    private function postSaveTreatment(array $updatedSettings) {
-        if(array_intersect($updatedSettings, [Setting::FONT_FAMILY])) {
+    private function postSaveTreatment(array $updated): void {
+        if(array_intersect($updated, [Setting::FONT_FAMILY])) {
             $this->generateFontSCSS();
             $this->yarnBuild();
         }
 
-        if(array_intersect($updatedSettings, [Setting::MAX_SESSION_TIME])) {
+        if(array_intersect($updated, [Setting::MAX_SESSION_TIME])) {
             $this->generateSessionConfig();
             $this->cacheClear();
         }
@@ -511,7 +516,7 @@ class SettingsService {
         $process->run();
     }
 
-    public function cacheClear() {
+    public function cacheClear(): void {
         $env = $this->kernel->getEnvironment();
         $application = new Application($this->kernel);
         $application->setAutoExit(false);
@@ -536,13 +541,12 @@ class SettingsService {
 
     private function saveDefaultImage(InputBag $data,
                                       FileBag $fileBag,
-                                      array $settings,
-                                      string $settingLabel,
+                                      Setting $setting,
                                       string $defaultValue): bool {
 
         $defaultImageSaved = false;
+        $settingLabel = $setting->getLabel();
         if(!$data->getBoolean('keep-' . $settingLabel) && !$fileBag->has($settingLabel)) {
-            $setting = $settings[$settingLabel];
             $setting->setValue($defaultValue);
             $defaultImageSaved = true;
         }

@@ -454,34 +454,6 @@ function initializeDeliveries() {
             onTypeChange($(this));
         });
     });
-
-    $saveButton.on('click', function(){
-        const $typesAndLocations = $(this).parents('main').find('input[name=typesAndLocations]');
-        const $selectTypes = $(`select[name=deliveryType]`);
-        const $selectLocations = $(`select[name=deliveryRequestLocation]`);
-
-        const types = [];
-        let filledSelectTypes = true;
-        $selectTypes.each(function() {
-            if(!$(this).val()) {
-                filledSelectTypes = false;
-            } else {
-                types.push($(this).val());
-            }
-        });
-
-        const locations = [];
-        let filledSelectLocations = true;
-        $selectLocations.each(function() {
-            if(!$(this).val()) {
-                filledSelectLocations = false;
-            } else {
-                locations.push($(this).val());
-            }
-        });
-        const value = JSON.stringify({types: types, locations: locations});
-        $typesAndLocations.val(value);
-    })
 }
 
 function initDeliveryRequestDefaultLocations() {
@@ -519,16 +491,6 @@ function newTypeAssociation($button, type = undefined, location = undefined, fir
     } else {
         showBSAlert(`Tous les emplacements doivent être renseignés`, `danger`);
     }
-}
-
-function appendSelectOptions(typeSelect, locationSelect, type, location) {
-    typeSelect
-        .append(new Option(type.label, type.id, false, true))
-        .trigger(`change`);
-
-    locationSelect
-        .append(new Option(location.label, location.id, false, true))
-        .trigger(`change`);
 }
 
 function onTypeChange($select) {
