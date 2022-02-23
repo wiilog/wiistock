@@ -565,7 +565,6 @@ function initializeInventoryFrequenciesTable(){
         paging: false,
         scrollY: false,
         scrollX: false,
-        ordering: true,
         onEditStart: () => {
             $managementButtons.removeClass('d-none');
         },
@@ -597,7 +596,6 @@ function initializeInventoryCategoriesTable(){
         paginate: false,
         scrollY: false,
         scrollX: false,
-        ordering: true,
         onEditStart: () => {
             $managementButtons.removeClass('d-none');
         },
