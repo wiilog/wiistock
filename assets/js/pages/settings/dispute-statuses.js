@@ -65,6 +65,6 @@ function initializeDisputeStatuses($container, canEdit, mode) {
     });
 
     $addButton.on(`click`, function() {
-        table.addRow();
+        table.addRow(true);
     });
 }
