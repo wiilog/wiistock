@@ -87,7 +87,7 @@
 {% macro checkbox(name, label, required, value = true, options = {}) %}
     {% set labelOptions = options.labelOptions ?? {} %}
     {% set id = options.id ?? ('checkbox-' ~ random(100000, 10000000)) %}
-    <div class="wii-checkbox">
+    <div class="wii-checkbox {{ options.containerClass ?? '' }}">
         <input type="checkbox"
                id="{{ id }}"
                class="data"
@@ -104,7 +104,7 @@
 
 {% macro radio(name, label, required, items, options = {}) %}
     {% set labelOptions = options.labelOptions ?? {} %}
-    <div class="wii-radio-container">
+    <div class="wii-radio-container {{ options.containerClass ?? '' }}">
         {% for item in items %}
             {% set id = random(100000, 10000000) %}
 

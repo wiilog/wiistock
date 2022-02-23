@@ -321,7 +321,40 @@ function initializeGlobalLabels() {
     $('#upload-label-logo').on('change', () => updateImagePreview('#preview-label-logo', '#upload-label-logo'));
 }
 
-function initializeStockArticlesLabels() {
+function initializeStockArticlesLabels($container) {
+    const destination = `INCLURE_EMPLACEMENT_DESTINATION_SUR_ETIQUETTE_ARTICLE_RECEPTION`;
+    const recipient = `INCLURE_DROPZONE_DESTINATAIRE_SUR_ETIQUETTE_ARTICLE_RECEPTION`;
+
+    const $destination = $container.find(`[name=${destination}]`);
+    const $recipient = $container.find(`[name=${recipient}]`);
+
+    $container.find(`[name=SHOW_LOCATION]`).on(`click`, function() {
+        const checked = $(this).prop(`checked`);
+
+        $destination.closest(`.wii-radio-container`).toggleClass(`d-none`, !checked);
+
+        if(checked) {
+            $destination.val(1);
+            $recipient.val(0);
+            $destination.prop(`checked`, true);
+        } else {
+            $destination.val(0);
+            $recipient.val(0);
+        }
+    })
+
+    $destination.on(`click`, function() {
+        $destination.val(Number($destination.prop(`checked`)));
+        $recipient.val(Number(!$destination.prop(`checked`)));
+        $recipient.prop(`checked`, false);
+    })
+
+    $recipient.on(`click`, function() {
+        $recipient.val(Number($recipient.prop(`checked`)));
+        $destination.val(Number(!$recipient.prop(`checked`)));
+        $destination.prop(`checked`, false);
+    })
+
     $(`#show-destination-in-label`).on(`change`, function() {
         if($(this).prop(`checked`)) {
             $('#show-dropzone-in-label').prop('checked', false);
