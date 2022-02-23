@@ -55,9 +55,9 @@ function generateFreeFieldColumns(appliesTo = false) {
         {data: `type`, title: `Typage<span class="d-none required-mark">*</span>`},
         {data: `elements`, title: `Éléments<br><div class='wii-small-text'>(Séparés par des ';')</div>`},
         {data: `defaultValue`, title: `Valeur par défaut`},
-        {data: `displayedCreate`, title: `<div class='small-column'>Affiché à la création</div>`},
-        {data: `requiredCreate`, title: `<div class='small-column'>Obligatoire à la création</div>`},
-        {data: `requiredEdit`, title: `<div class='small-column'>Obligatoire à la modification</div>`},
+        {data: `displayedCreate`, title: `<div class='small-column'>Affiché à la création</div>`, width: `8%`},
+        {data: `requiredCreate`, title: `<div class='small-column'>Obligatoire à la création</div>`, width: `8%`},
+        {data: `requiredEdit`, title: `<div class='small-column'>Obligatoire à la modification</div>`, width: `8%`},
     ];
 }
 
