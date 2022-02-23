@@ -566,8 +566,7 @@ class RefArticleDataService {
             ? $entityManager->find(Emplacement::class, $data['target-location-picking'])
             : null;
 
-        $loggedUser = $this->userService->getUser();
-        $loggedUserRole = $loggedUser->getRole();
+        $loggedUserRole = $user->getRole();
 
         // cas gestion quantité par référence
         if($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
