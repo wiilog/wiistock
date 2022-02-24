@@ -5,27 +5,48 @@
     <label class="wii-field-name">{{ form.label("Sur l'étiquette article", false) }}</label>
     <div class="row">
         <div class="col-md-6 col-12 my-1">
-            {{ form.checkbox(setting('INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL'), 'Afficher l\'emplacement de destination', false, setting_value('INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL'), {
-                id: 'show-destination-in-label',
+            {% set any_selected = setting_value('INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL') or setting_value('INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL') %}
+
+            {{ form.checkbox('SHOW_LOCATION', 'Afficher le destinataire', false, any_selected) }}
+
+            <div class="wii-radio-container ml-4 {{ not any_selected ? 'd-none' }}">
+                <div class="wii-radio mt-1">
+                    <input type="radio" id="radio-5775022" class="data force-data" value="1" style="margin-left: 3px"
+                           name="{{ setting('INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL') }}"
+                           value="{{ setting_value('INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL') }}"
+                        {{ setting_value('INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL') ? 'checked' }}>
+                    <label class="pointer" for="radio-5775022" style="padding-left: 3px">
+                        <span class="d-inline-flex align-items-center field-label">
+                            de destination
+                        </span>
+                    </label>
+                </div>
+                <div class="wii-radio my-1">
+                    <input type="radio" id="radio-841744" class="data force-data" value="1" style="margin-left: 3px"
+                           name="{{ setting('INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL') }}"
+                           value="{{ setting_value('INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL') }}"
+                        {{ setting_value('INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL') ? 'checked' }}>
+                    <label class="pointer" for="radio-841744" style="padding-left:3px">
+                        <span class="d-inline-flex align-items-center field-label">
+                            de dropzone
+                        </span>
+                    </label>
+
+                </div>
+            </div>
+
+            {{ form.checkbox(setting('INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL'), 'Afficher date de péremption', false, setting_value('INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL'), {
+                containerClass: 'mt-2',
             }) }}
         </div>
         <div class="col-md-6 col-12 my-1">
             {{ form.checkbox(setting('INCLUDE_RECIPIENT_IN_ARTICLE_LABEL'), 'Afficher le destinataire', false, setting_value('INCLUDE_RECIPIENT_IN_ARTICLE_LABEL')) }}
-        </div>
-        <div class="col-md-6 col-12 my-1">
-            {{ form.checkbox(setting('INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL'), 'Afficher l\'emplacement de dropzone', false, setting_value('INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL'), {
-                id: 'show-dropzone-in-label',
+            {{ form.checkbox(setting('INCLUDE_QTT_IN_LABEL'), 'Afficher la quantité', false, setting_value('INCLUDE_QTT_IN_LABEL'), {
+                containerClass: 'mt-2',
             }) }}
-        </div>
-        <div class="col-md-6 col-12 my-1">
-            {{ form.checkbox(setting('INCLUDE_QTT_IN_LABEL'), 'Afficher la quantité', false, setting_value('INCLUDE_QTT_IN_LABEL')) }}
-        </div>
-        <div class="col-md-6 col-12 my-1">
-            {{ form.checkbox(setting('INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL'), 'Afficher date de péremption', false, setting_value('INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL')) }}
-        </div>
-
-        <div class="col-md-6 col-12 my-1">
-            {{ form.checkbox(setting('INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL'), 'Afficher le numéro de lot', false, setting_value('INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL')) }}
+            {{ form.checkbox(setting('INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL'), 'Afficher le numéro de lot', false, setting_value('INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL'), {
+                containerClass: 'mt-2',
+            }) }}
         </div>
     </div>
 </div>
