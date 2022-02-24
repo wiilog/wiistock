@@ -556,7 +556,7 @@ function initNewLigneReception($button) {
     Select2Old.location($('.ajax-autocomplete-location-edit'));
     Select2Old.init($('.select2-type'));
     Select2Old.user($modalNewLigneReception.find('.select2-user'));
-    Select2Old.initValues($('#demandeurDL'), $( '#currentUser'));
+    Select2Old.initValues($('select[name=demandeur]'), $( '#currentUser'));
     Select2Old.init($modalNewLigneReception.find('.select2-autocomplete-ref-articles'), '', 0, {
         route: 'get_ref_article_reception',
         param: {reception: $('#receptionId').val()}
