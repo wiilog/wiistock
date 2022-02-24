@@ -40,6 +40,7 @@ $select-height: subtract($input-height, 2px);
 
             .select2-search.select2-search--inline {
                 margin-top: 0.1rem;
+                width: 100%;
             }
         }
     }
@@ -67,6 +68,7 @@ $select-height: subtract($input-height, 2px);
 .select2-search__field {
     min-width: 5em !important;
     outline: none !important;
+    width: 100% !important;
 
     &:focus {
         border-color: $primary !important;
