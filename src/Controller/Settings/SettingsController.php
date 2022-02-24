@@ -529,6 +529,14 @@ class SettingsController extends AbstractController {
                             "types" => $types,
                         ];
                     },
+                    self::MENU_PURCHASE_STATUSES => function() {
+                        $treated = Statut::TREATED;
+                        $notTreated = Statut::NOT_TREATED;
+                        $draft = Statut::DRAFT;
+                        return [
+                            "optionsSelect" => "<option/><option value='{$treated}'>Traité</option><option value='{$notTreated}'>A traité</option><option value='{$draft}'>Brouillon</option>"
+                        ];
+                    },
                 ],
                 self::MENU_INVENTORIES => [
                     self::MENU_CATEGORIES => fn() => [
@@ -1589,7 +1597,4 @@ class SettingsController extends AbstractController {
             "msg" => "Le groupe de visibilité a été supprimé",
         ]);
     }
-
-
-
 }

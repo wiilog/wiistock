@@ -20,24 +20,27 @@ use Symfony\Component\Routing\Annotation\Route;
 /**
  * @Route("/parametrage")
  */
-class DisputeStatusController extends AbstractController {
+class StatusController extends AbstractController
+{
 
     /**
-     * @Route("/dispute-statuses-api", name="settings_dispute_statuses_api", options={"expose"=true})
+     * @Route("/statuses-api", name="settings_statuses_api", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK})
      */
-    public function disputeStatusesApi(Request $request,
-                                       UserService $userService,
-                                       EntityManagerInterface $manager): JsonResponse {
+    public function disputeStatusesApi(Request                $request,
+                                       UserService            $userService,
+                                       EntityManagerInterface $manager): JsonResponse
+    {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
 
         $mode = $request->query->get("mode");
-        if (!in_array($mode, ['arrival', 'reception'])) {
+        if (!in_array($mode, ['arrival-dispute', 'reception-dispute', 'purchase-request'])) {
             throw new InvalidArgumentException('Invalid mode');
         }
 
-        $hasAccess = $mode === 'arrival'
+        $hasAccess = $mode === 'arrival-dispute'
             ? $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_TRACKING)
+            // mode === 'reception-dispute' || 'purchase-request'
             : $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_STOCK);
 
         if (!$hasAccess) {
@@ -50,14 +53,18 @@ class DisputeStatusController extends AbstractController {
 
         $treated = Statut::TREATED;
         $notTreated = Statut::NOT_TREATED;
+        $draft = Statut::DRAFT;
         $statutRepository = $manager->getRepository(Statut::class);
 
-        $statuses = $mode === 'arrival'
+        $statuses = $mode === 'arrival-dispute'
             ? $statutRepository->findByCategorieName(CategorieStatut::DISPUTE_ARR)
-            : $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT);
+            : ($mode === 'reception-dispute'
+                ? $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT)
+                // mode === 'purchase-request'
+                : $statutRepository->findByCategorieName(CategorieStatut::PURCHASE_REQUEST));
 
 
-        foreach($statuses as $statut) {
+        foreach ($statuses as $statut) {
             $actionColumn = $canDelete
                 ? "<button class='btn btn-silent delete-row' data-id='{$statut->getId()}'>
                        <i class='wii-icon wii-icon-trash text-primary'></i>
@@ -66,40 +73,41 @@ class DisputeStatusController extends AbstractController {
                    <input type='hidden' name='mode' class='data' value='{$mode}'/>"
                 : "";
 
-            if($edit) {
+            if ($edit) {
                 $checkedNotTreated = ($statut->getState() === Statut::NOT_TREATED) ? 'selected' : '';
                 $checkedTreated = ($statut->getState() === Statut::TREATED) ? 'selected' : '';
+                $checkedDraft = ($statut->getState() === Statut::DRAFT) ? 'selected' : '';
                 $optionsSelect = "
                     <option/>
                     <option value='{$treated}' {$checkedTreated}>Traité</option>
                     <option value='{$notTreated}' {$checkedNotTreated}>A traité</option>
-                ";
+                " . ($mode === 'purchase-request' ? "<option value='{$draft}' {$checkedDraft}>Brouillon</option>" : "");
                 $defaultStatut = $statut->isDefaultForCategory() == 1 ? 'checked' : "";
-                $sendMailBuyers = $statut->getSendNotifToBuyer()== 1 ? 'checked' : "";
+                $sendMailBuyers = $statut->getSendNotifToBuyer() == 1 ? 'checked' : "";
                 $sendMailRequesters = $statut->getSendNotifToDeclarant() == 1 ? 'checked' : "";
                 $sendMailDest = $statut->getSendNotifToRecipient() == 1 ? 'checked' : "";
                 $data[] = [
                     "actions" => $actionColumn,
                     "label" => "<input type='text' name='label' value='{$statut->getNom()}' class='form-control data needed'/>",
-                    "state"=> "<select name='state' class='data form-control needed select-size'>{$optionsSelect}</select>",
-                    "comment"=> "<input type='text' name='comment' value='{$statut->getComment()}' class='form-control data'/>",
-                    "defaultStatut"=> "<div class='checkbox-container'><input type='checkbox' name='defaultStatut' class='form-control data' {$defaultStatut}/></div>",
-                    "sendMailBuyers"=> "<div class='checkbox-container'><input type='checkbox' name='sendMailBuyers' class='form-control data' {$sendMailBuyers}/></div>",
-                    "sendMailRequesters"=> "<div class='checkbox-container'><input type='checkbox' name='sendMailRequesters' class='form-control data' {$sendMailRequesters}/></div>",
-                    "sendMailDest"=> "<div class='checkbox-container'><input type='checkbox' name='sendMailDest' class='form-control data' {$sendMailDest}/></div>",
-                    "order"=> "<input type='number' name='order' min='1' value='{$statut->getState()}' class='form-control data needed'/>",
+                    "state" => "<select name='state' class='data form-control needed select-size'>{$optionsSelect}</select>",
+                    "comment" => "<input type='text' name='comment' value='{$statut->getComment()}' class='form-control data'/>",
+                    "defaultStatut" => "<div class='checkbox-container'><input type='checkbox' name='defaultStatut' class='form-control data' {$defaultStatut}/></div>",
+                    "sendMailBuyers" => "<div class='checkbox-container'><input type='checkbox' name='sendMailBuyers' class='form-control data' {$sendMailBuyers}/></div>",
+                    "sendMailRequesters" => "<div class='checkbox-container'><input type='checkbox' name='sendMailRequesters' class='form-control data' {$sendMailRequesters}/></div>",
+                    "sendMailDest" => "<div class='checkbox-container'><input type='checkbox' name='sendMailDest' class='form-control data' {$sendMailDest}/></div>",
+                    "order" => "<input type='number' name='order' min='1' value='{$statut->getDisplayOrder()}' class='form-control data needed'/>",
                 ];
             } else {
                 $data[] = [
                     "actions" => $actionColumn,
                     "label" => $statut->getNom(),
-                    "state"=> $statut->getState() == Statut::NOT_TREATED ? 'A traité' : 'Traité',
-                    "comment"=> $statut->getComment(),
-                    "defaultStatut"=> $statut->isDefaultForCategory() ? 'Oui' : 'Non',
-                    "sendMailBuyers"=> $statut->getSendNotifToBuyer() ? 'Oui' : 'Non',
-                    "sendMailRequesters"=> $statut->getSendNotifToDeclarant() ? 'Oui' : 'Non',
-                    "sendMailDest"=> $statut->getSendNotifToRecipient() ? 'Oui' : 'Non',
-                    "order"=> $statut->getDisplayOrder(),
+                    "state" => $statut->getState() == Statut::NOT_TREATED ? 'A traité' : ($statut->getState() == Statut::TREATED ? 'Traité' : 'Brouillon'),
+                    "comment" => $statut->getComment(),
+                    "defaultStatut" => $statut->isDefaultForCategory() ? 'Oui' : 'Non',
+                    "sendMailBuyers" => $statut->getSendNotifToBuyer() ? 'Oui' : 'Non',
+                    "sendMailRequesters" => $statut->getSendNotifToDeclarant() ? 'Oui' : 'Non',
+                    "sendMailDest" => $statut->getSendNotifToRecipient() ? 'Oui' : 'Non',
+                    "order" => $statut->getDisplayOrder(),
                 ];
             }
         }
@@ -112,17 +120,18 @@ class DisputeStatusController extends AbstractController {
     }
 
     /**
-     * @Route("/dispute-status/{entity}/supprimer", name="settings_delete_dispute_status", options={"expose"=true})
+     * @Route("/status/{entity}/supprimer", name="settings_delete_status", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::DELETE})
      */
-    public function deleteDisputeStatus(EntityManagerInterface $manager, Statut $entity): JsonResponse {
-        if ($entity->getDisputes()->isEmpty()){
+    public function deleteStatus(EntityManagerInterface $manager, Statut $entity): JsonResponse
+    {
+        if ($entity->getDisputes()->isEmpty() || $entity->getPurchaseRequests()->isEmpty()) {
             $manager->remove($entity);
             $manager->flush();
         } else {
             return $this->json([
                 "success" => false,
-                "msg" => "Impossible de supprimer le statut car il est associé à des litiges",
+                "msg" => "Impossible de supprimer le statut",
             ]);
         }
         return $this->json([
@@ -130,5 +139,4 @@ class DisputeStatusController extends AbstractController {
             "msg" => "Le statut a été supprimé",
         ]);
     }
-
 }
