@@ -53,7 +53,7 @@ function generateFreeFieldColumns(appliesTo = false) {
         {data: `label`, title: `Libellé<span class="d-none required-mark">*</span>`},
         ...(appliesTo ? [{data: `appliesTo`, title: `S'applique à`}] : []),
         {data: `type`, title: `Typage<span class="d-none required-mark">*</span>`},
-        {data: `elements`, title: `Éléments<br><div class='wii-small-text'>(Séparés par des ';')</div>`},
+        {data: `elements`, title: `Éléments<br><div class='wii-small-text'>(Séparés par des ';')</div>`, className: `no-interaction`},
         {data: `defaultValue`, title: `Valeur par défaut`},
         {data: `displayedCreate`, title: `<div class='small-column'>Affiché à la création</div>`, width: `8%`},
         {data: `requiredCreate`, title: `<div class='small-column'>Obligatoire à la création</div>`, width: `8%`},

@@ -217,8 +217,11 @@ function initEditatable(datatable, onDatatableInit = null) {
                 if ($row.find(`.add-row`).exists()) {
                     $row
                         .off(`click.${id}.addRow`)
-                        .on(`click.${id}.addRow`, () => {
+                        .on(`click.${id}.addRow`, 'td', () => {
                             onAddRowClicked(datatable);
+                            if(datatable.state === STATE_VIEWING) {
+                                datatable.toggleEdit(STATE_EDIT, true);
+                            }
                         });
                 }
 
@@ -232,7 +235,7 @@ function initEditatable(datatable, onDatatableInit = null) {
             if(config.mode === MODE_CLICK_EDIT || config.mode === MODE_CLICK_EDIT_AND_ADD) {
                 $rows
                     .off(`click.${id}.startEdit`)
-                    .on(`click.${id}.startEdit`, function() {
+                    .on(`click.${id}.startEdit`, 'td:not(.no-interaction)', function() {
                         if(datatable.state === STATE_VIEWING) {
                             datatable.toggleEdit(STATE_EDIT, true);
                         }
