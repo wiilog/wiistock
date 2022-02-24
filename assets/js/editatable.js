@@ -27,6 +27,12 @@ export default class EditableDatatable {
             $element.attr(`data-table-processing`, config.name)
         }
 
+        for(const column of config.columns) {
+            if(column.required) {
+                column.title += `<span class="d-none required-mark">*</span>`;
+            }
+        }
+
         const datatable = new EditableDatatable();
         datatable.element = $element;
         datatable.config = config;

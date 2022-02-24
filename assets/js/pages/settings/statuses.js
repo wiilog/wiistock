@@ -51,20 +51,24 @@ function initializeStatuses($container, canEdit, mode) {
 }
 
 function getStatusesColumn(mode){
-    var column = [
+    const column = [
         {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-        {data: `label`, title: `Libelle<span class="d-none required-mark">*</span>`},
-        {data: `state`, title: `Etat<span class="d-none required-mark">*</span>`},
-    ]
+        {data: `label`, title: `Libelle`, required: true},
+        {data: `state`, title: `Etat`, required: true},
+    ];
+
     if(mode !== 'purchase-request'){
-        column.push({data: `comment`, title: `Commentaire litige`},);
+        column.push({data: `comment`, title: `Commentaire litige`});
     }
 
-    column.push({data: `defaultStatut`, title: `Statut par défaut`},
-                {data: `sendMailBuyers`, title: `<div class='small-column'>Envoi de mails aux acheteurs</div>`},
-                {data: `sendMailRequesters`, title: `<div class='small-column'>Envoi de mails aux demandeurs</div>`},
-                {data: `sendMailDest`, title: `<div class='small-column'>Envoi de mails aux destinataires</div>`},
-                {data: `order`, title: `Ordre<span class="d-none required-mark">*</span>`},);
+    column.push([
+        {data: `defaultStatut`, title: `Statut par défaut`},
+        {data: `sendMailBuyers`, title: `<div class='small-column'>Envoi de mails aux acheteurs</div>`},
+        {data: `sendMailRequesters`, title: `<div class='small-column'>Envoi de mails aux demandeurs</div>`},
+        {data: `sendMailDest`, title: `<div class='small-column'>Envoi de mails aux destinataires</div>`},
+        {data: `order`, title: `Ordre`, required: true},
+    ]);
+
     return column;
 }
 

@@ -142,7 +142,10 @@ class SettingsController extends AbstractController {
                         ],
                         self::MENU_RECEPTIONS_FREE_FIELDS => ["label" => "Réceptions - Champs libres"],
                         self::MENU_DISPUTE_STATUSES => ["label" => "Litiges - Statuts"],
-                        self::MENU_DISPUTE_TYPES => ["label" => "Litiges - Types"],
+                        self::MENU_DISPUTE_TYPES => [
+                            "label" => "Litiges - Types",
+                            "save" => true,
+                        ],
                     ],
                 ],
             ],

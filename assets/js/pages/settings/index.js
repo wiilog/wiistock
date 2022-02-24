@@ -591,8 +591,8 @@ function initializeInventoryFrequenciesTable(){
         },
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: `label`, title: `Libellé<span class="d-none required-mark">*</span>`},
-            {data: `nb_months`, title: `Nombre de mois<span class="d-none required-mark">*</span>`},
+            {data: `label`, title: `Libellé`, required: true},
+            {data: `nb_months`, title: `Nombre de mois`, required: true},
         ],
         form: {
             actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
@@ -622,8 +622,8 @@ function initializeInventoryCategoriesTable(){
         },
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: `label`, title: `Libellé<span class="d-none required-mark">*</span>`},
-            {data: `frequency`, title: `Fréquence<span class="d-none required-mark">*</span>`},
+            {data: `label`, title: `Libellé`, required: true},
+            {data: `frequency`, title: `Fréquence`, required: true},
         ],
         form: {
             actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
@@ -635,6 +635,8 @@ function initializeInventoryCategoriesTable(){
 
 function initializeTypesLitige(){
     $saveButton.addClass('d-none');
+    $discardButton.addClass('d-none');
+
     const table = EditableDatatable.create(`#table-types-litige`, {
         route: Routing.generate('types_litige_api', true),
         deleteRoute: `settings_delete_type_litige`,
@@ -646,13 +648,15 @@ function initializeTypesLitige(){
         scrollX: false,
         onEditStart: () => {
             $saveButton.removeClass('d-none');
+            $discardButton.removeClass('d-none');
         },
         onEditStop: () => {
             $saveButton.addClass('d-none');
+            $discardButton.addClass('d-none');
         },
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: `label`, title: `Libellé`},
+            {data: `label`, title: `Libellé`, required: true},
             {data: `description`, title: `Description`},
         ],
         form: {
