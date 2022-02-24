@@ -1916,7 +1916,8 @@ class ReceptionController extends AbstractController {
                     foreach ($receptionLocation->getClusters() as $cluster) {
                         $newCount = $locationClusterMeterRepository->countByDate($date, $cluster);
                         $clusterId = $cluster->getId();
-                        if ($clusterOriginalCounts[$clusterId] !== $newCount) {
+                        $expected = $clusterOriginalCounts[$clusterId] + 1;
+                        if ($expected !== $newCount) {
                             $this->locationClusterService->setMeter(
                                 $entityManager,
                                 LocationClusterService::METER_ACTION_INCREASE,
