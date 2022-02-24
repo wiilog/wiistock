@@ -96,6 +96,9 @@ class FreeField implements Serializable {
     #[ORM\ManyToOne(targetEntity: CategorieCL::class, inversedBy: 'champsLibres')]
     private ?CategorieCL $categorieCL = null;
 
+    #[ORM\OneToOne(targetEntity: TranslationSource::class, inversedBy: "freeField")]
+    private ?TranslationSource $labelTranslation = null;
+
     #[OneToMany(mappedBy: "elementOfFreeField", targetEntity: TranslationSource::class)]
     private Collection $elementsTranslations;
 
@@ -229,20 +232,22 @@ class FreeField implements Serializable {
         return $this;
     }
 
-    public function serialize(): array {
-        $type = $this->getType();
-        $categoryType = $type ? $type->getCategory() : null;
-        return [
-            'id' => $this->getId(),
-            'label' => $this->getLabel(),
-            'elements' => $this->getElements(),
-            'typing' => $this->getTypage(),
-            'defaultValue' => $this->getDefaultValue(),
-            'requiredCreate' => $this->isRequiredCreate(),
-            'requiredEdit' => $this->isRequiredEdit(),
-            'typeId' => $this->getType() ? $this->getType()->getId() : null,
-            'categoryType' => $categoryType ? $categoryType->getLabel() : null,
-        ];
+    public function getLabelTranslation(): ?TranslationSource {
+        return $this->labelTranslation;
+    }
+
+    public function setLabelTranslation(?TranslationSource $labelTranslation): self {
+        if($this->labelTranslation && $this->labelTranslation->getFreeField() !== $this) {
+            $oldLabelTranslation = $this->labelTranslation;
+            $this->labelTranslation = null;
+            $oldLabelTranslation->setFreeField(null);
+        }
+        $this->labelTranslation = $labelTranslation;
+        if($this->labelTranslation && $this->labelTranslation->getFreeField() !== $this) {
+            $this->labelTranslation->setFreeField($this);
+        }
+
+        return $this;
     }
 
     /**
@@ -282,6 +287,22 @@ class FreeField implements Serializable {
         }
 
         return $this;
+    }
+
+    public function serialize(): array {
+        $type = $this->getType();
+        $categoryType = $type ? $type->getCategory() : null;
+        return [
+            'id' => $this->getId(),
+            'label' => $this->getLabel(),
+            'elements' => $this->getElements(),
+            'typing' => $this->getTypage(),
+            'defaultValue' => $this->getDefaultValue(),
+            'requiredCreate' => $this->isRequiredCreate(),
+            'requiredEdit' => $this->isRequiredEdit(),
+            'typeId' => $this->getType() ? $this->getType()->getId() : null,
+            'categoryType' => $categoryType ? $categoryType->getLabel() : null,
+        ];
     }
 
 }

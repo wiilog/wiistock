@@ -11,6 +11,7 @@ use Doctrine\ORM\Mapping\GeneratedValue;
 use Doctrine\ORM\Mapping\Id;
 use Doctrine\ORM\Mapping\ManyToOne;
 use Doctrine\ORM\Mapping\OneToMany;
+use Doctrine\ORM\Mapping\OneToOne;
 
 #[Entity(TranslationSourceRepository::class)]
 class TranslationSource {
@@ -28,6 +29,18 @@ class TranslationSource {
 
     #[OneToMany(mappedBy: "source", targetEntity: Translation::class)]
     private Collection $translations;
+
+    #[OneToOne(mappedBy: "labelTranslation", targetEntity: Type::class)]
+    private ?Type $type = null;
+
+    #[OneToOne(mappedBy: "labelTranslation", targetEntity: Nature::class)]
+    private ?Nature $nature = null;
+
+    #[OneToOne(mappedBy: "labelTranslation", targetEntity: Statut::class)]
+    private ?Statut $status = null;
+
+    #[OneToOne(mappedBy: "labelTranslation", targetEntity: FreeField::class)]
+    private ?FreeField $freeField = null;
 
     #[ManyToOne(targetEntity: FreeField::class, inversedBy: "elementsTranslations")]
     private ?FreeField $elementOfFreeField = null;
@@ -98,6 +111,78 @@ class TranslationSource {
         $this->translations = new ArrayCollection();
         foreach($translations as $translation) {
             $this->addTranslation($translation);
+        }
+
+        return $this;
+    }
+
+    public function getType(): ?Type {
+        return $this->type;
+    }
+
+    public function setType(?Type $type): self {
+        if($this->type && $this->type->getEntity() !== $this) {
+            $oldType = $this->type;
+            $this->type = null;
+            $oldType->setEntity(null);
+        }
+        $this->type = $type;
+        if($this->type && $this->type->getEntity() !== $this) {
+            $this->type->setEntity($this);
+        }
+
+        return $this;
+    }
+
+    public function getNature(): ?Nature {
+        return $this->nature;
+    }
+
+    public function setNature(?Nature $nature): self {
+        if($this->nature && $this->nature->getEntity() !== $this) {
+            $oldNature = $this->nature;
+            $this->nature = null;
+            $oldNature->setEntity(null);
+        }
+        $this->nature = $nature;
+        if($this->nature && $this->nature->getEntity() !== $this) {
+            $this->nature->setEntity($this);
+        }
+
+        return $this;
+    }
+
+    public function getStatus(): ?Statut {
+        return $this->status;
+    }
+
+    public function setStatus(?Statut $status): self {
+        if($this->status && $this->status->getEntity() !== $this) {
+            $oldStatus = $this->status;
+            $this->status = null;
+            $oldStatus->setEntity(null);
+        }
+        $this->status = $status;
+        if($this->status && $this->status->getEntity() !== $this) {
+            $this->status->setEntity($this);
+        }
+
+        return $this;
+    }
+
+    public function getFreeField(): ?FreeField {
+        return $this->freeField;
+    }
+
+    public function setFreeField(?FreeField $freeField): self {
+        if($this->freeField && $this->freeField->getEntity() !== $this) {
+            $oldFreeField = $this->freeField;
+            $this->freeField = null;
+            $oldFreeField->setEntity(null);
+        }
+        $this->freeField = $freeField;
+        if($this->freeField && $this->freeField->getEntity() !== $this) {
+            $this->freeField->setEntity($this);
         }
 
         return $this;

@@ -12,40 +12,43 @@ class Nature {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private $id;
+    private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private $label;
+    private ?string $label = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private $code;
+    private ?string $code = null;
 
     #[ORM\OneToMany(targetEntity: Pack::class, mappedBy: 'nature')]
-    private $packs;
+    private Collection $packs;
 
     #[ORM\Column(type: 'integer', nullable: true)]
-    private $defaultQuantity;
+    private ?int $defaultQuantity = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private $prefix;
+    private ?string $prefix = null;
 
     #[ORM\Column(type: 'string', length: 32, nullable: true)]
-    private $color;
+    private ?string $color = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private $description;
+    private ?string $description = null;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private $needsMobileSync;
+    private ?bool $needsMobileSync = null;
 
     #[ORM\ManyToMany(targetEntity: Emplacement::class, mappedBy: 'allowedNatures')]
-    private $emplacements;
+    private Collection $emplacements;
 
     #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => 1])]
-    private $displayed;
+    private ?bool $displayed = null;
 
     #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => 0])]
-    private $defaultForDispatch;
+    private ?bool $defaultForDispatch = null;
+
+    #[ORM\OneToOne(targetEntity: TranslationSource::class, inversedBy: "nature")]
+    private ?TranslationSource $labelTranslation = null;
 
     public function __construct() {
         $this->packs = new ArrayCollection();
@@ -194,6 +197,24 @@ class Nature {
         if($this->emplacements->contains($emplacement)) {
             $this->emplacements->removeElement($emplacement);
             $emplacement->removeAllowedNature($this);
+        }
+
+        return $this;
+    }
+
+    public function getLabelTranslation(): ?TranslationSource {
+        return $this->labelTranslation;
+    }
+
+    public function setLabelTranslation(?TranslationSource $labelTranslation): self {
+        if($this->labelTranslation && $this->labelTranslation->getNature() !== $this) {
+            $oldLabelTranslation = $this->labelTranslation;
+            $this->labelTranslation = null;
+            $oldLabelTranslation->setNature(null);
+        }
+        $this->labelTranslation = $labelTranslation;
+        if($this->labelTranslation && $this->labelTranslation->getNature() !== $this) {
+            $this->labelTranslation->setNature($this);
         }
 
         return $this;
