@@ -572,16 +572,6 @@ function updateAlreadyDefinedTypes(withdrawedValue = undefined) {
     $('input[name=alreadyDefinedTypes]').val(types.join(';'));
 }
 
-function appendSelectOptions(typeSelect, locationSelect, type, location) {
-    typeSelect
-        .append(new Option(type.label, type.id, false, true))
-        .trigger(`change`);
-
-    locationSelect
-        .append(new Option(location.label, location.id, false, true))
-        .trigger(`change`);
-}
-
 function initializeInventoryFrequenciesTable(){
     const table = EditableDatatable.create(`#frequencesTable`, {
         route: Routing.generate('settings_frequencies_api', true),
