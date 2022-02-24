@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use WiiCommon\Helper\Stream;
 
 
 /**
@@ -53,6 +54,7 @@ class StatusController extends AbstractController
 
         $treated = Statut::TREATED;
         $notTreated = Statut::NOT_TREATED;
+        $inProgress = Statut::IN_PROGRESS;
         $draft = Statut::DRAFT;
         $statutRepository = $manager->getRepository(Statut::class);
 
@@ -76,12 +78,15 @@ class StatusController extends AbstractController
             if ($edit) {
                 $checkedNotTreated = ($statut->getState() === Statut::NOT_TREATED) ? 'selected' : '';
                 $checkedTreated = ($statut->getState() === Statut::TREATED) ? 'selected' : '';
+                $checkedInProgress = ($statut->getState() === Statut::IN_PROGRESS) ? 'selected' : '';
                 $checkedDraft = ($statut->getState() === Statut::DRAFT) ? 'selected' : '';
                 $optionsSelect = "
                     <option/>
-                    <option value='{$treated}' {$checkedTreated}>Traité</option>
                     <option value='{$notTreated}' {$checkedNotTreated}>A traité</option>
-                " . ($mode === 'purchase-request' ? "<option value='{$draft}' {$checkedDraft}>Brouillon</option>" : "");
+                    <option value='{$treated}' {$checkedTreated}>Traité</option>
+                " . ($mode === 'purchase-request' ? "
+                    <option value='{$draft}' {$checkedDraft}>Brouillon</option>
+                    <option value='{$inProgress}' {$checkedInProgress}>En cours</option>" : "");
                 $defaultStatut = $statut->isDefaultForCategory() == 1 ? 'checked' : "";
                 $sendMailBuyers = $statut->getSendNotifToBuyer() == 1 ? 'checked' : "";
                 $sendMailRequesters = $statut->getSendNotifToDeclarant() == 1 ? 'checked' : "";
@@ -125,15 +130,27 @@ class StatusController extends AbstractController
      */
     public function deleteStatus(EntityManagerInterface $manager, Statut $entity): JsonResponse
     {
-        if ($entity->getDisputes()->isEmpty() || $entity->getPurchaseRequests()->isEmpty()) {
+        $constraints = [
+            "un litige" => $entity->getDisputes(),
+            "une demande d'achat" => $entity->getPurchaseRequests(),
+        ];
+
+        $constraints = Stream::from($constraints)
+            ->filter(fn($collection) => !$collection->isEmpty())
+            ->takeKeys()
+            ->map(fn(string $item) => "au moins $item")
+            ->join(", ");
+
+        if (!$constraints) {
             $manager->remove($entity);
             $manager->flush();
         } else {
             return $this->json([
                 "success" => false,
-                "msg" => "Impossible de supprimer le statut",
+                "msg" => "Impossible de supprimer le statut car il est lié à $constraints",
             ]);
         }
+
         return $this->json([
             "success" => true,
             "msg" => "Le statut a été supprimé",

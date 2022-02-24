@@ -419,7 +419,7 @@ class SettingsService {
                 $statutRepository = $this->manager->getRepository(Statut::class);
                 $categoryRepository = $this->manager->getRepository(CategorieStatut::class);
 
-                if(!in_array($statusData['state'], [Statut::TREATED, Statut::NOT_TREATED, Statut::DRAFT])) {
+                if(!in_array($statusData['state'], [Statut::TREATED, Statut::NOT_TREATED, Statut::DRAFT, Statut::IN_PROGRESS])) {
                     throw new RuntimeException("L'état du statut est invalide");
                 }
 
