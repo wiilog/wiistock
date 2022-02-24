@@ -6,59 +6,42 @@ use App\Repository\IOT\TriggerActionRepository;
 use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=TriggerActionRepository::class)
- * @ORM\Table(name="`trigger_action`")
- */
-class TriggerAction
-{
+#[ORM\Entity(repositoryClass: TriggerActionRepository::class)]
+#[ORM\Table(name: '`trigger_action`')]
+class TriggerAction {
+
     const REQUEST = "request";
     const ALERT = "alert";
-
     const TEMPLATE_TYPES = [
         "Demande" => self::REQUEST,
         "Alerte" => self::ALERT,
     ];
-
     const LOWER = "lower";
     const HIGHER = "higher";
-
     const TEMPLATE_TEMPERATURE = [
         "Inférieure" => self::LOWER,
         "Supérieure" => self::HIGHER,
     ];
 
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    /**
-     * @ORM\Column(type="json")
-     */
+    #[ORM\Column(type: 'json')]
     private ?array $config = [];
 
-    /**
-     * @ORM\ManyToOne(targetEntity=AlertTemplate::class, inversedBy="triggerActions")
-     */
+    #[ORM\ManyToOne(targetEntity: AlertTemplate::class, inversedBy: 'triggerActions')]
     private ?AlertTemplate $alertTemplate = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=RequestTemplate::class, inversedBy="triggerActions")
-     */
+    #[ORM\ManyToOne(targetEntity: RequestTemplate::class, inversedBy: 'triggerActions')]
     private ?RequestTemplate $requestTemplate = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=SensorWrapper::class, inversedBy="triggerActions")
-     */
+    #[ORM\ManyToOne(targetEntity: SensorWrapper::class, inversedBy: 'triggerActions')]
     private ?SensorWrapper $sensorWrapper = null;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
-        private ?DateTimeInterface $lastTrigger = null;
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?DateTimeInterface $lastTrigger = null;
 
     public function getId(): ?int {
         return $this->id;
@@ -79,11 +62,11 @@ class TriggerAction
     }
 
     public function setRequestTemplate(?RequestTemplate $requestTemplate): self {
-        if ($this->requestTemplate && $this->requestTemplate !== $requestTemplate) {
+        if($this->requestTemplate && $this->requestTemplate !== $requestTemplate) {
             $this->requestTemplate->removeTriggerAction($this);
         }
         $this->requestTemplate = $requestTemplate;
-        if ($requestTemplate) {
+        if($requestTemplate) {
             $requestTemplate->addTriggerAction($this);
         }
 
@@ -99,11 +82,11 @@ class TriggerAction
     }
 
     public function setAlertTemplate(?AlertTemplate $alertTemplate): self {
-        if ($this->alertTemplate && $this->alertTemplate !== $alertTemplate) {
+        if($this->alertTemplate && $this->alertTemplate !== $alertTemplate) {
             $this->alertTemplate->removeTriggerAction($this);
         }
         $this->alertTemplate = $alertTemplate;
-        if ($alertTemplate) {
+        if($alertTemplate) {
             $alertTemplate->addTriggerAction($this);
         }
 
@@ -119,24 +102,22 @@ class TriggerAction
     }
 
     public function setSensorWrapper(?SensorWrapper $sensorWrapper): self {
-        if ($this->sensorWrapper && $this->sensorWrapper !== $sensorWrapper) {
+        if($this->sensorWrapper && $this->sensorWrapper !== $sensorWrapper) {
             $this->sensorWrapper->removeTriggerAction($this);
         }
         $this->sensorWrapper = $sensorWrapper;
-        if ($sensorWrapper) {
+        if($sensorWrapper) {
             $sensorWrapper->addTriggerAction($this);
         }
 
         return $this;
     }
 
-    public function getLastTrigger(): ?DateTimeInterface
-    {
+    public function getLastTrigger(): ?DateTimeInterface {
         return $this->lastTrigger;
     }
 
-    public function setLastTrigger(DateTimeInterface $lastTrigger): self
-    {
+    public function setLastTrigger(DateTimeInterface $lastTrigger): self {
         $this->lastTrigger = $lastTrigger;
 
         return $this;

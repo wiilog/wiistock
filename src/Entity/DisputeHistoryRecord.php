@@ -2,51 +2,35 @@
 
 namespace App\Entity;
 
+use App\Repository\DisputeHistoryRecordRepository;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
-use App\Repository\DisputeHistoryRecordRepository;
 
-/**
- * @ORM\Entity(repositoryClass=DisputeHistoryRecordRepository::class)
- */
-class DisputeHistoryRecord
-{
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
+#[ORM\Entity(repositoryClass: DisputeHistoryRecordRepository::class)]
+class DisputeHistoryRecord {
+
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private ?DateTime $date = null;
 
-    /**
-     * @ORM\Column(type="text", nullable=true)
-     */
+    #[ORM\Column(type: 'text', nullable: true)]
     private ?string $comment = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="disputeHistoryRecords")
-     */
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'disputeHistoryRecords')]
     private ?Utilisateur $user = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Dispute::class, inversedBy="disputeHistory")
-     * @ORM\JoinColumn(onDelete="CASCADE", nullable=false)
-     */
+    #[ORM\ManyToOne(targetEntity: Dispute::class, inversedBy: 'disputeHistory')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE', nullable: false)]
     private ?Dispute $dispute = null;
 
-    /**
-     * @ORM\Column(type="string", nullable=true)
-     */
+    #[ORM\Column(type: 'string', nullable: true)]
     private ?string $statusLabel = null;
 
-    /**
-     * @ORM\Column(type="string", nullable=true)
-     */
+    #[ORM\Column(type: 'string', nullable: true)]
     private ?string $typeLabel = null;
 
     public function getId(): ?int {
@@ -63,13 +47,11 @@ class DisputeHistoryRecord
         return $this;
     }
 
-    public function getComment(): ?string
-    {
+    public function getComment(): ?string {
         return $this->comment;
     }
 
-    public function setComment(?string $comment): self
-    {
+    public function setComment(?string $comment): self {
         $this->comment = $comment;
 
         return $this;
@@ -124,4 +106,5 @@ class DisputeHistoryRecord
         $this->typeLabel = $typeLabel;
         return $this;
     }
+
 }

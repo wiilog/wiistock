@@ -7,62 +7,46 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=SensorProfileRepository::class)
- */
-class SensorProfile
-{
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
+#[ORM\Entity(repositoryClass: SensorProfileRepository::class)]
+class SensorProfile {
+
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
+    #[ORM\Column(type: 'string', length: 255)]
     private ?string $name = null;
 
-    /**
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Column(type: 'integer')]
     private ?int $maxTriggers = null;
 
-    /**
-     * @ORM\OneToMany(targetEntity=Sensor::class, mappedBy="profile")
-     */
+    #[ORM\OneToMany(targetEntity: Sensor::class, mappedBy: 'profile')]
     private Collection $sensors;
 
-    public function __construct()
-    {
+    public function __construct() {
         $this->sensors = new ArrayCollection();
     }
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getName(): ?string
-    {
+    public function getName(): ?string {
         return $this->name;
     }
 
-    public function setName(string $name): self
-    {
+    public function setName(string $name): self {
         $this->name = $name;
 
         return $this;
     }
 
-    public function getMaxTriggers(): ?int
-    {
+    public function getMaxTriggers(): ?int {
         return $this->maxTriggers;
     }
 
-    public function setMaxTriggers(int $maxTriggers): self
-    {
+    public function setMaxTriggers(int $maxTriggers): self {
         $this->maxTriggers = $maxTriggers;
 
         return $this;
@@ -73,7 +57,7 @@ class SensorProfile
     }
 
     public function addSensor(Sensor $sensor): self {
-        if (!$this->sensors->contains($sensor)) {
+        if(!$this->sensors->contains($sensor)) {
             $this->sensors[] = $sensor;
             $sensor->setProfile($this);
         }
@@ -82,8 +66,8 @@ class SensorProfile
     }
 
     public function removeSensor(Sensor $sensor): self {
-        if ($this->sensors->removeElement($sensor)) {
-            if ($sensor->getProfile() === $this) {
+        if($this->sensors->removeElement($sensor)) {
+            if($sensor->getProfile() === $this) {
                 $sensor->setProfile(null);
             }
         }
@@ -103,4 +87,5 @@ class SensorProfile
 
         return $this;
     }
+
 }

@@ -6,97 +6,73 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\ChauffeurRepository")
- */
-class Chauffeur
-{
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
+#[ORM\Entity(repositoryClass: 'App\Repository\ChauffeurRepository')]
+class Chauffeur {
+
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\Column(type="string", length=64)
-     */
+    #[ORM\Column(type: 'string', length: 64)]
     private $nom;
 
-    /**
-     * @ORM\Column(type="string", length=64, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 64, nullable: true)]
     private $prenom;
 
-    /**
-     * @ORM\Column(type="string", length=64, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 64, nullable: true)]
     private $documentID;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Transporteur", inversedBy="chauffeurs")
-     * @ORM\JoinColumn(name="transporteur_id", referencedColumnName="id", onDelete="SET NULL", nullable=true)
-     */
+    #[ORM\ManyToOne(targetEntity: Transporteur::class, inversedBy: 'chauffeurs')]
+    #[ORM\JoinColumn(name: 'transporteur_id', referencedColumnName: 'id', onDelete: 'SET NULL', nullable: true)]
     private $transporteur;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Arrivage", mappedBy="chauffeur")
-     */
+    #[ORM\OneToMany(targetEntity: Arrivage::class, mappedBy: 'chauffeur')]
     private $arrivages;
 
-    public function __construct()
-    {
+    public function __construct() {
         $this->arrivages = new ArrayCollection();
     }
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getNom(): ?string
-    {
+    public function getNom(): ?string {
         return $this->nom;
     }
 
-    public function setNom(string $nom): self
-    {
+    public function setNom(string $nom): self {
         $this->nom = $nom;
 
         return $this;
     }
 
-    public function getPrenom(): ?string
-    {
+    public function getPrenom(): ?string {
         return $this->prenom;
     }
 
-    public function setPrenom(?string $prenom): self
-    {
+    public function setPrenom(?string $prenom): self {
         $this->prenom = $prenom;
 
         return $this;
     }
 
-    public function getDocumentID(): ?string
-    {
+    public function getDocumentID(): ?string {
         return $this->documentID;
     }
 
-    public function setDocumentID(?string $documentID): self
-    {
+    public function setDocumentID(?string $documentID): self {
         $this->documentID = $documentID;
 
         return $this;
     }
 
-    public function getTransporteur(): ?Transporteur
-    {
+    public function getTransporteur(): ?Transporteur {
         return $this->transporteur;
     }
 
-    public function setTransporteur(?Transporteur $transporteur): self
-    {
+    public function setTransporteur(?Transporteur $transporteur): self {
         $this->transporteur = $transporteur;
 
         return $this;
@@ -105,14 +81,12 @@ class Chauffeur
     /**
      * @return Collection|Arrivage[]
      */
-    public function getArrivages(): Collection
-    {
+    public function getArrivages(): Collection {
         return $this->arrivages;
     }
 
-    public function addArrivage(Arrivage $arrivage): self
-    {
-        if (!$this->arrivages->contains($arrivage)) {
+    public function addArrivage(Arrivage $arrivage): self {
+        if(!$this->arrivages->contains($arrivage)) {
             $this->arrivages[] = $arrivage;
             $arrivage->setChauffeur($this);
         }
@@ -120,12 +94,11 @@ class Chauffeur
         return $this;
     }
 
-    public function removeArrivage(Arrivage $arrivage): self
-    {
-        if ($this->arrivages->contains($arrivage)) {
+    public function removeArrivage(Arrivage $arrivage): self {
+        if($this->arrivages->contains($arrivage)) {
             $this->arrivages->removeElement($arrivage);
             // set the owning side to null (unless already changed)
-            if ($arrivage->getChauffeur() === $this) {
+            if($arrivage->getChauffeur() === $this) {
                 $arrivage->setChauffeur(null);
             }
         }
@@ -133,18 +106,17 @@ class Chauffeur
         return $this;
     }
 
+    public function getPrenomNom(): string {
+        $string = '';
 
-  public function getPrenomNom(): string
-  {
-    $string = '';
+        if(!empty($this->getPrenom())) {
+            $string .= $this->getPrenom() . ' ';
+        }
+        if(!empty($this->getNom())) {
+            $string .= $this->getNom();
+        }
 
-    if (!empty($this->getPrenom())) {
-      $string .= $this->getPrenom() . ' ';
+        return $string;
     }
-    if (!empty($this->getNom())) {
-      $string .= $this->getNom();
-    }
 
-    return $string;
-  }
 }

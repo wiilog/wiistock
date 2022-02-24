@@ -6,9 +6,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\MenuRepository")
- */
+#[ORM\Entity(repositoryClass: 'App\Repository\MenuRepository')]
 class Menu {
 
     const DASHBOARDS = 'dashboard';
@@ -22,31 +20,21 @@ class Menu {
     const PARAM = 'paramétrage';
     const NOMADE = 'nomade';
 
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    /**
-     * @ORM\Column(type="string", length=32)
-     */
+    #[ORM\Column(type: 'string', length: 32)]
     private ?string $label = null;
 
-    /**
-     * @ORM\Column(type="string", nullable=true)
-     */
+    #[ORM\Column(type: 'string', nullable: true)]
     private ?string $translation = null;
 
-    /**
-     * @ORM\OneToMany(targetEntity=SubMenu::class, mappedBy="menu")
-     */
+    #[ORM\OneToMany(targetEntity: SubMenu::class, mappedBy: 'menu')]
     private Collection $subMenus;
 
-    /**
-     * @ORM\OneToMany(targetEntity="Action", mappedBy="menu")
-     */
+    #[ORM\OneToMany(targetEntity: 'Action', mappedBy: 'menu')]
     private Collection $actions;
 
     public function __construct() {

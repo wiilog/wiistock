@@ -23,96 +23,63 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\DeliveryRequest\DemandeRepository")
- */
+#[ORM\Entity(repositoryClass: 'App\Repository\DeliveryRequest\DemandeRepository')]
 class Demande implements PairedEntity {
 
     const CATEGORIE = 'demande';
-
     const PREFIX_NUMBER = 'DL';
-
     const STATUT_BROUILLON = 'brouillon';
     const STATUT_PREPARE = 'préparé';
     const STATUT_INCOMPLETE = 'partiellement préparé';
     const STATUT_A_TRAITER = 'à traiter';
     const STATUT_LIVRE = 'livré';
     const STATUT_LIVRE_INCOMPLETE = 'livré partiellement';
-
     use CommentTrait;
     use SensorMessageTrait;
     use FreeFieldsManagerTrait;
 
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=false, unique=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: false, unique: true)]
     private ?string $numero = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="demandes")
-     */
+    #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'demandes')]
     private ?Emplacement $destination = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="demandes")
-     */
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'demandes')]
     private ?Utilisateur $utilisateur = null;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $createdAt = null;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\PreparationOrder\Preparation", mappedBy="demande")
-     */
+    #[ORM\OneToMany(targetEntity: 'App\Entity\PreparationOrder\Preparation', mappedBy: 'demande')]
     private Collection $preparations;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="demandes")
-     */
+    #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'demandes')]
     private ?Statut $statut = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="demandesLivraison")
-     */
+    #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'demandesLivraison')]
     private ?Type $type = null;
 
-    /**
-     * @ORM\OneToMany(targetEntity=DeliveryRequestReferenceLine::class, mappedBy="request", cascade={"persist", "remove"})
-     */
+    #[ORM\OneToMany(targetEntity: DeliveryRequestReferenceLine::class, mappedBy: 'request', cascade: ['persist', 'remove'])]
     private ?Collection $referenceLines;
 
-    /**
-     * @ORM\OneToMany(targetEntity=DeliveryRequestArticleLine::class, mappedBy="request")
-     */
+    #[ORM\OneToMany(targetEntity: DeliveryRequestArticleLine::class, mappedBy: 'request')]
     private ?Collection $articleLines;
 
-    /**
-     * @ORM\Column(type="text", nullable=true)
-     */
+    #[ORM\Column(type: 'text', nullable: true)]
     private ?string $commentaire = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="demandes")
-     */
+    #[ORM\ManyToOne(targetEntity: Reception::class, inversedBy: 'demandes')]
     private ?Reception $reception = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=SensorWrapper::class)
-     */
+    #[ORM\ManyToOne(targetEntity: SensorWrapper::class)]
     private ?SensorWrapper $triggeringSensorWrapper = null;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $validatedAt = null;
 
     public function __construct() {

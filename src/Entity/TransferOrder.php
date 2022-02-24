@@ -4,75 +4,55 @@ namespace App\Entity;
 
 use App\Entity\Interfaces\Serializable;
 use App\Helper\FormatHelper;
+use App\Repository\TransferOrderRepository;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use App\Repository\TransferOrderRepository;
 
-/**
- * @ORM\Entity(repositoryClass=TransferOrderRepository::class)
- */
+#[ORM\Entity(repositoryClass: TransferOrderRepository::class)]
 class TransferOrder implements Serializable {
 
     const NUMBER_PREFIX = 'OT';
-
     const TO_TREAT = "À traiter";
     const TREATED = "Traité";
 
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\Column(type="string", length=255, unique=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, unique: true)]
     private $number;
 
     /**
      * @var Statut|null
-     * @ORM\ManyToOne(targetEntity=Statut::class, inversedBy="transferOrders")
-     * @ORM\JoinColumn(nullable=false)
      */
+    #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'transferOrders')]
+    #[ORM\JoinColumn(nullable: false)]
     private $status;
 
-    /**
-     * @ORM\OneToOne(targetEntity=TransferRequest::class, inversedBy="order")
-     * @ORM\JoinColumn(nullable=false)
-     */
+    #[ORM\OneToOne(targetEntity: TransferRequest::class, inversedBy: 'order')]
+    #[ORM\JoinColumn(nullable: false)]
     private $request;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Utilisateur::class)
-     */
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     private $operator;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $creationDate;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private $transferDate;
 
-    /**
-     * @ORM\OneToMany(targetEntity=MouvementStock::class, mappedBy="transferOrder")
-     */
+    #[ORM\OneToMany(targetEntity: MouvementStock::class, mappedBy: 'transferOrder')]
     private $stockMovements;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Emplacement::class, inversedBy="transferOrders")
-     * @ORM\JoinColumn(nullable=true)
-     */
+    #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'transferOrders')]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Emplacement $dropLocation = null;
 
-    public function __construct()
-    {
+    public function __construct() {
         $this->stockMovements = new ArrayCollection();
     }
 
@@ -88,7 +68,7 @@ class TransferOrder implements Serializable {
         $this->request = $request;
 
         // set the reverse side of the relation if necessary
-        if ($request->getOrder() !== $this) {
+        if($request->getOrder() !== $this) {
             $request->setOrder($this);
         }
 
@@ -137,12 +117,12 @@ class TransferOrder implements Serializable {
 
     public function setStatus(?Statut $status): self {
         $oldStatus = $this->status;
-        if ($oldStatus !== $status) {
+        if($oldStatus !== $status) {
             $this->status = $status;
-            if (isset($this->status)) {
+            if(isset($this->status)) {
                 $this->status->addTransferOrder($this);
             }
-            if (isset($oldStatus)) {
+            if(isset($oldStatus)) {
                 $oldStatus->removeTransferOrder($this);
             }
             $this->status = $status;
@@ -153,14 +133,12 @@ class TransferOrder implements Serializable {
     /**
      * @return Collection|MouvementStock[]
      */
-    public function getStockMovements(): Collection
-    {
+    public function getStockMovements(): Collection {
         return $this->stockMovements;
     }
 
-    public function addStockMovement(MouvementStock $stockMovement): self
-    {
-        if (!$this->stockMovements->contains($stockMovement)) {
+    public function addStockMovement(MouvementStock $stockMovement): self {
+        if(!$this->stockMovements->contains($stockMovement)) {
             $this->stockMovements[] = $stockMovement;
             $stockMovement->setTransferOrder($this);
         }
@@ -168,12 +146,11 @@ class TransferOrder implements Serializable {
         return $this;
     }
 
-    public function removeStockMovement(MouvementStock $stockMovement): self
-    {
-        if ($this->stockMovements->contains($stockMovement)) {
+    public function removeStockMovement(MouvementStock $stockMovement): self {
+        if($this->stockMovements->contains($stockMovement)) {
             $this->stockMovements->removeElement($stockMovement);
             // set the owning side to null (unless already changed)
-            if ($stockMovement->getTransferOrder() === $this) {
+            if($stockMovement->getTransferOrder() === $this) {
                 $stockMovement->setTransferOrder(null);
             }
         }
@@ -210,4 +187,5 @@ class TransferOrder implements Serializable {
             'comment' => FormatHelper::html($this->getRequest()->getComment()),
         ];
     }
+
 }

@@ -5,48 +5,47 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\LocationClusterRecordRepository")
- */
+#[ORM\Entity(repositoryClass: 'App\Repository\LocationClusterRecordRepository')]
 class LocationClusterRecord {
 
     /**
      * @var int|null
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
+
     /**
      * @var bool
-     * @ORM\Column(type="boolean")
      */
+    #[ORM\Column(type: 'boolean')]
     private $active;
 
     /**
      * @var Pack|null
-     * @ORM\ManyToOne(targetEntity="App\Entity\Pack", inversedBy="locationClusterRecords")
-     * @ORM\JoinColumn (nullable=false)
      */
+    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'locationClusterRecords')]
+    #[ORM\JoinColumn(nullable: false)]
     private $pack;
 
     /**
      * @var TrackingMovement|null
-     * @ORM\ManyToOne(targetEntity=TrackingMovement::class, inversedBy="firstDropRecords")
      */
+    #[ORM\ManyToOne(targetEntity: TrackingMovement::class, inversedBy: 'firstDropRecords')]
     private $firstDrop;
 
     /**
      * @var TrackingMovement|null
-     * @ORM\ManyToOne(targetEntity=TrackingMovement::class, inversedBy="lastTrackingRecords")
      */
+    #[ORM\ManyToOne(targetEntity: TrackingMovement::class, inversedBy: 'lastTrackingRecords')]
     private $lastTracking;
 
     /**
      * @var LocationCluster|null
-     * @ORM\ManyToOne(targetEntity="App\Entity\LocationCluster", inversedBy="locationClusterRecords")
-     * @ORM\JoinColumn(nullable=false)
      */
+    #[ORM\ManyToOne(targetEntity: LocationCluster::class, inversedBy: 'locationClusterRecords')]
+    #[ORM\JoinColumn(nullable: false)]
     private $locationCluster;
 
     public function __construct() {
@@ -120,11 +119,11 @@ class LocationClusterRecord {
      * @return self
      */
     public function setFirstDrop(?TrackingMovement $firstDrop): self {
-        if (isset($this->firstDrop)) {
+        if(isset($this->firstDrop)) {
             $this->firstDrop->removeFirstDropRecord($this);
         }
         $this->firstDrop = $firstDrop;
-        if (isset($this->firstDrop)) {
+        if(isset($this->firstDrop)) {
             $this->firstDrop->addFirstDropRecord($this);
         }
         return $this;
@@ -142,13 +141,14 @@ class LocationClusterRecord {
      * @return self
      */
     public function setLastTracking(?TrackingMovement $lastTracking): self {
-        if (isset($this->lastTracking)) {
+        if(isset($this->lastTracking)) {
             $this->lastTracking->removeLastTrackingRecord($this);
         }
         $this->lastTracking = $lastTracking;
-        if (isset($this->lastTracking)) {
+        if(isset($this->lastTracking)) {
             $this->lastTracking->addLastTrackingRecord($this);
         }
         return $this;
     }
+
 }

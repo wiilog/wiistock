@@ -8,18 +8,13 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\DispatchRepository")
- */
+#[ORM\Entity(repositoryClass: 'App\Repository\DispatchRepository')]
 class Dispatch {
 
     use FreeFieldsManagerTrait;
 
     const CATEGORIE = 'acheminements';
-
     const PREFIX_NUMBER = 'A';
-
-
     /**
      * @var [string => bool] Associate field name to bool, if TRUE we saved it in user entity
      */
@@ -68,154 +63,103 @@ class Dispatch {
         'receiverEmail' => false,
         'locationFrom' => true,
         'locationTo' => true,
-        'notes' => true
+        'notes' => true,
     ];
 
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private ?DateTime $creationDate = null;
 
-    /**
-     * @ORM\Column(type="text", nullable=true)
-     */
+    #[ORM\Column(type: 'text', nullable: true)]
     private ?string $carrierTrackingNumber = null;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $commandNumber = null;
 
-    /**
-     * @ORM\Column(type="text", nullable=true)
-     */
+    #[ORM\Column(type: 'text', nullable: true)]
     private ?string $commentaire = null;
 
-    /**
-     * @ORM\Column(type="string", nullable=true)
-     */
+    #[ORM\Column(type: 'string', nullable: true)]
     private ?string $emergency = null;
 
-    /**
-     * @ORM\Column(type="date", nullable=true)
-     */
+    #[ORM\Column(type: 'date', nullable: true)]
     private ?DateTime $startDate = null;
 
-    /**
-     * @ORM\Column(type="date", nullable=true)
-     */
+    #[ORM\Column(type: 'date', nullable: true)]
     private ?DateTime $endDate = null;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $projectNumber = null;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $businessUnit = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="treatedDispatches")
-     */
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'treatedDispatches')]
     private ?Utilisateur $treatedBy = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="dispatches")
-     * @ORM\JoinColumn(nullable=false)
-     */
+    #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'dispatches')]
+    #[ORM\JoinColumn(nullable: false)]
     private ?Statut $statut = null;
 
-    /**
-     * @ORM\OneToMany(targetEntity="Attachment", mappedBy="dispatch")
-     */
+    #[ORM\OneToMany(targetEntity: 'Attachment', mappedBy: 'dispatch')]
     private Collection $attachements;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="dispatchesFrom")
-     */
+    #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'dispatchesFrom')]
     private ?Emplacement $locationFrom = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="dispatchesTo")
-     */
+    #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'dispatchesTo')]
     private ?Emplacement $locationTo = null;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\DispatchPack", mappedBy="dispatch", orphanRemoval=true)
-     */
+    #[ORM\OneToMany(targetEntity: DispatchPack::class, mappedBy: 'dispatch', orphanRemoval: true)]
     private Collection $dispatchPacks;
 
-    /**
-     * @ORM\OneToMany(targetEntity=TrackingMovement::class, mappedBy="dispatch")
-     */
+    #[ORM\OneToMany(targetEntity: TrackingMovement::class, mappedBy: 'dispatch')]
     private Collection $trackingMovements;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="dispatches")
-     */
+    #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'dispatches')]
     private ?Type $type = null;
 
-    /**
-     * @ORM\Column(type="string", length=255, unique=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, unique: true)]
     private ?string $number = null;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $validationDate = null;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $treatmentDate = null;
 
     /**
      * @var array|null
-     * @ORM\Column(type="json", nullable=true)
      */
+    #[ORM\Column(type: 'json', nullable: true)]
     private ?array $waybillData;
 
     /**
      * @var array|null
-     * @ORM\Column(type="json", nullable=true)
      */
+    #[ORM\Column(type: 'json', nullable: true)]
     private ?array $deliveryNoteData;
 
-    /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Utilisateur", inversedBy="receivedDispatches")
-     * @ORM\JoinTable(name="dispatch_receiver")
-     */
+    #[ORM\ManyToMany(targetEntity: Utilisateur::class, inversedBy: 'receivedDispatches')]
+    #[ORM\JoinTable(name: 'dispatch_receiver')]
     private ?Collection $receivers;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="requestedDispatches")
-     * @ORM\JoinColumn(nullable=false)
-     */
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'requestedDispatches')]
+    #[ORM\JoinColumn(nullable: false)]
     private ?Utilisateur $requester = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Transporteur", inversedBy="dispatches")
-     * @ORM\JoinColumn(nullable=true)
-     */
+    #[ORM\ManyToOne(targetEntity: Transporteur::class, inversedBy: 'dispatches')]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Transporteur $carrier = null;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $destination = null;
 
-    public function __construct()
-    {
+    public function __construct() {
         $this->dispatchPacks = new ArrayCollection();
         $this->attachements = new ArrayCollection();
         $this->waybillData = [];
@@ -223,18 +167,15 @@ class Dispatch {
         $this->receivers = new ArrayCollection();
     }
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getCreationDate(): ?DateTime
-    {
+    public function getCreationDate(): ?DateTime {
         return $this->creationDate;
     }
 
-    public function setCreationDate(DateTime $date): self
-    {
+    public function setCreationDate(DateTime $date): self {
         $this->creationDate = $date;
 
         return $this;
@@ -243,13 +184,11 @@ class Dispatch {
     /**
      * @return Collection|Utilisateur[]
      */
-    public function getReceivers(): ?Collection
-    {
+    public function getReceivers(): ?Collection {
         return $this->receivers;
     }
 
-    public function addReceiver(?Utilisateur $receiver): self
-    {
+    public function addReceiver(?Utilisateur $receiver): self {
         if(!$this->receivers->contains($receiver)) {
             $this->receivers[] = $receiver;
             if(!$receiver->getReceivedDispatches()->contains($this)) {
@@ -259,46 +198,38 @@ class Dispatch {
         return $this;
     }
 
-    public function removeReceiver(Utilisateur $receiver): self
-    {
-        if ($this->receivers->removeElement($receiver)) {
+    public function removeReceiver(Utilisateur $receiver): self {
+        if($this->receivers->removeElement($receiver)) {
             $receiver->removeReceivedDispatch($this);
         }
         return $this;
     }
 
-    public function getRequester(): ?Utilisateur
-    {
+    public function getRequester(): ?Utilisateur {
         return $this->requester;
     }
 
-    public function setRequester(?Utilisateur $requester): self
-    {
+    public function setRequester(?Utilisateur $requester): self {
         $this->requester = $requester;
 
         return $this;
     }
 
-    public function getTreatedBy(): ?Utilisateur
-    {
+    public function getTreatedBy(): ?Utilisateur {
         return $this->treatedBy;
     }
 
-    public function setTreatedBy(?Utilisateur $treatedBy): self
-    {
+    public function setTreatedBy(?Utilisateur $treatedBy): self {
         $this->treatedBy = $treatedBy;
 
         return $this;
     }
 
-
-    public function getCarrier(): ?Transporteur
-    {
+    public function getCarrier(): ?Transporteur {
         return $this->carrier;
     }
 
-    public function setCarrier(?Transporteur $carrier): self
-    {
+    public function setCarrier(?Transporteur $carrier): self {
         $this->carrier = $carrier;
         return $this;
     }
@@ -312,37 +243,31 @@ class Dispatch {
         return $this;
     }
 
-    public function getStatut(): ?Statut
-    {
+    public function getStatut(): ?Statut {
         return $this->statut;
     }
 
-    public function setStatut(?Statut $statut): self
-    {
+    public function setStatut(?Statut $statut): self {
         $this->statut = $statut;
 
         return $this;
     }
 
-    public function getCommandNumber(): ?string
-    {
+    public function getCommandNumber(): ?string {
         return $this->commandNumber;
     }
 
-    public function setCommandNumber(?string $commandNumber): self
-    {
+    public function setCommandNumber(?string $commandNumber): self {
         $this->commandNumber = $commandNumber;
 
         return $this;
     }
 
-    public function getCommentaire(): ?string
-    {
+    public function getCommentaire(): ?string {
         return $this->commentaire;
     }
 
-    public function setCommentaire(?string $commentaire): self
-    {
+    public function setCommentaire(?string $commentaire): self {
         $this->commentaire = $commentaire;
 
         return $this;
@@ -351,14 +276,12 @@ class Dispatch {
     /**
      * @return Collection|Attachment[]
      */
-    public function getAttachments(): Collection
-    {
+    public function getAttachments(): Collection {
         return $this->attachements;
     }
 
-    public function addAttachment(Attachment $attachment): self
-    {
-        if (!$this->attachements->contains($attachment)) {
+    public function addAttachment(Attachment $attachment): self {
+        if(!$this->attachements->contains($attachment)) {
             $this->attachements[] = $attachment;
             $attachment->setDispatch($this);
         }
@@ -366,12 +289,11 @@ class Dispatch {
         return $this;
     }
 
-    public function removeAttachment(Attachment $attachment): self
-    {
-        if ($this->attachements->contains($attachment)) {
+    public function removeAttachment(Attachment $attachment): self {
+        if($this->attachements->contains($attachment)) {
             $this->attachements->removeElement($attachment);
             // set the owning side to null (unless already changed)
-            if ($attachment->getDispatch() === $this) {
+            if($attachment->getDispatch() === $this) {
                 $attachment->setDispatch(null);
             }
         }
@@ -379,25 +301,21 @@ class Dispatch {
         return $this;
     }
 
-    public function getLocationFrom(): ?Emplacement
-    {
+    public function getLocationFrom(): ?Emplacement {
         return $this->locationFrom;
     }
 
-    public function setLocationFrom(?Emplacement $locationFrom): self
-    {
+    public function setLocationFrom(?Emplacement $locationFrom): self {
         $this->locationFrom = $locationFrom;
 
         return $this;
     }
 
-    public function getLocationTo(): ?Emplacement
-    {
+    public function getLocationTo(): ?Emplacement {
         return $this->locationTo;
     }
 
-    public function setLocationTo(?Emplacement $locationTo): self
-    {
+    public function setLocationTo(?Emplacement $locationTo): self {
         $this->locationTo = $locationTo;
 
         return $this;
@@ -406,14 +324,12 @@ class Dispatch {
     /**
      * @return Collection|DispatchPack[]
      */
-    public function getDispatchPacks(): Collection
-    {
+    public function getDispatchPacks(): Collection {
         return $this->dispatchPacks;
     }
 
-    public function addDispatchPack(DispatchPack $dispatchPack): self
-    {
-        if (!$this->dispatchPacks->contains($dispatchPack)) {
+    public function addDispatchPack(DispatchPack $dispatchPack): self {
+        if(!$this->dispatchPacks->contains($dispatchPack)) {
             $this->dispatchPacks[] = $dispatchPack;
             $dispatchPack->setDispatch($this);
         }
@@ -421,12 +337,11 @@ class Dispatch {
         return $this;
     }
 
-    public function removeDispatchPack(DispatchPack $dispatchPack): self
-    {
-        if ($this->dispatchPacks->contains($dispatchPack)) {
+    public function removeDispatchPack(DispatchPack $dispatchPack): self {
+        if($this->dispatchPacks->contains($dispatchPack)) {
             $this->dispatchPacks->removeElement($dispatchPack);
             // set the owning side to null (unless already changed)
-            if ($dispatchPack->getDispatch() === $this) {
+            if($dispatchPack->getDispatch() === $this) {
                 $dispatchPack->setDispatch(null);
             }
         }
@@ -434,25 +349,21 @@ class Dispatch {
         return $this;
     }
 
-    public function getType(): ?Type
-    {
+    public function getType(): ?Type {
         return $this->type;
     }
 
-    public function setType(?Type $type): self
-    {
+    public function setType(?Type $type): self {
         $this->type = $type;
 
         return $this;
     }
 
-    public function getNumber(): ?string
-    {
+    public function getNumber(): ?string {
         return $this->number;
     }
 
-    public function setNumber(string $number): self
-    {
+    public function setNumber(string $number): self {
         $this->number = $number;
 
         return $this;
@@ -520,14 +431,12 @@ class Dispatch {
     /**
      * @return Collection
      */
-    public function getTrackingMovements(): Collection
-    {
+    public function getTrackingMovements(): Collection {
         return $this->trackingMovements;
     }
 
-    public function addTrackingMovement(TrackingMovement $trackingMovement): self
-    {
-        if (!$this->trackingMovements->contains($trackingMovement)) {
+    public function addTrackingMovement(TrackingMovement $trackingMovement): self {
+        if(!$this->trackingMovements->contains($trackingMovement)) {
             $this->trackingMovements[] = $trackingMovement;
             $trackingMovement->setDispatch($this);
         }
@@ -535,12 +444,11 @@ class Dispatch {
         return $this;
     }
 
-    public function removeTrackingMovement(TrackingMovement $trackingMovement): self
-    {
-        if ($this->trackingMovements->contains($trackingMovement)) {
+    public function removeTrackingMovement(TrackingMovement $trackingMovement): self {
+        if($this->trackingMovements->contains($trackingMovement)) {
             $this->trackingMovements->removeElement($trackingMovement);
             // set the owning side to null (unless already changed)
-            if ($trackingMovement->getDispatch() === $this) {
+            if($trackingMovement->getDispatch() === $this) {
                 $trackingMovement->setDispatch(null);
             }
         }
@@ -612,13 +520,11 @@ class Dispatch {
         return $this;
     }
 
-    public function getDestination(): ?string
-    {
+    public function getDestination(): ?string {
         return $this->destination;
     }
 
-    public function setDestination(?string $destination): self
-    {
+    public function setDestination(?string $destination): self {
         $this->destination = $destination;
 
         return $this;

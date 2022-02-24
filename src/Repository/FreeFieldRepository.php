@@ -83,26 +83,6 @@ class FreeFieldRepository extends EntityRepository {
         return $query->getOneOrNullResult();
     }
 
-    // pour les colonnes dynamiques
-    public function getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, $type) {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT cl.label, cl.id, cl.typage
-            FROM App\Entity\FreeField cl
-            JOIN cl.type t
-            JOIN t.category cat
-            WHERE cat.label = :category AND cl.categorieCL = :categorie AND cl.typage = :text
-            "
-        )->setParameters(
-            [
-                'category' => $category,
-                'categorie' => $categorieCL,
-                'text' => $type,
-            ]
-        );
-        return $query->getResult();
-    }
-
     public function countByType($typeId) {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
@@ -113,17 +93,6 @@ class FreeFieldRepository extends EntityRepository {
         )->setParameter('typeId', $typeId);
 
         return $query->getSingleScalarResult();
-    }
-
-    public function deleteByType($typeId) {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "DELETE FROM App\Entity\FreeField cl
-            WHERE cl.type = :typeId"
-        )->setParameter('typeId', $typeId);
-
-        return $query->execute();
     }
 
     public function countByLabel($label) {
@@ -242,48 +211,6 @@ class FreeFieldRepository extends EntityRepository {
         return $queryBuilder
             ->getQuery()
             ->getResult();
-    }
-
-    /**
-     * @param string $categoryCL
-     * @param string $label
-     * @return FreeField|null
-     * @throws NonUniqueResultException
-     */
-    public function findOneByCategoryCLAndLabel($categoryCL, $label) {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            "SELECT cl
-            FROM App\Entity\FreeField cl
-            JOIN cl.categorieCL ccl
-            WHERE ccl.label = :categoryCL
-            AND cl.label = :label"
-        )->setParameters([
-            'categoryCL' => $categoryCL,
-            'label' => $label,
-        ]);
-
-        return $query->getOneOrNullResult();
-    }
-
-    public function deleteByLabel($label) {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "DELETE FROM App\Entity\FreeField cl
-            WHERE cl.label LIKE " . $label);
-
-        return $query->execute();
-    }
-
-    public function getIdAndElementsWithMachine() {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT c.id, c.elements
-	        FROM App\Entity\FreeField c
-	        WHERE c.label LIKE '%machine%'"
-        );
-        return $query->execute();
     }
 
     /**

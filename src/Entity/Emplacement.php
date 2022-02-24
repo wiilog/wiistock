@@ -8,6 +8,7 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\IOT\CollectRequestTemplate;
 use App\Entity\IOT\DeliveryRequestTemplate;
 use App\Entity\IOT\PairedEntity;
+use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
@@ -16,176 +17,110 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 
-use App\Entity\IOT\Pairing;
 
+#[ORM\Entity(repositoryClass: 'App\Repository\EmplacementRepository')]
+class Emplacement implements PairedEntity {
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\EmplacementRepository")
- */
-class Emplacement implements PairedEntity
-{
     use SensorMessageTrait;
 
     const LABEL_A_DETERMINER = 'A DETERMINER';
 
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    /**
-     * @ORM\Column(type="string", length=255, unique=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, unique: true)]
     private ?string $label = null;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $description = null;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Livraison", mappedBy="destination")
-     */
+    #[ORM\OneToMany(targetEntity: Livraison::class, mappedBy: 'destination')]
     private Collection $livraisons;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\DeliveryRequest\Demande", mappedBy="destination")
-     */
+    #[ORM\OneToMany(targetEntity: 'App\Entity\DeliveryRequest\Demande', mappedBy: 'destination')]
     private Collection $demandes;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Collecte", mappedBy="pointCollecte")
-     */
+    #[ORM\OneToMany(targetEntity: Collecte::class, mappedBy: 'pointCollecte')]
     private Collection $collectes;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="emplacement")
-     */
+    #[ORM\OneToMany(targetEntity: Article::class, mappedBy: 'emplacement')]
     private Collection $articles;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\ReferenceArticle", mappedBy="emplacement")
-     */
+    #[ORM\OneToMany(targetEntity: ReferenceArticle::class, mappedBy: 'emplacement')]
     private Collection $referenceArticles;
 
-    /**
-     * @ORM\Column(type="boolean", nullable=true)
-     */
+    #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $isDeliveryPoint = null;
 
-    /**
-     * @ORM\Column(type="boolean", nullable=false, options={"default":false})
-     */
+    #[ORM\Column(type: 'boolean', nullable: false, options: ['default' => false])]
     private ?bool $isOngoingVisibleOnMobile;
 
-	/**
-	 * @ORM\Column(type="boolean", nullable=false, options={"default": true})
-	 */
+    #[ORM\Column(type: 'boolean', nullable: false, options: ['default' => true])]
     private ?bool $isActive;
 
-    /**
-     * @ORM\Column(type="string", nullable=true)
-     */
+    #[ORM\Column(type: 'string', nullable: true)]
     private ?string $dateMaxTime = null;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Utilisateur", mappedBy="locationDropzone")
-     */
+    #[ORM\OneToMany(targetEntity: Utilisateur::class, mappedBy: 'locationDropzone')]
     private Collection $utilisateurs;
 
-    /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Nature", inversedBy="emplacements")
-     */
+    #[ORM\ManyToMany(targetEntity: Nature::class, inversedBy: 'emplacements')]
     private Collection $allowedNatures;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Dispatch", mappedBy="locationFrom")
-     */
+    #[ORM\OneToMany(targetEntity: Dispatch::class, mappedBy: 'locationFrom')]
     private Collection $dispatchesFrom;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Dispatch", mappedBy="locationTo")
-     */
+    #[ORM\OneToMany(targetEntity: Dispatch::class, mappedBy: 'locationTo')]
     private Collection $dispatchesTo;
 
-    /**
-     * @ORM\OneToMany(targetEntity=Type::class, mappedBy="dropLocation")
-     */
+    #[ORM\OneToMany(targetEntity: Type::class, mappedBy: 'dropLocation')]
     private Collection $dropTypes;
 
-    /**
-     * @ORM\OneToMany(targetEntity=Type::class, mappedBy="pickLocation")
-     */
+    #[ORM\OneToMany(targetEntity: Type::class, mappedBy: 'pickLocation')]
     private Collection $pickTypes;
 
-    /**
-     * @ORM\ManyToMany(targetEntity=LocationCluster::class, mappedBy="locations")
-     */
+    #[ORM\ManyToMany(targetEntity: LocationCluster::class, mappedBy: 'locations')]
     private Collection $clusters;
 
-    /**
-     * @ORM\OneToMany(targetEntity=Arrivage::class, mappedBy="dropLocation")
-     */
+    #[ORM\OneToMany(targetEntity: Arrivage::class, mappedBy: 'dropLocation')]
     private Collection $arrivals;
 
-    /**
-     * @ORM\ManyToMany(targetEntity=Type::class)
-     * @ORM\JoinTable(name="location_allowed_delivery_type")
-     */
+    #[ORM\ManyToMany(targetEntity: Type::class)]
+    #[ORM\JoinTable(name: 'location_allowed_delivery_type')]
     private Collection $allowedDeliveryTypes;
 
-    /**
-     * @ORM\ManyToMany(targetEntity=Type::class)
-     * @ORM\JoinTable(name="location_allowed_collect_type")
-     */
+    #[ORM\ManyToMany(targetEntity: Type::class)]
+    #[ORM\JoinTable(name: 'location_allowed_collect_type')]
     private Collection $allowedCollectTypes;
 
-    /**
-     * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="location", cascade={"remove"})
-     */
+    #[ORM\OneToMany(targetEntity: Pairing::class, mappedBy: 'location', cascade: ['remove'])]
     private Collection $pairings;
 
-    /**
-     * @ORM\OneToMany(targetEntity=DeliveryRequestTemplate::class, mappedBy="destination")
-     */
+    #[ORM\OneToMany(targetEntity: DeliveryRequestTemplate::class, mappedBy: 'destination')]
     private Collection $deliveryRequestTemplates;
 
-    /**
-     * @ORM\OneToMany(targetEntity=CollectRequestTemplate::class, mappedBy="collectPoint")
-     */
+    #[ORM\OneToMany(targetEntity: CollectRequestTemplate::class, mappedBy: 'collectPoint')]
     private Collection $collectRequestTemplates;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=LocationGroup::class, inversedBy="locations")
-     * @ORM\JoinColumn(onDelete="SET NULL")
-     */
+    #[ORM\ManyToOne(targetEntity: LocationGroup::class, inversedBy: 'locations')]
+    #[ORM\JoinColumn(onDelete: 'SET NULL')]
     private ?LocationGroup $locationGroup = null;
 
-    /**
-     * @ORM\OneToMany(targetEntity=DeliveryRequest\DeliveryRequestArticleLine::class, mappedBy="targetLocationPicking")
-     */
+    #[ORM\OneToMany(targetEntity: DeliveryRequest\DeliveryRequestArticleLine::class, mappedBy: 'targetLocationPicking')]
     private Collection $deliveryRequestArticleLines;
 
-    /**
-     * @ORM\OneToMany(targetEntity=DeliveryRequest\DeliveryRequestReferenceLine::class, mappedBy="targetLocationPicking")
-     */
+    #[ORM\OneToMany(targetEntity: DeliveryRequest\DeliveryRequestReferenceLine::class, mappedBy: 'targetLocationPicking')]
     private Collection $deliveryRequestReferenceLines;
 
-    /**
-     * @ORM\OneToMany(targetEntity=PreparationOrder\PreparationOrderArticleLine::class, mappedBy="targetLocationPicking")
-     */
+    #[ORM\OneToMany(targetEntity: PreparationOrder\PreparationOrderArticleLine::class, mappedBy: 'targetLocationPicking')]
     private Collection $preparationOrderArticleLines;
 
-    /**
-     * @ORM\OneToMany(targetEntity=PreparationOrder\PreparationOrderReferenceLine::class, mappedBy="targetLocationPicking")
-     */
+    #[ORM\OneToMany(targetEntity: PreparationOrder\PreparationOrderReferenceLine::class, mappedBy: 'targetLocationPicking')]
     private Collection $preparationOrderReferenceLines;
 
-    /**
-     * @ORM\OneToMany(targetEntity=TransferOrder::class, mappedBy="dropLocation")
-     */
+    #[ORM\OneToMany(targetEntity: TransferOrder::class, mappedBy: 'dropLocation')]
     private Collection $transferOrders;
 
     public function __construct() {
@@ -217,38 +152,33 @@ class Emplacement implements PairedEntity
         $this->isActive = true;
     }
 
-    public function getId(): ? int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getLabel(): ? string
-    {
+    public function getLabel(): ?string {
         return $this->label;
     }
 
-    public function setLabel(? string $label): self {
+    public function setLabel(?string $label): self {
         $this->label = $label;
 
         return $this;
     }
 
-    public function __toString()
-    {
+    public function __toString() {
         return $this->label;
     }
 
     /**
      * @return Collection|Livraison[]
      */
-    public function getLivraisons(): Collection
-    {
+    public function getLivraisons(): Collection {
         return $this->livraisons;
     }
 
-    public function addLivraison(Livraison $livraison): self
-    {
-        if (!$this->livraisons->contains($livraison)) {
+    public function addLivraison(Livraison $livraison): self {
+        if(!$this->livraisons->contains($livraison)) {
             $this->livraisons[] = $livraison;
             $livraison->setDestination($this);
         }
@@ -256,12 +186,11 @@ class Emplacement implements PairedEntity
         return $this;
     }
 
-    public function removeLivraison(Livraison $livraison): self
-    {
-        if ($this->livraisons->contains($livraison)) {
+    public function removeLivraison(Livraison $livraison): self {
+        if($this->livraisons->contains($livraison)) {
             $this->livraisons->removeElement($livraison);
             // set the owning side to null (unless already changed)
-            if ($livraison->getDestination() === $this) {
+            if($livraison->getDestination() === $this) {
                 $livraison->setDestination(null);
             }
         }
@@ -272,14 +201,12 @@ class Emplacement implements PairedEntity
     /**
      * @return Collection|Demande[]
      */
-    public function getDemandes(): Collection
-    {
+    public function getDemandes(): Collection {
         return $this->demandes;
     }
 
-    public function addDemande(Demande $demande): self
-    {
-        if (!$this->demandes->contains($demande)) {
+    public function addDemande(Demande $demande): self {
+        if(!$this->demandes->contains($demande)) {
             $this->demandes[] = $demande;
             $demande->setDestination($this);
         }
@@ -287,12 +214,11 @@ class Emplacement implements PairedEntity
         return $this;
     }
 
-    public function removeDemande(Demande $demande): self
-    {
-        if ($this->demandes->contains($demande)) {
+    public function removeDemande(Demande $demande): self {
+        if($this->demandes->contains($demande)) {
             $this->demandes->removeElement($demande);
             // set the owning side to null (unless already changed)
-            if ($demande->getDestination() === $this) {
+            if($demande->getDestination() === $this) {
                 $demande->setDestination(null);
             }
         }
@@ -300,13 +226,11 @@ class Emplacement implements PairedEntity
         return $this;
     }
 
-    public function getDescription(): ? string
-    {
+    public function getDescription(): ?string {
         return $this->description;
     }
 
-    public function setDescription(? string $description): self
-    {
+    public function setDescription(?string $description): self {
         $this->description = $description;
 
         return $this;
@@ -315,14 +239,12 @@ class Emplacement implements PairedEntity
     /**
      * @return Collection|Collecte[]
      */
-    public function getCollectes(): Collection
-    {
+    public function getCollectes(): Collection {
         return $this->collectes;
     }
 
-    public function addCollecte(Collecte $collecte): self
-    {
-        if (!$this->collectes->contains($collecte)) {
+    public function addCollecte(Collecte $collecte): self {
+        if(!$this->collectes->contains($collecte)) {
             $this->collectes[] = $collecte;
             $collecte->setPointCollecte($this);
         }
@@ -330,12 +252,11 @@ class Emplacement implements PairedEntity
         return $this;
     }
 
-    public function removeCollecte(Collecte $collecte): self
-    {
-        if ($this->collectes->contains($collecte)) {
+    public function removeCollecte(Collecte $collecte): self {
+        if($this->collectes->contains($collecte)) {
             $this->collectes->removeElement($collecte);
             // set the owning side to null (unless already changed)
-            if ($collecte->getPointCollecte() === $this) {
+            if($collecte->getPointCollecte() === $this) {
                 $collecte->setPointCollecte(null);
             }
         }
@@ -346,14 +267,12 @@ class Emplacement implements PairedEntity
     /**
      * @return Collection|Article[]
      */
-    public function getArticles(): Collection
-    {
+    public function getArticles(): Collection {
         return $this->articles;
     }
 
-    public function addArticle(Article $article): self
-    {
-        if (!$this->articles->contains($article)) {
+    public function addArticle(Article $article): self {
+        if(!$this->articles->contains($article)) {
             $this->articles[] = $article;
             $article->setEmplacement($this);
         }
@@ -361,12 +280,11 @@ class Emplacement implements PairedEntity
         return $this;
     }
 
-    public function removeArticle(Article $article): self
-    {
-        if ($this->articles->contains($article)) {
+    public function removeArticle(Article $article): self {
+        if($this->articles->contains($article)) {
             $this->articles->removeElement($article);
             // set the owning side to null (unless already changed)
-            if ($article->getEmplacement() === $this) {
+            if($article->getEmplacement() === $this) {
                 $article->setEmplacement(null);
             }
         }
@@ -377,14 +295,12 @@ class Emplacement implements PairedEntity
     /**
      * @return Collection|ReferenceArticle[]
      */
-    public function getReferenceArticles(): Collection
-    {
+    public function getReferenceArticles(): Collection {
         return $this->referenceArticles;
     }
 
-    public function addReferenceArticle(ReferenceArticle $referenceArticle): self
-    {
-        if (!$this->referenceArticles->contains($referenceArticle)) {
+    public function addReferenceArticle(ReferenceArticle $referenceArticle): self {
+        if(!$this->referenceArticles->contains($referenceArticle)) {
             $this->referenceArticles[] = $referenceArticle;
             $referenceArticle->setEmplacement($this);
         }
@@ -392,12 +308,11 @@ class Emplacement implements PairedEntity
         return $this;
     }
 
-    public function removeReferenceArticle(ReferenceArticle $referenceArticle): self
-    {
-        if ($this->referenceArticles->contains($referenceArticle)) {
+    public function removeReferenceArticle(ReferenceArticle $referenceArticle): self {
+        if($this->referenceArticles->contains($referenceArticle)) {
             $this->referenceArticles->removeElement($referenceArticle);
             // set the owning side to null (unless already changed)
-            if ($referenceArticle->getEmplacement() === $this) {
+            if($referenceArticle->getEmplacement() === $this) {
                 $referenceArticle->setEmplacement(null);
             }
         }
@@ -405,48 +320,40 @@ class Emplacement implements PairedEntity
         return $this;
     }
 
-    public function getIsDeliveryPoint(): ?bool
-    {
+    public function getIsDeliveryPoint(): ?bool {
         return $this->isDeliveryPoint;
     }
 
-    public function setIsDeliveryPoint(?bool $isDeliveryPoint): self
-    {
+    public function setIsDeliveryPoint(?bool $isDeliveryPoint): self {
         $this->isDeliveryPoint = $isDeliveryPoint;
 
         return $this;
     }
 
-    public function isOngoingVisibleOnMobile(): ?bool
-    {
+    public function isOngoingVisibleOnMobile(): ?bool {
         return $this->isOngoingVisibleOnMobile;
     }
 
-    public function setIsOngoingVisibleOnMobile(?bool $isOngoingVisibleOnMobile): self
-    {
+    public function setIsOngoingVisibleOnMobile(?bool $isOngoingVisibleOnMobile): self {
         $this->isOngoingVisibleOnMobile = $isOngoingVisibleOnMobile;
         return $this;
     }
 
-    public function getIsActive(): ?bool
-    {
+    public function getIsActive(): ?bool {
         return $this->isActive;
     }
 
-    public function setIsActive(?bool $isActive): self
-    {
+    public function setIsActive(?bool $isActive): self {
         $this->isActive = $isActive;
 
         return $this;
     }
 
-    public function getDateMaxTime(): ?string
-    {
+    public function getDateMaxTime(): ?string {
         return $this->dateMaxTime;
     }
 
-    public function setDateMaxTime(?string $dateMaxTime): self
-    {
+    public function setDateMaxTime(?string $dateMaxTime): self {
         $this->dateMaxTime = $dateMaxTime;
 
         return $this;
@@ -455,14 +362,12 @@ class Emplacement implements PairedEntity
     /**
      * @return Collection|Utilisateur[]
      */
-    public function getUtilisateurs(): Collection
-    {
+    public function getUtilisateurs(): Collection {
         return $this->utilisateurs;
     }
 
-    public function addUtilisateur(Utilisateur $utilisateur): self
-    {
-        if (!$this->utilisateurs->contains($utilisateur)) {
+    public function addUtilisateur(Utilisateur $utilisateur): self {
+        if(!$this->utilisateurs->contains($utilisateur)) {
             $this->utilisateurs[] = $utilisateur;
             $utilisateur->setLocationDropzone($this);
         }
@@ -470,12 +375,11 @@ class Emplacement implements PairedEntity
         return $this;
     }
 
-    public function removeUtilisateur(Utilisateur $utilisateur): self
-    {
-        if ($this->utilisateurs->contains($utilisateur)) {
+    public function removeUtilisateur(Utilisateur $utilisateur): self {
+        if($this->utilisateurs->contains($utilisateur)) {
             $this->utilisateurs->removeElement($utilisateur);
             // set the owning side to null (unless already changed)
-            if ($utilisateur->getLocationDropzone() === $this) {
+            if($utilisateur->getLocationDropzone() === $this) {
                 $utilisateur->setLocationDropzone(null);
             }
         }
@@ -491,7 +395,7 @@ class Emplacement implements PairedEntity
     }
 
     public function addAllowedNature(Nature $allowedNature): self {
-        if (!$this->allowedNatures->contains($allowedNature)) {
+        if(!$this->allowedNatures->contains($allowedNature)) {
             $this->allowedNatures[] = $allowedNature;
         }
 
@@ -499,26 +403,25 @@ class Emplacement implements PairedEntity
     }
 
     public function removeAllowedNature(Nature $allowedNature): self {
-        if ($this->allowedNatures->contains($allowedNature)) {
+        if($this->allowedNatures->contains($allowedNature)) {
             $this->allowedNatures->removeElement($allowedNature);
         }
 
         return $this;
     }
 
- public function setAllowedNatures(?array $allowedNatures): self {
-        foreach ($this->getAllowedNatures()->toArray() as $nature) {
-         $this->removeAllowedNature($nature);
+    public function setAllowedNatures(?array $allowedNatures): self {
+        foreach($this->getAllowedNatures()->toArray() as $nature) {
+            $this->removeAllowedNature($nature);
         }
         $this->allowedNatures = new ArrayCollection();
-        foreach ($allowedNatures as $allowedNature) {
+        foreach($allowedNatures as $allowedNature) {
             $this->addAllowedNature($allowedNature);
         }
         return $this;
- }
+    }
 
-    public function ableToBeDropOff(?Pack $pack): bool
-    {
+    public function ableToBeDropOff(?Pack $pack): bool {
         return (
             $this->getAllowedNatures()->isEmpty()
             || (
@@ -532,14 +435,12 @@ class Emplacement implements PairedEntity
     /**
      * @return Collection|Dispatch[]
      */
-    public function getDispatchesFrom(): Collection
-    {
+    public function getDispatchesFrom(): Collection {
         return $this->dispatchesFrom;
     }
 
-    public function addDispatchFrom(Dispatch $dispatchFrom): self
-    {
-        if (!$this->dispatchesFrom->contains($dispatchFrom)) {
+    public function addDispatchFrom(Dispatch $dispatchFrom): self {
+        if(!$this->dispatchesFrom->contains($dispatchFrom)) {
             $this->dispatchesFrom[] = $dispatchFrom;
             $dispatchFrom->setLocationFrom($this);
         }
@@ -547,12 +448,11 @@ class Emplacement implements PairedEntity
         return $this;
     }
 
-    public function removeDispatchFrom(Dispatch $dispatchFrom): self
-    {
-        if ($this->dispatchesFrom->contains($dispatchFrom)) {
+    public function removeDispatchFrom(Dispatch $dispatchFrom): self {
+        if($this->dispatchesFrom->contains($dispatchFrom)) {
             $this->dispatchesFrom->removeElement($dispatchFrom);
             // set the owning side to null (unless already changed)
-            if ($dispatchFrom->getLocationFrom() === $this) {
+            if($dispatchFrom->getLocationFrom() === $this) {
                 $dispatchFrom->setLocationFrom(null);
             }
         }
@@ -563,14 +463,12 @@ class Emplacement implements PairedEntity
     /**
      * @return Collection|Dispatch[]
      */
-    public function getDispatchesTo(): Collection
-    {
+    public function getDispatchesTo(): Collection {
         return $this->dispatchesTo;
     }
 
-    public function addDispatchTo(Dispatch $dispatchTo): self
-    {
-        if (!$this->dispatchesTo->contains($dispatchTo)) {
+    public function addDispatchTo(Dispatch $dispatchTo): self {
+        if(!$this->dispatchesTo->contains($dispatchTo)) {
             $this->dispatchesTo[] = $dispatchTo;
             $dispatchTo->setLocationTo($this);
         }
@@ -578,12 +476,11 @@ class Emplacement implements PairedEntity
         return $this;
     }
 
-    public function removeDispatchTo(Dispatch $dispatchTo): self
-    {
-        if ($this->dispatchesTo->contains($dispatchTo)) {
+    public function removeDispatchTo(Dispatch $dispatchTo): self {
+        if($this->dispatchesTo->contains($dispatchTo)) {
             $this->dispatchesTo->removeElement($dispatchTo);
             // set the owning side to null (unless already changed)
-            if ($dispatchTo->getLocationTo() === $this) {
+            if($dispatchTo->getLocationTo() === $this) {
                 $dispatchTo->setLocationTo(null);
             }
         }
@@ -594,14 +491,12 @@ class Emplacement implements PairedEntity
     /**
      * @return Collection|Type[]
      */
-    public function getDropTypes(): Collection
-    {
+    public function getDropTypes(): Collection {
         return $this->dropTypes;
     }
 
-    public function addDropType(Type $dropType): self
-    {
-        if (!$this->dropTypes->contains($dropType)) {
+    public function addDropType(Type $dropType): self {
+        if(!$this->dropTypes->contains($dropType)) {
             $this->dropTypes[] = $dropType;
             $dropType->setDropLocation($this);
         }
@@ -609,12 +504,11 @@ class Emplacement implements PairedEntity
         return $this;
     }
 
-    public function removeDropType(Type $dropType): self
-    {
-        if ($this->dropTypes->contains($dropType)) {
+    public function removeDropType(Type $dropType): self {
+        if($this->dropTypes->contains($dropType)) {
             $this->dropTypes->removeElement($dropType);
             // set the owning side to null (unless already changed)
-            if ($dropType->getDropLocation() === $this) {
+            if($dropType->getDropLocation() === $this) {
                 $dropType->setDropLocation(null);
             }
         }
@@ -625,14 +519,12 @@ class Emplacement implements PairedEntity
     /**
      * @return Collection|Type[]
      */
-    public function getPickTypes(): Collection
-    {
+    public function getPickTypes(): Collection {
         return $this->pickTypes;
     }
 
-    public function addPickType(Type $pickType): self
-    {
-        if (!$this->pickTypes->contains($pickType)) {
+    public function addPickType(Type $pickType): self {
+        if(!$this->pickTypes->contains($pickType)) {
             $this->pickTypes[] = $pickType;
             $pickType->setPickLocation($this);
         }
@@ -640,12 +532,11 @@ class Emplacement implements PairedEntity
         return $this;
     }
 
-    public function removePickType(Type $pickType): self
-    {
-        if ($this->pickTypes->contains($pickType)) {
+    public function removePickType(Type $pickType): self {
+        if($this->pickTypes->contains($pickType)) {
             $this->pickTypes->removeElement($pickType);
             // set the owning side to null (unless already changed)
-            if ($pickType->getPickLocation() === $this) {
+            if($pickType->getPickLocation() === $this) {
                 $pickType->setPickLocation(null);
             }
         }
@@ -665,7 +556,7 @@ class Emplacement implements PairedEntity
      * @return Emplacement
      */
     public function addCluster(LocationCluster $locationCluster): self {
-        if (!$this->clusters->contains($locationCluster)) {
+        if(!$this->clusters->contains($locationCluster)) {
             $this->clusters->add($locationCluster);
             $locationCluster->addLocation($this);
         }
@@ -677,7 +568,7 @@ class Emplacement implements PairedEntity
      * @return Emplacement
      */
     public function removeCluster(LocationCluster $locationCluster): self {
-        if ($this->clusters->contains($locationCluster)) {
+        if($this->clusters->contains($locationCluster)) {
             $this->clusters->removeElement($locationCluster);
             $locationCluster->removeLocation($this);
         }
@@ -687,14 +578,12 @@ class Emplacement implements PairedEntity
     /**
      * @return Collection|Arrivage[]
      */
-    public function getArrivals(): Collection
-    {
+    public function getArrivals(): Collection {
         return $this->arrivals;
     }
 
-    public function addArrival(Arrivage $arrival): self
-    {
-        if (!$this->arrivals->contains($arrival)) {
+    public function addArrival(Arrivage $arrival): self {
+        if(!$this->arrivals->contains($arrival)) {
             $this->arrivals[] = $arrival;
             $arrival->setDropLocation($this);
         }
@@ -702,12 +591,11 @@ class Emplacement implements PairedEntity
         return $this;
     }
 
-    public function removeArrival(Arrivage $arrival): self
-    {
-        if ($this->arrivals->contains($arrival)) {
+    public function removeArrival(Arrivage $arrival): self {
+        if($this->arrivals->contains($arrival)) {
             $this->arrivals->removeElement($arrival);
             // set the owning side to null (unless already changed)
-            if ($arrival->getDropLocation() === $this) {
+            if($arrival->getDropLocation() === $this) {
                 $arrival->setDropLocation(null);
             }
         }
@@ -723,7 +611,7 @@ class Emplacement implements PairedEntity
     }
 
     public function addAllowedDeliveryType(Type $allowedDeliveryType): self {
-        if (!$this->allowedDeliveryTypes->contains($allowedDeliveryType)) {
+        if(!$this->allowedDeliveryTypes->contains($allowedDeliveryType)) {
             $this->allowedDeliveryTypes[] = $allowedDeliveryType;
         }
 
@@ -757,7 +645,7 @@ class Emplacement implements PairedEntity
     }
 
     public function addAllowedCollectType(Type $allowedCollectType): self {
-        if (!$this->allowedCollectTypes->contains($allowedCollectType)) {
+        if(!$this->allowedCollectTypes->contains($allowedCollectType)) {
             $this->allowedCollectTypes[] = $allowedCollectType;
         }
 
@@ -783,8 +671,7 @@ class Emplacement implements PairedEntity
         return $this;
     }
 
-    public function getLocationGroup(): ?LocationGroup
-    {
+    public function getLocationGroup(): ?LocationGroup {
         return $this->locationGroup;
     }
 
@@ -805,8 +692,7 @@ class Emplacement implements PairedEntity
     /**
      * @return Collection|Pairing[]
      */
-    public function getPairings(): Collection
-    {
+    public function getPairings(): Collection {
         return $this->pairings;
     }
 
@@ -821,9 +707,8 @@ class Emplacement implements PairedEntity
             ->first() ?: null;
     }
 
-    public function addPairing(Pairing $pairing): self
-    {
-        if (!$this->pairings->contains($pairing)) {
+    public function addPairing(Pairing $pairing): self {
+        if(!$this->pairings->contains($pairing)) {
             $this->pairings[] = $pairing;
             $pairing->setLocation($this);
         }
@@ -831,11 +716,10 @@ class Emplacement implements PairedEntity
         return $this;
     }
 
-    public function removePairing(Pairing $pairing): self
-    {
-        if ($this->pairings->removeElement($pairing)) {
+    public function removePairing(Pairing $pairing): self {
+        if($this->pairings->removeElement($pairing)) {
             // set the owning side to null (unless already changed)
-            if ($pairing->getLocation() === $this) {
+            if($pairing->getLocation() === $this) {
                 $pairing->setLocation(null);
             }
         }
@@ -846,14 +730,12 @@ class Emplacement implements PairedEntity
     /**
      * @return Collection|DeliveryRequestTemplate[]
      */
-    public function getDeliveryRequestTemplates(): Collection
-    {
+    public function getDeliveryRequestTemplates(): Collection {
         return $this->deliveryRequestTemplates;
     }
 
-    public function addDeliveryRequestTemplate(DeliveryRequestTemplate $deliveryRequestTemplate): self
-    {
-        if (!$this->deliveryRequestTemplates->contains($deliveryRequestTemplate)) {
+    public function addDeliveryRequestTemplate(DeliveryRequestTemplate $deliveryRequestTemplate): self {
+        if(!$this->deliveryRequestTemplates->contains($deliveryRequestTemplate)) {
             $this->deliveryRequestTemplates[] = $deliveryRequestTemplate;
             $deliveryRequestTemplate->setDestination($this);
         }
@@ -861,11 +743,10 @@ class Emplacement implements PairedEntity
         return $this;
     }
 
-    public function removeDeliveryRequestTemplate(DeliveryRequestTemplate $deliveryRequestTemplate): self
-    {
-        if ($this->deliveryRequestTemplates->removeElement($deliveryRequestTemplate)) {
+    public function removeDeliveryRequestTemplate(DeliveryRequestTemplate $deliveryRequestTemplate): self {
+        if($this->deliveryRequestTemplates->removeElement($deliveryRequestTemplate)) {
             // set the owning side to null (unless already changed)
-            if ($deliveryRequestTemplate->getDestination() === $this) {
+            if($deliveryRequestTemplate->getDestination() === $this) {
                 $deliveryRequestTemplate->setDestination(null);
             }
         }
@@ -876,14 +757,12 @@ class Emplacement implements PairedEntity
     /**
      * @return Collection|CollectRequestTemplate[]
      */
-    public function getCollectRequestTemplates(): Collection
-    {
+    public function getCollectRequestTemplates(): Collection {
         return $this->collectRequestTemplates;
     }
 
-    public function addCollectRequestTemplate(CollectRequestTemplate $collectRequestTemplate): self
-    {
-        if (!$this->collectRequestTemplates->contains($collectRequestTemplate)) {
+    public function addCollectRequestTemplate(CollectRequestTemplate $collectRequestTemplate): self {
+        if(!$this->collectRequestTemplates->contains($collectRequestTemplate)) {
             $this->collectRequestTemplates[] = $collectRequestTemplate;
             $collectRequestTemplate->setCollectPoint($this);
         }
@@ -891,11 +770,10 @@ class Emplacement implements PairedEntity
         return $this;
     }
 
-    public function removeCollectRequestTemplate(CollectRequestTemplate $collectRequestTemplate): self
-    {
-        if ($this->collectRequestTemplates->removeElement($collectRequestTemplate)) {
+    public function removeCollectRequestTemplate(CollectRequestTemplate $collectRequestTemplate): self {
+        if($this->collectRequestTemplates->removeElement($collectRequestTemplate)) {
             // set the owning side to null (unless already changed)
-            if ($collectRequestTemplate->getCollectPoint() === $this) {
+            if($collectRequestTemplate->getCollectPoint() === $this) {
                 $collectRequestTemplate->setCollectPoint(null);
             }
         }
@@ -903,14 +781,12 @@ class Emplacement implements PairedEntity
         return $this;
     }
 
-    public function getDeliveryRequestArticleLines(): Collection
-    {
+    public function getDeliveryRequestArticleLines(): Collection {
         return $this->deliveryRequestArticleLines;
     }
 
-    public function addDeliveryRequestArticleLine(DeliveryRequestArticleLine $deliveryRequestArticleLine): self
-    {
-        if (!$this->deliveryRequestArticleLines->contains($deliveryRequestArticleLine)) {
+    public function addDeliveryRequestArticleLine(DeliveryRequestArticleLine $deliveryRequestArticleLine): self {
+        if(!$this->deliveryRequestArticleLines->contains($deliveryRequestArticleLine)) {
             $this->deliveryRequestArticleLines[] = $deliveryRequestArticleLine;
             $deliveryRequestArticleLine->setTargetLocationPicking($this);
         }
@@ -918,11 +794,10 @@ class Emplacement implements PairedEntity
         return $this;
     }
 
-    public function removeDeliveryRequestArticleLine(DeliveryRequestArticleLine $deliveryRequestArticleLine): self
-    {
-        if ($this->deliveryRequestArticleLines->removeElement($deliveryRequestArticleLine)) {
+    public function removeDeliveryRequestArticleLine(DeliveryRequestArticleLine $deliveryRequestArticleLine): self {
+        if($this->deliveryRequestArticleLines->removeElement($deliveryRequestArticleLine)) {
             // set the owning side to null (unless already changed)
-            if ($deliveryRequestArticleLine->getTargetLocationPicking() === $this) {
+            if($deliveryRequestArticleLine->getTargetLocationPicking() === $this) {
                 $deliveryRequestArticleLine->setTargetLocationPicking(null);
             }
         }
@@ -930,14 +805,12 @@ class Emplacement implements PairedEntity
         return $this;
     }
 
-    public function getDeliveryRequestReferenceLines(): Collection
-    {
+    public function getDeliveryRequestReferenceLines(): Collection {
         return $this->deliveryRequestArticleLines;
     }
 
-    public function addDeliveryRequestReferenceLine(DeliveryRequestReferenceLine $deliveryRequestReferenceLine): self
-    {
-        if (!$this->deliveryRequestReferenceLines->contains($deliveryRequestReferenceLine)) {
+    public function addDeliveryRequestReferenceLine(DeliveryRequestReferenceLine $deliveryRequestReferenceLine): self {
+        if(!$this->deliveryRequestReferenceLines->contains($deliveryRequestReferenceLine)) {
             $this->deliveryRequestReferenceLines[] = $deliveryRequestReferenceLine;
             $deliveryRequestReferenceLine->setTargetLocationPicking($this);
         }
@@ -945,11 +818,10 @@ class Emplacement implements PairedEntity
         return $this;
     }
 
-    public function removeDeliveryRequestReferenceLine(DeliveryRequestReferenceLine $deliveryRequestReferenceLine): self
-    {
-        if ($this->deliveryRequestReferenceLines->removeElement($deliveryRequestReferenceLine)) {
+    public function removeDeliveryRequestReferenceLine(DeliveryRequestReferenceLine $deliveryRequestReferenceLine): self {
+        if($this->deliveryRequestReferenceLines->removeElement($deliveryRequestReferenceLine)) {
             // set the owning side to null (unless already changed)
-            if ($deliveryRequestReferenceLine->getTargetLocationPicking() === $this) {
+            if($deliveryRequestReferenceLine->getTargetLocationPicking() === $this) {
                 $deliveryRequestReferenceLine->setTargetLocationPicking(null);
             }
         }
@@ -957,14 +829,12 @@ class Emplacement implements PairedEntity
         return $this;
     }
 
-    public function getPreparationOrderArticleLines(): Collection
-    {
+    public function getPreparationOrderArticleLines(): Collection {
         return $this->preparationOrderArticleLines;
     }
 
-    public function addPreparationOrderArticleLine(PreparationOrderArticleLine $preparationOrderArticleLine): self
-    {
-        if (!$this->preparationOrderArticleLines->contains($preparationOrderArticleLine)) {
+    public function addPreparationOrderArticleLine(PreparationOrderArticleLine $preparationOrderArticleLine): self {
+        if(!$this->preparationOrderArticleLines->contains($preparationOrderArticleLine)) {
             $this->preparationOrderArticleLines[] = $preparationOrderArticleLine;
             $preparationOrderArticleLine->setTargetLocationPicking($this);
         }
@@ -972,11 +842,10 @@ class Emplacement implements PairedEntity
         return $this;
     }
 
-    public function removePreparationOrderArticleLine(PreparationOrderArticleLine $preparationOrderArticleLine): self
-    {
-        if ($this->preparationOrderArticleLines->removeElement($preparationOrderArticleLine)) {
+    public function removePreparationOrderArticleLine(PreparationOrderArticleLine $preparationOrderArticleLine): self {
+        if($this->preparationOrderArticleLines->removeElement($preparationOrderArticleLine)) {
             // set the owning side to null (unless already changed)
-            if ($preparationOrderArticleLine->getTargetLocationPicking() === $this) {
+            if($preparationOrderArticleLine->getTargetLocationPicking() === $this) {
                 $preparationOrderArticleLine->setTargetLocationPicking(null);
             }
         }
@@ -984,14 +853,12 @@ class Emplacement implements PairedEntity
         return $this;
     }
 
-    public function getPreparationOrderReferenceLines(): Collection
-    {
+    public function getPreparationOrderReferenceLines(): Collection {
         return $this->preparationOrderReferenceLines;
     }
 
-    public function addPreparationOrderReferenceLine(PreparationOrderReferenceLine $preparationOrderReferenceLine): self
-    {
-        if (!$this->preparationOrderReferenceLines->contains($preparationOrderReferenceLine)) {
+    public function addPreparationOrderReferenceLine(PreparationOrderReferenceLine $preparationOrderReferenceLine): self {
+        if(!$this->preparationOrderReferenceLines->contains($preparationOrderReferenceLine)) {
             $this->preparationOrderReferenceLines[] = $preparationOrderReferenceLine;
             $preparationOrderReferenceLine->setTargetLocationPicking($this);
         }
@@ -999,17 +866,17 @@ class Emplacement implements PairedEntity
         return $this;
     }
 
-    public function removePreparationOrderReferenceLine(PreparationOrderReferenceLine $preparationOrderReferenceLine): self
-    {
-        if ($this->preparationOrderReferenceLines->removeElement($preparationOrderReferenceLine)) {
+    public function removePreparationOrderReferenceLine(PreparationOrderReferenceLine $preparationOrderReferenceLine): self {
+        if($this->preparationOrderReferenceLines->removeElement($preparationOrderReferenceLine)) {
             // set the owning side to null (unless already changed)
-            if ($preparationOrderReferenceLine->getTargetLocationPicking() === $this) {
+            if($preparationOrderReferenceLine->getTargetLocationPicking() === $this) {
                 $preparationOrderReferenceLine->setTargetLocationPicking(null);
             }
         }
 
         return $this;
     }
+
     /**
      * @return Collection|TransferOrder []
      */
@@ -1018,7 +885,7 @@ class Emplacement implements PairedEntity
     }
 
     public function addTransferOrder(TransferOrder $transferOrder): self {
-        if (!$this->transferOrders->contains($transferOrder)) {
+        if(!$this->transferOrders->contains($transferOrder)) {
             $this->transferOrders[] = $transferOrder;
             $transferOrder->setDropLocation($this);
         }
@@ -1026,9 +893,9 @@ class Emplacement implements PairedEntity
         return $this;
     }
 
-    public function removeTransferOrder (TransferOrder $transferOrder): self {
-        if ($this->transferOrders->removeElement($transferOrder)) {
-            if ($transferOrder->getDropLocation() === $this) {
+    public function removeTransferOrder(TransferOrder $transferOrder): self {
+        if($this->transferOrders->removeElement($transferOrder)) {
+            if($transferOrder->getDropLocation() === $this) {
                 $transferOrder->setDropLocation(null);
             }
         }
@@ -1036,7 +903,7 @@ class Emplacement implements PairedEntity
         return $this;
     }
 
-    public function setTransferOrder (?array $transferOrders): self {
+    public function setTransferOrder(?array $transferOrders): self {
         foreach($this->gettransferOrders()->toArray() as $transferOrder) {
             $this->removeTransferOrder($transferOrder);
         }

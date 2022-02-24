@@ -6,115 +6,83 @@ use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\UrgenceRepository")
- */
+#[ORM\Entity(repositoryClass: 'App\Repository\UrgenceRepository')]
 class Urgence {
 
     public const ARRIVAL_EMERGENCY_TRIGGERING_FIELDS = [
         "provider" => "Fournisseur",
         "carrier" => "Transporteur",
-        "commande" => "Numéro de commande"
+        "commande" => "Numéro de commande",
     ];
 
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private ?DateTime $dateStart = null;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private ?DateTime $dateEnd = null;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $createdAt;
 
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
+    #[ORM\Column(type: 'string', length: 255)]
     private ?string $commande = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="emergencies")
-     */
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'emergencies')]
     private ?Utilisateur $buyer = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Fournisseur", inversedBy="emergencies")
-     */
+    #[ORM\ManyToOne(targetEntity: Fournisseur::class, inversedBy: 'emergencies')]
     private ?Fournisseur $provider = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Transporteur", inversedBy="emergencies")
-     */
+    #[ORM\ManyToOne(targetEntity: Transporteur::class, inversedBy: 'emergencies')]
     private ?Transporteur $carrier = null;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $trackingNb = null;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $postNb = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Arrivage", inversedBy="urgences")
-     */
+    #[ORM\ManyToOne(targetEntity: Arrivage::class, inversedBy: 'urgences')]
     private ?Arrivage $lastArrival = null;
 
-    public function __construct()
-    {
+    public function __construct() {
         $this->createdAt = new DateTime('now');
     }
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getDateStart(): ?DateTime
-    {
+    public function getDateStart(): ?DateTime {
         return $this->dateStart;
     }
 
-    public function setDateStart(DateTime $dateStart): self
-    {
+    public function setDateStart(DateTime $dateStart): self {
         $this->dateStart = $dateStart;
 
         return $this;
     }
 
-    public function getDateEnd(): ?DateTime
-    {
+    public function getDateEnd(): ?DateTime {
         return $this->dateEnd;
     }
 
-    public function setDateEnd(DateTime $dateEnd): self
-    {
+    public function setDateEnd(DateTime $dateEnd): self {
         $this->dateEnd = $dateEnd;
 
         return $this;
     }
 
-    public function getCommande(): ?string
-    {
+    public function getCommande(): ?string {
         return $this->commande;
     }
 
-    public function setCommande(string $commande): self
-    {
+    public function setCommande(string $commande): self {
         $this->commande = $commande;
 
         return $this;
@@ -129,79 +97,66 @@ class Urgence {
         return $this;
     }
 
-    public function getTrackingNb(): ?string
-    {
+    public function getTrackingNb(): ?string {
         return $this->trackingNb;
     }
 
-    public function setTrackingNb(string $trackingNb): self
-    {
+    public function setTrackingNb(string $trackingNb): self {
         $this->trackingNb = $trackingNb;
 
         return $this;
     }
 
-    public function getPostNb(): ?string
-    {
+    public function getPostNb(): ?string {
         return $this->postNb;
     }
 
-    public function setPostNb(string $postNb): self
-    {
+    public function setPostNb(string $postNb): self {
         $this->postNb = $postNb;
 
         return $this;
     }
 
-    public function getProvider(): ?Fournisseur
-    {
+    public function getProvider(): ?Fournisseur {
         return $this->provider;
     }
 
-    public function setProvider(?Fournisseur $provider): self
-    {
+    public function setProvider(?Fournisseur $provider): self {
         $this->provider = $provider;
 
         return $this;
     }
 
-    public function getCarrier(): ?Transporteur
-    {
+    public function getCarrier(): ?Transporteur {
         return $this->carrier;
     }
 
-    public function setCarrier(?Transporteur $carrier): self
-    {
+    public function setCarrier(?Transporteur $carrier): self {
         $this->carrier = $carrier;
 
         return $this;
     }
 
-    public function getLastArrival(): ?Arrivage
-    {
+    public function getLastArrival(): ?Arrivage {
         return $this->lastArrival;
     }
 
-    public function setLastArrival(?Arrivage $lastArrival): self
-    {
+    public function setLastArrival(?Arrivage $lastArrival): self {
         $this->lastArrival = $lastArrival;
 
         return $this;
     }
 
-    public function getCreatedAt(): ?DateTime
-    {
+    public function getCreatedAt(): ?DateTime {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(DateTime $createdAt): self
-    {
+    public function setCreatedAt(DateTime $createdAt): self {
         $this->createdAt = $createdAt;
         return $this;
     }
 
-    public function serialize()
-    {
+    public function serialize() {
         return [
             'dateStart' => FormatHelper::datetime($this->getDateStart()),
             'dateEnd' => FormatHelper::datetime($this->getDateEnd()),
@@ -216,4 +171,5 @@ class Urgence {
             'creationDate' => FormatHelper::datetime($this->getCreatedAt()),
         ];
     }
+
 }

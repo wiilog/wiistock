@@ -7,31 +7,21 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=SubMenuRepository::class)
- */
+#[ORM\Entity(repositoryClass: SubMenuRepository::class)]
 class SubMenu {
 
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Menu::class, inversedBy="subMenus")
-     */
+    #[ORM\ManyToOne(targetEntity: Menu::class, inversedBy: 'subMenus')]
     private ?Menu $menu = null;
 
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
+    #[ORM\Column(type: 'string', length: 255)]
     private ?string $label = null;
 
-    /**
-     * @ORM\OneToMany(targetEntity=Action::class, mappedBy="subMenu")
-     */
+    #[ORM\OneToMany(targetEntity: Action::class, mappedBy: 'subMenu')]
     private Collection $actions;
 
     public function __construct() {

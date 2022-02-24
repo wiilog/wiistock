@@ -8,60 +8,52 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\LocationClusterRepository")
- */
+#[ORM\Entity(repositoryClass: 'App\Repository\LocationClusterRepository')]
 class LocationCluster {
 
     public const CLUSTER_CODE_ADMIN_DASHBOARD_1 = 'ADMIN_DASHBOARD_1';
     public const CLUSTER_CODE_ADMIN_DASHBOARD_2 = 'ADMIN_DASHBOARD_2';
-
     public const CLUSTER_CODE_DOCK_DASHBOARD_DROPZONE = 'DOCK_DASHBOARD_DROPZONE';
-
     public const CLUSTER_CODE_PACKAGING_DSQR = 'PACKAGING_DSQR';
     public const CLUSTER_CODE_PACKAGING_GT_TARGET = 'PACKAGING_GT_TARGET';
     public const CLUSTER_CODE_PACKAGING_GT_ORIGIN = 'PACKAGING_GT_ORIGIN';
 
     /**
      * @var int|null
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
     /**
      * @var Collection
-     * @ORM\ManyToMany(targetEntity="App\Entity\Emplacement", inversedBy="clusters")
      */
+    #[ORM\ManyToMany(targetEntity: Emplacement::class, inversedBy: 'clusters')]
     private $locations;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterRecord", mappedBy="locationCluster", cascade={"remove"})
-     */
+    #[ORM\OneToMany(targetEntity: LocationClusterRecord::class, mappedBy: 'locationCluster', cascade: ['remove'])]
     private $locationClusterRecords;
 
     /**
      * @var Collection
-     * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterMeter", mappedBy="locationClusterFrom", cascade={"remove"})
      */
+    #[ORM\OneToMany(targetEntity: LocationClusterMeter::class, mappedBy: 'locationClusterFrom', cascade: ['remove'])]
     private $metersFrom;
 
     /**
      * @var Collection
-     * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterMeter", mappedBy="locationClusterInto", cascade={"remove"})
      */
+    #[ORM\OneToMany(targetEntity: LocationClusterMeter::class, mappedBy: 'locationClusterInto', cascade: ['remove'])]
     private $metersInto;
 
     /**
      * @var Dashboard\Component
-     * @ORM\ManyToOne(targetEntity=Dashboard\Component::class, inversedBy="locationClusters")
      */
+    #[ORM\ManyToOne(targetEntity: Dashboard\Component::class, inversedBy: 'locationClusters')]
     private $component;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=false)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: false)]
     private $clusterKey;
 
     public function __construct() {
@@ -87,7 +79,7 @@ class LocationCluster {
      * @return LocationCluster
      */
     public function addLocation(Emplacement $location): self {
-        if (!$this->locations->contains($location)) {
+        if(!$this->locations->contains($location)) {
             $this->locations->add($location);
         }
         return $this;
@@ -98,7 +90,7 @@ class LocationCluster {
      * @return LocationCluster
      */
     public function removeLocation(Emplacement $location): self {
-        if ($this->locations->contains($location)) {
+        if($this->locations->contains($location)) {
             $this->locations->removeElement($location);
         }
         return $this;
@@ -121,11 +113,11 @@ class LocationCluster {
      */
     public function getLocationClusterRecord(Pack $pack): ?LocationClusterRecord {
         $matchingRecord = null;
-        if ($pack->getId()) {
+        if($pack->getId()) {
             /** @var LocationClusterRecord $record */
-            foreach ($this->locationClusterRecords as $record) {
+            foreach($this->locationClusterRecords as $record) {
                 $recordPack = $record->getPack();
-                if ($recordPack
+                if($recordPack
                     && $pack->getId() === $recordPack->getId()) {
                     $matchingRecord = $record;
                     break;
@@ -140,7 +132,7 @@ class LocationCluster {
      * @return self
      */
     public function addLocationClusterRecord(LocationClusterRecord $locationClusterRecord): self {
-        if (!$this->locationClusterRecords->contains($locationClusterRecord)) {
+        if(!$this->locationClusterRecords->contains($locationClusterRecord)) {
             $this->locationClusterRecords[] = $locationClusterRecord;
             $locationClusterRecord->setLocationCluster($this);
         }
@@ -152,10 +144,10 @@ class LocationCluster {
      * @return self
      */
     public function removeLocationClusterRecord(LocationClusterRecord $locationClusterRecord): self {
-        if ($this->locationClusterRecords->contains($locationClusterRecord)) {
+        if($this->locationClusterRecords->contains($locationClusterRecord)) {
             $this->locationClusterRecords->removeElement($locationClusterRecord);
             // set the owning side to null (unless already changed)
-            if ($locationClusterRecord->getLocationCluster() === $this) {
+            if($locationClusterRecord->getLocationCluster() === $this) {
                 $locationClusterRecord->setLocationCluster(null);
             }
         }
@@ -174,7 +166,7 @@ class LocationCluster {
      * @return self
      */
     public function addMeterFrom(LocationClusterMeter $meter): self {
-        if (!$this->metersFrom->contains($meter)) {
+        if(!$this->metersFrom->contains($meter)) {
             $this->metersFrom[] = $meter;
             $meter->setLocationClusterFrom($this);
         }
@@ -186,10 +178,10 @@ class LocationCluster {
      * @return self
      */
     public function removeMeterFrom(LocationClusterMeter $meter): self {
-        if ($this->metersFrom->contains($meter)) {
+        if($this->metersFrom->contains($meter)) {
             $this->metersFrom->removeElement($meter);
             // set the owning side to null (unless already changed)
-            if ($meter->getLocationClusterFrom() === $this) {
+            if($meter->getLocationClusterFrom() === $this) {
                 $meter->setLocationClusterFrom(null);
             }
         }
@@ -208,7 +200,7 @@ class LocationCluster {
      * @return self
      */
     public function addMeterInto(LocationClusterMeter $meter): self {
-        if (!$this->metersInto->contains($meter)) {
+        if(!$this->metersInto->contains($meter)) {
             $this->metersInto[] = $meter;
             $meter->setLocationClusterInto($this);
         }
@@ -220,10 +212,10 @@ class LocationCluster {
      * @return self
      */
     public function removeMeterInto(LocationClusterMeter $meter): self {
-        if ($this->metersInto->contains($meter)) {
+        if($this->metersInto->contains($meter)) {
             $this->metersInto->removeElement($meter);
             // set the owning side to null (unless already changed)
-            if ($meter->getLocationClusterInto() === $this) {
+            if($meter->getLocationClusterInto() === $this) {
                 $meter->setLocationClusterInto(null);
             }
         }
@@ -243,28 +235,27 @@ class LocationCluster {
      */
     public function setComponent(?Dashboard\Component $component): self {
 
-        if ($this->component) {
+        if($this->component) {
             $this->component->removeLocationCluster($this);
         }
 
         $this->component = $component;
 
-        if ($this->component) {
+        if($this->component) {
             $this->component->addLocationCluster($this);
         }
 
         return $this;
     }
 
-    public function getClusterKey(): ?string
-    {
+    public function getClusterKey(): ?string {
         return $this->clusterKey;
     }
 
-    public function setClusterKey(?string $clusterKey): self
-    {
+    public function setClusterKey(?string $clusterKey): self {
         $this->clusterKey = $clusterKey;
 
         return $this;
     }
+
 }

@@ -8,9 +8,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\TrackingMovementRepository")
- */
+#[ORM\Entity(repositoryClass: 'App\Repository\TrackingMovementRepository')]
 class TrackingMovement {
 
     use FreeFieldsManagerTrait;
@@ -22,155 +20,126 @@ class TrackingMovement {
     const TYPE_UNGROUP = 'dégroupage';
     const TYPE_EMPTY_ROUND = 'passage à vide';
 
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
     /**
      * @var Pack|null
-     * @ORM\ManyToOne(targetEntity="App\Entity\Pack", inversedBy="trackingMovements")
-     * @ORM\JoinColumn(nullable=false, name="pack_id")
      */
+    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'trackingMovements')]
+    #[ORM\JoinColumn(nullable: false, name: 'pack_id')]
     private $pack;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $uniqueIdForMobile;
 
     /**
      * @var DateTime
-     * @ORM\Column(type="datetime", length=255, nullable=true)
      */
+    #[ORM\Column(type: 'datetime', length: 255, nullable: true)]
     private $datetime;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement")
-     */
+    #[ORM\ManyToOne(targetEntity: Emplacement::class)]
     private $emplacement;
 
     /**
      * @var Statut|null
-     * @ORM\ManyToOne(targetEntity="App\Entity\Statut")
      */
+    #[ORM\ManyToOne(targetEntity: Statut::class)]
     private $type;
 
-    /**
-	 * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur")
-     */
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     private $operateur;
 
     /**
      * @var MouvementStock|null
-	 * @ORM\ManyToOne(targetEntity="App\Entity\MouvementStock")
-     * @ORM\JoinColumn(name="mouvement_stock_id", referencedColumnName="id", nullable=true)
      */
+    #[ORM\ManyToOne(targetEntity: MouvementStock::class)]
+    #[ORM\JoinColumn(name: 'mouvement_stock_id', referencedColumnName: 'id', nullable: true)]
     private $mouvementStock;
 
-	/**
-	 * @ORM\Column(type="text", nullable=true)
-	 */
-	private $commentaire;
+    #[ORM\Column(type: 'text', nullable: true)]
+    private $commentaire;
 
-	/**
-	 * @ORM\OneToMany(targetEntity=Attachment::class, mappedBy="trackingMovement")
-	 */
-	private $attachements;
+    #[ORM\OneToMany(targetEntity: Attachment::class, mappedBy: 'trackingMovement')]
+    private $attachements;
 
-    /**
-     * @ORM\Column(type="boolean", nullable=true)
-     */
+    #[ORM\Column(type: 'boolean', nullable: true)]
     private $finished;
 
     /**
      * @var int
-     * @ORM\Column(type="integer", nullable=false, options={"default": 1})
      */
+    #[ORM\Column(type: 'integer', nullable: false, options: ['default' => 1])]
     private $quantity;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="trackingMovements")
-     */
+    #[ORM\ManyToOne(targetEntity: Reception::class, inversedBy: 'trackingMovements')]
     private $reception;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Dispatch", inversedBy="trackingMovements")
-     */
+    #[ORM\ManyToOne(targetEntity: Dispatch::class, inversedBy: 'trackingMovements')]
     private $dispatch;
 
     /**
      * @var Pack|null
-     * @ORM\OneToOne (targetEntity="App\Entity\Pack", mappedBy="lastDrop")
      */
+    #[ORM\OneToOne(targetEntity: Pack::class, mappedBy: 'lastDrop')]
     private $linkedPackLastDrop;
 
     /**
      * @var Pack|null
-     * @ORM\OneToOne(targetEntity="App\Entity\Pack", mappedBy="lastTracking")
      */
+    #[ORM\OneToOne(targetEntity: Pack::class, mappedBy: 'lastTracking')]
     private $linkedPackLastTracking;
 
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
+    #[ORM\Column(type: 'integer', nullable: true)]
     private $groupIteration;
 
     /**
      * @var ArrayCollection|null
-     * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterRecord", mappedBy="firstDrop")
      */
+    #[ORM\OneToMany(targetEntity: LocationClusterRecord::class, mappedBy: 'firstDrop')]
     private $firstDropRecords;
+
     /**
      * @var ArrayCollection|null
-     * @ORM\OneToMany(targetEntity="App\Entity\LocationClusterRecord", mappedBy="lastTracking")
      */
+    #[ORM\OneToMany(targetEntity: LocationClusterRecord::class, mappedBy: 'lastTracking')]
     private $lastTrackingRecords;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ReceptionReferenceArticle", inversedBy="trackingMovements")
-     */
+    #[ORM\ManyToOne(targetEntity: ReceptionReferenceArticle::class, inversedBy: 'trackingMovements')]
     private $receptionReferenceArticle;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Pack::class, inversedBy="childTrackingMovements")
-     */
+    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'childTrackingMovements')]
     private ?Pack $packParent = null;
 
-    public function __construct()
-    {
+    public function __construct() {
         $this->quantity = 1;
         $this->attachements = new ArrayCollection();
         $this->firstDropRecords = new ArrayCollection();
         $this->lastTrackingRecords = new ArrayCollection();
     }
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getUniqueIdForMobile(): ?string
-    {
+    public function getUniqueIdForMobile(): ?string {
         return $this->uniqueIdForMobile;
     }
 
-    public function setUniqueIdForMobile(?string $uniqueIdForMobile): self
-    {
+    public function setUniqueIdForMobile(?string $uniqueIdForMobile): self {
         $this->uniqueIdForMobile = $uniqueIdForMobile;
 
         return $this;
     }
 
-    public function getCommentaire(): ?string
-    {
+    public function getCommentaire(): ?string {
         return $this->commentaire;
     }
 
-    public function setCommentaire(?string $commentaire): self
-    {
+    public function setCommentaire(?string $commentaire): self {
         $this->commentaire = $commentaire;
 
         return $this;
@@ -180,8 +149,7 @@ class TrackingMovement {
         return $this->emplacement;
     }
 
-    public function setEmplacement(?Emplacement $emplacement): self
-    {
+    public function setEmplacement(?Emplacement $emplacement): self {
         $this->emplacement = $emplacement;
 
         return $this;
@@ -190,14 +158,12 @@ class TrackingMovement {
     /**
      * @return Collection|Attachment[]
      */
-    public function getAttachments(): Collection
-    {
+    public function getAttachments(): Collection {
         return $this->attachements;
     }
 
-    public function addAttachment(Attachment $attachment): self
-    {
-        if (!$this->attachements->contains($attachment)) {
+    public function addAttachment(Attachment $attachment): self {
+        if(!$this->attachements->contains($attachment)) {
             $this->attachements[] = $attachment;
             $attachment->setTrackingMovement($this);
         }
@@ -205,12 +171,11 @@ class TrackingMovement {
         return $this;
     }
 
-    public function removeAttachment(Attachment $attachement): self
-    {
-        if ($this->attachements->contains($attachement)) {
+    public function removeAttachment(Attachment $attachement): self {
+        if($this->attachements->contains($attachement)) {
             $this->attachements->removeElement($attachement);
             // set the owning side to null (unless already changed)
-            if ($attachement->getTrackingMovement() === $this) {
+            if($attachement->getTrackingMovement() === $this) {
                 $attachement->setTrackingMovement(null);
             }
         }
@@ -218,60 +183,51 @@ class TrackingMovement {
         return $this;
     }
 
-    public function getOperateur(): ?Utilisateur
-    {
+    public function getOperateur(): ?Utilisateur {
         return $this->operateur;
     }
 
-    public function setOperateur(?Utilisateur $operateur): self
-    {
+    public function setOperateur(?Utilisateur $operateur): self {
         $this->operateur = $operateur;
 
         return $this;
     }
 
-    public function getType(): ?Statut
-    {
+    public function getType(): ?Statut {
         return $this->type;
     }
 
-    public function isDrop(): bool
-    {
+    public function isDrop(): bool {
         return (
             $this->type
             && $this->type->getNom() === self::TYPE_DEPOSE
         );
     }
 
-    public function isTaking(): bool
-    {
+    public function isTaking(): bool {
         return (
             $this->type
             && $this->type->getNom() === self::TYPE_PRISE
         );
     }
 
-    public function setType(?Statut $type): self
-    {
+    public function setType(?Statut $type): self {
         $this->type = $type;
 
         return $this;
     }
 
-    public function getDatetime(): ?DateTime
-    {
+    public function getDatetime(): ?DateTime {
         return $this->datetime;
     }
 
-    public function setDatetime(?DateTime $datetime): self
-    {
+    public function setDatetime(?DateTime $datetime): self {
         $this->datetime = $datetime;
 
         return $this;
     }
 
-    public function isFinished(): ?bool
-    {
+    public function isFinished(): ?bool {
         return $this->finished;
     }
 
@@ -289,39 +245,33 @@ class TrackingMovement {
         return $this;
     }
 
-    public function getFinished(): ?bool
-    {
+    public function getFinished(): ?bool {
         return $this->finished;
     }
 
-    public function getReception(): ?Reception
-    {
+    public function getReception(): ?Reception {
         return $this->reception;
     }
 
-    public function setReception(?Reception $reception): self
-    {
+    public function setReception(?Reception $reception): self {
         $this->reception = $reception;
 
         return $this;
     }
 
-    public function getArrivage(): ?Arrivage
-    {
+    public function getArrivage(): ?Arrivage {
         return isset($this->pack)
             ? $this->pack->getArrivage()
             : null;
     }
 
-    public function setArrivage(?Arrivage $arrivage): self
-    {
+    public function setArrivage(?Arrivage $arrivage): self {
         $this->arrivage = $arrivage;
 
         return $this;
     }
 
-    public function getDispatch()
-    {
+    public function getDispatch() {
         return $this->dispatch;
     }
 
@@ -329,8 +279,7 @@ class TrackingMovement {
      * @param mixed $dispatch
      * @return TrackingMovement
      */
-    public function setDispatch($dispatch): self
-    {
+    public function setDispatch($dispatch): self {
         $this->dispatch = $dispatch;
         return $this;
     }
@@ -373,8 +322,7 @@ class TrackingMovement {
         return $this->groupIteration;
     }
 
-    public function setGroupIteration(int $groupIteration): self
-    {
+    public function setGroupIteration(int $groupIteration): self {
         $this->groupIteration = $groupIteration;
 
         return $this;
@@ -402,13 +350,11 @@ class TrackingMovement {
         return $this;
     }
 
-    public function getReceptionReferenceArticle(): ?ReceptionReferenceArticle
-    {
+    public function getReceptionReferenceArticle(): ?ReceptionReferenceArticle {
         return $this->receptionReferenceArticle;
     }
 
-    public function setReceptionReferenceArticle(?ReceptionReferenceArticle $receptionReferenceArticle): self
-    {
+    public function setReceptionReferenceArticle(?ReceptionReferenceArticle $receptionReferenceArticle): self {
         $this->receptionReferenceArticle = $receptionReferenceArticle;
 
         return $this;
@@ -450,9 +396,8 @@ class TrackingMovement {
      * @param LocationClusterRecord $recored
      * @return $this
      */
-    public function addFirstDropRecord(LocationClusterRecord $recored): self
-    {
-        if (!$this->firstDropRecords->contains($recored)) {
+    public function addFirstDropRecord(LocationClusterRecord $recored): self {
+        if(!$this->firstDropRecords->contains($recored)) {
             $this->firstDropRecords[] = $recored;
         }
 
@@ -463,9 +408,8 @@ class TrackingMovement {
      * @param LocationClusterRecord $record
      * @return $this
      */
-    public function removeFirstDropRecord(LocationClusterRecord $record): self
-    {
-        if ($this->firstDropRecords->contains($record)) {
+    public function removeFirstDropRecord(LocationClusterRecord $record): self {
+        if($this->firstDropRecords->contains($record)) {
             $this->firstDropRecords->removeElement($record);
         }
 
@@ -483,9 +427,8 @@ class TrackingMovement {
      * @param LocationClusterRecord $record
      * @return $this
      */
-    public function addLastTrackingRecord(LocationClusterRecord $record): self
-    {
-        if (!$this->lastTrackingRecords->contains($record)) {
+    public function addLastTrackingRecord(LocationClusterRecord $record): self {
+        if(!$this->lastTrackingRecords->contains($record)) {
             $this->lastTrackingRecords[] = $record;
         }
 
@@ -496,9 +439,8 @@ class TrackingMovement {
      * @param LocationClusterRecord $record
      * @return $this
      */
-    public function removeLastTrackingRecord(LocationClusterRecord $record): self
-    {
-        if ($this->lastTrackingRecords->contains($record)) {
+    public function removeLastTrackingRecord(LocationClusterRecord $record): self {
+        if($this->lastTrackingRecords->contains($record)) {
             $this->lastTrackingRecords->removeElement($record);
         }
 
@@ -522,4 +464,5 @@ class TrackingMovement {
 
         return $this;
     }
+
 }

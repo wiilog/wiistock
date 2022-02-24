@@ -2,34 +2,30 @@
 
 namespace App\Entity;
 
-use DateTime as WiiDateTime;
 use DateTime;
+use DateTime as WiiDateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\ImportRepository")
- */
-class Import
-{
-	const STATUS_DRAFT = 'brouillon';
-	const STATUS_CANCELLED = 'annulé';
-	const STATUS_IN_PROGRESS = 'en cours';
-	const STATUS_FINISHED = 'terminé';
-	const STATUS_PLANNED = 'planifié';
+#[ORM\Entity(repositoryClass: 'App\Repository\ImportRepository')]
+class Import {
 
-	const ENTITY_ART = 'ART';
-	const ENTITY_REF= 'REF';
-	const ENTITY_FOU = 'FOU';
+    const STATUS_DRAFT = 'brouillon';
+    const STATUS_CANCELLED = 'annulé';
+    const STATUS_IN_PROGRESS = 'en cours';
+    const STATUS_FINISHED = 'terminé';
+    const STATUS_PLANNED = 'planifié';
+    const ENTITY_ART = 'ART';
+    const ENTITY_REF = 'REF';
+    const ENTITY_FOU = 'FOU';
     const ENTITY_ART_FOU = 'ART_FOU';
     const ENTITY_RECEPTION = 'RECEP';
     const ENTITY_USER = 'USER';
     const ENTITY_DELIVERY = 'DELIVERY';
     const ENTITY_LOCATION = 'LOCATION';
-
     const ENTITY_LABEL = [
-        self::ENTITY_ART=>"Articles",
+        self::ENTITY_ART => "Articles",
         self::ENTITY_REF => "Références",
         self::ENTITY_FOU => "Fournisseurs",
         self::ENTITY_RECEPTION => "Réceptions",
@@ -38,8 +34,7 @@ class Import
         self::ENTITY_DELIVERY => "Livraisons",
         self::ENTITY_LOCATION => "Emplacements",
     ];
-
-	const FIELDS_NEEDED = [
+    const FIELDS_NEEDED = [
         self::ENTITY_ART_FOU => [
             'référence article de référence',
             'référence fournisseur',
@@ -52,14 +47,14 @@ class Import
         ],
         self::ENTITY_FOU => [
             'codeReference',
-            'nom'
+            'nom',
         ],
         self::ENTITY_REF => [
             'reference',
             'libelle',
             'type',
             'typeQuantite',
-            'emplacement'
+            'emplacement',
         ],
         self::ENTITY_RECEPTION => [
             'orderNumber',
@@ -84,19 +79,17 @@ class Import
             'name',
         ],
     ];
-
-	const FIELD_PK = [
-	    self::ENTITY_ART_FOU => 'reference',
+    const FIELD_PK = [
+        self::ENTITY_ART_FOU => 'reference',
         self::ENTITY_ART => 'barCode',
         self::ENTITY_FOU => 'codeReference',
         self::ENTITY_REF => 'reference',
         self::ENTITY_RECEPTION => null,
         self::ENTITY_USER => null,
         self::ENTITY_DELIVERY => null,
-        self::ENTITY_LOCATION => 'name'
+        self::ENTITY_LOCATION => 'name',
     ];
-
-	const FIELDS_ENTITY = [
+    const FIELDS_ENTITY = [
         'storageLocation' => 'Emplacement de stockage',
         'visibilityGroups' => 'Groupes de visibilité',
         'reference' => 'référence',
@@ -118,7 +111,7 @@ class Import
         'emplacement' => 'emplacement',
         'catInv' => 'catégorie inventaire',
         'articleFournisseurReference' => 'articleFournisseurReference',
-		'typeLabel' => 'type',
+        'typeLabel' => 'type',
         'dateLastInventory' => 'date dernier inventaire (jj/mm/AAAA)',
         'emergencyComment' => 'commentaire urgence',
         'orderNumber' => 'numéro de commande',
@@ -167,104 +160,77 @@ class Import
 
         'possibleCustoms' => 'Possible douane',
         'urgent' => 'Urgent',
-	];
-
-	public CONST IMPORT_FIELDS_TO_FIELDS_PARAM = [
+    ];
+    public const IMPORT_FIELDS_TO_FIELDS_PARAM = [
         'commentaire' => 'commentaire',
         'destination' => 'emplacement',
         'fournisseur' => 'fournisseur',
         'transporteur' => 'transporteur',
     ];
 
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
+    #[ORM\Column(type: 'string', length: 255)]
     private $label;
 
-    /**
-     * @ORM\Column(type="string", length=64)
-     */
+    #[ORM\Column(type: 'string', length: 64)]
     private $entity;
 
-    /**
-     * @ORM\OneToOne(targetEntity="Attachment", inversedBy="importCsv")
-     */
+    #[ORM\OneToOne(targetEntity: 'Attachment', inversedBy: 'importCsv')]
     private $csvFile;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Statut")
-     */
+    #[ORM\ManyToOne(targetEntity: Statut::class)]
     private $status;
 
-	/**
-	 * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur")
-	 */
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     private $user;
 
-	/**
-	 * @ORM\Column(type="integer", nullable=true)
-	 */
+    #[ORM\Column(type: 'integer', nullable: true)]
     private $newEntries;
 
-	/**
-	 * @ORM\Column(type="integer", nullable=true)
-	 */
+    #[ORM\Column(type: 'integer', nullable: true)]
     private $updatedEntries;
 
-	/**
+    /**
      * @var bool
-	 * @ORM\Column(type="boolean", nullable=false)
-	 */
+     */
+    #[ORM\Column(type: 'boolean', nullable: false)]
     private $forced;
 
-	/**
+    /**
      * @var bool
-	 * @ORM\Column(type="boolean", nullable=false)
-	 */
+     */
+    #[ORM\Column(type: 'boolean', nullable: false)]
     private $flash;
 
-	/**
+    /**
      * @var DateTime
-	 * @ORM\Column(type="datetime", nullable=false)
-	 */
+     */
+    #[ORM\Column(type: 'datetime', nullable: false)]
     private $createdAt;
 
-	/**
-	 * @ORM\Column(type="integer", nullable=true)
-	 */
+    #[ORM\Column(type: 'integer', nullable: true)]
     private $nbErrors;
 
-	/**
-	 * @ORM\Column(type="datetime", nullable=true)
-	 */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private $startDate;
 
-	/**
-	 * @ORM\Column(type="datetime", nullable=true)
-	 */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private $endDate;
 
-	/**
+    /**
      * @var Attachment
-	 * @ORM\OneToOne(targetEntity="Attachment", inversedBy="importLog")
-	 */
+     */
+    #[ORM\OneToOne(targetEntity: 'Attachment', inversedBy: 'importLog')]
     private $logFile;
 
-	/**
-	 * @ORM\Column(type="json", nullable=true)
-	 */
+    #[ORM\Column(type: 'json', nullable: true)]
     private $columnToField;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\MouvementStock", mappedBy="import")
-     */
+    #[ORM\OneToMany(targetEntity: MouvementStock::class, mappedBy: 'import')]
     private $mouvements;
 
     public function __construct() {
@@ -274,157 +240,132 @@ class Import
         $this->flash = false;
     }
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getLabel(): ?string
-    {
+    public function getLabel(): ?string {
         return $this->label;
     }
 
-    public function setLabel(string $label): self
-    {
+    public function setLabel(string $label): self {
         $this->label = $label;
 
         return $this;
     }
 
-    public function getEntity(): ?string
-    {
+    public function getEntity(): ?string {
         return $this->entity;
     }
 
-    public function setEntity(string $entity): self
-    {
+    public function setEntity(string $entity): self {
         $this->entity = $entity;
 
         return $this;
     }
 
-    public function getCsvFile(): ?Attachment
-    {
+    public function getCsvFile(): ?Attachment {
         return $this->csvFile;
     }
 
-    public function setCsvFile(?Attachment $csvFile): self
-    {
+    public function setCsvFile(?Attachment $csvFile): self {
         $this->csvFile = $csvFile;
 
         return $this;
     }
 
-    public function getNewEntries(): ?int
-    {
+    public function getNewEntries(): ?int {
         return $this->newEntries;
     }
 
-    public function setNewEntries(?int $newEntries): self
-    {
+    public function setNewEntries(?int $newEntries): self {
         $this->newEntries = $newEntries;
 
         return $this;
     }
 
-    public function getUpdatedEntries(): ?int
-    {
+    public function getUpdatedEntries(): ?int {
         return $this->updatedEntries;
     }
 
-    public function setUpdatedEntries(?int $updatedEntries): self
-    {
+    public function setUpdatedEntries(?int $updatedEntries): self {
         $this->updatedEntries = $updatedEntries;
 
         return $this;
     }
 
-    public function getNbErrors(): ?int
-    {
+    public function getNbErrors(): ?int {
         return $this->nbErrors;
     }
 
-    public function setNbErrors(?int $nbErrors): self
-    {
+    public function setNbErrors(?int $nbErrors): self {
         $this->nbErrors = $nbErrors;
 
         return $this;
     }
 
-    public function getStartDate(): ?DateTime
-    {
+    public function getStartDate(): ?DateTime {
         return $this->startDate;
     }
 
-    public function setStartDate(DateTime $startDate): self
-    {
+    public function setStartDate(DateTime $startDate): self {
         $this->startDate = $startDate;
 
         return $this;
     }
 
-    public function getEndDate(): ?DateTime
-    {
+    public function getEndDate(): ?DateTime {
         return $this->endDate;
     }
 
-    public function setEndDate(DateTime $endDate): self
-    {
+    public function setEndDate(DateTime $endDate): self {
         $this->endDate = $endDate;
 
         return $this;
     }
 
-    public function getColumnToField(): ?array
-    {
+    public function getColumnToField(): ?array {
         return $this->columnToField;
     }
 
-    public function setColumnToField(?array $columnToField): self
-    {
+    public function setColumnToField(?array $columnToField): self {
         $this->columnToField = $columnToField;
 
         return $this;
     }
 
-    public function getStatus(): ?Statut
-    {
+    public function getStatus(): ?Statut {
         return $this->status;
     }
 
-    public function setStatus(?Statut $status): self
-    {
+    public function setStatus(?Statut $status): self {
         $this->status = $status;
 
         return $this;
     }
 
-    public function getUser(): ?Utilisateur
-    {
+    public function getUser(): ?Utilisateur {
         return $this->user;
     }
 
-    public function setUser(?Utilisateur $user): self
-    {
+    public function setUser(?Utilisateur $user): self {
         $this->user = $user;
 
         return $this;
     }
 
-    public function getLogFile(): ?Attachment
-    {
+    public function getLogFile(): ?Attachment {
         return $this->logFile;
     }
 
-    public function setLogFile(?Attachment $logFile): self
-    {
-        if (isset($this->logFile)) {
+    public function setLogFile(?Attachment $logFile): self {
+        if(isset($this->logFile)) {
             $this->logFile->setImportLog(null);
         }
 
         $this->logFile = $logFile;
 
-        if (isset($this->logFile)) {
+        if(isset($this->logFile)) {
             $this->logFile->setImportLog($this);
         }
 
@@ -434,14 +375,12 @@ class Import
     /**
      * @return Collection|MouvementStock[]
      */
-    public function getMouvements(): Collection
-    {
+    public function getMouvements(): Collection {
         return $this->mouvements;
     }
 
-    public function addMouvement(MouvementStock $mouvement): self
-    {
-        if (!$this->mouvements->contains($mouvement)) {
+    public function addMouvement(MouvementStock $mouvement): self {
+        if(!$this->mouvements->contains($mouvement)) {
             $this->mouvements[] = $mouvement;
             $mouvement->setImport($this);
         }
@@ -449,12 +388,11 @@ class Import
         return $this;
     }
 
-    public function removeMouvement(MouvementStock $mouvement): self
-    {
-        if ($this->mouvements->contains($mouvement)) {
+    public function removeMouvement(MouvementStock $mouvement): self {
+        if($this->mouvements->contains($mouvement)) {
             $this->mouvements->removeElement($mouvement);
             // set the owning side to null (unless already changed)
-            if ($mouvement->getImport() === $this) {
+            if($mouvement->getImport() === $this) {
                 $mouvement->setImport(null);
             }
         }

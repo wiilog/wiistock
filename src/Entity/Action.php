@@ -7,9 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\ActionRepository")
- */
+#[ORM\Entity(repositoryClass: 'App\Repository\ActionRepository')]
 class Action {
 
     const LIST = 'lister';
@@ -17,7 +15,6 @@ class Action {
     const EDIT = 'modifier';
     const DELETE = 'supprimer';
     const EXPORT = 'exporter';
-
     // menu traça
     const DISPLAY_ARRI = 'afficher arrivages';
     const DISPLAY_MOUV = 'afficher mouvements';
@@ -36,11 +33,9 @@ class Action {
     const CREATE_ARRIVAL = 'créer arrivage';
     const CREATE_EMERGENCY = 'créer urgence';
     const CREATE_TRACKING_MOVEMENT = 'créer mouvements';
-
     // menu qualité
     const DISPLAY_LITI = 'afficher litiges';
     const TREAT_DISPUTE = 'traiter les litiges';
-
     // menu demande
     const DISPLAY_TRANSFER_REQ = 'afficher transferts';
     const DISPLAY_DEM_LIVR = 'afficher livraisons';
@@ -70,7 +65,6 @@ class Action {
     const EDIT_DRAFT_PURCHASE_REQUEST = "modifier demandes d'achat brouillon";
     const DELETE_ONGOING_PURCHASE_REQUESTS = "supprimer demandes d'achat à traiter et en cours";
     const TRACK_SENSOR = "suivre un capteur";
-
     // menu ordre
     const DISPLAY_ORDRE_COLL = 'afficher collectes';
     const DISPLAY_ORDRE_LIVR = 'afficher livraisons';
@@ -79,7 +73,6 @@ class Action {
     const DISPLAY_RECE = 'afficher réceptions';
     const CREATE_REF_FROM_RECEP = 'création référence depuis réception';
     const PAIR_SENSOR = "associer un capteur";
-
     // menu stock
     const DISPLAY_ARTI = 'afficher articles';
     const DISPLAY_REFE = 'afficher références';
@@ -92,18 +85,15 @@ class Action {
     const CREATE_DRAFT_REFERENCE = 'créer en brouillon';
     const EDIT_PARTIALLY = 'modifier partiellement';
     const REFERENCE_VALIDATOR = 'valideur des références';
-
     // menu référentiel
     const DISPLAY_FOUR = 'afficher fournisseurs';
     const DISPLAY_EMPL = 'afficher emplacements';
     const DISPLAY_CHAU = 'afficher chauffeurs';
     const DISPLAY_TRAN = 'afficher transporteurs';
-
     // menu IOT
     const DISPLAY_SENSOR = 'afficher capteurs';
     const DISPLAY_TRIGGER = 'afficher actionneurs';
     const DISPLAY_PAIRING = 'afficher associations';
-
     // menu paramétrage
     const SETTINGS_GLOBAL = 'afficher paramétrage global';
     const SETTINGS_STOCK = 'afficher stock';
@@ -114,7 +104,6 @@ class Action {
     const SETTINGS_NOTIFICATIONS = 'afficher notifications';
     const SETTINGS_USERS = 'afficher utilisateurs';
     const SETTINGS_DATA = 'afficher données';
-
     // menu nomade
     const MODULE_ACCESS_STOCK = 'Accès Stock';
     const MODULE_ACCESS_TRACA = 'Accès Traçabilité';
@@ -124,41 +113,27 @@ class Action {
     const MODULE_NOTIFICATIONS = 'Activer les notifications';
     const DEMO_MODE = 'Mode découverte';
 
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="Menu", inversedBy="actions")
-     */
+    #[ORM\ManyToOne(targetEntity: 'Menu', inversedBy: 'actions')]
     private ?Menu $menu = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=SubMenu::class, inversedBy="actions")
-     */
+    #[ORM\ManyToOne(targetEntity: SubMenu::class, inversedBy: 'actions')]
     private ?SubMenu $subMenu = null;
 
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
+    #[ORM\Column(type: 'string', length: 255)]
     private ?string $label = null;
 
-    /**
-     * @ORM\ManyToMany(targetEntity="Role", inversedBy="actions")
-     */
+    #[ORM\ManyToMany(targetEntity: 'Role', inversedBy: 'actions')]
     private Collection $roles;
 
-    /**
-     * @ORM\OneToOne(targetEntity=Dashboard\Page::class, mappedBy="action")
-     */
+    #[ORM\OneToOne(targetEntity: Dashboard\Page::class, mappedBy: 'action')]
     private ?Page $dashboard = null;
 
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
+    #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $displayOrder = null;
 
     public function __construct() {

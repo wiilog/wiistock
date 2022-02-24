@@ -3,64 +3,46 @@
 namespace App\Entity\IOT;
 
 use App\Entity\Traits\FreeFieldsManagerTrait;
+use App\Entity\Utilisateur;
 use App\Repository\IOT\SensorWrapperRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use App\Entity\Utilisateur;
 
-/**
- * @ORM\Entity(repositoryClass=SensorWrapperRepository::class)
- */
+#[ORM\Entity(repositoryClass: SensorWrapperRepository::class)]
 class SensorWrapper {
 
     use FreeFieldsManagerTrait;
 
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Sensor::class, inversedBy="sensorWrappers")
-     */
+    #[ORM\ManyToOne(targetEntity: Sensor::class, inversedBy: 'sensorWrappers')]
     private ?Sensor $sensor = null;
 
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
+    #[ORM\Column(type: 'string', length: 255)]
     private ?string $name = null;
 
-    /**
-     * @ORM\Column(type="boolean", nullable=false, options={"default": false})
-     */
+    #[ORM\Column(type: 'boolean', nullable: false, options: ['default' => false])]
     private bool $deleted = false;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Utilisateur::class, inversedBy="sensorWrappers")
-     */
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'sensorWrappers')]
     private ?Utilisateur $manager = null;
 
-    /**
-     * @ORM\OneToMany(targetEntity=Pairing::class, mappedBy="sensorWrapper")
-     */
+    #[ORM\OneToMany(targetEntity: Pairing::class, mappedBy: 'sensorWrapper')]
     private Collection $pairings;
 
-    /**
-     * @ORM\OneToMany(targetEntity=TriggerAction::class, mappedBy="sensorWrapper")
-     */
+    #[ORM\OneToMany(targetEntity: TriggerAction::class, mappedBy: 'sensorWrapper')]
     private Collection $triggerActions;
 
-    public function __construct()
-    {
+    public function __construct() {
         $this->pairings = new ArrayCollection();
         $this->triggerActions = new ArrayCollection();
     }
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
@@ -80,13 +62,11 @@ class SensorWrapper {
         return $this;
     }
 
-    public function getName(): ?string
-    {
+    public function getName(): ?string {
         return $this->name;
     }
 
-    public function setName(string $name): self
-    {
+    public function setName(string $name): self {
         $this->name = $name;
 
         return $this;
@@ -116,7 +96,7 @@ class SensorWrapper {
     }
 
     public function addPairing(Pairing $pairing): self {
-        if (!$this->pairings->contains($pairing)) {
+        if(!$this->pairings->contains($pairing)) {
             $this->pairings[] = $pairing;
             $pairing->setSensorWrapper($this);
         }
@@ -125,8 +105,8 @@ class SensorWrapper {
     }
 
     public function removePairing(Pairing $pairing): self {
-        if ($this->pairings->removeElement($pairing)) {
-            if ($pairing->getSensorWrapper() === $this) {
+        if($this->pairings->removeElement($pairing)) {
+            if($pairing->getSensorWrapper() === $this) {
                 $pairing->setSensorWrapper(null);
             }
         }
@@ -155,7 +135,7 @@ class SensorWrapper {
     }
 
     public function addTriggerAction(TriggerAction $triggerAction): self {
-        if (!$this->triggerActions->contains($triggerAction)) {
+        if(!$this->triggerActions->contains($triggerAction)) {
             $this->triggerActions[] = $triggerAction;
             $triggerAction->setSensorWrapper($this);
         }
@@ -164,8 +144,8 @@ class SensorWrapper {
     }
 
     public function removeTriggerAction(TriggerAction $triggerAction): self {
-        if ($this->triggerActions->removeElement($triggerAction)) {
-            if ($triggerAction->getSensorWrapper() === $this) {
+        if($this->triggerActions->removeElement($triggerAction)) {
+            if($triggerAction->getSensorWrapper() === $this) {
                 $triggerAction->setSensorWrapper(null);
             }
         }
@@ -194,4 +174,5 @@ class SensorWrapper {
         $this->deleted = $deleted;
         return $this;
     }
+
 }

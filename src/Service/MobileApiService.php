@@ -68,6 +68,8 @@ class MobileApiService {
 
     public function getTranslationsData(EntityManagerInterface $entityManager): array {
         $translationsRepository = $entityManager->getRepository(Translation::class);
+
+        //TODO: récupérer tout en français
         return [
             'translations' => $translationsRepository->findAllObjects(),
         ];
