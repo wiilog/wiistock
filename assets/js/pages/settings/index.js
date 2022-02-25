@@ -51,7 +51,7 @@ const initializers = {
     utilisateurs_roles: initializeRolesPage,
     stock_receptions_types_litiges : initializeTypesLitige,
     trace_arrivages_types_litiges : initializeTypesLitige,
-    stock_demandes_statuts_achats : initializePurchaseRequestStatuses
+    stock_demandes_statuts_achats : initializePurchaseRequestStatuses,
     stock_demandes_modeles_demande_livraisons: initializeStockDeliveryTemplates,
     // stock_demandes_modeles_collecte_livraisons: initializeStockCollectTemplates,
 };
