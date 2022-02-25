@@ -8,6 +8,8 @@ import {initializeStockArticlesTypesFreeFields, createFreeFieldsPage, initialize
 import {initializeRolesPage} from "./users/roles";
 import {initializeArrivalDisputeStatuses, initializeReceptionDisputeStatuses, initializePurchaseRequestStatuses} from "./statuses";
 
+window.triggerReminderEmails = triggerReminderEmails;
+
 const index = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();
 let menu = $(`input#menu`).val();
@@ -708,5 +710,13 @@ function initializeVisibilityGroup($container, canEdit) {
 
     $addButton.on(`click`, function() {
         table.addRow(true);
+    });
+}
+
+function triggerReminderEmails($button) {
+    $button.pushLoader(`primary`);
+    $.post(Routing.generate(`trigger_reminder_emails`), true).then(({success, msg}) => {
+        $button.popLoader()
+        showBSAlert(msg, success ? `success` : `danger`);
     });
 }
