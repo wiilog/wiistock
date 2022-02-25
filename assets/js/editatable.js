@@ -108,7 +108,7 @@ export default class EditableDatatable {
         }
     }
 
-    toggleEdit(state = this.state === STATE_VIEWING ? STATE_EDIT : STATE_VIEWING, reload = false, params = undefined, rowIndex = undefined) {
+    toggleEdit(state = this.state === STATE_VIEWING ? STATE_EDIT : STATE_VIEWING, reload = false, {params, rowIndex} = {}) {
         this.state = state;
 
         if(reload) {
@@ -156,6 +156,14 @@ function applyState(datatable, state, params, rowIndex) {
 
         $requiredMarks.removeClass('d-none');
         $datatablePaging.addClass('d-none');
+
+        if (rowIndex !== undefined) {
+            $datatableWrapper
+                .find(`.subentities-table tbody tr`)
+                .eq(rowIndex)
+                .find(`input:not([type=checkbox], [type=hidden]):first`)
+                .focus();
+        }
     } else {
         if (config.onEditStop) {
             config.onEditStop(params);
@@ -165,13 +173,6 @@ function applyState(datatable, state, params, rowIndex) {
         $datatablePaging.removeClass('d-none');
     }
 
-    if(rowIndex) {
-        $datatableWrapper
-            .find(`.subentities-table tbody tr`)
-            .eq(rowIndex)
-            .find(`input:not([type=checkbox], [type=hidden]):first`)
-            .focus();
-    }
 }
 
 function initEditatable(datatable, onDatatableInit = null) {
@@ -253,7 +254,7 @@ function initEditatable(datatable, onDatatableInit = null) {
                         if(datatable.state === STATE_VIEWING) {
                             const $row = $(this).parent();
                             const rowIndex = $rows.index($row);
-                            datatable.toggleEdit(STATE_EDIT, true, undefined, rowIndex); // TODO
+                            datatable.toggleEdit(STATE_EDIT, true, {rowIndex});
                         }
                     });
                 }

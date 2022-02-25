@@ -144,7 +144,7 @@ $(function() {
                     }
                     for(const table of tablesToReload) {
                         if(table.mode !== MODE_EDIT) {
-                            table.toggleEdit(STATE_VIEWING, true, params);
+                            table.toggleEdit(STATE_VIEWING, true, {params});
                         }
                     }
 
