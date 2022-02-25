@@ -84,6 +84,12 @@ class TranslationSource {
         return $this->translations;
     }
 
+    public function getTranslationIn(string $slug): ?Translation {
+        return $this->getTranslations()
+            ->filter(fn(Translation $translation) => $translation->getLanguage()->getSlug() === $slug)
+            ->first() ?: null;
+    }
+
     public function addTranslation(Translation $translation): self {
         if(!$this->translations->contains($translation)) {
             $this->translations[] = $translation;

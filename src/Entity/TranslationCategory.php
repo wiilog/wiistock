@@ -26,11 +26,14 @@ class TranslationCategory {
     #[OneToMany(mappedBy: "parent", targetEntity: TranslationCategory::class)]
     private Collection $children;
 
-    #[Column(type: "integer")]
-    private ?int $type = null;
+    #[Column(type: "string")]
+    private ?string $type = null;
 
     #[Column(type: "string", length: 255)]
     private ?string $label = null;
+
+    #[Column(type: "text", nullable: true)]
+    private ?string $subtitle = null;
 
     #[OneToMany(mappedBy: "category", targetEntity: TranslationSource::class)]
     private Collection $translationSources;
@@ -98,11 +101,11 @@ class TranslationCategory {
         return $this;
     }
 
-    public function getType(): ?int {
+    public function getType(): ?string {
         return $this->type;
     }
 
-    public function setType(int $type): self {
+    public function setType(string $type): self {
         $this->type = $type;
 
         return $this;
@@ -115,6 +118,15 @@ class TranslationCategory {
     public function setLabel(string $label): self {
         $this->label = $label;
 
+        return $this;
+    }
+
+    public function getSubtitle(): ?string {
+        return $this->subtitle;
+    }
+
+    public function setSubtitle(?string $subtitle): self {
+        $this->subtitle = $subtitle;
         return $this;
     }
 
