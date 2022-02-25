@@ -7,7 +7,7 @@
         <div class="col-md-6 col-12 my-1">
             {% set any_selected = setting_value('INCLUDE_DESTINATION_LOCATION_IN_ARTICLE_LABEL') or setting_value('INCLUDE_RECIPIENT_DROPZONE_LOCATION_IN_ARTICLE_LABEL') %}
 
-            {{ form.checkbox('SHOW_LOCATION', 'Afficher le destinataire', false, any_selected) }}
+            {{ form.checkbox('SHOW_LOCATION', 'Afficher l\'emplacement', false, any_selected) }}
 
             <div class="wii-radio-container ml-4 {{ not any_selected ? 'd-none' }}">
                 <div class="wii-radio mt-1">
