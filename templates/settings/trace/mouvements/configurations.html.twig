@@ -9,11 +9,11 @@
 </div>
 <div class="wii-section-title">Mails de relance</div>
 <div class="wii-section">
-    <div class="row">
-        <div class="col-md-6 col-12 d-flex align-items-center my-1">
+    <div class="row align-items-center justify-content-center">
+        <div class="col-lg col-12 my-1">
             {{ form.checkbox(setting('SEND_PACK_DELIVERY_REMIND'), "Déclencher un mail de relance si colis sur point de livraison dropzone à 7j, 15j, 30j, et 42j", false, setting_value('SEND_PACK_DELIVERY_REMIND')) }}
         </div>
-        <div class="col-md-6 col-12 d-flex align-items-center justify-content-end">
+        <div class="col-auto my-1">
             <button class="btn btn-outline-primary" onclick="triggerReminderEmails($(this))">Déclencher les mails de relance</button>
         </div>
     </div>

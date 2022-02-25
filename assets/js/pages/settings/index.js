@@ -731,6 +731,6 @@ function triggerReminderEmails($button) {
     $button.pushLoader(`primary`);
     $.post(Routing.generate(`trigger_reminder_emails`), true).then(({success, msg}) => {
         $button.popLoader()
-        showBSAlert(msg, success ? `success` : `danger`);
+        Flash.add(success ? `success` : `danger`, msg);
     });
 }
