@@ -7,8 +7,8 @@ import {initializeImports} from "./data/imports.js";
 import {initializeStockArticlesTypesFreeFields, createFreeFieldsPage, initializeTraceMovementsFreeFields, initializeIotFreeFields} from "./free-fields";
 import {initializeRolesPage} from "./users/roles";
 import {createManagementPage} from "./utils";
-import {initializeArrivalDisputeStatuses, initializeReceptionDisputeStatuses} from "./dispute-statuses";
 import {initializeStockDeliveryTemplates} from "./request-template";
+import {initializeArrivalDisputeStatuses, initializeReceptionDisputeStatuses, initializePurchaseRequestStatuses} from "./statuses";
 
 const index = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();
@@ -51,6 +51,7 @@ const initializers = {
     utilisateurs_roles: initializeRolesPage,
     stock_receptions_types_litiges : initializeTypesLitige,
     trace_arrivages_types_litiges : initializeTypesLitige,
+    stock_demandes_statuts_achats : initializePurchaseRequestStatuses
     stock_demandes_modeles_demande_livraisons: initializeStockDeliveryTemplates,
     // stock_demandes_modeles_collecte_livraisons: initializeStockCollectTemplates,
 };
@@ -594,8 +595,8 @@ function initializeInventoryFrequenciesTable(){
         },
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: `label`, title: `Libellé<span class="d-none required-mark">*</span>`},
-            {data: `nb_months`, title: `Nombre de mois<span class="d-none required-mark">*</span>`},
+            {data: `label`, title: `Libellé`, required: true},
+            {data: `nb_months`, title: `Nombre de mois`, required: true},
         ],
         form: {
             actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
@@ -625,8 +626,8 @@ function initializeInventoryCategoriesTable(){
         },
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: `label`, title: `Libellé<span class="d-none required-mark">*</span>`},
-            {data: `frequency`, title: `Fréquence<span class="d-none required-mark">*</span>`},
+            {data: `label`, title: `Libellé`, required: true},
+            {data: `frequency`, title: `Fréquence`, required: true},
         ],
         form: {
             actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
@@ -638,6 +639,8 @@ function initializeInventoryCategoriesTable(){
 
 function initializeTypesLitige(){
     $saveButton.addClass('d-none');
+    $discardButton.addClass('d-none');
+
     const table = EditableDatatable.create(`#table-types-litige`, {
         route: Routing.generate('types_litige_api', true),
         deleteRoute: `settings_delete_type_litige`,
@@ -649,13 +652,15 @@ function initializeTypesLitige(){
         scrollX: false,
         onEditStart: () => {
             $saveButton.removeClass('d-none');
+            $discardButton.removeClass('d-none');
         },
         onEditStop: () => {
             $saveButton.addClass('d-none');
+            $discardButton.addClass('d-none');
         },
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: `label`, title: `Libellé`},
+            {data: `label`, title: `Libellé`, required: true},
             {data: `description`, title: `Description`},
         ],
         form: {

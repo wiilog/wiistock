@@ -148,7 +148,10 @@ class SettingsController extends AbstractController {
                         ],
                         self::MENU_RECEPTIONS_FREE_FIELDS => ["label" => "Réceptions - Champs libres"],
                         self::MENU_DISPUTE_STATUSES => ["label" => "Litiges - Statuts"],
-                        self::MENU_DISPUTE_TYPES => ["label" => "Litiges - Types"],
+                        self::MENU_DISPUTE_TYPES => [
+                            "label" => "Litiges - Types",
+                            "save" => true,
+                        ],
                     ],
                 ],
             ],
@@ -543,6 +546,14 @@ class SettingsController extends AbstractController {
                     },
                     self::MENU_DELIVERY_TYPES_FREE_FIELDS => $this->typeGenerator(CategoryType::DEMANDE_LIVRAISON),
                     self::MENU_COLLECT_TYPES_FREE_FIELDS => $this->typeGenerator(CategoryType::DEMANDE_COLLECTE),
+                    self::MENU_PURCHASE_STATUSES => function() {
+                        $treated = Statut::TREATED;
+                        $notTreated = Statut::NOT_TREATED;
+                        $draft = Statut::DRAFT;
+                        return [
+                            "optionsSelect" => "<option/><option value='{$treated}'>Traité</option><option value='{$notTreated}'>A traité</option><option value='{$draft}'>Brouillon</option>"
+                        ];
+                    },
                 ],
                 self::MENU_INVENTORIES => [
                     self::MENU_CATEGORIES => fn() => [
