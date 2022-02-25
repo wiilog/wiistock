@@ -108,19 +108,19 @@ export default class EditableDatatable {
         }
     }
 
-    toggleEdit(state = this.state === STATE_VIEWING ? STATE_EDIT : STATE_VIEWING, reload = false, params = undefined) {
+    toggleEdit(state = this.state === STATE_VIEWING ? STATE_EDIT : STATE_VIEWING, reload = false, params = undefined, rowIndex = undefined) {
         this.state = state;
 
         if(reload) {
             return new Promise((resolve) => {
                 this.table = initEditatable(this, () => {
-                    applyState(this, state, params);
+                    applyState(this, state, params, rowIndex);
                     resolve();
                 });
             });
         }
         else {
-            applyState(this, state, params);
+            applyState(this, state, params, rowIndex);
             return new Promise((resolve) => resolve());
         }
     }
@@ -143,7 +143,7 @@ export default class EditableDatatable {
     }
 }
 
-function applyState(datatable, state, params) {
+function applyState(datatable, state, params, rowIndex) {
     const {config, element: $element} = datatable;
     const $datatableWrapper = $element.closest(`.dataTables_wrapper`);
     const $datatablePaging = $datatableWrapper.find(`.datatable-paging`);
@@ -163,6 +163,14 @@ function applyState(datatable, state, params) {
 
         $requiredMarks.addClass('d-none');
         $datatablePaging.removeClass('d-none');
+    }
+
+    if(rowIndex) {
+        $datatableWrapper
+            .find(`.subentities-table tbody tr`)
+            .eq(rowIndex)
+            .find(`input:not([type=checkbox], [type=hidden]):first`)
+            .focus();
     }
 }
 
@@ -243,7 +251,9 @@ function initEditatable(datatable, onDatatableInit = null) {
                     .off(`click.${id}.startEdit`)
                     .on(`click.${id}.startEdit`, 'td:not(.no-interaction)', function() {
                         if(datatable.state === STATE_VIEWING) {
-                            datatable.toggleEdit(STATE_EDIT, true);
+                            const $row = $(this).parent();
+                            const rowIndex = $rows.index($row);
+                            datatable.toggleEdit(STATE_EDIT, true, undefined, rowIndex); // TODO
                         }
                     });
                 }
