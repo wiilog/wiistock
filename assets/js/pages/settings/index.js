@@ -10,6 +10,8 @@ import {createManagementPage} from "./utils";
 import {initializeStockDeliveryTemplates} from "./request-template";
 import {initializeArrivalDisputeStatuses, initializeReceptionDisputeStatuses, initializePurchaseRequestStatuses} from "./statuses";
 
+global.triggerReminderEmails = triggerReminderEmails;
+
 const index = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();
 let menu = $(`input#menu`).val();
@@ -723,4 +725,12 @@ function appendSelectOptions(typeSelect, locationSelect, type, location) {
     locationSelect
         .append(new Option(location.label, location.id, false, true))
         .trigger(`change`);
+}
+
+function triggerReminderEmails($button) {
+    $button.pushLoader(`primary`);
+    $.post(Routing.generate(`trigger_reminder_emails`), true).then(({success, msg}) => {
+        $button.popLoader()
+        showBSAlert(msg, success ? `success` : `danger`);
+    });
 }
