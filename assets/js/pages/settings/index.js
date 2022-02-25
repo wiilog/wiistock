@@ -6,7 +6,7 @@ import {initUserPage} from "./users/users";
 import {initializeImports} from "./data/imports.js";
 import {initializeStockArticlesTypesFreeFields, createFreeFieldsPage, initializeTraceMovementsFreeFields, initializeIotFreeFields} from "./free-fields";
 import {initializeRolesPage} from "./users/roles";
-import {initializeArrivalDisputeStatuses, initializeReceptionDisputeStatuses} from "./dispute-statuses";
+import {initializeArrivalDisputeStatuses, initializeReceptionDisputeStatuses, initializePurchaseRequestStatuses} from "./statuses";
 
 const index = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();
@@ -49,6 +49,7 @@ const initializers = {
     utilisateurs_roles: initializeRolesPage,
     stock_receptions_types_litiges : initializeTypesLitige,
     trace_arrivages_types_litiges : initializeTypesLitige,
+    stock_demandes_statuts_achats : initializePurchaseRequestStatuses
 };
 
 const saveCallbacks = {
@@ -321,7 +322,40 @@ function initializeGlobalLabels() {
     $('#upload-label-logo').on('change', () => updateImagePreview('#preview-label-logo', '#upload-label-logo'));
 }
 
-function initializeStockArticlesLabels() {
+function initializeStockArticlesLabels($container) {
+    const destination = `INCLURE_EMPLACEMENT_DESTINATION_SUR_ETIQUETTE_ARTICLE_RECEPTION`;
+    const recipient = `INCLURE_DROPZONE_DESTINATAIRE_SUR_ETIQUETTE_ARTICLE_RECEPTION`;
+
+    const $destination = $container.find(`[name=${destination}]`);
+    const $recipient = $container.find(`[name=${recipient}]`);
+
+    $container.find(`[name=SHOW_LOCATION]`).on(`click`, function() {
+        const checked = $(this).prop(`checked`);
+
+        $destination.closest(`.wii-radio-container`).toggleClass(`d-none`, !checked);
+
+        if(checked) {
+            $destination.val(1);
+            $recipient.val(0);
+            $destination.prop(`checked`, true);
+        } else {
+            $destination.val(0);
+            $recipient.val(0);
+        }
+    })
+
+    $destination.on(`click`, function() {
+        $destination.val(Number($destination.prop(`checked`)));
+        $recipient.val(Number(!$destination.prop(`checked`)));
+        $recipient.prop(`checked`, false);
+    })
+
+    $recipient.on(`click`, function() {
+        $recipient.val(Number($recipient.prop(`checked`)));
+        $destination.val(Number(!$recipient.prop(`checked`)));
+        $destination.prop(`checked`, false);
+    })
+
     $(`#show-destination-in-label`).on(`change`, function() {
         if($(this).prop(`checked`)) {
             $('#show-dropzone-in-label').prop('checked', false);
@@ -539,16 +573,6 @@ function updateAlreadyDefinedTypes(withdrawedValue = undefined) {
     $('input[name=alreadyDefinedTypes]').val(types.join(';'));
 }
 
-function appendSelectOptions(typeSelect, locationSelect, type, location) {
-    typeSelect
-        .append(new Option(type.label, type.id, false, true))
-        .trigger(`change`);
-
-    locationSelect
-        .append(new Option(location.label, location.id, false, true))
-        .trigger(`change`);
-}
-
 function initializeInventoryFrequenciesTable(){
     const table = EditableDatatable.create(`#frequencesTable`, {
         route: Routing.generate('settings_frequencies_api', true),
@@ -567,8 +591,8 @@ function initializeInventoryFrequenciesTable(){
         },
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: `label`, title: `Libellé<span class="d-none required-mark">*</span>`},
-            {data: `nb_months`, title: `Nombre de mois<span class="d-none required-mark">*</span>`},
+            {data: `label`, title: `Libellé`, required: true},
+            {data: `nb_months`, title: `Nombre de mois`, required: true},
         ],
         form: {
             actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
@@ -598,8 +622,8 @@ function initializeInventoryCategoriesTable(){
         },
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: `label`, title: `Libellé<span class="d-none required-mark">*</span>`},
-            {data: `frequency`, title: `Fréquence<span class="d-none required-mark">*</span>`},
+            {data: `label`, title: `Libellé`, required: true},
+            {data: `frequency`, title: `Fréquence`, required: true},
         ],
         form: {
             actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
@@ -611,6 +635,8 @@ function initializeInventoryCategoriesTable(){
 
 function initializeTypesLitige(){
     $saveButton.addClass('d-none');
+    $discardButton.addClass('d-none');
+
     const table = EditableDatatable.create(`#table-types-litige`, {
         route: Routing.generate('types_litige_api', true),
         deleteRoute: `settings_delete_type_litige`,
@@ -622,13 +648,15 @@ function initializeTypesLitige(){
         scrollX: false,
         onEditStart: () => {
             $saveButton.removeClass('d-none');
+            $discardButton.removeClass('d-none');
         },
         onEditStop: () => {
             $saveButton.addClass('d-none');
+            $discardButton.addClass('d-none');
         },
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: `label`, title: `Libellé`},
+            {data: `label`, title: `Libellé`, required: true},
             {data: `description`, title: `Description`},
         ],
         form: {

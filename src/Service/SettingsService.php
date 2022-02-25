@@ -414,12 +414,12 @@ class SettingsService {
             }
         }
 
-        if(isset($tables["disputeStatuses"])){
-            foreach(array_filter($tables["disputeStatuses"]) as $statusData){
+        if(isset($tables["genericStatuses"])){
+            foreach(array_filter($tables["genericStatuses"]) as $statusData){
                 $statutRepository = $this->manager->getRepository(Statut::class);
                 $categoryRepository = $this->manager->getRepository(CategorieStatut::class);
 
-                if(!in_array($statusData['state'], [Statut::TREATED, Statut::NOT_TREATED])) {
+                if(!in_array($statusData['state'], [Statut::TREATED, Statut::NOT_TREATED, Statut::DRAFT, Statut::IN_PROGRESS])) {
                     throw new RuntimeException("L'état du statut est invalide");
                 }
 
@@ -427,7 +427,11 @@ class SettingsService {
                     $statut = $statutRepository->find($statusData['statusId']);
                 } else {
                     $statut = new Statut();
-                    $categoryName = $statusData['mode'] === 'arrival' ? CategorieStatut::DISPUTE_ARR : CategorieStatut::LITIGE_RECEPT;
+                    $categoryName = $statusData['mode'] === 'arrival-dispute'
+                        ? CategorieStatut::DISPUTE_ARR
+                        : ( $statusData['mode'] === 'reception-dispute'
+                            ? CategorieStatut::LITIGE_RECEPT
+                            : CategorieStatut::PURCHASE_REQUEST);
                     $statut->setCategorie($categoryRepository->findOneBy(['nom' => $categoryName]));
                 }
                 $statut->setNom($statusData['label']);
