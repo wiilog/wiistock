@@ -105,13 +105,14 @@ export function createFreeFieldsPage($container, canEdit) {
     createManagementPage($container, {
         name: `freeFields`,
         edit: canEdit,
+        newTitle: 'Ajouter un type et des champs libres',
         header: {
             route: (type, edit) => Routing.generate('settings_type_header', {type, edit}, true),
             delete: {
-                modal: '#modalDeleteType',
                 checkRoute: 'settings_types_check_delete',
                 selectedEntityLabel: 'type',
-                route: 'settings_types_delete'
+                route: 'settings_types_delete',
+                modalTitle: 'Supprimer le type',
             },
         },
         table: {
@@ -137,13 +138,14 @@ export function initializeStockArticlesTypesFreeFields($container, canEdit) {
     createManagementPage($container, {
         name: `freeFields`,
         edit: canEdit,
+        newTitle: 'Ajouter un type et des champs libres',
         header: {
             route: (type, edit) => Routing.generate('settings_type_header', {type, edit}, true),
             delete: {
-                modal: '#modalDeleteType',
                 checkRoute: 'settings_types_check_delete',
                 selectedEntityLabel: 'type',
-                route: 'settings_types_delete'
+                route: 'settings_types_delete',
+                modalTitle: 'Supprimer le type',
             },
         },
         table: {
@@ -193,6 +195,7 @@ export function initializeIotFreeFields($container, canEdit) {
     createManagementPage($container, {
         name: `freeFields`,
         edit: canEdit ? MODE_CLICK_EDIT : MODE_NO_EDIT,
+        newTitle: 'Ajouter un type et des champs libres',
         table: {
             route: (type) => Routing.generate('settings_free_field_api', {type}, true),
             deleteRoute: `settings_free_field_delete`,

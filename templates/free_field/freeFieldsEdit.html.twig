@@ -32,10 +32,18 @@
                                         {% set entityValue = 0 %}
                                     {% endif %}
 
-                                    <input type="radio" name="{{ freeField.id }}" value="1"
-                                           content="Oui" {{ entityValue == 1 ? 'data-init="checked" checked' }}>
-                                    <input type="radio" name="{{ freeField.id }}" value="0"
-                                           content="Non" {{ entityValue is not same as (null) and entityValue == 0 ? 'data-init="checked" checked' }}>
+                                    <input type="radio"
+                                           name="{{ freeField.id }}"
+                                           value="1"
+                                           content="Oui"
+                                           class="data"
+                                           {{ entityValue == 1 ? 'data-init="checked" checked' }}>
+                                    <input type="radio"
+                                           name="{{ freeField.id }}"
+                                           value="0"
+                                           content="Non"
+                                           class="data"
+                                           {{ entityValue is not same as (null) and entityValue == 0 ? 'data-init="checked" checked' }}>
                                 </div>
                             {% elseif  freeField.typage == constant('App\\Entity\\FreeField::TYPE_NUMBER') %}
                                 <input type="number"

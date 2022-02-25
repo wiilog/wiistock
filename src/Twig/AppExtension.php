@@ -152,11 +152,7 @@ class AppExtension extends AbstractExtension {
     }
 
     public function call($function) {
-        try {
-            return $function();
-        } catch(\Throwable $e) {
-            dump($e);
-        }
+        return $function();
     }
 
     public function class($object): string {

@@ -1,4 +1,5 @@
 <?php
+//TODO WIIS-6693 supprimer le dossier des templates twig aussi ?
 
 namespace App\Controller\IOT;
 
@@ -128,8 +129,12 @@ class RequestTemplateController extends AbstractController
             ]);
         }
 
+        if (!($data = json_decode($request->getContent(), true))) {
+            $data = $request->request->all();
+        }
+
         $requestTemplate = $service->createRequestTemplate($data["type"]);
-        $service->updateRequestTemplate($requestTemplate, $request);
+        $service->updateRequestTemplate($requestTemplate, $data);
 
         $manager->persist($requestTemplate);
         $manager->flush();
@@ -180,7 +185,11 @@ class RequestTemplateController extends AbstractController
 
         $requestTemplate = $requestTemplateRepository->find($data["id"]);
         if ($requestTemplate) {
-            $service->updateRequestTemplate($requestTemplate, $request);
+            if (!($data = json_decode($request->getContent(), true))) {
+                $data = $request->request->all();
+            }
+
+            $service->updateRequestTemplate($requestTemplate, $data);
             $manager->flush();
 
             return $this->json([

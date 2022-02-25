@@ -60,10 +60,7 @@ class RequestTemplateService {
         }
     }
 
-    public function updateRequestTemplate(RequestTemplate $template, Request $request) {
-        if (!($data = json_decode($request->getContent(), true))) {
-            $data = $request->request->all();
-        }
+    public function updateRequestTemplate(RequestTemplate $template, array $data) {
 
         $typeRepository = $this->manager->getRepository(Type::class);
 

@@ -8,6 +8,7 @@ import {initializeStockArticlesTypesFreeFields, createFreeFieldsPage, initialize
 import {initializeRolesPage} from "./users/roles";
 import {createManagementPage} from "./utils";
 import {initializeArrivalDisputeStatuses, initializeReceptionDisputeStatuses} from "./dispute-statuses";
+import {initializeStockDeliveryTemplates} from "./request-template";
 
 const index = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();
@@ -57,59 +58,6 @@ const initializers = {
 const saveCallbacks = {
     global_apparence_site: () => location.reload(),
 };
-
-export function initializeStockDeliveryTemplates($container, canEdit) {
-    const type = $(`#delivery-template-type`).val();
-
-    const table = createManagementPage($container, {
-        name: `requestTemplates`,
-        edit: canEdit,
-        category: type,
-        header: {
-            route: (template, edit) => Routing.generate('settings_request_template_header', {category: type, template, edit}, true),
-            new: `Nouveau modèle`,
-        },
-        table: {
-            route: (template) => Routing.generate('settings_request_template_api', {type, template}, true),
-            deleteRoute: `settings_request_template_delete`,
-            columns: [
-                {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-                {data: `reference`, title: `Référence`},
-                {data: `label`, title: `Libellé`},
-                {data: `location`, title: `Emplacement`},
-                {data: `quantity`, title: `Quantité à livrer`},
-            ],
-            form: {
-                actions: `<button class="btn btn-silent delete-row"><i class="wii-icon wii-icon-trash text-primary"></i></button>`,
-                reference: `<select name="reference" data-s2="reference" required class="form-control data" data-global-error="Référence"></select>`,
-                label: `<div class="template-label"></div>`,
-                location: `<div class="template-location"></div>`,
-                quantity: `<input type="number" name="quantity" required class="form-control data" data-global-error="Quantité à livrer"/>`,
-            },
-        },
-    });
-
-    function onTypeChange() {
-        $container.find(`.main-entity-content-item[data-type]`).addClass(`d-none`);
-
-        $container.find(`.main-entity-content-item[data-type="${$(this).val()}"]`).each(function() {
-            $(this).removeClass(`d-none`);
-        })
-    }
-
-    $container.arrive(`[name="type"]`, onTypeChange);
-    $container.on(`change`, `[name="type"]`, onTypeChange);
-
-    $container.on(`change`, `[name="reference"]`, function() {
-        const $select = $(this);
-        const $row = $select.closest(`tr`);
-        const data = $select.select2(`data`)[0];
-
-        $row.find(`.template-label`).text(data.label)
-        $row.find(`.template-location`).text(data.location)
-        table.table.draw();
-    });
-}
 
 const slowOperations = [
     `FONT_FAMILY`,
@@ -188,14 +136,14 @@ $(function() {
             .then(result => {
                 if(result.success) {
                     let params = undefined;
-                    if (result && result.type) {
-                        params = {type: result.type};
+                    if (result && result.entity) {
+                        params = {entity: result.entity};
                     }
                     for(const table of tablesToReload) {
                         if(table.mode !== MODE_EDIT) {
                             table.toggleEdit(STATE_VIEWING, true, params);
                         }
-                    }console.error(currentForm, saveCallbacks);
+                    }
 
                     if(saveCallbacks[currentForm]) {
                         saveCallbacks[currentForm]();
@@ -760,4 +708,14 @@ function initializeVisibilityGroup($container, canEdit) {
     $addButton.on(`click`, function() {
         table.addRow(true);
     });
+}
+
+function appendSelectOptions(typeSelect, locationSelect, type, location) {
+    typeSelect
+        .append(new Option(type.label, type.id, false, true))
+        .trigger(`change`);
+
+    locationSelect
+        .append(new Option(location.label, location.id, false, true))
+        .trigger(`change`);
 }

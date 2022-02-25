@@ -49,6 +49,9 @@ class SettingsService {
     /** @Required */
     public AttachmentService $attachmentService;
 
+    /** @Required */
+    public RequestTemplateService $requestTemplateService;
+
     private array $settingsConstants;
 
     public function __construct() {
@@ -103,10 +106,20 @@ class SettingsService {
         if (isset($result['type'])) {
             /** @var Type $type */
             $type = $result['type'];
-            $result['type'] = [
+            $result['entity'] = [
                 'id' => $type->getId(),
                 'label' => $type->getLabel()
             ];
+            unset($result['type']);
+        }
+        else if (isset($result['template'])) {
+            /** @var RequestTemplate $template */
+            $template = $result['template'];
+            $result['entity'] = [
+                'id' => $template->getId(),
+                'label' => $template->getName()
+            ];
+            unset($result['template']);
         }
         return $result;
     }
@@ -305,7 +318,7 @@ class SettingsService {
 
                     $result['type'] = $type;
                 } else {
-                    $template = $this->manager->find(Type::class, $data["entity"]);
+                    $type = $this->manager->find(Type::class, $data["entity"]);
                 }
 
                 if (!isset($type)) {
@@ -347,7 +360,7 @@ class SettingsService {
                 }
 
                 $freeField->setLabel($item["label"])
-                    ->setType($template)
+                    ->setType($type)
                     ->setTypage($item["type"] ?? $freeField->getTypage())
                     ->setCategorieCL(isset($item["category"]) ? $this->manager->find(CategorieCL::class, $item["category"]) : null)
                     ->setDefaultValue($item["defaultValue"] ?? null)
@@ -448,22 +461,26 @@ class SettingsService {
 
         if(isset($tables["requestTemplates"])) {
             $ids = array_map(fn($line) => $line["id"] ?? null, $tables["requestTemplates"]);
+            $requestTemplateRepository = $this->manager->getRepository(RequestTemplate::class);
+            $typeRepository = $this->manager->getRepository(Type::class);
 
             if(!is_numeric($data["entity"])) {
                 $template = new DeliveryRequestTemplate();
-                $template->setType($this->manager->getRepository(Type::class)->findOneByCategoryLabelAndLabel(CategoryType::REQUEST_TEMPLATE, $data["entity"]));
+                $template->setType($typeRepository->findOneByCategoryLabelAndLabel(CategoryType::REQUEST_TEMPLATE, $data["entity"]));
 
                 $this->manager->persist($template);
+
+                $result['template'] = $template;
             } else {
                 $template = $this->manager->find(RequestTemplate::class, $data["entity"]);
             }
 
-            $template->setName($data["name"] ?? $template->getLabel())
-                ->setRequestType($this->manager->find(Type::class, $data["type"]))
-                ->setDestination(isset($data["destination"]) ? $this->manager->find(Emplacement::class, $data["destination"]) : null)
-                ->setFreeFields(Stream::from($data)
-                    ->filter(fn($_, $key) => is_numeric($key))
-                    ->toArray());
+            $sameName = $requestTemplateRepository->findOneBy(["name" => $data["name"]]);
+            if ($sameName && $sameName->getId() !== $template->getId()) {
+                throw new RuntimeException("Un modèle de demande avec le même nom existe déjà");
+            }
+
+            $this->requestTemplateService->updateRequestTemplate($template, $data);
 
             $requestTemplateLineRepository = $this->manager->getRepository(RequestTemplateLine::class);
             $lines = Stream::from($requestTemplateLineRepository->findBy(["id" => $ids]))
@@ -474,9 +491,9 @@ class SettingsService {
                 /** @var FreeField $freeField */
                 $line = isset($item["id"]) ? $lines[$item["id"]] : new RequestTemplateLine();
 
-                $line->setReference($this->manager->find(ReferenceArticle::class, $item["reference"]))
-                    ->setQuantityToTake($item["quantity"])
-                    ->setRequestTemplate($template);
+                $line->setRequestTemplate($template);
+
+                $this->requestTemplateService->updateRequestTemplateLine($line, $item);
 
                 $this->manager->persist($line);
             }

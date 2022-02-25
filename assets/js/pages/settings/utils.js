@@ -5,8 +5,19 @@ const $managementButtons = $(`.save-settings,.discard-settings`);
 
 export function createManagementPage($container, config) {
     const $selectedEntity = $container.find(`[name=entity]:first`);
-    $selectedEntity.prop('checked', true);
-    let selectedEntity = $selectedEntity.attr(`value`);
+
+    let selectedEntity;
+    if ($selectedEntity.is('select')) {
+        const $firstOption = $selectedEntity.find('option').eq(0);
+        selectedEntity = $firstOption.attr(`value`);
+        $selectedEntity
+            .val(selectedEntity)
+            .trigger('change');
+    }
+    else {
+        $selectedEntity.prop('checked', true);
+        selectedEntity = $selectedEntity.attr(`value`);
+    }
 
     const $table = $container.find(`.subentities-table`);
     const $editButton = $container.find(`.edit-button`);
@@ -45,6 +56,7 @@ export function createManagementPage($container, config) {
             }
         },
         onEditStop: (apiResult) => {
+            console.log(apiResult)
             $managementButtons.addClass('d-none');
             $editButton.removeClass('d-none');
             $addButton.removeClass(`d-none`);
@@ -53,20 +65,10 @@ export function createManagementPage($container, config) {
             $pageBody.find('.header').remove();
 
             if (apiResult) { // if type was created in edit mode
-                const {id, label} = apiResult.type;
-                if (selectedEntity !== id) {
-                    selectedEntity = id;
-
-                    const inputId = `entity-${Math.floor(Math.random() * 1000000)}`;
-                    $container.find(`[name=entity] + label:last`).after(`
-                        <input type="radio" id="${inputId}" name="entity" value="${selectedEntity}" class="data" checked>
-                        <label for="${inputId}">
-                            <span class="d-inline-flex align-items-center field-label nowrap">${label}</span>
-                        </label>
-                    `);
-
-                    $container.find(`#${id}`).prop(`checked`, true);
-
+                const entity = apiResult.entity;
+                if (selectedEntity !== entity.id) {
+                    selectedEntity = entity.id;
+                    addNewEntity($container, entity);
                     table.setURL(config.table.route(selectedEntity), false);
                 }
             }
@@ -85,7 +87,16 @@ export function createManagementPage($container, config) {
     $addButton.on(`click`, function() {
         selectedEntity = null;
 
-        $pageBody.prepend(`<div class="header wii-title">Ajouter un type et des champs libres</div>`);
+        $pageBody.removeClass('d-none');
+
+        if (config.newTitle) {
+            let $title = $pageBody.find('.wii-title')
+            if (!$title.exists()) {
+                $title = $(`<div class="header wii-title"></div>`);
+                $pageBody.prepend($title);
+            }
+            $title.html(config.newTitle);
+        }
         $pageBody.find(`.main-entity-content`).addClass('creation-mode');
 
         table.setURL(config.table.route(selectedEntity), false);
@@ -99,6 +110,8 @@ export function createManagementPage($container, config) {
     if (config.header && config.header.delete) {
         fireRemoveMainEntityButton($container, config.header.delete);
     }
+
+    return table;
 }
 
 function loadItems($container, config, type, edit = false) {
@@ -157,55 +170,72 @@ function loadItems($container, config, type, edit = false) {
 
 function fireRemoveMainEntityButton($container, deleteConfig) {
     const $deleteMainEntityButton = $container.find(`.delete-main-entity`);
-    const $modal = $(deleteConfig.modal);
+    const $modal = $container.find('.modalDeleteEntity');
     const $spinnerContainer = $modal.find('.spinner-container');
     const $messageContainer = $modal.find('.message-container');
     const $submitButton = $modal.find('.submit-danger');
+console.log($modal);
+    $deleteMainEntityButton
+        .off('click')
+        .on(`click`, function () {
+            const $selectedEntity = $container.find(`[name=entity]`);
+            let selectedEntity;
+            if ($selectedEntity.is('select')) {
+                selectedEntity = $selectedEntity.val();
+            }
+            else { // is wii-expanded-switch
+                const $selectedInput = $selectedEntity.filter(`:checked`);
+                selectedEntity = $selectedInput.attr(`value`);
+            }
 
-    $deleteMainEntityButton.on(`click`, function () {
-        const $selectedEntity = $container.find(`[name=entity]:checked`);
-        const selectedEntity = $selectedEntity.attr(`value`);
+            $spinnerContainer
+                .addClass('d-flex')
+                .removeClass('d-none');
+            $messageContainer.addClass('d-none');
+            $submitButton.addClass('d-none');
+            $modal
+                .find('.modal-title')
+                .html(deleteConfig.modalTitle);
+            $modal.modal('show');
+            $.ajax({
+                url: Routing.generate(deleteConfig.checkRoute, {[deleteConfig.selectedEntityLabel]: selectedEntity}, true),
+                type: "get",
+            })
+                .then(({success, message}) => {
+                    $spinnerContainer
+                        .removeClass('d-flex')
+                        .addClass('d-none');
+                    $messageContainer
+                        .html(message)
+                        .removeClass('d-none');
+                    $submitButton
+                        .toggleClass('d-none', !success)
+                        .off('click');
+                    if (success) {
+                        $submitButton
+                            .off('click')
+                            .on('click', () => {
+                                $submitButton.pushLoader('white');
+                                $.ajax({
+                                    url: Routing.generate(deleteConfig.route, {[deleteConfig.selectedEntityLabel]: selectedEntity}, true),
+                                    type: "POST",
+                                })
+                                    .then(({message}) => {
+                                        Flash.add('success', message);
+                                        $submitButton.popLoader();
+                                        $modal.modal('hide');
 
-        $spinnerContainer
-            .addClass('d-flex')
-            .removeClass('d-none');
-        $messageContainer.addClass('d-none');
-        $submitButton.addClass('d-none');
-        $modal.modal('show');
-        $.ajax({
-            url: Routing.generate(deleteConfig.checkRoute, {[deleteConfig.selectedEntityLabel]: selectedEntity}, true),
-            type: "get",
-        })
-            .then(({success, message}) => {
-                $spinnerContainer
-                    .removeClass('d-flex')
-                    .addClass('d-none');
-                $messageContainer
-                    .html(message)
-                    .removeClass('d-none');
-                $submitButton
-                    .toggleClass('d-none', !success)
-                    .off('click');
-                if (success) {
-                    $submitButton.on('click', () => {
-                        $submitButton.pushLoader('white');
-                        $.ajax({
-                            url: Routing.generate(deleteConfig.route, {[deleteConfig.selectedEntityLabel]: selectedEntity}, true),
-                            type: "POST",
-                        })
-                            .then(({message}) => {
-                                Flash.add('success', message);
-                                $submitButton.popLoader();
-                            })
-                            .catch(() => {
-                                $submitButton.popLoader();
-                                $modal.modal('hide');
+                                        removeEntity($container, selectedEntity);
+                                    })
+                                    .catch(() => {
+                                        $submitButton.popLoader();
+                                        $modal.modal('hide');
+                                    });
                             });
-                    });
-                }
-                $spinnerContainer.addClass('d-none');
-            });
-    });
+                    }
+                    $spinnerContainer.addClass('d-none');
+                });
+        });
 }
 
 function toggleCreationForm($pageHeader, $form, show) {
@@ -221,4 +251,61 @@ function toggleCreationForm($pageHeader, $form, show) {
 
     $form
         .removeClass('creation-mode')
+}
+
+function addNewEntity($container, entity) {
+    const $entity = $container.find(`[name=entity]`);
+    console.log($entity)
+    if ($entity.is('select')) {
+        $entity
+            .append(new Option(entity.label, entity.id, true, true))
+            .trigger('change');
+    }
+    else {
+        const inputId = `entity-${Math.floor(Math.random() * 1000000)}`;
+        $container.find(`[name=entity] + label:last`).after(`
+            <input type="radio" id="${inputId}" name="entity" value="${entity.id}" class="data" checked>
+            <label for="${inputId}">
+                <span class="d-inline-flex align-items-center field-label nowrap">${entity.label}</span>
+            </label>
+        `);
+
+        $container.find(`#${entity.id}`).prop(`checked`, true);
+    }
+}
+
+function removeEntity($container, entityToRemove) {
+    const $entity = $container.find(`[name=entity]`);
+    const $managementBody = $container.find(`.management-body`);
+    let nextValue;
+
+    if ($entity.is('select')) {
+        const $removed = $entity.find(`[value=${entityToRemove}]`);
+        $removed.remove();
+        const $nextSelectedOption = $entity
+            .find('option')
+            .first();
+        nextValue = $nextSelectedOption.exists()
+            ? $nextSelectedOption.attr('value')
+            : undefined;
+        $entity
+            .val(nextValue)
+            .trigger('change');
+    }
+    else { // is wii-expanded-switch
+        const $removed = $entity.find(`[value=${entityToRemove}]`);
+        const $labelToRemove = $container.find(`[for=${$removed.attr('id')}]`);
+        $removed.remove();
+        $labelToRemove.remove();
+
+        const $nextSelectedInput = $entity
+            .filter('input')
+            .first();
+        nextValue = $nextSelectedInput.val();
+        if ($nextSelectedInput.exists()) {
+            $nextSelectedInput.prop('checked', true);
+        }
+    }
+
+    $managementBody.toggleClass('d-none', !nextValue);
 }
