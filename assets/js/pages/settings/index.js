@@ -676,6 +676,7 @@ function initializeTypesLitige(){
 function initializeVisibilityGroup($container, canEdit) {
     const $addButton = $container.find(`.add-row-button`);
     const $tableHeader = $(`.wii-page-card-header`);
+    changePageTitle($container.find('.wii-title'), false);
 
     const table = EditableDatatable.create(`#table-visibility-group`, {
         route: Routing.generate(`settings_visibility_group_api`, true),
@@ -697,11 +698,13 @@ function initializeVisibilityGroup($container, canEdit) {
         onEditStop: () => {
             $managementButtons.addClass('d-none');
             $tableHeader.removeClass('d-none');
+
+            changePageTitle($container.find('.wii-title'), false);
         },
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: `label`, title: `Libellé<span class="d-none required-mark">*</span>`},
-            {data: `description`, title: `Description<span class="d-none required-mark">*</span>`},
+            {data: `label`, title: `Libellé`, required: true},
+            {data: `description`, title: `Description`, required: true},
             {data: `actif`, title: `Actif`},
         ],
         form: {
@@ -714,6 +717,7 @@ function initializeVisibilityGroup($container, canEdit) {
 
     $addButton.on(`click`, function() {
         table.addRow(true);
+        changePageTitle($container.find('.wii-title'), true);
     });
 }
 
@@ -733,4 +737,8 @@ function triggerReminderEmails($button) {
         $button.popLoader()
         Flash.add(success ? `success` : `danger`, msg);
     });
+}
+
+function changePageTitle($title, add) {
+    $title.text(add ? 'Ajouter des groupes de visibilité' : 'Groupe de visibilité');
 }
