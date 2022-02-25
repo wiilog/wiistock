@@ -10,6 +10,7 @@ $(function () {
             $table.DataTable().columns.adjust().draw();
         });
     });
+    onToggleInputRadioOnRow();
 });
 
 function hideColumns(table, data) {
@@ -79,10 +80,6 @@ function initActionOnRow(row) {
     }
 }
 
-function showOrHideColumn(check) {
-    check.toggleClass('data');
-}
-
 function manageArticleAndRefSearch($input, $printButton) {
     if ($input.val() === '' && $('#filters').find('.filter').length <= 0) {
         if ($printButton.is('button')) {
@@ -116,9 +113,15 @@ function manageArticleAndRefSearch($input, $printButton) {
     }
 }
 
-function toggleInputRadioOnRow(tr) {
-    const $checkbox = $(tr).find('input[type="checkbox"]');
-    $checkbox.prop('checked', !$checkbox.is(':checked')).trigger("change");
+function onToggleInputRadioOnRow() {
+    const $modal = $(`#modalColumnVisible`);
+    const $checkboxes = $modal.find(`input[type=checkbox]`);
+
+    $checkboxes.closest(`tr`).on(`click`, function () {
+        const $checkbox = $(this).find(`input[type=checkbox]`);
+        $checkbox.toggleClass(`data`);
+        $checkbox.prop(`checked`, !$checkbox.is(`:checked`));
+    });
 }
 
 function createDatatableDomFooter({information, length, pagination}) {

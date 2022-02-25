@@ -25,7 +25,7 @@
                             ) %}
                             {% set name = field.name ?? name %}
 
-                            <tr class="pointer" onclick="toggleInputRadioOnRow(this)">
+                            <tr class="pointer">
                                 {% set label = ((field.displayedTitle is defined)
                                     ? field.displayedTitle
                                     : title) %}
@@ -34,11 +34,10 @@
                                     <span {{ tooltip }}>{{ label | capitalize }}</span>
                                 </td>
                                 <td>
-                                    <div class="checkbox d-inline-block pointer no-data">
-                                        <input class="form-check-input {{ field.isColumnVisible ? 'data' }}"
+                                    <div class="wii-checkbox d-inline-block pointer no-data" style="pointer-events: none;">
+                                        <input type="checkbox"
+                                               class="form-check-input m-auto {{ field.isColumnVisible ? 'data' }}"
                                                name="{{ name }}"
-                                               onchange="showOrHideColumn($(this))"
-                                               type="checkbox"
                                                {{ field.isColumnVisible ? 'checked' }}
                                                id="cv_{{ table }}_{{ loop.index }}"
                                                data-column="{{ loop.index0 }}" data-name="{{ name }}">
