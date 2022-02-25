@@ -700,8 +700,8 @@ function initializeVisibilityGroup($container, canEdit) {
         },
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: `label`, title: `Libellé`},
-            {data: `description`, title: `Description`},
+            {data: `label`, title: `Libellé<span class="d-none required-mark">*</span>`},
+            {data: `description`, title: `Description<span class="d-none required-mark">*</span>`},
             {data: `actif`, title: `Actif`},
         ],
         form: {
