@@ -337,10 +337,10 @@ class SettingsService {
                     ->setNotificationsEmergencies(isset($data["notificationEmergencies"]) ? explode(",", $data["notificationEmergencies"]) : null)
                     ->setSendMail($data["mailRequester"] ?? false)
                     ->setColor($data["color"] ?? null);
-            } else {
-                $category = $categoryTypeRepository->findOneBy(["label" => CategoryType::MOUVEMENT_TRACA]);
+            } elseif(isset($tables["category"])) {
+                $category = $categoryTypeRepository->findOneBy(["label" => $tables["category"]]);
                 $type = $typeRepository->findOneBy([
-                    'label' => Type::LABEL_MVT_TRACA,
+                    'label' => $tables["category"],
                     'category' => $category
                 ]);
             }

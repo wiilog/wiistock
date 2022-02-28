@@ -4,7 +4,7 @@ import Flash, {INFO} from '../../flash';
 import {LOADING_CLASS} from "../../loading";
 import {initUserPage} from "./users/users";
 import {initializeImports} from "./data/imports.js";
-import {initializeStockArticlesTypesFreeFields, createFreeFieldsPage, initializeTraceMovementsFreeFields, initializeIotFreeFields} from "./free-fields";
+import {initializeStockArticlesTypesFreeFields, createFreeFieldsPage, initializeTraceMovementsFreeFields, initializeIotFreeFields, initializeReceptionsFreeFields} from "./free-fields";
 import {initializeRolesPage} from "./users/roles";
 import {createManagementPage} from "./utils";
 import {initializeStockDeliveryTemplates} from "./request-template";
@@ -37,6 +37,7 @@ const initializers = {
     trace_arrivages_types_champs_libres: createFreeFieldsPage,
     trace_services_types_champs_libres: createFreeFieldsPage,
     trace_mouvements_champs_libres: initializeTraceMovementsFreeFields,
+    stock_receptions_champs_libres: initializeReceptionsFreeFields,
     iot_types_champs_libres: initializeIotFreeFields,
     donnees_imports: initializeImports,
     stock_receptions_champs_fixes_receptions: initializeReceptionFixedFields,
@@ -106,6 +107,7 @@ $(function() {
                 if (datatable) {
                     const tableData = datatable.data();
                     tables[$(this).data(`table-processing`)] = tableData;
+                    tables[`category`] = $(this).data(`category`);
                     tablesToReload.push(datatable);
                     hasErrors = tableData.filter(row => !row).length > 0;
                 }

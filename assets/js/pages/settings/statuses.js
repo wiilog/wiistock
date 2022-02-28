@@ -61,19 +61,21 @@ function getStatusesColumn(mode){
         column.push({data: `comment`, title: `Commentaire litige`});
     }
 
-    column.push([
-        {data: `defaultStatut`, title: `Statut par défaut`},
-        {data: `sendMailBuyers`, title: `<div class='small-column'>Envoi de mails aux acheteurs</div>`},
-        {data: `sendMailRequesters`, title: `<div class='small-column'>Envoi de mails aux demandeurs</div>`},
-        {data: `sendMailDest`, title: `<div class='small-column'>Envoi de mails aux destinataires</div>`},
-        {data: `order`, title: `Ordre`, required: true},
-    ]);
+    if(mode !== 'reception-dispute') {
+        column.push([
+            {data: `defaultStatut`, title: `Statut par défaut`},
+            {data: `sendMailBuyers`, title: `<div class='small-column'>Envoi de mails aux acheteurs</div>`},
+            {data: `sendMailRequesters`, title: `<div class='small-column'>Envoi de mails aux demandeurs</div>`},
+            {data: `sendMailDest`, title: `<div class='small-column'>Envoi de mails aux destinataires</div>`},
+            {data: `order`, title: `Ordre`, required: true},
+        ]);
+    }
 
     return column;
 }
 
 function getFormColumn(mode, $statutStateOptions){
-    var form = {
+    const form = {
         actions: `
                 <button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>
                 <input type='hidden' name='mode' class='data' value='${mode}'/>

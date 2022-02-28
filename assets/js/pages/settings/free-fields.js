@@ -191,6 +191,34 @@ export function initializeTraceMovementsFreeFields($container, canEdit) {
     $container.on(`keyup`, `[name=elements]`, onElementsChange);
 }
 
+export function initializeReceptionsFreeFields($container, canEdit) {
+    $saveButton.addClass('d-none');
+
+    const table = EditableDatatable.create(`#table-reception-free-fields`, {
+        route: Routing.generate(`settings_free_field_api`, {
+            type: $(`#table-reception-free-fields`).data(`type`),
+        }),
+        deleteRoute: `settings_free_field_delete`,
+        mode: canEdit ? MODE_CLICK_EDIT_AND_ADD : MODE_NO_EDIT,
+        save: SAVE_MANUALLY,
+        search: true,
+        paging: true,
+        onEditStart: () => {
+            $saveButton.removeClass('d-none');
+            $discardButton.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $saveButton.removeClass('d-none');
+            $discardButton.removeClass('d-none');
+        },
+        columns: generateFreeFieldColumns(),
+        form: generateFreeFieldForm(),
+    });
+
+    $container.on(`change`, `[name=type]`, defaultValueTypeChange);
+    $container.on(`keyup`, `[name=elements]`, onElementsChange);
+}
+
 export function initializeIotFreeFields($container, canEdit) {
     createManagementPage($container, {
         name: `freeFields`,
