@@ -10,6 +10,7 @@ use App\Entity\FreeField;
 use App\Entity\Handling;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;
+use App\Entity\LocationGroup;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\ReferenceArticle;
@@ -129,6 +130,10 @@ class FormatHelper {
 
     public static function location(?Emplacement $location, $else = "") {
         return $location ? $location->getLabel() : $else;
+    }
+
+    public static function locationGroup(?LocationGroup $locationGroup, $else = "") {
+        return $locationGroup ? $locationGroup->getLabel() : $else;
     }
 
     public static function user(?Utilisateur $user, $else = "") {
