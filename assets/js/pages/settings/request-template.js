@@ -1,8 +1,9 @@
 import {createManagementPage} from "./utils";
 
-export function initializeStockDeliveryTemplates($container, canEdit) {
-    const type = $(`#delivery-template-type`).val();
-
+export function initializeStockTemplates($container, canEdit) {
+    const delivery = $container.find('#delivery-template-type').length > 0;
+    const type = $(delivery ? `#delivery-template-type` : `#collect-template-type`).val();
+    const quantityLabel = delivery ? `Quantité à livrer` : 'Quantité à collecter';
     const table = createManagementPage($container, {
         name: `requestTemplates`,
         edit: canEdit,
@@ -25,14 +26,14 @@ export function initializeStockDeliveryTemplates($container, canEdit) {
                 {data: `reference`, title: `Référence`},
                 {data: `label`, title: `Libellé`},
                 {data: `location`, title: `Emplacement`},
-                {data: `quantityToTake`, title: `Quantité à livrer`},
+                {data: `quantityToTake`, title: quantityLabel },
             ],
             form: {
                 actions: `<button class="btn btn-silent delete-row"><i class="wii-icon wii-icon-trash text-primary"></i></button>`,
                 reference: `<select name="reference" data-s2="reference" required class="form-control data" data-global-error="Référence"></select>`,
                 label: `<div class="template-label"></div>`,
                 location: `<div class="template-location"></div>`,
-                quantityToTake: `<input type="number" name="quantityToTake" required class="form-control data" data-global-error="Quantité à livrer"/>`,
+                quantityToTake: `<input type="number" name="quantityToTake" required class="form-control data" data-global-error="${quantityLabel}"/>`,
             },
         },
     });
@@ -45,8 +46,8 @@ export function initializeStockDeliveryTemplates($container, canEdit) {
         })
     }
 
-    $container.arrive(`[name="deliveryType"]`, onTypeChange);
-    $container.on(`change`, `[name="deliveryType"]`, onTypeChange);
+    $container.arrive(`[name="deliveryType"],[name="collectType"]`, onTypeChange);
+    $container.on(`change`, `[name="deliveryType"],[name="collectType"]`, onTypeChange);
 
     $container.on(`change`, `[name="reference"]`, function() {
         const $select = $(this);

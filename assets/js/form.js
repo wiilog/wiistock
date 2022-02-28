@@ -62,7 +62,7 @@ export default class Form {
 
         eachInputs(form, config, ($input, value) => {
             treatInputError($input, errors, form);
-
+            console.log($input.attr(`name`), value);
             if (value !== null) {
                 const $multipleKey = $input.closest(`[data-multiple-key]`);
                 if ($multipleKey.exists()) {
@@ -194,7 +194,7 @@ function ignoreInput($input, config) {
 function eachInputs(form, config, callback) {
     const classes = config.classes;
     const $form = getFormElement(form);
-    const $inputs = $form.find(`select.${classes.data}, input.${classes.data}, input[data-repeat], textarea.${classes.data}, .data[data-wysiwyg]`);
+    const $inputs = $form.find(`.wii-switch, .wii-switch-no-style, select.${classes.data}, input.${classes.data}, input[data-repeat], textarea.${classes.data}, .data[data-wysiwyg]`);
 
     for(const input of $inputs) {
         let $input = $(input);

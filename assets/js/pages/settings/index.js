@@ -7,7 +7,7 @@ import {initializeImports} from "./data/imports.js";
 import {initializeStockArticlesTypesFreeFields, createFreeFieldsPage, initializeTraceMovementsFreeFields, initializeIotFreeFields} from "./free-fields";
 import {initializeRolesPage} from "./users/roles";
 import {createManagementPage} from "./utils";
-import {initializeStockDeliveryTemplates} from "./request-template";
+import {initializeStockTemplates} from "./request-template";
 import {initializeArrivalDisputeStatuses, initializeReceptionDisputeStatuses, initializePurchaseRequestStatuses} from "./statuses";
 
 global.triggerReminderEmails = triggerReminderEmails;
@@ -54,8 +54,8 @@ const initializers = {
     stock_receptions_types_litiges : initializeTypesLitige,
     trace_arrivages_types_litiges : initializeTypesLitige,
     stock_demandes_statuts_achats : initializePurchaseRequestStatuses,
-    stock_demandes_modeles_demande_livraisons: initializeStockDeliveryTemplates,
-    // stock_demandes_modeles_collecte_livraisons: initializeStockCollectTemplates,
+    stock_demandes_modeles_demande_livraisons: initializeStockTemplates,
+    stock_demandes_modeles_demande_collectes: initializeStockTemplates,
 };
 
 const saveCallbacks = {
@@ -95,7 +95,6 @@ $(function() {
         const data = Form.process(form.element, config);
 
         let hasErrors = false;
-
         if(data) {
             const fieldNames = Form.getFieldNames(form.element, config);
             data.set('__form_fieldNames', JSON.stringify(fieldNames));

@@ -79,7 +79,7 @@ class RequestTemplateController extends AbstractController {
                 if($template && $template->getDestination()) {
                     $option = "<option value='{$template->getDestination()->getId()}'>{$template->getDestination()->getLabel()}</option>";
                 }
-
+                $comment = $template?->getComment();
                 $data[] = [
                     "label" => "Type de livraison*",
                     "value" => "<select name='deliveryType' class='data form-control' required>$typeOptions</select>",
@@ -89,9 +89,42 @@ class RequestTemplateController extends AbstractController {
                     "label" => "Destination*",
                     "value" => "<select name='destination' data-s2='location' class='data form-control' required>$option</select>",
                 ];
+
+                $data[] = [
+                    "label" => "Commentaire",
+                    "value" => "<input name='comment' class='data form-control'>$comment</input>",
+                ];
+            } else if ($category === Type::LABEL_COLLECT) {
+                $option = "";
+                if($template && $template->getCollectPoint()) {
+                    $option = "<option value='{$template->getCollectPoint()->getId()}'>{$template->getCollectPoint()->getLabel()}</option>";
+                }
+                $subject = $template?->getSubject();
+                $comment = $template?->getComment();
+                $stockCheck = $template?->isStock() ? 'checked' : '';
+                $destructCheck = $template?->isDestruct() ? 'checked' : '';
+                $data[] = [
+                    "label" => "Objet*",
+                    "value" => "<input name='subject' class='data form-control' required value='$subject'>",
+                ];
+
+                $data[] = [
+                    "label" => "Type de la collecte*",
+                    "value" => "<select name='collectType' class='data form-control' required>$typeOptions</select>",
+                ];
+
+                $data[] = [
+                    "label" => "Point de collecte*",
+                    "value" => "<select name='collectPoint' data-s2='location' class='data form-control' required>$option</select>",
+                ];
+
+                $data[] = [
+                    "label" => "Commentaire",
+                    "value" => "<input name='comment' class='data form-control' value='$comment'>",
+                ];
             }
 
-            if($category === Type::LABEL_DELIVERY) {
+            if($category === Type::LABEL_DELIVERY || $category === Type::LABEL_COLLECT) {
                 $freeFieldTemplate = $twig->createTemplate('
                     <div data-type="{{ free_field.type.id }}">
                         {% include "free_field/freeFieldsEdit.html.twig" with {
@@ -106,7 +139,12 @@ class RequestTemplateController extends AbstractController {
                     </div>');
 
                 foreach($types as $type) {
-                    $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
+                    $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel(
+                        $type,
+                        $category === Type::LABEL_DELIVERY
+                            ? CategorieCL::DEMANDE_LIVRAISON
+                            : CategorieCL::DEMANDE_COLLECTE
+                    );
 
                     /** @var FreeField $freeField */
                     foreach($freeFields as $freeField) {
@@ -124,17 +162,53 @@ class RequestTemplateController extends AbstractController {
                     }
                 }
             }
+            if ($category === Type::LABEL_COLLECT) {
+                $data[] = [
+                    "label" => "Destination*",
+                    "value" =>
+                        "
+                                <div class='wii-switch' data-title='Destination'>
+                                    <input type='radio' class='data' name='destination' value='0' content='Destruction' $destructCheck>
+                                    <input type='radio' class='data' name='destination' value='1' content='Mise en stock' $stockCheck>
+                                </div>
+                            "
+                ];
+            }
         }
         else if($template) {
-            $data = [[
-                "label" => "Type de livraison",
-                "value" => FormatHelper::type($template->getRequestType()),
-            ]];
-
-            if($template instanceof DeliveryRequestTemplate) {
+            $data = [];
+            if ($template instanceof DeliveryRequestTemplate) {
+                $data[] = [
+                    "label" => "Type de livraison",
+                    "value" => FormatHelper::type($template->getRequestType()),
+                ];
                 $data[] = [
                     "label" => "Destination",
                     "value" => FormatHelper::location($template->getDestination()),
+                ];
+            } else if ($template instanceof CollectRequestTemplate) {
+                $data[] = [
+                    "label" => "Objet",
+                    "value" => $template->getSubject(),
+                ];
+                $data[] = [
+                    "label" => "Type de la collecte",
+                    "value" => FormatHelper::type($template->getRequestType()),
+                ];
+                $data[] = [
+                    "label" => "Point de collecte",
+                    "value" => FormatHelper::location($template->getCollectPoint()),
+                ];
+                $data[] = [
+                    "label" => "Destination",
+                    "value" => $template->isStock() ? 'Mise en stock' : 'Destruction',
+                ];
+            }
+
+            if (strip_tags($template->getComment())) {
+                $data[] = [
+                    "label" => "Commentaire",
+                    "value" => $template->getComment()
                 ];
             }
 

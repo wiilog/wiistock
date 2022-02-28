@@ -61,7 +61,7 @@ class RequestTemplateService {
     }
 
     public function updateRequestTemplate(RequestTemplate $template, array $data) {
-
+        dump($data);
         $typeRepository = $this->manager->getRepository(Type::class);
 
         $template->setName($data["name"]);
