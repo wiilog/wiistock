@@ -7,6 +7,7 @@ use App\Entity\Arrivage;
 use App\Entity\Dispatch;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Emplacement;
 use App\Entity\Livraison;
 use App\Entity\Handling;
 use App\Entity\Menu;
@@ -180,6 +181,7 @@ class UserService
                                Utilisateur $user): void {
         $role = $user->getRole();
         $secondaryEmails = $user->getSecondaryEmails() ?? [];
+        $dropzone = $user->getDropzone();
         $CSVExportService->putLine($output, [
             $role ? $role->getLabel() : '',
             $user->getUsername() ?? '',
@@ -193,7 +195,7 @@ class UserService
             FormatHelper::entity($user->getDeliveryTypes()->toArray(), 'label', ' , '),
             FormatHelper::entity($user->getDispatchTypes()->toArray(), 'label', ' , '),
             FormatHelper::entity($user->getHandlingTypes()->toArray(), 'label', ' , '),
-            FormatHelper::location($user->getDropzone()),
+            $dropzone instanceof Emplacement ? FormatHelper::location($dropzone) : FormatHelper::locationGroup($dropzone),
             FormatHelper::entity($user->getVisibilityGroups()->toArray(), "label", ' / '),
             $user->getStatus() ? 'Actif' : 'Inactif'
         ]);
