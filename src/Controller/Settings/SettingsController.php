@@ -666,6 +666,9 @@ class SettingsController extends AbstractController {
                         ];
                     },
                     self::MENU_TYPES_FREE_FIELDS => $this->typeGenerator(CategoryType::DEMANDE_HANDLING),
+                    self::MENU_REQUEST_TEMPLATES => function() use ($requestTemplateRepository, $typeRepository) {
+                        return $this->getRequestTemplates($typeRepository, $requestTemplateRepository, Type::LABEL_HANDLING);
+                    },
                 ],
                 self::MENU_MOVEMENTS => [
                     self::MENU_FREE_FIELDS => fn() => [

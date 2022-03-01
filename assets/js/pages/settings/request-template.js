@@ -1,8 +1,10 @@
 import {createManagementPage} from "./utils";
 
-export function initializeStockTemplates($container, canEdit) {
+export function initializeRequestTemplates($container, canEdit) {
     const delivery = $container.find('#delivery-template-type').length > 0;
-    const type = $(delivery ? `#delivery-template-type` : `#collect-template-type`).val();
+    const collect = $container.find('#collect-template-type').length > 0;
+    const handling = $container.find('#handling-template-type').length > 0;
+    const type = $(delivery ? `#delivery-template-type` : (collect ? `#collect-template-type` : '#handling-template-type')).val();
     const quantityLabel = delivery ? `Quantité à livrer` : 'Quantité à collecter';
     const table = createManagementPage($container, {
         name: `requestTemplates`,
@@ -21,6 +23,7 @@ export function initializeStockTemplates($container, canEdit) {
         table: {
             route: (template) => Routing.generate('settings_request_template_api', {type, template}, true),
             deleteRoute: `settings_request_template_line_delete`,
+            hidden: handling,
             columns: [
                 {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
                 {data: `reference`, title: `Référence`},
@@ -46,8 +49,8 @@ export function initializeStockTemplates($container, canEdit) {
         })
     }
 
-    $container.arrive(`[name="deliveryType"],[name="collectType"]`, onTypeChange);
-    $container.on(`change`, `[name="deliveryType"],[name="collectType"]`, onTypeChange);
+    $container.arrive(`[name="deliveryType"],[name="collectType"],[name="handlingType"]`, onTypeChange);
+    $container.on(`change`, `[name="deliveryType"],[name="collectType"],[name="handlingType"]`, onTypeChange);
 
     $container.on(`change`, `[name="reference"]`, function() {
         const $select = $(this);

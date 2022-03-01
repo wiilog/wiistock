@@ -11,7 +11,9 @@ use App\Entity\FieldsParam;
 use App\Entity\InventoryCategory;
 use App\Entity\InventoryFrequency;
 use App\Entity\FreeField;
+use App\Entity\IOT\CollectRequestTemplate;
 use App\Entity\IOT\DeliveryRequestTemplate;
+use App\Entity\IOT\HandlingRequestTemplate;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\MailerServer;
@@ -83,9 +85,8 @@ class SettingsService {
         $allFormSettingNames = json_decode($request->request->get('__form_fieldNames', '[]'), true);
 
         $settings = $settingRepository->findByLabel(array_merge($settingNames, $allFormSettingNames));
-
         if($request->request->has("datatables")) {
-            $result = $this->saveDatatables(json_decode($request->request->get("datatables"), true), $request->request->all());
+            $result = $this->saveDatatables(json_decode($request->request->get("datatables"), true), $request->request->all(), $request->files->all());
         }
 
         $updated = [];
@@ -225,7 +226,7 @@ class SettingsService {
     }
 
 //    TODO WIIS-6693 mettre dans des services different ?
-    private function saveDatatables(array $tables, array $data): array {
+    private function saveDatatables(array $tables, array $data, array $files): array {
         $result = [];
         if(isset($tables["workingHours"])) {
             $ids = array_map(fn($day) => $day["id"], $tables["workingHours"]);
@@ -467,9 +468,13 @@ class SettingsService {
             $ids = array_map(fn($line) => $line["id"] ?? null, $tables["requestTemplates"]);
             $requestTemplateRepository = $this->manager->getRepository(RequestTemplate::class);
             $typeRepository = $this->manager->getRepository(Type::class);
-
             if(!is_numeric($data["entity"])) {
-                $template = new DeliveryRequestTemplate();
+                $template = $data["entity"] === Type::LABEL_DELIVERY
+                    ? new DeliveryRequestTemplate()
+                    : ($data["entity"] === Type::LABEL_COLLECT
+                        ? new CollectRequestTemplate()
+                        : new HandlingRequestTemplate()
+                    );
                 $template->setType($typeRepository->findOneByCategoryLabelAndLabel(CategoryType::REQUEST_TEMPLATE, $data["entity"]));
 
                 $this->manager->persist($template);
@@ -484,7 +489,7 @@ class SettingsService {
                 throw new RuntimeException("Un modèle de demande avec le même nom existe déjà");
             }
 
-            $this->requestTemplateService->updateRequestTemplate($template, $data);
+            $this->requestTemplateService->updateRequestTemplate($template, $data, $files);
 
             $requestTemplateLineRepository = $this->manager->getRepository(RequestTemplateLine::class);
             $lines = Stream::from($requestTemplateLineRepository->findBy(["id" => $ids]))

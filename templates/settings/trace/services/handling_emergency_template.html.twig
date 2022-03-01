@@ -1,0 +1,13 @@
+<select
+    class="form-control input-sm data {{ required ? 'needed' : '' }}"
+    name="emergency">
+    <option value="">Non urgent</option>
+
+    {% if request_template.emergency is defined and request_template.emergency and request_template.emergency not in emergencies %}
+        <option value="{{ request_template.emergency }}" selected>{{ request_template.emergency }}</option>
+    {% endif %}
+
+    {% for emergency in emergencies %}
+        <option value="{{ emergency }}" {% if request_template.emergency is defined and request_template.emergency == emergency %}selected{% endif %}>{{ emergency }}</option>
+    {% endfor %}
+</select>

@@ -6,9 +6,11 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
+use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\IOT\CollectRequestTemplate;
 use App\Entity\IOT\DeliveryRequestTemplate;
+use App\Entity\IOT\HandlingRequestTemplate;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\Menu;
@@ -41,6 +43,7 @@ class RequestTemplateController extends AbstractController {
                                           ?RequestTemplate $template = null): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
         $edit = $request->query->getBoolean("edit");
 
@@ -75,6 +78,9 @@ class RequestTemplateController extends AbstractController {
             ];
 
             if($category === Type::LABEL_DELIVERY) {
+                /**
+                 * @var DeliveryRequestTemplate $template
+                 */
                 $option = "";
                 if($template && $template->getDestination()) {
                     $option = "<option value='{$template->getDestination()->getId()}'>{$template->getDestination()->getLabel()}</option>";
@@ -95,6 +101,9 @@ class RequestTemplateController extends AbstractController {
                     "value" => "<input name='comment' class='data form-control'>$comment</input>",
                 ];
             } else if ($category === Type::LABEL_COLLECT) {
+                /**
+                 * @var CollectRequestTemplate $template
+                 */
                 $option = "";
                 if($template && $template->getCollectPoint()) {
                     $option = "<option value='{$template->getCollectPoint()->getId()}'>{$template->getCollectPoint()->getLabel()}</option>";
@@ -122,10 +131,74 @@ class RequestTemplateController extends AbstractController {
                     "label" => "Commentaire",
                     "value" => "<input name='comment' class='data form-control' value='$comment'>",
                 ];
+            } else if ($category === Type::LABEL_HANDLING) {
+                /**
+                 * @var HandlingRequestTemplate $template
+                 */
+                $subject = $template?->getSubject();
+                $delay = $template?->getDelay();
+                $source = $template?->getSource();
+                $destination = $template?->getDestination();
+                $carriedOutOperations = $template?->getCarriedOutOperationCount();
+                $status = "";
+                if($template && $template->getRequestStatus()) {
+                    $status = "<option value='{$template->getRequestStatus()->getId()}'>{$template->getRequestStatus()->getNom()}</option>";
+                }
+                $data[] = [
+                    "label" => "Type de Service*",
+                    "value" => "<select name='handlingType' class='data form-control' required>$typeOptions</select>",
+                ];
+                $data[] = [
+                    "label" => "Objet*",
+                    "value" => "<input name='subject' class='data form-control' required value='$subject'>",
+                ];
+                $data[] = [
+                    "label" => "Statut*",
+                    "value" => "<select name='status' data-s2='status' class='data form-control' data-include-params-parent='.main-entity-content-form' data-include-params='select[name=handlingType]' required>$status</select>",
+                ];
+                $data[] = [
+                    "label" => "Date attendue*",
+                    "value" => "
+                        <div class='d-flex align-items-center'>
+                            <span style='white-space: nowrap'>H +</span>
+                            <input class='form-control data needed mx-2'
+                                   style='flex: 1 1 auto'
+                                   type='number'
+                                   value='$delay'
+                                   name='delay'
+                                   step='1'
+                                   max='2000000'>
+                            <span style='white-space: nowrap'>à la création</span>
+                        </div>
+                    ",
+                ];
+
+                $data[] = [
+                    "label" => "Urgence",
+                    "value" => $this->renderView('settings/trace/services/handling_emergency_template.html.twig', [
+                        'request_template' => $template,
+                        'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY),
+                        'required' => false
+                    ]),
+                ];
+
+                $data[] = [
+                    "label" => "Chargement",
+                    "value" => "<input name='source' class='data form-control' required value='$source'>",
+                ];
+
+                $data[] = [
+                    "label" => "Déchargement",
+                    "value" => "<input name='destination' class='data form-control' required value='$destination'>",
+                ];
+
+                $data[] = [
+                    "label" => "Nombre d'opération(s) réalisée(s)",
+                    "value" => "<input name='carriedOutOperationCount' class='data form-control' required value='$carriedOutOperations'>",
+                ];
             }
 
-            if($category === Type::LABEL_DELIVERY || $category === Type::LABEL_COLLECT) {
-                $freeFieldTemplate = $twig->createTemplate('
+            $freeFieldTemplate = $twig->createTemplate('
                     <div data-type="{{ free_field.type.id }}">
                         {% include "free_field/freeFieldsEdit.html.twig" with {
                             freeFields: [free_field],
@@ -138,28 +211,30 @@ class RequestTemplateController extends AbstractController {
                         } %}
                     </div>');
 
-                foreach($types as $type) {
-                    $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel(
-                        $type,
-                        $category === Type::LABEL_DELIVERY
-                            ? CategorieCL::DEMANDE_LIVRAISON
-                            : CategorieCL::DEMANDE_COLLECTE
-                    );
+            foreach ($types as $type) {
+                $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel(
+                    $type,
+                    $category === Type::LABEL_DELIVERY
+                        ? CategorieCL::DEMANDE_LIVRAISON
+                        : ($category === Type::LABEL_COLLECT
+                        ? CategorieCL::DEMANDE_COLLECTE
+                        : CategorieCL::DEMANDE_HANDLING
+                    )
+                );
 
-                    /** @var FreeField $freeField */
-                    foreach($freeFields as $freeField) {
-                        $data[] = [
-                            "label" => $freeField->getLabel(),
-                            "value" => $freeFieldTemplate->render([
-                                "free_field" => $freeField,
-                                "value" => $template ? $template->getFreeFields() : [],
-                            ]),
-                            "data" => [
-                                "type" => $freeField->getType()->getId(),
-                            ],
-                            "hidden" => true,
-                        ];
-                    }
+                /** @var FreeField $freeField */
+                foreach ($freeFields as $freeField) {
+                    $data[] = [
+                        "label" => $freeField->getLabel(),
+                        "value" => $freeFieldTemplate->render([
+                            "free_field" => $freeField,
+                            "value" => $template ? $template->getFreeFields() : [],
+                        ]),
+                        "data" => [
+                            "type" => $freeField->getType()->getId(),
+                        ],
+                        "hidden" => true,
+                    ];
                 }
             }
             if ($category === Type::LABEL_COLLECT) {
@@ -167,11 +242,22 @@ class RequestTemplateController extends AbstractController {
                     "label" => "Destination*",
                     "value" =>
                         "
-                                <div class='wii-switch' data-title='Destination'>
+                                <div class='wii-switch bigger' data-title='Destination'>
                                     <input type='radio' class='data' name='destination' value='0' content='Destruction' $destructCheck>
                                     <input type='radio' class='data' name='destination' value='1' content='Mise en stock' $stockCheck>
                                 </div>
                             "
+                ];
+            } else if ($category === Type::LABEL_HANDLING) {
+                $data[] = [
+                    "label" => "",
+                    "value" => $this->renderView('attachment/attachment.html.twig', [
+                        'isNew' => false,
+                        'attachments' => $template?->getAttachments(),
+                        'editAttachments' => true,
+                        'fieldNameClass' => 'wii-field-name',
+                        'bigger' => 'bigger'
+                    ])
                 ];
             }
         }
@@ -202,6 +288,54 @@ class RequestTemplateController extends AbstractController {
                 $data[] = [
                     "label" => "Destination",
                     "value" => $template->isStock() ? 'Mise en stock' : 'Destruction',
+                ];
+            } else if ($template instanceof HandlingRequestTemplate) {
+                $data[] = [
+                    "label" => "Type de Service",
+                    "value" => FormatHelper::type($template->getRequestType()),
+                ];
+                $data[] = [
+                    "label" => "Objet",
+                    "value" => $template->getSubject(),
+                ];
+                $data[] = [
+                    "label" => "Statut",
+                    "value" => FormatHelper::status($template->getRequestStatus()),
+                ];
+                $data[] = [
+                    "label" => "Date attendue",
+                    "value" => 'H+' . $template->getDelay() . ' à la création',
+                ];
+
+                $data[] = [
+                    "label" => "Urgence",
+                    "value" => $template->getEmergency() ?: 'Non urgent',
+                ];
+
+                $data[] = [
+                    "label" => "Chargement",
+                    "value" => $template->getSource() ?: '-',
+                ];
+
+                $data[] = [
+                    "label" => "Déchargement",
+                    "value" => $template->getDestination() ?: '-',
+                ];
+
+                $data[] = [
+                    "label" => "Nombre d'opération(s) réalisée(s)",
+                    "value" => $template->getCarriedOutOperationCount() ?: '-',
+                ];
+
+                $data[] = [
+                    "label" => "",
+                    "value" => $this->renderView('attachment/attachment.html.twig', [
+                        'isNew' => false,
+                        'attachments' => $template?->getAttachments(),
+                        'editAttachments' => false,
+                        'fieldNameClass' => 'wii-field-name',
+                        'bigger' => ''
+                    ])
                 ];
             }
 

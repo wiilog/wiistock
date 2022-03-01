@@ -7,7 +7,7 @@ import {initializeImports} from "./data/imports.js";
 import {initializeStockArticlesTypesFreeFields, createFreeFieldsPage, initializeTraceMovementsFreeFields, initializeIotFreeFields} from "./free-fields";
 import {initializeRolesPage} from "./users/roles";
 import {createManagementPage} from "./utils";
-import {initializeStockTemplates} from "./request-template";
+import {initializeRequestTemplates} from "./request-template";
 import {initializeArrivalDisputeStatuses, initializeReceptionDisputeStatuses, initializePurchaseRequestStatuses} from "./statuses";
 
 global.triggerReminderEmails = triggerReminderEmails;
@@ -37,6 +37,7 @@ const initializers = {
     trace_arrivages_types_champs_libres: createFreeFieldsPage,
     trace_services_types_champs_libres: createFreeFieldsPage,
     trace_mouvements_champs_libres: initializeTraceMovementsFreeFields,
+    trace_services_modeles_demande: initializeRequestTemplates,
     iot_types_champs_libres: initializeIotFreeFields,
     donnees_imports: initializeImports,
     stock_receptions_champs_fixes_receptions: initializeReceptionFixedFields,
@@ -54,8 +55,8 @@ const initializers = {
     stock_receptions_types_litiges : initializeTypesLitige,
     trace_arrivages_types_litiges : initializeTypesLitige,
     stock_demandes_statuts_achats : initializePurchaseRequestStatuses,
-    stock_demandes_modeles_demande_livraisons: initializeStockTemplates,
-    stock_demandes_modeles_demande_collectes: initializeStockTemplates,
+    stock_demandes_modeles_demande_livraisons: initializeRequestTemplates,
+    stock_demandes_modeles_demande_collectes: initializeRequestTemplates,
 };
 
 const saveCallbacks = {
@@ -93,7 +94,6 @@ $(function() {
         const config = {ignored: `[data-table-processing]`,};
 
         const data = Form.process(form.element, config);
-
         let hasErrors = false;
         if(data) {
             const fieldNames = Form.getFieldNames(form.element, config);
