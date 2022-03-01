@@ -30,6 +30,7 @@ const ROUTES = {
     keyboardPacks: `ajax_select_keyboard_pack`,
     businessUnit: `ajax_select_business_unit`,
     carrier: 'ajax_select_carrier',
+    types: 'ajax_select_types',
 }
 
 const INSTANT_SELECT_TYPES = {

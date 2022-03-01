@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Controller\Settings\StatusController;
 use App\Entity\CategorieStatut;
 use App\Entity\FiltreSup;
 use App\Entity\Statut;
@@ -10,6 +11,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
 use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\Stream;
 
 class StatusService {
 
@@ -120,12 +122,13 @@ class StatusService {
         ];
     }
 
-    public function getStatusStatesValues(): array {
-        return [
+    public function getStatusStatesValues(?string $mode = null): array {
+        return Stream::from([
             [
                 'label' => 'Brouillon',
                 'id' => Statut::DRAFT,
-                'code' => 'draft'
+                'code' => 'draft',
+                'modes' => [StatusController::MODE_PURCHASE_REQUEST],
             ],
             [
                 'label' => 'À traiter',
@@ -135,7 +138,8 @@ class StatusService {
             [
                 'label' => 'En cours',
                 'id' => Statut::IN_PROGRESS,
-                'code' => 'inProgress'
+                'code' => 'inProgress',
+                'modes' => [StatusController::MODE_PURCHASE_REQUEST],
             ],
             [
                 'label' => 'Traité',
@@ -145,14 +149,22 @@ class StatusService {
             [
                 'label' => 'Litige',
                 'id' => Statut::DISPUTE,
-                'code' => 'dispute'
+                'code' => 'dispute',
+                'modes' => [StatusController::MODE_ARRIVAL],
             ],
             [
                 'label' => 'Partiel',
                 'id' => Statut::PARTIAL,
-                'code' => 'partial'
+                'code' => 'partial',
+                'modes' => [],
             ]
-        ];
+        ])
+            ->filter(fn($state) => (
+                !isset($state['modes'])
+                || !$mode
+                || in_array($mode, $state['modes'])
+            ))
+            ->toArray();
     }
 
     public function getStatusStateLabel(int $stateId): ?string {

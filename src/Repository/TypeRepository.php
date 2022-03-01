@@ -68,8 +68,9 @@ class TypeRepository extends EntityRepository
             : [];
     }
 
-    public function getForSelect(?string $category, ?string $term, array $alreadyDefinedTypes = [])
-    {
+    public function getForSelect(?string $category, ?string $term, array $options = []): array {
+        $alreadyDefinedTypes = $options['alreadyDefinedTypes'] ?? [];
+
         $qb = $this->createQueryBuilder("type");
 
         $qb->select("type.id AS id, type.label AS text")

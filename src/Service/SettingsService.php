@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Controller\Settings\StatusController;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
@@ -434,32 +435,39 @@ class SettingsService {
             foreach(array_filter($tables["genericStatuses"]) as $statusData){
                 $statutRepository = $this->manager->getRepository(Statut::class);
                 $categoryRepository = $this->manager->getRepository(CategorieStatut::class);
+                $typeRepository = $this->manager->getRepository(Type::class);
 
-                if(!in_array($statusData['state'], [Statut::TREATED, Statut::NOT_TREATED, Statut::DRAFT, Statut::IN_PROGRESS])) {
+                if(!in_array($statusData['state'], [Statut::TREATED, Statut::NOT_TREATED, Statut::DRAFT, Statut::IN_PROGRESS, Statut::DISPUTE, Statut::PARTIAL])) {
                     throw new RuntimeException("L'état du statut est invalide");
                 }
 
                 if (isset($statusData['statusId'])){
-                    $statut = $statutRepository->find($statusData['statusId']);
+                    $status = $statutRepository->find($statusData['statusId']);
                 } else {
-                    $statut = new Statut();
-                    $categoryName = $statusData['mode'] === 'arrival-dispute'
-                        ? CategorieStatut::DISPUTE_ARR
-                        : ( $statusData['mode'] === 'reception-dispute'
-                            ? CategorieStatut::LITIGE_RECEPT
-                            : CategorieStatut::PURCHASE_REQUEST);
-                    $statut->setCategorie($categoryRepository->findOneBy(['nom' => $categoryName]));
-                }
-                $statut->setNom($statusData['label']);
-                $statut->setState($statusData['state']);
-                $statut->setComment($statusData['comment'] ?? null);
-                $statut->setDefaultForCategory($statusData['defaultStatut']);
-                $statut->setSendNotifToBuyer($statusData['sendMailBuyers']);
-                $statut->setSendNotifToDeclarant($statusData['sendMailRequesters']);
-                $statut->setSendNotifToRecipient($statusData['sendMailDest']);
-                $statut->setDisplayOrder($statusData['order']);
+                    $status = new Statut();
+                    $categoryName = match($statusData['mode']) {
+                        StatusController::MODE_ARRIVAL_DISPUTE => CategorieStatut::DISPUTE_ARR,
+                        StatusController::MODE_RECEPTION_DISPUTE => CategorieStatut::LITIGE_RECEPT,
+                        StatusController::MODE_PURCHASE_REQUEST => CategorieStatut::PURCHASE_REQUEST,
+                        StatusController::MODE_ARRIVAL => CategorieStatut::ARRIVAGE,
+                    };
+                    $status->setCategorie($categoryRepository->findOneBy(['nom' => $categoryName]));
 
-                $this->manager->persist($statut);
+                    // we set type only on creation
+                    if (isset($statusData['type'])) {
+                        $status->setType($typeRepository->find($statusData['type']));
+                    }
+                }
+                $status->setNom($statusData['label']);
+                $status->setState($statusData['state']);
+                $status->setComment($statusData['comment'] ?? null);
+                $status->setDefaultForCategory($statusData['defaultStatut'] ?? false);
+                $status->setSendNotifToBuyer($statusData['sendMailBuyers'] ?? false);
+                $status->setSendNotifToDeclarant($statusData['sendMailRequesters'] ?? false);
+                $status->setSendNotifToRecipient($statusData['sendMailDest'] ?? false);
+                $status->setDisplayOrder($statusData['order'] ?? 0);
+
+                $this->manager->persist($status);
             }
         }
 

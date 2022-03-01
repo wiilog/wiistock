@@ -26,6 +26,7 @@ use App\Entity\WorkFreeDay;
 use App\Helper\FormatHelper;
 use App\Service\SettingsService;
 use App\Service\SpecificService;
+use App\Service\StatusService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -55,6 +56,9 @@ class SettingsController extends AbstractController {
 
     /** @Required */
     public KernelInterface $kernel;
+
+    /** @Required */
+    public StatusService $statusService;
 
     public const SETTINGS = [
         self::CATEGORY_GLOBAL => [
@@ -199,7 +203,10 @@ class SettingsController extends AbstractController {
                             "save" => true,
                             "discard" => true,
                         ],
-                        self::MENU_STATUSES => ["label" => "Statuts"],
+                        self::MENU_STATUSES => [
+                            "label" => "Statuts",
+                            "wrapped" => false,
+                        ],
                         self::MENU_FIXED_FIELDS => [
                             "label" => "Champs fixes",
                             "save" => true,
@@ -465,22 +472,20 @@ class SettingsController extends AbstractController {
         ]);
     }
 
-    private function typeGenerator(string $category) {
-        return function() use ($category) {
-            $typeRepository = $this->manager->getRepository(Type::class);
-            $types = Stream::from($typeRepository->findByCategoryLabels([$category]))
-                ->map(fn(Type $type) => [
-                    "label" => $type->getLabel(),
-                    "value" => $type->getId(),
-                ])
-                ->toArray();
+    private function typeGenerator(string $category, $checkFirst = true): array {
+        $typeRepository = $this->manager->getRepository(Type::class);
+        $types = Stream::from($typeRepository->findByCategoryLabels([$category]))
+            ->map(fn(Type $type) => [
+                "label" => $type->getLabel(),
+                "value" => $type->getId(),
+            ])
+            ->toArray();
 
+        if ($checkFirst && !empty($types)) {
             $types[0]["checked"] = true;
+        }
 
-            return [
-                "types" => $types,
-            ];
-        };
+        return $types;
     }
 
     public function customValues(): array {
@@ -548,16 +553,24 @@ class SettingsController extends AbstractController {
                             "templates" => $templates,
                         ];
                     },
-                    self::MENU_DELIVERY_TYPES_FREE_FIELDS => $this->typeGenerator(CategoryType::DEMANDE_LIVRAISON),
-                    self::MENU_COLLECT_TYPES_FREE_FIELDS => $this->typeGenerator(CategoryType::DEMANDE_COLLECTE),
-                    self::MENU_PURCHASE_STATUSES => function() {
-                        $treated = Statut::TREATED;
-                        $notTreated = Statut::NOT_TREATED;
-                        $draft = Statut::DRAFT;
-                        return [
-                            "optionsSelect" => "<option/><option value='{$treated}'>Traité</option><option value='{$notTreated}'>A traité</option><option value='{$draft}'>Brouillon</option>"
-                        ];
-                    },
+                    self::MENU_DELIVERY_TYPES_FREE_FIELDS => fn() => [
+                        'types' => $this->typeGenerator(CategoryType::DEMANDE_LIVRAISON)
+                    ],
+                    self::MENU_COLLECT_TYPES_FREE_FIELDS => fn() => [
+                        'types' => $this->typeGenerator(CategoryType::DEMANDE_COLLECTE),
+                    ],
+                    self::MENU_PURCHASE_STATUSES => fn() => [
+                        'optionsSelect' => Stream::from(
+                            [['empty' => true]],
+                            $this->statusService->getStatusStatesValues(StatusController::MODE_PURCHASE_REQUEST)
+                        )
+                            ->map(fn(array $state) => (
+                            ($state['empty'] ?? false)
+                                ? '<option/>'
+                                : "<option value='{$state['id']}'>{$state['label']}</option>"
+                            ))
+                            ->join(''),
+                    ],
                 ],
                 self::MENU_INVENTORIES => [
                     self::MENU_CATEGORIES => fn() => [
@@ -576,13 +589,18 @@ class SettingsController extends AbstractController {
                     self::MENU_RECEPTIONS_STATUSES => fn() => [
                         "receptionStatuses" => $statusRepository->findByCategorieName(CategorieStatut::RECEPTION, 'displayOrder'),
                     ],
-                    self::MENU_DISPUTE_STATUSES => function() {
-                        $treated = Statut::TREATED;
-                        $notTreated = Statut::NOT_TREATED;
-                        return [
-                            "optionsSelect" => "<option/><option value='{$treated}'>Traité</option><option value='{$notTreated}'>A traité</option>",
-                        ];
-                    }
+                    self::MENU_DISPUTE_STATUSES => fn() => [
+                        'optionsSelect' => Stream::from(
+                            [['empty' => true]],
+                            $this->statusService->getStatusStatesValues(StatusController::MODE_RECEPTION_DISPUTE)
+                        )
+                            ->map(fn(array $state) => (
+                                ($state['empty'] ?? false)
+                                    ? '<option/>'
+                                    : "<option value='{$state['id']}'>{$state['label']}</option>"
+                            ))
+                            ->join(''),
+                    ],
                 ]
             ],
             self::CATEGORY_TRACKING => [
@@ -627,7 +645,9 @@ class SettingsController extends AbstractController {
                             ],
                         ];
                     },
-                    self::MENU_TYPES_FREE_FIELDS => $this->typeGenerator(CategoryType::DEMANDE_DISPATCH),
+                    self::MENU_TYPES_FREE_FIELDS => fn() => [
+                        'types' => $this->typeGenerator(CategoryType::DEMANDE_DISPATCH),
+                    ]
                 ],
                 self::MENU_ARRIVALS => [
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
@@ -646,14 +666,35 @@ class SettingsController extends AbstractController {
                             ],
                         ];
                     },
-                    self::MENU_TYPES_FREE_FIELDS => $this->typeGenerator(CategoryType::ARRIVAGE),
-                    self::MENU_DISPUTE_STATUSES => function() {
-                        $treated = Statut::TREATED;
-                        $notTreated = Statut::NOT_TREATED;
-                        return [
-                            "optionsSelect" => "<option/><option value='{$treated}'>Traité</option><option value='{$notTreated}'>A traité</option>",
-                        ];
-                    },
+                    self::MENU_TYPES_FREE_FIELDS => fn() => [
+                        'types' => $this->typeGenerator(CategoryType::ARRIVAGE),
+                    ],
+                    self::MENU_DISPUTE_STATUSES => fn() => [
+                        'optionsSelect' => Stream::from(
+                            [['empty' => true]],
+                            $this->statusService->getStatusStatesValues(StatusController::MODE_ARRIVAL_DISPUTE)
+                        )
+                            ->map(fn(array $state) => (
+                                ($state['empty'] ?? false)
+                                    ? '<option/>'
+                                    : "<option value='{$state['id']}'>{$state['label']}</option>"
+                            ))
+                            ->join(''),
+                    ],
+                    self::MENU_STATUSES => fn() => [
+                        'types' => $this->typeGenerator(CategoryType::ARRIVAGE, false),
+                        'categoryType' => CategoryType::ARRIVAGE,
+                        'optionsSelect' => Stream::from(
+                            [['empty' => true]],
+                            $this->statusService->getStatusStatesValues(StatusController::MODE_ARRIVAL)
+                        )
+                            ->map(fn(array $state) => (
+                                ($state['empty'] ?? false)
+                                    ? "<option/>"
+                                    : "<option value='{$state['id']}'>{$state['label']}</option>"
+                            ))
+                            ->join(''),
+                    ],
                 ],
                 self::MENU_HANDLINGS => [
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
@@ -672,7 +713,9 @@ class SettingsController extends AbstractController {
                             ],
                         ];
                     },
-                    self::MENU_TYPES_FREE_FIELDS => $this->typeGenerator(CategoryType::DEMANDE_HANDLING),
+                    self::MENU_TYPES_FREE_FIELDS => fn() => [
+                        'types' => $this->typeGenerator(CategoryType::DEMANDE_HANDLING),
+                    ],
                 ],
                 self::MENU_MOVEMENTS => [
                     self::MENU_FREE_FIELDS => fn() => [

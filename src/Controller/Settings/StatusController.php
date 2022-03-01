@@ -5,8 +5,12 @@ namespace App\Controller\Settings;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
+use App\Entity\CategoryType;
 use App\Entity\Menu;
 use App\Entity\Statut;
+use App\Entity\Type;
+use App\Helper\FormatHelper;
+use App\Service\StatusService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -23,26 +27,38 @@ use WiiCommon\Helper\Stream;
  */
 class StatusController extends AbstractController
 {
+    const MODE_ARRIVAL_DISPUTE = 'arrival-dispute';
+    const MODE_RECEPTION_DISPUTE = 'reception-dispute';
+    const MODE_PURCHASE_REQUEST = 'purchase-request';
+    const MODE_ARRIVAL = 'arrival';
 
     /**
      * @Route("/statuses-api", name="settings_statuses_api", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK})
      */
-    public function disputeStatusesApi(Request                $request,
-                                       UserService            $userService,
-                                       EntityManagerInterface $manager): JsonResponse
-    {
-        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
-
+    public function statusesApi(Request                $request,
+                                UserService            $userService,
+                                StatusService          $statusService,
+                                EntityManagerInterface $entityManager): JsonResponse {
+        $edit = $request->query->getBoolean("edit");
         $mode = $request->query->get("mode");
-        if (!in_array($mode, ['arrival-dispute', 'reception-dispute', 'purchase-request'])) {
+        $typeId = $request->query->get("type");
+
+        $availableMode = [
+            self::MODE_ARRIVAL_DISPUTE,
+            self::MODE_RECEPTION_DISPUTE,
+            self::MODE_PURCHASE_REQUEST,
+            self::MODE_ARRIVAL
+        ];
+
+        if (!in_array($mode, $availableMode)) {
             throw new InvalidArgumentException('Invalid mode');
         }
 
-        $hasAccess = $mode === 'arrival-dispute'
-            ? $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_TRACKING)
-            // mode === 'reception-dispute' || 'purchase-request'
-            : $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_STOCK);
+        $hasAccess = match($mode) {
+            self::MODE_ARRIVAL_DISPUTE, self::MODE_ARRIVAL => $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_TRACKING),
+            self::MODE_RECEPTION_DISPUTE, self::MODE_PURCHASE_REQUEST => $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_STOCK)
+        };
 
         if (!$hasAccess) {
             throw new BadRequestHttpException();
@@ -52,67 +68,70 @@ class StatusController extends AbstractController
 
         $data = [];
 
-        $treated = Statut::TREATED;
-        $notTreated = Statut::NOT_TREATED;
-        $inProgress = Statut::IN_PROGRESS;
-        $draft = Statut::DRAFT;
-        $statutRepository = $manager->getRepository(Statut::class);
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
 
-        $statuses = $mode === 'arrival-dispute'
-            ? $statutRepository->findByCategorieName(CategorieStatut::DISPUTE_ARR)
-            : ($mode === 'reception-dispute'
-                ? $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT)
-                // mode === 'purchase-request'
-                : $statutRepository->findByCategorieName(CategorieStatut::PURCHASE_REQUEST));
+        $category = match ($mode) {
+            self::MODE_ARRIVAL_DISPUTE => CategorieStatut::DISPUTE_ARR,
+            self::MODE_RECEPTION_DISPUTE => CategorieStatut::LITIGE_RECEPT,
+            self::MODE_PURCHASE_REQUEST => CategorieStatut::PURCHASE_REQUEST,
+            self::MODE_ARRIVAL => CategorieStatut::ARRIVAGE,
+        };
 
+        $type = $typeId ? $typeRepository->find($typeId) : null;
+        $statuses = $statusRepository->findStatusByType($category, $type);
 
-        foreach ($statuses as $statut) {
+        foreach ($statuses as $status) {
             $actionColumn = $canDelete
-                ? "<button class='btn btn-silent delete-row' data-id='{$statut->getId()}'>
+                ? "<button class='btn btn-silent delete-row' data-id='{$status->getId()}'>
                        <i class='wii-icon wii-icon-trash text-primary'></i>
                    </button>
-                   <input type='hidden' name='statusId' class='data' value='{$statut->getId()}'/>
+                   <input type='hidden' name='statusId' class='data' value='{$status->getId()}'/>
                    <input type='hidden' name='mode' class='data' value='{$mode}'/>"
                 : "";
 
             if ($edit) {
-                $checkedNotTreated = ($statut->getState() === Statut::NOT_TREATED) ? 'selected' : '';
-                $checkedTreated = ($statut->getState() === Statut::TREATED) ? 'selected' : '';
-                $checkedInProgress = ($statut->getState() === Statut::IN_PROGRESS) ? 'selected' : '';
-                $checkedDraft = ($statut->getState() === Statut::DRAFT) ? 'selected' : '';
-                $optionsSelect = "
-                    <option/>
-                    <option value='{$notTreated}' {$checkedNotTreated}>A traité</option>
-                    <option value='{$treated}' {$checkedTreated}>Traité</option>
-                " . ($mode === 'purchase-request' ? "
-                    <option value='{$draft}' {$checkedDraft}>Brouillon</option>
-                    <option value='{$inProgress}' {$checkedInProgress}>En cours</option>" : "");
-                $defaultStatut = $statut->isDefaultForCategory() == 1 ? 'checked' : "";
-                $sendMailBuyers = $statut->getSendNotifToBuyer() == 1 ? 'checked' : "";
-                $sendMailRequesters = $statut->getSendNotifToDeclarant() == 1 ? 'checked' : "";
-                $sendMailDest = $statut->getSendNotifToRecipient() == 1 ? 'checked' : "";
+                $stateOptions = Stream::from([['empty' => true]], $statusService->getStatusStatesValues($mode))
+                    ->map(function(array $state) use ($status) {
+                        if ($state['empty'] ?? false) {
+                            return '<option/>';
+                        }
+                        else {
+                            $selected = $state['id'] == $status->getState() ? 'selected' : '';
+                            return "<option value='{$state['id']}' {$selected}>{$state['label']}</option>";
+                        }
+                    })
+                    ->join('');
+
+                $defaultStatut = $status->isDefaultForCategory() == 1 ? 'checked' : "";
+                $sendMailBuyers = $status->getSendNotifToBuyer() == 1 ? 'checked' : "";
+                $sendMailRequesters = $status->getSendNotifToDeclarant() == 1 ? 'checked' : "";
+                $sendMailDest = $status->getSendNotifToRecipient() == 1 ? 'checked' : "";
+
                 $data[] = [
                     "actions" => $actionColumn,
-                    "label" => "<input type='text' name='label' value='{$statut->getNom()}' class='form-control data needed'/>",
-                    "state" => "<select name='state' class='data form-control needed select-size'>{$optionsSelect}</select>",
-                    "comment" => "<input type='text' name='comment' value='{$statut->getComment()}' class='form-control data'/>",
+                    "label" => "<input type='text' name='label' value='{$status->getNom()}' class='form-control data needed'/>",
+                    "state" => "<select name='state' class='data form-control needed select-size'>{$stateOptions}</select>",
+                    "comment" => "<input type='text' name='comment' value='{$status->getComment()}' class='form-control data'/>",
+                    "type" => FormatHelper::type($status->getType()),
                     "defaultStatut" => "<div class='checkbox-container'><input type='checkbox' name='defaultStatut' class='form-control data' {$defaultStatut}/></div>",
                     "sendMailBuyers" => "<div class='checkbox-container'><input type='checkbox' name='sendMailBuyers' class='form-control data' {$sendMailBuyers}/></div>",
                     "sendMailRequesters" => "<div class='checkbox-container'><input type='checkbox' name='sendMailRequesters' class='form-control data' {$sendMailRequesters}/></div>",
                     "sendMailDest" => "<div class='checkbox-container'><input type='checkbox' name='sendMailDest' class='form-control data' {$sendMailDest}/></div>",
-                    "order" => "<input type='number' name='order' min='1' value='{$statut->getDisplayOrder()}' class='form-control data needed'/>",
+                    "order" => "<input type='number' name='order' min='1' value='{$status->getDisplayOrder()}' class='form-control data needed'/>",
                 ];
             } else {
                 $data[] = [
                     "actions" => $actionColumn,
-                    "label" => $statut->getNom(),
-                    "state" => $statut->getState() == Statut::NOT_TREATED ? 'A traité' : ($statut->getState() == Statut::TREATED ? 'Traité' : 'Brouillon'),
-                    "comment" => $statut->getComment(),
-                    "defaultStatut" => $statut->isDefaultForCategory() ? 'Oui' : 'Non',
-                    "sendMailBuyers" => $statut->getSendNotifToBuyer() ? 'Oui' : 'Non',
-                    "sendMailRequesters" => $statut->getSendNotifToDeclarant() ? 'Oui' : 'Non',
-                    "sendMailDest" => $statut->getSendNotifToRecipient() ? 'Oui' : 'Non',
-                    "order" => $statut->getDisplayOrder(),
+                    "label" => $status->getNom(),
+                    "type" => FormatHelper::type($status->getType()),
+                    "state" => $statusService->getStatusStateLabel($status->getState()),
+                    "comment" => $status->getComment(),
+                    "defaultStatut" => $status->isDefaultForCategory() ? 'Oui' : 'Non',
+                    "sendMailBuyers" => $status->getSendNotifToBuyer() ? 'Oui' : 'Non',
+                    "sendMailRequesters" => $status->getSendNotifToDeclarant() ? 'Oui' : 'Non',
+                    "sendMailDest" => $status->getSendNotifToRecipient() ? 'Oui' : 'Non',
+                    "order" => $status->getDisplayOrder(),
                 ];
             }
         }

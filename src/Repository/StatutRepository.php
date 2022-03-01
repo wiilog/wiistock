@@ -369,9 +369,12 @@ class StatutRepository extends EntityRepository {
         ];
     }
 
+    /**
+     * @return Statut[]
+     */
     public function findStatusByType(string $categoryLabel,
                                      Type $type = null,
-                                     array $stateFilters = []) {
+                                     array $stateFilters = []): array {
         $qb = $this->createQueryBuilder('status')
             ->join('status.categorie', 'category')
             ->where('category.nom = :categoryLabel')

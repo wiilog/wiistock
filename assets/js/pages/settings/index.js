@@ -8,7 +8,12 @@ import {initializeStockArticlesTypesFreeFields, createFreeFieldsPage, initialize
 import {initializeRolesPage} from "./users/roles";
 import {createManagementPage} from "./utils";
 import {initializeStockDeliveryTemplates} from "./request-template";
-import {initializeArrivalDisputeStatuses, initializeReceptionDisputeStatuses, initializePurchaseRequestStatuses} from "./statuses";
+import {
+    initializeArrivalDisputeStatuses,
+    initializeReceptionDisputeStatuses,
+    initializePurchaseRequestStatuses,
+    initializeArrivalStatuses
+} from "./statuses";
 
 global.triggerReminderEmails = triggerReminderEmails;
 
@@ -51,9 +56,10 @@ const initializers = {
     trace_arrivages_statuts_litiges: initializeArrivalDisputeStatuses,
     stock_receptions_statuts_litiges: initializeReceptionDisputeStatuses,
     utilisateurs_roles: initializeRolesPage,
-    stock_receptions_types_litiges : initializeTypesLitige,
-    trace_arrivages_types_litiges : initializeTypesLitige,
-    stock_demandes_statuts_achats : initializePurchaseRequestStatuses,
+    stock_receptions_types_litiges: initializeTypesLitige,
+    trace_arrivages_types_litiges: initializeTypesLitige,
+    stock_demandes_statuts_achats: initializePurchaseRequestStatuses,
+    trace_arrivages_statuts: initializeArrivalStatuses,
     stock_demandes_modeles_demande_livraisons: initializeStockDeliveryTemplates,
     // stock_demandes_modeles_collecte_livraisons: initializeStockCollectTemplates,
 };
