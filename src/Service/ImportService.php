@@ -64,6 +64,7 @@ class ImportService
     public const FIELDS_TO_ASSOCIATE = [
         Import::ENTITY_ART => [
             "commentaire",
+            "barCode",
             "stockEntryDate",
             "expiryDate",
             "dateLastInventory",
