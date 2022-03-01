@@ -54,7 +54,6 @@ export function createManagementPage($container, config) {
             }
         },
         onEditStop: (apiResult) => {
-            console.log(apiResult)
             $managementButtons.addClass('d-none');
             $editButton.removeClass('d-none');
             $addButton.removeClass(`d-none`);
@@ -179,7 +178,7 @@ function fireRemoveMainEntityButton($container, deleteConfig) {
     const $spinnerContainer = $modal.find('.spinner-container');
     const $messageContainer = $modal.find('.message-container');
     const $submitButton = $modal.find('.submit-danger');
-console.log($modal);
+
     $deleteMainEntityButton
         .off('click')
         .on(`click`, function () {
@@ -260,7 +259,6 @@ function toggleCreationForm($pageHeader, $form, show) {
 
 function addNewEntity($container, entity) {
     const $entity = $container.find(`[name=entity]`);
-    console.log($entity)
     if ($entity.is('select')) {
         $entity
             .append(new Option(entity.label, entity.id, true, true))
