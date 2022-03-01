@@ -99,8 +99,9 @@ export default class Select2 {
                         }
                     };
 
-                    if (!$element.is(`[data-no-min-length]`) && !INSTANT_SELECT_TYPES[type]) {
-                        config.minimumInputLength = 1;
+                    if ($element.is(`[data-min-length]`) || !INSTANT_SELECT_TYPES[type]) {
+                        const minLength = $element.data('min-length');
+                        config.minimumInputLength = minLength !== undefined ? minLength : 1;
                     }
                 }
 

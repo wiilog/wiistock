@@ -25,7 +25,7 @@
                                 title="Role"
                                 class="form-control data needed w-100"
                                 data-s2="roles"
-                                data-no-min-length>
+                                data-min-length="0">
                             {% if user.role %}
                                 <option value="{{ user.role.id }}" selected>{{ user.role.label }}</option>
                             {% endif %}
