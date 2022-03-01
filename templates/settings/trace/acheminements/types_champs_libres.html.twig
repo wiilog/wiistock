@@ -5,6 +5,14 @@
 {% block title %}Types et champs libres{% endblock %}
 
 {% block filters %}
+    <div class="wii-section">
+        <div class="row">
+            <p class="ml-2 mb-2 wii-describe">
+                Un type est une classification de vos entités. Vous pouvez associer à un type des champs libres afin d'apporter des informations
+                supplémentaires propres à cette classification. Cela vous permet de personnaliser votre application pour votre contexte d'utilisation.
+            </p>
+        </div>
+    </div>
     {{ form.switch('entity', null, false, types, {expanded: true}) }}
 {% endblock %}
 

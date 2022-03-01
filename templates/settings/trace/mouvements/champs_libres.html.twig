@@ -1,6 +1,12 @@
 {% import 'form.html.twig' as form %}
 
 <div class="wii-section">
+    <div class="row">
+        <p class="ml-2 mb-2 wii-describe">
+            Le système de champs libres est un fort outil de personnalisation, ce dernier permet aux administrateurs de l'application d'enrichir les3
+            mouvements. Vous pouvez modifier et ajouter des champs libres.
+        </p>
+    </div>
     <table id="table-movement-free-fields" data-table-processing="freeFields" data-type="{{ type.id }}"></table>
 
     <input type="hidden" name="default-value-template" value="{{ form.switch('defaultValue', null, false, [
