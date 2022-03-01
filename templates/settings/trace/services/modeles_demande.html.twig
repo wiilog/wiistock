@@ -3,7 +3,7 @@
 
 {% import 'form.html.twig' as form %}
 
-{% block title %}Collectes - Modèles de demande{% endblock %}
+{% block title %}Modèles de demande{% endblock %}
 
 
 {% block filterCol 'col-lg-3 col-12' %}
@@ -15,7 +15,7 @@
         items: templates,
         inputClass: 'minw-300px',
     }) }}
-    <input type="hidden" id="collect-template-type" value="{{ type }}"/>
+    <input type="hidden" id="handling-template-type" value="{{ type }}"/>
 {% endblock %}
 
 {% block button %}
@@ -23,5 +23,3 @@
         <i class="fa fa-plus mr-2"></i> Ajouter un modèle de demande
     </button>
 {% endblock %}
-
-{% block subtitle %}Liste des articles{% endblock %}

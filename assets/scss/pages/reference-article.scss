@@ -103,32 +103,6 @@ body {
     align-items: center;
 }
 
-.attachment-item, .attachement {
-    display: flex;
-    align-items: center;
-    width: 45%;
-    border: $grey solid 1px;
-    border-radius: 5px;
-    padding: 5px 10px;
-    margin-top: 5px;
-
-    &:not(.show) {
-        justify-content: space-between;
-    }
-
-    a:first-of-type {
-        display: block;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        overflow: hidden;
-    }
-
-    svg {
-        color: $blue !important;
-        font-size: 0.8rem;
-    }
-}
-
 span.icon {
     display: flex;
     align-items: center;

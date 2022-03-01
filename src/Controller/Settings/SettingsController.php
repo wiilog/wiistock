@@ -24,6 +24,8 @@ use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\WorkFreeDay;
 use App\Helper\FormatHelper;
+use App\Repository\IOT\RequestTemplateRepository;
+use App\Repository\TypeRepository;
 use App\Service\SettingsService;
 use App\Service\SpecificService;
 use App\Service\StatusService;
@@ -235,7 +237,7 @@ class SettingsController extends AbstractController {
                             "save" => true,
                             "discard" => true,
                         ],
-                        self::MENU_REQUEST_TEMPLATES => ["label" => "Modèles de demande"],
+                        self::MENU_REQUEST_TEMPLATES => ["label" => "Modèles de demande", "wrapped" => false],
                         self::MENU_TYPES_FREE_FIELDS => ["label" => "Types et champs libres", "wrapped" => false],
                     ],
                 ],
@@ -539,19 +541,10 @@ class SettingsController extends AbstractController {
                         "deliveryTypeSettings" => json_encode($this->getDefaultDeliveryLocationsByType($this->manager)),
                     ],
                     self::MENU_DELIVERY_REQUEST_TEMPLATES => function() use ($requestTemplateRepository, $typeRepository) {
-                        $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::REQUEST_TEMPLATE, Type::LABEL_DELIVERY);
-
-                        $templates = Stream::from($requestTemplateRepository->findBy(["type" => $type]))
-                            ->map(fn(RequestTemplate $template) => [
-                                "label" => $template->getName(),
-                                "value" => $template->getId(),
-                            ])
-                            ->toArray();
-
-                        return [
-                            "type" => Type::LABEL_DELIVERY,
-                            "templates" => $templates,
-                        ];
+                        return $this->getRequestTemplates($typeRepository, $requestTemplateRepository, Type::LABEL_DELIVERY);
+                    },
+                    self::MENU_COLLECT_REQUEST_TEMPLATES => function() use ($requestTemplateRepository, $typeRepository) {
+                        return $this->getRequestTemplates($typeRepository, $requestTemplateRepository, Type::LABEL_COLLECT);
                     },
                     self::MENU_DELIVERY_TYPES_FREE_FIELDS => fn() => [
                         'types' => $this->typeGenerator(CategoryType::DEMANDE_LIVRAISON)
@@ -716,6 +709,9 @@ class SettingsController extends AbstractController {
                     self::MENU_TYPES_FREE_FIELDS => fn() => [
                         'types' => $this->typeGenerator(CategoryType::DEMANDE_HANDLING),
                     ],
+                    self::MENU_REQUEST_TEMPLATES => function() use ($requestTemplateRepository, $typeRepository) {
+                        return $this->getRequestTemplates($typeRepository, $requestTemplateRepository, Type::LABEL_HANDLING);
+                    },
                 ],
                 self::MENU_MOVEMENTS => [
                     self::MENU_FREE_FIELDS => fn() => [
@@ -1520,6 +1516,22 @@ class SettingsController extends AbstractController {
                 "msg" => "Ce type de litige est lié à des réceptions. Vous ne pouvez pas le supprimer.",
             ]);
         }
+    }
+
+    public function getRequestTemplates(TypeRepository $typeRepository, RequestTemplateRepository $requestTemplateRepository, string $templateType) {
+        $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::REQUEST_TEMPLATE, $templateType);
+
+        $templates = Stream::from($requestTemplateRepository->findBy(["type" => $type]))
+            ->map(fn(RequestTemplate $template) => [
+                "label" => $template->getName(),
+                "value" => $template->getId(),
+            ])
+            ->toArray();
+
+        return [
+            "type" => $templateType,
+            "templates" => $templates,
+        ];
     }
 
     public function getDefaultDeliveryLocationsByType(EntityManagerInterface $entityManager): array {

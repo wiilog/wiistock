@@ -28,10 +28,8 @@
                 </button>
             </div>
         </div>
-
-        <div class="wii-section-title">{% block subtitle %}{% endblock %}</div>
-
-        <div class="wii-section">
+        <div class="wii-section-title {{ block('subtitle') is empty ? 'd-none' }}">{% block subtitle %}{% endblock %}</div>
+        <div class="wii-section {{ block('subtitle') is empty ? 'd-none' }}">
             <div class="row">
                 <div class="col-12">
                     <table class="table subentities-table w-100"></table>

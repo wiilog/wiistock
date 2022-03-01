@@ -73,7 +73,6 @@ export default class Select2 {
                     if (!ROUTES[type]) {
                         console.error(`No select route found for ${type}`);
                     }
-
                     config.ajax = {
                         url: Routing.generate(ROUTES[type]),
                         dataType: `json`,
@@ -104,7 +103,6 @@ export default class Select2 {
                         config.minimumInputLength = minLength !== undefined ? minLength : 1;
                     }
                 }
-
                 const allowClear = !($element.is(`[multiple]`) || $element.is(`[data-no-empty-option]`));
 
                 $element.select2({

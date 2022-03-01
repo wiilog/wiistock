@@ -134,7 +134,7 @@ class RequestTemplateController extends AbstractController
         }
 
         $requestTemplate = $service->createRequestTemplate($data["type"]);
-        $service->updateRequestTemplate($requestTemplate, $data);
+        $service->updateRequestTemplate($requestTemplate, $data, $request->files->all());
 
         $manager->persist($requestTemplate);
         $manager->flush();
@@ -189,7 +189,7 @@ class RequestTemplateController extends AbstractController
                 $data = $request->request->all();
             }
 
-            $service->updateRequestTemplate($requestTemplate, $data);
+            $service->updateRequestTemplate($requestTemplate, $data, $request->files->all());
             $manager->flush();
 
             return $this->json([
@@ -311,7 +311,7 @@ class RequestTemplateController extends AbstractController
         $line = new RequestTemplateLine();
         $line->setRequestTemplate($requestTemplate);
 
-        $service->updateRequestTemplateLine($line, $data);
+        $service->updateRequestTemplateLine($line, $data, $request->files->all());
 
         $manager->persist($line);
         $manager->flush();
@@ -353,7 +353,7 @@ class RequestTemplateController extends AbstractController
 
         $line = $requestTemplateRepository->find($data["id"]);
         if ($line) {
-            $service->updateRequestTemplateLine($line, $data);
+            $service->updateRequestTemplateLine($line, $data, $request->files->all());
             $manager->flush();
 
             return $this->json([

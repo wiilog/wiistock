@@ -13,8 +13,7 @@ export function createManagementPage($container, config) {
         $selectedEntity
             .val(selectedEntity)
             .trigger('change');
-    }
-    else {
+    } else {
         $selectedEntity.prop('checked', true);
         selectedEntity = $selectedEntity.attr(`value`);
     }
@@ -30,7 +29,6 @@ export function createManagementPage($container, config) {
     $table.attr(`id`, `table-${Math.floor(Math.random() * 1000000)}`);
 
     loadItems($container, config, selectedEntity);
-
     const table = EditableDatatable.create(`#${$table.attr(`id`)}`, {
         name: config.name,
         mode: typeof config.edit === 'boolean' ? (config.edit ? MODE_MANUAL : MODE_NO_EDIT) : config.edit,
@@ -76,11 +74,17 @@ export function createManagementPage($container, config) {
         },
     });
 
-    $container.find(`[name=entity]`).on(`change`, function() {
-        selectedEntity = $(this).val();
+    if (config.table.hidden) {
+        const id = $table.attr(`id`);
+        $('#' + id).addClass('d-none');
+    }
 
+    $container.find(`[name=entity]`).on(`change`, function () {
+        selectedEntity = $(this).val();
         loadItems($container, config, selectedEntity, table.state !== STATE_VIEWING);
-        table.setURL(config.table.route(selectedEntity))
+        if (table) {
+            table.setURL(config.table.route(selectedEntity))
+        }
     });
 
     $addButton.on(`click`, function() {
@@ -97,14 +101,13 @@ export function createManagementPage($container, config) {
             $title.html(config.newTitle);
         }
         $pageBody.find(`.main-entity-content`).addClass('creation-mode');
-
-        table.setURL(config.table.route(selectedEntity), false);
-        table.toggleEdit(STATE_EDIT, true);
+            table.setURL(config.table.route(selectedEntity), false);
+            table.toggleEdit(STATE_EDIT, true);
     });
 
-    $editButton.on(`click`, function() {
-        table.toggleEdit(STATE_EDIT, true);
-    });
+        $editButton.on(`click`, function () {
+            table.toggleEdit(STATE_EDIT, true);
+        });
 
     if (config.header && config.header.delete) {
         fireRemoveMainEntityButton($container, config.header.delete);
@@ -139,15 +142,17 @@ function loadItems($container, config, type, edit = false) {
                             const data = Object.entries(item.data || {})
                                 .map(([key, value]) => `data-${key}="${value}"`)
                                 .join(` `);
-
+                            const $element = $(value);
+                            const isBigger = ($element.hasClass('bigger'));
+                            const wiiTextBody = `<span class="wii-body-text">${value}</span>`;
                             $itemContainer.append(`
-                                <div class="main-entity-content-item col-md-3 col-12 ${item.hidden ? `d-none` : ``}"
+                                <div class="main-entity-content-item ${isBigger ? "col-md-4" : "col-md-3"} col-12 ${item.hidden ? `d-none` : ``}"
                                      ${data}>
                                     <div class="d-flex align-items-center py-2">
                                         ${item.icon ? `<img src="/svg/reference_article/${item.icon}.svg" alt="Icône" width="20px">` : ``}
-                                        <div class="d-grid w-100">
+                                        <div class="d-grid ${!isBigger ? "w-100" : ""}">
                                             <span class="wii-field-name">${item.label}</span>
-                                            <span class="wii-body-text">${value}</span>
+                                            ${isBigger ? value : wiiTextBody}
                                         </div>
                                     </div>
                                 </div>
