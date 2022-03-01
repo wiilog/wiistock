@@ -7,12 +7,13 @@ import {initializeImports} from "./data/imports.js";
 import {initializeStockArticlesTypesFreeFields, createFreeFieldsPage, initializeTraceMovementsFreeFields, initializeIotFreeFields} from "./free-fields";
 import {initializeRolesPage} from "./users/roles";
 import {createManagementPage} from "./utils";
-import {initializeStockDeliveryTemplates, initializeRequestTemplates} from "./request-template";
+import {initializeRequestTemplates} from "./request-template";
 import {
     initializeArrivalDisputeStatuses,
     initializeReceptionDisputeStatuses,
     initializePurchaseRequestStatuses,
-    initializeArrivalStatuses
+    initializeArrivalStatuses,
+    initializeDispatchStatuses
 } from "./statuses";
 
 global.triggerReminderEmails = triggerReminderEmails;
@@ -55,6 +56,7 @@ const initializers = {
     stock_groupes_visibilite: initializeVisibilityGroup,
     utilisateurs_utilisateurs: initUserPage,
     trace_arrivages_statuts_litiges: initializeArrivalDisputeStatuses,
+    trace_acheminements_statuts: initializeDispatchStatuses,
     stock_receptions_statuts_litiges: initializeReceptionDisputeStatuses,
     utilisateurs_roles: initializeRolesPage,
     stock_receptions_types_litiges: initializeTypesLitige,

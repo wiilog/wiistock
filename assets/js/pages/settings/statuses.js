@@ -4,6 +4,7 @@ const MODE_ARRIVAL_DISPUTE = 'arrival-dispute';
 const MODE_RECEPTION_DISPUTE = 'reception-dispute';
 const MODE_PURCHASE_REQUEST = 'purchase-request';
 const MODE_ARRIVAL = 'arrival';
+const MODE_DISPATCH = 'dispatch';
 
 const $managementButtons = $(`.save-settings, .discard-settings`);
 
@@ -40,6 +41,29 @@ export function initializeReceptionDisputeStatuses($container, canEdit) {
 
 export function initializePurchaseRequestStatuses($container, canEdit) {
     initializeStatuses($container, canEdit, MODE_PURCHASE_REQUEST);
+}
+
+export function initializeDispatchStatuses($container, canEdit) {
+    const mode = MODE_DISPATCH;
+    const categoryType = $container.find('[name=category-type]').val();
+    const table = initializeStatuses($container, canEdit, mode, categoryType);
+    const $typeFilters = $container.find('[name=type]');
+    const $addButton = $container.find('.add-row-button');
+
+    $typeFilters
+        .off('change')
+        .on('change', function() {
+            const $type = $(this);
+            const type = $type.val();
+            const url = Routing.generate(`settings_statuses_api`, {mode, type})
+            table.setURL(url);
+        });
+
+    $addButton
+        .off('click')
+        .on('click', function() {
+            table.addRow(true);
+        });
 }
 
 function initializeStatuses($container, canEdit, mode, categoryType) {

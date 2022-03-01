@@ -451,6 +451,7 @@ class SettingsService {
                         StatusController::MODE_RECEPTION_DISPUTE => CategorieStatut::LITIGE_RECEPT,
                         StatusController::MODE_PURCHASE_REQUEST => CategorieStatut::PURCHASE_REQUEST,
                         StatusController::MODE_ARRIVAL => CategorieStatut::ARRIVAGE,
+                        StatusController::MODE_DISPATCH => CategorieStatut::DISPATCH
                     };
                     $status->setCategorie($categoryRepository->findOneBy(['nom' => $categoryName]));
 
