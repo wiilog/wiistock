@@ -149,30 +149,49 @@ class StatusController extends AbstractController
      */
     public function deleteStatus(EntityManagerInterface $manager, Statut $entity): JsonResponse
     {
-        $constraints = [
-            "un litige" => $entity->getDisputes(),
-            "une demande d'achat" => $entity->getPurchaseRequests(),
-        ];
-
-        $constraints = Stream::from($constraints)
-            ->filter(fn($collection) => !$collection->isEmpty())
-            ->takeKeys()
-            ->map(fn(string $item) => "au moins $item")
-            ->join(", ");
-
-        if (!$constraints) {
-            $manager->remove($entity);
-            $manager->flush();
-        } else {
+        if($entity->isDefaultForCategory()) {
             return $this->json([
                 "success" => false,
-                "msg" => "Impossible de supprimer le statut car il est lié à $constraints",
+                "msg" => "Impossible de supprimer le statut car il est un statut par défaut",
+            ]);
+        } else {
+            $constraints = [
+                "un litige" => $entity->getDisputes(),
+                "une demande d'achat" => $entity->getPurchaseRequests(),
+                "un arrivage" => $entity->getArrivages(),
+                "un article" => $entity->getArticles(),
+                "une collecte" => $entity->getCollectes(),
+                "une demande de livraison" => $entity->getDemandes(),
+                "un ordre de livraison" => $entity->getLivraisons(),
+                "une préparation" => $entity->getPreparations(),
+                "une réception" => $entity->getReceptions(),
+                "une référence article" => $entity->getReferenceArticles(),
+                "une demande de service" => $entity->getHandlings(),
+                "une demande d'acheminement" => $entity->getDispatches(),
+                "une demande de transfert" => $entity->getTransferRequests(),
+                "un ordre de transfert" => $entity->getTransferOrders(),
+            ];
+
+            $constraints = Stream::from($constraints)
+                ->filter(fn($collection) => !$collection->isEmpty())
+                ->takeKeys()
+                ->map(fn(string $item) => "au moins $item")
+                ->join(", ");
+
+            if (!$constraints) {
+                $manager->remove($entity);
+                $manager->flush();
+            } else {
+                return $this->json([
+                    "success" => false,
+                    "msg" => "Impossible de supprimer le statut car il est lié à $constraints",
+                ]);
+            }
+
+            return $this->json([
+                "success" => true,
+                "msg" => "Le statut a été supprimé",
             ]);
         }
-
-        return $this->json([
-            "success" => true,
-            "msg" => "Le statut a été supprimé",
-        ]);
     }
 }

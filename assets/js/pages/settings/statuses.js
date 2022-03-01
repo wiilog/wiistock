@@ -114,7 +114,6 @@ function getStatusesColumn(mode) {
 }
 
 function getFormColumn(mode, statusStateOptions, categoryType){
-    console.log(categoryType)
     return {
         actions: `
             <button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>
@@ -138,6 +137,6 @@ function getFormColumn(mode, statusStateOptions, categoryType){
         sendMailBuyers: `<div class='checkbox-container'><input type='checkbox' name='sendMailBuyers' class='form-control data'/></div>`,
         sendMailRequesters: `<div class='checkbox-container'><input type='checkbox' name='sendMailRequesters' class='form-control data'/></div>`,
         sendMailDest: `<div class='checkbox-container'><input type='checkbox' name='sendMailDest' class='form-control data'/></div>`,
-        order: `<input type='number' name='order' min='1' class='form-control data needed'  data-global-error="Ordre"/>`,
+        order: `<input type='number' name='order' min='1' class='form-control data needed' data-global-error="Ordre"/>`,
     };
 }
