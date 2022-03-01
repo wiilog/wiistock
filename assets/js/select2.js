@@ -99,7 +99,7 @@ export default class Select2 {
                         }
                     };
 
-                    if (!INSTANT_SELECT_TYPES[type]) {
+                    if (!$element.is(`[data-no-min-length]`) && !INSTANT_SELECT_TYPES[type]) {
                         config.minimumInputLength = 1;
                     }
                 }

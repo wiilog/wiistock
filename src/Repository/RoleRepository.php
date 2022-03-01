@@ -53,7 +53,7 @@ class RoleRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function getForSelect(string $term): array {
+    public function getForSelect(?string $term): array {
         return $this->createQueryBuilder('role')
             ->select("role.id AS id")
             ->addSelect("role.label AS text")
