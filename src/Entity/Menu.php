@@ -12,7 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
 class Menu {
 
     const DASHBOARDS = 'dashboard';
-    const TRACA = 'tracabilité';
+    const TRACA = 'traçabilité';
     const QUALI = 'qualité';
     const DEM = 'demande';
     const ORDRE = 'ordre';
