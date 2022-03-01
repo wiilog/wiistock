@@ -1,0 +1,325 @@
+<?php
+
+namespace App\Controller\Settings;
+
+use App\Annotation\HasPermission;
+use App\Entity\Action;
+use App\Entity\Alert;
+use App\Entity\CategorieCL;
+use App\Entity\CategoryType;
+use App\Entity\FieldsParam;
+use App\Entity\FreeField;
+use App\Entity\IOT\AlertTemplate;
+use App\Entity\Menu;
+use App\Entity\Type;
+use App\Helper\FormatHelper;
+use App\Service\FreeFieldService;
+use Doctrine\ORM\EntityManagerInterface;
+use RuntimeException;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Twig\Environment;
+use WiiCommon\Helper\Stream;
+
+/**
+ * @Route("/parametrage")
+ */
+class AlertTemplateController extends AbstractController
+{
+
+    /**
+     * @Route("/modele-alerte/header/{template}", name="settings_alert_template_header", options={"expose"=true})
+     */
+    public function alertTemplateHeader(Request                $request,
+                                        ?AlertTemplate         $template = null): Response
+    {
+
+        $edit = $request->query->getBoolean("edit");
+        $category = $template?->getType();
+        if ($edit) {
+            $name = $template ? $template->getName() : "";
+            if ($template) {
+                $data[] = [
+                    "label" => "Type d'alerte",
+                    "value" => 'Notifications ' . $template->getType(),
+                ];
+            } else {
+                $data[] = [
+                    "label" => "Type d'alerte*",
+                    "value" => $this->renderView('settings/notifications/alertes_types.html.twig', [
+                        'options' => Stream::from(AlertTemplate::TEMPLATE_TYPES)
+                                ->map(fn(string $type) => ['id' => $type, 'label' => $type])
+                    ]),
+                ];
+            }
+
+            $data[] = [
+                "class" => "col-md-9",
+                "noFullWidth" => true,
+                "label" => "Nom du modèle*",
+                "value" => "<input name='name' class='data form-control' value='$name' required>",
+            ];
+
+            if ($category === AlertTemplate::PUSH) {
+                $content = $template?->getConfig()['content'] ?? '';
+                $image = $template?->getConfig()['image'] ?? '';
+                $data[] = [
+                    "class" => "col-md-6",
+                    "label" => "Texte de notification*",
+                    "value" => "<textarea class='data form-control' name='content' required style='min-height: 100px;'>$content</textarea>",
+                ];
+
+                $data[] = [
+                    "label" => 'Image de notification',
+                    "value" => $this->renderView('image_input.html.twig', [
+                        'name' => "image",
+                        'label' => '',
+                        'required' => false,
+                        'image' => $image ? 'uploads/attachements/' . $image : '',
+                        'options' => []
+                    ]),
+                ];
+            } else if ($category === AlertTemplate::MAIL) {
+                $subject = $template?->getConfig()['subject'];
+                $rawContent = $template?->getConfig()['content'];
+                $image = $template?->getConfig()['image'] ?? '';
+                $users = "";
+                if($template && isset($template->getConfig()['receivers'])) {
+                    $emails = explode(',', $template->getConfig()['receivers']);
+                    foreach ($emails as $email) {
+                        $users .= "<option value='$email' selected>$email</option>";
+                    }
+                }
+                $data[] = [
+                    "label" => "Destinataire*",
+                    "value" => "<select data-s2 data-editable multiple name='receivers' class='data form-control' required>$users</select>",
+                ];
+
+                $data[] = [
+                    "label" => "Objet*",
+                    "value" => "<input name='subject' class='data form-control' required value='$subject'>",
+                ];
+
+                $data[] = [
+                    "label" => 'Image de début de mail',
+                    "value" => $this->renderView('image_input.html.twig', [
+                        'name' => "image",
+                        'label' => "",
+                        'required' => false,
+                        'image' => $image ? 'uploads/attachements/' . $image : '',
+                        'options' => []
+                    ]),
+                ];
+
+                $data[] = [
+                    "class" => "col-md-8",
+                    "label" => "Corp du mail*",
+                    "value" => "<div class='editor-container data' name='content' data-wysiwyg>$rawContent</div>",
+                ];
+
+                $data[] = [
+                    "class" => "col-md-4",
+                    "label" => "Variable",
+                    "value" => $this->renderView('settings/notifications/alert_dictionnary.html.twig'),
+                ];
+
+            } else if ($category === AlertTemplate::SMS) {
+                $rawContent = $template?->getConfig()['content'];
+                $users = "";
+                if($template && isset($template->getConfig()['receivers'])) {
+                    $emails = explode(',', $template->getConfig()['receivers']);
+                    foreach ($emails as $email) {
+                        $users .= "<option value='$email' selected>$email</option>";
+                    }
+                }
+
+                $data[] = [
+                    "noFullWidth" => true,
+                    "class" => "col-md-12",
+                    "label" => "Destinataires*",
+                    "value" => $this->renderView('settings/notifications/alerts_phone.html.twig', [
+                        'phoneNumbers' => json_decode($template->getConfig()['receivers']),
+                        'edit' => true,
+                    ]),
+                ];
+
+                $data[] = [
+                    "class" => "col-md-8",
+                    "label" => "SMS*",
+                    "value" => "<textarea class='data form-control' name='content' required style='min-height: 100px;'>$rawContent</textarea>",
+                ];
+
+                $data[] = [
+                    "class" => "col-md-4",
+                    "label" => "Variable",
+                    "value" => $this->renderView('settings/notifications/alert_dictionnary.html.twig'),
+                ];
+            }
+        } else if ($template) {
+            $data = [];
+            if ($category === AlertTemplate::PUSH) {
+                $content = $template?->getConfig()['content'] ?? '';
+                $image = $template?->getConfig()['image'] ?? '';
+                $data[] = [
+                    "label" => "Type d'alerte",
+                    "value" => 'Notifications ' . AlertTemplate::PUSH,
+                ];
+
+                $data[] = [
+                    "label" => "Texte de notification*",
+                    "value" => $content,
+                ];
+                if ($image) {
+                    $src = $_SERVER['APP_URL'] . '/uploads/attachements/' . $image;
+                    $data[] = [
+                        "label" => "Image de notification",
+                        "value" => "<img src='$src' alt='' width='85px' height='75px' style='margin: auto'>"
+                    ];
+                }
+            } else if ($category === AlertTemplate::SMS) {
+                $content = $template?->getConfig()['content'] ?? '';
+                $data[] = [
+                    "class" => "col-md-12",
+                    "noFullWidth" => true,
+                    "label" => "Type d'alerte",
+                    "value" => 'Notifications ' . AlertTemplate::SMS,
+                ];
+
+                $data[] = [
+                    "noFullWidth" => true,
+                    "class" => "col-md-4",
+                    "label" => "Destinataires",
+                    "value" => $this->renderView('settings/notifications/alerts_phone.html.twig', [
+                        'phoneNumbers' => json_decode($template->getConfig()['receivers']),
+                        'edit' => false,
+                    ]),
+                ];
+
+                $data[] = [
+                    "class" => "col-md-4",
+                    "label" => "SMS",
+                    "value" => $content,
+                ];
+
+                $data[] = [
+                    "class" => "col-md-4",
+                    "label" => "Variable",
+                    "value" => $this->renderView('settings/notifications/alert_dictionnary.html.twig'),
+                ];
+            } else if ($category === AlertTemplate::MAIL) {
+                $content = $template?->getConfig()['content'] ?? '';
+                $image = $template?->getConfig()['image'] ?? '';
+                $data[] = [
+                    "class" => "col-md-12",
+                    "noFullWidth" => true,
+                    "label" => "Type d'alerte",
+                    "value" => AlertTemplate::MAIL,
+                ];
+
+                $data[] = [
+                    "class" => "col-md-4",
+                    "label" => "Destinataires",
+                    "value" => $template->getConfig()['receivers'],
+                ];
+
+                $data[] = [
+                    "class" => "col-md-4",
+                    "label" => "Objet",
+                    "value" => $template->getConfig()['subject'],
+                ];
+
+                if ($image) {
+                    $src = $_SERVER['APP_URL'] . '/uploads/attachements/' . $image;
+                    $data[] = [
+                        "label" => "Image de début de mail",
+                        "value" => "<img src='$src' alt='' width='85px' height='75px' style='margin: auto'>"
+                    ];
+                }
+
+                $data[] = [
+                    "class" => "col-md-8",
+                    "label" => "Corp du mail",
+                    "value" => strip_tags($content),
+                ];
+
+                $data[] = [
+                    "class" => "col-md-4",
+                    "label" => "Variable",
+                    "value" => $this->renderView('settings/notifications/alert_dictionnary.html.twig'),
+                ];
+            }
+        }
+
+        return $this->json([
+            "success" => true,
+            "data" => $data ?? [],
+        ]);
+    }
+
+    /**
+     * @Route("/modele-demande/api", name="settings_alert_template_api", options={"expose"=true})
+     */
+    public
+    function alertTemplateApi(): Response
+    {
+        return $this->json([
+            "data" => [],
+        ]);
+    }
+
+
+
+    /**
+     * @Route("/verification/{alertTemplate}", name="settings_alert_template_check_delete", methods={"GET"}, options={"expose"=true}, condition="request.isXmlHttpRequest()")
+     */
+    public
+    function checkAlertTemplateCanBeDeleted(AlertTemplate $alertTemplate): Response
+    {
+        if ($alertTemplate->getTriggers()->isEmpty()) {
+            $success = true;
+            $message = "Vous êtes sur le point de supprimer le modèle de demande <strong>{$alertTemplate->getName()}</strong>";
+        }
+        else {
+            $success = false;
+            $message = 'Ce modèle de demande est utilisé par un ou plusieurs actionneurs ou, vous ne pouvez pas le supprimer';
+        }
+
+        return $this->json([
+            'success' => $success,
+            'message' => $message
+        ]);
+    }
+
+    /**
+     * @Route("/modele-demande/supprimer/{alertTemplate}", name="settings_alert_template_delete", options={"expose"=true})
+     * @HasPermission({Menu::PARAM, Action::DELETE})
+     */
+    public
+    function deleteAlertTemplate(EntityManagerInterface $manager,
+                                   AlertTemplate        $alertTemplate): JsonResponse
+    {
+
+        if ($alertTemplate->getTriggers()->isEmpty()) {
+            $success = true;
+            $message = 'Le modèle de demande a bien été supprimé';
+            foreach ($alertTemplate->getNotifications() as $notification) {
+                $notification->setTemplate(null);
+            }
+
+            $manager->remove($alertTemplate);
+            $manager->flush();
+        }
+        else {
+            $success = false;
+            $message = 'Ce modèle de demande est utilisé par un ou plusieurs actionneurs, vous ne pouvez pas le supprimer';
+        }
+
+        return $this->json([
+            'success' => $success,
+            'message' => $message
+        ]);
+    }
+}

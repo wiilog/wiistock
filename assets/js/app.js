@@ -86,6 +86,20 @@ function importJquery() {
             return oldAttr.apply(this, arguments);
         }
     };
+
+    jQuery.extend({
+        isValidSelector: function(selector) {
+            if (typeof(selector) !== 'string') {
+                return false;
+            }
+            try {
+                var $element = $(selector);
+            } catch(error) {
+                return false;
+            }
+            return true;
+        }
+    });
 }
 
 function importIntlTelInput() {

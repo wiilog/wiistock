@@ -264,7 +264,9 @@
 {% macro image(name, label, required, image = '', options = {}) %}
     {% set labelOptions = options.labelOptions ?? {} %}
     <label class="{{ options.labelClass ?? '' }}">
-        <span>{{ _self.label(label, required, labelOptions) }}</span>
+        {% if label %}
+            <span>{{ _self.label(label, required, labelOptions) }}</span>
+        {% endif %}
         {{ _self.tooltip(options.tooltip ?? null, options.inline ?? false) }}
         <div class="form-group d-flex m-0">
             <div class="preview-container stripped-background d-flex p-1 mr-1">

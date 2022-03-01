@@ -204,31 +204,3 @@ function onTemplateTypeChange($select) {
     });
 }
 
-function addPhoneNumber() {
-    const $phoneNumberWrapper = $('.phone-number-wrapper');
-    const $lastInputContainer = $phoneNumberWrapper.find('.phone-number-container').last();
-    const $template = $('.phone-number-template');
-
-    $lastInputContainer.after($template.html());
-
-    const $newInputContainer = $phoneNumberWrapper.find('.phone-number-container').last();
-    const $newInput = $newInputContainer.find('input[name=receivers]');
-
-    initTelInput($newInput);
-}
-
-function deletePhoneNumber($button) {
-    const $phoneNumberContainer = $button.closest('.phone-number-container');
-
-    $phoneNumberContainer.remove();
-}
-
-function initTelInput($input) {
-    const iti = intlTelInput($input[0], {
-        utilsScript: '/build/vendor/intl-tel-input/utils.js',
-        preferredCountries: ['fr'],
-        initialCountry: 'fr'
-    });
-    return $input.data('iti', iti);
-}
-

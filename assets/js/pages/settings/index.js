@@ -8,6 +8,7 @@ import {initializeStockArticlesTypesFreeFields, createFreeFieldsPage, initialize
 import {initializeRolesPage} from "./users/roles";
 import {createManagementPage} from "./utils";
 import {initializeRequestTemplates} from "./request-template";
+import {initializeAlertTemplate} from "./alert-template";
 import {initializeArrivalDisputeStatuses, initializeReceptionDisputeStatuses, initializePurchaseRequestStatuses} from "./statuses";
 
 global.triggerReminderEmails = triggerReminderEmails;
@@ -38,6 +39,7 @@ const initializers = {
     trace_services_types_champs_libres: createFreeFieldsPage,
     trace_mouvements_champs_libres: initializeTraceMovementsFreeFields,
     trace_services_modeles_demande: initializeRequestTemplates,
+    notifications_alertes: initializeAlertTemplate,
     iot_types_champs_libres: initializeIotFreeFields,
     donnees_imports: initializeImports,
     stock_receptions_champs_fixes_receptions: initializeReceptionFixedFields,
@@ -114,7 +116,6 @@ $(function() {
                 data.append(`datatables`, JSON.stringify(tables));
             }
         }
-
         if (!data || hasErrors) {
             return;
         }
@@ -131,7 +132,6 @@ $(function() {
         if(slow) {
             Flash.add(`info`, `Mise à jour des paramétrage en cours, cette opération peut prendre quelques minutes`, false);
         }
-
         $saveButton.pushLoader('white');
         await AJAX.route(`POST`, `settings_save`)
             .json(data)

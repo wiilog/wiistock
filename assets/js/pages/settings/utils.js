@@ -143,15 +143,17 @@ function loadItems($container, config, type, edit = false) {
                             const data = Object.entries(item.data || {})
                                 .map(([key, value]) => `data-${key}="${value}"`)
                                 .join(` `);
-                            const $element = $(value);
-                            const isBigger = ($element.hasClass('bigger'));
+                            const $element = $.isValidSelector(value) ? $(value) : null;
+                            const isBigger = $element && $element.hasClass('bigger');
                             const wiiTextBody = `<span class="wii-body-text">${value}</span>`;
+                            const fixedClass = item.class;
+                            const noFullWidth = item.noFullWidth;
                             $itemContainer.append(`
-                                <div class="main-entity-content-item ${isBigger ? "col-md-4" : "col-md-3"} col-12 ${item.hidden ? `d-none` : ``}"
+                                <div class="main-entity-content-item ${isBigger ? "col-md-4" : "col-md-3"} col-12 ${item.hidden ? `d-none` : ``} ${fixedClass}"
                                      ${data}>
                                     <div class="d-flex align-items-center py-2">
                                         ${item.icon ? `<img src="/svg/reference_article/${item.icon}.svg" alt="Icône" width="20px">` : ``}
-                                        <div class="d-grid ${!isBigger ? "w-100" : ""}">
+                                        <div class="d-grid ${!isBigger && !noFullWidth ? "w-100" : ""}">
                                             <span class="wii-field-name">${item.label}</span>
                                             ${isBigger ? value : wiiTextBody}
                                         </div>
