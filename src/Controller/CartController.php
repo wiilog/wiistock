@@ -210,19 +210,12 @@ class CartController extends AbstractController
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
 
-        switch ($data["requestType"]) {
-            case "delivery":
-                $response = $cartService->manageDeliveryRequest($data, $loggedUser, $entityManager);
-                break;
-            case "collect":
-                $response = $cartService->manageCollectRequest($data, $loggedUser, $entityManager);
-                break;
-            case "purchase":
-                $response = $cartService->managePurchaseRequest($data, $loggedUser, $entityManager);
-                break;
-            default:
-                throw new RuntimeException("Unsupported request type");
-        }
+        $response = match ($data["requestType"]) {
+            "delivery" => $cartService->manageDeliveryRequest($data, $loggedUser, $entityManager),
+            "collect" => $cartService->manageCollectRequest($data, $loggedUser, $entityManager),
+            "purchase" => $cartService->managePurchaseRequest($data, $loggedUser, $entityManager),
+            default => throw new RuntimeException("Unsupported request type"),
+        };
 
         if ($response["success"]) {
             $this->addFlash("success", $response['msg']);
