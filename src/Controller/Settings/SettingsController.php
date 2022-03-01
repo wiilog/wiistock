@@ -232,7 +232,7 @@ class SettingsController extends AbstractController {
                             "save" => true,
                             "discard" => true,
                         ],
-                        self::MENU_REQUEST_TEMPLATES => ["label" => "Modèles de demande"],
+                        self::MENU_REQUEST_TEMPLATES => ["label" => "Modèles de demande", "wrapped" => false],
                         self::MENU_TYPES_FREE_FIELDS => ["label" => "Types et champs libres", "wrapped" => false],
                     ],
                 ],
