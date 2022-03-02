@@ -27,16 +27,20 @@ use App\Entity\WorkFreeDay;
 use App\Helper\FormatHelper;
 use App\Repository\IOT\RequestTemplateRepository;
 use App\Repository\TypeRepository;
+use App\Service\CacheService;
 use App\Service\SettingsService;
 use App\Service\SpecificService;
 use App\Service\StatusService;
+use App\Service\TranslationService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
@@ -305,7 +309,7 @@ class SettingsController extends AbstractController {
             "right" => Action::SETTINGS_USERS,
             "menus" => [
                 self::MENU_LANGUAGES => [
-                    "label" => "Langues",
+                    "label" => "Personnalisation des libellés",
                     "save" => false,
                 ],
                 self::MENU_USERS => [
@@ -1642,5 +1646,35 @@ class SettingsController extends AbstractController {
             "success" => true,
             "msg" => "Le groupe de visibilité a été supprimé",
         ]);
+    }
+
+    /**
+     * @Route("/personnalisation", name="save_translations", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     */
+    public function saveTranslations(Request $request,
+                                     EntityManagerInterface $entityManager,
+                                     TranslationService $translationService,
+                                     CacheService $cacheService): Response {
+        if($translations = json_decode($request->getContent(), true)) {
+            $translationRepository = $entityManager->getRepository(Translation::class);
+            foreach($translations as $translation) {
+                $translationObject = $translationRepository->find($translation['id']);
+                if($translationObject) {
+                    $translationObject
+                        ->setTranslation($translation['val'] ?: null)
+                        ->setUpdated(1);
+                } else {
+                    return new JsonResponse(false);
+                }
+            }
+            $entityManager->flush();
+
+            $cacheService->clear();
+            $translationService->generateTranslationsFile();
+            $translationService->cacheClearWarmUp();
+
+            return new JsonResponse(true);
+        }
+        throw new BadRequestHttpException();
     }
 }
