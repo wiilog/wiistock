@@ -262,23 +262,6 @@ class AlertTemplateController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/toggle-template", name="alert_template_toggle_template", options={"expose"=true}, methods={"GET"})
-     */
-    public function toggleTemplate(Request $request) {
-        $query = $request->query;
-        $type = $query->has('type') ? $query->get('type') : '';
 
-        $html = '';
-        if($type === AlertTemplate::SMS) {
-            $html = $this->renderView('alert_template/templates/sms.html.twig');
-        } else if ($type === AlertTemplate::MAIL) {
-            $html = $this->renderView('alert_template/templates/mail.html.twig');
-        } else if ($type === AlertTemplate::PUSH) {
-            $html = $this->renderView('alert_template/templates/push.html.twig');
-        }
-
-        return $this->json($html);
-    }
 }
 

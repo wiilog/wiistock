@@ -101,9 +101,10 @@ class Notification {
     }
 
     /**
-     * @param AlertTemplate $template
+     * @param ?AlertTemplate $template
+     * @return Notification
      */
-    public function setTemplate(AlertTemplate $template): self
+    public function setTemplate(?AlertTemplate $template): self
     {
         $this->template = $template;
         return $this;

@@ -81,6 +81,7 @@ export default class Form {
 
         const $form = getFormElement(form);
         Form.addDataArray($form, data, config.classes);
+        console.log(data);
         processFiles($form, data);
         if(config.button && config.button.attr(`name`)) {
             data.append(config.button.attr(`name`), config.button.val());
@@ -100,6 +101,7 @@ export default class Form {
         for(const error of errors) {
             error.elements.forEach($elem => Form.showInvalid($elem, error.message));
         }
+        console.log(errors);
 
         return errors.length === 0 ? data : false;
     }

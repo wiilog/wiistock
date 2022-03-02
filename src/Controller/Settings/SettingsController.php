@@ -14,6 +14,7 @@ use App\Entity\FreeField;
 use App\Entity\Import;
 use App\Entity\InventoryCategory;
 use App\Entity\InventoryFrequency;
+use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\MailerServer;
 use App\Entity\Menu;
@@ -24,6 +25,7 @@ use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\WorkFreeDay;
 use App\Helper\FormatHelper;
+use App\Repository\IOT\AlertTemplateRepository;
 use App\Repository\IOT\RequestTemplateRepository;
 use App\Repository\TypeRepository;
 use App\Service\SettingsService;
@@ -294,7 +296,7 @@ class SettingsController extends AbstractController {
             "icon" => "menu-notification",
             "right" => Action::SETTINGS_NOTIFICATIONS,
             "menus" => [
-                self::MENU_ALERTS => ["label" => "Alertes"],
+                self::MENU_ALERTS => ["label" => "Alertes", "wrapped" => false],
                 self::MENU_PUSH_NOTIFICATIONS => ["label" => "Notifications push"],
             ],
         ],
@@ -498,6 +500,7 @@ class SettingsController extends AbstractController {
         $frequencyRepository = $this->manager->getRepository(InventoryFrequency::class);
         $fixedFieldRepository = $this->manager->getRepository(FieldsParam::class);
         $requestTemplateRepository = $this->manager->getRepository(RequestTemplate::class);
+        $alertTemplateRepository = $this->manager->getRepository(AlertTemplate::class);
 
         return [
             self::CATEGORY_GLOBAL => [
@@ -770,6 +773,11 @@ class SettingsController extends AbstractController {
                         [Import::STATUS_PLANNED, Import::STATUS_IN_PROGRESS, Import::STATUS_CANCELLED, Import::STATUS_FINISHED]
                     ),
                 ],
+            ],
+            self::CATEGORY_NOTIFICATIONS => [
+                self::MENU_ALERTS => function() use ($alertTemplateRepository) {
+                    return $this->getAlertTemplates($alertTemplateRepository);
+                },
             ],
             self::CATEGORY_USERS => [
                 self::MENU_USERS => fn() => [
@@ -1558,6 +1566,19 @@ class SettingsController extends AbstractController {
 
         return [
             "type" => $templateType,
+            "templates" => $templates,
+        ];
+    }
+
+    public function getAlertTemplates(AlertTemplateRepository $alertTemplateRepository) {
+        $templates = Stream::from($alertTemplateRepository->findAll())
+            ->map(fn(AlertTemplate $template) => [
+                "label" => $template->getName(),
+                "value" => $template->getId(),
+            ])
+            ->toArray();
+
+        return [
             "templates" => $templates,
         ];
     }

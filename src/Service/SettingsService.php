@@ -12,6 +12,7 @@ use App\Entity\FieldsParam;
 use App\Entity\InventoryCategory;
 use App\Entity\InventoryFrequency;
 use App\Entity\FreeField;
+use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\CollectRequestTemplate;
 use App\Entity\IOT\DeliveryRequestTemplate;
 use App\Entity\IOT\HandlingRequestTemplate;
@@ -25,6 +26,7 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\VisibilityGroup;
 use App\Entity\WorkFreeDay;
+use App\Service\IOT\AlertTemplateService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -54,6 +56,9 @@ class SettingsService {
 
     /** @Required */
     public RequestTemplateService $requestTemplateService;
+
+    /** @Required */
+    public AlertTemplateService $alertTemplateService;
 
     private array $settingsConstants;
 
@@ -87,7 +92,7 @@ class SettingsService {
 
         $settings = $settingRepository->findByLabel(array_merge($settingNames, $allFormSettingNames));
         if($request->request->has("datatables")) {
-            $result = $this->saveDatatables(json_decode($request->request->get("datatables"), true), $request->request->all(), $request->files->all());
+            $result = $this->saveDatatables(json_decode($request->request->get("datatables"), true), $request->request->all(), $request->files->all(), $request);
         }
 
         $updated = [];
@@ -227,7 +232,7 @@ class SettingsService {
     }
 
 //    TODO WIIS-6693 mettre dans des services different ?
-    private function saveDatatables(array $tables, array $data, array $files): array {
+    private function saveDatatables(array $tables, array $data, array $files, Request $request): array {
         $result = [];
         if(isset($tables["workingHours"])) {
             $ids = array_map(fn($day) => $day["id"], $tables["workingHours"]);
@@ -474,6 +479,27 @@ class SettingsService {
 
                 $this->manager->persist($status);
             }
+        }
+
+        if (isset($tables['alertTemplates'])) {
+            $ids = array_map(fn($line) => $line["id"] ?? null, $tables["alertTemplates"]);
+            $alertTemplateRepository = $this->manager->getRepository(AlertTemplate::class);
+            if(!isset($data["entity"])) {
+                $template = new AlertTemplate();
+                $template->setType($data['type']);
+                $this->manager->persist($template);
+
+                $result['template'] = $template;
+            } else {
+                $template = $this->manager->find(AlertTemplate::class, $data["entity"]);
+            }
+
+            $sameName = $alertTemplateRepository->findOneBy(["name" => $data["name"]]);
+            if ($sameName && $sameName->getId() !== $template->getId()) {
+                throw new RuntimeException("Un modèle de demande avec le même nom existe déjà");
+            }
+
+            $this->alertTemplateService->updateAlertTemplate($request, $this->manager, $template);
         }
 
         if(isset($tables["requestTemplates"])) {
