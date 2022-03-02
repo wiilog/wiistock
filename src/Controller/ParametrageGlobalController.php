@@ -731,36 +731,6 @@ class ParametrageGlobalController extends AbstractController
     }
 
     /**
-     * @Route("/personnalisation", name="save_translations", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     */
-    public function saveTranslations(Request $request,
-                                     EntityManagerInterface $entityManager,
-                                     TranslationService $translationService,
-                                        CacheService $cacheService): Response {
-        if($translations = json_decode($request->getContent(), true)) {
-            $translationRepository = $entityManager->getRepository(Translation::class);
-            foreach($translations as $translation) {
-                $translationObject = $translationRepository->find($translation['id']);
-                if($translationObject) {
-                    $translationObject
-                        ->setTranslation($translation['val'] ?: null)
-                        ->setUpdated(1);
-                } else {
-                    return new JsonResponse(false);
-                }
-            }
-            $entityManager->flush();
-
-            $cacheService->clear();
-            $translationService->generateTranslationsFile();
-            $translationService->cacheClearWarmUp();
-
-            return new JsonResponse(true);
-        }
-        throw new BadRequestHttpException();
-    }
-
-    /**
      * @Route("/statuts-receptions", name="edit_status_receptions", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      */
     public function editStatusReceptions(Request $request,
