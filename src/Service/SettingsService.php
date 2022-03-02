@@ -468,6 +468,8 @@ class SettingsService {
                 $status->setSendNotifToBuyer($statusData['sendMailBuyers'] ?? false);
                 $status->setSendNotifToDeclarant($statusData['sendMailRequesters'] ?? false);
                 $status->setSendNotifToRecipient($statusData['sendMailDest'] ?? false);
+                $status->setNeedsMobileSync($statusData['needsMobileSync'] ?? false);
+                $status->setCommentNeeded($statusData['commentNeeded'] ?? false);
                 $status->setDisplayOrder($statusData['order'] ?? 0);
 
                 $this->manager->persist($status);

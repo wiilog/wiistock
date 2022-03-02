@@ -128,7 +128,7 @@ class StatusService {
                 'label' => 'Brouillon',
                 'id' => Statut::DRAFT,
                 'code' => 'draft',
-                'modes' => [StatusController::MODE_PURCHASE_REQUEST],
+                'modes' => [StatusController::MODE_PURCHASE_REQUEST, StatusController::MODE_DISPATCH],
             ],
             [
                 'label' => 'À traiter',
@@ -139,7 +139,7 @@ class StatusService {
                 'label' => 'En cours',
                 'id' => Statut::IN_PROGRESS,
                 'code' => 'inProgress',
-                'modes' => [StatusController::MODE_PURCHASE_REQUEST],
+                'modes' => [StatusController::MODE_PURCHASE_REQUEST, StatusController::MODE_HANDLING],
             ],
             [
                 'label' => 'Traité',
@@ -156,7 +156,7 @@ class StatusService {
                 'label' => 'Partiel',
                 'id' => Statut::PARTIAL,
                 'code' => 'partial',
-                'modes' => [],
+                'modes' => [StatusController::MODE_DISPATCH],
             ]
         ])
             ->filter(fn($state) => (

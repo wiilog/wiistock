@@ -82,9 +82,9 @@ function getStatusesColumn(mode) {
         {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
         {data: `label`, title: `Libelle`, required: true},
         {data: `state`, title: `État`, required: true},
-        {data: `type`, title: `Type`, modes: [MODE_ARRIVAL]},
+        {data: `type`, title: `Type`, modes: [MODE_ARRIVAL, MODE_DISPATCH, MODE_HANDLING]},
         {data: `comment`, title: `Commentaire litige`, modes: [MODE_ARRIVAL_DISPUTE, MODE_RECEPTION_DISPUTE]},
-        {data: `defaultStatut`, title: `Statut par défaut`},
+        {data: `defaultStatut`, title: `<div>Statut<br/>par défaut</div>`},
         {
             data: `sendMailBuyers`,
             title: `<div class='small-column'>Envoi d'emails aux acheteurs</div>`,
@@ -93,12 +93,22 @@ function getStatusesColumn(mode) {
         {
             data: `sendMailRequesters`,
             title: `<div class='small-column'>Envoi d'emails aux demandeurs</div>`,
-            modes: [MODE_ARRIVAL_DISPUTE, MODE_RECEPTION_DISPUTE]
+            modes: [MODE_ARRIVAL_DISPUTE, MODE_RECEPTION_DISPUTE, MODE_HANDLING]
         },
         {
             data: `sendMailDest`,
             title: `<div class='small-column'>Envoi d'emails aux destinataires</div>`,
-            modes: [MODE_ARRIVAL_DISPUTE]
+            modes: [MODE_ARRIVAL_DISPUTE, MODE_HANDLING]
+        },
+        {
+            data: `needsMobileSync`,
+            title: `<div class='small-column'>Synchronisation nomade</div>`,
+            modes: [MODE_HANDLING]
+        },
+        {
+            data: `commentNeeded`,
+            title: `<div class='small-column'>Commentaire obligatoire sur nomade</div>`,
+            modes: [MODE_HANDLING]
         },
         {data: `order`, title: `Ordre`, required: true},
     ].filter(({modes}) => !modes || modes.indexOf(mode) > -1);
@@ -115,6 +125,7 @@ function getFormColumn(mode, statusStateOptions, categoryType){
         type: categoryType
             ? `
                 <select name='type'
+                        style="min-width: 150px"
                         class='form-control data'
                         data-s2='types'
                         data-include-params-parent='tr'
@@ -127,8 +138,10 @@ function getFormColumn(mode, statusStateOptions, categoryType){
         defaultStatut: `<div class='checkbox-container'><input type='checkbox' name='defaultStatut' class='form-control data'/></div>`,
         sendMailBuyers: `<div class='checkbox-container'><input type='checkbox' name='sendMailBuyers' class='form-control data'/></div>`,
         sendMailRequesters: `<div class='checkbox-container'><input type='checkbox' name='sendMailRequesters' class='form-control data'/></div>`,
+        needsMobileSync: `<div class='checkbox-container'><input type='checkbox' name='needsMobileSync' class='form-control data'/></div>`,
+        commentNeeded: `<div class='checkbox-container'><input type='checkbox' name='commentNeeded' class='form-control data'/></div>`,
         sendMailDest: `<div class='checkbox-container'><input type='checkbox' name='sendMailDest' class='form-control data'/></div>`,
-        order: `<input type='number' name='order' min='1' class='form-control data needed' data-global-error="Ordre"/>`,
+        order: `<input type='number' name='order' min='1' class='form-control data needed px-2 text-center' data-global-error="Ordre" data-no-arrow/>`,
     };
 }
 

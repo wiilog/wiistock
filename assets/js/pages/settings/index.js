@@ -5,7 +5,7 @@ import {LOADING_CLASS} from "../../loading";
 import {initUserPage} from "./users/users";
 import {initializeImports} from "./data/imports.js";
 import {initializeRolesPage} from "./users/roles";
-import {initializeStockDeliveryTemplates, initializeRequestTemplates} from "./request-template";
+import {initializeRequestTemplates} from "./request-template";
 import {
     initializeStockArticlesTypesFreeFields,
     createFreeFieldsPage,

@@ -109,10 +109,12 @@ class StatusController extends AbstractController
                     })
                     ->join('');
 
-                $defaultStatut = $status->isDefaultForCategory() == 1 ? 'checked' : "";
-                $sendMailBuyers = $status->getSendNotifToBuyer() == 1 ? 'checked' : "";
-                $sendMailRequesters = $status->getSendNotifToDeclarant() == 1 ? 'checked' : "";
-                $sendMailDest = $status->getSendNotifToRecipient() == 1 ? 'checked' : "";
+                $defaultStatut = $status->isDefaultForCategory() ? 'checked' : "";
+                $sendMailBuyers = $status->getSendNotifToBuyer() ? 'checked' : "";
+                $sendMailRequesters = $status->getSendNotifToDeclarant() ? 'checked' : "";
+                $sendMailDest = $status->getSendNotifToRecipient() ? 'checked' : "";
+                $needsMobileSync = $status->getNeedsMobileSync() ? 'checked' : "";
+                $commentNeeded = $status->getCommentNeeded() ? 'checked' : "";
 
                 $data[] = [
                     "actions" => $actionColumn,
@@ -124,7 +126,9 @@ class StatusController extends AbstractController
                     "sendMailBuyers" => "<div class='checkbox-container'><input type='checkbox' name='sendMailBuyers' class='form-control data' {$sendMailBuyers}/></div>",
                     "sendMailRequesters" => "<div class='checkbox-container'><input type='checkbox' name='sendMailRequesters' class='form-control data' {$sendMailRequesters}/></div>",
                     "sendMailDest" => "<div class='checkbox-container'><input type='checkbox' name='sendMailDest' class='form-control data' {$sendMailDest}/></div>",
-                    "order" => "<input type='number' name='order' min='1' value='{$status->getDisplayOrder()}' class='form-control data needed'/>",
+                    "needsMobileSync" => "<div class='checkbox-container'><input type='checkbox' name='needsMobileSync' class='form-control data' {$needsMobileSync}/></div>",
+                    "commentNeeded" => "<div class='checkbox-container'><input type='checkbox' name='commentNeeded' class='form-control data' {$commentNeeded}/></div>",
+                    "order" => "<input type='number' name='order' min='1' value='{$status->getDisplayOrder()}' class='form-control data needed px-2 text-center' data-no-arrow/>",
                 ];
             } else {
                 $data[] = [
@@ -133,10 +137,12 @@ class StatusController extends AbstractController
                     "type" => FormatHelper::type($status->getType()),
                     "state" => $statusService->getStatusStateLabel($status->getState()),
                     "comment" => $status->getComment(),
-                    "defaultStatut" => $status->isDefaultForCategory() ? 'Oui' : 'Non',
-                    "sendMailBuyers" => $status->getSendNotifToBuyer() ? 'Oui' : 'Non',
-                    "sendMailRequesters" => $status->getSendNotifToDeclarant() ? 'Oui' : 'Non',
-                    "sendMailDest" => $status->getSendNotifToRecipient() ? 'Oui' : 'Non',
+                    "defaultStatut" => FormatHelper::bool($status->isDefaultForCategory()),
+                    "sendMailBuyers" => FormatHelper::bool($status->getSendNotifToBuyer()),
+                    "sendMailRequesters" => FormatHelper::bool($status->getSendNotifToDeclarant()),
+                    "sendMailDest" => FormatHelper::bool($status->getSendNotifToRecipient()),
+                    "needsMobileSync" => FormatHelper::bool($status->getNeedsMobileSync()),
+                    "commentNeeded" => FormatHelper::bool($status->getCommentNeeded()),
                     "order" => $status->getDisplayOrder(),
                 ];
             }
