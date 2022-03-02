@@ -159,7 +159,7 @@ class SettingsController extends AbstractController {
                             "label" => "Réceptions - Champs fixes",
                             "save" => true,
                         ],
-                        self::MENU_RECEPTIONS_FREE_FIELDS => ["label" => "Réceptions - Champs libres"],
+                        self::MENU_FREE_FIELDS => ["label" => "Réceptions - Champs libres"],
                         self::MENU_DISPUTE_STATUSES => ["label" => "Litiges - Statuts"],
                         self::MENU_DISPUTE_TYPES => [
                             "label" => "Litiges - Types",
@@ -600,13 +600,15 @@ class SettingsController extends AbstractController {
                         'optionsSelect' => Stream::from(
                             [['empty' => true]],
                             $this->statusService->getStatusStatesValues(StatusController::MODE_RECEPTION_DISPUTE)
-                        )
-                            ->map(fn(array $state) => (
-                                ($state['empty'] ?? false)
-                                    ? '<option/>'
-                                    : "<option value='{$state['id']}'>{$state['label']}</option>"
-                            ))
-                            ->join(''),
+                        )->map(fn(array $state) => (
+                            ($state['empty'] ?? false)
+                                ? '<option/>'
+                                : "<option value='{$state['id']}'>{$state['label']}</option>"
+                            )
+                        )->join(''),
+                    ],
+                    self::MENU_FREE_FIELDS => fn() => [
+                        "type" => $typeRepository->findOneByLabel(Type::LABEL_RECEPTION),
                     ],
                 ]
             ],
@@ -1244,7 +1246,7 @@ class SettingsController extends AbstractController {
             }
         }
 
-        if($edit || ($type && $type->getCategory()->getLabel() === CategoryType::MOUVEMENT_TRACA) || ($type && $type->getCategory()->getLabel() === CategoryType::SENSOR)) {
+        if ($edit || ($type && in_array($type->getCategory()->getLabel(), [CategoryType::MOUVEMENT_TRACA, CategoryType::SENSOR, CategoryType::RECEPTION]))) {
             $rows[] = [
                 "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
                 "label" => "",

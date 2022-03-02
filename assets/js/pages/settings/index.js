@@ -4,6 +4,7 @@ import Flash, {INFO} from '../../flash';
 import {LOADING_CLASS} from "../../loading";
 import {initUserPage} from "./users/users";
 import {initializeImports} from "./data/imports.js";
+import {initializeStockArticlesTypesFreeFields, createFreeFieldsPage, initializeTraceMovementsFreeFields, initializeIotFreeFields, initializeReceptionsFreeFields} from "./free-fields";
 import {initializeRolesPage} from "./users/roles";
 import {initializeRequestTemplates} from "./request-template";
 import {
@@ -49,6 +50,7 @@ const initializers = {
     trace_arrivages_types_champs_libres: createFreeFieldsPage,
     trace_services_types_champs_libres: createFreeFieldsPage,
     trace_mouvements_champs_libres: initializeTraceMovementsFreeFields,
+    stock_receptions_champs_libres: initializeReceptionsFreeFields,
     trace_services_modeles_demande: initializeRequestTemplates,
     notifications_alertes: initializeAlertTemplate,
     notifications_notifications_push: initializeNotifications,
@@ -125,6 +127,7 @@ $(function() {
                 if (datatable) {
                     const tableData = datatable.data();
                     tables[$(this).data(`table-processing`)] = tableData;
+                    tables[`category`] = $(this).data(`category`);
                     tablesToReload.push(datatable);
                     hasErrors = tableData.filter(row => !row).length > 0;
                 }
