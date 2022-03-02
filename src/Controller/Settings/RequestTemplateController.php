@@ -100,7 +100,8 @@ class RequestTemplateController extends AbstractController {
                     "label" => "Commentaire",
                     "value" => "<input name='comment' class='data form-control'>$comment</input>",
                 ];
-            } else if ($category === Type::LABEL_COLLECT) {
+            }
+            else if ($category === Type::LABEL_COLLECT) {
                 /**
                  * @var CollectRequestTemplate $template
                  */

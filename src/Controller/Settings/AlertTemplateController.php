@@ -53,7 +53,8 @@ class AlertTemplateController extends AbstractController
                     "label" => "Nom du modèle*",
                     "value" => "<input name='name' class='data form-control' value='$name' required>",
                 ];
-            } else {
+            }
+            else {
                 $data[] = [
                     "label" => '',
                     "class" => "row col-md-12",
@@ -123,7 +124,9 @@ class AlertTemplateController extends AbstractController
                 $data[] = [
                     "class" => "col-md-4",
                     "label" => "Variable",
-                    "value" => $this->renderView('settings/notifications/alert_dictionnary.html.twig'),
+                    "value" => $this->renderView('variables_dictionary.html.twig', [
+                        'dictionary' => 'ALERT_DICTIONARY'
+                    ]),
                 ];
 
             } else if ($category === AlertTemplate::SMS) {
@@ -155,7 +158,9 @@ class AlertTemplateController extends AbstractController
                 $data[] = [
                     "class" => "col-md-4",
                     "label" => "Variable",
-                    "value" => $this->renderView('settings/notifications/alert_dictionnary.html.twig'),
+                    "value" => $this->renderView('variables_dictionary.html.twig', [
+                        'dictionary' => 'ALERT_DICTIONARY'
+                    ]),
                 ];
             }
         } else if ($template) {
@@ -207,7 +212,9 @@ class AlertTemplateController extends AbstractController
                 $data[] = [
                     "class" => "col-md-4",
                     "label" => "Variable",
-                    "value" => $this->renderView('settings/notifications/alert_dictionnary.html.twig'),
+                    "value" => $this->renderView('variables_dictionary.html.twig', [
+                        'dictionary' => 'ALERT_DICTIONARY'
+                    ]),
                 ];
             } else if ($category === AlertTemplate::MAIL) {
                 $content = $template?->getConfig()['content'] ?? '';
@@ -248,7 +255,9 @@ class AlertTemplateController extends AbstractController
                 $data[] = [
                     "class" => "col-md-4",
                     "label" => "Variable",
-                    "value" => $this->renderView('settings/notifications/alert_dictionnary.html.twig'),
+                    "value" => $this->renderView('variables_dictionary.html.twig', [
+                        'dictionary' => 'ALERT_DICTIONARY'
+                    ]),
                 ];
             }
         }

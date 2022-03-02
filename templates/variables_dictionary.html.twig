@@ -1,5 +1,5 @@
 <div class="variables-list">
-    <label>Variables</label><br>
+    <label class="wii-field-name">Variables</label><br>
     {% for variable, description in (dictionary is iterable ? dictionary : constant('App\\Service\\VariableService::' ~ dictionary)) %}
         <span class="highlighted-variable">@{{ variable }}</span> : {{ description }}{% if not loop.last %}<br>{% endif %}
     {% endfor %}

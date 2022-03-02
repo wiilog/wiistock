@@ -1,7 +1,7 @@
 {% set template = template is defined and template ? template : '' %}
 {% set config = config is defined and config is not empty ? config : [] %}
 <div class="form-group col-12 phone-number-wrapper">
-    <label>Destinataires</label>
+    <label class="wii-field-name">Destinataires</label>
     {% if phoneNumbers is defined and phoneNumbers is not empty %}
         {% for phoneNumber in phoneNumbers %}
             <div class="phone-number-container d-flex {{ loop.index != 1 ? 'mt-2' }}">
@@ -23,7 +23,7 @@
 </div>
 
 <div class="col-12 form-group mt-1">
-    <label class="mb-2">SMS*</label>
+    <label class="mb-2 wii-field-name">SMS*</label>
     <textarea name="content"
               style="resize: none"
               rows="6"

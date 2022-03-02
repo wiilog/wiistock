@@ -1,8 +1,8 @@
 import {createManagementPage} from "./utils";
 
 global.addPhoneNumber = addPhoneNumber;
-global.deletePhoneNumber = addPhoneNumber;
-global.initTelInput = addPhoneNumber;
+global.deletePhoneNumber = deletePhoneNumber;
+global.initTelInput = initTelInput;
 global.onTemplateTypeChange = onTemplateTypeChange;
 
 export function initializeAlertTemplate($container, canEdit) {
@@ -107,7 +107,6 @@ function onTemplateTypeChange($select) {
     $.get(path).then((data) => {
         const $templateContainer = $modal.find('.template-container');
         $templateContainer.empty();
-        console.log(data);
         $templateContainer.append(data);
         $modal.find('.error-msg').empty();
         $modal.find('.is-invalid').removeClass('is-invalid');
