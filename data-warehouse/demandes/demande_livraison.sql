@@ -60,8 +60,6 @@ FROM (
                   LEFT JOIN article_fournisseur ON article.article_fournisseur_id = article_fournisseur.id
                   LEFT JOIN reference_article ON article_fournisseur.reference_article_id = reference_article.id
 
-         WHERE demande.numero
-
          UNION
          SELECT demande.id                                       AS id,
                 demande.numero                                   AS numero,
