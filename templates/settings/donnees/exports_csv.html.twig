@@ -1,6 +1,9 @@
 {% import 'form.html.twig' as form %}
 
 <div class="wii-section">
+    <div class="wii-describe mb-2">
+        Pour gérer le bon encodage des caractères spéciaux sur les fichiers exportés.
+    </div>
     <div class="row">
         <div class="col-12">
             {{ form.select(setting('USES_UTF8'), " Encodage des exports CSV", false, {

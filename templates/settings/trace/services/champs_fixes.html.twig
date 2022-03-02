@@ -7,6 +7,12 @@
 } %}
 
 <div class="wii-section">
+    <div class="row">
+        <p class="ml-2 mb-2 wii-describe">
+            Contrairement aux champs libres, les champs fixes ne peuvent ni être supprimés, ni ajoutés. Vous pouvez paramétrer leur visibilité ou leur
+            caractère obligatoire.
+        </p>
+    </div>
     <table id="table-handling-fixed-fields" class="table no-border-top w-100" data-table-processing="fixedFields">
         {% include 'datatable/main-header.html.twig' with {
             cells: 6
