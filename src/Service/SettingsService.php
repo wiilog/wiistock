@@ -475,6 +475,7 @@ class SettingsService {
                 $status->setSendNotifToRecipient($statusData['sendMailDest'] ?? false);
                 $status->setNeedsMobileSync($statusData['needsMobileSync'] ?? false);
                 $status->setCommentNeeded($statusData['commentNeeded'] ?? false);
+                $status->setAutomaticReceptionCreation($statusData['automaticReceptionCreation'] ?? false);
                 $status->setDisplayOrder($statusData['order'] ?? 0);
 
                 $this->manager->persist($status);

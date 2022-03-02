@@ -115,6 +115,7 @@ class StatusController extends AbstractController
                 $sendMailDest = $status->getSendNotifToRecipient() ? 'checked' : "";
                 $needsMobileSync = $status->getNeedsMobileSync() ? 'checked' : "";
                 $commentNeeded = $status->getCommentNeeded() ? 'checked' : "";
+                $automaticReceptionCreation = $status->getAutomaticReceptionCreation() ? 'checked' : "";
 
                 $data[] = [
                     "actions" => $actionColumn,
@@ -128,6 +129,7 @@ class StatusController extends AbstractController
                     "sendMailDest" => "<div class='checkbox-container'><input type='checkbox' name='sendMailDest' class='form-control data' {$sendMailDest}/></div>",
                     "needsMobileSync" => "<div class='checkbox-container'><input type='checkbox' name='needsMobileSync' class='form-control data' {$needsMobileSync}/></div>",
                     "commentNeeded" => "<div class='checkbox-container'><input type='checkbox' name='commentNeeded' class='form-control data' {$commentNeeded}/></div>",
+                    "automaticReceptionCreation" => "<div class='checkbox-container'><input type='checkbox' name='automaticReceptionCreation' class='form-control data' {$automaticReceptionCreation}/></div>",
                     "order" => "<input type='number' name='order' min='1' value='{$status->getDisplayOrder()}' class='form-control data needed px-2 text-center' data-no-arrow/>",
                 ];
             } else {
@@ -143,6 +145,7 @@ class StatusController extends AbstractController
                     "sendMailDest" => FormatHelper::bool($status->getSendNotifToRecipient()),
                     "needsMobileSync" => FormatHelper::bool($status->getNeedsMobileSync()),
                     "commentNeeded" => FormatHelper::bool($status->getCommentNeeded()),
+                    "automaticReceptionCreation" => FormatHelper::bool($status->getAutomaticReceptionCreation()),
                     "order" => $status->getDisplayOrder(),
                 ];
             }

@@ -88,17 +88,22 @@ function getStatusesColumn(mode) {
         {
             data: `sendMailBuyers`,
             title: `<div class='small-column'>Envoi d'emails aux acheteurs</div>`,
-            modes: [MODE_ARRIVAL_DISPUTE, MODE_RECEPTION_DISPUTE]
+            modes: [MODE_ARRIVAL_DISPUTE, MODE_RECEPTION_DISPUTE, MODE_PURCHASE_REQUEST]
         },
         {
             data: `sendMailRequesters`,
             title: `<div class='small-column'>Envoi d'emails aux demandeurs</div>`,
-            modes: [MODE_ARRIVAL_DISPUTE, MODE_RECEPTION_DISPUTE, MODE_HANDLING]
+            modes: [MODE_ARRIVAL_DISPUTE, MODE_RECEPTION_DISPUTE, MODE_HANDLING, MODE_PURCHASE_REQUEST]
         },
         {
             data: `sendMailDest`,
             title: `<div class='small-column'>Envoi d'emails aux destinataires</div>`,
             modes: [MODE_ARRIVAL_DISPUTE, MODE_HANDLING]
+        },
+        {
+            data: `automaticReceptionCreation`,
+            title: `<div class='small-column'>Création automatique d'une réception</div>`,
+            modes: [MODE_PURCHASE_REQUEST]
         },
         {
             data: `needsMobileSync`,
@@ -141,6 +146,7 @@ function getFormColumn(mode, statusStateOptions, categoryType){
         needsMobileSync: `<div class='checkbox-container'><input type='checkbox' name='needsMobileSync' class='form-control data'/></div>`,
         commentNeeded: `<div class='checkbox-container'><input type='checkbox' name='commentNeeded' class='form-control data'/></div>`,
         sendMailDest: `<div class='checkbox-container'><input type='checkbox' name='sendMailDest' class='form-control data'/></div>`,
+        automaticReceptionCreation: `<div class='checkbox-container'><input type='checkbox' name='automaticReceptionCreation' class='form-control data'/></div>`,
         order: `<input type='number' name='order' min='1' class='form-control data needed px-2 text-center' data-global-error="Ordre" data-no-arrow/>`,
     };
 }
