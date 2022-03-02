@@ -472,9 +472,9 @@ class SettingsService {
         if (isset($tables['alertTemplates'])) {
             $ids = array_map(fn($line) => $line["id"] ?? null, $tables["alertTemplates"]);
             $alertTemplateRepository = $this->manager->getRepository(AlertTemplate::class);
-            if(!is_numeric($data["entity"])) {
+            if(!isset($data["entity"])) {
                 $template = new AlertTemplate();
-
+                $template->setType($data['type']);
                 $this->manager->persist($template);
 
                 $result['template'] = $template;
@@ -487,7 +487,7 @@ class SettingsService {
                 throw new RuntimeException("Un modèle de demande avec le même nom existe déjà");
             }
 
-            $this->alertTemplateService->updateAlertTemplate($request, $this->manager, !is_numeric($data["entity"]));
+            $this->alertTemplateService->updateAlertTemplate($request, $this->manager, $template);
         }
 
         if(isset($tables["requestTemplates"])) {

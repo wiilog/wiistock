@@ -22,12 +22,10 @@ class AlertTemplateService
     /** @Required */
     public AttachmentService $attachmentService;
 
-    public function updateAlertTemplate(Request $request, $entityManager, bool $creation) {
+    public function updateAlertTemplate(Request $request, $entityManager, AlertTemplate $alertTemplate) {
         $post = $request->request;
 
         $name = PostHelper::string($post, 'name');
-        /** @var AlertTemplate $alertTemplate */
-        $alertTemplate = PostHelper::entity($entityManager, $post, 'entity', AlertTemplate::class);
 
         $alertTemplate
             ->setName($name);

@@ -1,0 +1,42 @@
+{% set template = template is defined and template ? template : '' %}
+{% set config = config is defined and config is not empty ? config : [] %}
+<div class="form-group col-12 phone-number-wrapper">
+    <label>Destinataires</label>
+    {% if phoneNumbers is defined and phoneNumbers is not empty %}
+        {% for phoneNumber in phoneNumbers %}
+            <div class="phone-number-container d-flex {{ loop.index != 1 ? 'mt-2' }}">
+                <input class="form-control data-array phone-number" name="receivers" type="text" value="{{ phoneNumber }}">
+                {% if loop.index != 1 %}
+                    <button class="btn d-block" onclick="deletePhoneNumber($(this))"><i class="far fa-trash-alt"></i></button>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="phone-number-container">
+            <input class="form-control data-array phone-number" name="receivers" type="text">
+        </div>
+    {% endif %}
+    <button class="btn btn-primary mt-3"
+            onclick="addPhoneNumber($(this))" type="button">
+        <i class="fa fa-plus"></i>
+    </button>
+</div>
+
+<div class="col-12 form-group mt-1">
+    <label class="mb-2">SMS*</label>
+    <textarea name="content"
+              style="resize: none"
+              rows="6"
+              class="form-control data needed">{{ config ? config['content'] }}</textarea>
+</div>
+
+<div class="col-12">
+    {% include 'variables_dictionary.html.twig' with {dictionary: 'ALERT_DICTIONARY'} %}
+</div>
+
+<template class="phone-number-template">
+    <div class="phone-number-container d-flex mt-2">
+        <input class="form-control data-array" name="receivers" type="text">
+        <button class="btn d-block" onclick="deletePhoneNumber($(this))"><i class="far fa-trash-alt"></i></button>
+    </div>
+</template>

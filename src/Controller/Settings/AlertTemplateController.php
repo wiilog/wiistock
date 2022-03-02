@@ -40,28 +40,28 @@ class AlertTemplateController extends AbstractController
         $edit = $request->query->getBoolean("edit");
         $category = $template?->getType();
         if ($edit) {
-            $name = $template ? $template->getName() : "";
+            $name = $template?->getName();
             if ($template) {
                 $data[] = [
                     "label" => "Type d'alerte",
                     "value" => 'Notifications ' . $template->getType(),
                 ];
+
+                $data[] = [
+                    "class" => "col-md-9",
+                    "noFullWidth" => true,
+                    "label" => "Nom du modèle*",
+                    "value" => "<input name='name' class='data form-control' value='$name' required>",
+                ];
             } else {
                 $data[] = [
-                    "label" => "Type d'alerte*",
-                    "value" => $this->renderView('settings/notifications/alertes_types.html.twig', [
-                        'options' => Stream::from(AlertTemplate::TEMPLATE_TYPES)
-                                ->map(fn(string $type) => ['id' => $type, 'label' => $type])
+                    "label" => '',
+                    "class" => "row col-md-12",
+                    "value" => $this->renderView('settings/notifications/new.html.twig', [
+                        'templateTypes' => AlertTemplate::TEMPLATE_TYPES
                     ]),
                 ];
             }
-
-            $data[] = [
-                "class" => "col-md-9",
-                "noFullWidth" => true,
-                "label" => "Nom du modèle*",
-                "value" => "<input name='name' class='data form-control' value='$name' required>",
-            ];
 
             if ($category === AlertTemplate::PUSH) {
                 $content = $template?->getConfig()['content'] ?? '';
@@ -321,5 +321,24 @@ class AlertTemplateController extends AbstractController
             'success' => $success,
             'message' => $message
         ]);
+    }
+
+    /**
+     * @Route("/toggle-template", name="alert_template_toggle_template", options={"expose"=true}, methods={"GET"})
+     */
+    public function toggleTemplate(Request $request) {
+        $query = $request->query;
+        $type = $query->has('type') ? $query->get('type') : '';
+
+        $html = '';
+        if($type === AlertTemplate::SMS) {
+            $html = $this->renderView('settings/notifications/templates/sms.html.twig');
+        } else if ($type === AlertTemplate::MAIL) {
+            $html = $this->renderView('settings/notifications/templates/mail.html.twig');
+        } else if ($type === AlertTemplate::PUSH) {
+            $html = $this->renderView('settings/notifications/templates/push.html.twig');
+        }
+
+        return $this->json($html);
     }
 }

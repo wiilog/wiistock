@@ -50,7 +50,7 @@ class NotificationTemplateController extends AbstractController
         foreach ($notificationTemplates as $notificationTemplate) {
             $rows[] = [
                 "type" => NotificationService::READABLE_TYPES[$notificationTemplate->getType()] ?? '',
-                "content" => $this->renderView("notification_template/list_content.html.twig", [
+                "content" => $this->renderView("settings/notifications/list_content.html.twig", [
                     "id" => $notificationTemplate->getId(),
                     "content" => $notificationTemplate->getContent(),
                 ]),

@@ -150,7 +150,7 @@ function loadItems($container, config, type, edit = false) {
                             $itemContainer.append(`
                                 <div class="main-entity-content-item ${isBigger ? "col-md-4" : "col-md-3"} col-12 ${item.hidden ? `d-none` : ``} ${fixedClass}"
                                      ${data}>
-                                    <div class="d-flex align-items-center py-2">
+                                    <div class="d-flex align-items-center py-2 w-100">
                                         ${item.icon ? `<img src="/svg/reference_article/${item.icon}.svg" alt="Icône" width="20px">` : ``}
                                         <div class="d-grid ${!isBigger && !noFullWidth ? "w-100" : ""}">
                                             <span class="wii-field-name">${item.label}</span>

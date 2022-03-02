@@ -33,6 +33,44 @@ export function initializeAlertTemplate($container, canEdit) {
     });
 }
 
+export function initializeNotifications() {
+
+    const $modal = $(`#modalEditNotification`);
+
+    $modal.arrive(`textarea[name=content]`, function() {
+        const $content = $(this);
+        const $example = $modal.find(`.phone-example .notification`);
+        replaceProperExamples($content, $example);
+        $content.keyup(function() {
+            replaceProperExamples($content, $example);
+        });
+    });
+
+    const notificationTableConfig = {
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: Routing.generate("notification_template_api", true),
+            type: "POST",
+        },
+        rowConfig: {
+            needsRowClickAction: true,
+        },
+        columns: [
+            {data: 'type', name: 'type', title: 'Type de la demande/ordre', orderable: false},
+            {data: 'content', name: 'content', title: 'Notification', orderable: false},
+        ]
+    };
+
+    let notificationsTable = initDataTable(`notificationsTable`, notificationTableConfig);
+
+    let $modalModifyEmplacement = $('#modalEditNotification');
+    let $submitModifyEmplacement = $('#submitEditNotification');
+    let urlModifyEmplacement = Routing.generate('notification_template_edit', true);
+    InitModal($modalModifyEmplacement, $submitModifyEmplacement, urlModifyEmplacement, {tables: [notificationsTable]});
+
+}
+
 function addPhoneNumber() {
     const $phoneNumberWrapper = $('.phone-number-wrapper');
     const $lastInputContainer = $phoneNumberWrapper.find('.phone-number-container').last();
@@ -64,13 +102,12 @@ function initTelInput($input, edit) {
 
 function onTemplateTypeChange($select) {
     const type = $select.val();
-    const $modal = $select.closest('.modal');
-
+    const $modal = $select.parents('.new-container');
     const path = Routing.generate('alert_template_toggle_template', {type: type});
     $.get(path).then((data) => {
         const $templateContainer = $modal.find('.template-container');
         $templateContainer.empty();
-
+        console.log(data);
         $templateContainer.append(data);
         $modal.find('.error-msg').empty();
         $modal.find('.is-invalid').removeClass('is-invalid');
@@ -82,4 +119,41 @@ function onTemplateTypeChange($select) {
             initTelInput($input, true);
         }
     });
+}
+
+const replacements = {
+    '@numordrelivraison': 'L-123456789',
+    '@numordrepreparation': 'P-123456789',
+    '@numordrecollecte': 'C-123456789',
+    '@numordretransfert': 'T-123456789',
+    '@numacheminement': 'A-123456789',
+    '@numservice': 'S-123456789',
+    '@typelivraison': 'Type-L',
+    '@typeacheminement': 'Type-A',
+    '@typeservice': 'Type-S',
+    '@statut': 'Statut-1',
+    '@objet': 'Objet-1',
+    '@typecollecte': 'Type-C',
+    '@pointdecollecte': 'EMPLACEMENT-C',
+    '@origine': 'EMPLACEMENT-O',
+    '@destination': 'EMPLACEMENT-D',
+    '@demandeur': 'Demandeur-1',
+    '@datevalidation': '05/01/2021 14:01:02',
+    '@datecreation': '05/01/2021 14:01:02',
+    '@empprise': 'EMPLACEMENT-P',
+    '@empdepose': 'EMPLACEMENT-D',
+    '@dateecheance': '05/01/2021 au 06/01/2021',
+    '@numcommande': '123456789',
+    '@nbcolis': '5',
+    '@chargement': 'Chargement 1',
+    '@dechargement': 'Déchargement 1',
+    '@dateattendue': '05/01/2021 14:01:02',
+    '@nboperations': '50',
+}
+
+function replaceProperExamples($content, $example) {
+    let content = $content.val();
+    content = content.replace(/\n/g, ` <br>`);
+    content = content.split(' ').map((word) => replacements[word] || word).join(' ');
+    $example.html(content)
 }

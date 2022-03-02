@@ -34,7 +34,6 @@ class NotificationTemplateRepository extends EntityRepository
                 if (!empty($search)) {
                     $exprBuilder = $qb->expr();
                     $qb->andWhere($exprBuilder->orX(
-                        'notification_template.name LIKE :value',
                         'notification_template.type LIKE :value',
                     ))->setParameter('value', '%' . $search . '%');
                 }

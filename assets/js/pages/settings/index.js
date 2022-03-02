@@ -8,7 +8,7 @@ import {initializeStockArticlesTypesFreeFields, createFreeFieldsPage, initialize
 import {initializeRolesPage} from "./users/roles";
 import {createManagementPage} from "./utils";
 import {initializeRequestTemplates} from "./request-template";
-import {initializeAlertTemplate} from "./alert-template";
+import {initializeAlertTemplate, initializeNotifications} from "./alert-template";
 import {initializeArrivalDisputeStatuses, initializeReceptionDisputeStatuses, initializePurchaseRequestStatuses} from "./statuses";
 
 global.triggerReminderEmails = triggerReminderEmails;
@@ -40,6 +40,7 @@ const initializers = {
     trace_mouvements_champs_libres: initializeTraceMovementsFreeFields,
     trace_services_modeles_demande: initializeRequestTemplates,
     notifications_alertes: initializeAlertTemplate,
+    notifications_notifications_push: initializeNotifications,
     iot_types_champs_libres: initializeIotFreeFields,
     donnees_imports: initializeImports,
     stock_receptions_champs_fixes_receptions: initializeReceptionFixedFields,

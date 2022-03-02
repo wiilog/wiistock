@@ -1,0 +1,44 @@
+{% set template = template is defined and template ? template : '' %}
+{% set config = config is defined and config is not empty ? config : [] %}
+<div class="col-4 form-group">
+    <label>Destinataires*</label>
+    <select class="form-control data w-100 needed" data-s2 data-editable multiple name="receivers">
+        {% if config['receivers'] is defined %}
+            {% set receivers = config['receivers']|split(',') %}
+            {% for receiver in receivers %}
+                <option value="{{ receiver }}" selected>{{ receiver }}</option>
+            {% endfor %}
+        {% endif %}
+    </select>
+</div>
+
+<div class="col-4 form-group">
+    <label>Objet*</label>
+    <input type="text" class="form-control data needed" name="subject" value="{{ config ? config['subject'] }}"/>
+</div>
+
+{% set image = config and config['image'] is defined ? config['image'] : '' %}
+<div class="col-12 d-flex align-items-center mt-4">
+    <label class="col-2 pl-0">Image de début d'email</label>
+    <img src="{{ image ? app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ image : '' }}"
+         id="preview-mail-image" alt="Logo choisi" height="50px" class="{{ image ? '' : 'd-none' }} mr-2"/>
+
+    <button class="btn btn-primary" onclick="$('#upload-mail-image').click();">
+        <i class='fas fa-pencil-alt'></i>
+    </button>
+
+    <input type="file" name="image" class="data-file" id="upload-mail-image" accept="image/png, image/jpeg, image/jpg" hidden>
+</div>
+
+<div class="col-8 form-group mt-3">
+    <label class="mb-2">Corps de l'email*</label>
+    <div class="editor-container data" name='content' data-wysiwyg>{{ config ? config['content']|raw }}</div>
+</div>
+
+<div class="col-4">
+    {% include 'variables_dictionary.html.twig' with {dictionary: 'ALERT_DICTIONARY'} %}
+</div>
+
+<script>
+    $('#upload-mail-image').on('change', () => updateImagePreview('#preview-mail-image', '#upload-mail-image'));
+</script>
