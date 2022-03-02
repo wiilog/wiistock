@@ -19,6 +19,7 @@ use App\Entity\MailerServer;
 use App\Entity\Menu;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\Translation;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -305,7 +306,7 @@ class SettingsController extends AbstractController {
             "menus" => [
                 self::MENU_LANGUAGES => [
                     "label" => "Langues",
-                    "route" => "settings_language",
+                    "save" => false,
                 ],
                 self::MENU_USERS => [
                     "label" => "Utilisateurs",
@@ -432,8 +433,13 @@ class SettingsController extends AbstractController {
      * @Route("/utilisateurs/langues", name="settings_language")
      * @HasPermission({Menu::PARAM, Action::SETTINGS_USERS})
      */
-    public function language(): Response {
-        return $this->render("settings/utilisateurs/langues.html.twig");
+    public function language(EntityManagerInterface $manager): Response {
+        $translationRepository = $manager->getRepository(Translation::class);
+
+        return $this->render("settings/utilisateurs/langues.html.twig", [
+            'translations' => $translationRepository->findAll(),
+            'menusTranslations' => array_column($translationRepository->getMenus(), '1')
+        ]);
     }
 
     /**
@@ -498,6 +504,7 @@ class SettingsController extends AbstractController {
         $frequencyRepository = $this->manager->getRepository(InventoryFrequency::class);
         $fixedFieldRepository = $this->manager->getRepository(FieldsParam::class);
         $requestTemplateRepository = $this->manager->getRepository(RequestTemplate::class);
+        $translationRepository = $this->manager->getRepository(Translation::class);
 
         return [
             self::CATEGORY_GLOBAL => [
@@ -746,6 +753,10 @@ class SettingsController extends AbstractController {
             self::CATEGORY_USERS => [
                 self::MENU_USERS => fn() => [
                     "newUser" => new Utilisateur(),
+                ],
+                self::MENU_LANGUAGES => fn() => [
+                    'translations' => $translationRepository->findAll(),
+                    'menusTranslations' => array_column($translationRepository->getMenus(), '1')
                 ],
             ],
         ];
