@@ -4,16 +4,22 @@ import Flash, {INFO} from '../../flash';
 import {LOADING_CLASS} from "../../loading";
 import {initUserPage} from "./users/users";
 import {initializeImports} from "./data/imports.js";
-import {initializeStockArticlesTypesFreeFields, createFreeFieldsPage, initializeTraceMovementsFreeFields, initializeIotFreeFields} from "./free-fields";
 import {initializeRolesPage} from "./users/roles";
 import {createManagementPage} from "./utils";
 import {initializeRequestTemplates} from "./request-template";
+import {
+    initializeStockArticlesTypesFreeFields,
+    createFreeFieldsPage,
+    initializeTraceMovementsFreeFields,
+    initializeIotFreeFields
+} from "./free-fields";
 import {
     initializeArrivalDisputeStatuses,
     initializeReceptionDisputeStatuses,
     initializePurchaseRequestStatuses,
     initializeArrivalStatuses,
-    initializeDispatchStatuses
+    initializeDispatchStatuses,
+    initializeHandlingStatuses
 } from "./statuses";
 
 global.triggerReminderEmails = triggerReminderEmails;
@@ -57,6 +63,7 @@ const initializers = {
     utilisateurs_utilisateurs: initUserPage,
     trace_arrivages_statuts_litiges: initializeArrivalDisputeStatuses,
     trace_acheminements_statuts: initializeDispatchStatuses,
+    trace_services_statuts: initializeHandlingStatuses,
     stock_receptions_statuts_litiges: initializeReceptionDisputeStatuses,
     utilisateurs_roles: initializeRolesPage,
     stock_receptions_types_litiges: initializeTypesLitige,

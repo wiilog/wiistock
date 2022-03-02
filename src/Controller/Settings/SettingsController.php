@@ -231,7 +231,7 @@ class SettingsController extends AbstractController {
                 self::MENU_HANDLINGS => [
                     "label" => "Services",
                     "menus" => [
-                        self::MENU_STATUSES => ["label" => "Statuts"],
+                        self::MENU_STATUSES => ["label" => "Statuts", "wrapped" => false],
                         self::MENU_FIXED_FIELDS => [
                             "label" => "Champs fixes",
                             "save" => true,
@@ -726,6 +726,20 @@ class SettingsController extends AbstractController {
                     self::MENU_REQUEST_TEMPLATES => function() use ($requestTemplateRepository, $typeRepository) {
                         return $this->getRequestTemplates($typeRepository, $requestTemplateRepository, Type::LABEL_HANDLING);
                     },
+                    self::MENU_STATUSES => fn() => [
+                        'types' => $this->typeGenerator(CategoryType::DEMANDE_HANDLING, false),
+                        'categoryType' => CategoryType::DEMANDE_HANDLING,
+                        'optionsSelect' => Stream::from(
+                            [['empty' => true]],
+                            $this->statusService->getStatusStatesValues(StatusController::MODE_HANDLING)
+                        )
+                            ->map(fn(array $state) => (
+                            ($state['empty'] ?? false)
+                                ? "<option/>"
+                                : "<option value='{$state['id']}'>{$state['label']}</option>"
+                            ))
+                            ->join(''),
+                    ],
                 ],
                 self::MENU_MOVEMENTS => [
                     self::MENU_FREE_FIELDS => fn() => [
