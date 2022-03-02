@@ -31,7 +31,7 @@ class FormatHelper {
         4 => "Thursday",
         5 => "Friday",
         6 => "Saturday",
-        0 => "Sunday",
+        7 => "Sunday",
     ];
 
     public const WEEK_DAYS = [
@@ -41,7 +41,7 @@ class FormatHelper {
         4 => "Jeudi",
         5 => "Vendredi",
         6 => "Samedi",
-        0 => "Dimanche",
+        7 => "Dimanche",
     ];
 
     public const MONTHS = [

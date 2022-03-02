@@ -32,7 +32,6 @@ let submenu = $(`input#submenu`).val();
 let currentForm = null;
 const forms = {};
 
-let editing = false;
 
 //keys are from url with / replaced by _
 //http://wiistock/parametrage/afficher/stock/receptions/champs_fixes_receptions => stock_receptions_champs_fixes_receptions
@@ -95,13 +94,16 @@ $(function() {
     updateMenu(submenu || menu, canEdit);
 
     $(`.settings-item`).on(`click`, function() {
-        if (!editing || (editing && window.confirm("Vous avez des modifications en attente, souhaitez vous continuer ?"))) {
+        const editing = $(`.settings-content`).find(`.dataTables_wrapper`).is('.current-editing');
+        if (!editing || (editing && window.confirm("Vous avez des modifications en attente, souhaitez-vous continuer ?"))) {
             const selectedMenu = $(this).data(`menu`);
-
             $(`.settings-item.selected`).removeClass(`selected`);
             $(this).addClass(`selected`);
             updateMenu(selectedMenu, canEdit);
-            editing = false;
+
+            if(editing) {
+                window.location.reload();
+            }
         }
     });
 
@@ -274,11 +276,9 @@ function initializeWorkingHours($container, canEdit) {
         save: SAVE_MANUALLY,
         needsPagingHide: true,
         onEditStart: () => {
-            editing = true;
             $managementButtons.removeClass('d-none')
         },
         onEditStop: () => {
-            editing = false;
             $managementButtons.addClass('d-none')
         },
         columns: [
