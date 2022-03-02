@@ -4,14 +4,14 @@ import Flash, {INFO} from '../../flash';
 import {LOADING_CLASS} from "../../loading";
 import {initUserPage} from "./users/users";
 import {initializeImports} from "./data/imports.js";
-import {initializeStockArticlesTypesFreeFields, createFreeFieldsPage, initializeTraceMovementsFreeFields, initializeIotFreeFields, initializeReceptionsFreeFields} from "./free-fields";
 import {initializeRolesPage} from "./users/roles";
 import {initializeRequestTemplates} from "./request-template";
 import {
     initializeStockArticlesTypesFreeFields,
     createFreeFieldsPage,
     initializeTraceMovementsFreeFields,
-    initializeIotFreeFields
+    initializeIotFreeFields,
+    initializeReceptionsFreeFields,
 } from "./free-fields";
 import {
     initializeArrivalDisputeStatuses,

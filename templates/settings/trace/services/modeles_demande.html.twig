@@ -9,6 +9,11 @@
 {% block filterCol 'col-lg-3 col-12' %}
 {% block filterColButton 'col-lg-auto col-12' %}
 
+{% block description %}
+    En lien avec les IOT, les modèles de demande permettent de venir se brancher sur un bouton connecté et ainsi de créer automatiquement une demande
+    à l'appui sur un bouton.
+{% endblock %}
+
 {% block filters %}
     {{ form.select('entity', 'Modèle de la demande', false, {
         labelClass: 'wii-field-name',

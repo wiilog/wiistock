@@ -5,6 +5,12 @@
         <div class="header wii-title">{% block title %}{% endblock %}</div>
         <div class="focus-shadow p-3">
             <div class="row">
+                {% set description = block('description') ?? '' %}
+                {% if description is not empty %}
+                    <div class="col-12 wii-describe mb-3">
+                        {{ description | raw }}
+                    </div>
+                {% endif %}
                 <div class="{{ block('filterCol') is defined ? block('filterCol') : 'col' }}">{% block filters %}{% endblock %}</div>
                 <div class="ml-auto {{ block('filterColButton') is defined ? block('filterColButton') : 'col-auto' }}">
                     {% block button %}{% endblock %}

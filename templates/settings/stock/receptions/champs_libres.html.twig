@@ -1,6 +1,13 @@
 {% import 'form.html.twig' as form %}
 
 <div class="wii-section">
+    <div class="row">
+        <div class="col-12 mb-3 wii-describe">
+            Contrairement aux champs libres, les champs fixes ne peuvent ni être supprimés, ni ajoutés.
+            Vous pouvez paramétrer leur visibilité ou leur caractère obligatoire.
+        </div>
+    </div>
+
     <table id="table-reception-free-fields" data-table-processing="freeFields" data-type="{{ type.id }}" data-category="{{ constant('App\\Entity\\CategoryType::RECEPTION') }}"></table>
 
     <input type="hidden" name="default-value-template" value="{{ form.switch('defaultValue', null, false, [

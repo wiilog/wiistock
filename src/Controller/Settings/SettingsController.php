@@ -362,7 +362,7 @@ class SettingsController extends AbstractController {
     private const MENU_CLIENT = "client";
     private const MENU_OFF_DAYS = "jours_non_travailles";
     private const MENU_LABELS = "etiquettes";
-    private const MENU_MAIL_SERVER = "serveur_mail";
+    private const MENU_MAIL_SERVER = "serveur_email";
 
     private const MENU_CONFIGURATIONS = "configurations";
     private const MENU_VISIBILITY_GROUPS = "groupes_visibilite";
