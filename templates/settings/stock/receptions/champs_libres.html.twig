@@ -1,7 +1,7 @@
 {% import 'form.html.twig' as form %}
 
 <div class="wii-section">
-    <table id="table-movement-free-fields" data-table-processing="freeFields" data-type="{{ type.id }}" data-category="{{ constant('App\\Entity\\CategoryType::MOUVEMENT_TRACA') }}"></table>
+    <table id="table-reception-free-fields" data-table-processing="freeFields" data-type="{{ type.id }}" data-category="{{ constant('App\\Entity\\CategoryType::RECEPTION') }}"></table>
 
     <input type="hidden" name="default-value-template" value="{{ form.switch('defaultValue', null, false, [
         {label: 'Oui', value: '1'},

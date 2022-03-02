@@ -150,12 +150,13 @@ function applyState(datatable, state, params, rowIndex) {
     const $requiredMarks = $datatableWrapper.find('.required-mark');
 
     if (state !== STATE_VIEWING) {
+        $requiredMarks.removeClass('d-none');
+        $datatablePaging.addClass('d-none');
+        $datatableWrapper.addClass(`current-editing`);
+
         if (config.onEditStart) {
             config.onEditStart();
         }
-
-        $requiredMarks.removeClass('d-none');
-        $datatablePaging.addClass('d-none');
 
         if (rowIndex !== undefined) {
             $datatableWrapper
@@ -165,12 +166,13 @@ function applyState(datatable, state, params, rowIndex) {
                 .focus();
         }
     } else {
+        $requiredMarks.addClass('d-none');
+        $datatablePaging.removeClass('d-none');
+        $datatableWrapper.removeClass(`current-editing`);
+
         if (config.onEditStop) {
             config.onEditStop(params);
         }
-
-        $requiredMarks.addClass('d-none');
-        $datatablePaging.removeClass('d-none');
     }
 
 }

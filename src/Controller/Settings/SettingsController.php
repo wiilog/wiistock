@@ -20,6 +20,7 @@ use App\Entity\MailerServer;
 use App\Entity\Menu;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\Translation;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -28,16 +29,20 @@ use App\Helper\FormatHelper;
 use App\Repository\IOT\AlertTemplateRepository;
 use App\Repository\IOT\RequestTemplateRepository;
 use App\Repository\TypeRepository;
+use App\Service\CacheService;
 use App\Service\SettingsService;
 use App\Service\SpecificService;
 use App\Service\StatusService;
+use App\Service\TranslationService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
@@ -154,7 +159,7 @@ class SettingsController extends AbstractController {
                             "label" => "Réceptions - Champs fixes",
                             "save" => true,
                         ],
-                        self::MENU_RECEPTIONS_FREE_FIELDS => ["label" => "Réceptions - Champs libres"],
+                        self::MENU_FREE_FIELDS => ["label" => "Réceptions - Champs libres"],
                         self::MENU_DISPUTE_STATUSES => ["label" => "Litiges - Statuts"],
                         self::MENU_DISPUTE_TYPES => [
                             "label" => "Litiges - Types",
@@ -306,8 +311,8 @@ class SettingsController extends AbstractController {
             "right" => Action::SETTINGS_USERS,
             "menus" => [
                 self::MENU_LANGUAGES => [
-                    "label" => "Langues",
-                    "route" => "settings_language",
+                    "label" => "Personnalisation des libellés",
+                    "save" => false,
                 ],
                 self::MENU_USERS => [
                     "label" => "Utilisateurs",
@@ -434,8 +439,13 @@ class SettingsController extends AbstractController {
      * @Route("/utilisateurs/langues", name="settings_language")
      * @HasPermission({Menu::PARAM, Action::SETTINGS_USERS})
      */
-    public function language(): Response {
-        return $this->render("settings/utilisateurs/langues.html.twig");
+    public function language(EntityManagerInterface $manager): Response {
+        $translationRepository = $manager->getRepository(Translation::class);
+
+        return $this->render("settings/utilisateurs/langues.html.twig", [
+            'translations' => $translationRepository->findAll(),
+            'menusTranslations' => array_column($translationRepository->getMenus(), '1')
+        ]);
     }
 
     /**
@@ -501,6 +511,7 @@ class SettingsController extends AbstractController {
         $fixedFieldRepository = $this->manager->getRepository(FieldsParam::class);
         $requestTemplateRepository = $this->manager->getRepository(RequestTemplate::class);
         $alertTemplateRepository = $this->manager->getRepository(AlertTemplate::class);
+        $translationRepository = $this->manager->getRepository(Translation::class);
 
         return [
             self::CATEGORY_GLOBAL => [
@@ -589,13 +600,15 @@ class SettingsController extends AbstractController {
                         'optionsSelect' => Stream::from(
                             [['empty' => true]],
                             $this->statusService->getStatusStatesValues(StatusController::MODE_RECEPTION_DISPUTE)
-                        )
-                            ->map(fn(array $state) => (
-                                ($state['empty'] ?? false)
-                                    ? '<option/>'
-                                    : "<option value='{$state['id']}'>{$state['label']}</option>"
-                            ))
-                            ->join(''),
+                        )->map(fn(array $state) => (
+                            ($state['empty'] ?? false)
+                                ? '<option/>'
+                                : "<option value='{$state['id']}'>{$state['label']}</option>"
+                            )
+                        )->join(''),
+                    ],
+                    self::MENU_FREE_FIELDS => fn() => [
+                        "type" => $typeRepository->findOneByLabel(Type::LABEL_RECEPTION),
                     ],
                 ]
             ],
@@ -782,6 +795,10 @@ class SettingsController extends AbstractController {
             self::CATEGORY_USERS => [
                 self::MENU_USERS => fn() => [
                     "newUser" => new Utilisateur(),
+                ],
+                self::MENU_LANGUAGES => fn() => [
+                    'translations' => $translationRepository->findAll(),
+                    'menusTranslations' => array_column($translationRepository->getMenus(), '1')
                 ],
             ],
         ];
@@ -1229,7 +1246,7 @@ class SettingsController extends AbstractController {
             }
         }
 
-        if($edit || ($type && $type->getCategory()->getLabel() === CategoryType::MOUVEMENT_TRACA) || ($type && $type->getCategory()->getLabel() === CategoryType::SENSOR)) {
+        if ($edit || ($type && in_array($type->getCategory()->getLabel(), [CategoryType::MOUVEMENT_TRACA, CategoryType::SENSOR, CategoryType::RECEPTION]))) {
             $rows[] = [
                 "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
                 "label" => "",
@@ -1680,5 +1697,35 @@ class SettingsController extends AbstractController {
             "success" => true,
             "msg" => "Le groupe de visibilité a été supprimé",
         ]);
+    }
+
+    /**
+     * @Route("/personnalisation", name="save_translations", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     */
+    public function saveTranslations(Request $request,
+                                     EntityManagerInterface $entityManager,
+                                     TranslationService $translationService,
+                                     CacheService $cacheService): Response {
+        if($translations = json_decode($request->getContent(), true)) {
+            $translationRepository = $entityManager->getRepository(Translation::class);
+            foreach($translations as $translation) {
+                $translationObject = $translationRepository->find($translation['id']);
+                if($translationObject) {
+                    $translationObject
+                        ->setTranslation($translation['val'] ?: null)
+                        ->setUpdated(1);
+                } else {
+                    return new JsonResponse(false);
+                }
+            }
+            $entityManager->flush();
+
+            $cacheService->clear();
+            $translationService->generateTranslationsFile();
+            $translationService->cacheClearWarmUp();
+
+            return new JsonResponse(true);
+        }
+        throw new BadRequestHttpException();
     }
 }

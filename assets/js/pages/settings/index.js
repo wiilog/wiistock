@@ -4,6 +4,7 @@ import Flash, {INFO} from '../../flash';
 import {LOADING_CLASS} from "../../loading";
 import {initUserPage} from "./users/users";
 import {initializeImports} from "./data/imports.js";
+import {initializeStockArticlesTypesFreeFields, createFreeFieldsPage, initializeTraceMovementsFreeFields, initializeIotFreeFields, initializeReceptionsFreeFields} from "./free-fields";
 import {initializeRolesPage} from "./users/roles";
 import {initializeRequestTemplates} from "./request-template";
 import {
@@ -23,6 +24,7 @@ import {
 import {initializeAlertTemplate, initializeNotifications} from "./alert-template";
 
 global.triggerReminderEmails = triggerReminderEmails;
+global.saveTranslations = saveTranslations;
 
 const index = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();
@@ -32,7 +34,6 @@ let submenu = $(`input#submenu`).val();
 let currentForm = null;
 const forms = {};
 
-let editing = false;
 
 //keys are from url with / replaced by _
 //http://wiistock/parametrage/afficher/stock/receptions/champs_fixes_receptions => stock_receptions_champs_fixes_receptions
@@ -49,6 +50,7 @@ const initializers = {
     trace_arrivages_types_champs_libres: createFreeFieldsPage,
     trace_services_types_champs_libres: createFreeFieldsPage,
     trace_mouvements_champs_libres: initializeTraceMovementsFreeFields,
+    stock_receptions_champs_libres: initializeReceptionsFreeFields,
     trace_services_modeles_demande: initializeRequestTemplates,
     notifications_alertes: initializeAlertTemplate,
     notifications_notifications_push: initializeNotifications,
@@ -95,13 +97,16 @@ $(function() {
     updateMenu(submenu || menu, canEdit);
 
     $(`.settings-item`).on(`click`, function() {
-        if (!editing || (editing && window.confirm("Vous avez des modifications en attente, souhaitez vous continuer ?"))) {
+        const editing = $(`.settings-content`).find(`.dataTables_wrapper`).is('.current-editing');
+        if (!editing || (editing && window.confirm("Vous avez des modifications en attente, souhaitez-vous continuer ?"))) {
             const selectedMenu = $(this).data(`menu`);
-
             $(`.settings-item.selected`).removeClass(`selected`);
             $(this).addClass(`selected`);
             updateMenu(selectedMenu, canEdit);
-            editing = false;
+
+            if(editing) {
+                window.location.reload();
+            }
         }
     });
 
@@ -122,6 +127,7 @@ $(function() {
                 if (datatable) {
                     const tableData = datatable.data();
                     tables[$(this).data(`table-processing`)] = tableData;
+                    tables[`category`] = $(this).data(`category`);
                     tablesToReload.push(datatable);
                     hasErrors = tableData.filter(row => !row).length > 0;
                 }
@@ -274,11 +280,9 @@ function initializeWorkingHours($container, canEdit) {
         save: SAVE_MANUALLY,
         needsPagingHide: true,
         onEditStart: () => {
-            editing = true;
             $managementButtons.removeClass('d-none')
         },
         onEditStop: () => {
-            editing = false;
             $managementButtons.addClass('d-none')
         },
         columns: [
@@ -755,4 +759,30 @@ function triggerReminderEmails($button) {
 
 function changePageTitle($title, add) {
     $title.text(add ? 'Ajouter des groupes de visibilité' : 'Groupe de visibilité');
+}
+
+function saveTranslations($button) {
+    $button.pushLoader(`white`);
+    let $inputs = $('#translation').find('.translate');
+    let data = [];
+    $inputs.each(function () {
+        let name = $(this).attr('name');
+        let val = $(this).val();
+        data.push({id: name, val: val});
+    });
+
+    let path = Routing.generate('save_translations');
+    const $spinner = $('#spinnerSaveTranslations');
+    showBSAlert('Mise à jour de votre personnalisation des libellés : merci de patienter.', 'success', false);
+    loadSpinner($spinner);
+    $.post(path, JSON.stringify(data), (resp) => {
+        $button.popLoader();
+        $('html,body').animate({scrollTop: 0});
+        if (resp) {
+            location.reload();
+        } else {
+            hideSpinner($spinner);
+            showBSAlert('Une erreur est survenue lors de la personnalisation des libellés.', 'danger');
+        }
+    });
 }
