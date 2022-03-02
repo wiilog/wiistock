@@ -1,33 +1,35 @@
-{% set required = required is defined and required %}
-{% set editAttachments = editAttachments is not defined or editAttachments %}
-{% set fieldNameClass = fieldNameClass is defined and fieldNameClass ? fieldNameClass : '' %}
-<input type="hidden" name="isAttachmentForm" value="1"/>
-<input type="hidden" name="isFileNeeded" value="{{ required ? 1 : 0 }}"/>
+<div class="{{ bigger is defined ? bigger }}">
+    {% set required = required is defined and required %}
+    {% set editAttachments = editAttachments is not defined or editAttachments %}
+    {% set fieldNameClass = fieldNameClass is defined and fieldNameClass ? fieldNameClass : '' %}
+    <input type="hidden" name="isAttachmentForm" value="1"/>
+    <input type="hidden" name="isFileNeeded" value="{{ required ? 1 : 0 }}"/>
 
-<label for="dropfile" class="{{ fieldNameClass }}">Pièces jointes{{ required ? '*' }}</label>
-{% if editAttachments %}
-    <div class="dropFrame justify-content-md-center"
-         data-arrivage-id="{{ arrivage is defined ? arrivage.id : '' }}"
-         data-litige-id="{{ dispute is defined ? dispute.id : '' }}"
-         ondragenter="dragEnterDiv(event, $(this))"
-         ondragover="dragOverDiv(event, $(this))"
-         ondragleave="dragLeaveDiv(event, $(this))"
-         ondrop="saveDroppedFiles(event, $(this))">
-        {% set text = text is not defined ? 'Faites glisser vos pièces jointes' : text %}
-        <p>Faites glisser vos pièces jointes ou <span onclick="openFileExplorer($(this))" class="click-here"><i class="fa fa-folder-open"></i> Parcourir vos fichiers</span>
-            <input type="file" name="files[]" {{ (unique is not defined) or (not unique) ? 'multiple' }} class="d-none fileInput"
-                   onchange="saveInputFiles($(this))">
-        </p>
-    </div>
-{% endif %}
-<div class="file-bag" {% if icon is defined %}data-icon="{{ icon }}"{% endif %}></div>
+    <label for="dropfile" class="{{ fieldNameClass }}">Pièces jointes{{ required ? '*' }}</label>
+    {% if editAttachments %}
+        <div class="dropFrame justify-content-md-center"
+             data-arrivage-id="{{ arrivage is defined ? arrivage.id : '' }}"
+             data-litige-id="{{ dispute is defined ? dispute.id : '' }}"
+             ondragenter="dragEnterDiv(event, $(this))"
+             ondragover="dragOverDiv(event, $(this))"
+             ondragleave="dragLeaveDiv(event, $(this))"
+             ondrop="saveDroppedFiles(event, $(this))">
+            {% set text = text is not defined ? 'Faites glisser vos pièces jointes' : text %}
+            <p>Faites glisser vos pièces jointes ou <span onclick="openFileExplorer($(this))" class="click-here"><i class="fa fa-folder-open"></i> Parcourir vos fichiers</span>
+                <input type="file" name="files[]" {{ (unique is not defined) or (not unique) ? 'multiple' }} class="d-none fileInput"
+                       onchange="saveInputFiles($(this))">
+            </p>
+        </div>
+    {% endif %}
+    <div class="file-bag" {% if icon is defined %}data-icon="{{ icon }}"{% endif %}></div>
 
-{% if isNew != true %}
-    {% for attachment in attachments %}
-        {% include 'attachment/attachmentLine.html.twig' with {
-            attachment: attachment,
-            canRemove: editAttachments,
-            icon: icon ?? null,
-        } %}
-    {% endfor %}
-{% endif %}
+    {% if isNew != true %}
+        {% for attachment in attachments %}
+            {% include 'attachment/attachmentLine.html.twig' with {
+                attachment: attachment,
+                canRemove: editAttachments,
+                icon: icon ?? null,
+            } %}
+        {% endfor %}
+    {% endif %}
+</div>

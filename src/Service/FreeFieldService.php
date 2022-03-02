@@ -73,9 +73,12 @@ class FreeFieldService {
                 }
                 else {
                     $decoded = json_decode($value, true);
-                    $value = json_last_error() !== JSON_ERROR_NONE
+                    if (json_last_error() !== JSON_ERROR_NONE) {
+                        $decoded = explode(',', $value);
+                    }
+                    $value = !$decoded
                         ? $value
-                        : implode(';', $decoded ?: []);
+                        : implode(';', $decoded);
                 }
                 break;
 

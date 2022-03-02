@@ -62,7 +62,6 @@ export default class Form {
 
         eachInputs(form, config, ($input, value) => {
             treatInputError($input, errors, form);
-
             if (value !== null) {
                 const $multipleKey = $input.closest(`[data-multiple-key]`);
                 if ($multipleKey.exists()) {
@@ -82,7 +81,7 @@ export default class Form {
 
         const $form = getFormElement(form);
         Form.addDataArray($form, data, config.classes);
-
+        processFiles($form, data);
         if(config.button && config.button.attr(`name`)) {
             data.append(config.button.attr(`name`), config.button.val());
         }
@@ -194,8 +193,7 @@ function ignoreInput($input, config) {
 function eachInputs(form, config, callback) {
     const classes = config.classes;
     const $form = getFormElement(form);
-    const $inputs = $form.find(`select.${classes.data}, input.${classes.data}, input[data-repeat], textarea.${classes.data}, .data[data-wysiwyg]`);
-
+    const $inputs = $form.find(`.fileInput, .wii-switch, .wii-switch-no-style, select.${classes.data}, input.${classes.data}, input[data-repeat], textarea.${classes.data}, .data[data-wysiwyg]`);
     for(const input of $inputs) {
         let $input = $(input);
 
@@ -311,6 +309,35 @@ function formatInputValue($input) {
 
 function getFormElement(form) {
     return form instanceof Form ? form.element : form;
+}
+
+function processFiles($form, data) {
+    $.each(droppedFiles, function(index, file) {
+        data.set(`file${index}`, file);
+    });
+
+    const $savedFiles = $form.find('.data[name="savedFiles[]"]');
+    if ($savedFiles.length > 0) {
+        $savedFiles.each(function (index, field) {
+            data.set(`files[${index}]`, $(field).val());
+        });
+    }
+
+    const $dataFiles = $form.find('.data-file');
+    if ($dataFiles.length > 0) {
+        $dataFiles.each(function (index, field) {
+            const $field = $(field);
+            const files = $field[0].files;
+            const fieldName = $field.attr('name');
+            if(!$field.is('[multiple]')) {
+                data.set(fieldName, files[0]);
+            } else {
+                for(let fileIndex = 0; fileIndex < files.length; fileIndex++) {
+                    data.set(`${fieldName}[${fileIndex}]`, files[fileIndex]);
+                }
+            }
+        });
+    }
 }
 
 function clearFormError(form) {
