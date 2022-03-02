@@ -31,6 +31,8 @@ class StatusController extends AbstractController
     const MODE_RECEPTION_DISPUTE = 'reception-dispute';
     const MODE_PURCHASE_REQUEST = 'purchase-request';
     const MODE_ARRIVAL = 'arrival';
+    const MODE_DISPATCH= 'dispatch';
+    const MODE_HANDLING= 'handling';
 
     /**
      * @Route("/statuses-api", name="settings_statuses_api", options={"expose"=true})
@@ -48,7 +50,9 @@ class StatusController extends AbstractController
             self::MODE_ARRIVAL_DISPUTE,
             self::MODE_RECEPTION_DISPUTE,
             self::MODE_PURCHASE_REQUEST,
-            self::MODE_ARRIVAL
+            self::MODE_ARRIVAL,
+            self::MODE_DISPATCH,
+            self::MODE_HANDLING
         ];
 
         if (!in_array($mode, $availableMode)) {
@@ -56,7 +60,7 @@ class StatusController extends AbstractController
         }
 
         $hasAccess = match($mode) {
-            self::MODE_ARRIVAL_DISPUTE, self::MODE_ARRIVAL => $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_TRACKING),
+            self::MODE_ARRIVAL_DISPUTE, self::MODE_ARRIVAL, self::MODE_DISPATCH, self::MODE_HANDLING => $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_TRACKING),
             self::MODE_RECEPTION_DISPUTE, self::MODE_PURCHASE_REQUEST => $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_STOCK)
         };
 
@@ -76,6 +80,8 @@ class StatusController extends AbstractController
             self::MODE_RECEPTION_DISPUTE => CategorieStatut::LITIGE_RECEPT,
             self::MODE_PURCHASE_REQUEST => CategorieStatut::PURCHASE_REQUEST,
             self::MODE_ARRIVAL => CategorieStatut::ARRIVAGE,
+            self::MODE_DISPATCH => CategorieStatut::DISPATCH,
+            self::MODE_HANDLING => CategorieStatut::HANDLING
         };
 
         $type = $typeId ? $typeRepository->find($typeId) : null;

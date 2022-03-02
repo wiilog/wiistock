@@ -174,7 +174,7 @@ class SettingsController extends AbstractController {
                             "label" => "Configurations",
                             "save" => true,
                         ],
-                        self::MENU_STATUSES => ["label" => "Statuts"],
+                        self::MENU_STATUSES => ["label" => "Statuts", "wrapped" => false],
                         self::MENU_FIXED_FIELDS => [
                             "label" => "Champs fixes",
                             "save" => true,
@@ -231,7 +231,7 @@ class SettingsController extends AbstractController {
                 self::MENU_HANDLINGS => [
                     "label" => "Services",
                     "menus" => [
-                        self::MENU_STATUSES => ["label" => "Statuts"],
+                        self::MENU_STATUSES => ["label" => "Statuts", "wrapped" => false],
                         self::MENU_FIXED_FIELDS => [
                             "label" => "Champs fixes",
                             "save" => true,
@@ -640,7 +640,21 @@ class SettingsController extends AbstractController {
                     },
                     self::MENU_TYPES_FREE_FIELDS => fn() => [
                         'types' => $this->typeGenerator(CategoryType::DEMANDE_DISPATCH),
-                    ]
+                    ],
+                    self::MENU_STATUSES => fn() => [
+                        'types' => $this->typeGenerator(CategoryType::DEMANDE_DISPATCH, false),
+                        'categoryType' => CategoryType::DEMANDE_DISPATCH,
+                        'optionsSelect' => Stream::from(
+                            [['empty' => true]],
+                            $this->statusService->getStatusStatesValues(StatusController::MODE_DISPATCH)
+                        )
+                            ->map(fn(array $state) => (
+                            ($state['empty'] ?? false)
+                                ? "<option/>"
+                                : "<option value='{$state['id']}'>{$state['label']}</option>"
+                            ))
+                            ->join(''),
+                    ],
                 ],
                 self::MENU_ARRIVALS => [
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
@@ -712,6 +726,20 @@ class SettingsController extends AbstractController {
                     self::MENU_REQUEST_TEMPLATES => function() use ($requestTemplateRepository, $typeRepository) {
                         return $this->getRequestTemplates($typeRepository, $requestTemplateRepository, Type::LABEL_HANDLING);
                     },
+                    self::MENU_STATUSES => fn() => [
+                        'types' => $this->typeGenerator(CategoryType::DEMANDE_HANDLING, false),
+                        'categoryType' => CategoryType::DEMANDE_HANDLING,
+                        'optionsSelect' => Stream::from(
+                            [['empty' => true]],
+                            $this->statusService->getStatusStatesValues(StatusController::MODE_HANDLING)
+                        )
+                            ->map(fn(array $state) => (
+                            ($state['empty'] ?? false)
+                                ? "<option/>"
+                                : "<option value='{$state['id']}'>{$state['label']}</option>"
+                            ))
+                            ->join(''),
+                    ],
                 ],
                 self::MENU_MOVEMENTS => [
                     self::MENU_FREE_FIELDS => fn() => [

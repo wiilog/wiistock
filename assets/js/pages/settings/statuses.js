@@ -4,31 +4,10 @@ const MODE_ARRIVAL_DISPUTE = 'arrival-dispute';
 const MODE_RECEPTION_DISPUTE = 'reception-dispute';
 const MODE_PURCHASE_REQUEST = 'purchase-request';
 const MODE_ARRIVAL = 'arrival';
+const MODE_DISPATCH = 'dispatch';
+const MODE_HANDLING = 'handling';
 
 const $managementButtons = $(`.save-settings, .discard-settings`);
-
-export function initializeArrivalStatuses($container, canEdit) {
-    const mode = MODE_ARRIVAL;
-    const categoryType = $container.find('[name=category-type]').val();
-    const table = initializeStatuses($container, canEdit, mode, categoryType);
-    const $typeFilters = $container.find('[name=type]');
-    const $addButton = $container.find('.add-row-button');
-
-    $typeFilters
-        .off('change')
-        .on('change', function() {
-            const $type = $(this);
-            const type = $type.val();
-            const url = Routing.generate(`settings_statuses_api`, {mode, type})
-            table.setURL(url);
-        });
-
-    $addButton
-        .off('click')
-        .on('click', function() {
-            table.addRow(true);
-        });
-}
 
 export function initializeArrivalDisputeStatuses($container, canEdit) {
     initializeStatuses($container, canEdit, MODE_ARRIVAL_DISPUTE);
@@ -40,6 +19,18 @@ export function initializeReceptionDisputeStatuses($container, canEdit) {
 
 export function initializePurchaseRequestStatuses($container, canEdit) {
     initializeStatuses($container, canEdit, MODE_PURCHASE_REQUEST);
+}
+
+export function initializeDispatchStatuses($container, canEdit) {
+    initializeStatusesByTypes($container, canEdit, MODE_DISPATCH)
+}
+
+export function initializeArrivalStatuses($container, canEdit) {
+    initializeStatusesByTypes($container, canEdit, MODE_ARRIVAL)
+}
+
+export function initializeHandlingStatuses($container, canEdit) {
+    initializeStatusesByTypes($container, canEdit, MODE_HANDLING)
 }
 
 function initializeStatuses($container, canEdit, mode, categoryType) {
@@ -139,4 +130,26 @@ function getFormColumn(mode, statusStateOptions, categoryType){
         sendMailDest: `<div class='checkbox-container'><input type='checkbox' name='sendMailDest' class='form-control data'/></div>`,
         order: `<input type='number' name='order' min='1' class='form-control data needed' data-global-error="Ordre"/>`,
     };
+}
+
+function initializeStatusesByTypes($container, canEdit, mode) {
+    const categoryType = $container.find('[name=category-type]').val();
+    const table = initializeStatuses($container, canEdit, mode, categoryType);
+    const $typeFilters = $container.find('[name=type]');
+    const $addButton = $container.find('.add-row-button');
+
+    $typeFilters
+        .off('change')
+        .on('change', function() {
+            const $type = $(this);
+            const type = $type.val();
+            const url = Routing.generate(`settings_statuses_api`, {mode, type})
+            table.setURL(url);
+        });
+
+    $addButton
+        .off('click')
+        .on('click', function() {
+            table.addRow(true);
+        });
 }
