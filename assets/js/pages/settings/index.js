@@ -6,7 +6,6 @@ import {initUserPage} from "./users/users";
 import {initializeImports} from "./data/imports.js";
 import {initializeStockArticlesTypesFreeFields, createFreeFieldsPage, initializeTraceMovementsFreeFields, initializeIotFreeFields} from "./free-fields";
 import {initializeRolesPage} from "./users/roles";
-import {createManagementPage} from "./utils";
 import {initializeStockDeliveryTemplates} from "./request-template";
 import {
     initializeArrivalDisputeStatuses,
