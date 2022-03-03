@@ -4,7 +4,7 @@
 
 {% macro actionCheckbox(role, action) %}
     <div class="col-md-4 col-12 d-flex align-items-center my-1">
-        {{ form.checkbox('action-' ~ action.id, action.label, false, action in role.actions) }}
+        {{ form.checkbox('action-' ~ action.id, action.label | capitalize, false, action in role.actions) }}
     </div>
 {% endmacro %}
 
@@ -47,7 +47,7 @@
                                 'quantityType',
                                 'Ajout quantité',
                                 true,
-                                quantityTypeValues | map((value) => {label: value | format_helper('quantityTypeLabel'), value: value, checked: value == role.quantityType}),
+                                quantityTypeValues | reverse | map((value) => {label: value | format_helper('quantityTypeLabel'), value: value, checked: value == role.quantityType}),
                                 {labelClass: 'wii-field-name'}
                             ) }}
                         </div>

@@ -314,12 +314,12 @@ class SettingsController extends AbstractController {
                     "label" => "Personnalisation des libellés",
                     "save" => false,
                 ],
-                self::MENU_USERS => [
-                    "label" => "Utilisateurs",
-                    "save" => false,
-                ],
                 self::MENU_ROLES => [
                     "label" => "Rôles",
+                    "save" => false,
+                ],
+                self::MENU_USERS => [
+                    "label" => "Utilisateurs",
                     "save" => false,
                 ],
             ],

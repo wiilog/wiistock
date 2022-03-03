@@ -7,7 +7,6 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class MenusFixtures extends Fixture implements FixtureGroupInterface {
 
@@ -24,11 +23,18 @@ class MenusFixtures extends Fixture implements FixtureGroupInterface {
         Menu::NOMADE => null,
     ];
 
-    private $encoder;
-
-    public function __construct(UserPasswordEncoderInterface $encoder) {
-        $this->encoder = $encoder;
-    }
+    const ORDER = [
+        Menu::TRACA,
+        Menu::QUALI,
+        Menu::DEM,
+        Menu::ORDRE,
+        Menu::STOCK,
+        Menu::REFERENTIEL,
+        Menu::IOT,
+        Menu::NOMADE,
+        Menu::PARAM,
+        Menu::DASHBOARDS,
+    ];
 
     public function load(ObjectManager $manager) {
         $output = new ConsoleOutput();
@@ -45,6 +51,7 @@ class MenusFixtures extends Fixture implements FixtureGroupInterface {
 
             // force case update
             $menu->setLabel($label);
+            $menu->setSorting(array_search($label, self::ORDER));
             $menu->setTranslation($translation);
 
             $this->addReference("menu-$label", $menu);

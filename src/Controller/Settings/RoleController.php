@@ -81,7 +81,7 @@ class RoleController extends AbstractController {
         $menuRepository = $entityManager->getRepository(Menu::class);
         return $this->render('/settings/utilisateurs/roles/form.html.twig', [
             'role' => new Role(),
-            'menus' => $menuRepository->findAll(),
+            'menus' => $menuRepository->findBy([], ["sorting" => "ASC"]),
         ]);
     }
 
@@ -121,7 +121,7 @@ class RoleController extends AbstractController {
 
         return $this->render('/settings/utilisateurs/roles/form.html.twig', [
             'role' => $role,
-            'menus' => $menuRepository->findAll()
+            'menus' => $menuRepository->findBy([], ["sorting" => "ASC"]),
         ]);
     }
 

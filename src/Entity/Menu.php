@@ -40,6 +40,11 @@ class Menu {
     private ?string $translation = null;
 
     /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private ?int $sorting = null;
+
+    /**
      * @ORM\OneToMany(targetEntity=SubMenu::class, mappedBy="menu")
      */
     private Collection $subMenus;
@@ -74,6 +79,15 @@ class Menu {
 
     public function setTranslation(?string $translation): Menu {
         $this->translation = $translation;
+        return $this;
+    }
+
+    public function getSorting(): ?int {
+        return $this->sorting;
+    }
+
+    public function setSorting(?int $sorting): self {
+        $this->sorting = $sorting;
         return $this;
     }
 
