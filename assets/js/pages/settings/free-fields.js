@@ -49,7 +49,7 @@ function generateFreeFieldForm() {
 
 function generateFreeFieldColumns(appliesTo = false) {
     return [
-        {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+        {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false, width: `2%`},
         {data: `label`, title: `Libellé`, required: true},
         ...(appliesTo ? [{data: `appliesTo`, title: `S'applique à`}] : []),
         {data: `type`, title: `Typage`, required: true},
