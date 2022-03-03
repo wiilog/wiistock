@@ -109,6 +109,8 @@ class SelectController extends AbstractController {
         $alreadyDefinedTypes = [];
         if($request->query->has('alreadyDefinedTypes')) {
             $alreadyDefinedTypes = explode(";", $request->query->get('alreadyDefinedTypes'));
+        } else if($request->query->has('deliveryType')) {
+            $alreadyDefinedTypes = $request->query->get('deliveryType');
         }
 
         $allTypesOption = [];
@@ -119,7 +121,8 @@ class SelectController extends AbstractController {
             ]];
         }
 
-        $results = $manager->getRepository(Type::class)->getForSelect(
+        $typeRepository = $manager->getRepository(Type::class);
+        $results = $typeRepository->getForSelect(
             CategoryType::DEMANDE_LIVRAISON,
             $request->query->get("term"),
             ['alreadyDefinedTypes' => $alreadyDefinedTypes]
@@ -129,6 +132,7 @@ class SelectController extends AbstractController {
 
         return $this->json([
             "results" => $results,
+            "availableResults" => $typeRepository->countAvailableForSelect(CategoryType::DEMANDE_LIVRAISON, ['alreadyDefinedTypes' => $alreadyDefinedTypes]),
         ]);
     }
 

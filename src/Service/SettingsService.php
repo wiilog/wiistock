@@ -163,8 +163,7 @@ class SettingsService {
         ];
         foreach ($logosToSave as [$settingLabel, $default]) {
             $setting = $this->getSetting($settings, $settingLabel);
-            if (isset($setting)
-                && $this->saveDefaultImage($data, $request->files, $setting, $default)) {
+            if (isset($setting) && $this->saveDefaultImage($data, $request->files, $setting, $default)) {
                 $updated[] = $settingLabel;
             }
         }
@@ -183,18 +182,19 @@ class SettingsService {
             }
         }
 
-        if ($request->request->has("deliveryType")
-            && $request->request->has("deliveryRequestLocation")) {
-            $deliveryTypes = Stream::explode(',', $request->request->get("deliveryType", ''))
-                ->toArray();
-            $deliveryRequestLocations = Stream::explode(',', $request->request->get("deliveryRequestLocation", ''))
-                ->toArray();
+        if ($request->request->has("deliveryType") && $request->request->has("deliveryRequestLocation")) {
+            $deliveryTypes = explode(',', $request->request->get("deliveryType"));
+            $deliveryRequestLocations = explode(',', $request->request->get("deliveryRequestLocation"));
 
-            $setting = $this->getSetting($settings, Setting::DEFAULT_LOCATION_LIVRAISON);
+            $setting = $this->manager->getRepository(Setting::class)->findOneBy(["label" => Setting::DEFAULT_LOCATION_LIVRAISON]);
             $associatedTypesAndLocations = array_combine($deliveryTypes, $deliveryRequestLocations);
             $setting->setValue(json_encode($associatedTypesAndLocations));
 
-            $updated[] = Setting::DEFAULT_LOCATION_LIVRAISON;
+            $updated = array_merge($updated, [
+                Setting::DEFAULT_LOCATION_LIVRAISON,
+                "deliveryType",
+                "deliveryRequestLocation",
+            ]);
         }
     }
 

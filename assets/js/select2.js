@@ -92,7 +92,11 @@ export default class Select2 {
                                 };
                             } else {
                                 $search.removeClass(`is-invalid`);
-                                $element.attr("data-length", data.results.length);
+
+                                if(data.availableResults) {
+                                    $element.attr("data-length", data.availableResults);
+                                }
+
                                 return data;
                             }
                         }
