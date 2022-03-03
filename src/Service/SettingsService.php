@@ -143,7 +143,7 @@ class SettingsService {
      *
      * @param Setting[] $settings Existing settings
      */
-    private function saveCustom(Request $request, array $settings, array &$updated, array &$result): array {
+    private function saveCustom(Request $request, array $settings, array &$updated, array &$result): void {
         $data = $request->request;
 
         if($client = $data->get(Setting::APP_CLIENT)) {
@@ -224,7 +224,16 @@ class SettingsService {
             $this->alertTemplateService->updateAlertTemplate($request, $this->manager, $template);
         }
 
-        return $result;
+        if ($request->request->has("DISPATCH_OVERCONSUMPTION_BILL_TYPE") && $request->request->has("DISPATCH_OVERCONSUMPTION_BILL_STATUS")) {
+            $setting = $this->manager->getRepository(Setting::class)->findOneBy(["label" => Setting::DISPATCH_OVERCONSUMPTION_BILL_TYPE_AND_STATUS]);
+            $setting->setValue(
+                $request->request->get("DISPATCH_OVERCONSUMPTION_BILL_TYPE") . ";" .
+                $request->request->get("DISPATCH_OVERCONSUMPTION_BILL_STATUS")
+            );
+
+            $updated[] = "DISPATCH_OVERCONSUMPTION_BILL_TYPE";
+            $updated[] = "DISPATCH_OVERCONSUMPTION_BILL_STATUS";
+        }
     }
 
     /**

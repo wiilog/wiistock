@@ -528,7 +528,8 @@ function initDeliveryRequestDefaultLocations() {
         updateAlreadyDefinedTypes();
     });
     const $lastDeliveryTypeSelect = $('select[name=deliveryType]').last();
-    $buttonNewTypeAssociation.prop('disabled', $lastDeliveryTypeSelect.data('length') < 1);
+
+    $buttonNewTypeAssociation.prop('disabled', $buttonNewTypeAssociation.is(`[data-keep-disabled]`) || $lastDeliveryTypeSelect.data('length') < 1);
 }
 
 function newTypeAssociation($button, type = undefined, location = undefined, firstLoad = false) {
