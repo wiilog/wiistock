@@ -161,16 +161,14 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label class="col-12 wii-field-name"
-                           title="type d'acheminement">
-                        {{ 'acheminement.type d\'acheminement'|trans }}
+                    <label class="col-12 wii-field-name">
+                        Types d'acheminement
                     </label>
                     <div class="col-12">
                         <select name="dispatchTypes"
                                 class="form-control data w-100"
                                 multiple="multiple"
-                                data-s2="dispatchType"
-                                title="{{ 'acheminement.type d\'acheminement'|trans }}">
+                                data-s2="dispatchType">
                             {% for type in user.dispatchTypes %}
                                 <option value="{{ type.id }}" selected>{{ type.label }}</option>
                             {% endfor %}
