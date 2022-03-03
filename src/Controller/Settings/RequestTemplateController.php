@@ -140,6 +140,7 @@ class RequestTemplateController extends AbstractController {
                 $delay = $template?->getDelay();
                 $source = $template?->getSource();
                 $destination = $template?->getDestination();
+                $comment = $template?->getComment();
                 $carriedOutOperations = $template?->getCarriedOutOperationCount();
                 $status = "";
                 if($template && $template->getRequestStatus()) {
@@ -196,6 +197,10 @@ class RequestTemplateController extends AbstractController {
                 $data[] = [
                     "label" => "Nombre d'opération(s) réalisée(s)",
                     "value" => "<input name='carriedOutOperationCount' class='data form-control' required value='$carriedOutOperations'>",
+                ];
+                $data[] = [
+                    "label" => "Commentaire",
+                    "value" => "<input name='comment' class='data form-control'>$comment</input>",
                 ];
             }
 
