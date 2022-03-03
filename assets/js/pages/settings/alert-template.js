@@ -42,6 +42,8 @@ export function initializeNotifications() {
     const notificationTableConfig = {
         processing: true,
         serverSide: true,
+        searching: false,
+        paginate: true,
         ajax: {
             url: Routing.generate("notification_template_api", true),
             type: "POST",

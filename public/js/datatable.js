@@ -44,10 +44,10 @@ function extendsDateSort(name) {
             return madeDate.getTime() || 0;
         },
         [name + "-asc"]: function (a, b) {
-            return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+            return ((a < b) ? 1 : ((a > b) ? -1 : 0));
         },
         [name + "-desc"]: function (a, b) {
-            return ((a < b) ? 1 : ((a > b) ? -1 : 0));
+            return ((a < b) ? -1 : ((a > b) ? 1 : 0));
         }
     });
 }
