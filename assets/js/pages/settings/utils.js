@@ -31,7 +31,7 @@ export function createManagementPage($container, config) {
     loadItems($container, config, selectedEntity);
     const table = EditableDatatable.create(`#${$table.attr(`id`)}`, {
         name: config.name,
-        mode: typeof config.edit === 'boolean' ? (config.edit ? MODE_MANUAL : MODE_NO_EDIT) : config.edit,
+        mode: config.mode,
         save: SAVE_MANUALLY,
         route: config.table.route(selectedEntity),
         deleteRoute: config.table.deleteRoute,
@@ -100,14 +100,15 @@ export function createManagementPage($container, config) {
             }
             $title.html(config.newTitle);
         }
+
         $pageBody.find(`.main-entity-content`).addClass('creation-mode');
-            table.setURL(config.table.route(selectedEntity), false);
-            table.toggleEdit(STATE_EDIT, true);
+        table.setURL(config.table.route(selectedEntity), false);
+        table.toggleEdit(STATE_EDIT, true);
     });
 
-        $editButton.on(`click`, function () {
-            table.toggleEdit(STATE_EDIT, true);
-        });
+    $editButton.on(`click`, function () {
+        table.toggleEdit(STATE_EDIT, true);
+    });
 
     if (config.header && config.header.delete) {
         fireRemoveMainEntityButton($container, config.header.delete);
@@ -174,7 +175,7 @@ function loadItems($container, config, type, edit = false) {
     }
 }
 
-function fireRemoveMainEntityButton($container, deleteConfig) {
+export function fireRemoveMainEntityButton($container, deleteConfig) {
     const $deleteMainEntityButton = $container.find(`.delete-main-entity`);
     const $modal = $container.find('.modalDeleteEntity');
     const $spinnerContainer = $modal.find('.spinner-container');
@@ -298,7 +299,7 @@ function removeEntity($container, entityToRemove) {
             .trigger('change');
     }
     else { // is wii-expanded-switch
-        const $removed = $entity.find(`[value=${entityToRemove}]`);
+        const $removed = $entity.parent().find(`input[value=${entityToRemove}]`);
         const $labelToRemove = $container.find(`[for=${$removed.attr('id')}]`);
         $removed.remove();
         $labelToRemove.remove();
@@ -313,4 +314,79 @@ function removeEntity($container, entityToRemove) {
     }
 
     $managementBody.toggleClass('d-none', !nextValue);
+}
+
+export function createManagementHeaderPage($container, config) {
+    const $selectedEntity = $container.find(`[name=entity]:first`);
+
+    const $firstOption = $selectedEntity.find('option').eq(0);
+    let selectedEntity = $firstOption.attr(`value`);
+    $selectedEntity
+        .val(selectedEntity)
+        .trigger('change');
+
+
+    const $editButton = $container.find(`.edit-button`);
+    const $addButton = $container.find(`.add-entity`);
+    const $pageHeader = $container.find(`.management-header`);
+    const $pageBody = $container.find(`.management-body`);
+
+    $managementButtons.addClass('d-none');
+    $editButton.removeClass('d-none');
+
+    loadItems($container, config, selectedEntity);
+
+    $container.find(`[name=entity]`).on(`change`, function () {
+        selectedEntity = $(this).val();
+        loadItems($container, config, selectedEntity);
+    });
+
+    $addButton.on(`click`, function() {
+        selectedEntity = null;
+
+        $pageBody.removeClass('d-none');
+        $editButton.addClass(`d-none`);
+        $managementButtons.removeClass(`d-none`);
+
+        if (config.newTitle) {
+            let $title = $pageBody.find('.wii-title')
+            if (!$title.exists()) {
+                $title = $(`<div class="header wii-title"></div>`);
+                $pageBody.prepend($title);
+            }
+            $title.html(config.newTitle);
+        }
+        $pageBody.find(`.main-entity-content`).addClass('creation-mode');
+        const $itemContainer = $container.find(`.main-entity-content`);
+
+        if (!$itemContainer.hasClass('main-entity-content-form')) {
+            loadItems($container, config, selectedEntity, true).then(() => {
+                toggleCreationForm($pageHeader, $itemContainer, $itemContainer.hasClass('creation-mode'));
+            });
+        }
+    });
+
+    if (config.header && config.header.delete) {
+        fireRemoveMainEntityButton($container, config.header.delete);
+    }
+}
+
+export function onHeaderPageEditStop($container) {
+    const $editButton = $container.find(`.edit-button`);
+    const $pageBody = $container.find(`.management-body`);
+
+    const $entity = $container.find(`[name=entity]`);
+    const $firstOption = $entity.find(`option:first`);
+
+    $pageBody.addClass('d-none');
+    $editButton.removeClass(`d-none`);
+    $managementButtons.addClass(`d-none`);
+
+    $pageBody.find(`.wii-title`).remove();
+    $pageBody.find(`.main-entity-content`).removeClass('creation-mode');
+
+    const firstOptionValue = $firstOption.val();
+    $entity
+        .val(firstOptionValue)
+        .trigger(`change`);
 }

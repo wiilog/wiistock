@@ -22,6 +22,7 @@ import {
     initializeHandlingStatuses
 } from "./statuses";
 import {initializeAlertTemplate, initializeNotifications} from "./alert-template";
+import {onHeaderPageEditStop} from "./utils";
 
 global.triggerReminderEmails = triggerReminderEmails;
 global.saveTranslations = saveTranslations;
@@ -80,6 +81,7 @@ const initializers = {
 
 const saveCallbacks = {
     global_apparence_site: () => location.reload(),
+    notifications_alertes: ($container) => onHeaderPageEditStop($container)
 };
 
 const slowOperations = [

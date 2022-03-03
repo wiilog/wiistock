@@ -1,4 +1,5 @@
-import {createManagementPage} from "./utils";
+import {createManagementPage, fireRemoveMainEntityButton, createManagementHeaderPage, loadItems} from "./utils";
+import EditableDatatable, {SAVE_MANUALLY, STATE_EDIT, STATE_VIEWING} from "../../editatable";
 
 global.addPhoneNumber = addPhoneNumber;
 global.deletePhoneNumber = deletePhoneNumber;
@@ -6,9 +7,8 @@ global.initTelInput = initTelInput;
 global.onTemplateTypeChange = onTemplateTypeChange;
 
 export function initializeAlertTemplate($container, canEdit) {
-    createManagementPage($container, {
+    createManagementHeaderPage($container, {
         name: `alertTemplates`,
-        edit: canEdit,
         newTitle: 'Ajouter un modèle d\'alerte',
         header: {
             route: (template, edit) => Routing.generate('settings_alert_template_header', {template, edit}, true),
@@ -17,17 +17,10 @@ export function initializeAlertTemplate($container, canEdit) {
                 selectedEntityLabel: 'alertTemplate',
                 route: 'settings_alert_template_delete',
                 modalTitle: 'Supprimer le modèle de demande',
-            },
-        },
-        table: {
-            route: () => Routing.generate('settings_alert_template_api', true),
-            hidden: true,
-            columns: [
-                {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            ],
-            form: {},
-        },
+            }
+        }
     });
+
     $container.arrive(`input[name=receivers]`, function () {
         initTelInput($(this), $(this).hasClass('edit'));
     });

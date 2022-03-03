@@ -269,19 +269,6 @@ class AlertTemplateController extends AbstractController
     }
 
     /**
-     * @Route("/modele-demande/api", name="settings_alert_template_api", options={"expose"=true})
-     */
-    public
-    function alertTemplateApi(): Response
-    {
-        return $this->json([
-            "data" => [],
-        ]);
-    }
-
-
-
-    /**
      * @Route("/verification/{alertTemplate}", name="settings_alert_template_check_delete", methods={"GET"}, options={"expose"=true}, condition="request.isXmlHttpRequest()")
      */
     public
