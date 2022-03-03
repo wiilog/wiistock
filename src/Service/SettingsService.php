@@ -196,6 +196,19 @@ class SettingsService {
                 "deliveryRequestLocation",
             ]);
         }
+
+        if ($request->request->has("DISPATCH_OVERCONSUMPTION_BILL_TYPE") && $request->request->has("DISPATCH_OVERCONSUMPTION_BILL_STATUS")) {
+            $setting = $this->manager->getRepository(Setting::class)->findOneBy(["label" => Setting::DISPATCH_OVERCONSUMPTION_BILL_TYPE_AND_STATUS]);
+            $setting->setValue(
+                $request->request->get("DISPATCH_OVERCONSUMPTION_BILL_TYPE") . ";" .
+                $request->request->get("DISPATCH_OVERCONSUMPTION_BILL_STATUS")
+            );
+
+            $updated = array_merge($updated, [
+                "DISPATCH_OVERCONSUMPTION_BILL_TYPE",
+                "DISPATCH_OVERCONSUMPTION_BILL_STATUS",
+            ]);
+        }
     }
 
     /**
