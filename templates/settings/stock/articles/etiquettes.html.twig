@@ -1,10 +1,9 @@
 {% import 'form.html.twig' as form %}
 
-
 <div class="wii-section">
     <div class="row">
         <div class="col-12 mb-3 wii-describe">
-            Indiquez ce que vous voulez afficher sur les étiquettes. Pour paramétrer le format de l'étiquette retourner
+            Indiquez ce que vous voulez afficher sur les étiquettes. Pour paramétrer le format de l'étiquette, retournez
             dans le paramétrage "Global".
         </div>
     </div>
@@ -62,7 +61,8 @@
         {{ form.select(setting('CL_USED_IN_LABELS'), 'Champ libre présent sur les étiquettes', false, {
             items: free_fields,
             value: setting_value('CL_USED_IN_LABELS'),
-            labelClass: 'wii-field-name'
+            labelClass: 'wii-field-name',
+            inputClass: 'w-25'
         }) }}
         <div class="my-1">
             {{ form.checkbox(setting('INCLUDE_BL_IN_LABEL'), 'Afficher le champ libre ci-dessus sur les étiquettes', false, setting_value('INCLUDE_BL_IN_LABEL')) }}
