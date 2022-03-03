@@ -16,6 +16,7 @@ use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\Menu;
 use App\Entity\Type;
 use App\Helper\FormatHelper;
+use App\Service\FieldsParamService;
 use App\Service\FreeFieldService;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
@@ -31,6 +32,11 @@ use WiiCommon\Helper\Stream;
  * @Route("/parametrage")
  */
 class RequestTemplateController extends AbstractController {
+
+    /**
+     * @Required
+     */
+    public FieldsParamService $fieldsParamService;
 
     /**
      * @Route("/modele-demande/{category}/header/{template}", name="settings_request_template_header", options={"expose"=true})
@@ -143,6 +149,18 @@ class RequestTemplateController extends AbstractController {
                 $comment = $template?->getComment();
                 $carriedOutOperations = $template?->getCarriedOutOperationCount();
                 $status = "";
+                $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
+                $action = $template ? 'requiredEdit' : 'requiredCreate';
+                $emergencyIsNeeded = $this->fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_EMERGENCY, $action);
+                $sourceIsNeeded = $this->fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_LOADING_ZONE, $action)
+                    ? 'required'
+                    : '';
+                $destinationIsNeeded = $this->fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_UNLOADING_ZONE, $action)
+                    ? 'required'
+                    : '';
+                $carriedOutOperationsIsNeeded = $this->fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT, $action)
+                    ? 'required'
+                    : '';
                 if($template && $template->getRequestStatus()) {
                     $status = "<option value='{$template->getRequestStatus()->getId()}'>{$template->getRequestStatus()->getNom()}</option>";
                 }
@@ -180,23 +198,23 @@ class RequestTemplateController extends AbstractController {
                     "value" => $this->renderView('settings/trace/services/handling_emergency_template.html.twig', [
                         'request_template' => $template,
                         'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY),
-                        'required' => false
+                        'required' => $emergencyIsNeeded
                     ]),
                 ];
 
                 $data[] = [
-                    "label" => "Chargement",
-                    "value" => "<input name='source' class='data form-control' required value='$source'>",
+                    "label" => "Chargement" . ($sourceIsNeeded === 'required' ? "*" : ''),
+                    "value" => "<input name='source' class='data form-control' $sourceIsNeeded value='$source'>",
                 ];
 
                 $data[] = [
-                    "label" => "Déchargement",
-                    "value" => "<input name='destination' class='data form-control' required value='$destination'>",
+                    "label" => "Déchargement" . ($destinationIsNeeded === 'required' ? "*" : ''),
+                    "value" => "<input name='destination' class='data form-control' $destinationIsNeeded value='$destination'>",
                 ];
 
                 $data[] = [
-                    "label" => "Nombre d'opération(s) réalisée(s)",
-                    "value" => "<input name='carriedOutOperationCount' class='data form-control' required value='$carriedOutOperations'>",
+                    "label" => "Nombre d'opération(s) réalisée(s)" . ($carriedOutOperationsIsNeeded === 'required' ? "*" : ''),
+                    "value" => "<input name='carriedOutOperationCount' class='data form-control' $carriedOutOperationsIsNeeded value='$carriedOutOperations'>",
                 ];
                 $data[] = [
                     "label" => "Commentaire",
@@ -442,7 +460,7 @@ class RequestTemplateController extends AbstractController {
         ]);
     }
     /**
-     * @Route("/verification/{requestTemplate}", name="settings_request_template_check_delete", methods={"GET"}, options={"expose"=true}, condition="request.isXmlHttpRequest()")
+     * @Route("/verification/demande/{requestTemplate}", name="settings_request_template_check_delete", methods={"GET"}, options={"expose"=true}, condition="request.isXmlHttpRequest()")
      */
     public function checkRequestTemplateCanBeDeleted(RequestTemplate $requestTemplate): Response {
         if ($requestTemplate->getTriggerActions()->isEmpty()) {
