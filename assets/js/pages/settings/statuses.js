@@ -80,7 +80,7 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
 function getStatusesColumn(mode) {
     return [
         {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-        {data: `label`, title: `Libelle`, required: true},
+        {data: `label`, title: `Libellé`, required: true},
         {data: `state`, title: `État`, required: true},
         {data: `type`, title: `Type`, modes: [MODE_ARRIVAL, MODE_DISPATCH, MODE_HANDLING]},
         {data: `comment`, title: `Commentaire litige`, modes: [MODE_ARRIVAL_DISPUTE, MODE_RECEPTION_DISPUTE]},
@@ -102,7 +102,7 @@ function getStatusesColumn(mode) {
         },
         {
             data: `automaticReceptionCreation`,
-            title: `<div class='small-column'>Création automatique d'une réception</div>`,
+            title: `<div class='small-column' style="max-width: 160px !important;">Création automatique d'une réception</div>`,
             modes: [MODE_PURCHASE_REQUEST]
         },
         {
