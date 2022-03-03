@@ -137,7 +137,7 @@ class SettingsController extends AbstractController {
                         ],
                         self::MENU_COLLECT_REQUEST_TEMPLATES => ["label" => "Collectes - Modèle de demande", "wrapped" => false],
                         self::MENU_COLLECT_TYPES_FREE_FIELDS => ["label" => "Collectes - Types et champs libres", "wrapped" => false],
-                        self::MENU_PURCHASE_STATUSES => ["label" => "Achats - Statut"],
+                        self::MENU_PURCHASE_STATUSES => ["label" => "Achats - Statuts"],
                     ],
                 ],
                 self::MENU_VISIBILITY_GROUPS => ["label" => "Groupes de visibilité"],

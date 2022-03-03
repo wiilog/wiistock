@@ -22,7 +22,7 @@ function generateFreeFieldForm() {
         elements: `<input type="text" name="elements" required class="form-control data d-none" data-global-error="Eléments"/>`,
         defaultValue: () => {
             // executed each time we add a new row to calculate new id
-            const $booleanDefaultValue = $(JSON.parse($(`[name=default-value-template]`).val()));
+            const $booleanDefaultValue = $(`<div class="wii-switch-small">${JSON.parse($(`[name=default-value-template]`).val())}</div>`);
             $booleanDefaultValue.find(`[type=radio]`).each(function() {
                 const $input = $(this);
                 const $label = $booleanDefaultValue.find(`[for=${$input.attr(`id`)}]`);

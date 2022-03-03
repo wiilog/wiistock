@@ -133,7 +133,7 @@
             <span class="w-100 {{ options.labelClass ?? '' }}">{{ _self.label(label, required, labelOptions) }}</span>
             {{ _self.tooltip(options.tooltip ?? null, options.inline ?? false) }}
         {% endif %}
-        <select class="form-control w-100 data {{ options.inputClass ?? '' }}"
+        <select class="form-control data {{ options.inputClass ?? 'w-100' }}"
             {{ required ? 'required' }}
             {{ options.multiple ?? false ? 'multiple' }}
             {% if options.type is defined %}

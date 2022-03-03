@@ -70,6 +70,24 @@
 
 $wii-switch-height: $input-height;
 
+.wii-switch-compact {
+    input, input + label {
+        padding: 0 1px;
+        font-size: 0.8rem;
+    }
+}
+
+.wii-switch-small {
+    .wii-switch {
+        width: 100%;
+    }
+
+    input, input + label {
+        padding: 0 6px;
+        flex: 1 1 auto;
+    }
+}
+
 .wii-switch {
     display: inline-flex;
     padding: 0;
@@ -94,11 +112,6 @@ $wii-switch-height: $input-height;
         font-weight: normal;
         transition: all 200ms linear;
         font-size: 1rem;
-
-        .wii-switch-compact & {
-            padding: 0 1px;
-            font-size: 0.8rem;
-        }
 
         .wii-icon {
             display: inline-block;
