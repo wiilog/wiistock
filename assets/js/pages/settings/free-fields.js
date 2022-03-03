@@ -94,6 +94,7 @@ function onElementsChange() {
     const elements = $input.val().split(`;`);
 
     $defaultValue.empty();
+    $defaultValue.append(new Option("", null, false, false));
     for(const element of elements) {
         $defaultValue.append(new Option(element, element, false, false));
     }
