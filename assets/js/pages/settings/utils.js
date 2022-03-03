@@ -1,4 +1,4 @@
-import EditableDatatable, {MODE_MANUAL, MODE_NO_EDIT, SAVE_MANUALLY, STATE_EDIT, STATE_VIEWING} from "../../editatable";
+import EditableDatatable, {SAVE_MANUALLY, STATE_EDIT, STATE_VIEWING} from "../../editatable";
 import Flash from "../../flash";
 
 const $managementButtons = $(`.save-settings,.discard-settings`);
@@ -66,7 +66,7 @@ export function createManagementPage($container, config) {
                 if (selectedEntity !== entity.id) {
                     selectedEntity = entity.id;
                     addNewEntity($container, entity);
-                    table.setURL(config.table.route(selectedEntity), false);
+                    table.setURL(config.table.route(selectedEntity), true);
                 }
             }
 
@@ -137,7 +137,7 @@ function loadItems($container, config, type, edit = false) {
                         if (item.breakline) {
                             $itemContainer.append(`<div class="w-100"></div>`);
                         } else if (item.type === 'hidden') {
-                            $itemContainer.append(`<input type="hidden" class="${item.class}" name="${item.name}" value="${item.value}"/>`);
+                            $itemContainer.append(`<input type="hidden" class="${item.class || ''}" name="${item.name}" value="${item.value}"/>`);
                         } else {
                             const value = item.value === undefined || item.value === null ? '' : item.value;
                             const data = Object.entries(item.data || {})
@@ -325,7 +325,6 @@ export function createManagementHeaderPage($container, config) {
         .val(selectedEntity)
         .trigger('change');
 
-
     const $editButton = $container.find(`.edit-button`);
     const $addButton = $container.find(`.add-entity`);
     const $pageHeader = $container.find(`.management-header`);
@@ -366,27 +365,37 @@ export function createManagementHeaderPage($container, config) {
         }
     });
 
+    $editButton.on(`click`, function () {
+        $managementButtons.removeClass('d-none');
+        $editButton.addClass('d-none');
+        loadItems($container, config, selectedEntity, true);
+    });
+
     if (config.header && config.header.delete) {
         fireRemoveMainEntityButton($container, config.header.delete);
     }
 }
 
-export function onHeaderPageEditStop($container) {
+export function onHeaderPageEditStop($container, apiResult) {
     const $editButton = $container.find(`.edit-button`);
+    const $pageHeader = $container.find(`.management-header`);
     const $pageBody = $container.find(`.management-body`);
 
     const $entity = $container.find(`[name=entity]`);
-    const $firstOption = $entity.find(`option:first`);
 
-    $pageBody.addClass('d-none');
+    $pageHeader.removeClass('d-none');
+    $pageBody.removeClass('d-none');
     $editButton.removeClass(`d-none`);
     $managementButtons.addClass(`d-none`);
 
     $pageBody.find(`.wii-title`).remove();
     $pageBody.find(`.main-entity-content`).removeClass('creation-mode');
 
-    const firstOptionValue = $firstOption.val();
-    $entity
-        .val(firstOptionValue)
-        .trigger(`change`);
+    if (apiResult && apiResult.entity) { // if alert template was created in edit mode
+        const entity = apiResult.entity;
+        addNewEntity($container, entity);
+    }
+    else {
+        $entity.trigger(`change`);
+    }
 }

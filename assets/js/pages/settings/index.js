@@ -81,7 +81,7 @@ const initializers = {
 
 const saveCallbacks = {
     global_apparence_site: () => location.reload(),
-    notifications_alertes: ($container) => onHeaderPageEditStop($container)
+    notifications_alertes: ($container, apiResult) => onHeaderPageEditStop($container, apiResult)
 };
 
 const slowOperations = [
@@ -159,6 +159,7 @@ $(function() {
         await AJAX.route(`POST`, `settings_save`)
             .json(data)
             .then(result => {
+                console.log(result)
                 if(result.success) {
                     let params = undefined;
                     if (result && result.entity) {
@@ -171,7 +172,8 @@ $(function() {
                     }
 
                     if(saveCallbacks[currentForm]) {
-                        saveCallbacks[currentForm]();
+                        const $container = $(`[data-path=${currentForm}]`);
+                        saveCallbacks[currentForm]($container, result);
                     }
                 }
 

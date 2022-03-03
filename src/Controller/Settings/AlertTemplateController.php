@@ -4,25 +4,14 @@ namespace App\Controller\Settings;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
-use App\Entity\Alert;
-use App\Entity\CategorieCL;
-use App\Entity\CategoryType;
-use App\Entity\FieldsParam;
-use App\Entity\FreeField;
 use App\Entity\IOT\AlertTemplate;
 use App\Entity\Menu;
-use App\Entity\Type;
-use App\Helper\FormatHelper;
-use App\Service\FreeFieldService;
 use Doctrine\ORM\EntityManagerInterface;
-use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Twig\Environment;
-use WiiCommon\Helper\Stream;
 
 /**
  * @Route("/parametrage")
@@ -33,14 +22,21 @@ class AlertTemplateController extends AbstractController
     /**
      * @Route("/modele-alerte/header/{template}", name="settings_alert_template_header", options={"expose"=true})
      */
-    public function alertTemplateHeader(Request                $request,
-                                        ?AlertTemplate         $template = null): Response
-    {
+    public function alertTemplateHeader(Request        $request,
+                                        ?AlertTemplate $template = null): Response {
 
         $edit = $request->query->getBoolean("edit");
         $category = $template?->getType();
+
         if ($edit) {
             $name = $template?->getName();
+            $data = [[
+                "type" => "hidden",
+                "name" => "alertTemplate",
+                "class" => "data",
+                "value" => 1,
+            ]];
+
             if ($template) {
                 $data[] = [
                     "label" => "Type d'alerte",
@@ -83,7 +79,8 @@ class AlertTemplateController extends AbstractController
                         'options' => []
                     ]),
                 ];
-            } else if ($category === AlertTemplate::MAIL) {
+            }
+            else if ($category === AlertTemplate::MAIL) {
                 $subject = $template?->getConfig()['subject'];
                 $rawContent = $template?->getConfig()['content'];
                 $image = $template?->getConfig()['image'] ?? '';
@@ -129,7 +126,8 @@ class AlertTemplateController extends AbstractController
                     ]),
                 ];
 
-            } else if ($category === AlertTemplate::SMS) {
+            }
+            else if ($category === AlertTemplate::SMS) {
                 $rawContent = $template?->getConfig()['content'];
                 $users = "";
                 if($template && isset($template->getConfig()['receivers'])) {

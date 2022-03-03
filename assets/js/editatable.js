@@ -1,9 +1,8 @@
 export const MODE_NO_EDIT = 1;
-export const MODE_MANUAL = 2;
-export const MODE_CLICK_EDIT = 3;
-export const MODE_ADD_ONLY = 4;
-export const MODE_EDIT = 5;
-export const MODE_CLICK_EDIT_AND_ADD = 6;
+export const MODE_CLICK_EDIT = 2;
+export const MODE_ADD_ONLY = 3;
+export const MODE_EDIT = 4;
+export const MODE_CLICK_EDIT_AND_ADD = 5;
 
 export const SAVE_FOCUS_OUT = 1;
 export const SAVE_MANUALLY = 2;

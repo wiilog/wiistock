@@ -996,7 +996,7 @@ class SettingsController extends AbstractController {
 
                 $data[] = [
                     "label" => "Envoi d'un email au demandeur",
-                    "value" => "<input name='pushNotifications' type='checkbox' class='data form-control mt-1' $mailsEnabled>",
+                    "value" => "<input name='mailRequester' type='checkbox' class='data form-control mt-1' $mailsEnabled>",
                 ];
             }
             else if($category === CategoryType::DEMANDE_DISPATCH) {
