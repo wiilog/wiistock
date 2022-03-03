@@ -236,20 +236,13 @@ class RequestTemplateController extends AbstractController {
                     </div>');
 
             foreach ($types as $type) {
-                $freeFields = $freeFieldsRepository->findByTypeAndCategorieCLLabel(
-                    $type,
-                    $category === Type::LABEL_DELIVERY
-                        ? CategorieCL::DEMANDE_LIVRAISON
-                        : ($category === Type::LABEL_COLLECT
-                        ? CategorieCL::DEMANDE_COLLECTE
-                        : CategorieCL::DEMANDE_HANDLING
-                    )
-                );
+
+                $freeFields = $freeFieldsRepository->findByType($type->getId());
 
                 /** @var FreeField $freeField */
                 foreach ($freeFields as $freeField) {
                     $data[] = [
-                        "label" => $freeField->getLabel(),
+                        "label" => (!$template && $freeField->getDisplayedCreate()) || $template ? $freeField->getLabel() : '',
                         "value" => $freeFieldTemplate->render([
                             "free_field" => $freeField,
                             "value" => $template ? $template->getFreeFields() : [],
