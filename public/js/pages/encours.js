@@ -87,7 +87,7 @@ function loadEncoursDatatable($table) {
             columnDefs: [
                 {
                     type: "date",
-                    targets: 1
+                    targets: 2
                 }
             ],
         };

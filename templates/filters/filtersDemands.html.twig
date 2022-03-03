@@ -8,7 +8,9 @@
         {% include 'filters/filter_item/filterDemand.html.twig' %}
     {% endif %}
 
-    {% include 'filters/filter_item/filterUser.html.twig' %}
+    {% include 'filters/filter_item/filterUser.html.twig' with {
+        'placeholder': (page == 'PAGE_HAND' ? 'Demandeurs' : 'Utilisateurs')
+    } %}
     {% include 'filters/filter_item/filterType.html.twig' %}
 
     {% if page == 'PAGE_HAND' %}
@@ -16,7 +18,8 @@
         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVERS_HANDLING') %}
         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
             {% include 'filters/filter_item/filterUser.html.twig' with {
-                name: 'receivers'
+                name: 'receivers',
+                'placeholder': 'Destinataires'
             }%}
         {% endif %}
     {% endif %}
