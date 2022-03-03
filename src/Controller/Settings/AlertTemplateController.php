@@ -303,11 +303,10 @@ class AlertTemplateController extends AbstractController
     }
 
     /**
-     * @Route("/modele-demande/supprimer/{alertTemplate}", name="settings_alert_template_delete", options={"expose"=true})
+     * @Route("/modele-alerte/supprimer/{alertTemplate}", name="settings_alert_template_delete", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::DELETE})
      */
-    public
-    function deleteAlertTemplate(EntityManagerInterface $manager,
+    public function deleteAlertTemplate(EntityManagerInterface $manager,
                                    AlertTemplate        $alertTemplate): JsonResponse
     {
 

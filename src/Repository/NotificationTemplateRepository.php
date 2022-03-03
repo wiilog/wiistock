@@ -42,8 +42,8 @@ class NotificationTemplateRepository extends EntityRepository
 
         $countFiltered = QueryCounter::count($qb, "notification_template");
 
-        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
-        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
+        $qb->setFirstResult(0);
+        $qb->setMaxResults(10);
 
         return [
             "data" => $qb->getQuery()->getResult(),

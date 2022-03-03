@@ -50,7 +50,8 @@ export function initializeNotifications() {
         processing: true,
         serverSide: true,
         searching: false,
-        paginate: true,
+        paginate: false,
+        info: false,
         ajax: {
             url: Routing.generate("notification_template_api", true),
             type: "POST",
