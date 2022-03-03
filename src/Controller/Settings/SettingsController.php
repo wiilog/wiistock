@@ -552,6 +552,7 @@ class SettingsController extends AbstractController {
                 ],
                 self::MENU_REQUESTS => [
                     self::MENU_DELIVERIES => fn() => [
+                        "deliveryTypesCount" => $typeRepository->countAvailableForSelect(CategoryType::DEMANDE_LIVRAISON, []),
                         "deliveryTypeSettings" => json_encode($this->getDefaultDeliveryLocationsByType($this->manager)),
                     ],
                     self::MENU_DELIVERY_REQUEST_TEMPLATES => function() use ($requestTemplateRepository, $typeRepository) {

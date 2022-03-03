@@ -65,6 +65,7 @@ class AppExtension extends AbstractExtension {
             new TwigFilter('wordwrap', [$this, 'wordwrap']),
             new TwigFilter('ellipsis', [$this, 'ellipsis']),
             new TwigFilter("format_helper", [$this, "formatHelper"]),
+            new TwigFilter("json_decode", "json_decode"),
         ];
     }
 
