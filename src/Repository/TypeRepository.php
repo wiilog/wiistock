@@ -15,6 +15,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Type;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\QueryBuilder;
 
 /**
  * @method Type|null find($id, $lockMode = null, $lockVersion = null)
@@ -68,26 +69,36 @@ class TypeRepository extends EntityRepository
             : [];
     }
 
-    public function getForSelect(?string $category, ?string $term, array $options = []): array {
+    private function createSelectBuilder(?string $category, array $options = []): QueryBuilder {
         $alreadyDefinedTypes = $options['alreadyDefinedTypes'] ?? [];
 
         $qb = $this->createQueryBuilder("type");
 
         $qb->select("type.id AS id, type.label AS text")
             ->join("type.category", "category")
-            ->where("type.label LIKE :term")
-            ->andWhere("category.label = '$category'")
-            ->setParameter("term", "%$term%");
+            ->andWhere("category.label = '$category'");
 
         if (!empty($alreadyDefinedTypes)) {
             $qb->andWhere("type.id NOT IN (:alreadyDefinedTypes)")
                 ->setParameter("alreadyDefinedTypes", $alreadyDefinedTypes);
         }
 
+        return $qb;
+    }
 
-        return $qb
+    public function getForSelect(?string $category, ?string $term, array $options = []): array {
+        return $this->createSelectBuilder($category, $options)
+            ->andWhere("type.label LIKE :term")
+            ->setParameter("term", "%$term%")
             ->getQuery()
             ->getArrayResult();
+    }
+
+    public function countAvailableForSelect(?string $category, array $options = []): int {
+        return $this->createSelectBuilder($category, $options)
+            ->select("COUNT(type)")
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function getIdAndLabelByCategoryLabel($category)
