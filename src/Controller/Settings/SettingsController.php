@@ -228,11 +228,11 @@ class SettingsController extends AbstractController {
                 self::MENU_MOVEMENTS => [
                     "label" => "Mouvements",
                     "menus" => [
-                        self::MENU_FREE_FIELDS => ["label" => "Champs libres"],
                         self::MENU_CONFIGURATIONS => [
                             "label" => "Configurations",
                             "save" => true,
                         ],
+                        self::MENU_FREE_FIELDS => ["label" => "Champs libres"],
                     ],
                 ],
                 self::MENU_HANDLINGS => [
@@ -1181,6 +1181,8 @@ class SettingsController extends AbstractController {
                             ],
                         ],
                     ]);
+
+                    $defaultValue = "<div class='wii-switch-small'>$defaultValue</div>";
                 }
             } else if($freeField->getTypage() === FreeField::TYPE_DATETIME || $freeField->getTypage() === FreeField::TYPE_DATE) {
                 $defaultValueDate = new DateTime(str_replace("/", "-", $freeField->getDefaultValue())) ?: null;
