@@ -28,15 +28,21 @@
 <div class="wii-section-title">Emplacements de livraison par défaut</div>
 
 <div class="wii-section mt-2">
-    <div class="row justify-content-end">
+    <div class="row">
+        <div class="col">
+            <div class="row setting-type-association"></div>
+        </div>
         <div class="col-auto">
-            <button class="btn btn-sm btn-primary new-type-association-button" {{ not (deliveryTypesCount - deliveryTypeSettings | json_decode | length) ? 'data-keep-disabled' }} disabled>
-                <i class="fa fa-plus"></i>
-                Ajouter un emplacement
-            </button>
+            <div class="row justify-content-end">
+                <div class="col-auto">
+                    <button class="btn btn-sm btn-primary new-type-association-button" {{ not (deliveryTypesCount - deliveryTypeSettings | json_decode | length) ? 'data-keep-disabled' }} disabled>
+                        <i class="fa fa-plus"></i>
+                        Ajouter un emplacement
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
-    <div class="row setting-type-association"></div>
 </div>
 
 <template id="type-template">
