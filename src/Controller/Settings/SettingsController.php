@@ -228,11 +228,11 @@ class SettingsController extends AbstractController {
                 self::MENU_MOVEMENTS => [
                     "label" => "Mouvements",
                     "menus" => [
-                        self::MENU_FREE_FIELDS => ["label" => "Champs libres"],
                         self::MENU_CONFIGURATIONS => [
                             "label" => "Configurations",
                             "save" => true,
                         ],
+                        self::MENU_FREE_FIELDS => ["label" => "Champs libres"],
                     ],
                 ],
                 self::MENU_HANDLINGS => [

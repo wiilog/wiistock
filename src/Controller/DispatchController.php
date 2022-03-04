@@ -1480,10 +1480,8 @@ class DispatchController extends AbstractController {
             $typeAndStatus = explode(';', $overConsumptionBill);
             $typeId = intval($typeAndStatus[0]);
             $statutsId = intval($typeAndStatus[1]);
-            dump($dispatch->getType()->getId(), $typeId, $statutsId);
 
             if ($dispatch->getType()->getId() === $typeId) {
-                dump("ok");
                 $untreatedStatus = $statutRepository->find($statutsId);
                 $dispatch
                     ->setStatut($untreatedStatus);
