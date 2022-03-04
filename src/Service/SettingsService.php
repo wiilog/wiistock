@@ -406,7 +406,7 @@ class SettingsService {
                 $freeField->setLabel($item["label"])
                     ->setType($type)
                     ->setTypage($item["type"] ?? $freeField->getTypage())
-                    ->setCategorieCL(isset($item["category"]) ? $this->manager->find(CategorieCL::class, $item["category"]) : null)
+                    ->setCategorieCL(isset($item["category"]) ? $this->manager->find(CategorieCL::class, $item["category"]) : $type->getCategory()->getCategorieCLs()->first())
                     ->setDefaultValue($item["defaultValue"] ?? null)
                     ->setElements(isset($item["elements"]) ? explode(";", $item["elements"]) : null)
                     ->setDisplayedCreate($item["displayedCreate"])
