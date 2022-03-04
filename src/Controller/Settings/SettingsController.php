@@ -1559,17 +1559,17 @@ class SettingsController extends AbstractController {
      * @HasPermission({Menu::PARAM, Action::SETTINGS_STOCK}, mode=HasPermission::IN_JSON)
      */
     public function deleteTypeLitige(EntityManagerInterface $entityManager, Type $entity): Response {
-        if($entity->getReceptions()->isEmpty()) {
+        if($entity->getDisputes()->isEmpty()) {
             $entityManager->remove($entity);
             $entityManager->flush();
             return $this->json([
                 "success" => true,
-                "msg" => "La ligne a bien été supprimée",
+                "msg" => "Le type de litige a bien été supprimé",
             ]);
         } else {
             return $this->json([
                 "success" => false,
-                "msg" => "Ce type de litige est lié à des réceptions. Vous ne pouvez pas le supprimer.",
+                "msg" => "Ce type de litige est utilisé, vous ne pouvez pas le supprimer.",
             ]);
         }
     }
