@@ -6,6 +6,20 @@
         &:hover {
             background-color: $primary;
             color: white !important;
+
+            input[type=checkbox] {
+                &:checked {
+                    background-color: $white;
+
+                    &:before {
+                        background-color: $primary;
+                    }
+                }
+
+                &:not(:checked) {
+                    border-color: $white !important;
+                }
+            }
         }
     }
 }
