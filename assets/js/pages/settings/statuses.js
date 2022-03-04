@@ -78,13 +78,17 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
 }
 
 function getStatusesColumn(mode) {
+    const singleRequester = [MODE_DISPATCH].includes(mode) ? ['', ''] : ['x', 's'];
     return [
         {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
         {data: `label`, title: `Libellé`, required: true},
         {data: `state`, title: `État`, required: true},
         {data: `type`, title: `Type`, modes: [MODE_ARRIVAL, MODE_DISPATCH, MODE_HANDLING]},
         {data: `comment`, title: `Commentaire litige`, modes: [MODE_ARRIVAL_DISPUTE, MODE_RECEPTION_DISPUTE]},
-        {data: `defaultStatut`, title: `<div>Statut<br/>par défaut</div>`},
+        {
+            data: `defaultStatut`,
+            title: `<div>Statut<br/>par défaut</div>`,
+            modes: [MODE_ARRIVAL, MODE_ARRIVAL_DISPUTE, MODE_RECEPTION_DISPUTE, MODE_HANDLING, MODE_PURCHASE_REQUEST]},
         {
             data: `sendMailBuyers`,
             title: `<div class='small-column'>Envoi d'emails aux acheteurs</div>`,
@@ -92,13 +96,13 @@ function getStatusesColumn(mode) {
         },
         {
             data: `sendMailRequesters`,
-            title: `<div class='small-column'>Envoi d'emails aux demandeurs</div>`,
-            modes: [MODE_ARRIVAL_DISPUTE, MODE_RECEPTION_DISPUTE, MODE_HANDLING, MODE_PURCHASE_REQUEST]
+            title: `<div class='small-column'>Envoi d'emails au${singleRequester[0]} demandeur${singleRequester[1]}</div>`,
+            modes: [MODE_ARRIVAL_DISPUTE, MODE_RECEPTION_DISPUTE, MODE_HANDLING, MODE_PURCHASE_REQUEST, MODE_DISPATCH]
         },
         {
             data: `sendMailDest`,
             title: `<div class='small-column'>Envoi d'emails aux destinataires</div>`,
-            modes: [MODE_ARRIVAL_DISPUTE, MODE_HANDLING]
+            modes: [MODE_ARRIVAL_DISPUTE, MODE_HANDLING, MODE_DISPATCH]
         },
         {
             data: `automaticReceptionCreation`,
@@ -108,7 +112,7 @@ function getStatusesColumn(mode) {
         {
             data: `needsMobileSync`,
             title: `<div class='small-column'>Synchronisation nomade</div>`,
-            modes: [MODE_HANDLING]
+            modes: [MODE_HANDLING, MODE_DISPATCH]
         },
         {
             data: `commentNeeded`,
