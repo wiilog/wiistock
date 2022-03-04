@@ -133,7 +133,7 @@ class DataImportController extends AbstractController
                                     'fieldCode' => $fieldParamCode,
                                     'entityCode' => FieldsParam::ENTITY_CODE_RECEPTION,
                                 ]);
-                                if ($fieldParam && $fieldParam->getRequiredCreate()) {
+                                if ($fieldParam && $fieldParam->isRequiredCreate()) {
                                     $fieldsNeeded[] = $field;
                                 }
                             }
