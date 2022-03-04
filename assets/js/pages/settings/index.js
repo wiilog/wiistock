@@ -159,7 +159,6 @@ $(function() {
         await AJAX.route(`POST`, `settings_save`)
             .json(data)
             .then(result => {
-                console.log(result)
                 if(result.success) {
                     let params = undefined;
                     if (result && result.entity) {

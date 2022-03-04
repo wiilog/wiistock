@@ -95,7 +95,6 @@ export default class EditableDatatable {
             this.table.clear();
             this.toggleEdit(STATE_ADD).then(() => drawNewRow());
         } else {
-            console.log('else add row');
             this.table.row(':last').remove();
             drawNewRow();
         }
@@ -235,7 +234,6 @@ function initEditatable(datatable, onDatatableInit = null) {
                     $row
                         .off(`click.${id}.addRow`)
                         .on(`click.${id}.addRow`, 'td', () => {
-                            console.log('add row');
                             onAddRowClicked(datatable);
                         });
                 }
@@ -330,11 +328,6 @@ function initEditatable(datatable, onDatatableInit = null) {
 }
 
 function onAddRowClicked(datatable) {
-    /*if(datatable.state === STATE_VIEWING) {
-        console.log('toggle edit');
-        datatable.toggleEdit(STATE_EDIT, true);
-    }*/
-    console.log(datatable.mode);
     if(datatable.mode === MODE_CLICK_EDIT_AND_ADD && datatable.state !== STATE_EDIT){
         datatable
             .toggleEdit(STATE_EDIT, true)
@@ -343,7 +336,6 @@ function onAddRowClicked(datatable) {
             });
     }
     else {
-        console.log('else');
         datatable.addRow();
     }
 }
