@@ -12,26 +12,34 @@
                     </div>
                 {% endif %}
                 <div class="{{ block('filterCol') is defined ? block('filterCol') : 'col' }}">{% block filters %}{% endblock %}</div>
-                <div class="ml-auto {{ block('filterColButton') is defined ? block('filterColButton') : 'col-auto' }}">
-                    {% block button %}{% endblock %}
-                </div>
+                {% if can_edit %}
+                    <div class="ml-auto {{ block('filterColButton') is defined ? block('filterColButton') : 'col-auto' }}">
+                        {% block button %}{% endblock %}
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
     <div class="wii-box management-body {{ hiddenBody ? 'd-none' }}">
-        <div class="row py-2">
-            <div class="ml-3 col-auto pt-1">
-                <button class="btn btn-silent delete-main-entity">
-                    <i class="wii-icon wii-icon-trash text-primary"></i>
-                </button>
-            </div>
-            <div class="col">
-                <div class="row main-entity-content"></div>
-            </div>
-            <div class="mr-3 col-auto">
-                <button class="btn btn-primary edit-button">
-                    <i class="fa fa-pen mr-2"></i> Modifier
-                </button>
+        <div class="wii-section py-2">
+            <div class="row">
+                {% if can_edit %}
+                    <div class="col-auto pt-1">
+                        <button class="btn btn-silent delete-main-entity">
+                            <i class="wii-icon wii-icon-trash text-primary"></i>
+                        </button>
+                    </div>
+                {% endif %}
+                <div class="col">
+                    <div class="row main-entity-content"></div>
+                </div>
+                {% if can_edit %}
+                    <div class="col-auto">
+                        <button class="btn btn-primary edit-button">
+                            <i class="fa fa-pen mr-2"></i> Modifier
+                        </button>
+                    </div>
+                {% endif %}
             </div>
         </div>
         <div class="wii-section-title {{ block('subtitle') is empty ? 'd-none' }}">{% block subtitle %}{% endblock %}</div>

@@ -6,14 +6,14 @@
         <div class="col-12">
             <span>Génération bon de surconsommation pour type</span>
             <div class="d-inline-block w-100px">
-                {{ form.select("overconsumptionBillType", null, false, {
+                {{ form.select("DISPATCH_OVERCONSUMPTION_BILL_TYPE", null, false, {
                     items: types,
                     value: values[0] ?? '',
                 }) }}
             </div>
             <span>passe {{ 'acheminement.acheminement'|trans }} au statut</span>
             <div class="d-inline-block w-100px">
-                {{ form.select("overconsumptionBillStatut", null, false, {
+                {{ form.select("DISPATCH_OVERCONSUMPTION_BILL_STATUS", null, false, {
                     items: statuses,
                     value: values[1] ?? '',
                     labelClass: 'd-inline-block w-100px',

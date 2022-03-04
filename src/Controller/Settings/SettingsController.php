@@ -552,6 +552,7 @@ class SettingsController extends AbstractController {
                 ],
                 self::MENU_REQUESTS => [
                     self::MENU_DELIVERIES => fn() => [
+                        "deliveryTypesCount" => $typeRepository->countAvailableForSelect(CategoryType::DEMANDE_LIVRAISON, []),
                         "deliveryTypeSettings" => json_encode($this->getDefaultDeliveryLocationsByType($this->manager)),
                     ],
                     self::MENU_DELIVERY_REQUEST_TEMPLATES => function() use ($requestTemplateRepository, $typeRepository) {
@@ -941,8 +942,8 @@ class SettingsController extends AbstractController {
         if($edit) {
             $fixedFieldRepository = $this->manager->getRepository(FieldsParam::class);
 
-            $label = $type ? $type->getLabel() : null;
-            $description = $type ? $type->getDescription() : null;
+            $label = $type?->getLabel();
+            $description = $type?->getDescription();
             $color = $type ? $type->getColor() : "#000000";
 
             $data = [
@@ -996,7 +997,7 @@ class SettingsController extends AbstractController {
 
                 $data[] = [
                     "label" => "Envoi d'un email au demandeur",
-                    "value" => "<input name='pushNotifications' type='checkbox' class='data form-control mt-1' $mailsEnabled>",
+                    "value" => "<input name='mailRequester' type='checkbox' class='data form-control mt-1' $mailsEnabled>",
                 ];
             }
             else if($category === CategoryType::DEMANDE_DISPATCH) {
@@ -1124,8 +1125,9 @@ class SettingsController extends AbstractController {
     /**
      * @Route("/champs-libres/api/{type}", name="settings_free_field_api", options={"expose"=true})
      */
-    public function freeFieldApi(Request $request, EntityManagerInterface $manager, ?Type $type = null): Response {
-        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
+    public function freeFieldApi(Request $request, EntityManagerInterface $manager, UserService $userService, ?Type $type = null): Response {
+        $edit = $request->query->getBoolean("edit");
+        $hasEditRight = $userService->hasRightFunction(Menu::PARAM, Action::EDIT);
 
         $class = "form-control data";
 
@@ -1246,7 +1248,8 @@ class SettingsController extends AbstractController {
             }
         }
 
-        if ($edit || ($type && in_array($type->getCategory()->getLabel(), [CategoryType::MOUVEMENT_TRACA, CategoryType::SENSOR, CategoryType::RECEPTION]))) {
+        $typeFreePages = $type && in_array($type->getCategory()->getLabel(), [CategoryType::MOUVEMENT_TRACA, CategoryType::SENSOR, CategoryType::RECEPTION]);
+        if ($hasEditRight && ($edit || $typeFreePages)) {
             $rows[] = [
                 "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
                 "label" => "",

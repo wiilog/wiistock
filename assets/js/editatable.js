@@ -1,9 +1,8 @@
 export const MODE_NO_EDIT = 1;
-export const MODE_MANUAL = 2;
-export const MODE_CLICK_EDIT = 3;
-export const MODE_ADD_ONLY = 4;
-export const MODE_EDIT = 5;
-export const MODE_CLICK_EDIT_AND_ADD = 6;
+export const MODE_CLICK_EDIT = 2;
+export const MODE_ADD_ONLY = 3;
+export const MODE_EDIT = 4;
+export const MODE_CLICK_EDIT_AND_ADD = 5;
 
 export const SAVE_FOCUS_OUT = 1;
 export const SAVE_MANUALLY = 2;
@@ -96,6 +95,7 @@ export default class EditableDatatable {
             this.table.clear();
             this.toggleEdit(STATE_ADD).then(() => drawNewRow());
         } else {
+            console.log('else add row');
             this.table.row(':last').remove();
             drawNewRow();
         }
@@ -235,10 +235,8 @@ function initEditatable(datatable, onDatatableInit = null) {
                     $row
                         .off(`click.${id}.addRow`)
                         .on(`click.${id}.addRow`, 'td', () => {
+                            console.log('add row');
                             onAddRowClicked(datatable);
-                            if(datatable.state === STATE_VIEWING) {
-                                datatable.toggleEdit(STATE_EDIT, true);
-                            }
                         });
                 }
 
@@ -332,6 +330,11 @@ function initEditatable(datatable, onDatatableInit = null) {
 }
 
 function onAddRowClicked(datatable) {
+    /*if(datatable.state === STATE_VIEWING) {
+        console.log('toggle edit');
+        datatable.toggleEdit(STATE_EDIT, true);
+    }*/
+    console.log(datatable.mode);
     if(datatable.mode === MODE_CLICK_EDIT_AND_ADD && datatable.state !== STATE_EDIT){
         datatable
             .toggleEdit(STATE_EDIT, true)
@@ -340,6 +343,7 @@ function onAddRowClicked(datatable) {
             });
     }
     else {
+        console.log('else');
         datatable.addRow();
     }
 }

@@ -22,6 +22,7 @@ import {
     initializeHandlingStatuses
 } from "./statuses";
 import {initializeAlertTemplate, initializeNotifications} from "./alert-template";
+import {onHeaderPageEditStop} from "./utils";
 
 global.triggerReminderEmails = triggerReminderEmails;
 global.saveTranslations = saveTranslations;
@@ -80,6 +81,7 @@ const initializers = {
 
 const saveCallbacks = {
     global_apparence_site: () => location.reload(),
+    notifications_alertes: ($container, apiResult) => onHeaderPageEditStop($container, apiResult)
 };
 
 const slowOperations = [
@@ -157,6 +159,7 @@ $(function() {
         await AJAX.route(`POST`, `settings_save`)
             .json(data)
             .then(result => {
+                console.log(result)
                 if(result.success) {
                     let params = undefined;
                     if (result && result.entity) {
@@ -169,7 +172,8 @@ $(function() {
                     }
 
                     if(saveCallbacks[currentForm]) {
-                        saveCallbacks[currentForm]();
+                        const $container = $(`[data-path=${currentForm}]`);
+                        saveCallbacks[currentForm]($container, result);
                     }
                 }
 
@@ -524,7 +528,8 @@ function initDeliveryRequestDefaultLocations() {
         updateAlreadyDefinedTypes();
     });
     const $lastDeliveryTypeSelect = $('select[name=deliveryType]').last();
-    $buttonNewTypeAssociation.prop('disabled', $lastDeliveryTypeSelect.data('length') < 1);
+
+    $buttonNewTypeAssociation.prop('disabled', $buttonNewTypeAssociation.is(`[data-keep-disabled]`) || $lastDeliveryTypeSelect.data('length') < 1);
 }
 
 function newTypeAssociation($button, type = undefined, location = undefined, firstLoad = false) {

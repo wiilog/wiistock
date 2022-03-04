@@ -47,9 +47,9 @@ function generateFreeFieldForm() {
     };
 }
 
-function generateFreeFieldColumns(appliesTo = false) {
+function generateFreeFieldColumns(canEdit = true, appliesTo = false) {
     return [
-        {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false, width: `2%`},
+        ...(canEdit ? [{data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false, width: `2%`}] : []),
         {data: `label`, title: `Libellé`, required: true},
         ...(appliesTo ? [{data: `appliesTo`, title: `S'applique à`}] : []),
         {data: `type`, title: `Typage`, required: true},
@@ -105,7 +105,7 @@ function onElementsChange() {
 export function createFreeFieldsPage($container, canEdit) {
     createManagementPage($container, {
         name: `freeFields`,
-        edit: canEdit,
+        mode: canEdit ? MODE_CLICK_EDIT_AND_ADD : MODE_NO_EDIT,
         newTitle: 'Ajouter un type et des champs libres',
         header: {
             route: (type, edit) => Routing.generate('settings_type_header', {type, edit}, true),
@@ -119,7 +119,7 @@ export function createFreeFieldsPage($container, canEdit) {
         table: {
             route: (type) => Routing.generate('settings_free_field_api', {type}, true),
             deleteRoute: `settings_free_field_delete`,
-            columns: generateFreeFieldColumns(),
+            columns: generateFreeFieldColumns(canEdit),
             form: generateFreeFieldForm(),
         },
     });
@@ -138,7 +138,7 @@ export function createFreeFieldsPage($container, canEdit) {
 export function initializeStockArticlesTypesFreeFields($container, canEdit) {
     createManagementPage($container, {
         name: `freeFields`,
-        edit: canEdit,
+        mode: canEdit ? MODE_CLICK_EDIT_AND_ADD : MODE_NO_EDIT,
         newTitle: 'Ajouter un type et des champs libres',
         header: {
             route: (type, edit) => Routing.generate('settings_type_header', {type, edit}, true),
@@ -152,7 +152,7 @@ export function initializeStockArticlesTypesFreeFields($container, canEdit) {
         table: {
             route: (type) => Routing.generate('settings_free_field_api', {type}, true),
             deleteRoute: `settings_free_field_delete`,
-            columns: generateFreeFieldColumns(true),
+            columns: generateFreeFieldColumns(canEdit, true),
             form: {
                 appliesTo: JSON.parse($(`#article-free-field-categories`).val()),
                 ...generateFreeFieldForm(),
@@ -184,7 +184,7 @@ export function initializeTraceMovementsFreeFields($container, canEdit) {
             $saveButton.removeClass('d-none');
             $discardButton.removeClass('d-none');
         },
-        columns: generateFreeFieldColumns(),
+        columns: generateFreeFieldColumns(canEdit),
         form: generateFreeFieldForm(),
     });
 
@@ -212,7 +212,7 @@ export function initializeReceptionsFreeFields($container, canEdit) {
             $saveButton.removeClass('d-none');
             $discardButton.removeClass('d-none');
         },
-        columns: generateFreeFieldColumns(),
+        columns: generateFreeFieldColumns(canEdit),
         form: generateFreeFieldForm(),
     });
 
@@ -223,12 +223,12 @@ export function initializeReceptionsFreeFields($container, canEdit) {
 export function initializeIotFreeFields($container, canEdit) {
     createManagementPage($container, {
         name: `freeFields`,
-        edit: canEdit ? MODE_CLICK_EDIT : MODE_NO_EDIT,
+        mode: canEdit ? MODE_CLICK_EDIT_AND_ADD : MODE_NO_EDIT,
         newTitle: 'Ajouter un type et des champs libres',
         table: {
             route: (type) => Routing.generate('settings_free_field_api', {type}, true),
             deleteRoute: `settings_free_field_delete`,
-            columns: generateFreeFieldColumns(),
+            columns: generateFreeFieldColumns(canEdit),
             form: {
                 ...generateFreeFieldForm(),
             },
