@@ -1181,6 +1181,8 @@ class SettingsController extends AbstractController {
                             ],
                         ],
                     ]);
+
+                    $defaultValue = "<div class='wii-switch-small'>$defaultValue</div>";
                 }
             } else if($freeField->getTypage() === FreeField::TYPE_DATETIME || $freeField->getTypage() === FreeField::TYPE_DATE) {
                 $defaultValueDate = new DateTime(str_replace("/", "-", $freeField->getDefaultValue())) ?: null;

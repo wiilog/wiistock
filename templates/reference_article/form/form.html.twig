@@ -450,7 +450,7 @@
                                 <div class="row">
                                     {% if not partialEdit %}
                                         <div class="col-12 col-md-4 mt-3">
-                                            <div class="reference {{ reference.typeQuantite != 'reference' ? 'd-none' }}">
+                                            <div class="reference {{ reference.id and reference.typeQuantite != 'reference' ? 'd-none' }}">
                                                 <label>
                                                     <span class="icon wii-field-name">
                                                         <img src="{{ asset('svg/reference_article/euro.svg') }}" class="icon" alt="Image euro">
