@@ -82,7 +82,7 @@ class SettingsController extends AbstractController {
                 self::MENU_CLIENT => [
                     "label" => "Client application",
                     "save" => true,
-                    "env" => ["preprod"],
+                    "environment" => ["preprod"],
                 ],
                 self::MENU_LABELS => [
                     "label" => "Étiquettes",

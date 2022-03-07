@@ -93,7 +93,7 @@ function getStatusesColumn(mode) {
         {data: `comment`, title: `Commentaire litige`, modes: [MODE_ARRIVAL_DISPUTE, MODE_RECEPTION_DISPUTE]},
         {
             data: `defaultStatut`,
-            title: `Statut par défaut`,
+            title: `<div>Statut<br/>par défaut</div>`,
             modes: [MODE_ARRIVAL, MODE_ARRIVAL_DISPUTE, MODE_RECEPTION_DISPUTE, MODE_HANDLING, MODE_PURCHASE_REQUEST]},
         {
             data: `sendMailBuyers`,
