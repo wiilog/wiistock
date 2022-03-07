@@ -293,12 +293,10 @@ function initEditatable(datatable, onDatatableInit = null) {
                 .find('.dataTables_filter input')
                 .addClass('form-control');
 
-            const data = datatable.table.rows().data();
-            $parent.find(`.dataTables_paginate, .dataTables_length, .dataTables_info`)
-                .parent()
-                .toggleClass(`d-none`, !data || data.length <= 10);
-            $('.dataTables_filter')
-                .toggleClass(`d-none`, !data || data.length <= 10);
+            const data = datatable.table.rows().count();
+            setTimeout(() => datatable.element.closest(`.wii-box`)
+                .find(`.datatable-paging, .dataTables_filter`)
+                .toggleClass(`d-none`, data <= 10), 0)
 
         },
         initComplete: () => {
