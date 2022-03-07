@@ -6,7 +6,7 @@ $(document).ready(() => {
 
     const $timelineContainer = $('.timeline-container');
     if ($timelineContainer.exists()) {
-        $timelineContainer.each(function() {
+        $timelineContainer.each(function () {
             initTimeline($(this));
         });
     }
@@ -22,7 +22,7 @@ $(document).ready(() => {
         const urlEditPairingEnd = Routing.generate('pairing_edit_end', {});
         InitModal(modalEditPairingEnd, submitEditPairingEnd, urlEditPairingEnd, {
             success: response => {
-                if(!$(response.selector).exists()) {
+                if (!$(response.selector).exists()) {
                     $(`.pairing-dates-content`).append(`
                         <br/><br/>
                         <span class="pairing-date-prefix">Fin le : </span><br/>
@@ -74,13 +74,13 @@ function noMonitoringData() {
 }
 
 function initData() {
-   initMapCall(() => {
-       initChartCall(() => {
-           if (noChartData && noMapData) {
-               noMonitoringData();
-           }
-       });
-   });
+    initMapCall(() => {
+        initChartCall(() => {
+            if (noChartData && noMapData) {
+                noMonitoringData();
+            }
+        });
+    });
 }
 
 function filter() {
@@ -103,12 +103,13 @@ function getFiltersValue() {
 }
 
 let previousMap = null;
+
 function initMap(element, callback) {
     const $element = $(element);
     $errorContainer.addClass('d-none');
 
     $.get($element.data(`fetch-url`), getFiltersValue(), function (response) {
-        if(previousMap) {
+        if (previousMap) {
             previousMap.off();
             previousMap.remove();
         }
@@ -133,7 +134,7 @@ function initMap(element, callback) {
         // hide the map if there are no sensors
         $element.closest('.wii-page-card').toggle(true);
         noMapData = false;
-        if(responseValues.length > 0) {
+        if (responseValues.length > 0) {
             responseValues.forEach(((date) => {
                 Object.values(date).forEach((coordinates) => {
                     globalBounds.extend(coordinates);      // Extend LatLngBounds with coordinates
@@ -147,35 +148,37 @@ function initMap(element, callback) {
                 let polyline = [];
                 dates.forEach((label, iteration) => {
                     const coordinates = response[sensor][label];
-                    polyline.push(coordinates);
-                    index++;
-                    setTimeout(() => {
-                        Leaflet
-                            .marker(coordinates)
-                            .addTo(map)
-                            .bounce(1)
-                            .on('click', function () {
-                                this.bounce(1);
-                            })
-                            .bindPopup(`Capteur : ${sensor} <br> Date et heure : ${label}`);
-                        if (iteration === dates.length - 1 && dates.length > 1) {
+                    if (coordinates[0] !== -1 && coordinates[1] !== -1) {
+                        polyline.push(coordinates);
+                        index++;
+                        setTimeout(() => {
                             Leaflet
-                                .polyline(polyline, {color: 'blue', snakingSpeed: 500})
+                                .marker(coordinates)
                                 .addTo(map)
-                                .snakeIn()
-                                .on('snakeend', function () {
-                                    let antPolyline = new Leaflet.Polyline.AntPath(polyline, {
-                                        color: 'blue',
-                                        delay: 400,
-                                        dashArray: [
-                                            100,
-                                            100
-                                        ]
+                                .bounce(1)
+                                .on('click', function () {
+                                    this.bounce(1);
+                                })
+                                .bindPopup(`Capteur : ${sensor} <br> Date et heure : ${label}`);
+                            if (iteration === dates.length - 1 && dates.length > 1) {
+                                Leaflet
+                                    .polyline(polyline, {color: 'blue', snakingSpeed: 500})
+                                    .addTo(map)
+                                    .snakeIn()
+                                    .on('snakeend', function () {
+                                        let antPolyline = new Leaflet.Polyline.AntPath(polyline, {
+                                            color: 'blue',
+                                            delay: 400,
+                                            dashArray: [
+                                                100,
+                                                100
+                                            ]
+                                        });
+                                        antPolyline.addTo(map);
                                     });
-                                    antPolyline.addTo(map);
-                                });
-                        }
-                    }, 200 * index);
+                            }
+                        }, 200 * index);
+                    }
                 });
             });
 
@@ -232,7 +235,7 @@ function initLineChart(element, callback) {
                             callback: (label) => {
                                 if (/\s/.test(label)) {
                                     return label.split(` `);
-                                } else{
+                                } else {
                                     return label;
                                 }
                             }
@@ -291,10 +294,10 @@ function initTimeline($timelineContainer, showMore = false) {
                                 ? $(!groupAsLink ? '<div/>' : '<a/>', {
                                     class: `timeline-cell timeline-cell-left ${lastClass}`,
                                     ...(group
-                                        ? { text: group }
+                                        ? {text: group}
                                         : {}),
                                     ...(groupAsLink
-                                        ? { href: groupHref }
+                                        ? {href: groupHref}
                                         : {})
                                 })
                                 : undefined,
