@@ -44,7 +44,7 @@ class PairingRepository extends EntityRepository {
                                 'search_article.barCode LIKE :value',
                                 'search_collectOrder.numero LIKE :value',
                                 'search_location.label LIKE :value',
-                                'search_locationGroup.name LIKE :value',
+                                'search_locationGroup.label LIKE :value',
                                 'search_pack.code LIKE :value',
                                 'search_preparationOrder.numero LIKE :value',
                                 'search_deliveryRequest.numero LIKE :value',
@@ -73,7 +73,7 @@ class PairingRepository extends EntityRepository {
                                     IFNULL(order_location.label,
                                     IFNULL(order_pack.code,
                                     IFNULL(order_preparationOrder.numero,
-                                    IFNULL(order_locationGroup.name, order_deliveryRequest.numero))))))', $order)
+                                    IFNULL(order_locationGroup.label, order_deliveryRequest.numero))))))', $order)
                                 ->leftJoin('sensors_pairing.article', 'order_article')
                                 ->leftJoin('sensors_pairing.collectOrder', 'order_collectOrder')
                                 ->leftJoin('sensors_pairing.location', 'order_location')
@@ -148,7 +148,7 @@ class PairingRepository extends EntityRepository {
                             'search_article.barCode LIKE :value',
                             'search_collectOrder.numero LIKE :value',
                             'search_location.label LIKE :value',
-                            'search_locationGroup.name LIKE :value',
+                            'search_locationGroup.label LIKE :value',
                             'search_pack.code LIKE :value',
                             'search_preparationOrder.numero LIKE :value',
                             'search_deliveryRequest.numero LIKE :value',
