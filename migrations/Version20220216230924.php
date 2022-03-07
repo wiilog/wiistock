@@ -21,16 +21,16 @@ final class Version20220216230924 extends AbstractMigration
     {
         // this up() migration is auto-generated, please modify it to your needs
         if (!$schema->hasTable('setting')) {
-            $this->addSql('ALTER TABLE parametrage_global RENAME TO setting;');
             $duplicateSettings = $this->connection
                 ->executeQuery('
-                SELECT setting.label, setting.id
-                FROM setting
-                WHERE setting.label IN (SELECT setting.label FROM setting GROUP BY setting.label HAVING COUNT(setting.label) > 1)
-                ORDER BY setting.id DESC
+                SELECT parametrage_global.label, parametrage_global.id
+                FROM parametrage_global
+                WHERE parametrage_global.label IN (SELECT parametrage_global.label FROM parametrage_global GROUP BY parametrage_global.label HAVING COUNT(parametrage_global.label) > 1)
+                ORDER BY parametrage_global.id DESC
             ')
                 ->fetchAllAssociative();
             $updated = [];
+            $this->addSql('ALTER TABLE parametrage_global RENAME TO setting;');
             foreach ($duplicateSettings as $setting) {
                 $id = $setting['id'];
                 $label = $setting['label'];
