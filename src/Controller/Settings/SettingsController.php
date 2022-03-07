@@ -568,16 +568,7 @@ class SettingsController extends AbstractController {
                         'types' => $this->typeGenerator(CategoryType::DEMANDE_COLLECTE),
                     ],
                     self::MENU_PURCHASE_STATUSES => fn() => [
-                        'optionsSelect' => Stream::from(
-                            [['empty' => true]],
-                            $this->statusService->getStatusStatesValues(StatusController::MODE_PURCHASE_REQUEST)
-                        )
-                            ->map(fn(array $state) => (
-                            ($state['empty'] ?? false)
-                                ? '<option/>'
-                                : "<option value='{$state['id']}'>{$state['label']}</option>"
-                            ))
-                            ->join(''),
+                        'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_PURCHASE_REQUEST),
                     ],
                 ],
                 self::MENU_INVENTORIES => [
@@ -598,15 +589,7 @@ class SettingsController extends AbstractController {
                         "receptionStatuses" => $statusRepository->findByCategorieName(CategorieStatut::RECEPTION, 'displayOrder'),
                     ],
                     self::MENU_DISPUTE_STATUSES => fn() => [
-                        'optionsSelect' => Stream::from(
-                            [['empty' => true]],
-                            $this->statusService->getStatusStatesValues(StatusController::MODE_RECEPTION_DISPUTE)
-                        )->map(fn(array $state) => (
-                            ($state['empty'] ?? false)
-                                ? '<option/>'
-                                : "<option value='{$state['id']}'>{$state['label']}</option>"
-                            )
-                        )->join(''),
+                        'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_RECEPTION_DISPUTE),
                     ],
                     self::MENU_FREE_FIELDS => fn() => [
                         "type" => $typeRepository->findOneByLabel(Type::LABEL_RECEPTION),
@@ -661,16 +644,7 @@ class SettingsController extends AbstractController {
                     self::MENU_STATUSES => fn() => [
                         'types' => $this->typeGenerator(CategoryType::DEMANDE_DISPATCH, false),
                         'categoryType' => CategoryType::DEMANDE_DISPATCH,
-                        'optionsSelect' => Stream::from(
-                            [['empty' => true]],
-                            $this->statusService->getStatusStatesValues(StatusController::MODE_DISPATCH)
-                        )
-                            ->map(fn(array $state) => (
-                            ($state['empty'] ?? false)
-                                ? "<option/>"
-                                : "<option value='{$state['id']}'>{$state['label']}</option>"
-                            ))
-                            ->join(''),
+                        'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_DISPATCH),
                     ],
                 ],
                 self::MENU_ARRIVALS => [
@@ -694,30 +668,12 @@ class SettingsController extends AbstractController {
                         'types' => $this->typeGenerator(CategoryType::ARRIVAGE),
                     ],
                     self::MENU_DISPUTE_STATUSES => fn() => [
-                        'optionsSelect' => Stream::from(
-                            [['empty' => true]],
-                            $this->statusService->getStatusStatesValues(StatusController::MODE_ARRIVAL_DISPUTE)
-                        )
-                            ->map(fn(array $state) => (
-                                ($state['empty'] ?? false)
-                                    ? '<option/>'
-                                    : "<option value='{$state['id']}'>{$state['label']}</option>"
-                            ))
-                            ->join(''),
+                        'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_ARRIVAL_DISPUTE),
                     ],
                     self::MENU_STATUSES => fn() => [
                         'types' => $this->typeGenerator(CategoryType::ARRIVAGE, false),
                         'categoryType' => CategoryType::ARRIVAGE,
-                        'optionsSelect' => Stream::from(
-                            [['empty' => true]],
-                            $this->statusService->getStatusStatesValues(StatusController::MODE_ARRIVAL)
-                        )
-                            ->map(fn(array $state) => (
-                                ($state['empty'] ?? false)
-                                    ? "<option/>"
-                                    : "<option value='{$state['id']}'>{$state['label']}</option>"
-                            ))
-                            ->join(''),
+                        'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_ARRIVAL),
                     ],
                 ],
                 self::MENU_HANDLINGS => [
@@ -746,16 +702,7 @@ class SettingsController extends AbstractController {
                     self::MENU_STATUSES => fn() => [
                         'types' => $this->typeGenerator(CategoryType::DEMANDE_HANDLING, false),
                         'categoryType' => CategoryType::DEMANDE_HANDLING,
-                        'optionsSelect' => Stream::from(
-                            [['empty' => true]],
-                            $this->statusService->getStatusStatesValues(StatusController::MODE_HANDLING)
-                        )
-                            ->map(fn(array $state) => (
-                            ($state['empty'] ?? false)
-                                ? "<option/>"
-                                : "<option value='{$state['id']}'>{$state['label']}</option>"
-                            ))
-                            ->join(''),
+                        'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_HANDLING),
                     ],
                 ],
                 self::MENU_MOVEMENTS => [
