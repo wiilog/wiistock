@@ -1,6 +1,6 @@
 @import "variables";
 
-$select-height: subtract($input-height, 2px);
+$select-height: 36px;
 
 .select2-container--open .select2-selection:not(.is-invalid) {
     border-color: $primary !important;

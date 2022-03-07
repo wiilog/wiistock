@@ -231,8 +231,7 @@ export function fireRemoveMainEntityButton($container, deleteConfig) {
                                         Flash.add('success', message);
                                         $submitButton.popLoader();
                                         $modal.modal('hide');
-
-                                        removeEntity($container, selectedEntity);
+                                        window.location.reload();
                                     })
                                     .catch(() => {
                                         $submitButton.popLoader();
@@ -278,42 +277,6 @@ function addNewEntity($container, entity) {
 
         $container.find(`#${entity.id}`).prop(`checked`, true);
     }
-}
-
-function removeEntity($container, entityToRemove) {
-    const $entity = $container.find(`[name=entity]`);
-    const $managementBody = $container.find(`.management-body`);
-    let nextValue;
-
-    if ($entity.is('select')) {
-        const $removed = $entity.find(`[value=${entityToRemove}]`);
-        $removed.remove();
-        const $nextSelectedOption = $entity
-            .find('option')
-            .first();
-        nextValue = $nextSelectedOption.exists()
-            ? $nextSelectedOption.attr('value')
-            : undefined;
-        $entity
-            .val(nextValue)
-            .trigger('change');
-    }
-    else { // is wii-expanded-switch
-        const $removed = $entity.parent().find(`input[value=${entityToRemove}]`);
-        const $labelToRemove = $container.find(`[for=${$removed.attr('id')}]`);
-        $removed.remove();
-        $labelToRemove.remove();
-
-        const $nextSelectedInput = $entity
-            .filter('input')
-            .first();
-        nextValue = $nextSelectedInput.val();
-        if ($nextSelectedInput.exists()) {
-            $nextSelectedInput.prop('checked', true);
-        }
-    }
-
-    $managementBody.toggleClass('d-none', !nextValue);
 }
 
 export function createManagementHeaderPage($container, config) {
