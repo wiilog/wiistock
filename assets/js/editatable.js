@@ -1,3 +1,5 @@
+import WysiwygManager from "./wysiwyg-manager";
+
 export const MODE_NO_EDIT = 1;
 export const MODE_CLICK_EDIT = 2;
 export const MODE_ADD_ONLY = 3;
@@ -21,6 +23,12 @@ export default class EditableDatatable {
 
     static create(id, config) {
         const $element = $(id);
+
+        console.error("huh", $element.closest(`.wii-box`))
+        $element.closest(`.wii-box`).arrive(`.wii-one-line-wysiwyg`, function() {
+            console.warn('yes')
+            WysiwygManager.initializeOneLineWYSIWYG($(document));
+        });
 
         if(config.name) {
             $element.attr(`data-table-processing`, config.name)
