@@ -104,7 +104,7 @@ class RequestTemplateController extends AbstractController {
 
                 $data[] = [
                     "label" => "Commentaire",
-                    "value" => "<input name='comment' class='data form-control'>$comment</input>",
+                    "value" => "<div class='editor-container data' data-wysiwyg='comment'>$comment</div>",
                 ];
             }
             else if ($category === Type::LABEL_COLLECT) {

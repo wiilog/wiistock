@@ -25,7 +25,7 @@ export function initializeRequestTemplates($container, canEdit) {
             deleteRoute: `settings_request_template_line_delete`,
             hidden: handling,
             columns: [
-                {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+                {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder icon-column', orderable: false},
                 {data: `reference`, title: `Référence`, required: true},
                 {data: `label`, title: `Libellé`},
                 {data: `location`, title: `Emplacement`},
