@@ -74,6 +74,11 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
     $addButton.on(`click`, function() {
         table.addRow(true);
     });
+
+    $container.on('change', '[name=state]', function () {
+        onStatusStateChange($(this));
+    });
+
     return table;
 }
 
@@ -175,4 +180,17 @@ function initializeStatusesByTypes($container, canEdit, mode) {
         .on('click', function() {
             table.addRow(true);
         });
+}
+
+function onStatusStateChange($select) {
+    const $form = $select.closest('tr');
+    const $needMobileSync = $form.find('[name=needsMobileSync]');
+    const needsToDisabled = $select
+        .find(`option[value=${$select.val()}]`)
+        .data('need-mobile-sync-disabled');
+
+    $needMobileSync.prop('disabled', Boolean(needsToDisabled));
+    if (needsToDisabled) {
+        $needMobileSync.prop('checked', false);
+    }
 }

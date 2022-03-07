@@ -5,7 +5,6 @@ namespace App\Controller\Settings;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
-use App\Entity\CategoryType;
 use App\Entity\Menu;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -97,23 +96,15 @@ class StatusController extends AbstractController
                 : "";
 
             if ($edit) {
-                $stateOptions = Stream::from([['empty' => true]], $statusService->getStatusStatesValues($mode))
-                    ->map(function(array $state) use ($status) {
-                        if ($state['empty'] ?? false) {
-                            return '<option/>';
-                        }
-                        else {
-                            $selected = $state['id'] == $status->getState() ? 'selected' : '';
-                            return "<option value='{$state['id']}' {$selected}>{$state['label']}</option>";
-                        }
-                    })
-                    ->join('');
+                $stateOptions = $statusService->getStatusStatesOptions($mode, $status->getState(), true);
+
+                $disabledMobileSync = $status->getState() === Statut::DRAFT ? 'disabled' : '';
 
                 $defaultStatut = $status->isDefaultForCategory() ? 'checked' : "";
                 $sendMailBuyers = $status->getSendNotifToBuyer() ? 'checked' : "";
                 $sendMailRequesters = $status->getSendNotifToDeclarant() ? 'checked' : "";
                 $sendMailDest = $status->getSendNotifToRecipient() ? 'checked' : "";
-                $needsMobileSync = $status->getNeedsMobileSync() ? 'checked' : "";
+                $needsMobileSync = ($status->getState() !== Statut::DRAFT && $status->getNeedsMobileSync()) ? 'checked' : "";
                 $commentNeeded = $status->getCommentNeeded() ? 'checked' : "";
                 $automaticReceptionCreation = $status->getAutomaticReceptionCreation() ? 'checked' : "";
 
@@ -127,7 +118,7 @@ class StatusController extends AbstractController
                     "sendMailBuyers" => "<div class='checkbox-container'><input type='checkbox' name='sendMailBuyers' class='form-control data' {$sendMailBuyers}/></div>",
                     "sendMailRequesters" => "<div class='checkbox-container'><input type='checkbox' name='sendMailRequesters' class='form-control data' {$sendMailRequesters}/></div>",
                     "sendMailDest" => "<div class='checkbox-container'><input type='checkbox' name='sendMailDest' class='form-control data' {$sendMailDest}/></div>",
-                    "needsMobileSync" => "<div class='checkbox-container'><input type='checkbox' name='needsMobileSync' class='form-control data' {$needsMobileSync}/></div>",
+                    "needsMobileSync" => "<div class='checkbox-container'><input type='checkbox' name='needsMobileSync' class='form-control data' {$disabledMobileSync} {$needsMobileSync}/></div>",
                     "commentNeeded" => "<div class='checkbox-container'><input type='checkbox' name='commentNeeded' class='form-control data' {$commentNeeded}/></div>",
                     "automaticReceptionCreation" => "<div class='checkbox-container'><input type='checkbox' name='automaticReceptionCreation' class='form-control data' {$automaticReceptionCreation}/></div>",
                     "order" => "<input type='number' name='order' min='1' value='{$status->getDisplayOrder()}' class='form-control data needed px-2 text-center' data-no-arrow/>",
@@ -143,7 +134,7 @@ class StatusController extends AbstractController
                     "sendMailBuyers" => FormatHelper::bool($status->getSendNotifToBuyer()),
                     "sendMailRequesters" => FormatHelper::bool($status->getSendNotifToDeclarant()),
                     "sendMailDest" => FormatHelper::bool($status->getSendNotifToRecipient()),
-                    "needsMobileSync" => FormatHelper::bool($status->getNeedsMobileSync()),
+                    "needsMobileSync" => FormatHelper::bool($status->getState() !== Statut::DRAFT && $status->getNeedsMobileSync()),
                     "commentNeeded" => FormatHelper::bool($status->getCommentNeeded()),
                     "automaticReceptionCreation" => FormatHelper::bool($status->getAutomaticReceptionCreation()),
                     "order" => $status->getDisplayOrder(),
