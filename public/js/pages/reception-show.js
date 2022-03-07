@@ -552,7 +552,8 @@ function demandeurChanged($select) {
 }
 
 function initNewLigneReception($button) {
-    Select2Old.init($modalNewLigneReception.find('.ajax-autocomplete-location'), '', 1, {route: 'get_emplacement'});
+    const restrictedLocations = $modalNewLigneReception.find(`input[name=restrictedLocations]`).val();
+    Select2Old.init($modalNewLigneReception.find('.ajax-autocomplete-location'), '', restrictedLocations ? 0 : 1, {route: 'get_emplacement'});
     Select2Old.location($('.ajax-autocomplete-location-edit'));
     Select2Old.init($('.select2-type'));
     Select2Old.user($modalNewLigneReception.find('.select2-user'));
