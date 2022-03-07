@@ -135,17 +135,17 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::FONT_FAMILY => [
                 'default' => Setting::DEFAULT_FONT_FAMILY
             ],
-            Setting::OVERCONSUMPTION_LOGO => [],
-            Setting::WEBSITE_LOGO => [
+            Setting::FILE_OVERCONSUMPTION_LOGO => [],
+            Setting::FILE_WEBSITE_LOGO => [
                 'default' => Setting::DEFAULT_WEBSITE_LOGO_VALUE
             ],
-            Setting::EMAIL_LOGO => [
+            Setting::FILE_EMAIL_LOGO => [
                 'default' => Setting::DEFAULT_EMAIL_LOGO_VALUE
             ],
-            Setting::MOBILE_LOGO_LOGIN => [
+            Setting::FILE_MOBILE_LOGO_LOGIN => [
                 'default' => Setting::DEFAULT_MOBILE_LOGO_LOGIN_VALUE
             ],
-            Setting::MOBILE_LOGO_HEADER => [
+            Setting::FILE_MOBILE_LOGO_HEADER => [
                 'default' => Setting::DEFAULT_MOBILE_LOGO_HEADER_VALUE
             ],
             Setting::DEFAULT_LOCATION_RECEPTION => [],
@@ -165,7 +165,7 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::CUSTOM_TEXT_LABEL => [],
             Setting::EMERGENCY_TEXT_LABEL => [],
             Setting::DELIVERY_NOTE_LOGO => [],
-            Setting::WAYBILL_LOGO => [],
+            Setting::FILE_WAYBILL_LOGO => [],
             Setting::DISPATCH_EXPECTED_DATE_COLOR_AFTER => [
                 'default' => null,
                 SpecificService::CLIENT_ARKEMA_SERQUIGNY => '#2b78e4'

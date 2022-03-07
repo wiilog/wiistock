@@ -50,10 +50,10 @@ class SettingRepository extends EntityRepository
             $logo->getValue() != Setting::DEFAULT_EMAIL_LOGO_VALUE &&
             $logo->getValue() != Setting::DEFAULT_MOBILE_LOGO_HEADER_VALUE &&
             $logo->getValue() != Setting::DEFAULT_MOBILE_LOGO_LOGIN_VALUE &&
-            $logo->getValue() != $settingRepository->getOneParamByLabel(Setting::WEBSITE_LOGO) &&
-            $logo->getValue() != $settingRepository->getOneParamByLabel(Setting::EMAIL_LOGO) &&
-            $logo->getValue() != $settingRepository->getOneParamByLabel(Setting::MOBILE_LOGO_HEADER) &&
-            $logo->getValue() != $settingRepository->getOneParamByLabel(Setting::MOBILE_LOGO_LOGIN)
+            $logo->getValue() != $settingRepository->getOneParamByLabel(Setting::FILE_WEBSITE_LOGO) &&
+            $logo->getValue() != $settingRepository->getOneParamByLabel(Setting::FILE_EMAIL_LOGO) &&
+            $logo->getValue() != $settingRepository->getOneParamByLabel(Setting::FILE_MOBILE_LOGO_HEADER) &&
+            $logo->getValue() != $settingRepository->getOneParamByLabel(Setting::FILE_MOBILE_LOGO_LOGIN)
         );
     }
 }

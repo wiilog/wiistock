@@ -219,12 +219,13 @@ function initEditatable(datatable, onDatatableInit = null) {
         paging: config.paging && datatable.state === STATE_VIEWING || false,
         searching: config.search && datatable.state === STATE_VIEWING || false,
         scrollY: false,
-        scrollX: true,
+        scrollX: false,
         drawCallback: () => {
-            $parent.find(`.dataTables_wrapper`).css(`overflow-x`, `scroll`);
-            $parent.find(`.dataTables_scrollBody, .dataTables_scrollHead`)
-                .css(`overflow`, `visible`)
-                .css(`overflow-y`, `visible`);
+            const $parent = datatable.element.closest(`.wii-box`);
+
+            $parent.find(`.dataTables_wrapper, .dataTables_scrollBody, .dataTables_scrollHead`)
+                .css(`overflow-x`, `visible`)
+                .css(`overflow-y`, `visible`)
 
             const $rows = $(datatable.table.rows().nodes());
             $rows.each(function() {
@@ -293,12 +294,10 @@ function initEditatable(datatable, onDatatableInit = null) {
                 .find('.dataTables_filter input')
                 .addClass('form-control');
 
-            const data = datatable.table.rows().data();
-            $parent.find(`.dataTables_paginate, .dataTables_length, .dataTables_info`)
-                .parent()
-                .toggleClass(`d-none`, !data || data.length <= 10);
-            $('.dataTables_filter')
-                .toggleClass(`d-none`, !data || data.length <= 10);
+            const data = datatable.table.rows().count();
+            setTimeout(() => $parent
+                .find(`.datatable-paging, .dataTables_filter`)
+                .toggleClass(`d-none`, data <= 10), 0)
 
         },
         initComplete: () => {

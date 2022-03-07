@@ -107,7 +107,7 @@ class SettingsService {
         $this->saveStandard($request, $settings, $updated);
         $this->saveFiles($request, $settings, $updated);
 
-        $settingNamesToClear = array_diff($allFormSettingNames, $settingNames);
+        $settingNamesToClear = array_diff($allFormSettingNames, $settingNames, $updated);
         $settingToClear = !empty($settingNamesToClear) ? $settingRepository->findByLabel($settingNamesToClear) : [];
 
         $this->clearSettings($settingToClear);
@@ -160,19 +160,6 @@ class SettingsService {
             $mailer->setProtocol($data->get("MAILER_PROTOCOL"));
             $mailer->setSenderName($data->get("MAILER_SENDER_NAME"));
             $mailer->setSenderMail($data->get("MAILER_SENDER_MAIL"));
-        }
-
-        $logosToSave = [
-            [Setting::WEBSITE_LOGO, Setting::DEFAULT_WEBSITE_LOGO_VALUE],
-            [Setting::MOBILE_LOGO_LOGIN, Setting::DEFAULT_MOBILE_LOGO_LOGIN_VALUE],
-            [Setting::EMAIL_LOGO, Setting::DEFAULT_EMAIL_LOGO_VALUE],
-            [Setting::MOBILE_LOGO_HEADER, Setting::DEFAULT_MOBILE_LOGO_HEADER_VALUE],
-        ];
-        foreach ($logosToSave as [$settingLabel, $default]) {
-            $setting = $this->getSetting($settings, $settingLabel);
-            if (isset($setting) && $this->saveDefaultImage($data, $request->files, $setting, $default)) {
-                $updated[] = $settingLabel;
-            }
         }
 
         if ($data->has("en_attente_de_réception") && $data->has("réception_partielle") && $data->has("réception_totale") && $data->has("anomalie")) {
@@ -266,6 +253,24 @@ class SettingsService {
                 $setting->setValue("uploads/attachements/" . $fileName[array_key_first($fileName)]);
                 $updated[] = $key;
             }
+        }
+
+        $logosToSave = [
+            [Setting::FILE_WEBSITE_LOGO, Setting::DEFAULT_WEBSITE_LOGO_VALUE],
+            [Setting::FILE_MOBILE_LOGO_LOGIN, Setting::DEFAULT_MOBILE_LOGO_LOGIN_VALUE],
+            [Setting::FILE_EMAIL_LOGO, Setting::DEFAULT_EMAIL_LOGO_VALUE],
+            [Setting::FILE_MOBILE_LOGO_HEADER, Setting::DEFAULT_MOBILE_LOGO_HEADER_VALUE],
+            [Setting::FILE_WAYBILL_LOGO, null],
+            [Setting::FILE_OVERCONSUMPTION_LOGO, null],
+        ];
+
+        foreach ($logosToSave as [$settingLabel, $default]) {
+            $setting = $this->getSetting($settings, $settingLabel);
+            if (isset($default)
+                && !$request->request->getBoolean('keep-' . $settingLabel) && !$request->files->has($settingLabel)) {
+                $setting->setValue($default);
+            }
+            $updated[] = $settingLabel;
         }
     }
 
@@ -662,21 +667,6 @@ class SettingsService {
         foreach ($settings as $setting) {
             $setting->setValue(null);
         }
-    }
-
-    private function saveDefaultImage(InputBag $data,
-                                      FileBag $fileBag,
-                                      Setting $setting,
-                                      string $defaultValue): bool {
-
-        $defaultImageSaved = false;
-        $settingLabel = $setting->getLabel();
-        if(!$data->getBoolean('keep-' . $settingLabel) && !$fileBag->has($settingLabel)) {
-            $setting->setValue($defaultValue);
-            $defaultImageSaved = true;
-        }
-
-        return $defaultImageSaved;
     }
 
 }

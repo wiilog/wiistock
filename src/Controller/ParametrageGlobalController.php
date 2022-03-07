@@ -76,12 +76,12 @@ class ParametrageGlobalController extends AbstractController
         $emergencyIcon = $settingRepository->getOneParamByLabel(Setting::EMERGENCY_ICON);
         $customIcon = $settingRepository->getOneParamByLabel(Setting::CUSTOM_ICON);
         $deliveryNoteLogo = $settingRepository->getOneParamByLabel(Setting::DELIVERY_NOTE_LOGO);
-        $waybillLogo = $settingRepository->getOneParamByLabel(Setting::WAYBILL_LOGO);
+        $waybillLogo = $settingRepository->getOneParamByLabel(Setting::FILE_WAYBILL_LOGO);
 
-        $websiteLogo = $settingRepository->getOneParamByLabel(Setting::WEBSITE_LOGO);
-        $emailLogo = $settingRepository->getOneParamByLabel(Setting::EMAIL_LOGO);
-        $mobileLogoHeader = $settingRepository->getOneParamByLabel(Setting::MOBILE_LOGO_HEADER);
-        $mobileLogoLogin = $settingRepository->getOneParamByLabel(Setting::MOBILE_LOGO_LOGIN);
+        $websiteLogo = $settingRepository->getOneParamByLabel(Setting::FILE_WEBSITE_LOGO);
+        $emailLogo = $settingRepository->getOneParamByLabel(Setting::FILE_EMAIL_LOGO);
+        $mobileLogoHeader = $settingRepository->getOneParamByLabel(Setting::FILE_MOBILE_LOGO_HEADER);
+        $mobileLogoLogin = $settingRepository->getOneParamByLabel(Setting::FILE_MOBILE_LOGO_LOGIN);
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $deliveryTypeSettings = $globalParamService->getDefaultDeliveryLocationsByType($entityManager);
@@ -173,7 +173,7 @@ class ParametrageGlobalController extends AbstractController
                     'waybillContactName' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONTACT_NAME),
                     'waybillContactPhoneMail' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL),
                     'overconsumptionBill' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_OVERCONSUMPTION_BILL_TYPE_AND_STATUS),
-                    'overconsumption_logo' => $settingRepository->getOneParamByLabel(Setting::OVERCONSUMPTION_LOGO),
+                    'overconsumption_logo' => $settingRepository->getOneParamByLabel(Setting::FILE_OVERCONSUMPTION_LOGO),
                     'prefixPackCodeWithDispatchNumber' => $settingRepository->getOneParamByLabel(Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER),
                     'packMustBeNew' => $settingRepository->getOneParamByLabel(Setting::PACK_MUST_BE_NEW),
                     'preFill' => $settingRepository->getOneParamByLabel(Setting::PREFILL_DUE_DATE_TODAY),
@@ -489,10 +489,10 @@ class ParametrageGlobalController extends AbstractController
             $logo = $request->files->get("logo-waybill");
 
             $fileName = $attachmentService->saveFile($logo, AttachmentService::WAYBILL_LOGO);
-            $setting = $pgr->findOneBy(['label' => Setting::WAYBILL_LOGO]);
+            $setting = $pgr->findOneBy(['label' => Setting::FILE_WAYBILL_LOGO]);
             if(!$setting) {
                 $setting = new Setting();
-                $setting->setLabel(Setting::WAYBILL_LOGO);
+                $setting->setLabel(Setting::FILE_WAYBILL_LOGO);
                 $em->persist($setting);
             }
 
@@ -789,19 +789,19 @@ class ParametrageGlobalController extends AbstractController
         if($request->files->has("website-logo")) {
             $logo = $request->files->get("website-logo");
             $fileName = $attachmentService->saveFile($logo);
-            $setting = $settingRepository->findOneBy(['label' => Setting::WEBSITE_LOGO]);
+            $setting = $settingRepository->findOneBy(['label' => Setting::FILE_WEBSITE_LOGO]);
             if($settingRepository->getUnusedLogo($setting, $entityManager)){
                 unlink($setting->getValue());
             }
             if(!$setting) {
                 $setting = new Setting();
-                $setting->setLabel(Setting::WEBSITE_LOGO);
+                $setting->setLabel(Setting::FILE_WEBSITE_LOGO);
                 $entityManager->persist($setting);
             }
 
             $setting->setValue("uploads/attachements/" . $fileName[array_key_first($fileName)]);
         } else if(!($request->files->has("website-logo")) && ($resetLogos['website'] ?? false)) {
-            $setting = $settingRepository->findOneBy(['label' => Setting::WEBSITE_LOGO]);
+            $setting = $settingRepository->findOneBy(['label' => Setting::FILE_WEBSITE_LOGO]);
             $setting->setValue(Setting::DEFAULT_WEBSITE_LOGO_VALUE);
         }
 
@@ -809,19 +809,19 @@ class ParametrageGlobalController extends AbstractController
             $logo = $request->files->get("email-logo");
 
             $fileName = $attachmentService->saveFile($logo);
-            $setting = $settingRepository->findOneBy(['label' => Setting::EMAIL_LOGO]);
+            $setting = $settingRepository->findOneBy(['label' => Setting::FILE_EMAIL_LOGO]);
             if($settingRepository->getUnusedLogo($setting, $entityManager)){
                 unlink($setting->getValue());
             }
             if(!$setting) {
                 $setting = new Setting();
-                $setting->setLabel(Setting::EMAIL_LOGO);
+                $setting->setLabel(Setting::FILE_EMAIL_LOGO);
                 $entityManager->persist($setting);
             }
 
             $setting->setValue("uploads/attachements/" . $fileName[array_key_first($fileName)]);
         } else if(!($request->files->has("email-logo")) && ($resetLogos['mailLogo'] ?? false)) {
-            $setting = $settingRepository->findOneBy(['label' => Setting::EMAIL_LOGO]);
+            $setting = $settingRepository->findOneBy(['label' => Setting::FILE_EMAIL_LOGO]);
             $setting->setValue(Setting::DEFAULT_EMAIL_LOGO_VALUE);
         }
 
@@ -829,19 +829,19 @@ class ParametrageGlobalController extends AbstractController
             $logo = $request->files->get("mobile-logo-login");
 
             $fileName = $attachmentService->saveFile($logo);
-            $setting = $settingRepository->findOneBy(['label' => Setting::MOBILE_LOGO_LOGIN]);
+            $setting = $settingRepository->findOneBy(['label' => Setting::FILE_MOBILE_LOGO_LOGIN]);
             if($settingRepository->getUnusedLogo($setting, $entityManager)){
                 unlink($setting->getValue());
             }
             if(!$setting) {
                 $setting = new Setting();
-                $setting->setLabel(Setting::MOBILE_LOGO_LOGIN);
+                $setting->setLabel(Setting::FILE_MOBILE_LOGO_LOGIN);
                 $entityManager->persist($setting);
             }
 
             $setting->setValue("uploads/attachements/" . $fileName[array_key_first($fileName)]);
         } else if(!($request->files->has("mobile-logo-login")) && ($resetLogos['nomadeAccueil'] ?? false)) {
-            $setting = $settingRepository->findOneBy(['label' => Setting::MOBILE_LOGO_LOGIN]);
+            $setting = $settingRepository->findOneBy(['label' => Setting::FILE_MOBILE_LOGO_LOGIN]);
             $setting->setValue(Setting::DEFAULT_MOBILE_LOGO_LOGIN_VALUE);
         }
 
@@ -849,19 +849,19 @@ class ParametrageGlobalController extends AbstractController
             $logo = $request->files->get("mobile-logo-header");
 
             $fileName = $attachmentService->saveFile($logo);
-            $setting = $settingRepository->findOneBy(['label' => Setting::MOBILE_LOGO_HEADER]);
+            $setting = $settingRepository->findOneBy(['label' => Setting::FILE_MOBILE_LOGO_HEADER]);
             if($settingRepository->getUnusedLogo($setting, $entityManager)){
                 unlink($setting->getValue());
             }
             if(!$setting) {
                 $setting = new Setting();
-                $setting->setLabel(Setting::MOBILE_LOGO_HEADER);
+                $setting->setLabel(Setting::FILE_MOBILE_LOGO_HEADER);
                 $entityManager->persist($setting);
             }
 
             $setting->setValue("uploads/attachements/" . $fileName[array_key_first($fileName)]);
         } else if(!($request->files->has("mobile-logo-header")) && ($resetLogos['nomadeHeader'] ?? false)) {
-            $setting = $settingRepository->findOneBy(['label' => Setting::MOBILE_LOGO_HEADER]);
+            $setting = $settingRepository->findOneBy(['label' => Setting::FILE_MOBILE_LOGO_HEADER]);
             $setting->setValue(Setting::DEFAULT_MOBILE_LOGO_HEADER_VALUE);
         }
 
@@ -921,10 +921,10 @@ class ParametrageGlobalController extends AbstractController
             $settingRepository = $entityManager->getRepository(Setting::class);
 
             $fileName = $attachmentService->saveFile($logo, AttachmentService::OVERCONSUMPTION_LOGO);
-            $setting = $settingRepository->findOneBy(['label' => Setting::OVERCONSUMPTION_LOGO]);
+            $setting = $settingRepository->findOneBy(['label' => Setting::FILE_OVERCONSUMPTION_LOGO]);
             if(!$setting) {
                 $setting = new Setting();
-                $setting->setLabel(Setting::OVERCONSUMPTION_LOGO);
+                $setting->setLabel(Setting::FILE_OVERCONSUMPTION_LOGO);
                 $entityManager->persist($setting);
             }
 

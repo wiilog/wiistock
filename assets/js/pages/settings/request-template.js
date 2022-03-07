@@ -26,7 +26,7 @@ export function initializeRequestTemplates($container, canEdit) {
             hidden: handling,
             columns: [
                 {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-                {data: `reference`, title: `Référence`},
+                {data: `reference`, title: `Référence`, required: true},
                 {data: `label`, title: `Libellé`},
                 {data: `location`, title: `Emplacement`},
                 {data: `quantityToTake`, title: quantityLabel },

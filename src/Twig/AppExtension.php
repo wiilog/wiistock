@@ -119,10 +119,10 @@ class AppExtension extends AbstractExtension {
 
         switch($platform) {
             case "website":
-                $logo = $pgr->getOneParamByLabel(Setting::WEBSITE_LOGO);
+                $logo = $pgr->getOneParamByLabel(Setting::FILE_WEBSITE_LOGO);
                 break;
             case "email":
-                $logo = $pgr->getOneParamByLabel(Setting::EMAIL_LOGO);
+                $logo = $pgr->getOneParamByLabel(Setting::FILE_EMAIL_LOGO);
                 break;
             default:
                 break;

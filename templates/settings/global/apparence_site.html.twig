@@ -1,16 +1,11 @@
 {% import 'form.html.twig' as form %}
 
-{% set website_logo = setting_value('WEBSITE_LOGO') %}
-{% set email_logo = setting_value('EMAIL_LOGO') %}
-{% set mobile_logo_login = setting_value('MOBILE_LOGO_LOGIN') %}
-{% set mobile_logo_header = setting_value('MOBILE_LOGO_HEADER') %}
-
 <div class="wii-section">
     <div class="row">
         <div class="form-group w-fit-content col-6">
             <div class="row">
                 <div class="col-auto">
-                    {{ form.image(setting('WEBSITE_LOGO'), 'Logo sur web entête', false, setting_value('WEBSITE_LOGO'), {
+                    {{ form.image(setting('FILE_WEBSITE_LOGO'), 'Logo sur web entête', false, setting_value('FILE_WEBSITE_LOGO'), {
                         labelClass: 'w-100 wii-field-name',
                         defaultValue: setting('DEFAULT_WEBSITE_LOGO_VALUE'),
                     }) }}
@@ -21,7 +16,7 @@
         <div class="form-group w-fit-content col-6">
             <div class="row">
                 <div class="col-auto">
-                    {{ form.image(setting('MOBILE_LOGO_LOGIN'), 'Logo sur nomade page connexion', false, setting_value('MOBILE_LOGO_LOGIN'), {
+                    {{ form.image(setting('FILE_MOBILE_LOGO_LOGIN'), 'Logo sur nomade page connexion', false, setting_value('FILE_MOBILE_LOGO_LOGIN'), {
                         labelClass: 'w-100 wii-field-name',
                         defaultValue: setting('DEFAULT_MOBILE_LOGO_LOGIN_VALUE'),
                     }) }}
@@ -32,7 +27,7 @@
         <div class="form-group w-fit-content col-6">
             <div class="row">
                 <div class="col-auto">
-                    {{ form.image(setting('EMAIL_LOGO'), 'Logo sur les emails', false, setting_value('EMAIL_LOGO'), {
+                    {{ form.image(setting('FILE_EMAIL_LOGO'), 'Logo sur les emails', false, setting_value('FILE_EMAIL_LOGO'), {
                         labelClass: 'w-100 wii-field-name',
                         defaultValue: setting('DEFAULT_EMAIL_LOGO_VALUE'),
                     }) }}
@@ -43,7 +38,7 @@
         <div class="form-group w-fit-content col-6">
             <div class="row">
                 <div class="col-auto">
-                    {{ form.image(setting('MOBILE_LOGO_HEADER'), 'Logo sur nomade entête', false, setting_value('MOBILE_LOGO_HEADER'), {
+                    {{ form.image(setting('FILE_MOBILE_LOGO_HEADER'), 'Logo sur nomade entête', false, setting_value('FILE_MOBILE_LOGO_HEADER'), {
                         labelClass: 'w-100 wii-field-name',
                         defaultValue: setting('DEFAULT_MOBILE_LOGO_HEADER_VALUE'),
                     }) }}
