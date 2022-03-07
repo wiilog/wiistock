@@ -126,6 +126,7 @@
                                         type: 'location',
                                         placeholder: 'Sélectionnez un emplacement',
                                         includeParams: '[name=deliveryType]',
+                                        minLength: restrictedDeliveryLocations ? 0 : 1,
                                         disabled: true,
                                     }) }}
                                 </div>
@@ -217,6 +218,7 @@
                                         type: 'location',
                                         placeholder: 'Sélectionnez un emplacement',
                                         includeParams: '[name=collectType]',
+                                        minLength: restrictedCollectLocations ? 0 : 1,
                                         disabled: true,
                                     }) }}
                                 </div>

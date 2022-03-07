@@ -32,7 +32,7 @@ let droppedFiles = [];
  *   - waitDatatable if true returned a Promise resolve whe Datatable is reloaded
  *   - keepLoading Keep loader on submit button after receiving ajax response
  */
-function InitModal($modal, submit, path, options= {}) {
+function InitModal($modal, submit, path, options = {}) {
     if(options.clearOnClose) {
         $modal.on('hidden.bs.modal', function () {
             clearModal($modal);

@@ -121,7 +121,12 @@ class LocationController extends AbstractController {
 
             $entityManager->persist($emplacement);
             $entityManager->flush();
-            return new JsonResponse(true);
+
+            $label = $emplacement->getLabel();
+            return $this->json([
+                'success' => true,
+                'msg' => "L'emplacement <strong>$label</strong> a bien été créé"
+            ]);
         }
 
         throw new BadRequestHttpException();
@@ -195,7 +200,12 @@ class LocationController extends AbstractController {
             }
 
             $entityManager->flush();
-            return new JsonResponse();
+
+            $label = $emplacement->getLabel();
+            return $this->json([
+                'success' => true,
+                'msg' => "L'emplacement <strong>$label</strong> a bien été modifié"
+            ]);
         }
         throw new BadRequestHttpException();
     }

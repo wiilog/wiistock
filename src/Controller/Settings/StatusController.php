@@ -98,13 +98,13 @@ class StatusController extends AbstractController
             if ($edit) {
                 $stateOptions = $statusService->getStatusStatesOptions($mode, $status->getState(), true);
 
-                $disabledMobileSync = $status->getState() === Statut::DRAFT ? 'disabled' : '';
+                $disabledMobileSync = in_array($status->getState(), [Statut::DRAFT, Statut::TREATED]) ? 'disabled' : '';
 
                 $defaultStatut = $status->isDefaultForCategory() ? 'checked' : "";
                 $sendMailBuyers = $status->getSendNotifToBuyer() ? 'checked' : "";
                 $sendMailRequesters = $status->getSendNotifToDeclarant() ? 'checked' : "";
                 $sendMailDest = $status->getSendNotifToRecipient() ? 'checked' : "";
-                $needsMobileSync = ($status->getState() !== Statut::DRAFT && $status->getNeedsMobileSync()) ? 'checked' : "";
+                $needsMobileSync = (!in_array($status->getState(), [Statut::DRAFT, Statut::TREATED]) && $status->getNeedsMobileSync()) ? 'checked' : "";
                 $commentNeeded = $status->getCommentNeeded() ? 'checked' : "";
                 $automaticReceptionCreation = $status->getAutomaticReceptionCreation() ? 'checked' : "";
 
@@ -134,7 +134,7 @@ class StatusController extends AbstractController
                     "sendMailBuyers" => FormatHelper::bool($status->getSendNotifToBuyer()),
                     "sendMailRequesters" => FormatHelper::bool($status->getSendNotifToDeclarant()),
                     "sendMailDest" => FormatHelper::bool($status->getSendNotifToRecipient()),
-                    "needsMobileSync" => FormatHelper::bool($status->getState() !== Statut::DRAFT && $status->getNeedsMobileSync()),
+                    "needsMobileSync" => FormatHelper::bool(!in_array($status->getState(), [Statut::DRAFT, Statut::TREATED]) && $status->getNeedsMobileSync()),
                     "commentNeeded" => FormatHelper::bool($status->getCommentNeeded()),
                     "automaticReceptionCreation" => FormatHelper::bool($status->getAutomaticReceptionCreation()),
                     "order" => $status->getDisplayOrder(),

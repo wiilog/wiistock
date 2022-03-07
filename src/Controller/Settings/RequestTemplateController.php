@@ -182,7 +182,7 @@ class RequestTemplateController extends AbstractController {
                         <div class='d-flex align-items-center'>
                             <span style='white-space: nowrap'>H +</span>
                             <input class='form-control data needed mx-2'
-                                   style='flex: 1 1 auto'
+                                   style='width: 70px'
                                    type='number'
                                    value='$delay'
                                    name='delay'
@@ -216,14 +216,10 @@ class RequestTemplateController extends AbstractController {
                     "label" => "Nombre d'opération(s) réalisée(s)" . ($carriedOutOperationsIsNeeded === 'required' ? "*" : ''),
                     "value" => "<input name='carriedOutOperationCount' class='data form-control' $carriedOutOperationsIsNeeded value='$carriedOutOperations'>",
                 ];
-                $data[] = [
-                    "label" => "Commentaire",
-                    "value" => "<div class='editor-container data' data-wysiwyg='comment'>$comment</div>",
-                ];
             }
 
             $freeFieldTemplate = $twig->createTemplate('
-                    <div data-type="{{ free_field.type.id }}">
+                    <div data-type="{{ free_field.type.id }}" class="inline-select">
                         {% include "free_field/freeFieldsEdit.html.twig" with {
                             freeFields: [free_field],
                             freeFieldValues: value,
@@ -275,6 +271,11 @@ class RequestTemplateController extends AbstractController {
                         'fieldNameClass' => 'wii-field-name',
                         'bigger' => 'bigger'
                     ])
+                ];
+
+                $data[] = [
+                    "label" => "Commentaire",
+                    "value" => "<div class='editor-container data' data-wysiwyg='comment'>$comment</div>",
                 ];
             }
         }

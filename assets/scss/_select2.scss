@@ -49,7 +49,7 @@ $select-height: 36px;
     }
 }
 
-.select2-search.select2-search--inline:not(.filters-container .select2-search.select2-search--inline) {
+.select2-search.select2-search--inline:not(.filters-container .select2-search.select2-search--inline, .inline-select .select2-search.select2-search--inline) {
     width: 100%;
 }
 
