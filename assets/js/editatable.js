@@ -223,9 +223,10 @@ function initEditatable(datatable, onDatatableInit = null) {
         drawCallback: () => {
             const $parent = datatable.element.closest(`.wii-box`);
 
-            $parent.find(`.dataTables_wrapper, .dataTables_scrollBody, .dataTables_scrollHead`)
-                .css(`overflow-x`, `visible`)
-                .css(`overflow-y`, `visible`)
+            $parent.find(`.dataTables_scrollBody, .dataTables_scrollHead`)
+                .css('overflow', null)
+                .css('overflow-x', 'initial')
+                .css('overflow-y', 'visible');
 
             const $rows = $(datatable.table.rows().nodes());
             $rows.each(function() {
