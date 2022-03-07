@@ -16,14 +16,17 @@ use WiiCommon\Helper\Stream;
 class StatusService {
 
     private $entityManager;
+
     private $security;
+
     private $templating;
+
     private $router;
 
     public function __construct(EntityManagerInterface $entityManager,
-                                Security $security,
-                                Twig_Environment $templating,
-                                RouterInterface $router) {
+                                Security               $security,
+                                Twig_Environment       $templating,
+                                RouterInterface        $router) {
         $this->entityManager = $entityManager;
         $this->security = $security;
         $this->templating = $templating;
@@ -65,19 +68,25 @@ class StatusService {
         $disputes = $statusRepository->countDisputes($category, $type, $status);
         $similarLabels = $statusRepository->countSimilarLabels($category, $data['label'], $data['type'], $status);
 
-        if ($similarLabels > 0) {
+        if($similarLabels > 0) {
             $message = 'Le statut "' . $data['label'] . '" existe déjà pour cette catégorie. Veuillez en choisir un autre.';
-        } else if ($data['defaultForCategory'] && $defaults > 0) {
-            $message = 'Vous ne pouvez pas définir un statut par défaut pour cette entité et ce type, il en existe déjà un.';
-        } else if (((int) $data['state']) === Statut::DRAFT && $drafts > 0) {
-            $message = 'Vous ne pouvez pas définir un statut brouillon pour cette entité et ce type, il en existe déjà un.';
-        } else if (((int) $data['state']) === Statut::DISPUTE && $disputes > 0) {
-            $message = 'Vous ne pouvez pas définir un statut litige pour cette entité et ce type, il en existe déjà un.';
+        } else {
+            if($data['defaultForCategory'] && $defaults > 0) {
+                $message = 'Vous ne pouvez pas définir un statut par défaut pour cette entité et ce type, il en existe déjà un.';
+            } else {
+                if(((int)$data['state']) === Statut::DRAFT && $drafts > 0) {
+                    $message = 'Vous ne pouvez pas définir un statut brouillon pour cette entité et ce type, il en existe déjà un.';
+                } else {
+                    if(((int)$data['state']) === Statut::DISPUTE && $disputes > 0) {
+                        $message = 'Vous ne pouvez pas définir un statut litige pour cette entité et ce type, il en existe déjà un.';
+                    }
+                }
+            }
         }
 
         return [
             'success' => empty($message),
-            'message' => $message ?? null
+            'message' => $message ?? null,
         ];
     }
 
@@ -91,7 +100,7 @@ class StatusService {
         $statusArray = $queryResult['data'];
 
         $rows = [];
-        foreach ($statusArray as $status) {
+        foreach($statusArray as $status) {
             $rows[] = $this->dataRowStatus($status);
         }
 
@@ -134,7 +143,7 @@ class StatusService {
             [
                 'label' => 'À traiter',
                 'id' => Statut::NOT_TREATED,
-                'code' => 'notTreated'
+                'code' => 'notTreated',
             ],
             [
                 'label' => 'En cours',
@@ -145,7 +154,8 @@ class StatusService {
             [
                 'label' => 'Traité',
                 'id' => Statut::TREATED,
-                'code' => 'treated'
+                'code' => 'treated',
+                'needMobileSyncDisabled' => true,
             ],
             [
                 'label' => 'Litige',
@@ -158,7 +168,7 @@ class StatusService {
                 'id' => Statut::PARTIAL,
                 'code' => 'partial',
                 'modes' => [StatusController::MODE_DISPATCH],
-            ]
+            ],
         ])
             ->filter(fn($state) => (
                 !isset($state['modes'])
@@ -171,8 +181,8 @@ class StatusService {
     public function getStatusStateLabel(int $stateId): ?string {
         $states = $this->getStatusStatesValues();
         $label = null;
-        foreach ($states as $state) {
-            if ($state['id'] === $stateId) {
+        foreach($states as $state) {
+            if($state['id'] === $stateId) {
                 $label = $state['label'];
                 break;
             }
@@ -183,8 +193,8 @@ class StatusService {
     public function getStatusStateCode(int $stateId): ?string {
         $states = $this->getStatusStatesValues();
         $label = null;
-        foreach ($states as $state) {
-            if ($state['id'] === $stateId) {
+        foreach($states as $state) {
+            if($state['id'] === $stateId) {
                 $label = $state['code'];
                 break;
             }
