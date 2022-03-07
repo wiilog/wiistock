@@ -241,7 +241,9 @@ class PairingController extends AbstractController {
             $coordinates = Stream::explode(',', $message->getContent())
                 ->map(fn($coordinate) => floatval($coordinate))
                 ->toArray();
-            $data[$sensorCode][$dateStr] = $coordinates;
+            if ($coordinates[0] !== -1 || $coordinates[1] !== -1) {
+                $data[$sensorCode][$dateStr] = $coordinates;
+            }
         }
         return new JsonResponse($data);
     }
