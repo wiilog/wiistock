@@ -48,8 +48,9 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
         deleteRoute: `settings_delete_status`,
         mode: canEdit ? MODE_CLICK_EDIT : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
-        search: false,
-        paginate: false,
+        search: true,
+        ordering: true,
+        paging: true,
         scrollY: false,
         scrollX: false,
         onInit: () => {
@@ -58,7 +59,6 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
         onEditStart: () => {
             $managementButtons.removeClass('d-none');
             $tableHeader.addClass('d-none');
-            $filtersContainer.addClass('d-none');
             $pageBody.prepend('<div class="header wii-title">Ajouter des statuts</div>');
         },
         onEditStop: () => {
@@ -72,6 +72,7 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
     });
 
     $addButton.on(`click`, function() {
+        $filtersContainer.addClass('d-none');
         table.addRow(true);
     });
 
@@ -92,7 +93,7 @@ function getStatusesColumn(mode) {
         {data: `comment`, title: `Commentaire litige`, modes: [MODE_ARRIVAL_DISPUTE, MODE_RECEPTION_DISPUTE]},
         {
             data: `defaultStatut`,
-            title: `<div>Statut<br/>par défaut</div>`,
+            title: `Statut par défaut`,
             modes: [MODE_ARRIVAL, MODE_ARRIVAL_DISPUTE, MODE_RECEPTION_DISPUTE, MODE_HANDLING, MODE_PURCHASE_REQUEST]},
         {
             data: `sendMailBuyers`,
@@ -124,7 +125,7 @@ function getStatusesColumn(mode) {
             title: `<div class='small-column'>Commentaire obligatoire sur nomade</div>`,
             modes: [MODE_HANDLING]
         },
-        {data: `order`, title: `Ordre`, required: true},
+        {data: `order`, class: `maxw-70px`, title: `Ordre`, required: true},
     ].filter(({modes}) => !modes || modes.indexOf(mode) > -1);
 }
 
@@ -143,6 +144,8 @@ function getFormColumn(mode, statusStateOptions, categoryType){
                         class='form-control data'
                         required
                         data-s2='types'
+                        data-no-search
+                        data-min-length="0"
                         data-include-params-parent='tr'
                         data-include-params='input[name=categoryType]'>
                 </select>
