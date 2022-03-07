@@ -88,7 +88,7 @@ function getStatusesColumn(mode) {
         {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
         {data: `label`, title: `Libellé`, required: true},
         {data: `state`, title: `État`, required: true},
-        {data: `type`, title: `Type`, modes: [MODE_ARRIVAL, MODE_DISPATCH, MODE_HANDLING]},
+        {data: `type`, title: `Type`, required: true, modes: [MODE_ARRIVAL, MODE_DISPATCH, MODE_HANDLING]},
         {data: `comment`, title: `Commentaire litige`, modes: [MODE_ARRIVAL_DISPUTE, MODE_RECEPTION_DISPUTE]},
         {
             data: `defaultStatut`,
@@ -141,6 +141,7 @@ function getFormColumn(mode, statusStateOptions, categoryType){
                 <select name='type'
                         style="min-width: 150px"
                         class='form-control data'
+                        required
                         data-s2='types'
                         data-include-params-parent='tr'
                         data-include-params='input[name=categoryType]'>

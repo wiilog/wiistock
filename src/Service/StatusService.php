@@ -59,7 +59,7 @@ class StatusService {
 
         $category = $status
             ? $status->getCategorie()
-            : $categoryStatusRepository->find($data['category']);
+            : $categoryStatusRepository->findOneBy(['nom' => $data['category']]);
 
         $type = isset($data['type'])
             ? $typeRepository->find($data['type'])
