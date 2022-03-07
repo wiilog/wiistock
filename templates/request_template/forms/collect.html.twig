@@ -17,7 +17,8 @@
     <div class="form-group col-md-6 col-12">
         <label>Point de collecte*</label>
         <select name="collectPoint" class="form-control data needed w-100"
-                data-s2="location" data-include-params="select[name=collectType]">
+                data-s2="location" data-include-params="select[name=collectType]"
+                data-min-length="{{ restrictedLocations is defined and restrictedLocations ? 0 : 1 }}">
             {% if request_template.collectPoint is defined and request_template.collectPoint %}
                 <option selected value="{{ request_template.collectPoint.id }}">{{ request_template.collectPoint.label }}</option>
             {% endif %}

@@ -39,6 +39,7 @@ class CartController extends AbstractController
     public function cart(EntityManagerInterface $manager, GlobalParamService $globalParamService): Response {
         $typeRepository = $manager->getRepository(Type::class);
         $freeFieldRepository = $manager->getRepository(FreeField::class);
+        $settingRepository = $manager->getRepository(Setting::class);
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -81,11 +82,10 @@ class CartController extends AbstractController
             $referencesByBuyer[$buyerId]["references"][] = $reference;
         }
 
-
         ksort($referencesByBuyer);
 
         //add no buyer references at the end
-        array_push($referencesByBuyer, array_shift($referencesByBuyer));
+        $referencesByBuyer[] = array_shift($referencesByBuyer);
 
         $defaultDeliveryLocations = $globalParamService->getDefaultDeliveryLocationsByTypeId();
         $deliveryRequests = Stream::from($manager->getRepository(Demande::class)->getDeliveryRequestForSelect($currentUser))
@@ -119,7 +119,9 @@ class CartController extends AbstractController
             "deliveryFreeFieldsTypes" => $deliveryFreeFields,
             "collectFreeFieldsTypes" => $collectFreeFields,
             "referencesByBuyer" => $referencesByBuyer,
-            "showTargetLocationPicking" => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION)
+            "showTargetLocationPicking" => $settingRepository->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
+            "restrictedCollectLocations" => $settingRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST),
+            "restrictedDeliveryLocations" => $settingRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST),
         ]);
     }
 
