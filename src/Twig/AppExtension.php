@@ -14,6 +14,7 @@ use Twig\Markup;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
 use Twig\Extension\AbstractExtension;
+use Twig\TwigTest;
 
 class AppExtension extends AbstractExtension {
 
@@ -66,6 +67,12 @@ class AppExtension extends AbstractExtension {
             new TwigFilter('ellipsis', [$this, 'ellipsis']),
             new TwigFilter("format_helper", [$this, "formatHelper"]),
             new TwigFilter("json_decode", "json_decode"),
+        ];
+    }
+
+    public function getTests() {
+        return [
+            new TwigTest('instanceof', [$this, 'isInstanceOf'])
         ];
     }
 
@@ -193,5 +200,10 @@ class AppExtension extends AbstractExtension {
         }
 
         return $results;
+    }
+
+    public function isInstanceOf($entity, string $class): bool {
+        $reflexionClass = new ReflectionClass($class);
+        return $reflexionClass->isInstance($entity);
     }
 }

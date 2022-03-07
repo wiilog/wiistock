@@ -62,9 +62,10 @@
                                     {{ not createDL ? 'disabled' }}>
                                     <option></option>
                                 </select>
+                                {% set isLocation = app.user.dropzone is instanceof('App\\Entity\\Emplacement') %}
                                 <input hidden id="locationDemandeLivraisonValue"
-                                       data-id="{{ app.user.dropzone and needsCurrentUser ? app.user.dropzone.id }}"
-                                       data-text="{{ app.user.dropzone and needsCurrentUser ? app.user.dropzone.label }}">
+                                       data-id="{{ app.user.dropzone and isLocation and needsCurrentUser ? app.user.dropzone.id }}"
+                                       data-text="{{ app.user.dropzone and isLocation and needsCurrentUser ? app.user.dropzone.label }}">
                             </div>
                             <input type="hidden" name="restrictedLocations" value="{{ restrictedLocations }}">
                         </div>
