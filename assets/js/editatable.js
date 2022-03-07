@@ -92,8 +92,10 @@ export default class EditableDatatable {
         }
 
         if(clear && this.state !== STATE_ADD) {
-            this.table.clear();
-            this.toggleEdit(STATE_ADD).then(() => drawNewRow());
+            this.toggleEdit(STATE_ADD, true).then(() => {
+                this.table.clear();
+                drawNewRow();
+            });
         } else {
             this.table.row(':last').remove();
             drawNewRow();
