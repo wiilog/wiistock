@@ -78,7 +78,10 @@ class FreeFieldService {
                     }
                     $value = !$decoded
                         ? $value
-                        : implode(';', $decoded);
+                        : (is_array($decoded)
+                            ? implode(';', $decoded)
+                            : $decoded
+                        );
                 }
                 break;
 
