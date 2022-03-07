@@ -294,7 +294,7 @@ function initEditatable(datatable, onDatatableInit = null) {
                 .addClass('form-control');
 
             const data = datatable.table.rows().data();
-            $parent.find(`.dataTables_paginate, .dataTables_length`)
+            $parent.find(`.dataTables_paginate, .dataTables_length, .dataTables_info`)
                 .parent()
                 .toggleClass(`d-none`, !data || data.length <= 10);
             $('.dataTables_filter')

@@ -226,7 +226,7 @@ function datatableDrawCallback({   response,
     const recordsDisplay = response.fnRecordsDisplay();
     if(needsPagingHide && recordsDisplay !== undefined) {
         $table.parents('.dataTables_wrapper')
-            .find(`.dataTables_paginate, .dataTables_length`)
+            .find(`.dataTables_paginate, .dataTables_length, .dataTables_info`)
             .parent()
             .toggleClass(`d-none`, recordsDisplay <= 10);
     }
