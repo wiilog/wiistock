@@ -186,6 +186,11 @@ function initEditatable(datatable, onDatatableInit = null) {
         const datatable = $element.DataTable();
         url = datatable.ajax.url();
         datatable.clear().destroy();
+
+        $element.closest(`.wii-box`)
+            .find(`.dataTables_filter`)
+            .closest(`.col-auto`)
+            .remove();
     }
     else {
         url = config.route;
