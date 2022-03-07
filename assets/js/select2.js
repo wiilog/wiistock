@@ -174,6 +174,12 @@ export default class Select2 {
                         .on(`keyup.select2-save-search`, `.select2-dropdown .select2-search__field`, () => {
                             search = $searchField.val();
                         });
+
+                    if ($element.is(`[data-no-search]`)) {
+                        $element.siblings('.select2-container')
+                            .find('.select2-dropdown .select2-search')
+                            .addClass('d-none') ;
+                    }
                 });
 
                 $element.on('select2:close', function (e) {

@@ -2,6 +2,12 @@
 
 $select-height: 36px;
 
+.select2-container,
+.select2-container .select2-selection__rendered,
+.select2-container > * {
+    @include font-size($input-font-size);
+}
+
 .select2-container--open .select2-selection:not(.is-invalid) {
     border-color: $primary !important;
     border-radius: 4px !important;
