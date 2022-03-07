@@ -307,6 +307,7 @@ function initializeOffDays($container, canEdit) {
         save: SAVE_MANUALLY,
         search: true,
         paging: true,
+        ordering: true,
         needsPagingHide: true,
         needsSearchHide: true,
         onInit: () => {

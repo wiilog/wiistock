@@ -122,7 +122,14 @@ class ArticleQuantityNotifier {
     private function treatAlert(EntityManagerInterface $entityManager,
                                 Article $article)
     {
-        if ($article->getExpiryDate()) {
+        $invalid = !$this->expiryDelay;
+        try {
+            $dummy = (new DateTime())->modify("{$this->expiryDelay}day");
+        } catch(Throwable $e) {
+            $invalid = true;
+        }
+
+        if (!$invalid && $article->getExpiryDate()) {
             $now = new DateTime("now");
             $expires = clone $now;
             $expires->modify("{$this->expiryDelay}day");

@@ -303,9 +303,15 @@ class SettingsService {
         }
 
         if(isset($tables["offDays"])) {
+            $workFreeDayRepository = $this->manager->getRepository(WorkFreeDay::class);
             foreach(array_filter($tables["offDays"]) as $offDay) {
+                $date = DateTime::createFromFormat("Y-m-d", $offDay["day"]);
+                if($workFreeDayRepository->findBy(["day" => $date])) {
+                    throw new RuntimeException("Le jour " . $date->format("d/m/Y") . " est déjà renseigné");
+                }
+
                 $day = new WorkFreeDay();
-                $day->setDay(DateTime::createFromFormat("Y-m-d", $offDay["day"]));
+                $day->setDay($date);
 
                 $this->manager->persist($day);
             }

@@ -120,6 +120,7 @@ class ImportService
         ],
         Import::ENTITY_ART_FOU => [
             "label",
+            "reference",
             "référence article de référence",
             "référence fournisseur"
         ],
