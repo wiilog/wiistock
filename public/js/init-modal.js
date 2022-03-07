@@ -301,6 +301,7 @@ function ProcessForm($modal, isAttachmentForm = undefined, validator = undefined
     const dataValidator = validator
         ? (validator($modal) || {success: true, errorMessages: [], $isInvalidElements: []})
         : {success: true, errorMessages: [], $isInvalidElements: []};
+
     return {
         success: (
             dataArrayForm.success
@@ -415,7 +416,7 @@ function processInputsForm($modal, data, isAttachmentForm) {
             .trim();
 
         // validation données obligatoires
-        if ($input.hasClass('needed')
+        if (($input.hasClass('needed') && $input.is(`:not([type=radio])`))
             && $input.is(':disabled') === false
             && (val === undefined
                 || val === ''
