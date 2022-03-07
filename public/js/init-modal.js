@@ -356,7 +356,7 @@ function matchesAll(value, ...regexes) {
  * @return {{errorMessages: Array<string>, success: boolean, $isInvalidElements: Array<*>}}
  */
 function processInputsForm($modal, data, isAttachmentForm) {
-    const $inputs = $modal.find('.data:not([name^="savedFiles"])');
+    const $inputs = $modal.find('.data:not([name^="savedFiles"]):not([type=radio])');
     const $isInvalidElements = [];
     const missingInputNames = [];
 
