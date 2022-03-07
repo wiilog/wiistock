@@ -60,6 +60,9 @@ class SettingsService {
     /** @Required */
     public AlertTemplateService $alertTemplateService;
 
+    /** @Required */
+    public StatusService $statusService;
+
     private array $settingsConstants;
 
     public function __construct() {
@@ -507,6 +510,7 @@ class SettingsService {
                         StatusController::MODE_DISPATCH => CategorieStatut::DISPATCH,
                         StatusController::MODE_HANDLING => CategorieStatut::HANDLING
                     };
+                    $statusData['category'] = $categoryName;
                     $status->setCategorie($categoryRepository->findOneBy(['nom' => $categoryName]));
 
                     // we set type only on creation
@@ -514,6 +518,13 @@ class SettingsService {
                         $status->setType($typeRepository->find($statusData['type']));
                     }
                 }
+
+                $validation = $this->statusService->validateStatusData($this->manager, $statusData, isset($statusData['statusId']) ? $status : null);
+
+                if (!$validation['success']) {
+                    throw new RuntimeException($validation['message']);
+                }
+
                 $status->setNom($statusData['label']);
                 $status->setState($statusData['state']);
                 $status->setComment($statusData['comment'] ?? null);

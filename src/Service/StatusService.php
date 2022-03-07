@@ -61,27 +61,23 @@ class StatusService {
             ? $status->getCategorie()
             : $categoryStatusRepository->find($data['category']);
 
-        $type = $typeRepository->find($data['type']);
+        $type = isset($data['type'])
+            ? $typeRepository->find($data['type'])
+            : $status?->getType();
 
         $defaults = $statusRepository->countDefaults($category, $type, $status);
         $drafts = $statusRepository->countDrafts($category, $type, $status);
         $disputes = $statusRepository->countDisputes($category, $type, $status);
-        $similarLabels = $statusRepository->countSimilarLabels($category, $data['label'], $data['type'], $status);
+        $similarLabels = $statusRepository->countSimilarLabels($category, $data['label'], $type, $status);
 
         if($similarLabels > 0) {
             $message = 'Le statut "' . $data['label'] . '" existe déjà pour cette catégorie. Veuillez en choisir un autre.';
-        } else {
-            if($data['defaultForCategory'] && $defaults > 0) {
-                $message = 'Vous ne pouvez pas définir un statut par défaut pour cette entité et ce type, il en existe déjà un.';
-            } else {
-                if(((int)$data['state']) === Statut::DRAFT && $drafts > 0) {
-                    $message = 'Vous ne pouvez pas définir un statut brouillon pour cette entité et ce type, il en existe déjà un.';
-                } else {
-                    if(((int)$data['state']) === Statut::DISPUTE && $disputes > 0) {
-                        $message = 'Vous ne pouvez pas définir un statut litige pour cette entité et ce type, il en existe déjà un.';
-                    }
-                }
-            }
+        } else if (!empty($data['defaultForCategory']) && $defaults > 0) {
+            $message = 'Vous ne pouvez pas définir un statut par défaut pour cette entité et ce type, il en existe déjà un.';
+        } else if (((int) $data['state']) === Statut::DRAFT && $drafts > 0) {
+            $message = 'Vous ne pouvez pas définir un statut brouillon pour cette entité et ce type, il en existe déjà un.';
+        } else if (((int) $data['state']) === Statut::DISPUTE && $disputes > 0) {
+            $message = 'Vous ne pouvez pas définir un statut litige pour cette entité et ce type, il en existe déjà un.';
         }
 
         return [
