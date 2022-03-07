@@ -2174,7 +2174,7 @@ class MobileController extends AbstractFOSRestController
                              Request $request): Response
     {
         $logoKey = $request->get('key');
-        if (!in_array($logoKey, [Setting::MOBILE_LOGO_HEADER, Setting::MOBILE_LOGO_LOGIN])) {
+        if (!in_array($logoKey, [Setting::FILE_MOBILE_LOGO_HEADER, Setting::FILE_MOBILE_LOGO_LOGIN])) {
             throw new BadRequestHttpException('Unknown logo key');
         }
 

@@ -1409,7 +1409,7 @@ class DispatchController extends AbstractController {
         }
 
         $settingRepository = $entityManager->getRepository(Setting::class);
-        $logo = $settingRepository->getOneParamByLabel(Setting::WAYBILL_LOGO);
+        $logo = $settingRepository->getOneParamByLabel(Setting::FILE_WAYBILL_LOGO);
 
         $nowDate = new DateTime('now');
 
@@ -1519,7 +1519,7 @@ class DispatchController extends AbstractController {
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
 
         $appLogo = $settingRepository->getOneParamByLabel(Setting::LABEL_LOGO);
-        $overconsumptionLogo = $settingRepository->getOneParamByLabel(Setting::OVERCONSUMPTION_LOGO);
+        $overconsumptionLogo = $settingRepository->getOneParamByLabel(Setting::FILE_OVERCONSUMPTION_LOGO);
 
         $additionalField = [];
         if ($specificService->isCurrentClientNameFunction(SpecificService::CLIENT_COLLINS_VERNON)) {
