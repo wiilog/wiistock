@@ -125,7 +125,7 @@ function getStatusesColumn(mode) {
             title: `<div class='small-column'>Commentaire obligatoire sur nomade</div>`,
             modes: [MODE_HANDLING]
         },
-        {data: `order`, title: `Ordre`, required: true},
+        {data: `order`, class: `maxw-70px`, title: `Ordre`, required: true},
     ].filter(({modes}) => !modes || modes.indexOf(mode) > -1);
 }
 
