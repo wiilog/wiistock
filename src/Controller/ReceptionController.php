@@ -14,8 +14,6 @@ use App\Entity\InventoryCategory;
 use App\Entity\Dispute;
 use App\Entity\FieldsParam;
 use App\Entity\CategorieCL;
-use App\Entity\LocationCluster;
-use App\Entity\LocationClusterMeter;
 use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PurchaseRequest;
@@ -42,7 +40,6 @@ use App\Service\DemandeLivraisonService;
 use App\Service\GlobalParamService;
 use App\Service\DisputeService;
 use App\Service\LivraisonsManagerService;
-use App\Service\LocationClusterService;
 use App\Service\MailerService;
 use App\Service\MouvementStockService;
 use App\Service\NotificationService;
@@ -73,7 +70,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
-use WiiCommon\Helper\Stream;
 
 /**
  * @Route("/reception")
@@ -82,9 +78,6 @@ class ReceptionController extends AbstractController {
 
     /** @Required */
     public NotificationService $notificationService;
-
-    /** @Required */
-    public LocationClusterService $locationClusterService;
 
     /**
      * @Route("/new", name="reception_new", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
@@ -1664,7 +1657,6 @@ class ReceptionController extends AbstractController {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $paramGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
-            $locationClusterMeterRepository = $entityManager->getRepository(LocationClusterMeter::class);
 
             $totalQuantities = [];
             foreach($articles as $article) {
@@ -1887,13 +1879,7 @@ class ReceptionController extends AbstractController {
                 );
 
                 $entityManager->persist($mouvementStock);
-                if ($receptionLocation) {
-                    $date = new DateTime();
-                    $clusterOriginalCounts = Stream::from($receptionLocation->getClusters())
-                        ->keymap(function(LocationCluster $cluster) use ($locationClusterMeterRepository, $date) {
-                            return [$cluster->getId(), $locationClusterMeterRepository->countByDate($date, $cluster)];
-                        })->toArray();
-                }
+
                 $createdMvt = $trackingMovementService->createTrackingMovement(
                     $article->getBarCode(),
                     $receptionLocation,
@@ -1908,25 +1894,10 @@ class ReceptionController extends AbstractController {
                         'from' => $reception
                     ]
                 );
+
                 $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
                 $entityManager->persist($createdMvt);
                 $entityManager->flush();
-                if ($receptionLocation) {
-                    $date = new DateTime();
-                    foreach ($receptionLocation->getClusters() as $cluster) {
-                        $newCount = $locationClusterMeterRepository->countByDate($date, $cluster);
-                        $clusterId = $cluster->getId();
-                        $expected = $clusterOriginalCounts[$clusterId] + 1;
-                        if ($expected !== $newCount) {
-                            $this->locationClusterService->setMeter(
-                                $entityManager,
-                                LocationClusterService::METER_ACTION_INCREASE,
-                                $createdMvt->getDatetime(),
-                                $cluster
-                            );
-                        }
-                    }
-                }
             }
 
             foreach($emergencies as $article) {

@@ -25,6 +25,7 @@ use App\Entity\Nature;
 use App\Entity\ReceiptAssociation;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
+use App\Entity\TrackingMovement;
 use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
 use App\Entity\Type;
@@ -515,7 +516,7 @@ class DashboardService {
     public function persistDroppedPacks(EntityManagerInterface $entityManager,
                                         Dashboard\Component $component): void {
         $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
-        $locationClusterMeterRepository = $entityManager->getRepository(LocationClusterMeter::class);
+        $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
 
         $config = $component->getConfig();
         $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
@@ -524,11 +525,8 @@ class DashboardService {
         $locationCluster = $component->getLocationCluster($clusterKey);
         $entityManager->flush();
         $packsCountByDays = $this->getDailyObjectsStatistics($entityManager, DashboardService::DEFAULT_WEEKLY_REQUESTS_SCALE,
-            function (DateTime $date) use ($locationClusterMeterRepository, $locationCluster) {
-            return $locationClusterMeterRepository->countByDate(
-                $date,
-                $locationCluster
-            );
+            function (DateTime $date) use ($trackingMovementRepository, $locationCluster) {
+                return $trackingMovementRepository->countDropsOnLocationsOn($date, $locationCluster->getLocations()->toArray());
         }, $workFreeDays);
 
         $chartColors = $config['chartColors'] ?? [Dashboard\ComponentType::DEFAULT_CHART_COLOR];
