@@ -1056,7 +1056,7 @@ class ImportService
         } else {
             $articleFournisseur->setFournisseur($fournisseur);
         }
-
+        $articleFournisseur->setVisible(true);
         $this->em->persist($articleFournisseur);
         $this->updateStats($stats, $newEntity);
     }
