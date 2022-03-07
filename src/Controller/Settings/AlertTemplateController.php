@@ -120,7 +120,6 @@ class AlertTemplateController extends AbstractController
 
                 $data[] = [
                     "class" => "col-md-4",
-                    "label" => "Variable",
                     "value" => $this->renderView('variables_dictionary.html.twig', [
                         'dictionary' => 'ALERT_DICTIONARY'
                     ]),
@@ -155,7 +154,6 @@ class AlertTemplateController extends AbstractController
 
                 $data[] = [
                     "class" => "col-md-4",
-                    "label" => "Variable",
                     "value" => $this->renderView('variables_dictionary.html.twig', [
                         'dictionary' => 'ALERT_DICTIONARY'
                     ]),
@@ -209,7 +207,6 @@ class AlertTemplateController extends AbstractController
 
                 $data[] = [
                     "class" => "col-md-4",
-                    "label" => "Variable",
                     "value" => $this->renderView('variables_dictionary.html.twig', [
                         'dictionary' => 'ALERT_DICTIONARY'
                     ]),
@@ -252,7 +249,6 @@ class AlertTemplateController extends AbstractController
 
                 $data[] = [
                     "class" => "col-md-4",
-                    "label" => "Variable",
                     "value" => $this->renderView('variables_dictionary.html.twig', [
                         'dictionary' => 'ALERT_DICTIONARY'
                     ]),
