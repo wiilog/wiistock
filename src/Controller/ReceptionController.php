@@ -1658,7 +1658,7 @@ class ReceptionController extends AbstractController {
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
             $statutRepository = $entityManager->getRepository(Statut::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-            $paramGlobalRepository = $entityManager->getRepository(ParametrageGlobal::class);
+            $paramGlobalRepository = $entityManager->getRepository(Setting::class);
 
             $totalQuantities = [];
             foreach($articles as $article) {
