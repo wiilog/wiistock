@@ -84,7 +84,7 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
 }
 
 function getStatusesColumn(mode) {
-    const singleRequester = [MODE_DISPATCH].includes(mode) ? ['', ''] : ['x', 's'];
+    const [x, s] = [MODE_DISPATCH, MODE_HANDLING].includes(mode) ? ['', ''] : ['x', 's'];
     return [
         {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
         {data: `label`, title: `Libellé`, required: true},
@@ -102,7 +102,7 @@ function getStatusesColumn(mode) {
         },
         {
             data: `sendMailRequesters`,
-            title: `<div class='small-column'>Envoi d'emails au${singleRequester[0]} demandeur${singleRequester[1]}</div>`,
+            title: `<div class='small-column'>Envoi d'emails au${x} demandeur${s}</div>`,
             modes: [MODE_ARRIVAL_DISPUTE, MODE_RECEPTION_DISPUTE, MODE_HANDLING, MODE_PURCHASE_REQUEST, MODE_DISPATCH]
         },
         {
