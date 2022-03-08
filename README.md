@@ -187,3 +187,6 @@ class Entity {
     
 }
 ```
+
+## Selects in datatables
+Select2 should have the attribute `data-parent="body"` when used in datatables

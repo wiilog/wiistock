@@ -33,7 +33,7 @@ export function initializeRequestTemplates($container, canEdit) {
             ],
             form: {
                 actions: `<button class="btn btn-silent delete-row"><i class="wii-icon wii-icon-trash text-primary"></i></button>`,
-                reference: `<select name="reference" data-s2="reference" required class="form-control data" data-global-error="Référence"></select>`,
+                reference: `<select name="reference" data-s2="reference" data-parent="body" required class="form-control data" data-global-error="Référence"></select>`,
                 label: `<div class="template-label"></div>`,
                 location: `<div class="template-location"></div>`,
                 quantityToTake: `<input type="number" name="quantityToTake" required class="form-control data" data-global-error="${quantityLabel}"/>`,

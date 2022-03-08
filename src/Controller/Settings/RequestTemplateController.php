@@ -99,7 +99,7 @@ class RequestTemplateController extends AbstractController {
 
                 $data[] = [
                     "label" => "Destination*",
-                    "value" => "<select name='destination' data-s2='location' class='data form-control' required>$option</select>",
+                    "value" => "<select name='destination' data-s2='location' data-parent='body' class='data form-control' required>$option</select>",
                 ];
 
                 $data[] = [
@@ -131,7 +131,7 @@ class RequestTemplateController extends AbstractController {
 
                 $data[] = [
                     "label" => "Point de collecte*",
-                    "value" => "<select name='collectPoint' data-s2='location' class='data form-control' required>$option</select>",
+                    "value" => "<select name='collectPoint' data-s2='location' data-parent='body' class='data form-control' required>$option</select>",
                 ];
 
                 $data[] = [
@@ -165,7 +165,7 @@ class RequestTemplateController extends AbstractController {
                     $status = "<option value='{$template->getRequestStatus()->getId()}'>{$template->getRequestStatus()->getNom()}</option>";
                 }
                 $data[] = [
-                    "label" => "Type de Service*",
+                    "label" => "Type de service*",
                     "value" => "<select name='handlingType' class='data form-control' required>$typeOptions</select>",
                 ];
                 $data[] = [
@@ -174,7 +174,7 @@ class RequestTemplateController extends AbstractController {
                 ];
                 $data[] = [
                     "label" => "Statut*",
-                    "value" => "<select name='status' data-s2='status' class='data form-control' data-include-params-parent='.main-entity-content-form' data-include-params='select[name=handlingType]' required>$status</select>",
+                    "value" => "<select name='status' data-s2='status' data-parent='body' class='data form-control' data-include-params-parent='.main-entity-content-form' data-include-params='select[name=handlingType]' required>$status</select>",
                 ];
                 $data[] = [
                     "label" => "Date attendue*",
@@ -269,7 +269,7 @@ class RequestTemplateController extends AbstractController {
                         'attachments' => $template?->getAttachments(),
                         'editAttachments' => true,
                         'fieldNameClass' => 'wii-field-name',
-                        'bigger' => 'bigger'
+                        "small" => true,
                     ])
                 ];
 
@@ -309,7 +309,7 @@ class RequestTemplateController extends AbstractController {
                 ];
             } else if ($template instanceof HandlingRequestTemplate) {
                 $data[] = [
-                    "label" => "Type de Service",
+                    "label" => "Type de service",
                     "value" => FormatHelper::type($template->getRequestType()),
                 ];
                 $data[] = [
@@ -407,7 +407,7 @@ class RequestTemplateController extends AbstractController {
                 $rows[] = [
                     "id" => $line->getId(),
                     "actions" => $actions,
-                    "reference" => "<select name='reference' data-s2='reference' class='$class' required>$option</select>",
+                    "reference" => "<select name='reference' data-s2='reference' data-parent='body' class='$class' required>$option</select>",
                     "label" => "<div class='template-label'>{$line->getReference()->getLibelle()}</div>",
                     "location" => "<div class='template-location'>{$location}</div>",
                     "quantityToTake" => "<input type='number' name='quantityToTake' class='$class' value='{$line->getQuantityToTake()}' required/>",
