@@ -82,7 +82,7 @@ class SettingsController extends AbstractController {
                 self::MENU_CLIENT => [
                     "label" => "Client application",
                     "save" => true,
-                    "environment" => ["preprod"],
+                    "environment" => ["dev", "preprod"],
                 ],
                 self::MENU_LABELS => [
                     "label" => "Étiquettes",
@@ -957,10 +957,10 @@ class SettingsController extends AbstractController {
 
                 $data = array_merge($data, [[
                     "label" => "Emplacement de prise par défaut",
-                    "value" => "<select name='pickLocation' data-s2='location' class='data form-control'>$pickLocationOption</select>",
+                    "value" => "<select name='pickLocation' data-s2='location' data-parent='body' class='data form-control'>$pickLocationOption</select>",
                 ], [
                     "label" => "Emplacement de dépose par défaut",
-                    "value" => "<select name='dropLocation' data-s2='location' class='data form-control'>$dropLocationOption</select>",
+                    "value" => "<select name='dropLocation' data-s2='location' data-parent='body' class='data form-control'>$dropLocationOption</select>",
                 ]]);
             }
 
@@ -999,7 +999,7 @@ class SettingsController extends AbstractController {
                     ],
                     [
                         "label" => "Pour les valeurs",
-                        "value" => "<select name='notificationEmergencies' data-s2 data-no-empty-option multiple class='data form-control w-100'>$emergencyValues</select>",
+                        "value" => "<select name='notificationEmergencies' data-s2 data-parent='body' data-no-empty-option multiple class='data form-control w-100'>$emergencyValues</select>",
                         "hidden" => !$type || !$type->isNotificationsEnabled() || !$type->getNotificationsEmergencies(),
                     ],
                 ]);
