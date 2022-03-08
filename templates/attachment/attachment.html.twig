@@ -7,7 +7,7 @@
 
     <label for="dropfile" class="{{ fieldNameClass }}">Pièces jointes{{ required ? '*' }}</label>
     {% if editAttachments %}
-        <div class="dropFrame justify-content-md-center"
+        <div class="dropFrame justify-content-md-center {{ small ?? false ? 'small-frame' }}"
              data-arrivage-id="{{ arrivage is defined ? arrivage.id : '' }}"
              data-litige-id="{{ dispute is defined ? dispute.id : '' }}"
              ondragenter="dragEnterDiv(event, $(this))"
@@ -15,7 +15,7 @@
              ondragleave="dragLeaveDiv(event, $(this))"
              ondrop="saveDroppedFiles(event, $(this))">
             {% set text = text is not defined ? 'Faites glisser vos pièces jointes' : text %}
-            <p>Faites glisser vos pièces jointes ou <span onclick="openFileExplorer($(this))" class="click-here"><i class="fa fa-folder-open"></i> Parcourir vos fichiers</span>
+            <p>Faites glisser vos pièces jointes ou <span onclick="openFileExplorer($(this))" class="click-here"><i class="fa fa-folder-open"></i> Parcourir {{ not (small ?? false) ? 'vos fichiers' }}</span>
                 <input type="file" name="files[]" {{ (unique is not defined) or (not unique) ? 'multiple' }} class="d-none fileInput"
                        onchange="saveInputFiles($(this))">
             </p>

@@ -143,7 +143,7 @@ function getFormColumn(mode, statusStateOptions, categoryType){
                         style="min-width: 150px"
                         class='form-control data'
                         required
-                        data-s2='types'
+                        data-s2='types' data-parent="body"
                         data-no-search
                         data-min-length="0"
                         data-include-params-parent='tr'

@@ -24,9 +24,7 @@ export default class EditableDatatable {
     static create(id, config) {
         const $element = $(id);
 
-        console.error("huh", $element.closest(`.wii-box`))
         $element.closest(`.wii-box`).arrive(`.wii-one-line-wysiwyg`, function() {
-            console.warn('yes')
             WysiwygManager.initializeOneLineWYSIWYG($(document));
         });
 
@@ -229,14 +227,18 @@ function initEditatable(datatable, onDatatableInit = null) {
         paging: config.paging && datatable.state === STATE_VIEWING || false,
         searching: config.search && datatable.state === STATE_VIEWING || false,
         scrollY: false,
-        scrollX: false,
+        scrollX: true,
+        autoWidth: false,
         drawCallback: () => {
             const $parent = datatable.element.closest(`.wii-box`);
 
+            $parent.find(`.dataTables_wrapper`)
+                .css(`overflow-x`, `scroll`);
+
             $parent.find(`.dataTables_scrollBody, .dataTables_scrollHead`)
-                .css('overflow', null)
-                .css('overflow-x', 'initial')
-                .css('overflow-y', 'visible');
+                .css('overflow', `visible`)
+                .css('overflow-y', 'visible')
+                .css('position', 'relative');
 
             const $rows = $(datatable.table.rows().nodes());
             $rows.each(function() {
